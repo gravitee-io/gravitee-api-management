@@ -26,8 +26,8 @@ import {
 } from '@gravitee/graphene-core';
 import { useState, type FormEvent } from 'react';
 
+import { DocumentationItemDetailsFields, privateParentOf } from './DocumentationItemDetailsFields';
 import { type ImportedFile, ImportFileField } from './ImportFileField';
-import { PageDetailsFields, privateParentOf } from './PageDetailsFields';
 import { type NewDocumentationPage, useCreateDocumentationPage } from '../../../hooks/useCreateDocumentationPage';
 import { SelectionCards, type SelectionCardItem } from '../../../pages/detail/general/SelectionCards';
 import type { PortalNavigationFolder, PortalPageContentType } from '../../../types/apiDocumentation';
@@ -130,7 +130,7 @@ function CreatePageForm({
 
             <div className="flex flex-col gap-5">
                 <form id="create-documentation-page-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
-                    <PageDetailsFields
+                    <DocumentationItemDetailsFields
                         title={title}
                         onTitleChange={setTitle}
                         isPrivate={isPrivate}

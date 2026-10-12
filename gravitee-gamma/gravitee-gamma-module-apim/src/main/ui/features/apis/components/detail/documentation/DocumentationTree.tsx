@@ -93,12 +93,12 @@ export function DocumentationTree({
             const { item } = row;
             const allowed = allowedChanges(row.syncState);
             const actions: RowAction[] = [];
-            if (canEdit && item.type !== 'LINK' && allowed.access) {
-                actions.push({ label: 'Edit details', icon: PencilIcon, onSelect: () => onEditDetails(item) });
-            }
             if (canAdd && item.type === 'FOLDER' && allowed.addInside) {
                 actions.push({ label: 'Add page', icon: PlusIcon, onSelect: () => onAddPage(item) });
                 actions.push({ label: 'Add folder', icon: FolderOpenIcon, onSelect: () => onAddFolder(item) });
+            }
+            if (canEdit && item.type !== 'LINK' && allowed.access) {
+                actions.push({ label: 'Edit details', icon: PencilIcon, onSelect: () => onEditDetails(item) });
             }
             if (canDelete && allowed.delete) {
                 actions.push({ label: 'Delete', icon: Trash2Icon, destructive: true, onSelect: () => onDelete(row) });
