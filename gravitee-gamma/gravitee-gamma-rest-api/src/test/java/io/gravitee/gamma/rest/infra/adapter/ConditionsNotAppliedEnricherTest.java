@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -41,10 +42,19 @@ class ConditionsNotAppliedEnricherTest {
             """
         );
 
-        ConditionsNotAppliedEnricher.enrichMeasures(response, Map.of("HTTP_REQUESTS", List.of("RECORD_TYPE", "NATIVE_CLIENT_ID")));
+        ConditionsNotAppliedEnricher.enrichTimeSeries(response, Map.of("HTTP_REQUESTS", List.of("RECORD_TYPE", "NATIVE_CLIENT_ID")));
 
         assertThat(response.at("/metrics/0/ignoredFilters")).isEqualTo(json("[\"NATIVE_CLIENT_ID\", \"RECORD_TYPE\"]"));
         assertThat(response.at("/metrics/1").has("ignoredFilters")).isFalse();
+    }
+
+    @Test
+    void should_add_no_field_to_a_metric_with_nothing_to_report() throws Exception {
+        var metric = (ObjectNode) json("{ \"name\": \"HTTP_REQUESTS\" }");
+
+        ConditionsNotAppliedEnricher.enrichMetric(metric, List.of());
+
+        assertThat(metric.has("ignoredFilters")).isFalse();
     }
 
     @Test

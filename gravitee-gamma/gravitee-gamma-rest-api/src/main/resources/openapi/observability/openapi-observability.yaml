@@ -66,6 +66,12 @@ tags:
           metrics count the messages of every connection of the API, whatever the entrypoint carried
           them, unless the query names one.
 
+          Every condition is ANDed, the same filter included: a widget's own conditions are appended
+          to the dashboard's, and `HTTP_STATUS = 200` with `HTTP_STATUS = 500` counts nothing.
+          Conditions that cannot overlap answer an empty result, not a 400: a measure is then zero.
+          Several `API` conditions narrow the readable APIs to their intersection, and so do several
+          `API_TYPE` conditions; neither ever widens what the caller can read.
+
           A filter condition the queried metric does not carry, such as a Kafka filter on an HTTP
           metric, is not applied to that metric: its result is not narrowed by that condition. Each
           metric of the response names such conditions in `ignoredFilters`.
@@ -1008,6 +1014,21 @@ paths:
                 **RBAC scoping**: only metrics from APIs the caller can read are included.
 
                 **Filter validation**: conditions are validated against the `ANALYTICS` signal catalog.
+
+                **Metric conditions**: a metric's own `filters` are ANDed with the request's. Metrics
+                carrying the same set of conditions share one query; each distinct set is one more
+                query, run one after the other. With ids, at most 10 distinct non-empty sets are
+                accepted.
+
+                **Response identity**: when every metric carries an `id`, the response holds one entry
+                per metric, in request order, each echoing its `id` with its own measures and
+                `ignoredFilters`. Without ids, it holds one entry per metric name, measures merged; a
+                metric named twice then keeps its own conditions not applied and listed in
+                `ignoredFilters`, and so does every metric when they carry more than 10 sets.
+
+                **Empty result**: when the caller can read none of the APIs the conditions select, each
+                metric still answers an entry, its measures at zero. No query runs, so its
+                `ignoredFilters` lists only the conditions Gamma did not apply.
             operationId: computeObservabilityMeasures
             requestBody:
                 required: true
@@ -1054,6 +1075,27 @@ paths:
                                           measures: ["COUNT"]
                                         - name: "HTTP_GATEWAY_RESPONSE_TIME"
                                           measures: ["AVG", "P99"]
+                            metric-ids:
+                                summary: A total tile and a 5xx tile on the same metric
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T00:00:00Z"
+                                        to: "2026-06-11T00:00:00Z"
+                                    filters:
+                                        - name: "API"
+                                          operator: "IN"
+                                          value: ["api-1"]
+                                    metrics:
+                                        - id: "total"
+                                          name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                                        - id: "server-errors"
+                                          name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                                          filters:
+                                              - name: "HTTP_STATUS_CODE_GROUP"
+                                                operator: "EQ"
+                                                value: "5XX"
             responses:
                 "200":
                     description: Aggregated metric measures.
@@ -1071,6 +1113,22 @@ paths:
                                               measures:
                                                   - name: "COUNT"
                                                     value: 42
+                                metric-ids:
+                                    summary: One entry per metric id, in request order
+                                    value:
+                                        metrics:
+                                            - id: "total"
+                                              name: "HTTP_REQUESTS"
+                                              unit: "NUMBER"
+                                              measures:
+                                                  - name: "COUNT"
+                                                    value: 216162
+                                            - id: "server-errors"
+                                              name: "HTTP_REQUESTS"
+                                              unit: "NUMBER"
+                                              measures:
+                                                  - name: "COUNT"
+                                                    value: 3756
                 "400":
                     $ref: "#/components/responses/AnalyticsQueryRefused"
                 "403":
@@ -1098,6 +1156,10 @@ paths:
 
                 Use `limit` to cap the number of buckets per facet. Use `ranges` for numeric
                 range bucketing (e.g. status code groups 1xx/2xx/3xx/4xx/5xx).
+
+                **Metric conditions**: the request runs as one query, so every metric must carry the
+                same `filters` (in any order, `IN` values in any order); they are ANDed with the
+                request's. Different sets are refused (`observability.query.differing_metric_conditions`).
             operationId: computeObservabilityFacets
             requestBody:
                 required: true
@@ -1195,6 +1257,10 @@ paths:
                 provided, enabling per-API or per-status time-series breakdowns.
 
                 `interval` is in milliseconds (e.g. `60000` for 1 minute, `3600000` for 1 hour).
+
+                **Metric conditions**: the request runs as one query, so every metric must carry the
+                same `filters` (in any order, `IN` values in any order); they are ANDed with the
+                request's. Different sets are refused (`observability.query.differing_metric_conditions`).
             operationId: computeObservabilityTimeSeries
             requestBody:
                 required: true
@@ -1737,6 +1803,10 @@ components:
             description: |
                 The query is refused, whatever APIs the caller can read. Possible causes:
                 - A filter condition breaks a rule of the `FilterCondition` schema (`observability.filter.*`)
+                - A metric carries a `RECORD_TYPE` condition: a metric already fixes the kind of record it counts (`observability.filter.record_type_on_metric`)
+                - Some metrics carry an `id` and others do not, or an `id` is used twice, on measures (`observability.query.partial_metric_ids`, `observability.query.duplicate_metric_id`)
+                - The metrics carry more than 10 distinct sets of conditions with ids, on measures (`observability.query.too_many_metric_condition_sets`)
+                - The metrics carry different conditions, on facets and time-series (`observability.query.differing_metric_conditions`)
                 - A time-range bound is missing, or `from` is after `to` (`observability.query.time_range_required`, `observability.query.invalid_time_range`)
                 - `metrics` is empty (`observability.query.metrics_required`)
                 - `interval` is missing or not positive, on time-series (`observability.query.invalid_interval`)
@@ -1748,12 +1818,12 @@ components:
                     schema:
                         $ref: "#/components/schemas/Error"
                     examples:
-                        repeated-filter:
-                            summary: A filter repeated outside a closed numeric range
+                        partial-metric-ids:
+                            summary: Ids on some metrics only
                             value:
                                 http_status: 400
-                                message: "Filter 'HTTP_METHOD' appears 2 times [IN, IN]. Send one condition per filter, or one GTE and one LTE for a numeric range."
-                                technicalCode: "observability.filter.repeated"
+                                message: "Either every metric carries an 'id' or none does"
+                                technicalCode: "observability.query.partial_metric_ids"
                         missing-interval:
                             summary: Time-series without an interval
                             value:
@@ -2116,9 +2186,9 @@ components:
                   (`invalid_arity`, `blank_value`);
                 - an ENUM value is one the filter advertises; a NUMBER value is a whole number within the
                   filter's range (`unknown_enum_value`, `invalid_number`, `value_out_of_range`);
-                - a filter appears once per request; the only repetition is one `GTE` and one `LTE` on
-                  the same NUMBER filter, a closed range whose lower bound is not above its upper bound
-                  (`repeated`, `inverted_range`).
+                - on logs, a filter appears once per request; the only repetition is one `GTE` and one
+                  `LTE` on the same NUMBER filter, a closed range whose lower bound is not above its upper
+                  bound (`repeated`, `inverted_range`). Analytics ANDs a repeated filter instead.
 
                 Technical codes are prefixed with `observability.filter.`.
             required: [name, operator, value]
@@ -2673,6 +2743,13 @@ components:
             description: A metric to compute with its requested measures. Used by the measures endpoint.
             required: [name, measures]
             properties:
+                id:
+                    type: string
+                    nullable: true
+                    description: |
+                        The caller's name for this metric, echoed on its response entry. Every metric of
+                        the request carries one, each different, or none does.
+                    example: "server-errors"
                 name:
                     type: string
                     description: |
@@ -2691,8 +2768,9 @@ components:
                     type: array
                     nullable: true
                     description: |
-                        Conditions on this metric alone. Validated like the top-level `filters`, but
-                        not applied yet: each one is listed in the metric's `ignoredFilters`.
+                        Conditions on this metric alone, ANDed with the top-level `filters` and validated
+                        on their own. `RECORD_TYPE` is refused here. Without ids, the conditions of a
+                        metric named twice are not applied and listed in its `ignoredFilters`.
                     items:
                         $ref: "#/components/schemas/FilterCondition"
 
@@ -2737,8 +2815,9 @@ components:
                     type: array
                     nullable: true
                     description: |
-                        Conditions on this metric alone. Validated like the top-level `filters`, but
-                        not applied yet: each one is listed in the metric's `ignoredFilters`.
+                        Conditions on this metric, ANDed with the top-level `filters` and validated on
+                        their own. Every metric of the request must carry the same set; `RECORD_TYPE` is
+                        refused here.
                     items:
                         $ref: "#/components/schemas/FilterCondition"
 
@@ -2866,8 +2945,14 @@ components:
 
         MetricResult:
             type: object
-            description: Result for one metric in a measures response.
+            description: |
+                Result for one metric in a measures response: one per request metric when they carry
+                ids, one per metric name otherwise.
             properties:
+                id:
+                    type: string
+                    description: The `id` of the request metric, present only when the metrics carry ids.
+                    example: "server-errors"
                 name:
                     type: string
                     description: Metric name.
@@ -2883,13 +2968,14 @@ components:
                 ignoredFilters:
                     type: array
                     description: |
-                        Conditions of the request this metric was not filtered by, by filter name.
-                        The engine skips a condition the metric's search cannot carry (a Kafka client
-                        filter on an HTTP metric) instead of failing, so the values are not filtered on
-                        these fields. Also lists a `RECORD_TYPE` that does not select the metric's
-                        records, and every metric-level condition. `API` and `API_TYPE` scope every
-                        query and are never listed, nor is a condition that empties the result.
-                        Absent when every condition applied.
+                        Conditions of the request or of this metric it was not filtered by, by filter
+                        name. The engine skips a condition the metric's search cannot carry (a Kafka
+                        client filter on an HTTP metric) instead of failing, so the values are not
+                        filtered on these fields. Also lists a `RECORD_TYPE` that does not select the
+                        metric's records and, without ids, the conditions of a metric named twice or of
+                        metrics carrying more than 10 sets, whatever their name. An `API` or `API_TYPE`
+                        condition that scopes the query is never listed, nor is a condition that empties
+                        the result. Absent when every condition applied.
                     items:
                         type: string
                     example: ["NATIVE_CLIENT_ID"]
@@ -2958,13 +3044,12 @@ components:
                 ignoredFilters:
                     type: array
                     description: |
-                        Conditions of the request this metric was not filtered by, by filter name.
-                        The engine skips a condition the metric's search cannot carry (a Kafka client
-                        filter on an HTTP metric) instead of failing, so the values are not filtered on
-                        these fields. Also lists a `RECORD_TYPE` that does not select the metric's
-                        records, and every metric-level condition. `API` and `API_TYPE` scope every
-                        query and are never listed, nor is a condition that empties the result.
-                        Absent when every condition applied.
+                        Conditions of the request or of the metrics this metric was not filtered by, by
+                        filter name. The engine skips a condition the metric's search cannot carry (a
+                        Kafka client filter on an HTTP metric) instead of failing, so the values are not
+                        filtered on these fields. Also lists a `RECORD_TYPE` that does not select the
+                        metric's records. `API` and `API_TYPE` scope every query and are never listed,
+                        nor is a condition that empties the result. Absent when every condition applied.
                     items:
                         type: string
                     example: ["NATIVE_CLIENT_ID"]
@@ -3030,13 +3115,12 @@ components:
                 ignoredFilters:
                     type: array
                     description: |
-                        Conditions of the request this metric was not filtered by, by filter name.
-                        The engine skips a condition the metric's search cannot carry (a Kafka client
-                        filter on an HTTP metric) instead of failing, so the values are not filtered on
-                        these fields. Also lists a `RECORD_TYPE` that does not select the metric's
-                        records, and every metric-level condition. `API` and `API_TYPE` scope every
-                        query and are never listed, nor is a condition that empties the result.
-                        Absent when every condition applied.
+                        Conditions of the request or of the metrics this metric was not filtered by, by
+                        filter name. The engine skips a condition the metric's search cannot carry (a
+                        Kafka client filter on an HTTP metric) instead of failing, so the values are not
+                        filtered on these fields. Also lists a `RECORD_TYPE` that does not select the
+                        metric's records. `API` and `API_TYPE` scope every query and are never listed,
+                        nor is a condition that empties the result. Absent when every condition applied.
                     items:
                         type: string
                     example: ["NATIVE_CLIENT_ID"]
