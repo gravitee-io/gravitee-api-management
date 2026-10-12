@@ -99,6 +99,10 @@ http:
 #        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
 #  Allows to configure the header Access-Control-Expose-Headers
 #        exposed-headers: 'ETag;X-Xsrf-Token'
+# MCP server: one endpoint per environment at <entrypoint>/organizations/{orgId}/environments/{envId}, bearer token only.
+#    mcp:
+#      enabled: false
+#      entrypoint: ${http.api.entrypoint}mcp
 #    gamma:
 #      enabled: true
 #      entrypoint: ${http.api.entrypoint}gamma
