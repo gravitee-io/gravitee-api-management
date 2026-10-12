@@ -19,7 +19,7 @@ todos:
     status: pending
   - id: STORY-05
     content: "Allow an item's owner to change, and carry the new owner down its whole subtree."
-    status: pending
+    status: completed
   - id: STORY-06
     content: "Keep sibling ordering correct when an item changes owner."
     status: pending
@@ -649,6 +649,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Note:** not splittable; the value is only visible once both use cases return the rendered shape.
 
 #### STORY-05 — Allow an item's owner to change, and carry it down the subtree
+**Status:** Done under [PORTAL-253](https://gravitee.atlassian.net/browse/PORTAL-253), as [#21002](https://github.com/gravitee-io/gravitee-api-management/pull/21002). It also added `OwnerChangeRule`, which refuses two moves: one that changes the owner of an item automation manages, and one that would put an API or API Product listing inside an API's documentation. Refusing a move out of an API listed in several places is still STORY-07.
 **Why:** ownership cannot change at all today. Making it changeable is what allows dragging an item onto or off an API — and if the change does not reach nested items you get a folder owned by the API containing pages owned by the portal, which still renders but behaves inconsistently everywhere.
 **Acceptance criteria:**
 - Moving a folder onto an API's listing row changes the owner of the folder **and** every page and folder nested inside it, to any depth.
