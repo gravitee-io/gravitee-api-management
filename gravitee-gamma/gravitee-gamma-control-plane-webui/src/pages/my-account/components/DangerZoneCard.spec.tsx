@@ -31,4 +31,25 @@ describe('DangerZoneCard', () => {
         const dialog = screen.getByRole('dialog');
         expect((within(dialog).getByRole('button', { name: 'Yes, delete my account' }) as HTMLButtonElement).disabled).toBe(true);
     });
+
+    it('should place Delete my account on the row under the Danger Zone title', () => {
+        render(
+            <DangerZoneCard
+                consoleAuth={consoleAuth}
+                primaryOwner={false}
+                displayName="Ada Lovelace"
+                deleting={false}
+                onDelete={() => undefined}
+            />,
+        );
+
+        const button = screen.getByRole('button', { name: 'Delete my account' });
+        const row = button.parentElement;
+        expect(row?.className).toContain('justify-between');
+        expect(row?.className).toContain('items-center');
+        expect(button.className).toContain('shrink-0');
+        expect(row?.textContent).toContain('Please transfer ownership');
+        expect(within(row as HTMLElement).queryByRole('heading', { name: 'Danger Zone' })).toBeNull();
+        expect(screen.getByRole('heading', { name: 'Danger Zone' })).toBeTruthy();
+    });
 });
