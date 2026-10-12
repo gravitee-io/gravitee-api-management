@@ -147,7 +147,7 @@ isProject: false
 
 **One hard blocker.** STORY-01 fixes a bug that ships today: saving a page in the classic editor silently detaches it from its API. It bites only GitOps-created documentation at the moment, but once all documentation belongs to the API it happens on nearly every edit. Nothing else in Phase 2 onward should start before it lands.
 
-**Still open:** nine decisions, four of which block specific stories — see [Decisions that block stories](#decisions-that-block-stories).
+**Still open:** seven decisions, six of which block a story not done yet — see [Decisions that block stories](#decisions-that-block-stories).
 
 ---
 
