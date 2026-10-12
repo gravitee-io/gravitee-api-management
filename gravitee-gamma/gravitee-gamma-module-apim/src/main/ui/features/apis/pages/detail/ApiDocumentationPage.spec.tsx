@@ -101,6 +101,43 @@ jest.mock('../../components/detail/documentation/EditPageDetailsDialog', () => (
         ) : null,
 }));
 
+// The dialog has its own spec; here only what it is opened for matters.
+jest.mock('../../components/detail/documentation/FolderDialog', () => ({
+    FolderDialog: ({
+        open,
+        apiId,
+        folder,
+        parent,
+        syncState,
+        itemsInside,
+        onClose,
+        onCreated,
+    }: {
+        open: boolean;
+        apiId: string;
+        folder?: { title: string };
+        parent?: { title: string };
+        syncState?: string;
+        itemsInside?: number;
+        onClose: () => void;
+        onCreated?: () => void;
+    }) =>
+        open ? (
+            <div role="dialog" aria-label={folder ? 'Edit folder details' : 'Add a folder'}>
+                {folder
+                    ? `Editing the details of ${folder.title} in ${apiId} (${syncState}), ${itemsInside} items inside`
+                    : `Adding a folder to ${apiId}`}
+                {parent ? `, inside ${parent.title}` : ', at the top level'}
+                <button type="button" onClick={onClose}>
+                    Close
+                </button>
+                <button type="button" onClick={onCreated}>
+                    Created
+                </button>
+            </div>
+        ) : null,
+}));
+
 // The dialog has its own spec; here only whether the page opens it, for which API and listings, matters.
 jest.mock('../../components/detail/documentation/PublishToPortalDialog', () => ({
     PublishToPortalDialog: ({
@@ -421,6 +458,18 @@ describe('ApiDocumentationPage', () => {
 
             expect(screen.getByRole('link', { name: 'Getting started' })).toBeInTheDocument();
         });
+
+        it('include the folder a folder was just added to', async () => {
+            const { unmount } = renderPage();
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Add folder' }));
+            await userEvent.click(screen.getByRole('button', { name: 'Created' }));
+            unmount();
+
+            renderPage();
+
+            expect(screen.getByRole('link', { name: 'Getting started' })).toBeInTheDocument();
+        });
     });
 
     it('invites to write documentation when the API has none', () => {
@@ -535,6 +584,27 @@ describe('ApiDocumentationPage', () => {
             expect(screen.getByText('Editing new-page')).toBeInTheDocument();
         });
 
+        it('opens the folder dialog for this API from the Add menu, and closes it', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Add documentation' }));
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Page', 'Folder']);
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Folder' }));
+            expect(screen.getByRole('dialog', { name: 'Add a folder' })).toHaveTextContent('Adding a folder to api-1, at the top level');
+
+            await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+            expect(screen.queryByRole('dialog', { name: 'Add a folder' })).not.toBeInTheDocument();
+        });
+
+        it('opens the folder dialog for a folder from its row', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Add folder' }));
+
+            expect(screen.getByRole('dialog', { name: 'Add a folder' })).toHaveTextContent('Adding a folder to api-1, inside Guides');
+        });
+
         it('offers the same Add menu from the empty state', async () => {
             givenDocumentation({ items: [], publications: [] });
             renderPage();
@@ -560,6 +630,70 @@ describe('ApiDocumentationPage', () => {
             expect(screen.queryByRole('button', { name: 'Add documentation' })).not.toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
             expect(screen.queryByRole('menuitem', { name: 'Add page' })).not.toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', { name: 'Add folder' })).not.toBeInTheDocument();
+        });
+    });
+
+    describe('editing the details of a folder', () => {
+        const AUTH: ApiDocumentationItem = {
+            ...BASE,
+            id: 'auth',
+            rootId: 'guides',
+            parentId: 'guides',
+            title: 'Auth',
+            type: 'FOLDER',
+            order: 1,
+        };
+        const OAUTH: ApiDocumentationItem = {
+            ...BASE,
+            id: 'oauth',
+            rootId: 'guides',
+            parentId: 'auth',
+            title: 'OAuth setup',
+            type: 'PAGE',
+            portalPageContentId: 'content-3',
+            order: 0,
+        };
+
+        it('opens them from the folder row, counting every item inside, and closes them', async () => {
+            givenDocumentation({ items: [GUIDES, GETTING_STARTED, AUTH, OAUTH, CHANGELOG], publications: [] });
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Edit details' }));
+            expect(screen.getByRole('dialog', { name: 'Edit folder details' })).toHaveTextContent(
+                'Editing the details of Guides in api-1 (NOT_SYNCED), 3 items inside, at the top level',
+            );
+            expect(screen.queryByRole('dialog', { name: 'Edit page details' })).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+            expect(screen.queryByRole('dialog', { name: 'Edit folder details' })).not.toBeInTheDocument();
+        });
+
+        it('names the folder holding the folder', async () => {
+            givenDocumentation({ items: [GUIDES, GETTING_STARTED, AUTH, OAUTH, CHANGELOG], publications: [] });
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Expand Guides' }));
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Auth' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Edit details' }));
+
+            expect(screen.getByRole('dialog', { name: 'Edit folder details' })).toHaveTextContent(
+                'Editing the details of Auth in api-1 (NOT_SYNCED), 1 items inside, inside Guides',
+            );
+        });
+
+        it('tells the dialog that a folder with its own source is synced', async () => {
+            givenDocumentation({
+                items: [{ ...GUIDES, source: { type: 'github-fetcher', configuration: {} } }, GETTING_STARTED, CHANGELOG],
+                publications: [],
+            });
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Edit details' }));
+
+            expect(screen.getByRole('dialog', { name: 'Edit folder details' })).toHaveTextContent('(OWN_SOURCE)');
         });
     });
 

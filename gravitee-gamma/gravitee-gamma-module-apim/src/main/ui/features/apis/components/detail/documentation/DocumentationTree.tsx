@@ -68,6 +68,7 @@ export function DocumentationTree({
     onDelete,
     canAdd,
     onAddPage,
+    onAddFolder,
     canEdit,
     onEditDetails,
 }: Readonly<{
@@ -79,8 +80,9 @@ export function DocumentationTree({
     onDelete: (row: DocumentationRow) => void;
     canAdd: boolean;
     onAddPage: (folder: PortalNavigationFolder) => void;
+    onAddFolder: (folder: PortalNavigationFolder) => void;
     canEdit: boolean;
-    onEditDetails: (page: PortalNavigationPage) => void;
+    onEditDetails: (item: PortalNavigationPage | PortalNavigationFolder) => void;
 }>) {
     const rows = useMemo(() => buildDocumentationRows(items, expandedIds), [items, expandedIds]);
     const [contextMenu, setContextMenu] = useState<RowContextMenuState | null>(null);
@@ -91,18 +93,19 @@ export function DocumentationTree({
             const { item } = row;
             const allowed = allowedChanges(row.syncState);
             const actions: RowAction[] = [];
-            if (canEdit && item.type === 'PAGE' && allowed.access) {
+            if (canEdit && item.type !== 'LINK' && allowed.access) {
                 actions.push({ label: 'Edit details', icon: PencilIcon, onSelect: () => onEditDetails(item) });
             }
             if (canAdd && item.type === 'FOLDER' && allowed.addInside) {
                 actions.push({ label: 'Add page', icon: PlusIcon, onSelect: () => onAddPage(item) });
+                actions.push({ label: 'Add folder', icon: FolderOpenIcon, onSelect: () => onAddFolder(item) });
             }
             if (canDelete && allowed.delete) {
                 actions.push({ label: 'Delete', icon: Trash2Icon, destructive: true, onSelect: () => onDelete(row) });
             }
             return actions;
         },
-        [canEdit, onEditDetails, canAdd, onAddPage, canDelete, onDelete],
+        [canEdit, onEditDetails, canAdd, onAddPage, onAddFolder, canDelete, onDelete],
     );
 
     const columns = useMemo(
