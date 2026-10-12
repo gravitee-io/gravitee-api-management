@@ -21,10 +21,13 @@ interface ApplicationAvatarProps {
     readonly name: string;
 }
 
-/** Application logo with a graceful fallback to the application glyph (mirrors APIM `ApiAvatar`). */
+/**
+ * Application logo with a graceful fallback to the application glyph (mirrors APIM `ApiAvatar`).
+ * The design system draws a circular outline on the avatar itself, so the box shape needs `after:` too.
+ */
 export function ApplicationAvatar({ src, name }: ApplicationAvatarProps) {
     return (
-        <Avatar size="sm" className="shrink-0 rounded-md">
+        <Avatar size="sm" className="shrink-0 rounded-md after:rounded-md">
             {src ? <AvatarImage src={src} alt={`${name} logo`} className="rounded-md object-cover" /> : null}
             <AvatarFallback className="rounded-md bg-primary/10 text-primary">
                 <AppWindowIcon className="size-3.5" aria-hidden />

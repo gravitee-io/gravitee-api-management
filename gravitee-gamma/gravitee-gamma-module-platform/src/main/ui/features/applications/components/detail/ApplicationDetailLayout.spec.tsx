@@ -182,6 +182,18 @@ describe('ApplicationDetailLayout', () => {
         expectContextSidebarMarkup('My Application', 'data-testid="application-detail-sidebar-nav"');
     });
 
+    it('labels a simple application "Simple" in the header even when its free-text app type is set', () => {
+        mockUseApplicationDetail.mockReturnValue({
+            data: baseApplication({ type: 'SIMPLE', settings: { app: { type: 'iOS' } } }),
+            isLoading: false,
+            isError: false,
+        });
+        renderLayout();
+        const markup = renderToStaticMarkup(capturedLayoutConfig?.contextSidebar);
+        expect(markup).toContain('Simple');
+        expect(markup).not.toContain('Ios');
+    });
+
     it('truncates long application names in breadcrumbs', () => {
         const longName = 'A'.repeat(60);
         mockUseApplicationDetail.mockReturnValue({
