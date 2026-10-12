@@ -37,16 +37,16 @@ todos:
     status: completed
   - id: STORY-11
     content: "Publish the OpenAPI contract for the API documentation endpoints. Unblocks all frontend work."
-    status: in_progress
+    status: completed
   - id: STORY-12
     content: "Expose create, read, update and delete for an API's documentation under an API-scoped path, governed by API documentation permission."
-    status: in_progress
+    status: completed
   - id: STORY-12-BIS
     content: "Read and save a page's content under the API-scoped path, governed by API documentation permission. Without it, Gamma cannot create or edit what a page says."
     status: pending
   - id: STORY-13
     content: "Reject a request whose body targets a different API than the one in the URL. Security control."
-    status: in_progress
+    status: completed
   - id: STORY-14
     content: "List one API's documentation, including pages, folders and links."
     status: completed
@@ -55,10 +55,10 @@ todos:
     status: completed
   - id: STORY-16
     content: "Publish and unpublish an API to a portal under API documentation permission."
-    status: in_progress
+    status: completed
   - id: STORY-17
     content: "Refresh an externally sourced page from the API-scoped path."
-    status: in_progress
+    status: completed
   - id: STORY-18
     content: "Measure how much existing data needs migrating. Spike — informs STORY-19's policy."
     status: pending
@@ -126,7 +126,7 @@ isProject: false
 
 ## Summary
 
-> **Update — 2026-10-07:** most of PHASE 3 is implemented under [PORTAL-231](https://gravitee.atlassian.net/browse/PORTAL-231) as ten stacked pull requests, four of them merged. What was built, where it differs from this plan, the decisions taken during review and what is still open are collected in [PHASE 3 — implementation record](#phase-3--implementation-record-portal-231). Story statuses in the front matter are updated to match.
+> **Update — 2026-10-07:** PHASE 3 is implemented under [PORTAL-231](https://gravitee.atlassian.net/browse/PORTAL-231) as ten pull requests, all merged. What was built, where it differs from this plan and the decisions taken during review are collected in [PHASE 3 — implementation record](#phase-3--implementation-record-portal-231).
 >
 > **Update — 2026-10-06:** [STORY-02a](#story-02a--keep-api-owned-documentation-out-of-api-product-navigation) adds an API Product documentation isolation requirement. Existing story identifiers, overview lists and diagrams are preserved; this additional story and all implications for existing work are documented together in that section.
 
@@ -866,14 +866,14 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 |---|---|---|
 | 01 — Bug A | Done | Merged to `master` as `e20f15d5d1` ("preserve API-owned documentation structure on update"). Not part of this work; recorded here because PHASE 3's item endpoints rely on it. |
 | 08 — Import ownership | Partly done, in review | The explicit-owner half is in [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698). Inheriting the owner from the parent when importing through the portal editor remains, and depends on STORY-03. |
-| 11 — Contract | In progress | Not published up front as one change: each endpoint added its own operation in its pull request. Merged: list, create, read, publish locations. In open pull requests: import, publish, update, delete, refresh, unpublish. Not written: a page's content (STORY-12 Bis). |
-| 12 — API-scoped operations | In progress | Create and read are merged; update and delete are in review. Import was added under the same mount. |
+| 11 — Contract | Done | Not published up front as one change: each endpoint added its own operation in its pull request. |
+| 12 — API-scoped operations | Done | Create, read, update and delete, in [#20695](https://github.com/gravitee-io/gravitee-api-management/pull/20695), [#20697](https://github.com/gravitee-io/gravitee-api-management/pull/20697), [#20700](https://github.com/gravitee-io/gravitee-api-management/pull/20700) and [#20701](https://github.com/gravitee-io/gravitee-api-management/pull/20701). Import was added under the same mount ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698)). |
 | 12 Bis — Page content | Not started | Not part of PORTAL-231. Until it lands, a Gamma user with only API documentation permission can create a page but cannot read or save its text. |
-| 13 — Body-target check | In progress | The guard is merged with [#20695](https://github.com/gravitee-io/gravitee-api-management/pull/20695) and applied on create and read; update, delete, import and refresh apply it in their open pull requests. |
+| 13 — Body-target check | Done | The guard came with [#20695](https://github.com/gravitee-io/gravitee-api-management/pull/20695) and is applied by every operation that names an item or a parent: create, read, update, delete, import and refresh. |
 | 14 — List documentation | Done | Merged as [#20694](https://github.com/gravitee-io/gravitee-api-management/pull/20694). |
 | 15 — Publish locations | Done | Merged as [#20696](https://github.com/gravitee-io/gravitee-api-management/pull/20696). |
-| 16 — Publish and unpublish | In review, behind the story's current wording | [#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699) and [#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703) were written against the earlier version of the story: publish rejects an API that already has a hidden listing row, and unpublish deletes the row. See [Still open](#still-open). |
-| 17 — Refresh | In review | [#20702](https://github.com/gravitee-io/gravitee-api-management/pull/20702). |
+| 16 — Publish and unpublish | Done | [#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699) and [#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703). Publishing reuses a hidden listing row, and unpublishing hides the row instead of deleting it, as the story says. |
+| 17 — Refresh | Done | [#20702](https://github.com/gravitee-io/gravitee-api-management/pull/20702). |
 
 #### Endpoints and their state
 
@@ -885,12 +885,12 @@ All paths are under `/environments/{envId}/apis/{apiId}/portal-navigation-items`
 | 02 | Create a page, folder or link | `POST /` | CREATE | 12, 13 | [#20695](https://github.com/gravitee-io/gravitee-api-management/pull/20695) | Merged |
 | 08 | List publish locations | `GET /_publish-locations` | READ | 15 | [#20696](https://github.com/gravitee-io/gravitee-api-management/pull/20696) | Merged |
 | 03 | Read one item | `GET /{navId}` | READ | 12 | [#20697](https://github.com/gravitee-io/gravitee-api-management/pull/20697) | Merged |
-| 06 | Import a folder from an external source | `POST /_import` | CREATE | 12, 08 | [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698) | In review — changes requested twice, both addressed, awaiting re-review |
-| 09 | Publish the API | `POST /_publish` | CREATE | 16 | [#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699) | In review — changes requested, not yet addressed |
-| 04 | Update one item | `PUT /{navId}` | UPDATE | 12 | [#20700](https://github.com/gravitee-io/gravitee-api-management/pull/20700) | In review |
-| 05 | Delete one item | `DELETE /{navId}` | DELETE | 12 | [#20701](https://github.com/gravitee-io/gravitee-api-management/pull/20701) | In review |
-| 07 | Refresh a sourced item | `POST /{navId}/_fetch` | UPDATE | 17 | [#20702](https://github.com/gravitee-io/gravitee-api-management/pull/20702) | In review |
-| 10 | Unpublish the API | `POST /_unpublish` | DELETE | 16 | [#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703) | In review |
+| 06 | Import a folder from an external source | `POST /_import` | CREATE | 12, 08 | [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698) | Merged |
+| 09 | Publish the API | `POST /_publish` | CREATE | 16 | [#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699) | Merged |
+| 04 | Update one item | `PUT /{navId}` | UPDATE | 12 | [#20700](https://github.com/gravitee-io/gravitee-api-management/pull/20700) | Merged |
+| 05 | Delete one item | `DELETE /{navId}` | DELETE | 12 | [#20701](https://github.com/gravitee-io/gravitee-api-management/pull/20701) | Merged |
+| 07 | Refresh a sourced item | `POST /{navId}/_fetch` | UPDATE | 17 | [#20702](https://github.com/gravitee-io/gravitee-api-management/pull/20702) | Merged |
+| 10 | Unpublish the API | `POST /_unpublish` | DELETE | 16 | [#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703) | Merged |
 
 The rows are in stack order: each pull request is based on the one above it.
 
@@ -918,6 +918,7 @@ The rows are in stack order: each pull request is based on the one above it.
 
 - `resource/api/ApiDocumentationNavigationResource` (collection, import, publish locations, publish, unpublish) and `ApiDocumentationNavigationItemResource` (read, update, delete, refresh), mounted from `ApiResource`.
 - `mapper/PortalNavigationItemsMapper` — extended, no second mapper.
+- Every operation under the mount answers not found for an API that does not exist in the environment, checked after the permission check so that it does not reveal which APIs exist ([#21025](https://github.com/gravitee-io/gravitee-api-management/pull/21025)).
 
 **Contract (`V2SPEC/openapi-apis.yaml`)**
 
@@ -950,7 +951,7 @@ Each was raised on a pull request and settled there.
 5. **A page content id sent on create is ignored for every Management API create** ([#20695](https://github.com/gravitee-io/gravitee-api-management/pull/20695)). The field was meant for a two-step creation, content first and then the page, that was never exposed: no endpoint lets a client create a content on its own, so an id sent on create could only name the content of another page. Nothing prevented that, and with API-level permission it would have let a caller attach, overwrite or delete another page's content. The Management API mapper now drops the id on the environment-scoped create, the bulk create and the API-scoped create, so a page always gets a content of its own. `portalPageContentId` stays in `CreatePortalNavigationPage`, marked deprecated and documented as ignored. **An id coming from automation is kept**: automation does not go through that mapper.
 6. **Portal documentation sources are held to the import address rules** ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698)). The server fetches from whatever address a source names, and the Next Gen source code had no equivalent of the classic `PageServiceImpl.validateSafeSource`. Opening create-with-source, import and refresh to API-level permission widened who could reach that. The check is in `PortalNavigationItemSourceDomainServiceImpl`, uses the same `ImportConfiguration` and `UrlSanitizerUtils.checkAllowed` as classic pages, and runs when a source is validated **and** each time it is fetched, so refresh, the scheduled auto-fetch and sources stored earlier are covered. Unlike the classic check it looks at every address field, not only the first. As for classic pages, nothing is blocked while `imports.allow-from-private` is `true`, which is the default.
 7. **A plain repository name is not an address** ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698)). The GitHub and Bitbucket fetchers carry the repository name in the field the git fetcher uses for an address, so the first version of the check refused every GitHub or Bitbucket source on a hardened installation. A value made only of letters, digits, `.`, `_` and `-` is now skipped; anything with a separator, scp-style git addresses included, is still checked.
-8. **Publishing must reuse a hidden listing row** ([#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699)) — decided, **not yet implemented**. This is the current wording of STORY-16: no row, create it; hidden row, move it to the chosen section and make it visible through the existing update path, so `ApiItemUpdateRule` and `ParentRule` still apply; visible row, reject as already published.
+8. **Publishing reuses a hidden listing row** ([#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699)): no row, create it; hidden row, move it to the chosen section and make it visible through the existing update path, so `ApiItemUpdateRule` and `ParentRule` still apply; visible row, reject as already published. Unpublishing hides the row instead of deleting it ([#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703)).
 
 Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 
@@ -962,13 +963,9 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 
 | Item | Where | What is needed |
 |---|---|---|
-| Publish rejects a hidden listing row | [#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699) | Implement review decision 8. |
-| Unpublish deletes the listing row | [#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703) | Change it to hide the row, as STORY-16 now says. As built it deletes every standalone listing row, and with it any page the classic editor stored as a real child of the row. |
-| "Published" means the row exists **and** is visible | list, publish | The list already returns each row with its published flag, so a client can apply the rule; publish has to apply it too (decision 8). |
 | A page's content cannot be read or saved with API permission | STORY-12 Bis | Not started. |
 | A bare name in the git fetcher's `repository` is skipped by the address check | [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698) | For the git fetcher that value is a relative local path, not a repository name. Accepted for now; see the next row. |
 | The Management API guesses from field names which configuration values a fetcher connects to | follow-up ticket, proposed on [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698), not yet created | Extend the fetcher interface so each plugin validates and sanitises its own configuration. That would close the row above, let scp-style git addresses be judged by their host instead of always being refused, and remove the name matching from both the portal check and `PageServiceImpl.validateSafeSource`. It touches `gravitee-fetcher-api` and the five fetcher plugins. |
-| The contract was delivered piecewise | STORY-11 | Nothing to redo; STORY-24 can generate its stand-in from `master` plus the open pull requests. |
 | Inherited ownership on import | STORY-08 | The editor's path, after STORY-03. |
 
 ---
@@ -1519,7 +1516,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 - Ownership is kept on navigation items only. A page content id sent on a Management API create is ignored; one coming from automation is kept.
 - A request under an API path may only name items and parents whose own owner is that API; the listing row is not one of them.
 - Portal documentation sources follow the same import address rules as classic pages, checked on write and on every fetch; a plain repository name is not treated as an address.
-- Publishing reuses a hidden listing row, and unpublishing hides the row instead of deleting it (decided; the code still has to follow).
+- Publishing reuses a hidden listing row, and unpublishing hides the row instead of deleting it.
 
 ---
 
@@ -1546,7 +1543,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | The list shows an item of the portal, or of another API, stored under a folder the API owns | Medium | Closed: the owned-items walk follows only children with the same owner (merged with #20694) |
 | The server fetches from any address a source names, now reachable with API-level permission | High | #20698 applies the import address rules on write and on every fetch. No effect while `imports.allow-from-private` is at its default of `true` |
 | A bare name in the git fetcher's `repository` passes the address check as if it were a repository name, and is a relative local path | Low (accepted) | Follow-up: let each fetcher validate its own configuration |
-| Unpublishing from Gamma deletes pages the classic editor stored under the listing row | High | Open: #20703 must hide the row instead of deleting it, as STORY-16 says |
+| Unpublishing from Gamma deletes pages the classic editor stored under the listing row | High | Closed: unpublishing hides the listing row instead of deleting it ([#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703)) |
 | Republishing the API re-shows items that were hidden individually | Low (accepted) | STORY-31 warns about it; choosing what to publish can come later |
 | Publishing from Gamma can move a listing row an admin placed in the portal editor | Low (accepted) | Limited to the caller's own API and to allowed sections; `ApiItemUpdateRule` still applies (STORY-16) |
 | The sortable tree is the largest frontend item | Medium | STORY-32 last, cuttable |
