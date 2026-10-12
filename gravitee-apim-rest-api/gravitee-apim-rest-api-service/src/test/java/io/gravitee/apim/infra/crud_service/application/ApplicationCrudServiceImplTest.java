@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -138,6 +139,32 @@ public class ApplicationCrudServiceImplTest {
 
             // Then
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        }
+    }
+
+    @Nested
+    class FindByIds {
+
+        @Test
+        void should_keep_only_the_applications_of_the_environment() throws TechnicalException {
+            when(applicationRepository.findByIds(any())).thenReturn(
+                Set.of(anApplication().id("app-1").build(), anApplication().id("app-2").environmentId("OTHER").build())
+            );
+
+            var result = service.findByIds(List.of("app-1", "app-2"), ENVIRONMENT_ID);
+
+            assertThat(result).extracting("id").containsExactly("app-1");
+        }
+
+        @Test
+        void should_not_scope_the_applications_without_environment() throws TechnicalException {
+            when(applicationRepository.findByIds(any())).thenReturn(
+                Set.of(anApplication().id("app-1").build(), anApplication().id("app-2").environmentId("OTHER").build())
+            );
+
+            var result = service.findByIds(List.of("app-1", "app-2"), null);
+
+            assertThat(result).extracting("id").containsExactlyInAnyOrder("app-1", "app-2");
         }
     }
 
