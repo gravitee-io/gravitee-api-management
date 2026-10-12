@@ -17,6 +17,8 @@ package io.gravitee.apim.core.analytics_engine.domain_service;
 
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
+import io.gravitee.apim.core.plan.model.Plan;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +29,15 @@ public interface FilterValueNameResolver {
      * @return a map from ID to display name
      */
     Map<String, String> resolveNames(String environmentId, FilterSpec.Name filterName, List<String> ids);
+
+    /**
+     * Label plans with the API (or API product) they belong to, as {@code Gold · Payments API}: plan names are unique per
+     * parent only. A plan whose parent is no longer found (a deleted API, an API product of another environment) keeps
+     * its bare name.
+     *
+     * @return a map from plan ID to label
+     */
+    Map<String, String> planLabels(String environmentId, Collection<Plan> plans);
 
     /**
      * Search the management database for entities matching the query by name (case-insensitive contains).
