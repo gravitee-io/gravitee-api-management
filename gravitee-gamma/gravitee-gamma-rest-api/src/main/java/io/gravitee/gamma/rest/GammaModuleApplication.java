@@ -16,6 +16,8 @@
 package io.gravitee.gamma.rest;
 
 import com.fasterxml.jackson.core.util.JacksonFeature;
+import io.gravitee.gamma.infra.gravitee_plugin.resource.AgentProviderPluginResource;
+import io.gravitee.gamma.infra.gravitee_plugin.resource.PluginResource;
 import io.gravitee.gamma.rest.resources.GammaRootResource;
 import io.gravitee.gamma.rest.resources.GammaUIResource;
 import io.gravitee.gamma.rest.resources.OpenAPIResource;
@@ -70,6 +72,8 @@ public class GammaModuleApplication extends ResourceConfig {
         register(AnalyticsResource.class);
         register(ObservabilityDashboardsResource.class);
         register(ObservabilityDashboardResource.class);
+        register(PluginResource.class);
+        register(AgentProviderPluginResource.class);
 
         register(MultiPartFeature.class);
         register(PayloadInputBodyReader.class);

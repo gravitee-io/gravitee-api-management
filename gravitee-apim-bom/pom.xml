@@ -49,6 +49,12 @@
             </dependency>
 
             <dependency>
+                <groupId>io.gravitee.agentprovider</groupId>
+                <artifactId>gravitee-agent-provider-api</artifactId>
+                <version>${gravitee-agent-provider-api.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.alert</groupId>
                 <artifactId>gravitee-alert-api</artifactId>
                 <version>${gravitee-alert-api.version}</version>
@@ -65,7 +71,6 @@
                 <artifactId>gravitee-integration-api</artifactId>
                 <version>${gravitee-integration-api.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>io.gravitee.scoring</groupId>
                 <artifactId>gravitee-scoring-api</artifactId>
