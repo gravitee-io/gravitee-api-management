@@ -57,6 +57,12 @@ public class AMIdentityProviderEntity extends SocialIdentityProviderEntity {
         return discoveryEndpoint;
     }
 
+    /** The domain's base URL: the server URL followed by the domain. */
+    @JsonIgnore
+    public String getServerUrl() {
+        return serverUrl;
+    }
+
     public void setDiscoveryEndpoint(String discoveryEndpoint) {
         this.discoveryEndpoint = discoveryEndpoint;
     }

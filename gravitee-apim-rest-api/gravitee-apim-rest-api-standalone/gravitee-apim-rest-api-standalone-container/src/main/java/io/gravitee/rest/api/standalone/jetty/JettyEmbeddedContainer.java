@@ -17,6 +17,8 @@ package io.gravitee.rest.api.standalone.jetty;
 
 import io.gravitee.apim.rest.api.automation.GraviteeAutomationApplication;
 import io.gravitee.apim.rest.api.automation.security.SecurityAutomationConfiguration;
+import io.gravitee.apim.rest.api.mcp.sdk.McpEndpointServlet;
+import io.gravitee.apim.rest.api.mcp.security.SecurityMcpConfiguration;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gamma.rest.GammaModuleApplication;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
@@ -78,6 +80,12 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Value("${http.api.automation.entrypoint:${http.api.entrypoint:/}automation}")
     private String automationEntrypoint;
 
+    @Value("${http.api.mcp.enabled:false}")
+    private boolean startMcpAPI;
+
+    @Value("${http.api.mcp.entrypoint:${http.api.entrypoint:/}mcp}")
+    private String mcpEntrypoint;
+
     @Value("${http.api.portal.enabled:true}")
     private boolean startPortalAPI;
 
@@ -122,6 +130,17 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
             contexts.add(automationContextHandler);
         }
 
+        if (startMcpAPI) {
+            ServletContextHandler mcpContextHandler = configureServlet(
+                mcpEntrypoint,
+                new ServletHolder(applicationContext.getBean(McpEndpointServlet.class)),
+                SecurityMcpConfiguration.class
+            );
+            // The endpoint is the mount itself: serve it without redirecting to a trailing slash, which a POST cannot follow.
+            mcpContextHandler.setAllowNullPathInContext(true);
+            contexts.add(mcpContextHandler);
+        }
+
         if (startManagementAPI) {
             // REST configuration for Management API
             ServletContextHandler managementContextHandler = configureAPI(
@@ -160,10 +179,18 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         String applicationName,
         Class<? extends GlobalAuthenticationConfigurerAdapter> securityConfigurationClass
     ) {
-        final ServletContextHandler childContext = new ServletContextHandler(apiContextPath, ServletContextHandler.SESSIONS);
-
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
         servletHolder.setInitParameter("jakarta.ws.rs.Application", applicationName);
+        return configureServlet(apiContextPath, servletHolder, securityConfigurationClass);
+    }
+
+    private ServletContextHandler configureServlet(
+        String apiContextPath,
+        ServletHolder servletHolder,
+        Class<? extends GlobalAuthenticationConfigurerAdapter> securityConfigurationClass
+    ) {
+        final ServletContextHandler childContext = new ServletContextHandler(apiContextPath, ServletContextHandler.SESSIONS);
+
         servletHolder.setInitOrder(0);
         childContext.addServlet(servletHolder, "/*");
 

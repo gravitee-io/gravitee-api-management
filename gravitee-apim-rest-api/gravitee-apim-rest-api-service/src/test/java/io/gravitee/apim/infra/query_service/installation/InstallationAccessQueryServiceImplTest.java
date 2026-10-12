@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
@@ -265,6 +266,39 @@ class InstallationAccessQueryServiceImplTest {
         cut.afterPropertiesSet();
         assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://api.url/management");
         assertThat(cut.getPortalAPIUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://api.url/portal");
+    }
+
+    @Test
+    void should_build_the_mcp_api_url_from_the_mcp_url_and_proxy_path_when_installation_is_not_multi_tenant() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        setValue("mcpApiUrl", "https://apim.example.com");
+        setValue("mcpProxyPath", "/mcp");
+
+        cut.afterPropertiesSet();
+
+        assertThat(cut.getMcpAPIUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("https://apim.example.com/mcp");
+    }
+
+    @Test
+    void should_build_the_mcp_api_url_from_the_console_api_access_point_when_installation_is_multi_tenant() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(true);
+        setValue("mcpProxyPath", "/mcp");
+        when(accessPointQueryService.getConsoleApiAccessPoint(ORGANIZATION_ID)).thenReturn(
+            AccessPoint.builder().host("acme.api.example.com").secured(true).build()
+        );
+
+        assertThat(cut.getMcpAPIUrl(ORGANIZATION_ID)).isEqualTo("https://acme.api.example.com/mcp");
+    }
+
+    @Test
+    void should_not_build_an_mcp_api_url_when_no_api_url_is_configured() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        setValue("mcpApiUrl", null);
+        setValue("mcpProxyPath", "/mcp");
+
+        cut.afterPropertiesSet();
+
+        assertThat(cut.getMcpAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
     }
 
     @Test

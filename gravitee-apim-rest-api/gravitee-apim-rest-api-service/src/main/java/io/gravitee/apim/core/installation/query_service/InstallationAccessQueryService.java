@@ -72,4 +72,7 @@ public interface InstallationAccessQueryService {
 
     @Nullable
     String getGammaManagementAPIUrl(final String organizationId);
+
+    @Nullable
+    String getMcpAPIUrl(final String organizationId);
 }

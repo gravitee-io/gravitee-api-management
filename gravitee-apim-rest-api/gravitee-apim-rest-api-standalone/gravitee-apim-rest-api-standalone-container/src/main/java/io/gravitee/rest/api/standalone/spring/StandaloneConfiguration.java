@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.standalone.spring;
 
 import io.gravitee.apim.rest.api.automation.spring.GammaAutomationConfiguration;
+import io.gravitee.apim.rest.api.mcp.spring.McpServerConfiguration;
 import io.gravitee.gamma.rest.infra.config.GammaObservabilityConfiguration;
 import io.gravitee.integration.controller.spring.IntegrationControllerConfiguration;
 import io.gravitee.node.api.Node;
@@ -47,6 +48,7 @@ import org.springframework.context.annotation.Import;
         RestPortalConfiguration.class,
         GammaObservabilityConfiguration.class,
         GammaAutomationConfiguration.class,
+        McpServerConfiguration.class,
     }
 )
 public class StandaloneConfiguration {

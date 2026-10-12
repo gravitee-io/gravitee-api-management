@@ -73,6 +73,9 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     @Value("${installation.api.gamma.url:${installation.api.url:#{null}}}")
     private String gammaApiUrl;
 
+    @Value("${installation.api.mcp.url:${installation.api.url:#{null}}}")
+    private String mcpApiUrl;
+
     @Value("${installation.api.proxyPath.management:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
     private String managementProxyPath;
 
@@ -81,6 +84,9 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     @Value("${installation.api.proxyPath.gamma:${http.api.gamma.entrypoint:${http.api.entrypoint:/}gamma}}")
     private String gammaProxyPath;
+
+    @Value("${installation.api.proxyPath.mcp:${http.api.mcp.entrypoint:${http.api.entrypoint:/}mcp}}")
+    private String mcpProxyPath;
 
     private final Map<String, String> consoleUrls = new HashMap<>();
     private final Map<String, String> portalUrls = new HashMap<>();
@@ -116,6 +122,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             validateApiUrl(consoleApiUrl);
             validateApiUrl(portalApiUrl);
             validateApiUrl(gammaApiUrl);
+            validateApiUrl(mcpApiUrl);
         }
     }
 
@@ -433,6 +440,12 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     @Override
     public String getGammaManagementAPIUrl(final String organizationId) {
         return resolveApiUrl(organizationId, accessPointQueryService::getGammaApiAccessPoint, gammaApiUrl, managementProxyPath);
+    }
+
+    @Override
+    public String getMcpAPIUrl(final String organizationId) {
+        // The MCP mount sits next to the Management API, on the same host.
+        return resolveApiUrl(organizationId, accessPointQueryService::getConsoleApiAccessPoint, mcpApiUrl, mcpProxyPath);
     }
 
     /**

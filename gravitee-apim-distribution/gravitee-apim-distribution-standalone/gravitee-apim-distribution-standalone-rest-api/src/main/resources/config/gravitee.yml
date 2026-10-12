@@ -99,6 +99,23 @@ http:
 #        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
 #  Allows to configure the header Access-Control-Expose-Headers
 #        exposed-headers: 'ETag;X-Xsrf-Token'
+# MCP server at <entrypoint>/mcp, and at <entrypoint>/mcp/organizations/<orgId> for one organization; bearer token
+# only. scopes: read, or read,write to expose the tools that act (notify).
+# authorization: OAuth for an organization's URL. Its authorization server is the organization's identity provider
+# (Gravitee AM or OpenID Connect, with token introspection), and clientId/clientSecret are the credentials the endpoint
+# introspects tokens with: in Gravitee AM, those of the MCP Server registered with the URL as resource identifier.
+# Without an entry, the organization's URL accepts APIM tokens only. The URL is built from installation.api.mcp.url.
+# Keep the client secret out of this file: set it through an environment variable.
+#    mcp:
+#      enabled: false
+#      entrypoint: ${http.api.entrypoint}mcp
+#      scopes: read
+#      authorization:
+#        organizations:
+#          - orgId: DEFAULT
+#            identityProvider: my-am-domain
+#            clientId: apim-mcp
+#            clientSecret: change-me
 #    gamma:
 #      enabled: true
 #      entrypoint: ${http.api.entrypoint}gamma
@@ -861,11 +878,16 @@ notifiers:
 #    # Specify the Management API portal url of your installation, fallback on installation_api_url if not defined
 #    gamma:
 #      url: ${installation.api.url}
+#    # Specify the Management API MCP url of your installation, the base of the OAuth resource of each organization's URL,
+#    # fallback on installation_api_url if not defined
+#    mcp:
+#      url: ${installation.api.url}
 #
 #    proxyPath:
 #      management: ${http.api.management.entrypoint}
 #      portal: ${http.api.portal.entrypoint}
 #      gamma: ${http.api.gamma.entrypoint}
+#      mcp: ${http.api.mcp.entrypoint}
 #  standalone:
 #    console:
 #      url: http://localhost:3000
