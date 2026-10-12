@@ -41,6 +41,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreateObservabilityDashboardUseCaseTest {
@@ -48,6 +51,7 @@ class CreateObservabilityDashboardUseCaseTest {
     private static final String ENV = "env-1";
     private static final String USER = "user-1";
     private static final String DASHBOARD_ID = "dash-1";
+    private static final String MODULE = "aim";
     private static final Instant NOW = Instant.parse("2026-08-07T10:00:00Z");
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -83,7 +87,7 @@ class CreateObservabilityDashboardUseCaseTest {
             MAPPER.readTree("[{\"id\":\"w1\",\"type\":\"metric\"}]")
         );
 
-        var output = useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, null, content));
+        var output = useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, MODULE, content));
 
         assertThat(output.dashboard().id()).isEqualTo(DASHBOARD_ID);
         assertThat(output.dashboard().environmentId()).isEqualTo(ENV);
@@ -99,7 +103,7 @@ class CreateObservabilityDashboardUseCaseTest {
         var content = new DashboardContent(" ", null, List.of(), null, null);
 
         assertThatThrownBy(() ->
-            useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, null, content))
+            useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, MODULE, content))
         ).isInstanceOf(InvalidDashboardException.class);
         assertThat(dashboardRepository.findByEnvironmentId(ENV)).isEmpty();
     }
@@ -109,7 +113,7 @@ class CreateObservabilityDashboardUseCaseTest {
         var content = new DashboardContent("Performance overview", null, List.of(), null, null);
 
         assertThatThrownBy(() ->
-            useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, " ", null, content))
+            useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, " ", MODULE, content))
         ).isInstanceOf(InvalidDashboardException.class);
     }
 
@@ -123,7 +127,7 @@ class CreateObservabilityDashboardUseCaseTest {
             null
         );
 
-        assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, null, content)))
+        assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, MODULE, content)))
             .isInstanceOf(UnsupportedObservabilityFilterException.class)
             .hasMessageContaining("REQUEST_ID");
         assertThat(dashboardRepository.findByEnvironmentId(ENV)).isEmpty();
@@ -133,22 +137,25 @@ class CreateObservabilityDashboardUseCaseTest {
     void should_store_the_module() {
         var content = new DashboardContent("Performance overview", null, List.of(), null, null);
 
-        var output = useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, "aim", content));
+        var output = useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, MODULE, content));
 
-        assertThat(output.dashboard().module()).isEqualTo("aim");
+        assertThat(output.dashboard().module()).isEqualTo(MODULE);
         assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).hasValueSatisfying(stored ->
-            assertThat(stored.module()).isEqualTo("aim")
+            assertThat(stored.module()).isEqualTo(MODULE)
         );
     }
 
-    /** Optional until every host sends it; the follow-up of OBS-106 makes it required. */
-    @Test
-    void should_create_the_dashboard_without_a_module() {
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = { "", " " })
+    void should_reject_a_missing_module_before_touching_the_repository(String module) {
         var content = new DashboardContent("Performance overview", null, List.of(), null, null);
 
-        var output = useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, null, content));
-
-        assertThat(output.dashboard().module()).isNull();
+        assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, module, content)))
+            .isInstanceOf(InvalidDashboardException.class)
+            .extracting("technicalCode")
+            .isEqualTo("observability.dashboard.module_required");
+        assertThat(dashboardRepository.findByEnvironmentId(ENV)).isEmpty();
     }
 
     @Test

@@ -29,7 +29,7 @@ import java.util.Set;
  * <p>{@code widgets} is deliberately opaque: never parsed, only returned verbatim (see
  * {@code GammaDashboard.widgets}).
  *
- * <p>{@code module} is {@code null} on dashboards created before it existed, and is set once at creation: no write
+ * <p>{@code module} is {@code null} on dashboards created before it was required, and is set once at creation: no write
  * changes it afterwards (see {@link DashboardModule}).
  *
  * @author GraviteeSource Team
