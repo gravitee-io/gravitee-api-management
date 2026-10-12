@@ -453,8 +453,8 @@ Precedent: the v2 `ApiPagesResource` already uses `API_DOCUMENTATION` with READ/
 | Refresh an external source | `API_DOCUMENTATION` UPDATE |
 | Import a folder from a source | `API_DOCUMENTATION` CREATE |
 | List available publish locations | `API_DOCUMENTATION` READ |
-| Publish the API to a portal | `API_DOCUMENTATION` CREATE |
-| Unpublish the API | `API_DOCUMENTATION` DELETE |
+| Publish the API to a portal | `API_DOCUMENTATION` UPDATE |
+| Unpublish the API | `API_DOCUMENTATION` UPDATE |
 | Gamma sidebar entry visibility | `api-documentation-r` |
 
 Map verbs the way `ApiPagesResource` does, not the way `/portal-navigation-items` does (where create is `ENVIRONMENT_DOCUMENTATION` **UPDATE** and `_default-pages` is **CREATE**).
@@ -888,11 +888,11 @@ All paths are under `/environments/{envId}/apis/{apiId}/portal-navigation-items`
 | 08 | List publish locations | `GET /_publish-locations` | READ | 15 | [#20696](https://github.com/gravitee-io/gravitee-api-management/pull/20696) | Merged |
 | 03 | Read one item | `GET /{navId}` | READ | 12 | [#20697](https://github.com/gravitee-io/gravitee-api-management/pull/20697) | Merged |
 | 06 | Import a folder from an external source | `POST /_import` | CREATE | 12, 08 | [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698) | Merged |
-| 09 | Publish the API | `POST /_publish` | CREATE | 16 | [#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699) | Merged |
+| 09 | Publish the API | `POST /_publish` | UPDATE | 16 | [#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699) | Merged |
 | 04 | Update one item | `PUT /{navId}` | UPDATE | 12 | [#20700](https://github.com/gravitee-io/gravitee-api-management/pull/20700) | Merged |
 | 05 | Delete one item | `DELETE /{navId}` | DELETE | 12 | [#20701](https://github.com/gravitee-io/gravitee-api-management/pull/20701) | Merged |
 | 07 | Refresh a sourced item | `POST /{navId}/_fetch` | UPDATE | 17 | [#20702](https://github.com/gravitee-io/gravitee-api-management/pull/20702) | Merged |
-| 10 | Unpublish the API | `POST /_unpublish` | DELETE | 16 | [#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703) | Merged |
+| 10 | Unpublish the API | `POST /_unpublish` | UPDATE | 16 | [#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703) | Merged |
 
 The rows are in stack order: each pull request is based on the one above it.
 
@@ -941,6 +941,7 @@ The rows are in stack order: each pull request is based on the one above it.
 | 14 | Whether and where the API is published | A list, `publications`, one entry per listing row. See the review decisions. |
 | 16 | A separate `ApiPortalPublicationResource` | `_publish` and `_unpublish` are methods of the collection resource; a second class needed its own locator per action for no gain. |
 | 16 | Delegate to the existing create and update use cases unchanged | Two new use cases, because publishing and unpublishing also set the published flag of everything the API owns. Publish runs validation and `PortalNavigationItemDomainService.create` directly, so no starter page is seeded. |
+| 16 | Publish under `API_DOCUMENTATION` CREATE, unpublish under DELETE | Both are guarded by `API_DOCUMENTATION` UPDATE. |
 
 #### Decisions made during review
 
