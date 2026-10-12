@@ -1,0 +1,209 @@
+{
+  "name": "get_health_overview",
+  "title": "Health overview of the environment",
+  "description": "Start here to answer \"is anything going on?\". Compares the HTTP traffic of the environment over the window with the window of equal length just before it (the baseline), and returns what moved: findings for the whole environment and per API, and the most affected APIs. 4xx and 5xx are reported separately: a 5xx surge means the gateway or a backend fails, a 4xx surge means requests are rejected. Next: break_down_traffic on an affected API.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "window": {
+        "type": "string",
+        "description": "Length of the time range to look at, ending at `until`: a number followed by m, h or d, for example 15m, 2h or 1d. Default 15m. Never an epoch value."
+      },
+      "until": {
+        "type": "string",
+        "description": "End of the time range as an ISO-8601 UTC instant, for example 2026-01-31T14:00:00Z. Default: now. Set it to look at a past incident."
+      }
+    },
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "HEALTHY",
+          "DEGRADED",
+          "NO_TRAFFIC"
+        ],
+        "description": "DEGRADED when at least one finding exists."
+      },
+      "summary": {
+        "type": "string",
+        "description": "One sentence stating the result."
+      },
+      "window": {
+        "$ref": "#/$defs/range"
+      },
+      "baseline": {
+        "$ref": "#/$defs/range"
+      },
+      "environment": {
+        "type": "object",
+        "description": "Traffic of all the APIs you can see.",
+        "properties": {
+          "current": {
+            "$ref": "#/$defs/stats"
+          },
+          "baseline": {
+            "$ref": "#/$defs/stats"
+          }
+        },
+        "required": [
+          "current",
+          "baseline"
+        ]
+      },
+      "findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "$ref": "#/$defs/kind"
+            },
+            "api": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/api"
+                }
+              ],
+              "description": "Absent when the finding is about the whole environment."
+            },
+            "summary": {
+              "type": "string",
+              "description": "The numbers behind the finding."
+            }
+          },
+          "required": [
+            "kind",
+            "summary"
+          ]
+        }
+      },
+      "apis": {
+        "type": "array",
+        "description": "Up to ten APIs, the ones with findings first, then by traffic.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "api": {
+              "$ref": "#/$defs/api"
+            },
+            "current": {
+              "$ref": "#/$defs/stats"
+            },
+            "baseline": {
+              "$ref": "#/$defs/stats"
+            },
+            "findings": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/kind"
+              }
+            }
+          },
+          "required": [
+            "api",
+            "current",
+            "baseline",
+            "findings"
+          ]
+        }
+      }
+    },
+    "required": [
+      "status",
+      "summary",
+      "window",
+      "baseline",
+      "environment",
+      "findings",
+      "apis"
+    ],
+    "$defs": {
+      "range": {
+        "type": "object",
+        "description": "A time range, ISO-8601 UTC.",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ]
+      },
+      "stats": {
+        "type": "object",
+        "description": "Traffic over one time range.",
+        "properties": {
+          "requests": {
+            "type": "integer",
+            "description": "All requests."
+          },
+          "clientErrors": {
+            "type": "integer",
+            "description": "Requests answered 4xx."
+          },
+          "serverErrors": {
+            "type": "integer",
+            "description": "Requests answered 5xx."
+          },
+          "clientErrorRatePct": {
+            "type": "number",
+            "description": "4xx as a percentage of requests."
+          },
+          "serverErrorRatePct": {
+            "type": "number",
+            "description": "5xx as a percentage of requests."
+          },
+          "responseTimeP95Ms": {
+            "type": "number",
+            "description": "95th percentile of the time to answer the consumer, backend included, in milliseconds. Absent without traffic."
+          },
+          "endpointResponseTimeP95Ms": {
+            "type": "number",
+            "description": "95th percentile of the time spent waiting for the backend, in milliseconds. Close to responseTimeP95Ms when the backend is the slow part; far below it when the gateway is."
+          }
+        },
+        "required": [
+          "requests",
+          "clientErrors",
+          "serverErrors",
+          "clientErrorRatePct",
+          "serverErrorRatePct"
+        ]
+      },
+      "api": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "SERVER_ERROR_RATE_UP",
+          "CLIENT_ERROR_RATE_UP",
+          "LATENCY_UP",
+          "TRAFFIC_DROP"
+        ],
+        "description": "SERVER_ERROR_RATE_UP: 5xx, the gateway or a backend fails. CLIENT_ERROR_RATE_UP: 4xx, requests are rejected (credentials, quota, input). LATENCY_UP: P95 response time. TRAFFIC_DROP: half the requests or fewer."
+      }
+    }
+  }
+}
