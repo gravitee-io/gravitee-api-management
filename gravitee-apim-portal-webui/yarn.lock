@@ -3788,7 +3788,7 @@ __metadata:
     "@fontsource/montserrat": "npm:5.3.0"
     "@gravitee/ui-components": "npm:5.0.1"
     "@highcharts/map-collection": "npm:2.3.3"
-    "@messageformat/core": "npm:3.4.0"
+    "@messageformat/core": "npm:3.4.1"
     "@ngneat/spectator": "npm:22.1.0"
     "@ngx-translate/core": "npm:18.0.0"
     "@ngx-translate/http-loader": "npm:18.0.0"
@@ -4975,10 +4975,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@messageformat/core@npm:3.4.1":
+  version: 3.4.1
+  resolution: "@messageformat/core@npm:3.4.1"
+  dependencies:
+    "@messageformat/date-skeleton": "npm:2.0.0-0"
+    "@messageformat/number-skeleton": "npm:2.0.0-0"
+    "@messageformat/parser": "npm:^5.2.0"
+    "@messageformat/runtime": "npm:^3.0.3"
+    make-plural: "npm:^7.0.0"
+    safe-identifier: "npm:^0.4.1"
+  checksum: 10c0/76baeab0279e6166de2c754a3ce4e02200a568e682de8f0efc6fd0626dc58bae6c4971ed201a3940d0c39eec5a07cfdb7409d3d97b8d4d96be9ea77fa62c4632
+  languageName: node
+  linkType: hard
+
+"@messageformat/date-skeleton@npm:2.0.0-0":
+  version: 2.0.0-0
+  resolution: "@messageformat/date-skeleton@npm:2.0.0-0"
+  checksum: 10c0/37ab71ab645151a56f9200c20e81b5d9d52253486f26307db1c28118e2882a8849d5a04ea2416b223a7a392fb1aa67d95443facd7ba507c2f5875b37b5ac81dd
+  languageName: node
+  linkType: hard
+
 "@messageformat/date-skeleton@npm:^1.0.0":
   version: 1.1.0
   resolution: "@messageformat/date-skeleton@npm:1.1.0"
   checksum: 10c0/5dffb194a3f067be427123de0a567433e1e9219afe2e8c20e78afaf61cb24de479b8e52c5dfb94200d9757c3504e4d52c1cb3e13ff3c837fa7c71d0cc01980c3
+  languageName: node
+  linkType: hard
+
+"@messageformat/number-skeleton@npm:2.0.0-0":
+  version: 2.0.0-0
+  resolution: "@messageformat/number-skeleton@npm:2.0.0-0"
+  checksum: 10c0/aaeac26d4675490d6d754ab85ef0a92d05aff05328577db211a18155b1aec4adf61efd060987c4858196be53aacad63cce1735ec202cf64554d858b9764c901a
   languageName: node
   linkType: hard
 
@@ -4998,12 +5026,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@messageformat/parser@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "@messageformat/parser@npm:5.2.0"
+  dependencies:
+    moo: "npm:^0.5.1"
+  checksum: 10c0/e38c4f6a5ba3b32b7cb75db504b88293edb93ca1644de226bd0f817872f5fd1a12fb0732f595f8d58d8c75d5060639a8050c601dac4dee93edfb5d73da6a161c
+  languageName: node
+  linkType: hard
+
 "@messageformat/runtime@npm:^3.0.1":
   version: 3.0.1
   resolution: "@messageformat/runtime@npm:3.0.1"
   dependencies:
     make-plural: "npm:^7.0.0"
   checksum: 10c0/a236279da66a138f7860d4a190070b00d752cc5b5aed877ec3b0f6dce708e7e3bd5b290e4f4ec30b97a4213f069fb70dbda9af49f849a106da227d41a9e19581
+  languageName: node
+  linkType: hard
+
+"@messageformat/runtime@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "@messageformat/runtime@npm:3.0.3"
+  dependencies:
+    make-plural: "npm:^7.0.0"
+  checksum: 10c0/bca64d0a81158c93a7d3333b211a5d3466dad9d85c1319919445b9930a084c9a69645aa3ecb6da40de2ef4c28784e273ab29ecce749907e7465370f16d0d6c59
   languageName: node
   linkType: hard
 
