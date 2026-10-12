@@ -20,9 +20,13 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
+import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
+import io.gravitee.gateway.core.invoker.V3InvokerAttributes;
 import io.gravitee.gateway.core.processor.chain.DefaultStreamableProcessorChain;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -44,6 +48,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import junit.framework.AssertionFailedError;
 import org.junit.Before;
 import org.junit.Test;
@@ -157,6 +162,37 @@ public class ApiReactorHandlerTest {
         verify(policyManager, times(1)).stop();
         verify(resourceLifecycleManager, times(1)).stop();
         verify(groupLifecycleManager, times(1)).stop();
+    }
+
+    @Test
+    public void shouldPublishCancelUpstreamThatCancelsConnectionAndEndsExchange() throws Exception {
+        when(requestProcessorChainFactory.create()).thenReturn(
+            new DefaultStreamableProcessorChain<>(List.of(new NoOpPolicyChain(executionContext)))
+        );
+        when(errorProcessorChainFactory.create()).thenReturn(
+            new DefaultStreamableProcessorChain<>(List.of(new NoOpPolicyChain(executionContext)))
+        );
+        final ProxyConnection upstreamConnection = mock(ProxyConnection.class);
+        final Invoker invoker = (ctx, stream, connectionHandler) -> connectionHandler.handle(upstreamConnection);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_INVOKER)).thenReturn(invoker);
+
+        ApiReactorHandler handler = createHandler(5000L);
+        final AtomicBoolean exchangeEnded = new AtomicBoolean();
+
+        handler.doHandle(executionContext, ctx -> exchangeEnded.set(true));
+
+        final ArgumentCaptor<Object> cancelUpstream = ArgumentCaptor.forClass(Object.class);
+        verify(executionContext).setAttribute(eq(V3InvokerAttributes.ATTR_INTERNAL_V3_CANCEL_UPSTREAM), cancelUpstream.capture());
+        assertTrue(cancelUpstream.getValue() instanceof Runnable);
+        verify(upstreamConnection, never()).cancel();
+        assertFalse(exchangeEnded.get());
+
+        ((Runnable) cancelUpstream.getValue()).run();
+
+        verify(upstreamConnection).cancel();
+        assertTrue(exchangeEnded.get());
+        // The exchange no longer counts as pending, so undeploying does not wait for the pending requests timeout.
+        assertTrue(stopAndObserve(handler).await(1, TimeUnit.SECONDS));
     }
 
     private ApiReactorHandler createHandler(long pendingRequestsTimeout) {
