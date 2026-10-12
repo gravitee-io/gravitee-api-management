@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resource.observability.logs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -53,10 +54,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -206,6 +211,40 @@ class LogsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_200_to_the_library_search_payload() {
+            when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 1, 20));
+            var body = Map.of(
+                "timeRange",
+                Map.of("from", "2026-10-11T12:00:00.000Z", "to", "2026-10-12T12:00:00.000Z"),
+                "filters",
+                List.of(
+                    Map.of("name", "API", "operator", "IN", "value", List.of("api-1", "api-2")),
+                    Map.of("name", "HTTP_STATUS", "operator", "EQ", "value", "500")
+                )
+            );
+
+            Response response = rootTarget("search")
+                .queryParam("page", 1)
+                .queryParam("perPage", 20)
+                .request()
+                .post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.gamma.rest.resource.observability.logs.LogsResourceTest#bodiesWithAnUnknownKey")
+        void should_return_400_naming_an_unknown_key(Map<String, Object> body, String unknownKey) {
+            Response response = rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
+                "Property [" + unknownKey + "] is not recognized as a valid property"
+            );
+            verifyNoInteractions(searchLogsUseCase);
+        }
+
+        @Test
         void should_return_403_when_caller_cannot_read_observability() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
@@ -214,6 +253,15 @@ class LogsResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
             verifyNoInteractions(searchLogsUseCase);
         }
+    }
+
+    static Stream<Arguments> bodiesWithAnUnknownKey() {
+        var timeRange = Map.of("from", "2026-10-11T12:00:00Z", "to", "2026-10-12T12:00:00Z");
+        return Stream.of(
+            arguments(Map.of("timeRange", timeRange, "apiId", "api-1"), "apiId"),
+            arguments(Map.of("timeRange", Map.of("form", "2026-10-11T12:00:00Z", "to", "2026-10-12T12:00:00Z")), "form"),
+            arguments(Map.of("filters", List.of(Map.of("name", "API", "operator", "IN", "values", List.of("api-1")))), "values")
+        );
     }
 
     @Nested

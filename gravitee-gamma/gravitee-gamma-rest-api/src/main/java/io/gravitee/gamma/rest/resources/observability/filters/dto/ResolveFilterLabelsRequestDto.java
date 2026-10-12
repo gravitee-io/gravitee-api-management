@@ -15,12 +15,15 @@
  */
 package io.gravitee.gamma.rest.resources.observability.filters.dto;
 
+import io.gravitee.gamma.rest.resources.RejectUnknownProperties;
 import java.util.List;
 
 /**
  * Request body for {@code POST /observability/filters/resolve}: a batch of (filter name, ids) pairs
  * to hydrate into labels. Matches the apim management v2 {@code ResolveFilterLabelsRequest} shape.
  */
+@RejectUnknownProperties
 public record ResolveFilterLabelsRequestDto(List<EntryDto> entries) {
+    @RejectUnknownProperties
     public record EntryDto(String filterName, List<String> ids) {}
 }
