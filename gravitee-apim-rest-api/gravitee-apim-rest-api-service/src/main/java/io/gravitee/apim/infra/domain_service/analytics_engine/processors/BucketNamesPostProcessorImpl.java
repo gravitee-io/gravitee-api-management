@@ -16,32 +16,25 @@
 package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.model.*;
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.infra.domain_service.analytics_engine.mapper.ApiMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.analytics.engine.api.query.HttpStatusCodeGroups;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationQuery;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @RequiredArgsConstructor
 public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
-
-    private static final String UNKNOWN_APPLICATION = "Unknown";
 
     private static final Map<String, String> STATUS_CODE_GROUP_FROM_ES_KEY = HttpStatusCodeGroups.esBucketKeyToFriendlyGroupLabel();
 
@@ -56,8 +49,22 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
         return Map.copyOf(map);
     }
 
-    private final ApiRepository apiRepository;
-    private final ApplicationService applicationSearchService;
+    /**
+     * Facets whose bucket keys are entity ids, named through the same resolver as the filter labels so a chart and a
+     * filter chip always show the same name for the same id.
+     */
+    private static final Map<FacetSpec.Name, FilterSpec.Name> ID_FACETS = Map.of(
+        FacetSpec.Name.API,
+        FilterSpec.Name.API,
+        FacetSpec.Name.APPLICATION,
+        FilterSpec.Name.APPLICATION,
+        FacetSpec.Name.PLAN,
+        FilterSpec.Name.PLAN,
+        FacetSpec.Name.API_PRODUCT,
+        FilterSpec.Name.API_PRODUCT
+    );
+
+    private final FilterValueNameResolver filterValueNameResolver;
 
     @Override
     public FacetsResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, FacetsResponse response) {
@@ -67,24 +74,28 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
             .flatMap(r -> r.buckets().stream())
             .toList();
 
-        var updatedContext = populateNames(context, facets, buckets);
+        var namesByFacet = loadNames(context, facets, buckets);
 
         var mappedMetrics = response
             .metrics()
             .stream()
-            .map(metricsFacetResponse -> mapFacetMetrics(updatedContext, facets, metricsFacetResponse))
+            .map(metricsFacetResponse -> mapFacetMetrics(namesByFacet, facets, metricsFacetResponse))
             .toList();
 
         return new FacetsResponse(mappedMetrics);
     }
 
-    MetricFacetsResponse mapFacetMetrics(AnalyticsQueryContext context, List<FacetSpec.Name> facets, MetricFacetsResponse metric) {
-        var mappedBuckets = this.mapFacetBuckets(context, facets, metric.buckets());
+    MetricFacetsResponse mapFacetMetrics(
+        Map<FacetSpec.Name, Map<String, String>> namesByFacet,
+        List<FacetSpec.Name> facets,
+        MetricFacetsResponse metric
+    ) {
+        var mappedBuckets = this.mapFacetBuckets(namesByFacet, facets, metric.buckets());
         return new MetricFacetsResponse(metric.metric(), metric.unit(), mappedBuckets, metric.ignoredFilters());
     }
 
     List<FacetBucketResponse> mapFacetBuckets(
-        AnalyticsQueryContext context,
+        Map<FacetSpec.Name, Map<String, String>> namesByFacet,
         List<FacetSpec.Name> facets,
         List<FacetBucketResponse> buckets
     ) {
@@ -94,47 +105,24 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
         return buckets
             .stream()
-            .map(bucket -> mapFacetBucket(context, facets, bucket))
+            .map(bucket -> mapFacetBucket(namesByFacet, facets, bucket))
             .toList();
     }
 
-    Map<String, String> loadApplicationNames(Set<String> applicationIds) {
-        if (applicationIds.isEmpty()) {
-            return Map.of();
-        }
-
-        var applications = getApplicationNamesByIds(applicationIds);
-        applications.put("1", UNKNOWN_APPLICATION);
-
-        return applications;
-    }
-
-    Map<String, String> getApplicationNamesByIds(Set<String> applicationIds) {
-        var query = new ApplicationQuery();
-        query.setIds(applicationIds);
-
-        var content = applicationSearchService.search(GraviteeContext.getExecutionContext(), query, null, null).getContent();
-
-        return content.stream().collect(Collectors.toMap(ApplicationListItem::getId, ApplicationListItem::getName));
-    }
-
-    FacetBucketResponse mapFacetBucket(AnalyticsQueryContext context, List<FacetSpec.Name> facets, FacetBucketResponse bucket) {
-        var bucketName = switch (facets.getFirst()) {
+    FacetBucketResponse mapFacetBucket(
+        Map<FacetSpec.Name, Map<String, String>> namesByFacet,
+        List<FacetSpec.Name> facets,
+        FacetBucketResponse bucket
+    ) {
+        var facet = facets.getFirst();
+        var bucketName = switch (facet) {
             case FacetSpec.Name.HTTP_STATUS_CODE_GROUP -> STATUS_CODE_GROUP_FROM_ES_KEY.getOrDefault(bucket.key(), bucket.key());
             case FacetSpec.Name.HTTP_METHOD -> HTTP_METHOD_BY_CODE.getOrDefault(bucket.key(), bucket.key());
             case FacetSpec.Name.HTTP_STATUS -> HttpStatusLabels.labelForCode(bucket.key());
-            case FacetSpec.Name.API -> {
-                var name = context.apiNamesById().get(bucket.key());
-                yield name != null ? name : bucket.key();
-            }
-            case FacetSpec.Name.APPLICATION -> {
-                var name = context.applicationNamesById().get(bucket.key());
-                yield name != null ? name : bucket.key();
-            }
-            default -> bucket.key();
+            default -> namesByFacet.getOrDefault(facet, Map.of()).getOrDefault(bucket.key(), bucket.key());
         };
 
-        var mappedBuckets = this.mapFacetBuckets(context, facets.subList(1, facets.size()), bucket.buckets());
+        var mappedBuckets = this.mapFacetBuckets(namesByFacet, facets.subList(1, facets.size()), bucket.buckets());
 
         return new FacetBucketResponse(bucket.key(), bucketName, mappedBuckets, bucket.measures());
     }
@@ -150,28 +138,28 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
             .flatMap(timeSeriesBucketResponse -> timeSeriesBucketResponse.buckets().stream())
             .toList();
 
-        var updatedContext = populateNames(context, facets, buckets);
+        var namesByFacet = loadNames(context, facets, buckets);
 
         var mappedMetrics = response
             .metrics()
             .stream()
-            .map(metricsFacetResponse -> mapTimeSeriesMetrics(updatedContext, facets, metricsFacetResponse))
+            .map(metricsFacetResponse -> mapTimeSeriesMetrics(namesByFacet, facets, metricsFacetResponse))
             .toList();
 
         return new TimeSeriesResponse(mappedMetrics);
     }
 
     private TimeSeriesMetricResponse mapTimeSeriesMetrics(
-        AnalyticsQueryContext context,
+        Map<FacetSpec.Name, Map<String, String>> namesByFacet,
         List<FacetSpec.Name> facets,
         TimeSeriesMetricResponse metric
     ) {
-        var mappedBuckets = mapTimeSeriesBuckets(context, facets, metric.buckets());
+        var mappedBuckets = mapTimeSeriesBuckets(namesByFacet, facets, metric.buckets());
         return new TimeSeriesMetricResponse(metric.name(), metric.unit(), mappedBuckets, metric.ignoredFilters());
     }
 
     private List<TimeSeriesBucketResponse> mapTimeSeriesBuckets(
-        AnalyticsQueryContext context,
+        Map<FacetSpec.Name, Map<String, String>> namesByFacet,
         List<FacetSpec.Name> filters,
         List<TimeSeriesBucketResponse> buckets
     ) {
@@ -181,52 +169,69 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
         return buckets
             .stream()
-            .map(bucket -> mapTimeSeriesBucket(context, filters, bucket))
+            .map(bucket -> mapTimeSeriesBucket(namesByFacet, filters, bucket))
             .toList();
     }
 
     private TimeSeriesBucketResponse mapTimeSeriesBucket(
-        AnalyticsQueryContext context,
+        Map<FacetSpec.Name, Map<String, String>> namesByFacet,
         List<FacetSpec.Name> facets,
         TimeSeriesBucketResponse bucket
     ) {
         var updatedBuckets = bucket
             .buckets()
             .stream()
-            .map(b -> mapFacetBucket(context, facets, b))
+            .map(b -> mapFacetBucket(namesByFacet, facets, b))
             .toList();
         return new TimeSeriesBucketResponse(bucket.key(), bucket.name(), bucket.timestamp(), updatedBuckets, bucket.measures());
     }
 
-    private AnalyticsQueryContext populateNames(
+    /**
+     * Loads, once for the whole bucket tree, the names of every id-keyed facet of the request. Names already carried by
+     * the context are reused rather than reloaded.
+     */
+    private Map<FacetSpec.Name, Map<String, String>> loadNames(
         AnalyticsQueryContext context,
         List<FacetSpec.Name> facets,
         List<FacetBucketResponse> buckets
     ) {
-        var updatedContext = context;
+        var namesByFacet = new EnumMap<FacetSpec.Name, Map<String, String>>(FacetSpec.Name.class);
 
-        if (updatedContext.apiNamesById().isEmpty()) {
-            var apiIds = getIdsFromBuckets(FacetSpec.Name.API, facets, buckets);
-            updatedContext = updatedContext.withApiNamesById(loadApiNames(apiIds));
-        }
+        ID_FACETS.forEach((facet, filter) -> {
+            var ids = getIdsFromBuckets(facet, facets, buckets);
+            if (!ids.isEmpty()) {
+                var preloaded = preloadedNames(context, facet);
+                namesByFacet.put(facet, preloaded.isEmpty() ? resolveNames(context, filter, ids) : preloaded);
+            }
+        });
 
-        if (updatedContext.applicationNamesById().isEmpty()) {
-            var applicationIds = getIdsFromBuckets(FacetSpec.Name.APPLICATION, facets, buckets);
-            updatedContext = updatedContext.withApplicationNamesById(loadApplicationNames(applicationIds));
-        }
-
-        return updatedContext;
+        return namesByFacet;
     }
 
-    Map<String, String> loadApiNames(Set<String> apiIds) {
-        if (apiIds.isEmpty()) {
+    private static Map<String, String> preloadedNames(AnalyticsQueryContext context, FacetSpec.Name facet) {
+        return switch (facet) {
+            case FacetSpec.Name.API -> context.apiNamesById();
+            case FacetSpec.Name.APPLICATION -> context.applicationNamesById();
+            default -> Map.of();
+        };
+    }
+
+    /**
+     * Names only enrich the response: a lookup that fails leaves the ids as names instead of failing the whole
+     * analytics request.
+     */
+    private Map<String, String> resolveNames(AnalyticsQueryContext context, FilterSpec.Name filter, Set<String> ids) {
+        try {
+            return filterValueNameResolver.resolveNames(environmentIdOf(context), filter, List.copyOf(ids));
+        } catch (RuntimeException e) {
+            log.warn("Unable to resolve {} names for analytics buckets, keeping their ids", filter, e);
             return Map.of();
         }
+    }
 
-        var criteria = new ApiCriteria.Builder().ids(apiIds).build();
-        var apis = ApiMapper.INSTANCE.map(apiRepository.search(criteria, ApiFieldFilter.defaultFields()));
-
-        return apis.stream().collect(Collectors.toMap(Api::getId, Api::getName));
+    private static String environmentIdOf(AnalyticsQueryContext context) {
+        var executionContext = context.executionContext();
+        return executionContext != null && executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : null;
     }
 
     private Set<String> getIdsFromBuckets(FacetSpec.Name target, List<FacetSpec.Name> facets, List<FacetBucketResponse> buckets) {
