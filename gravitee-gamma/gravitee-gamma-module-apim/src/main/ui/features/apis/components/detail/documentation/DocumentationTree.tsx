@@ -90,7 +90,7 @@ export function DocumentationTree({
         (row: DocumentationRow): RowAction[] => {
             const { item } = row;
             const actions: RowAction[] = [];
-            // The server keeps everything below a synced folder read only, but lets a synced page be renamed.
+            // The server keeps everything below a synced folder read only, but lets the access of a synced page change.
             const belowSyncedFolder = row.synced && !hasSource(item);
             if (canEdit && item.type === 'PAGE' && !belowSyncedFolder) {
                 actions.push({ label: 'Edit details', icon: PencilIcon, onSelect: () => onEditDetails(item) });

@@ -65,6 +65,8 @@ function EditPageDetailsForm({
     onClose,
 }: Readonly<{ apiId: string; page: PortalNavigationPage; parent?: PortalNavigationFolder; onClose: () => void }>) {
     const changeItem = useChangeApiDocumentationItem(apiId);
+    // The server refuses to rename a page with a source, but lets its access change.
+    const synced = hasSource(page);
     const privateParent = privateParentOf(parent);
     const [title, setTitle] = useState(page.title);
     const [isPrivate, setIsPrivate] = useState(page.visibility === 'PRIVATE');
@@ -107,11 +109,11 @@ function EditPageDetailsForm({
             </DialogHeader>
 
             <form id="edit-documentation-page-details-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
-                {hasSource(page) ? (
+                {synced ? (
                     <Alert>
                         <RefreshCwIcon aria-hidden />
                         <AlertDescription>
-                            This page is synced from an external source. Renaming it or changing its access keeps it synced.
+                            This page is synced from an external source, so its title can&apos;t change here. Its access can.
                         </AlertDescription>
                     </Alert>
                 ) : null}
@@ -129,6 +131,7 @@ function EditPageDetailsForm({
                     isPrivate={isPrivate}
                     onPrivateChange={handlePrivateChange}
                     privateParent={privateParent}
+                    titleReadOnly={synced}
                     disabled={isSaving}
                 />
             </form>

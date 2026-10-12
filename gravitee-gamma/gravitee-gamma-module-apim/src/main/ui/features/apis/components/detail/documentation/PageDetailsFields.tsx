@@ -31,6 +31,7 @@ export function PageDetailsFields({
     isPrivate,
     onPrivateChange,
     privateParent,
+    titleReadOnly = false,
     disabled,
 }: Readonly<{
     title: string;
@@ -39,6 +40,7 @@ export function PageDetailsFields({
     onPrivateChange: (isPrivate: boolean) => void;
     /** Locks the page private, saying why. */
     privateParent?: PortalNavigationFolder;
+    titleReadOnly?: boolean;
     disabled: boolean;
 }>) {
     const titleId = useId();
@@ -48,7 +50,13 @@ export function PageDetailsFields({
         <>
             <Field orientation="vertical" className="gap-1.5">
                 <FieldLabel htmlFor={titleId}>Title</FieldLabel>
-                <Input id={titleId} value={title} onChange={event => onTitleChange(event.target.value)} disabled={disabled} required />
+                <Input
+                    id={titleId}
+                    value={title}
+                    onChange={event => onTitleChange(event.target.value)}
+                    disabled={disabled || titleReadOnly}
+                    required
+                />
             </Field>
 
             <FieldSet className="gap-1.5">
