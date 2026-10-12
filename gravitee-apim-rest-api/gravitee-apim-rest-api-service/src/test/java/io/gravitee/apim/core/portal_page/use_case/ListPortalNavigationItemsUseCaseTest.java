@@ -40,6 +40,7 @@ import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -105,7 +106,8 @@ class ListPortalNavigationItemsUseCaseTest {
             List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
             new PortalNavigationItemSourceDomainServiceInMemory(),
             apiPortalSearchQueryService,
-            new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory())
+            new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
+            new PortalNavigationItemRenderingDomainService(queryService)
         );
     }
 

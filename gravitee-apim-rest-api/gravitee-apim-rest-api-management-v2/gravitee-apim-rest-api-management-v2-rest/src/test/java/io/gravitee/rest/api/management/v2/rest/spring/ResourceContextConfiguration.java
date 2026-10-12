@@ -207,6 +207,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisib
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
@@ -1650,7 +1651,8 @@ public class ResourceContextConfiguration {
             List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
             portalNavigationItemSourceDomainService,
             apiPortalSearchQueryService,
-            apiOwnedNavigationDomainService
+            apiOwnedNavigationDomainService,
+            new PortalNavigationItemRenderingDomainService(portalNavigationItemsQueryService)
         );
     }
 

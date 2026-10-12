@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import fixtures.PortalNavigationItemsFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.BulkCreatePortalNavigationItemUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItems;
 import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
@@ -162,17 +163,22 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
     }
 
     @Test
-    void should_return_canonical_api_documentation_from_the_bulk_use_case() {
+    void should_return_rendered_api_documentation_from_the_bulk_use_case() {
         final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
         final var request = new BaseCreatePortalNavigationItems().items(List.of(page));
-        final var output = PortalNavigationItemFixtures.aPage(page.getId().toString(), page.getTitle(), null)
+        final var rootId = PortalNavigationItemId.of(PortalNavigationItemFixtures.APIS_ID);
+        final var output = PortalNavigationItemFixtures.aPage(
+            page.getId().toString(),
+            page.getTitle(),
+            PortalNavigationItemId.of(page.getParentId().toString())
+        )
             .toBuilder()
+            .rootId(rootId)
             .reference(new NavigationItemReference.ApiReference("api-id"))
             .organizationId(ORGANIZATION)
             .environmentId(ENVIRONMENT)
             .published(false)
             .build();
-        output.markAsRoot();
         when(bulkCreatePortalNavigationItemUseCase.execute(any())).thenReturn(
             new BulkCreatePortalNavigationItemUseCase.Output(List.of(output))
         );
@@ -196,9 +202,10 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
             .satisfies(item -> {
                 var result = (PortalNavigationPage) item.getActualInstance();
                 assertThat(result.getId()).isEqualTo(output.getId().id());
-                assertThat(result.getParentId()).isNull();
-                assertThat(result.getRootId()).isEqualTo(output.getId().id());
+                assertThat(result.getParentId()).isEqualTo(page.getParentId());
+                assertThat(result.getRootId()).isEqualTo(rootId.id());
                 assertThat(result.getPortalPageContentId()).isEqualTo(output.getPortalPageContentId().id());
+                assertThat(result.getPublished()).isFalse();
             });
     }
 

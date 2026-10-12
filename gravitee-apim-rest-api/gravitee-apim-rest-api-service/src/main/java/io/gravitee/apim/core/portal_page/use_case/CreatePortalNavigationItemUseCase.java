@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -38,6 +39,7 @@ public class CreatePortalNavigationItemUseCase {
     private final PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
     private final PortalNavigationDefaultPageDomainService defaultPageDomainService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
+    private final PortalNavigationItemRenderingDomainService renderingDomainService;
 
     public Output execute(Input input) {
         final var organizationId = input.organizationId();
@@ -45,6 +47,7 @@ public class CreatePortalNavigationItemUseCase {
         final var expansion = creationExpansionDomainService.expand(List.of(input.item()), environmentId);
 
         validatorService.validateAll(expansion.itemsToCreate(), environmentId);
+        var renderedParents = renderingDomainService.prepareRenderingParents(environmentId, expansion.itemsToCreate());
 
         var createdItems = new ArrayList<PortalNavigationItem>(expansion.itemsToCreate().size());
         for (var itemToCreate : expansion.itemsToCreate()) {
@@ -57,7 +60,8 @@ public class CreatePortalNavigationItemUseCase {
         ).toList();
         defaultPageDomainService.seedDefaultPages(organizationId, environmentId, defaultPageNavigationItemIds);
 
-        var createdItem = expansion.selectRequestedItems(createdItems).getFirst();
+        var renderedItems = renderingDomainService.renderCreatedItems(expansion.itemsToCreate(), createdItems, renderedParents);
+        var createdItem = expansion.selectRequestedItems(renderedItems).getFirst();
         if (createdItem.getSource() != null) {
             sourceDomainService.removeSensitiveData(createdItem.getSource());
         }

@@ -1034,7 +1034,7 @@ paths:
         User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
         PAGE, FOLDER, and LINK items created under a standalone API navigation item or an API-owned documentation folder inherit the API documentation owner.
         An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
-        The response returns the canonical stored hierarchy, not the rendered hierarchy returned by GET. An API-owned documentation root has no parentId and has its own ID as rootId; its navigation item and page content IDs are unchanged when rendered under an API navigation item.
+        An API-owned documentation root created under a standalone API navigation item is returned with the same rendered parentId and rootId values as GET for that selected navigation item. Its navigation item and page content IDs are unchanged. The stored root remains API-owned with no parentId and its own ID as rootId; items created under an API-owned documentation folder retain that folder as their parent.
       operationId: createPortalNavigationItem
       requestBody:
         content:
@@ -1044,7 +1044,7 @@ paths:
         required: true
       responses:
         "201":
-          description: Portal navigation item created in its canonical stored hierarchy. Newly created items are unpublished by default.
+          description: Portal navigation item created in the selected navigation context. Newly created items are unpublished by default.
           content:
             application/json:
               schema:
@@ -1079,7 +1079,7 @@ paths:
         User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
         PAGE, FOLDER, and LINK items inherit API documentation ownership from a standalone API navigation item or an API-owned documentation folder, including a parent created in the same request. Parents must precede their children in the request.
         An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
-        The response returns the canonical stored hierarchy, not the rendered hierarchy returned by GET. An API-owned documentation root has no parentId and has its own ID as rootId; its navigation item and page content IDs are unchanged when rendered under an API navigation item.
+        An API-owned documentation root created under a standalone API navigation item is returned with the same rendered parentId and rootId values as GET for that selected navigation item, including when the parent is created in the same request. Its navigation item and page content IDs are unchanged. The stored root remains API-owned with no parentId and its own ID as rootId; items created under an API-owned documentation folder retain that folder as their parent.
       operationId: createPortalNavigationItemsInBulk
       requestBody:
         content:

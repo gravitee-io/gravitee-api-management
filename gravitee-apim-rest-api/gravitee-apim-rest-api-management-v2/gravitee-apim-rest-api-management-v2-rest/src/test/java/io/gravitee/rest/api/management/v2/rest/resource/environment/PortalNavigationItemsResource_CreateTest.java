@@ -30,6 +30,7 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiProduct;
@@ -169,16 +170,21 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_canonical_api_documentation_from_the_use_case() {
+    void should_return_rendered_api_documentation_from_the_use_case() {
         final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
-        final var output = PortalNavigationItemFixtures.aPage(page.getId().toString(), page.getTitle(), null)
+        final var rootId = PortalNavigationItemId.of(PortalNavigationItemFixtures.APIS_ID);
+        final var output = PortalNavigationItemFixtures.aPage(
+            page.getId().toString(),
+            page.getTitle(),
+            PortalNavigationItemId.of(page.getParentId().toString())
+        )
             .toBuilder()
+            .rootId(rootId)
             .reference(new NavigationItemReference.ApiReference("api-id"))
             .organizationId(ORGANIZATION)
             .environmentId(ENVIRONMENT)
             .published(false)
             .build();
-        output.markAsRoot();
         when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         Response response = target.request().post(json(page));
@@ -192,9 +198,10 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
 
         final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage.class);
         assertThat(item.getId()).isEqualTo(output.getId().id());
-        assertThat(item.getParentId()).isNull();
-        assertThat(item.getRootId()).isEqualTo(output.getId().id());
+        assertThat(item.getParentId()).isEqualTo(page.getParentId());
+        assertThat(item.getRootId()).isEqualTo(rootId.id());
         assertThat(item.getPortalPageContentId()).isEqualTo(output.getPortalPageContentId().id());
+        assertThat(item.getPublished()).isFalse();
     }
 
     @Test
