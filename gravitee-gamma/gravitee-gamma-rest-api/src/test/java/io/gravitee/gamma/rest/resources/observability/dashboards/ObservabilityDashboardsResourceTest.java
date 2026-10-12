@@ -47,6 +47,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -306,6 +308,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                         """
                         {
                           "id": "dash-new",
+                          "module": "aim",
                           "title": "Performance overview",
                           "filters": [{ "name": "REQUEST_ID", "operator": "IN", "value": [], "editable": true }]
                         }
@@ -327,6 +330,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                         """
                         {
                           "id": "dash-new",
+                          "module": "aim",
                           "title": "Performance overview",
                           "description": "desc",
                           "filters": [
@@ -378,12 +382,23 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             );
         }
 
-        @Test
-        void should_create_a_dashboard_without_a_module() {
-            Response response = rootTarget().request().post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Performance overview\" }"));
+        @ParameterizedTest
+        @ValueSource(
+            strings = {
+                "{ \"id\": \"dash-new\", \"title\": \"Performance overview\" }",
+                "{ \"id\": \"dash-new\", \"module\": null, \"title\": \"Performance overview\" }",
+                "{ \"id\": \"dash-new\", \"module\": \"\", \"title\": \"Performance overview\" }",
+                "{ \"id\": \"dash-new\", \"module\": \"  \", \"title\": \"Performance overview\" }",
+            }
+        )
+        void should_return_400_with_a_technical_code_when_the_module_is_missing(String payload) {
+            Response response = rootTarget().request().post(Entity.json(payload));
 
-            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
-            assertThat(response.readEntity(JsonNode.class).has("module")).as("no module, no field").isFalse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("message").asText()).as("names the request field").contains("field 'module'");
+            assertThat(body.get("technicalCode").asText()).isEqualTo("observability.dashboard.module_required");
+            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT)).isEmpty();
         }
 
         @Test
@@ -393,6 +408,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                 .post(Entity.json("{ \"id\": \"dash-new\", \"module\": \"Not A Module\", \"title\": \"Performance overview\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).contains("'Not A Module' is invalid");
             assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT)).isEmpty();
         }
 
@@ -405,6 +421,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                         """
                         {
                           "id": "dash-new",
+                          "module": "aim",
                           "title": "Performance overview",
                           "version": 42,
                           "createdBy": "someone-else",
@@ -424,7 +441,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_title_is_blank() {
-            Response response = rootTarget().request().post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"  \" }"));
+            Response response = rootTarget()
+                .request()
+                .post(Entity.json("{ \"id\": \"dash-new\", \"module\": \"aim\", \"title\": \"  \" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -442,7 +461,11 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         void should_return_400_on_duplicate_widget_ids() {
             Response response = rootTarget()
                 .request()
-                .post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Perf\", \"widgets\": [{ \"id\": \"w1\" }, { \"id\": \"w1\" }] }"));
+                .post(
+                    Entity.json(
+                        "{ \"id\": \"dash-new\", \"module\": \"aim\", \"title\": \"Perf\", \"widgets\": [{ \"id\": \"w1\" }, { \"id\": \"w1\" }] }"
+                    )
+                );
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -451,7 +474,11 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         void should_return_400_on_an_incoherent_time_range() {
             Response response = rootTarget()
                 .request()
-                .post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Perf\", \"timeRange\": { \"type\": \"relative\" } }"));
+                .post(
+                    Entity.json(
+                        "{ \"id\": \"dash-new\", \"module\": \"aim\", \"title\": \"Perf\", \"timeRange\": { \"type\": \"relative\" } }"
+                    )
+                );
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -460,7 +487,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         void should_return_400_on_a_null_filter_entry() {
             Response response = rootTarget()
                 .request()
-                .post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Perf\", \"filters\": [null] }"));
+                .post(Entity.json("{ \"id\": \"dash-new\", \"module\": \"aim\", \"title\": \"Perf\", \"filters\": [null] }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
@@ -471,7 +498,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                 .request()
                 .post(
                     Entity.json(
-                        "{ \"id\": \"dash-new\", \"title\": \"Perf\", \"filters\": [{ \"name\": \"API_TYPE\", \"operator\": \"between\", \"value\": \"x\" }] }"
+                        "{ \"id\": \"dash-new\", \"module\": \"aim\", \"title\": \"Perf\", \"filters\": [{ \"name\": \"API_TYPE\", \"operator\": \"between\", \"value\": \"x\" }] }"
                     )
                 );
 
@@ -482,7 +509,9 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         void should_return_403_when_caller_cannot_create_dashboards() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
-            Response response = rootTarget().request().post(Entity.json("{ \"id\": \"dash-new\", \"title\": \"Perf\" }"));
+            Response response = rootTarget()
+                .request()
+                .post(Entity.json("{ \"id\": \"dash-new\", \"module\": \"aim\", \"title\": \"Perf\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
@@ -496,7 +525,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                 widgets.append("{\"id\":\"w").append(i).append("\"}");
             }
             widgets.append(']');
-            return "{ \"id\": \"dash-new\", \"title\": \"Perf\", \"widgets\": " + widgets + " }";
+            return "{ \"id\": \"dash-new\", \"module\": \"aim\", \"title\": \"Perf\", \"widgets\": " + widgets + " }";
         }
     }
 

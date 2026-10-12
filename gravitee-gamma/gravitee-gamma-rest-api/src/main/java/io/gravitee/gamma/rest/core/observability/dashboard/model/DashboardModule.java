@@ -33,6 +33,14 @@ public final class DashboardModule {
 
     private DashboardModule() {}
 
+    /** Every new dashboard needs a module, or it shows in no module's view. */
+    public static void requireValid(String module) {
+        if (module == null || module.isBlank()) {
+            throw new InvalidDashboardException("Dashboard field 'module' is required", "observability.dashboard.module_required");
+        }
+        requireValidOrAbsent(module);
+    }
+
     /** {@code null} means "no module" and is accepted; any other value must match the module id shape. */
     public static void requireValidOrAbsent(String module) {
         if (module != null && !VALID_MODULE.matcher(module).matches()) {

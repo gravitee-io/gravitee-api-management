@@ -40,4 +40,28 @@ class DashboardModuleTest {
     void should_reject_a_malformed_module(String module) {
         assertThatThrownBy(() -> DashboardModule.requireValidOrAbsent(module)).isInstanceOf(InvalidDashboardException.class);
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "aim", "apim", "module-2" })
+    void should_accept_a_well_formed_required_module(String module) {
+        assertThatCode(() -> DashboardModule.requireValid(module)).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = { "", " " })
+    void should_reject_a_missing_required_module_with_its_own_technical_code(String module) {
+        assertThatThrownBy(() -> DashboardModule.requireValid(module))
+            .isInstanceOf(InvalidDashboardException.class)
+            .extracting("technicalCode")
+            .isEqualTo("observability.dashboard.module_required");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "AIM", "a_im", "aim " })
+    void should_reject_a_malformed_required_module(String module) {
+        assertThatThrownBy(() -> DashboardModule.requireValid(module))
+            .isInstanceOf(InvalidDashboardException.class)
+            .hasMessageContaining("is invalid");
+    }
 }
