@@ -86,6 +86,7 @@ export interface Plan {
     security?: { type: SubscriptionSecurityType };
     mode?: 'STANDARD' | 'PUSH';
     status?: string;
+    generalConditions?: string;
 }
 
 export interface PlanPage {
