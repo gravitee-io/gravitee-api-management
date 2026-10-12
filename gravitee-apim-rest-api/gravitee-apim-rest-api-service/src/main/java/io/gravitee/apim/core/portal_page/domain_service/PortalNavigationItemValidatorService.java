@@ -303,7 +303,11 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         var existing = update.existing();
         var toUpdate = update.toUpdate();
         return (
-            !Objects.equals(existing.getParentId(), toUpdate.getParentId()) || !Objects.equals(existing.getSegment(), toUpdate.getSegment())
+            !Objects.equals(existing.getParentId(), toUpdate.getParentId()) ||
+            !Objects.equals(existing.getSegment(), toUpdate.getSegment()) ||
+            // A root handed to another owner leaves its slot although neither its parent nor its segment changes
+            toUpdate.getReference() !=
+            null
         );
     }
 

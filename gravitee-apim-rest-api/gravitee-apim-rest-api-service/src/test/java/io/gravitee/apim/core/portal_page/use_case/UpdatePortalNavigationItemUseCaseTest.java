@@ -1724,6 +1724,280 @@ class UpdatePortalNavigationItemUseCaseTest {
         }
     }
 
+    /**
+     * Items with no stored parent are grouped by owner: the top level of the portal is one list, the root
+     * documentation of each API another. A move that changes the owner leaves one of these lists and joins
+     * another, and each has to stay without a gap or a shared position.
+     */
+    @Nested
+    class OrderingAcrossOwners {
+
+        private static final ApiReference API_A = new ApiReference("api-a");
+        private static final ApiReference API_B = new ApiReference("api-b");
+
+        private PortalNavigationFolder section;
+        private PortalNavigationApi listingOfA;
+
+        @BeforeEach
+        void setUp() {
+            // The sample tree has every item at position 0 and could not show a gap or a duplicate.
+            queryService.initWith(List.of());
+            section = store(0, PortalNavigationItemFixtures.aFolder("Section"));
+            listingOfA = store(0, aListing(API_A));
+        }
+
+        @Nested
+        class APageInAPortalFolderDroppedOnAListing {
+
+            private PortalNavigationFolder portalFolder;
+            private PortalNavigationPage moved;
+
+            @BeforeEach
+            void setUp() {
+                // More items at the portal top level than roots of the API, so that the two lists cannot be confused
+                portalFolder = store(1, PortalNavigationItemFixtures.aFolder("Portal folder"));
+                for (int position = 2; position <= 5; position++) {
+                    store(position, PortalNavigationItemFixtures.aPage("T" + position, null));
+                }
+                store(0, PortalNavigationItemFixtures.aPage("P0", portalFolder.getId()));
+                moved = store(1, PortalNavigationItemFixtures.aPage("Moved", portalFolder.getId()));
+                store(2, PortalNavigationItemFixtures.aPage("P2", portalFolder.getId()));
+                store(0, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A0", null)));
+                store(1, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A1", null)));
+            }
+
+            @Test
+            void should_insert_at_the_requested_position_among_the_roots_of_the_api() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(1));
+
+                assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "Moved", 1, "A1", 2));
+            }
+
+            @Test
+            void should_close_the_gap_in_the_folder_it_left() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(1));
+
+                assertThat(childrenOf(portalFolder)).containsExactlyInAnyOrderEntriesOf(Map.of("P0", 0, "P2", 1));
+            }
+
+            @Test
+            void should_append_when_the_requested_position_is_past_the_end_of_the_destination() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(7));
+
+                assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "A1", 1, "Moved", 2));
+            }
+
+            @Test
+            void should_append_when_no_position_is_sent() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(null));
+
+                assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "A1", 1, "Moved", 2));
+            }
+        }
+
+        @Nested
+        class ATopLevelPortalPageDroppedOnAListing {
+
+            private PortalNavigationPage moved;
+
+            @BeforeEach
+            void setUp() {
+                // Dropped at the position it already had in the list it leaves: nothing but the owner changes
+                moved = store(1, PortalNavigationItemFixtures.aPage("Moved", null));
+                store(2, PortalNavigationItemFixtures.aPage("T2", null));
+                store(3, PortalNavigationItemFixtures.aPage("T3", null));
+                store(0, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A0", null)));
+                store(1, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A1", null)));
+            }
+
+            @Test
+            void should_make_room_among_the_roots_of_the_api() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(1));
+
+                assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "Moved", 1, "A1", 2));
+            }
+
+            @Test
+            void should_close_the_gap_in_the_portal_top_level() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(1));
+
+                assertThat(portalTopLevel()).containsExactlyInAnyOrderEntriesOf(Map.of("Section", 0, "T2", 1, "T3", 2));
+            }
+
+            @Test
+            void should_make_room_when_dropped_at_another_position() {
+                execute(moved, updateOf(moved).parentId(listingOfA.getId()).order(0));
+
+                assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("Moved", 0, "A0", 1, "A1", 2));
+                assertThat(portalTopLevel()).containsExactlyInAnyOrderEntriesOf(Map.of("Section", 0, "T2", 1, "T3", 2));
+            }
+        }
+
+        @Test
+        void should_not_renumber_the_portal_top_level_when_an_api_root_moves_into_a_portal_folder() {
+            var portalFolder = store(1, PortalNavigationItemFixtures.aFolder("Portal folder"));
+            store(2, PortalNavigationItemFixtures.aPage("T2", null));
+            store(3, PortalNavigationItemFixtures.aPage("T3", null));
+            store(0, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A0", null)));
+            var moved = store(1, ownedBy(API_A, PortalNavigationItemFixtures.aPage("Moved", null)));
+            store(2, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A2", null)));
+
+            execute(moved, updateOf(moved).parentId(portalFolder.getId()).order(0));
+
+            assertThat(portalTopLevel()).containsExactlyInAnyOrderEntriesOf(Map.of("Section", 0, "Portal folder", 1, "T2", 2, "T3", 3));
+            assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "A2", 1));
+            assertThat(childrenOf(portalFolder)).containsExactlyInAnyOrderEntriesOf(Map.of("Moved", 0));
+        }
+
+        @Test
+        void should_insert_among_the_portal_top_level_when_a_nested_api_item_moves_out() {
+            store(1, PortalNavigationItemFixtures.aPage("T1", null));
+            store(2, PortalNavigationItemFixtures.aPage("T2", null));
+            var apiFolder = store(0, ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Api folder")));
+            store(0, ownedBy(API_A, PortalNavigationItemFixtures.aPage("C0", apiFolder.getId())));
+            var moved = store(1, ownedBy(API_A, PortalNavigationItemFixtures.aPage("Moved", apiFolder.getId())));
+            store(2, ownedBy(API_A, PortalNavigationItemFixtures.aPage("C2", apiFolder.getId())));
+
+            execute(moved, updateOf(moved).parentId(null).order(2));
+
+            assertThat(portalTopLevel()).containsExactlyInAnyOrderEntriesOf(Map.of("Section", 0, "T1", 1, "Moved", 2, "T2", 3));
+            assertThat(childrenOf(apiFolder)).containsExactlyInAnyOrderEntriesOf(Map.of("C0", 0, "C2", 1));
+        }
+
+        @Test
+        void should_keep_both_lists_contiguous_when_an_item_moves_from_one_api_to_another() {
+            var listingOfB = store(1, aListing(API_B));
+            store(0, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A0", null)));
+            var moved = store(1, ownedBy(API_A, PortalNavigationItemFixtures.aPage("Moved", null)));
+            store(2, ownedBy(API_A, PortalNavigationItemFixtures.aPage("A2", null)));
+            store(0, ownedBy(API_B, PortalNavigationItemFixtures.aPage("B0", null)));
+            store(1, ownedBy(API_B, PortalNavigationItemFixtures.aPage("B1", null)));
+
+            execute(moved, updateOf(moved).parentId(listingOfB.getId()).order(1));
+
+            assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("A0", 0, "A2", 1));
+            assertThat(rootsOf(API_B)).containsExactlyInAnyOrderEntriesOf(Map.of("B0", 0, "Moved", 1, "B1", 2));
+        }
+
+        @Test
+        void should_accept_a_name_used_at_the_portal_top_level_when_moved_onto_a_listing() {
+            store(1, PortalNavigationItemFixtures.aFolder("Guides"));
+            var portalFolder = store(2, PortalNavigationItemFixtures.aFolder("Portal folder"));
+            var moved = store(0, PortalNavigationItemFixtures.aFolder("Guides", portalFolder.getId()));
+
+            execute(moved, updateOf(moved).parentId(listingOfA.getId()));
+
+            assertThat(rootsOf(API_A)).containsExactlyInAnyOrderEntriesOf(Map.of("Guides", 0));
+        }
+
+        @Test
+        void should_refuse_a_name_already_used_among_the_roots_of_the_api() {
+            store(0, ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Guides")));
+            var portalFolder = store(1, PortalNavigationItemFixtures.aFolder("Portal folder"));
+            var moved = store(0, PortalNavigationItemFixtures.aFolder("Guides", portalFolder.getId()));
+
+            assertThatThrownBy(() -> execute(moved, updateOf(moved).parentId(listingOfA.getId()))).isInstanceOf(
+                PathConflictException.class
+            );
+            assertThat(childrenOf(portalFolder)).containsExactlyInAnyOrderEntriesOf(Map.of("Guides", 0));
+        }
+
+        @Test
+        void should_refuse_a_name_already_used_at_the_portal_top_level_when_moved_out_of_an_api() {
+            store(1, PortalNavigationItemFixtures.aFolder("Guides"));
+            var apiFolder = store(0, ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Api folder")));
+            var moved = store(0, ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Guides", apiFolder.getId())));
+
+            assertThatThrownBy(() -> execute(moved, updateOf(moved).parentId(null))).isInstanceOf(PathConflictException.class);
+            assertThat(childrenOf(apiFolder)).containsExactlyInAnyOrderEntriesOf(Map.of("Guides", 0));
+        }
+
+        @Test
+        void should_generate_a_segment_unique_among_the_roots_of_the_api() {
+            var rootOfTheApi = store(0, ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Docs")));
+            var portalFolder = store(1, PortalNavigationItemFixtures.aFolder("Portal folder"));
+            var moved = store(0, PortalNavigationItemFixtures.aFolder("Docs", portalFolder.getId()));
+
+            execute(moved, updateOf(moved).parentId(listingOfA.getId()).segment(null));
+
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, moved.getId());
+            assertThat(stored.getReference()).isEqualTo(API_A);
+            assertThat(stored.getSegment()).isNotEqualTo(rootOfTheApi.getSegment());
+        }
+
+        private PortalNavigationApi aListing(ApiReference api) {
+            return PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().json(),
+                "Listing of " + api.apiId(),
+                section.getId(),
+                api.apiId()
+            );
+        }
+
+        private <T extends PortalNavigationItem> T store(int position, T item) {
+            item.setOrder(position);
+            if (item.getParentId() == null) {
+                item.markAsRoot();
+            } else {
+                item.updateParent((PortalNavigationItemContainer) queryService.findByIdAndEnvironmentId(ENV_ID, item.getParentId()));
+            }
+            crudService.create(item);
+            return item;
+        }
+
+        private static PortalNavigationFolder ownedBy(ApiReference api, PortalNavigationFolder folder) {
+            return folder.toBuilder().reference(api).build();
+        }
+
+        private static PortalNavigationPage ownedBy(ApiReference api, PortalNavigationPage page) {
+            return page.toBuilder().reference(api).build();
+        }
+
+        private Map<String, Integer> rootsOf(ApiReference api) {
+            return positions(queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(ENV_ID, PortalArea.TOP_NAVBAR, api));
+        }
+
+        private Map<String, Integer> portalTopLevel() {
+            return positions(
+                queryService
+                    .findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR)
+                    .stream()
+                    .filter(item -> !(item.getReference() instanceof ApiReference))
+                    .toList()
+            );
+        }
+
+        private Map<String, Integer> childrenOf(PortalNavigationItem parent) {
+            return positions(queryService.findByParentIdAndEnvironmentId(ENV_ID, parent.getId()));
+        }
+
+        private static Map<String, Integer> positions(List<PortalNavigationItem> items) {
+            return items.stream().collect(Collectors.toMap(PortalNavigationItem::getTitle, PortalNavigationItem::getOrder));
+        }
+
+        private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder updateOf(PortalNavigationItem item) {
+            return UpdatePortalNavigationItem.builder()
+                .type(item.getType())
+                .title(item.getTitle())
+                .segment(item.getSegment())
+                .order(item.getOrder())
+                .parentId(item.getParentId())
+                .published(item.getPublished())
+                .visibility(item.getVisibility());
+        }
+
+        private void execute(PortalNavigationItem item, UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder command) {
+            useCase.execute(
+                UpdatePortalNavigationItemUseCase.Input.builder()
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .navigationItemId(item.getId().json())
+                    .updatePortalNavigationItem(command.build())
+                    .build()
+            );
+        }
+    }
+
     @Nested
     class SourcedItems {
 

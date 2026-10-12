@@ -38,6 +38,15 @@ public final class UpdatePortalNavigationItem {
     private PortalNavigationItemId renderedParentId;
     /** Server-resolved owner the item takes when a move changes it; never taken from a request, null when the owner is unchanged. */
     private NavigationItemReference reference;
+
+    /**
+     * The owner the item has once this update is applied: the list it joins is found with this owner, the
+     * list it leaves with the one it had.
+     */
+    public NavigationItemReference ownerAfter(PortalNavigationItem existing) {
+        return reference != null ? reference : existing.getReference();
+    }
+
     private String url;
     private List<PortalCategoryId> categoryIds;
     private Boolean published;
