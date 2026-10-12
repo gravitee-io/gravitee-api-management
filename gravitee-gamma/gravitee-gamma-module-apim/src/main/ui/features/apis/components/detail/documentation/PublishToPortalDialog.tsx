@@ -148,7 +148,8 @@ function PublishToPortalForm({
                         <SelectTrigger id={sectionId} className="w-full">
                             <SelectValue placeholder={sectionPlaceholder(locationsQuery.isPending, hasNoSection)} />
                         </SelectTrigger>
-                        <SelectContent>
+                        {/* Aligned on the selected item, the list is placed against the page rather than the dialog */}
+                        <SelectContent position="popper" style={{ width: 'var(--radix-select-trigger-width)', minWidth: 'unset' }}>
                             {locations.map(location => (
                                 <SelectItem key={location.id} value={location.id}>
                                     {location.name}
