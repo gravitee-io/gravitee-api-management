@@ -24,8 +24,9 @@ export function privateParentOf(parent: PortalNavigationFolder | undefined): Por
     return parent?.visibility === 'PRIVATE' ? parent : undefined;
 }
 
-/** The title and access of a page, shared by the dialogs creating a page and editing its details. */
+/** The title and access of a page or a folder, shared by the dialogs creating one and editing its details. */
 export function PageDetailsFields({
+    itemNoun = 'page',
     title,
     onTitleChange,
     isPrivate,
@@ -34,11 +35,12 @@ export function PageDetailsFields({
     titleReadOnly = false,
     disabled,
 }: Readonly<{
+    itemNoun?: 'page' | 'folder';
     title: string;
     onTitleChange: (title: string) => void;
     isPrivate: boolean;
     onPrivateChange: (isPrivate: boolean) => void;
-    /** Locks the page private, saying why. */
+    /** Locks the item private, saying why. */
     privateParent?: PortalNavigationFolder;
     titleReadOnly?: boolean;
     disabled: boolean;
@@ -69,7 +71,7 @@ export function PageDetailsFields({
                         disabled={disabled || privateParent !== undefined}
                     />
                     <Label htmlFor={privateId} className="font-normal">
-                        Authentication is required to view this page
+                        Authentication is required to view this {itemNoun}
                     </Label>
                 </div>
                 {privateParent ? (
@@ -79,7 +81,7 @@ export function PageDetailsFields({
                             <FolderOpenIcon className="size-3" aria-hidden />
                             {privateParent.title}
                         </Badge>{' '}
-                        requires authentication, so this page does too.
+                        requires authentication, so this {itemNoun} does too.
                     </FieldDescription>
                 ) : null}
             </FieldSet>
