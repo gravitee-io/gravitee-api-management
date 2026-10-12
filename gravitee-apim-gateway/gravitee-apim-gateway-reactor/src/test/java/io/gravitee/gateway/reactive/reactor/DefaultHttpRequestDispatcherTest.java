@@ -39,6 +39,7 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.core.invoker.V3InvokerAttributes;
 import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
@@ -573,9 +574,7 @@ class DefaultHttpRequestDispatcherTest {
             final Runnable cancelUpstream = mock(Runnable.class);
 
             doAnswer(i -> {
-                i
-                    .getArgument(0, ExecutionContext.class)
-                    .setAttribute(DefaultHttpRequestDispatcher.ATTR_INTERNAL_V3_CANCEL_UPSTREAM, cancelUpstream);
+                i.getArgument(0, ExecutionContext.class).setAttribute(V3InvokerAttributes.ATTR_INTERNAL_V3_CANCEL_UPSTREAM, cancelUpstream);
                 // The upstream never answers: only the client going away ends the exchange
                 return null;
             })
@@ -593,9 +592,7 @@ class DefaultHttpRequestDispatcherTest {
             final Runnable cancelUpstream = mock(Runnable.class);
 
             doAnswer(i -> {
-                i
-                    .getArgument(0, ExecutionContext.class)
-                    .setAttribute(DefaultHttpRequestDispatcher.ATTR_INTERNAL_V3_CANCEL_UPSTREAM, cancelUpstream);
+                i.getArgument(0, ExecutionContext.class).setAttribute(V3InvokerAttributes.ATTR_INTERNAL_V3_CANCEL_UPSTREAM, cancelUpstream);
                 simulateEndHandlerCall(i);
                 return null;
             })
