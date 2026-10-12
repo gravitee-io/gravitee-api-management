@@ -40,11 +40,18 @@ jest.mock('../../../hooks/useGroups', () => ({ useGroups: jest.fn(() => ({ data:
 jest.mock('../../../hooks/useOrgTags', () => ({ useOrgTags: jest.fn(() => ({ data: [] })) }));
 jest.mock('../../../hooks/useUserTags', () => ({ useUserTags: jest.fn(() => ({ data: [] })) }));
 jest.mock('../../../hooks/useApiResources', () => ({ useResourcePlugins: jest.fn(() => ({ data: [] })) }));
+jest.mock('../../../hooks/usePlanSecuritySettings', () => ({
+    usePlanSecuritySettings: jest.fn(() => ({
+        planSecuritySettings: { API_KEY: true, JWT: true, OAUTH2: true, MTLS: true, KEY_LESS: true },
+        isLoading: false,
+    })),
+}));
 
 import { ApiPlanFormPage } from './ApiPlanFormPage';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { useGroups } from '../../../hooks/useGroups';
 import { useOrgTags } from '../../../hooks/useOrgTags';
+import { usePlanSecuritySettings } from '../../../hooks/usePlanSecuritySettings';
 import { useUserTags } from '../../../hooks/useUserTags';
 import { getPlan, updatePlan } from '../../../services/plans';
 import type { ManagedPlan } from '../../../types/plan';
@@ -55,6 +62,9 @@ const mockUseApiDetail = useApiDetail as jest.Mock;
 const mockUseGroups = useGroups as jest.Mock;
 const mockUseOrgTags = useOrgTags as jest.Mock;
 const mockUseUserTags = useUserTags as jest.Mock;
+const mockUsePlanSecuritySettings = usePlanSecuritySettings as jest.Mock;
+
+const ALL_SECURITY_ENABLED = { API_KEY: true, JWT: true, OAUTH2: true, MTLS: true, KEY_LESS: true };
 
 const FEDERATED_PLAN: ManagedPlan = {
     id: 'plan-1',
@@ -129,6 +139,7 @@ describe('ApiPlanFormPage edit form', () => {
         mockUseGroups.mockReturnValue({ data: undefined });
         mockUseOrgTags.mockReturnValue({ data: [] });
         mockUseUserTags.mockReturnValue({ data: [] });
+        mockUsePlanSecuritySettings.mockReturnValue({ planSecuritySettings: ALL_SECURITY_ENABLED, isLoading: false });
     });
 
     it('opens a federated plan populated with that plan own values', async () => {
@@ -242,6 +253,7 @@ describe('ApiPlanFormPage TCP Proxy create', () => {
         mockUseGroups.mockReturnValue({ data: undefined });
         mockUseOrgTags.mockReturnValue({ data: [] });
         mockUseUserTags.mockReturnValue({ data: [] });
+        mockUsePlanSecuritySettings.mockReturnValue({ planSecuritySettings: ALL_SECURITY_ENABLED, isLoading: false });
     });
 
     it('redirects non-Keyless plan create URLs back to the plans list', async () => {
@@ -303,5 +315,60 @@ describe('ApiPlanFormPage TCP Proxy create', () => {
         const stepIndicator = screen.getByRole('navigation', { name: 'Plan creation steps' });
         expect(within(stepIndicator).queryByText('Restrictions')).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: /create plan/i })).toBeInTheDocument();
+    });
+});
+
+describe('ApiPlanFormPage plan security settings', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseApiDetail.mockReturnValue({ data: { listeners: [{ type: 'HTTP' }] }, isLoading: false });
+        mockUseGroups.mockReturnValue({ data: undefined });
+        mockUseOrgTags.mockReturnValue({ data: [] });
+        mockUseUserTags.mockReturnValue({ data: [] });
+        mockUsePlanSecuritySettings.mockReturnValue({ planSecuritySettings: ALL_SECURITY_ENABLED, isLoading: false });
+    });
+
+    it('redirects away from create when the plan security type is disabled in portal settings', async () => {
+        mockUsePlanSecuritySettings.mockReturnValue({
+            planSecuritySettings: { ...ALL_SECURITY_ENABLED, API_KEY: false },
+            isLoading: false,
+        });
+
+        render(
+            <QueryClientProvider client={newQueryClient()}>
+                <MemoryRouter initialEntries={['/apis/api-1/plans/new/API_KEY']}>
+                    <Routes>
+                        <Route path="apis/:apiId/plans">
+                            <Route index element={<p>Plans list</p>} />
+                            <Route path="new/:securityType" element={<ApiPlanFormPage />} />
+                        </Route>
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
+
+        expect(await screen.findByText('Plans list')).toBeInTheDocument();
+        expect(screen.queryByLabelText(/^Name/)).not.toBeInTheDocument();
+    });
+
+    it('keeps the create wizard closed while portal security settings load', () => {
+        mockUsePlanSecuritySettings.mockReturnValue({ planSecuritySettings: ALL_SECURITY_ENABLED, isLoading: true });
+
+        render(
+            <QueryClientProvider client={newQueryClient()}>
+                <MemoryRouter initialEntries={['/apis/api-1/plans/new/API_KEY']}>
+                    <Routes>
+                        <Route path="apis/:apiId/plans">
+                            <Route index element={<p>Plans list</p>} />
+                            <Route path="new/:securityType" element={<ApiPlanFormPage />} />
+                        </Route>
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
+
+        expect(screen.queryByText('Plans list')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText(/^Name/)).not.toBeInTheDocument();
+        expect(screen.queryByRole('navigation', { name: 'Plan creation steps' })).not.toBeInTheDocument();
     });
 });
