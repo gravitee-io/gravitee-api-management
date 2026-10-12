@@ -43,7 +43,7 @@ export class ValidateJob {
       }),
       new commands.Run({
         // Its own reactor, so validated separately. The core version is left at whatever the pom
-        // pins — license and prettier do not care which core it names, and this step runs before
+        // pins — license and formatting checks do not care which core it names, and this step runs before
         // anything is installed, so the coordinate has to be one somebody publishes.
         //
         // On master that is the branch's own snapshot, republished on every merge. Elsewhere it is a

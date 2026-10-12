@@ -24,7 +24,7 @@
   <parent>
     <groupId>io.gravitee</groupId>
     <artifactId>gravitee-parent</artifactId>
-    <version>25.1.2</version>
+    <version>25.1.2-spotless-prettier</version>
   </parent>
 
   <groupId>io.gravitee.apim</groupId>
@@ -293,25 +293,88 @@
           </execution>
         </executions>
       </plugin>
+      <!--
+        Overrides the whole spotless configuration of gravitee-parent: its **/*.json and **/*.yml
+        scope would reach the webui trees and their node_modules. Mirrors .prettierrc, which spotless
+        does not read (no config discovery, no overrides support).
+      -->
       <plugin>
-        <groupId>com.hubspot.maven.plugins</groupId>
-        <artifactId>prettier-maven-plugin</artifactId>
-        <configuration>
-          <prettierJavaVersion>${prettier-maven-plugin.prettierJavaVersion}</prettierJavaVersion>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <configuration combine.self="override">
           <skip>${skip.validation}</skip>
-          <inputGlobs>
-            <inputGlob>src/{main,test}/**/*.java</inputGlob>
-            <inputGlob>docker/**/docker-compose.yml</inputGlob>
-          </inputGlobs>
+          <java>
+            <!-- includes default to the project source and test source directories -->
+            <excludes>
+              <exclude>**/target/**</exclude>
+              <exclude>**/node_modules/**</exclude>
+              <!-- formatted by the dedicated format below -->
+              <exclude>src/*/java/**/upgrader/index/**/*.java</exclude>
+            </excludes>
+            <prettier>
+              <npmExecutable>${node.installDirectory}/node/npm</npmExecutable>
+              <npmInstallCache>${spotless.npmInstallCache}</npmInstallCache>
+              <devDependencies>
+                <prettier>${prettier.version}</prettier>
+                <prettier-plugin-java>${prettier-plugin-java.version}</prettier-plugin-java>
+              </devDependencies>
+              <config>
+                <parser>java</parser>
+                <plugins>prettier-plugin-java</plugins>
+                <arrowParens>avoid</arrowParens>
+                <printWidth>${prettier.printWidth}</printWidth>
+                <tabWidth>${prettier.tabWidth}</tabWidth>
+                <trailingComma>all</trailingComma>
+              </config>
+            </prettier>
+          </java>
+          <formats>
+            <!-- .prettierrc override: MongoDB index upgraders (gravitee-apim-repository-mongodb) use a 90 columns width -->
+            <format>
+              <includes>
+                <include>src/*/java/**/upgrader/index/**/*.java</include>
+              </includes>
+              <excludes>
+                <exclude>**/target/**</exclude>
+              </excludes>
+              <prettier>
+                <npmExecutable>${node.installDirectory}/node/npm</npmExecutable>
+                <npmInstallCache>${spotless.npmInstallCache}</npmInstallCache>
+                <devDependencies>
+                  <prettier>${prettier.version}</prettier>
+                  <prettier-plugin-java>${prettier-plugin-java.version}</prettier-plugin-java>
+                </devDependencies>
+                <config>
+                  <parser>java</parser>
+                  <plugins>prettier-plugin-java</plugins>
+                  <arrowParens>avoid</arrowParens>
+                  <printWidth>90</printWidth>
+                  <tabWidth>${prettier.tabWidth}</tabWidth>
+                  <trailingComma>all</trailingComma>
+                </config>
+              </prettier>
+            </format>
+          </formats>
+          <yaml>
+            <includes>
+              <include>docker/**/docker-compose.yml</include>
+            </includes>
+            <prettier>
+              <npmExecutable>${node.installDirectory}/node/npm</npmExecutable>
+              <npmInstallCache>${spotless.npmInstallCache}</npmInstallCache>
+              <devDependencies>
+                <prettier>${prettier.version}</prettier>
+                <prettier-plugin-java>${prettier-plugin-java.version}</prettier-plugin-java>
+              </devDependencies>
+              <config>
+                <bracketSpacing>true</bracketSpacing>
+                <printWidth>${prettier.printWidth}</printWidth>
+                <singleQuote>true</singleQuote>
+                <tabWidth>${prettier.tabWidth}</tabWidth>
+              </config>
+            </prettier>
+          </yaml>
         </configuration>
-        <executions>
-          <execution>
-            <phase>validate</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>com.mycila</groupId>
