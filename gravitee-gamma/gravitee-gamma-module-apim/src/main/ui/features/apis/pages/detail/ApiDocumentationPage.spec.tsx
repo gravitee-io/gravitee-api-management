@@ -78,18 +78,21 @@ jest.mock('../../components/detail/documentation/EditPageDetailsDialog', () => (
         apiId,
         page,
         parent,
+        syncState,
         onClose,
     }: {
         open: boolean;
         apiId: string;
         page: { title: string };
         parent?: { title: string };
+        syncState: string;
         onClose: () => void;
     }) =>
         open ? (
             <div role="dialog" aria-label="Edit page details">
                 Editing the details of {page.title} in {apiId}
                 {parent ? `, inside ${parent.title}` : ', at the top level'}
+                {` (${syncState})`}
                 <button type="button" onClick={onClose}>
                     Close
                 </button>
@@ -419,7 +422,7 @@ describe('ApiDocumentationPage', () => {
             await userEvent.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
             await userEvent.click(screen.getByRole('menuitem', { name: 'Edit details' }));
             expect(screen.getByRole('dialog', { name: 'Edit page details' })).toHaveTextContent(
-                'Editing the details of Changelog in api-1, at the top level',
+                'Editing the details of Changelog in api-1, at the top level (NOT_SYNCED)',
             );
 
             await userEvent.click(screen.getByRole('button', { name: 'Close' }));
@@ -434,8 +437,21 @@ describe('ApiDocumentationPage', () => {
             await userEvent.click(screen.getByRole('menuitem', { name: 'Edit details' }));
 
             expect(screen.getByRole('dialog', { name: 'Edit page details' })).toHaveTextContent(
-                'Editing the details of Getting started in api-1, inside Guides',
+                'Editing the details of Getting started in api-1, inside Guides (NOT_SYNCED)',
             );
+        });
+
+        it('tells the dialog that a page with its own source is synced', async () => {
+            givenDocumentation({
+                items: [GUIDES, GETTING_STARTED, { ...CHANGELOG, source: { type: 'github-fetcher', configuration: {} } }],
+                publications: [],
+            });
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Edit details' }));
+
+            expect(screen.getByRole('dialog', { name: 'Edit page details' })).toHaveTextContent('(OWN_SOURCE)');
         });
 
         it('offers them only with api-documentation-u', async () => {

@@ -301,6 +301,15 @@ describe('DocumentationTree', () => {
             expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details']);
         });
 
+        it('does not offer it on a page with its own source inside a synced folder, as the editor does not either', async () => {
+            const user = userEvent.setup();
+            renderTree({ items: [REFERENCE, { ...ENDPOINTS, source: REFERENCE.source }] });
+
+            await expand(user, 'Reference');
+
+            expect(screen.queryByRole('button', { name: 'Actions for Endpoints' })).not.toBeInTheDocument();
+        });
+
         it('does not offer it on a page inside a synced folder, which the server keeps read only', async () => {
             const user = userEvent.setup();
             renderTree();

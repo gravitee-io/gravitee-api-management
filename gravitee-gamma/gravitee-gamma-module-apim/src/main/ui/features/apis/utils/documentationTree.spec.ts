@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { buildDocumentationRows, getAncestors, getPublishedSection } from './documentationTree';
+import { allowedChanges, buildDocumentationRows, getAncestors, getPublishedSection, syncStateOf } from './documentationTree';
 import type { ApiDocumentationItem, ApiPortalPublication, PortalNavigationItemSource } from '../types/apiDocumentation';
 
 const SOURCE: PortalNavigationItemSource = { type: 'github-fetcher', configuration: {} };
@@ -86,21 +86,21 @@ describe('buildDocumentationRows', () => {
         expect(rows[1]).toMatchObject({ expanded: false });
     });
 
-    it('marks as synced an item with a source and everything below it, but not its siblings', () => {
+    it('records how each item is synced: its own source, a synced folder above it, or neither', () => {
         const items = [
             folder('reference', 0, undefined, SOURCE),
             folder('v1', 0, 'reference'),
-            page('endpoints', 0, 'v1'),
+            page('endpoints', 0, 'v1', SOURCE),
             page('changelog', 1),
         ];
 
         const rows = buildDocumentationRows(items, new Set(['reference', 'v1']));
 
-        expect(rows.map(row => [row.item.id, row.synced])).toEqual([
-            ['reference', true],
-            ['v1', true],
-            ['endpoints', true],
-            ['changelog', false],
+        expect(rows.map(row => [row.item.id, row.syncState])).toEqual([
+            ['reference', 'OWN_SOURCE'],
+            ['v1', 'BELOW_SYNCED_FOLDER'],
+            ['endpoints', 'BELOW_SYNCED_FOLDER'],
+            ['changelog', 'NOT_SYNCED'],
         ]);
     });
 
@@ -127,6 +127,44 @@ describe('buildDocumentationRows', () => {
         expect(rows).toHaveLength(depth);
         expect(rows[0]).toMatchObject({ depth: 0, descendantCount: depth - 1 });
         expect(rows[depth - 1]).toMatchObject({ depth: depth - 1, descendantCount: 0 });
+    });
+});
+
+describe('syncStateOf', () => {
+    it('is not synced without a source on the item or above it', () => {
+        expect(syncStateOf(page('oauth', 0, 'guides'), [folder('guides', 0)])).toBe('NOT_SYNCED');
+    });
+
+    it('is synced by its own source', () => {
+        expect(syncStateOf(page('petstore', 0, 'guides', SOURCE), [folder('guides', 0)])).toBe('OWN_SOURCE');
+    });
+
+    it('is below a synced folder when any folder above it has a source, even with a source of its own', () => {
+        const ancestors = [folder('reference', 0, undefined, SOURCE), folder('v1', 0, 'reference')];
+
+        expect(syncStateOf(page('endpoints', 0, 'v1'), ancestors)).toBe('BELOW_SYNCED_FOLDER');
+        expect(syncStateOf(page('endpoints', 0, 'v1', SOURCE), ancestors)).toBe('BELOW_SYNCED_FOLDER');
+    });
+});
+
+// Mirrors the server's SourcedItemReadOnlyRule.
+describe('allowedChanges', () => {
+    it('allows every change to an item that is not synced', () => {
+        expect(allowedChanges('NOT_SYNCED')).toEqual({ content: true, title: true, access: true, delete: true, addInside: true });
+    });
+
+    it('allows only the access of an item with its own source to change', () => {
+        expect(allowedChanges('OWN_SOURCE')).toEqual({ content: false, title: false, access: true, delete: false, addInside: false });
+    });
+
+    it('allows no change below a synced folder', () => {
+        expect(allowedChanges('BELOW_SYNCED_FOLDER')).toEqual({
+            content: false,
+            title: false,
+            access: false,
+            delete: false,
+            addInside: false,
+        });
     });
 });
 

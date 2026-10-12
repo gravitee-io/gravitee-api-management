@@ -27,7 +27,7 @@ import { GraviteeMarkdownPreview } from '../../components/detail/documentation/G
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useApiDocumentationPageContent, useSaveApiDocumentationPageContent } from '../../hooks/useApiDocumentation';
 import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationPage, PortalPageContent } from '../../types/apiDocumentation';
-import { getAncestors, hasSource } from '../../utils/documentationTree';
+import { allowedChanges, getAncestors, type SyncState, syncStateOf } from '../../utils/documentationTree';
 import { editorLanguageFor, PAGE_CONTENT_TYPE_LABELS } from '../../utils/pageContentType';
 
 export function ApiDocumentationEditPage() {
@@ -94,9 +94,8 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
     }
 
     const ancestors = getAncestors(items, page);
-    // The server refuses to change anything below a folder with a source, and the content of a page with one.
-    const belowSyncedFolder = ancestors.some(hasSource);
-    const synced = belowSyncedFolder || hasSource(page);
+    const syncState = syncStateOf(page, ancestors);
+    const allowed = allowedChanges(syncState);
     const parent = ancestors.at(-1);
 
     return (
@@ -107,10 +106,9 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
             parent={parent?.type === 'FOLDER' ? parent : undefined}
             ancestors={ancestors}
             saved={content.data}
-            synced={synced}
-            belowSyncedFolder={belowSyncedFolder}
-            readOnly={!canEdit || synced}
-            canEditDetails={canEdit && !belowSyncedFolder}
+            syncState={syncState}
+            readOnly={!canEdit || !allowed.content}
+            canEditDetails={canEdit && allowed.access}
         />
     );
 }
@@ -129,8 +127,7 @@ function PageEditor({
     parent,
     ancestors,
     saved,
-    synced,
-    belowSyncedFolder,
+    syncState,
     readOnly,
     canEditDetails,
 }: Readonly<{
@@ -139,8 +136,7 @@ function PageEditor({
     parent?: PortalNavigationFolder;
     ancestors: ApiDocumentationItem[];
     saved: PortalPageContent;
-    synced: boolean;
-    belowSyncedFolder: boolean;
+    syncState: SyncState;
     readOnly: boolean;
     canEditDetails: boolean;
 }>) {
@@ -208,10 +204,10 @@ function PageEditor({
                 {actions}
             </header>
 
-            {synced ? (
+            {syncState !== 'NOT_SYNCED' ? (
                 <Alert>
                     <AlertDescription>
-                        {belowSyncedFolder ? (
+                        {syncState === 'BELOW_SYNCED_FOLDER' ? (
                             <>This page is synced from an external source, so it can&apos;t be edited here.</>
                         ) : (
                             <>This page&apos;s content is synced from an external source, so it can&apos;t be edited here.</>
@@ -251,6 +247,7 @@ function PageEditor({
                     apiId={apiId}
                     page={page}
                     parent={parent}
+                    syncState={syncState}
                     onClose={() => setIsEditingDetails(false)}
                 />
             ) : null}

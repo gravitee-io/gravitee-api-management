@@ -32,13 +32,14 @@ import { notify } from '../../../../../shared/notify';
 import { extractErrorMessage } from '../../../../../shared/notify/extractErrorMessage';
 import { useChangeApiDocumentationItem } from '../../../hooks/useApiDocumentation';
 import type { PortalNavigationFolder, PortalNavigationPage } from '../../../types/apiDocumentation';
-import { hasSource } from '../../../utils/documentationTree';
+import { allowedChanges, type SyncState } from '../../../utils/documentationTree';
 
 export function EditPageDetailsDialog({
     open,
     apiId,
     page,
     parent,
+    syncState,
     onClose,
 }: Readonly<{
     open: boolean;
@@ -46,12 +47,13 @@ export function EditPageDetailsDialog({
     page: PortalNavigationPage;
     /** The folder holding the page, if any. */
     parent?: PortalNavigationFolder;
+    syncState: SyncState;
     onClose: () => void;
 }>) {
     return (
         <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
             <DialogContent style={{ maxWidth: '480px' }}>
-                <EditPageDetailsForm apiId={apiId} page={page} parent={parent} onClose={onClose} />
+                <EditPageDetailsForm apiId={apiId} page={page} parent={parent} syncState={syncState} onClose={onClose} />
             </DialogContent>
         </Dialog>
     );
@@ -62,11 +64,17 @@ function EditPageDetailsForm({
     apiId,
     page,
     parent,
+    syncState,
     onClose,
-}: Readonly<{ apiId: string; page: PortalNavigationPage; parent?: PortalNavigationFolder; onClose: () => void }>) {
+}: Readonly<{
+    apiId: string;
+    page: PortalNavigationPage;
+    parent?: PortalNavigationFolder;
+    syncState: SyncState;
+    onClose: () => void;
+}>) {
     const changeItem = useChangeApiDocumentationItem(apiId);
-    // The server refuses to rename a page with a source, but lets its access change.
-    const synced = hasSource(page);
+    const titleEditable = allowedChanges(syncState).title;
     const privateParent = privateParentOf(parent);
     const [title, setTitle] = useState(page.title);
     const [isPrivate, setIsPrivate] = useState(page.visibility === 'PRIVATE');
@@ -109,7 +117,7 @@ function EditPageDetailsForm({
             </DialogHeader>
 
             <form id="edit-documentation-page-details-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
-                {synced ? (
+                {syncState === 'OWN_SOURCE' ? (
                     <Alert>
                         <RefreshCwIcon aria-hidden />
                         <AlertDescription>
@@ -131,7 +139,7 @@ function EditPageDetailsForm({
                     isPrivate={isPrivate}
                     onPrivateChange={handlePrivateChange}
                     privateParent={privateParent}
-                    titleReadOnly={synced}
+                    titleReadOnly={!titleEditable}
                     disabled={isSaving}
                 />
             </form>
