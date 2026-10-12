@@ -15,10 +15,11 @@
  */
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
-import { listGroupsPaged } from '../services/groups';
+import { listGroups, listGroupsPaged } from '../services/groups';
 import { groupKeys } from '../utils/queryKeys';
 
 export function useGroupsPaged({ query, page, size }: { query: string; page: number; size: number }) {
@@ -31,4 +32,17 @@ export function useGroupsPaged({ query, page, size }: { query: string; page: num
         staleTime: 30_000,
         placeholderData: keepPreviousData,
     });
+}
+
+/** All group names in the environment — for create/edit uniqueness (not limited to the current page). */
+export function useAllGroupNames(enabled = true) {
+    const env = useEnvironment();
+    const query = useQuery({
+        queryKey: groupKeys.allNames(env?.id ?? ''),
+        queryFn: () => listGroups(env!.id),
+        enabled: enabled && Boolean(env),
+        staleTime: 30_000,
+    });
+    const names = useMemo(() => (query.data ?? []).map(group => group.name), [query.data]);
+    return { names, ...query };
 }

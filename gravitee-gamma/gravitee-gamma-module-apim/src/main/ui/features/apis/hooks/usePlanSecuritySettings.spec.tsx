@@ -18,18 +18,20 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
-import { toPlanSecuritySettings, usePlanSecuritySettings } from './usePlanSecuritySettings';
-import { getEnvironmentPortalSettings } from '../../settings/services/portalSettings';
+import { toPlanSecuritySettings, useCustomApiKeyEnabled, usePlanSecuritySettings, useSharedApiKeyEnabled } from './usePlanSecuritySettings';
+import { getEnvironmentPortalConfiguration, getEnvironmentPortalSettings } from '../../settings/services/portalSettings';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(() => ({ id: 'DEFAULT' })),
 }));
 
 jest.mock('../../settings/services/portalSettings', () => ({
+    getEnvironmentPortalConfiguration: jest.fn(),
     getEnvironmentPortalSettings: jest.fn(),
 }));
 
 const mockUseEnvironment = useEnvironment as jest.MockedFunction<typeof useEnvironment>;
+const mockGetPortal = getEnvironmentPortalConfiguration as jest.MockedFunction<typeof getEnvironmentPortalConfiguration>;
 const mockGetSettings = getEnvironmentPortalSettings as jest.MockedFunction<typeof getEnvironmentPortalSettings>;
 
 function createWrapper() {
@@ -132,5 +134,36 @@ describe('usePlanSecuritySettings', () => {
             MTLS: true,
             KEY_LESS: true,
         });
+    });
+});
+
+describe('custom and shared API key flags', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseEnvironment.mockReturnValue({ id: 'DEFAULT' } as ReturnType<typeof useEnvironment>);
+        mockGetSettings.mockRejectedValue(new Error('403'));
+    });
+
+    it('reads custom and shared API keys from GET /portal and stays off while that response is missing', async () => {
+        mockGetPortal.mockResolvedValue({
+            plan: { security: { customApiKey: { enabled: true }, sharedApiKey: { enabled: true } } },
+        });
+        const { result } = renderHook(() => ({ custom: useCustomApiKeyEnabled(), shared: useSharedApiKeyEnabled() }), {
+            wrapper: createWrapper(),
+        });
+
+        expect(result.current).toEqual({ custom: false, shared: false });
+        await waitFor(() => expect(result.current).toEqual({ custom: true, shared: true }));
+        expect(mockGetPortal).toHaveBeenCalledWith('DEFAULT');
+        expect(mockGetSettings).not.toHaveBeenCalled();
+    });
+
+    it('stays off when GET /portal does not enable the flags', async () => {
+        mockGetPortal.mockResolvedValue({ plan: { security: { customApiKey: { enabled: false } } } });
+        const { result } = renderHook(() => useCustomApiKeyEnabled(), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(mockGetPortal).toHaveBeenCalled());
+        expect(result.current).toBe(false);
+        expect(mockGetSettings).not.toHaveBeenCalled();
     });
 });

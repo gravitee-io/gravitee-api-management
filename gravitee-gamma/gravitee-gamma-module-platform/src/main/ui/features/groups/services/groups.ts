@@ -44,6 +44,11 @@ export async function listGroupsPaged(
     return apimFetchJsonV1Env<GroupsPagedResponse>(environmentId, `/configuration/groups/_paged?${searchParams.toString()}`);
 }
 
+/** GET .../configuration/groups — full list used for create/edit name uniqueness checks. */
+export async function listGroups(environmentId: string): Promise<Group[]> {
+    return apimFetchJsonV1Env<Group[]>(environmentId, '/configuration/groups');
+}
+
 export async function getGroup(environmentId: string, groupId: string): Promise<Group> {
     return apimFetchJsonV1Env<Group>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}`);
 }

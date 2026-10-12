@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
@@ -20,7 +21,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { ApiProductConsumersPage } from './ApiProductConsumersPage';
 import { useCreateSubscription } from '../../../../apis/hooks/useSubscriptionActions';
-import { useApiPlans, useSubscriptionList } from '../../../../apis/hooks/useSubscriptions';
+import { useApiPlans, useSubscriptionCount, useSubscriptionList } from '../../../../apis/hooks/useSubscriptions';
 import type { SubscriptionPage } from '../../../../apis/types/subscription';
 import { useApiProductResourcePermissions } from '../../../hooks/useApiProductPermissions';
 
@@ -42,13 +43,23 @@ jest.mock('../../../../apis/hooks/useSubscriptionActions', () => ({
     useCreateSubscription: jest.fn(),
 }));
 
+jest.mock('../../../../apis/hooks/usePlanSecuritySettings', () => ({
+    useCustomApiKeyEnabled: jest.fn(() => false),
+    useSharedApiKeyEnabled: jest.fn(() => false),
+}));
+
 jest.mock('../../../../apis/hooks/useSubscriptions', () => ({
+    ...jest.requireActual('../../../../apis/hooks/useSubscriptions'),
     useSubscriptionList: jest.fn(),
     useApiPlans: jest.fn(),
     useSubscriptionCount: jest.fn(() => ({ data: 0, isLoading: false })),
     useApplicationSearch: jest.fn(() => ({ data: [], isLoading: false })),
-    DEFAULT_STATUSES: ['ACCEPTED', 'PAUSED', 'PENDING'],
-    isSubscriptionFiltersDirty: jest.fn(() => false),
+    useApplicationApiKeySubscriptions: jest.fn(() => ({
+        data: [],
+        isFetching: false,
+        isError: false,
+        isFetched: true,
+    })),
 }));
 
 // ─── Graphene UI mock ─────────────────────────────────────────────────────────
@@ -209,6 +220,7 @@ const SUBSCRIPTION_PAGE: SubscriptionPage = {
 
 const mockUseApiProductResourcePermissions = useApiProductResourcePermissions as jest.Mock;
 const mockUseSubscriptionList = useSubscriptionList as jest.Mock;
+const mockUseSubscriptionCount = useSubscriptionCount as jest.Mock;
 const mockUseApiPlans = useApiPlans as jest.Mock;
 const mockUseCreateSubscription = useCreateSubscription as jest.Mock;
 
@@ -220,18 +232,21 @@ function setupDefaults() {
         canDelete: true,
         isLoading: false,
     });
-    mockUseSubscriptionList.mockReturnValue({ data: EMPTY_PAGE, isLoading: false });
+    mockUseSubscriptionList.mockReturnValue({ data: EMPTY_PAGE, isLoading: false, isFetching: false });
+    mockUseSubscriptionCount.mockReturnValue({ data: 0, isLoading: false });
     mockUseApiPlans.mockReturnValue({ data: [], isLoading: false });
     mockUseCreateSubscription.mockReturnValue({ mutate: jest.fn(), isPending: false, error: null, reset: jest.fn() });
 }
 
 function renderPage() {
     render(
-        <MemoryRouter initialEntries={['/api-products/product-1/consumers']}>
-            <Routes>
-                <Route path="api-products/:productId/consumers" element={<ApiProductConsumersPage />} />
-            </Routes>
-        </MemoryRouter>,
+        <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+            <MemoryRouter initialEntries={['/api-products/product-1/consumers']}>
+                <Routes>
+                    <Route path="api-products/:productId/consumers" element={<ApiProductConsumersPage />} />
+                </Routes>
+            </MemoryRouter>
+        </QueryClientProvider>,
     );
 }
 
@@ -294,17 +309,19 @@ it('shows Create subscription button when user has canCreate', () => {
 
 // ─── 3. Empty state ──────────────────────────────────────────────────────────
 
-it('renders empty state when there are no subscriptions', () => {
+it('keeps the manage consumers view when there are no subscriptions', () => {
     setupDefaults();
     renderPage();
-    expect(screen.queryByRole('table')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Consumers' })).not.toBeNull();
+    expect(screen.getByRole('button', { name: /create subscription/i })).not.toBeNull();
 });
 
 // ─── 4. Subscription list ─────────────────────────────────────────────────────
 
 it('renders subscriptions table when data is present', () => {
     setupDefaults();
-    mockUseSubscriptionList.mockReturnValue({ data: SUBSCRIPTION_PAGE, isLoading: false });
+    mockUseSubscriptionCount.mockReturnValue({ data: 1, isLoading: false });
+    mockUseSubscriptionList.mockReturnValue({ data: SUBSCRIPTION_PAGE, isLoading: false, isFetching: false });
     renderPage();
     expect(screen.getByText('My App')).not.toBeNull();
     expect(screen.getByText('Default Plan')).not.toBeNull();
@@ -314,9 +331,10 @@ it('renders subscriptions table when data is present', () => {
 
 it('renders skeletons while loading subscription list', () => {
     setupDefaults();
-    mockUseSubscriptionList.mockReturnValue({ data: undefined, isLoading: true });
+    mockUseSubscriptionCount.mockReturnValue({ data: 1, isLoading: false });
+    mockUseSubscriptionList.mockReturnValue({ data: undefined, isLoading: true, isFetching: true });
     renderPage();
-    expect(screen.getAllByRole('cell').some(el => el.querySelector('[aria-busy="true"]') !== null)).toBe(true);
+    expect(screen.getAllByRole('generic').some(el => el.getAttribute('aria-busy') === 'true')).toBe(true);
 });
 
 // ─── 6. Context isolation — ctx.type is api-product ──────────────────────────

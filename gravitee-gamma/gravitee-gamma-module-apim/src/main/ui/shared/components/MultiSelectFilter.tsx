@@ -15,6 +15,7 @@
  */
 import { Button, Checkbox, cn, Popover, PopoverContent, PopoverTrigger } from '@gravitee/graphene-core';
 import { ChevronDownIcon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
 
 export interface MultiSelectFilterOption {
     value: string;
@@ -53,6 +54,7 @@ export function MultiSelectFilter({
     className?: string;
     disabled?: boolean;
 }>) {
+    const [open, setOpen] = useState(false);
     const display = formatSelection(options, selectedValues, placeholder);
 
     const toggle = (value: string) => {
@@ -62,7 +64,7 @@ export function MultiSelectFilter({
     };
 
     return (
-        <Popover>
+        <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
                     id={id}

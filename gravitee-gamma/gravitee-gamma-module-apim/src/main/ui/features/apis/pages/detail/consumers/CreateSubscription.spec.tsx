@@ -13,89 +13,248 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { fireEvent, render, screen } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-jest.mock('@gravitee/graphene-core', () => ({
-    Alert: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    AlertDescription: ({ children }: { children?: ReactNode }) => <p>{children}</p>,
-    Badge: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
-    Button: ({ children, onClick, disabled }: { children?: ReactNode; onClick?: () => void; disabled?: boolean }) => (
-        <button type="button" onClick={onClick} disabled={disabled}>
-            {children}
-        </button>
-    ),
-    Label: ({ children }: { children?: ReactNode }) => <label>{children}</label>,
-    Select: ({ value, onValueChange, children }: { value: string; onValueChange: (v: string) => void; children?: ReactNode }) => (
-        <select aria-label="Subscription Plan" value={value} onChange={e => onValueChange(e.target.value)}>
-            <option value="">Select a plan</option>
-            {children}
-        </select>
-    ),
-    SelectContent: ({ children }: { children?: ReactNode }) => <>{children}</>,
-    SelectItem: ({ value, children }: { value: string; children?: ReactNode }) => <option value={value}>{children}</option>,
-    SelectTrigger: () => null,
-    SelectValue: () => null,
-    Separator: () => <hr />,
-    Sheet: ({ open, children }: { open: boolean; children?: ReactNode }) => (open ? <div role="dialog">{children}</div> : null),
-    SheetContent: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    SheetDescription: ({ children }: { children?: ReactNode }) => <p>{children}</p>,
-    SheetFooter: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    SheetHeader: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    SheetTitle: ({ children }: { children?: ReactNode }) => <h2>{children}</h2>,
+import { CreateSubscription } from './CreateSubscription';
+import { useCustomApiKeyEnabled, useSharedApiKeyEnabled } from '../../../hooks/usePlanSecuritySettings';
+import { useApiPlans } from '../../../hooks/useSubscriptions';
+import { listApplicationApiKeySubscriptions, verifyCustomApiKey } from '../../../services/subscriptions';
+import type { Application, Plan } from '../../../types/subscription';
+
+jest.mock('../../../hooks/usePlanSecuritySettings', () => ({
+    useCustomApiKeyEnabled: jest.fn(() => false),
+    useSharedApiKeyEnabled: jest.fn(() => false),
 }));
 
-jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
+const mockUseApiPlans = useApiPlans as jest.Mock;
+const mockCustomApiKey = useCustomApiKeyEnabled as jest.Mock;
+const mockSharedApiKey = useSharedApiKeyEnabled as jest.Mock;
+const mockVerify = verifyCustomApiKey as jest.Mock;
+const mockListApiKeySubscriptions = listApplicationApiKeySubscriptions as jest.Mock;
+const mockAppState: { current: Application } = { current: { id: 'app-1', name: 'My App', apiKeyMode: 'EXCLUSIVE' } };
+
+jest.mock('@gravitee/gamma-modules-sdk', () => ({
+    useEnvironment: jest.fn(() => ({ id: 'DEFAULT' })),
+}));
+
+jest.mock('../../../services/subscriptions', () => {
+    const actual = jest.requireActual('../../../services/subscriptions');
+    return {
+        ...actual,
+        verifyCustomApiKey: jest.fn(() => Promise.resolve({ ok: true })),
+        listApplicationApiKeySubscriptions: jest.fn(() => Promise.resolve([])),
+    };
+});
 
 jest.mock('./ApplicationSearchList', () => ({
-    ApplicationSearchList: ({ selected, onSelect }: { selected: { name: string } | null; onSelect: (app: unknown) => void }) =>
+    ApplicationSearchList: ({ selected, onSelect }: { selected: Application | null; onSelect: (app: Application) => void }) =>
         selected ? (
             <p>Selected application: {selected.name}</p>
         ) : (
-            <button type="button" onClick={() => onSelect({ id: 'app-1', name: 'Checkout' })}>
-                Pick Checkout
+            <button type="button" onClick={() => onSelect(mockAppState.current)}>
+                Pick application
             </button>
         ),
 }));
 
-jest.mock('../../../hooks/useSubscriptions', () => ({ useApiPlans: jest.fn() }));
+beforeAll(() => {
+    global.ResizeObserver = class ResizeObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+    } as typeof ResizeObserver;
+    Element.prototype.scrollIntoView = jest.fn();
+});
 
-import { CreateSubscription } from './CreateSubscription';
-import { useApiPlans } from '../../../hooks/useSubscriptions';
+jest.mock('../../../hooks/useSubscriptions', () => {
+    const actual = jest.requireActual('../../../hooks/useSubscriptions');
+    return { ...actual, useApiPlans: jest.fn() };
+});
 
-const CTX = { type: 'api', entityId: 'api-1' } as const;
+const API_KEY_PLAN: Plan = {
+    id: 'plan-1',
+    name: 'Standard',
+    security: { type: 'API_KEY' },
+};
+const KEYLESS_PLAN: Plan = {
+    id: 'plan-2',
+    name: 'Open',
+    security: { type: 'KEY_LESS' },
+};
+const APP: Application = { id: 'app-1', name: 'My App', apiKeyMode: 'EXCLUSIVE' };
 
-function renderDialog(open: boolean) {
-    const props = { ctx: CTX, isPending: false, error: null, onConfirm: jest.fn(), onClose: jest.fn() };
-    const view = render(<CreateSubscription {...props} open={open} />);
-    return { ...view, rerenderWith: (nextOpen: boolean) => view.rerender(<CreateSubscription {...props} open={nextOpen} />) };
+function renderDialog(onConfirm = jest.fn(), plans: Plan[] = [API_KEY_PLAN, KEYLESS_PLAN], isFederated = false, open = true) {
+    mockUseApiPlans.mockReturnValue({ data: plans, isLoading: false });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const props = {
+        ctx: { type: 'api' as const, entityId: 'api-1' },
+        open,
+        isPending: false,
+        error: null,
+        isFederated,
+        onConfirm,
+        onClose: jest.fn(),
+    };
+    const view = render(
+        <QueryClientProvider client={queryClient}>
+            <CreateSubscription {...props} />
+        </QueryClientProvider>,
+    );
+    return {
+        ...view,
+        rerenderWith: (nextOpen: boolean) =>
+            view.rerender(
+                <QueryClientProvider client={queryClient}>
+                    <CreateSubscription {...props} open={nextOpen} />
+                </QueryClientProvider>,
+            ),
+    };
+}
+
+async function selectApiKeyPlanAndApp() {
+    fireEvent.click(screen.getByRole('button', { name: 'Pick application' }));
+    fireEvent.click(screen.getByRole('combobox'));
+    await waitFor(() => fireEvent.click(screen.getByRole('option', { name: /standard/i })));
 }
 
 describe('CreateSubscription', () => {
     beforeEach(() => {
-        (useApiPlans as jest.Mock).mockReturnValue({ data: [{ id: 'plan-1', name: 'Gold' }], isLoading: false });
+        mockCustomApiKey.mockReturnValue(false);
+        mockSharedApiKey.mockReturnValue(false);
+        mockAppState.current = APP;
+        mockVerify.mockReset();
+        mockVerify.mockResolvedValue({ ok: true });
+        mockListApiKeySubscriptions.mockReset();
+        mockListApiKeySubscriptions.mockResolvedValue([]);
     });
 
-    it('opens empty after a subscription was created and the page closed it', () => {
-        const { rerenderWith } = renderDialog(true);
-        fireEvent.click(screen.getByRole('button', { name: 'Pick Checkout' }));
-        fireEvent.change(screen.getByLabelText('Subscription Plan'), { target: { value: 'plan-1' } });
-        expect(screen.getByText('Selected application: Checkout')).toBeInTheDocument();
+    it('does not show the custom API key field when the setting is disabled', async () => {
+        renderDialog();
+        await selectApiKeyPlanAndApp();
+        await waitFor(() => expect(screen.queryByLabelText('Custom API Key')).toBeNull());
+    });
+
+    it('shows the custom API key field for an API Key plan when enabled', async () => {
+        mockCustomApiKey.mockReturnValue(true);
+        renderDialog();
+        await selectApiKeyPlanAndApp();
+        await waitFor(() => expect(screen.getByLabelText('Custom API Key')).toBeInTheDocument());
+    });
+
+    it('hides the custom API key field for federated APIs even when the setting is enabled', async () => {
+        mockCustomApiKey.mockReturnValue(true);
+        renderDialog(jest.fn(), [API_KEY_PLAN, KEYLESS_PLAN], true);
+        await selectApiKeyPlanAndApp();
+        await waitFor(() => expect(screen.queryByLabelText('Custom API Key')).toBeNull());
+    });
+
+    it('keeps the typed custom API key value', async () => {
+        mockCustomApiKey.mockReturnValue(true);
+        const onConfirm = jest.fn();
+        renderDialog(onConfirm);
+        await selectApiKeyPlanAndApp();
+        await waitFor(() => fireEvent.change(screen.getByLabelText('Custom API Key'), { target: { value: 'my-custom-key' } }));
+        expect(screen.getByLabelText('Custom API Key')).toHaveValue('my-custom-key');
+    });
+
+    it('blocks create and explains a custom key that fails the classic format', async () => {
+        mockCustomApiKey.mockReturnValue(true);
+        const onConfirm = jest.fn();
+        renderDialog(onConfirm);
+        await selectApiKeyPlanAndApp();
+        fireEvent.change(await screen.findByLabelText('Custom API Key'), { target: { value: 'bad key' } });
+
+        expect(screen.getByText('No special characters allowed')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Create subscription' })).toBeDisabled();
+        fireEvent.click(screen.getByRole('button', { name: 'Create subscription' }));
+        expect(onConfirm).not.toHaveBeenCalled();
+        expect(mockVerify).not.toHaveBeenCalled();
+    });
+
+    it('blocks create until verify accepts the custom key', async () => {
+        mockCustomApiKey.mockReturnValue(true);
+        mockVerify.mockResolvedValue({ ok: false });
+        renderDialog();
+        await selectApiKeyPlanAndApp();
+        fireEvent.change(await screen.findByLabelText('Custom API Key'), { target: { value: 'validkey1' } });
+
+        expect(await screen.findByText('Key already exists with given value')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Create subscription' })).toBeDisabled();
+    });
+
+    it('still creates when the custom key is left blank', async () => {
+        mockCustomApiKey.mockReturnValue(true);
+        const onConfirm = jest.fn();
+        renderDialog(onConfirm);
+        await selectApiKeyPlanAndApp();
+        await screen.findByLabelText('Custom API Key');
+        fireEvent.click(screen.getByRole('button', { name: 'Create subscription' }));
+
+        expect(onConfirm).toHaveBeenCalledWith('app-1', 'plan-1', { customApiKey: undefined, apiKeyMode: undefined });
+        expect(mockVerify).not.toHaveBeenCalled();
+    });
+
+    it('keeps create disabled and hides the custom key while the API key mode lookup is in flight', async () => {
+        mockCustomApiKey.mockReturnValue(true);
+        mockSharedApiKey.mockReturnValue(true);
+        mockAppState.current = { id: 'app-1', name: 'My App', apiKeyMode: 'UNSPECIFIED' };
+        let resolveList: (rows: { api: string }[]) => void = () => undefined;
+        mockListApiKeySubscriptions.mockImplementation(
+            () =>
+                new Promise(resolve => {
+                    resolveList = resolve;
+                }),
+        );
+        renderDialog();
+        await selectApiKeyPlanAndApp();
+
+        await waitFor(() => expect(mockListApiKeySubscriptions).toHaveBeenCalled());
+        expect(screen.queryByLabelText('Custom API Key')).toBeNull();
+        expect(screen.getByRole('button', { name: 'Create subscription' })).toBeDisabled();
+
+        resolveList([]);
+        expect(await screen.findByLabelText('Custom API Key')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Create subscription' })).toBeEnabled();
+    });
+
+    it('creates without a mode choice when the lookup fails', async () => {
+        mockCustomApiKey.mockReturnValue(true);
+        mockSharedApiKey.mockReturnValue(true);
+        mockAppState.current = { id: 'app-1', name: 'My App', apiKeyMode: 'UNSPECIFIED' };
+        mockListApiKeySubscriptions.mockRejectedValue(new Error('down'));
+        const onConfirm = jest.fn();
+        renderDialog(onConfirm);
+        await selectApiKeyPlanAndApp();
+
+        expect(await screen.findByText('Could not check existing API keys for this application.')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Custom API Key')).toBeNull();
+        expect(screen.queryByRole('radiogroup', { name: 'API Key Mode' })).toBeNull();
+        expect(screen.getByRole('button', { name: 'Create subscription' })).toBeEnabled();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Create subscription' }));
+        expect(onConfirm).toHaveBeenCalledWith('app-1', 'plan-1', { customApiKey: undefined, apiKeyMode: undefined });
+    });
+
+    it('opens empty after a subscription was created and the page closed it', async () => {
+        const { rerenderWith } = renderDialog();
+        await selectApiKeyPlanAndApp();
+        expect(screen.getByText('Selected application: My App')).toBeInTheDocument();
 
         rerenderWith(false);
         rerenderWith(true);
 
         expect(screen.queryByText(/Selected application/)).not.toBeInTheDocument();
-        expect(screen.getByLabelText('Subscription Plan')).toHaveValue('');
+        expect(screen.getByRole('button', { name: 'Pick application' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Create subscription' })).toBeDisabled();
     });
 
     it('keeps the selection while the dialog stays open, for instance after a failed create', () => {
-        const { rerenderWith } = renderDialog(true);
-        fireEvent.click(screen.getByRole('button', { name: 'Pick Checkout' }));
+        const { rerenderWith } = renderDialog();
+        fireEvent.click(screen.getByRole('button', { name: 'Pick application' }));
 
         rerenderWith(true);
 
-        expect(screen.getByText('Selected application: Checkout')).toBeInTheDocument();
+        expect(screen.getByText('Selected application: My App')).toBeInTheDocument();
     });
 });
