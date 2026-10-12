@@ -17,7 +17,6 @@ import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import {
     Alert,
     AlertDescription,
-    Badge,
     Button,
     DataTableEmptyState,
     DropdownMenu,
@@ -33,6 +32,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ConfirmDialog } from '../../../../shared/components/ConfirmDialog';
 import { notify } from '../../../../shared/notify';
 import { CreatePageDialog } from '../../components/detail/documentation/CreatePageDialog';
+import { ApiPublicationBadge } from '../../components/detail/documentation/DocumentationItemBadges';
 import { DocumentationTree } from '../../components/detail/documentation/DocumentationTree';
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { PublishToPortalDialog } from '../../components/detail/documentation/PublishToPortalDialog';
@@ -125,7 +125,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 description={DESCRIPTION}
                 actions={
                     <>
-                        {data ? <PublicationBadge publications={data.publications} /> : null}
+                        {data ? <ApiPublicationBadge publications={data.publications} /> : null}
                         {data && canEdit ? (
                             <PublicationAction
                                 publications={data.publications}
@@ -242,15 +242,6 @@ function AddDocumentationMenu({ onAddPage }: Readonly<{ onAddPage: () => void }>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
-    );
-}
-
-function PublicationBadge({ publications }: Readonly<{ publications: ApiPortalPublication[] }>) {
-    const publishedSection = getPublishedSection(publications);
-    return publishedSection ? (
-        <Badge variant="success">Published in {publishedSection}</Badge>
-    ) : (
-        <Badge variant="outline">Not published</Badge>
     );
 }
 

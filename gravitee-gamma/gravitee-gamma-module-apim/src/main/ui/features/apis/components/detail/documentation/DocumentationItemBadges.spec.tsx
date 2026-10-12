@@ -16,7 +16,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
+import { ApiPublicationBadge, ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
+import type { ApiPortalPublication } from '../../../types/apiDocumentation';
 
 beforeAll(() => {
     global.ResizeObserver = class ResizeObserver {
@@ -56,5 +57,46 @@ describe('ItemAccessBadge', () => {
         render(<ItemAccessBadge visibility="PRIVATE" itemType="LINK" />);
 
         expect(await tooltipOf('Private')).toBe('Only signed-in users can view this link.');
+    });
+});
+
+describe('ApiPublicationBadge', () => {
+    function publication(published: boolean): ApiPortalPublication {
+        return {
+            portalId: 'DEFAULT',
+            sectionName: 'APIs',
+            portalNavigationItem: {
+                id: 'listing',
+                organizationId: 'DEFAULT',
+                environmentId: 'DEFAULT',
+                title: 'Payment API',
+                type: 'API',
+                apiId: 'api-1',
+                area: 'TOP_NAVBAR',
+                parentId: 'apis',
+                rootId: 'apis',
+                order: 0,
+                published,
+                visibility: 'PUBLIC',
+            },
+        };
+    }
+
+    it('explains that the section named is where the developer portal lists the API', async () => {
+        render(<ApiPublicationBadge publications={[publication(true)]} />);
+
+        expect(await tooltipOf('Published in APIs')).toBe("Listed in the 'APIs' section of Developer Portal's top navigation.");
+    });
+
+    it('explains that an API that is not listed gets its section when published', async () => {
+        render(<ApiPublicationBadge publications={[]} />);
+
+        expect(await tooltipOf('Not published')).toBe('Not in the developer portal. Publish the API to choose the section it appears in.');
+    });
+
+    it('treats a hidden listing as not published', async () => {
+        render(<ApiPublicationBadge publications={[publication(false)]} />);
+
+        expect(await tooltipOf('Not published')).toBe('Not in the developer portal. Publish the API to choose the section it appears in.');
     });
 });
