@@ -53,11 +53,14 @@ public class NotificationCRDDomainServiceImpl implements NotificationCRDDomainSe
         Objects.requireNonNull(referenceId);
         Objects.requireNonNull(user);
 
+        String organizationId = GraviteeContext.getExecutionContext().getOrganizationId();
+
         if (notificationConfig != null) {
             // set GKO user as it is the primary user
             notificationConfig.setUser(user);
             notificationConfig.setReferenceId(referenceId);
             notificationConfig.setReferenceType(referenceType.name());
+            notificationConfig.setOrganizationId(organizationId);
             portalNotificationConfigService.save(notificationConfig);
             return;
         }
@@ -69,12 +72,7 @@ public class NotificationCRDDomainServiceImpl implements NotificationCRDDomainSe
         if (!existing.isDefaultEmpty()) {
             // this will discard all notifications for that API
             portalNotificationConfigService.save(
-                PortalNotificationConfigEntity.newDefaultEmpty(
-                    user,
-                    referenceType.name(),
-                    referenceId,
-                    GraviteeContext.getExecutionContext().getOrganizationId()
-                )
+                PortalNotificationConfigEntity.newDefaultEmpty(user, referenceType.name(), referenceId, organizationId)
             );
         }
     }
