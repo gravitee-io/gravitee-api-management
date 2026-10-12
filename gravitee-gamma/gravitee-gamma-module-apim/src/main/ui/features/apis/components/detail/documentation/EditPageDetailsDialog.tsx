@@ -82,8 +82,10 @@ function EditPageDetailsForm({
     const [refusal, setRefusal] = useState<string | null>(null);
 
     const visibility = isPrivate ? 'PRIVATE' : 'PUBLIC';
-    const hasChanges = title.trim() !== page.title || visibility !== page.visibility;
-    const canSave = title.trim() !== '' && hasChanges && !isSaving;
+    // A title the server refuses to change goes back exactly as stored: trimmed, it would count as a rename.
+    const newTitle = titleEditable ? title.trim() : page.title;
+    const hasChanges = newTitle !== page.title || visibility !== page.visibility;
+    const canSave = newTitle !== '' && hasChanges && !isSaving;
 
     function handleTitleChange(next: string) {
         setTitle(next);
@@ -100,8 +102,8 @@ function EditPageDetailsForm({
         if (!canSave) return;
         setIsSaving(true);
         try {
-            await changeItem.mutateAsync({ navId: page.id, changes: { title: title.trim(), visibility } });
-            notify.success(`Page '${title.trim()}' saved`);
+            await changeItem.mutateAsync({ navId: page.id, changes: { title: newTitle, visibility } });
+            notify.success(`Page '${newTitle}' saved`);
             onClose();
         } catch (error) {
             setRefusal(extractErrorMessage(error));

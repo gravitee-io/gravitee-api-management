@@ -174,6 +174,24 @@ describe('EditPageDetailsDialog', () => {
             ).not.toBeNull();
         });
 
+        it('sends its title back as stored, spaces included, and does not count it as a change', async () => {
+            const spacedTitle = { ...SYNCED_PAGE, title: '  OAuth setup ' };
+            mockList.mockResolvedValue({ items: [GUIDES, spacedTitle], publications: [] });
+            const { user, onClose } = renderDialog({ page: spacedTitle, syncState: 'OWN_SOURCE' });
+
+            expect(saveButton().disabled).toBe(true);
+            await user.click(privateSwitch());
+            await user.click(saveButton());
+
+            await waitFor(() => expect(onClose).toHaveBeenCalled());
+            expect(mockUpdate).toHaveBeenCalledWith(
+                'env-1',
+                'api-1',
+                'oauth',
+                expect.objectContaining({ title: '  OAuth setup ', visibility: 'PRIVATE' }),
+            );
+        });
+
         it('changes its access, sending its title and source back unchanged', async () => {
             mockList.mockResolvedValue({ items: [GUIDES, SYNCED_PAGE], publications: [] });
             const { user, onClose } = renderDialog({ page: SYNCED_PAGE, syncState: 'OWN_SOURCE' });
