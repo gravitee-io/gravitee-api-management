@@ -4,6 +4,7 @@
 
 | Step | Question | Tool |
 |---|---|---|
+| Orient | Which environments are there, which can I read? | `list_environments` |
 | Detect | Is anything off, in which environment, compared with the time range just before? | `get_health_overview` |
 | Localize | Which API, status code, consumer, path, gateway? | `break_down_traffic` |
 | Date | When did it start? | `get_traffic_timeline` |

@@ -32,6 +32,7 @@ import io.gravitee.apim.rest.api.mcp.core.port.TriageAccess;
 import io.gravitee.apim.rest.api.mcp.core.use_case.BreakDownTrafficUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.GetHealthOverviewUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.GetTrafficTimelineUseCase;
+import io.gravitee.apim.rest.api.mcp.core.use_case.ListEnvironmentsUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.ListRecentChangesUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.SearchFailedRequestsUseCase;
 import io.gravitee.apim.rest.api.mcp.infra.ComputeTrafficAnalytics;
@@ -46,6 +47,7 @@ import io.gravitee.apim.rest.api.mcp.tools.BreakDownTrafficTool;
 import io.gravitee.apim.rest.api.mcp.tools.GetHealthOverviewTool;
 import io.gravitee.apim.rest.api.mcp.tools.GetTrafficTimelineTool;
 import io.gravitee.apim.rest.api.mcp.tools.IncidentTriageGuide;
+import io.gravitee.apim.rest.api.mcp.tools.ListEnvironmentsTool;
 import io.gravitee.apim.rest.api.mcp.tools.ListRecentChangesTool;
 import io.gravitee.apim.rest.api.mcp.tools.SearchFailedRequestsTool;
 import io.gravitee.common.util.Version;
@@ -111,6 +113,7 @@ public class McpServerConfiguration {
 
     @Bean
     public McpEndpointServlet mcpEndpointServlet(
+        ListEnvironmentsUseCase listEnvironmentsUseCase,
         GetHealthOverviewUseCase getHealthOverviewUseCase,
         BreakDownTrafficUseCase breakDownTrafficUseCase,
         GetTrafficTimelineUseCase getTrafficTimelineUseCase,
@@ -121,6 +124,7 @@ public class McpServerConfiguration {
             Version.RUNTIME_VERSION.MAJOR_VERSION,
             instructions(),
             List.of(
+                new ListEnvironmentsTool(listEnvironmentsUseCase),
                 new GetHealthOverviewTool(getHealthOverviewUseCase),
                 new BreakDownTrafficTool(breakDownTrafficUseCase),
                 new GetTrafficTimelineTool(getTrafficTimelineUseCase),

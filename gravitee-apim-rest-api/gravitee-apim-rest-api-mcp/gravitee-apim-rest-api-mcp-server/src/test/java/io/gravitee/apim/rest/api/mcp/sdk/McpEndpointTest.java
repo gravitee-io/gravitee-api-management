@@ -102,6 +102,7 @@ class McpEndpointTest {
         assertThat(tools)
             .extracting(Tool::name)
             .containsExactly(
+                "list_environments",
                 "get_health_overview",
                 "break_down_traffic",
                 "get_traffic_timeline",
@@ -116,7 +117,7 @@ class McpEndpointTest {
             assertThat(tool.inputSchema()).containsEntry("type", "object");
             assertThat(tool.outputSchema()).containsEntry("type", "object");
         });
-        assertThat(tools.subList(0, 5)).allSatisfy(tool ->
+        assertThat(tools.subList(1, 6)).allSatisfy(tool ->
             assertThat(((Map<?, ?>) tool.inputSchema().get("properties")).containsKey("environment")).isTrue()
         );
     }
@@ -125,6 +126,7 @@ class McpEndpointTest {
     @CsvSource(
         delimiter = '|',
         value = {
+            "list_environments | {}",
             "get_health_overview | {}",
             "get_health_overview | {\"environment\":\"staging\"}",
             "break_down_traffic | {\"by\":\"application\",\"api\":\"Orders\",\"statusGroup\":\"4XX\"}",
@@ -157,6 +159,17 @@ class McpEndpointTest {
         assertThat(overview.at("/findings/0/environment/hrid").asText()).isEqualTo("prod");
         assertThat(overview.at("/window/from").asText()).isEqualTo("2026-01-31T13:45:00Z");
         assertThat(overview.at("/window/to").asText()).isEqualTo("2026-01-31T14:00:00Z");
+    }
+
+    @Test
+    void should_list_the_environments_with_what_the_caller_may_read() throws Exception {
+        var listed = JSON.readTree(textOf(call("list_environments", "{}")));
+
+        assertThat(listed.at("/environments/0/hrid").asText()).isEqualTo("prod");
+        assertThat(listed.at("/environments/0/readable").asBoolean()).isTrue();
+        assertThat(listed.at("/environments/0/visibleApis").asInt()).isEqualTo(2);
+        assertThat(listed.at("/environments/2/hrid").asText()).isEqualTo("dev");
+        assertThat(listed.at("/environments/2/readable").asBoolean()).isFalse();
     }
 
     @Test

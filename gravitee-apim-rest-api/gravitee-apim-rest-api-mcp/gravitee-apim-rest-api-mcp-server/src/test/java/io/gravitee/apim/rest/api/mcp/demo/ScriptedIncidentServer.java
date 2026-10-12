@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.mcp.demo;
 import io.gravitee.apim.rest.api.mcp.core.use_case.BreakDownTrafficUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.GetHealthOverviewUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.GetTrafficTimelineUseCase;
+import io.gravitee.apim.rest.api.mcp.core.use_case.ListEnvironmentsUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.ListRecentChangesUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.SearchFailedRequestsUseCase;
 import io.gravitee.apim.rest.api.mcp.fakes.Fakes;
@@ -29,6 +30,7 @@ import io.gravitee.apim.rest.api.mcp.tools.BreakDownTrafficTool;
 import io.gravitee.apim.rest.api.mcp.tools.GetHealthOverviewTool;
 import io.gravitee.apim.rest.api.mcp.tools.GetTrafficTimelineTool;
 import io.gravitee.apim.rest.api.mcp.tools.IncidentTriageGuide;
+import io.gravitee.apim.rest.api.mcp.tools.ListEnvironmentsTool;
 import io.gravitee.apim.rest.api.mcp.tools.ListRecentChangesTool;
 import io.gravitee.apim.rest.api.mcp.tools.SearchFailedRequestsTool;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -83,6 +85,7 @@ public final class ScriptedIncidentServer {
         var access = new Fakes.Access();
         var tools = new ArrayList<McpTool<?>>(
             List.of(
+                new ListEnvironmentsTool(new ListEnvironmentsUseCase(incident, incident)),
                 new GetHealthOverviewTool(new GetHealthOverviewUseCase(incident, incident)),
                 new BreakDownTrafficTool(new BreakDownTrafficUseCase(incident, incident, incident)),
                 new GetTrafficTimelineTool(new GetTrafficTimelineUseCase(incident, incident, incident)),

@@ -1,6 +1,7 @@
 Gravitee API Management, one organization. Read-only tools to find out whether something is wrong with the traffic going through the gateways, in which environment, where, since when and why.
 
 Triage loop:
+0. list_environments when you need to name an environment: id, HRID and name of each, and whether you can read it.
 1. get_health_overview: is anything off, in which environment, compared with the time range just before?
 2. break_down_traffic on an affected API: by status, application, consumer_ip, path, gateway.
 3. get_traffic_timeline: when did it start?

@@ -1,0 +1,41 @@
+{
+  "name": "list_environments",
+  "title": "List the environments",
+  "description": "The environments of your organization: their id, HRID and name, whether you can read their traffic, and how many of their APIs you can see. Call it first when you need to name an environment, or when a tool answers that it needs one. Every other tool takes `environment` as the id, the HRID or the name listed here.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "string",
+        "description": "One sentence stating the result."
+      },
+      "environments": {
+        "type": "array",
+        "description": "Readable environments first.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "hrid": { "type": "string" },
+            "name": { "type": "string" },
+            "readable": {
+              "type": "boolean",
+              "description": "Whether you may read the traffic of this environment. The other tools cover it only when true."
+            },
+            "visibleApis": {
+              "type": "integer",
+              "description": "How many APIs of this environment you can see. Absent when the environment is not readable."
+            }
+          },
+          "required": ["id", "name", "readable"]
+        }
+      }
+    },
+    "required": ["summary", "environments"]
+  }
+}
