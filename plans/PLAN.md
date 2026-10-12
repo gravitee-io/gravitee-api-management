@@ -85,7 +85,7 @@ todos:
     status: completed
   - id: STORY-26
     content: "Create a documentation page by filling it in or importing a file, and edit its content with a live preview."
-    status: pending
+    status: completed
   - id: STORY-27
     content: "Create a folder, and edit its title and access."
     status: pending
@@ -1128,6 +1128,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 4. The exclusive publish/unpublish action, driven by the list response's publish state.
 
 #### STORY-26 — Create a documentation page and edit its content
+**Status:** Done under [PORTAL-246](https://gravitee.atlassian.net/browse/PORTAL-246), as [#20993](https://github.com/gravitee-io/gravitee-api-management/pull/20993) for the content editor and [#20994](https://github.com/gravitee-io/gravitee-api-management/pull/20994) for creating a page.
 **Why:** the point of the whole feature — without a way to create a page there is nothing to edit, organise or publish. Importing a file matters as much as typing, since most teams already have their specs and markdown written elsewhere. The content editor ships with it: a page created without a way to see and change it is a dead end, and documentation is revised far more often than it is created.
 **Acceptance criteria:**
 - "Add documentation" is a menu of the kinds of item to add, as in the portal editor, in the page header and in the empty state; it offers pages, and STORY-27 and STORY-28 add folders and links.
