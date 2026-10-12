@@ -36,6 +36,12 @@ export interface EnvironmentPortalSettings {
 export interface EnvironmentPortalConfiguration {
     apiScore?: { enabled?: boolean };
     apiReview?: { enabled?: boolean };
+    plan?: {
+        security?: {
+            customApiKey?: { enabled?: boolean };
+            sharedApiKey?: { enabled?: boolean };
+        };
+    };
     api?: { primaryOwnerMode?: string };
     apiProduct?: { primaryOwnerMode?: string };
 }

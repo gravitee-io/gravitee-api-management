@@ -29,7 +29,7 @@ export function ApiConsumerDetailPage() {
     const canDelete = useHasPermission({ anyOf: ['api-subscription-d'] });
     const { api, isLoading } = useApiDetailContext();
 
-    if (isLoading) {
+    if (isLoading || !api) {
         return (
             <div className="space-y-4">
                 <Skeleton className="h-10 w-64 rounded" />

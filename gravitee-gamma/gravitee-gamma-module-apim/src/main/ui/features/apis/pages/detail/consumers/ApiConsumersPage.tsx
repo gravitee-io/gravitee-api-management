@@ -21,6 +21,7 @@ import { ConsumersPage } from './ConsumersPage';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import type { SubscriptionContext } from '../../../types/subscription';
 import { hasTcpListeners } from '../../../utils/apiHttpProxy';
+import { isFederatedApi } from '../../../utils/federatedApi';
 import { TcpProxyUnavailableNotice } from '../response-templates/TcpProxyUnavailableNotice';
 
 export function ApiConsumersPage() {
@@ -43,5 +44,5 @@ export function ApiConsumersPage() {
         return <TcpProxyUnavailableNotice feature="Subscriptions" />;
     }
 
-    return <ConsumersPage ctx={ctx} canCreate={canCreate} canRead={canRead} />;
+    return <ConsumersPage ctx={ctx} canCreate={canCreate} canRead={canRead} isFederated={isFederatedApi(api)} />;
 }

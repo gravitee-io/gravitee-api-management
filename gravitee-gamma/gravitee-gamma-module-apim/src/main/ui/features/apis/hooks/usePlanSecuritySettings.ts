@@ -16,6 +16,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
+import { useEnvironmentPortalConfiguration } from './useEnvironmentPortalConfiguration';
 import { getEnvironmentPortalSettings } from '../../settings/services/portalSettings';
 import type { EnvironmentPortalSettings } from '../../settings/services/portalSettings';
 import type { PlanSecurityType } from '../types/plan';
@@ -64,4 +65,14 @@ export function usePlanSecuritySettings(): {
         // briefly treat every type as enabled before the request starts.
         isLoading: !env?.id || isPending,
     };
+}
+
+export function useCustomApiKeyEnabled(): boolean {
+    const { data } = useEnvironmentPortalConfiguration();
+    return data?.plan?.security?.customApiKey?.enabled ?? false;
+}
+
+export function useSharedApiKeyEnabled(): boolean {
+    const { data } = useEnvironmentPortalConfiguration();
+    return data?.plan?.security?.sharedApiKey?.enabled ?? false;
 }

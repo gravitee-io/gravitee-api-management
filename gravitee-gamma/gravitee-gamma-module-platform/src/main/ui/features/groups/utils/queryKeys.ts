@@ -20,6 +20,7 @@ import type { GroupMembershipType } from '../types/group';
 export const groupKeys = {
     all: ['environment-groups'] as const,
     list: (envId: string, query: string, page: number, size: number) => [...groupKeys.all, 'list', envId, query, page, size] as const,
+    allNames: (envId: string) => [...groupKeys.all, 'all-names', envId] as const,
     detail: (envId: string, groupId: string) => [...groupKeys.all, 'detail', envId, groupId] as const,
     members: (envId: string, groupId: string) => [...groupKeys.all, 'members', envId, groupId] as const,
     invitations: (envId: string, groupId: string) => [...groupKeys.all, 'invitations', envId, groupId] as const,

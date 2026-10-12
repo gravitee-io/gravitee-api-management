@@ -186,6 +186,7 @@ export function GroupSheet({
     isSaving,
     onAssociateToExisting,
     associationPending = false,
+    existingGroupNames = [],
 }: Readonly<{
     open: boolean;
     mode: GroupSheetMode;
@@ -199,12 +200,13 @@ export function GroupSheet({
     isSaving: boolean;
     onAssociateToExisting?: (type: GroupMembershipType) => void;
     associationPending?: boolean;
+    /** Names of all other groups, used to reject duplicate names on both create and edit. */
+    existingGroupNames?: string[];
 }>) {
     const [form, setForm] = useState<GroupFormValues>(() => buildEmptyForm([], [], []));
     const [initialForm, setInitialForm] = useState<GroupFormValues | null>(null);
     const [maxInvitationError, setMaxInvitationError] = useState<string | null>(null);
     const [rolesTouched, setRolesTouched] = useState(false);
-
     useEffect(() => {
         if (!open) return;
         if (mode === 'edit' && group) {
@@ -262,7 +264,19 @@ export function GroupSheet({
         setMaxInvitationError(Number.isFinite(parsed) && parsed >= 1 ? null : 'Enter a positive number or leave blank');
     }
 
-    const isValid = form.name.trim() !== '' && !maxInvitationError;
+    const nameError = (() => {
+        const trimmed = form.name.trim();
+        if (!trimmed) return null;
+        // The edited group's own name is allowed; compare against every other group.
+        const ownName = mode === 'edit' && group ? group.name.trim().toLowerCase() : null;
+        const isDuplicate = existingGroupNames.some(existing => {
+            const candidate = existing.trim().toLowerCase();
+            return candidate !== '' && candidate !== ownName && candidate === trimmed.toLowerCase();
+        });
+        return isDuplicate ? 'A group with this name already exists.' : null;
+    })();
+
+    const isValid = form.name.trim() !== '' && !maxInvitationError && !nameError;
 
     const hasChanged = useMemo(() => {
         if (mode === 'create') return true;
@@ -319,7 +333,14 @@ export function GroupSheet({
                                 placeholder="e.g. Support Team"
                                 disabled={isSaving}
                                 required
+                                aria-invalid={Boolean(nameError)}
+                                aria-describedby={nameError ? 'group-name-error' : undefined}
                             />
+                            {nameError && (
+                                <p id="group-name-error" className="text-xs text-destructive">
+                                    {nameError}
+                                </p>
+                            )}
                         </Field>
 
                         <div className="grid grid-cols-2 gap-4">
