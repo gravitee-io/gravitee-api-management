@@ -48,10 +48,14 @@ export function resolveChannel(notification: NotificationSettings, notifier: Api
     return 'CONSOLE';
 }
 
-/** Group a flat hooks array by category, preserving backend order. */
+/** Hook categories that only apply to the classic Developer Portal, which Gamma does not support. */
+const CLASSIC_PORTAL_HOOK_CATEGORIES = new Set(['REVIEW', 'SUPPORT', 'RATING']);
+
+/** Group a flat hooks array by category, preserving backend order and leaving out classic-portal-only categories. */
 export function groupHooksByCategory(hooks: ApiHook[]): HookCategory[] {
     const seen = new Map<string, ApiHook[]>();
     for (const hook of hooks) {
+        if (CLASSIC_PORTAL_HOOK_CATEGORIES.has(hook.category.toUpperCase())) continue;
         const group = seen.get(hook.category) ?? [];
         group.push(hook);
         seen.set(hook.category, group);

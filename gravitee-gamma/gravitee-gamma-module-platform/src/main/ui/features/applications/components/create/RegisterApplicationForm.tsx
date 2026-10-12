@@ -122,7 +122,7 @@ export function RegisterApplicationForm() {
             {
                 onSuccess: created => {
                     notify.success('Application created');
-                    navigate(`../${created.id}/general`, { state: applicationCreatedNavigationState() });
+                    navigate(`../applications/${created.id}/general`, { state: applicationCreatedNavigationState() });
                 },
                 onError: error => notify.error(error, 'An error occurred while creating the application!'),
             },
