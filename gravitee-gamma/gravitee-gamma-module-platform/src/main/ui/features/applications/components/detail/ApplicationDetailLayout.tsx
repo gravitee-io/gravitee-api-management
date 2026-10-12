@@ -41,7 +41,7 @@ import { ApplicationDetailContext, useApplicationDetailContext } from '../../con
 import { useApplicationDetail } from '../../hooks/useApplicationDetail';
 import { useApplicationPermissions } from '../../hooks/useApplicationPermissions';
 import type { ApplicationListItem, ApplicationStatus } from '../../types/application';
-import { formatApplicationOwnerLabel, formatApplicationSecurityTypeLabel } from '../../utils/applicationFormatters';
+import { formatApplicationOwnerLabel, formatApplicationTypeLabel } from '../../utils/applicationFormatters';
 
 function StatusBadge({ status }: { status: ApplicationStatus }) {
     if (status === 'ACTIVE') {
@@ -83,14 +83,14 @@ function ApplicationInfoHeader({ application, isLoading }: { application: Applic
     if (!application) return null;
 
     const ownerLabel = formatApplicationOwnerLabel(application.owner);
-    const securityTypeLabel = formatApplicationSecurityTypeLabel(application);
+    const securityTypeLabel = formatApplicationTypeLabel(application);
     const description = application.description?.trim();
     const pictureSrc = application.picture ?? application.picture_url;
 
     return (
         <div className="space-y-2.5 border-b px-3 pb-4 pt-4">
             <div className="flex min-w-0 items-start gap-2.5">
-                <Avatar className="size-8 shrink-0 rounded-lg">
+                <Avatar className="size-8 shrink-0 rounded-lg after:rounded-lg">
                     {pictureSrc ? (
                         <AvatarImage src={pictureSrc} alt={`${application.name} logo`} className="rounded-lg object-cover" />
                     ) : null}

@@ -13,19 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { formatApplicationOwnerLabel, formatApplicationSecurityTypeLabel, formatApplicationTypeLabel } from './applicationFormatters';
+import { formatApplicationOwnerLabel, formatApplicationTypeLabel } from './applicationFormatters';
+import type { ApplicationListItem } from '../types/application';
 
 describe('applicationFormatters', () => {
-    it('maps known application types to display labels', () => {
-        expect(formatApplicationTypeLabel({ type: 'SIMPLE' })).toBe('Service');
+    it('labels every application type with its console name', () => {
+        expect(formatApplicationTypeLabel({ type: 'SIMPLE' })).toBe('Simple');
         expect(formatApplicationTypeLabel({ type: 'BROWSER' })).toBe('SPA');
-        expect(formatApplicationTypeLabel({ type: 'BACKEND_TO_BACKEND' })).toBe('Backend');
+        expect(formatApplicationTypeLabel({ type: 'WEB' })).toBe('Web');
+        expect(formatApplicationTypeLabel({ type: 'NATIVE' })).toBe('Native');
+        expect(formatApplicationTypeLabel({ type: 'BACKEND_TO_BACKEND' })).toBe('Backend to backend');
     });
 
-    it('maps security types for application detail header', () => {
-        expect(formatApplicationSecurityTypeLabel({ type: 'SIMPLE' })).toBe('Simple');
-        expect(formatApplicationSecurityTypeLabel({ type: 'BROWSER' })).toBe('SPA');
-        expect(formatApplicationSecurityTypeLabel({ type: 'BACKEND_TO_BACKEND' })).toBe('Backend to backend');
+    it('labels a simple application the same whether or not settings.app.type is set', () => {
+        const withSettings = (appType: string): Pick<ApplicationListItem, 'type' | 'settings'> => ({
+            type: 'SIMPLE',
+            settings: { app: { type: appType } },
+        });
+
+        expect(formatApplicationTypeLabel({ type: 'SIMPLE' })).toBe('Simple');
+        expect(formatApplicationTypeLabel(withSettings('simple'))).toBe('Simple');
+        expect(formatApplicationTypeLabel(withSettings('iOS'))).toBe('Simple');
+    });
+
+    it('shows a dash when the application has no type', () => {
+        expect(formatApplicationTypeLabel({})).toBe('—');
     });
 
     it('formats owner with role label', () => {

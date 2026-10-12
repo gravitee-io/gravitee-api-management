@@ -62,4 +62,19 @@ describe('ApplicationListTable', () => {
 
         expect(navigate).toHaveBeenCalledWith('app-1/general');
     });
+
+    it('labels a simple application "Simple" even when it has no settings.app.type', () => {
+        render(
+            <ApplicationListTable
+                applications={[{ ...APPLICATION, status: 'ACTIVE', settings: { app: {} } }]}
+                isLoading={false}
+                status="ACTIVE"
+                sorting={[]}
+                onSortingChange={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByText('Simple')).toBeInTheDocument();
+        expect(screen.queryByText('Service')).not.toBeInTheDocument();
+    });
 });
