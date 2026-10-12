@@ -30,7 +30,7 @@
         -->
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>25.1.2</version>
+        <version>25.1.2-spotless-palantir</version>
         <relativePath/>
     </parent>
 
@@ -395,33 +395,6 @@
                         </licenseSet>
                     </licenseSets>
                 </configuration>
-            </plugin>
-
-            <!--
-                gravitee-parent's prettier globs include **/*.json and **/*.yml, which over this tree
-                means the e2e project's JavaScript manifests and the generated files under target/.
-                Narrow them to what the product formats: Java sources and the compose files. Same
-                globs as the root pom, which is what this tree was formatted against.
-            -->
-            <plugin>
-                <groupId>com.hubspot.maven.plugins</groupId>
-                <artifactId>prettier-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${skip.validation}</skip>
-                            <inputGlobs>
-                                <inputGlob>src/{main,test}/**/*.java</inputGlob>
-                                <inputGlob>docker/**/docker-compose.yml</inputGlob>
-                            </inputGlobs>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <!--

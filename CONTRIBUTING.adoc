@@ -46,7 +46,7 @@ The default build runs repository tests that use https://java.testcontainers.org
 If you don't want to start Docker, skip tests with the command shown below.
 ====
 
-If you want to skip license validation, prettier checks, and tests, you can use:
+If you want to skip license validation, formatting checks (Spotless), and tests, you can use:
 [source, bash]
 ----
 mvn clean install -T 2C -DskipTests=true -Dskip.validation=true
