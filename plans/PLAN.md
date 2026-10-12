@@ -1109,7 +1109,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 2. The hooks and cache keys, with invalidation asserted after each write.
 
 #### STORY-25 — Documentation list screen
-**Status:** Done under [PORTAL-244](https://gravitee.atlassian.net/browse/PORTAL-244), as [#20942](https://github.com/gravitee-io/gravitee-api-management/pull/20942).
+**Status:** Done under [PORTAL-244](https://gravitee.atlassian.net/browse/PORTAL-244), as [#20942](https://github.com/gravitee-io/gravitee-api-management/pull/20942). The screen shows whether and where the API is published; the Publish and Unpublish actions are left to STORY-30.
 **Why:** the main screen of the feature, and the surface almost every later story in this phase attaches to. It is also where a user first sees whether their API is published, so the exclusive Publish/Unpublish action lives here.
 **Acceptance criteria:**
 - An empty state with a call to action when the API has no documentation.
