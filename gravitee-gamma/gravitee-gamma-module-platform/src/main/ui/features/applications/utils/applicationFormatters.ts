@@ -15,17 +15,8 @@
  */
 import type { ApplicationListItem, ApplicationOwner } from '../types/application';
 
-const TYPE_LABELS: Record<string, string> = {
-    SIMPLE: 'Service',
-    BROWSER: 'SPA',
-    WEB: 'Web',
-    NATIVE: 'Mobile',
-    BACKEND_TO_BACKEND: 'Backend',
-    AI_AGENT: 'AI Agent',
-};
-
-/** Security type labels for application detail (matches applications/types.json names). */
-const SECURITY_TYPE_LABELS: Record<string, string> = {
+/** Application type labels (matches applications/types.json names). */
+const APPLICATION_TYPE_LABELS: Record<string, string> = {
     SIMPLE: 'Simple',
     BROWSER: 'SPA',
     WEB: 'Web',
@@ -39,19 +30,6 @@ const OWNER_TYPE_LABELS: Record<string, string> = {
     GROUP: 'Group',
 };
 
-export function formatApplicationSecurityTypeLabel(application: Pick<ApplicationListItem, 'type' | 'settings'>): string {
-    const settingsType = application.settings?.app?.type;
-    if (settingsType) {
-        const normalized = settingsType.toUpperCase();
-        return SECURITY_TYPE_LABELS[normalized] ?? toTitleLabel(settingsType);
-    }
-    if (!application.type) {
-        return '—';
-    }
-    const normalized = application.type.toUpperCase();
-    return SECURITY_TYPE_LABELS[normalized] ?? toTitleLabel(application.type);
-}
-
 export function formatApplicationOwnerLabel(owner: ApplicationOwner | undefined): string | null {
     if (!owner?.displayName) {
         return null;
@@ -60,15 +38,15 @@ export function formatApplicationOwnerLabel(owner: ApplicationOwner | undefined)
     return roleLabel ? `${owner.displayName} (${roleLabel})` : owner.displayName;
 }
 
-export function formatApplicationTypeLabel(application: Pick<ApplicationListItem, 'type' | 'settings'>): string {
-    const settingsType = application.settings?.app?.type;
-    if (settingsType) {
-        return TYPE_LABELS[settingsType] ?? toTitleLabel(settingsType);
-    }
+/**
+ * Labels an application by its type alone, as the console does, in the list and on the detail page.
+ * `settings.app.type` is free text on simple applications (for example "iOS"), so it must not change the label.
+ */
+export function formatApplicationTypeLabel(application: Pick<ApplicationListItem, 'type'>): string {
     if (!application.type) {
         return '—';
     }
-    return TYPE_LABELS[application.type] ?? toTitleLabel(application.type);
+    return APPLICATION_TYPE_LABELS[application.type.toUpperCase()] ?? toTitleLabel(application.type);
 }
 
 const API_KEY_MODE_LABELS: Record<string, string> = {

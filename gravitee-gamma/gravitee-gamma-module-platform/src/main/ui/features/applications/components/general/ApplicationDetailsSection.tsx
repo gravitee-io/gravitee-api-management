@@ -37,7 +37,7 @@ import {
     formatApplicationApiKeyMode,
     formatApplicationDateTime,
     formatApplicationOwnerLabel,
-    formatApplicationSecurityTypeLabel,
+    formatApplicationTypeLabel,
 } from '../../utils/applicationFormatters';
 import type { ApplicationGeneralForm, ApplicationGeneralValidation } from '../../utils/applicationGeneralMapper';
 
@@ -173,7 +173,7 @@ export function ApplicationDetailsSection({
                                             Type
                                         </>
                                     }
-                                    value={formatApplicationSecurityTypeLabel(application)}
+                                    value={formatApplicationTypeLabel(application)}
                                 />
                                 <DetailRow
                                     label={
