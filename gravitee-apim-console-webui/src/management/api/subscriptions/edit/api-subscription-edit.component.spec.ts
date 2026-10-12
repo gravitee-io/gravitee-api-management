@@ -1351,9 +1351,10 @@ describe('ApiSubscriptionEditComponent', () => {
   }
 
   function expectApiPlansList(plans: Plan[], securities: string[], mode: PlanMode): void {
+    const securitiesParam = securities.length > 0 ? `&securities=${securities}` : '';
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&securities=${securities}&statuses=PUBLISHED&mode=${mode}`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999${securitiesParam}&statuses=PUBLISHED&mode=${mode}`,
         method: 'GET',
       })
       .flush({ data: plans });

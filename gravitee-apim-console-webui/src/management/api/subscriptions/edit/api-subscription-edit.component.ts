@@ -162,7 +162,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
                   ? `${subscription.plan.name} (${subscription.plan.security.type})`
                   : subscription.plan.name,
                 securityType: subscription.plan.security?.type,
-                mode: subscription.plan.security?.type ? 'STANDARD' : 'PUSH',
+                mode: subscription.plan.mode ?? (subscription.plan.security?.type ? 'STANDARD' : 'PUSH'),
               },
               application: {
                 id: subscription.application.id,
