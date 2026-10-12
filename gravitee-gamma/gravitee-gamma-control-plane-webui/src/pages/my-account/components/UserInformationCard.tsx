@@ -147,6 +147,7 @@ export function UserInformationCard({
                         </div>
                         <AvatarPicker
                             preview={avatarPreview}
+                            fallbackName={user.displayName}
                             onSelect={dataUrl => onDraftChange({ ...draft, pictureDataUrl: dataUrl, resetToDefault: false })}
                             onUseDefault={() => onDraftChange({ ...draft, pictureDataUrl: null, resetToDefault: true })}
                         />

@@ -17,6 +17,7 @@ import {
     Button,
     Card,
     CardContent,
+    CardHeader,
     Dialog,
     DialogClose,
     DialogContent,
@@ -62,14 +63,20 @@ export function DangerZoneCard({
     return (
         <>
             <Card className="border-destructive/40">
-                <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-1">
-                        <h2 className="text-lg font-semibold text-destructive">Danger Zone</h2>
-                        <p className="text-sm text-muted-foreground">
-                            Please transfer ownership of your APIs and applications or delete them before deleting your account
-                        </p>
-                    </div>
-                    <Button type="button" variant="destructive" disabled={primaryOwner || deleting} onClick={() => setConfirmOpen(true)}>
+                <CardHeader className="pb-0">
+                    <h2 className="text-lg font-semibold text-destructive">Danger Zone</h2>
+                </CardHeader>
+                <CardContent className="flex flex-wrap items-center justify-between gap-4">
+                    <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+                        Please transfer ownership of your APIs and applications or delete them before deleting your account
+                    </p>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        className="shrink-0"
+                        disabled={primaryOwner || deleting}
+                        onClick={() => setConfirmOpen(true)}
+                    >
                         Delete my account
                     </Button>
                 </CardContent>
