@@ -224,7 +224,8 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
         try {
             return filterValueNameResolver.resolveNames(environmentIdOf(context), filter, List.copyOf(ids));
         } catch (RuntimeException e) {
-            log.warn("Unable to resolve {} names for analytics buckets, keeping their ids", filter, e);
+            log.warn("Unable to resolve {} names for analytics buckets, keeping their ids: {}", filter, e.toString());
+            log.debug("{} name resolution failure", filter, e);
             return Map.of();
         }
     }
