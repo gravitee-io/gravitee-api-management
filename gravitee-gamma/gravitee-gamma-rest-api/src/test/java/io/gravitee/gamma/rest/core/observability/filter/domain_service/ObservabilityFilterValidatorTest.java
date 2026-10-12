@@ -296,18 +296,17 @@ class ObservabilityFilterValidatorTest {
                 new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("404"))
             );
 
-            assertThatCode(() -> validator.validate(conditions, Signal.ANALYTICS)).doesNotThrowAnyException();
+            assertThatCode(() -> validator.validate(conditions, Signal.LOGS)).doesNotThrowAnyException();
         }
 
-        // Logs refused it later without a code and analytics answered an empty set: one answer for both signals.
         @Test
-        void should_reject_a_range_whose_lower_bound_is_above_its_upper_bound() {
+        void should_reject_a_logs_range_whose_lower_bound_is_above_its_upper_bound() {
             var conditions = List.of(
                 new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("500")),
                 new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("400"))
             );
 
-            assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
                 .isInstanceOf(UnsupportedObservabilityFilterException.class)
                 .hasMessageContaining("HTTP_STATUS")
                 .hasMessageContaining("500")
@@ -317,27 +316,27 @@ class ObservabilityFilterValidatorTest {
         }
 
         @Test
-        void should_reject_the_same_condition_twice() {
+        void should_reject_the_same_logs_condition_twice() {
             var conditions = List.of(
-                new FilterCondition("GATEWAY", FilterOperator.IN, List.of("gw-1")),
-                new FilterCondition("GATEWAY", FilterOperator.IN, List.of("gw-2"))
+                new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of("NONE")),
+                new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of("GATEWAY_TO_BROKER"))
             );
 
-            assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
                 .isInstanceOf(UnsupportedObservabilityFilterException.class)
-                .hasMessageContaining("GATEWAY")
+                .hasMessageContaining("FAILURE_ORIGIN")
                 .extracting("technicalCode")
                 .isEqualTo("observability.filter.repeated");
         }
 
         @Test
-        void should_reject_two_operators_on_one_filter_outside_a_numeric_range() {
+        void should_reject_two_operators_on_one_logs_filter_outside_a_numeric_range() {
             var conditions = List.of(
-                new FilterCondition("GATEWAY", FilterOperator.EQ, List.of("gw-1")),
-                new FilterCondition("GATEWAY", FilterOperator.IN, List.of("gw-2"))
+                new FilterCondition("FAILURE_ORIGIN", FilterOperator.EQ, List.of("NONE")),
+                new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of("GATEWAY_TO_BROKER"))
             );
 
-            assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
                 .isInstanceOf(UnsupportedObservabilityFilterException.class)
                 .hasMessageContaining("EQ")
                 .hasMessageContaining("IN")
@@ -347,7 +346,7 @@ class ObservabilityFilterValidatorTest {
 
         @ParameterizedTest
         @CsvSource({ "GTE, GTE", "LTE, LTE", "EQ, GTE", "EQ, LTE" })
-        void should_reject_a_number_filter_repeated_other_than_as_one_closed_range(FilterOperator first, FilterOperator second) {
+        void should_reject_a_logs_number_filter_repeated_other_than_as_one_closed_range(FilterOperator first, FilterOperator second) {
             var conditions = List.of(
                 new FilterCondition("HTTP_STATUS", first, List.of("400")),
                 new FilterCondition("HTTP_STATUS", second, List.of("500"))
@@ -357,6 +356,29 @@ class ObservabilityFilterValidatorTest {
                 .isInstanceOf(UnsupportedObservabilityFilterException.class)
                 .extracting("technicalCode")
                 .isEqualTo("observability.filter.repeated");
+        }
+
+        // Analytics ANDs every condition, a widget's own filter on top of the dashboard's: conditions
+        // that cannot overlap answer an empty result, not a 400.
+        @ParameterizedTest
+        @CsvSource({ "EQ, EQ", "GTE, LTE", "EQ, GTE", "GTE, GTE" })
+        void should_accept_a_number_filter_repeated_on_analytics(FilterOperator first, FilterOperator second) {
+            var conditions = List.of(
+                new FilterCondition("HTTP_STATUS", first, List.of("500")),
+                new FilterCondition("HTTP_STATUS", second, List.of("200"))
+            );
+
+            assertThatCode(() -> validator.validate(conditions, Signal.ANALYTICS)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_accept_a_keyword_filter_repeated_on_analytics() {
+            var conditions = List.of(
+                new FilterCondition("GATEWAY", FilterOperator.EQ, List.of("gw-1")),
+                new FilterCondition("GATEWAY", FilterOperator.IN, List.of("gw-2"))
+            );
+
+            assertThatCode(() -> validator.validate(conditions, Signal.ANALYTICS)).doesNotThrowAnyException();
         }
     }
 

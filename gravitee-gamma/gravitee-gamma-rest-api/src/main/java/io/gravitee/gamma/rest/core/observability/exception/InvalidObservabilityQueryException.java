@@ -19,7 +19,8 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 
 /**
  * A logs or analytics query whose shape, outside its filters, cannot be answered: a missing time bound, a
- * missing interval, no metric, or a metric, measure, facet or sort the engine does not know. Translated to
+ * missing interval, no metric, a metric, measure, facet or sort the engine does not know, or metric ids or
+ * metric-level filters the request cannot be split by. Translated to
  * HTTP 400 by the apim {@code ValidationDomainExceptionMapper}, with a technical code per rule.
  *
  * @author GraviteeSource Team
@@ -74,6 +75,34 @@ public class InvalidObservabilityQueryException extends ValidationDomainExceptio
         return new InvalidObservabilityQueryException(
             "Sort order '" + order + "' is not supported, expected ASC or DESC",
             "observability.query.unknown_sort_order"
+        );
+    }
+
+    public static InvalidObservabilityQueryException partialMetricIds() {
+        return new InvalidObservabilityQueryException(
+            "Either every metric carries an 'id' or none does",
+            "observability.query.partial_metric_ids"
+        );
+    }
+
+    public static InvalidObservabilityQueryException duplicateMetricId(String id) {
+        return new InvalidObservabilityQueryException(
+            "Metric id '" + id + "' is used more than once",
+            "observability.query.duplicate_metric_id"
+        );
+    }
+
+    public static InvalidObservabilityQueryException tooManyMetricConditionSets(long count, int max) {
+        return new InvalidObservabilityQueryException(
+            "The metrics carry " + count + " distinct sets of filters, at most " + max + " are allowed per request",
+            "observability.query.too_many_metric_condition_sets"
+        );
+    }
+
+    public static InvalidObservabilityQueryException differingMetricConditions() {
+        return new InvalidObservabilityQueryException(
+            "Every metric of a facets or time-series request must carry the same filters",
+            "observability.query.differing_metric_conditions"
         );
     }
 

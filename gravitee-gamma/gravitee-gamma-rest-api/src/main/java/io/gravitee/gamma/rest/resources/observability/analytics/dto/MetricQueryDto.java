@@ -23,9 +23,10 @@ import java.util.List;
 /**
  * Wire shape for a metric query on the measures endpoint.
  */
-public record MetricQueryDto(String name, List<String> measures, List<FilterConditionDto> filters) {
+public record MetricQueryDto(String id, String name, List<String> measures, List<FilterConditionDto> filters) {
     public AnalyticsMetricQuery toCore() {
         return new AnalyticsMetricQuery(
+            id,
             name,
             measures != null ? measures : List.of(),
             RequestEntries.map(filters, "metrics[].filters", FilterConditionDto::toCore)

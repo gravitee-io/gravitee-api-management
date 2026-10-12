@@ -23,17 +23,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Adds the conditions Gamma did not hand to the engine to each metric's {@code ignoredFilters}, after
- * the ones the engine reported. The engine's metric records name their metric under {@code name} on
- * measures and time series, under {@code metric} on facets.
+ * Adds the conditions Gamma did not hand to the engine to a metric's {@code ignoredFilters}, after the
+ * ones the engine reported. The engine's metric records name their metric under {@code name} on time
+ * series, under {@code metric} on facets.
  */
 final class ConditionsNotAppliedEnricher {
 
     private ConditionsNotAppliedEnricher() {}
-
-    static void enrichMeasures(JsonNode response, Map<String, List<String>> notApplied) {
-        enrich(response, notApplied, "name");
-    }
 
     static void enrichFacets(JsonNode response, Map<String, List<String>> notApplied) {
         enrich(response, notApplied, "metric");
@@ -43,20 +39,26 @@ final class ConditionsNotAppliedEnricher {
         enrich(response, notApplied, "name");
     }
 
+    static void enrichMetric(ObjectNode metric, List<String> notApplied) {
+        if (notApplied.isEmpty()) {
+            return;
+        }
+        var names = new LinkedHashSet<String>();
+        metric.path("ignoredFilters").forEach(name -> names.add(name.asText()));
+        names.addAll(notApplied);
+        var array = metric.putArray("ignoredFilters");
+        names.forEach(array::add);
+    }
+
     private static void enrich(JsonNode response, Map<String, List<String>> notApplied, String nameField) {
         if (notApplied == null || notApplied.isEmpty() || !(response.get("metrics") instanceof ArrayNode metrics)) {
             return;
         }
         for (var metric : metrics) {
             var extra = notApplied.get(metric.path(nameField).asText());
-            if (extra == null || !(metric instanceof ObjectNode metricNode)) {
-                continue;
+            if (extra != null && metric instanceof ObjectNode metricNode) {
+                enrichMetric(metricNode, extra);
             }
-            var names = new LinkedHashSet<String>();
-            metricNode.path("ignoredFilters").forEach(name -> names.add(name.asText()));
-            names.addAll(extra);
-            var array = metricNode.putArray("ignoredFilters");
-            names.forEach(array::add);
         }
     }
 }
