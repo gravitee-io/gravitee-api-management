@@ -21,7 +21,7 @@ import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { GroupsPage } from './GroupsPage';
 import { useCreateGroup, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
 import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
-import { useGroupsPaged } from '../features/groups/hooks/useGroups';
+import { useAllGroupNames, useGroupsPaged } from '../features/groups/hooks/useGroups';
 import type { Group } from '../features/groups/types/group';
 import { notify } from '../shared/notify';
 
@@ -107,6 +107,7 @@ beforeAll(() => {
 const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockUseNavigate = jest.mocked(useNavigate);
 const mockUseGroupsPaged = jest.mocked(useGroupsPaged);
+const mockUseAllGroupNames = jest.mocked(useAllGroupNames);
 const mockUseGroupRoles = jest.mocked(useGroupRoles);
 const mockUseCreateGroup = jest.mocked(useCreateGroup);
 const mockUseUpdateGroup = jest.mocked(useUpdateGroup);
@@ -139,6 +140,12 @@ describe('GroupsPage', () => {
         mockUseHasPermission.mockReturnValue(true);
         mockUseNavigate.mockReturnValue(jest.fn());
         mockUseGroupsPaged.mockReturnValue(makeGroupsResult());
+        mockUseAllGroupNames.mockReturnValue({
+            names: SAMPLE_GROUPS.map(g => g.name),
+            data: SAMPLE_GROUPS,
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useAllGroupNames>);
         mockUseGroupRoles.mockReturnValue({
             apiRoles: [{ name: 'USER', scope: 'API', default: true }],
             apiRolesLoading: false,

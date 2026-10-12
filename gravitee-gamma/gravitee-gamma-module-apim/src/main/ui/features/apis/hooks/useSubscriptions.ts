@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { getSubscription, listApiPlans, listApiSubscribers, listSubscriptions, searchApplications } from '../services/subscriptions';
+import {
+    getSubscription,
+    listApiPlans,
+    listApiSubscribers,
+    listApplicationApiKeySubscriptions,
+    listSubscriptions,
+    searchApplications,
+} from '../services/subscriptions';
 import type { SubscriptionContext, SubscriptionFilters, SubscriptionStatus } from '../types/subscription';
 import { apiSubscriptionKeys } from '../utils/queryKeys';
 
@@ -27,6 +34,9 @@ export function isSubscriptionFiltersDirty(filters: SubscriptionFilters): boolea
 }
 
 export const DEFAULT_STATUSES = ['ACCEPTED', 'PAUSED', 'PENDING'] as const;
+
+/** Every subscription status — used to detect “no subscriptions at all” for the educational empty state. */
+export const ALL_SUBSCRIPTION_STATUSES: SubscriptionStatus[] = ['PENDING', 'ACCEPTED', 'REJECTED', 'CLOSED', 'PAUSED', 'RESUMED'];
 
 const SAFE_CTX: SubscriptionContext = { type: 'api', entityId: '' };
 
@@ -48,6 +58,7 @@ export function useSubscriptionList(ctx: SubscriptionContext | null, filters: Pa
                 perPage,
             }),
         enabled: Boolean(env && ctx?.entityId),
+        placeholderData: keepPreviousData,
     });
 }
 
@@ -116,5 +127,18 @@ export function useApiSubscriberSearch(ctx: SubscriptionContext | null, term: st
         queryFn: ({ signal }) => listApiSubscribers(envId, ctx!.entityId, { name: trimmedTerm, perPage: SUBSCRIBER_SEARCH_SIZE, signal }),
         enabled: Boolean(env && ctx?.type === 'api' && ctx.entityId && trimmedTerm),
         select: response => (response.data ?? []).map(subscriber => ({ value: subscriber.id, label: subscriber.name ?? subscriber.id })),
+    });
+}
+
+/** Active API-key subscriptions for an application, used to decide exclusive vs shared mode. */
+export function useApplicationApiKeySubscriptions(applicationId: string | undefined, enabled: boolean) {
+    const env = useEnvironment();
+    const envId = env?.id ?? '';
+    return useQuery({
+        queryKey: apiSubscriptionKeys.applicationApiKeySubscriptions(envId, applicationId ?? ''),
+        queryFn: () => listApplicationApiKeySubscriptions(envId, applicationId!),
+        enabled: Boolean(enabled && env?.id && applicationId),
+        staleTime: 30_000,
+        retry: false,
     });
 }

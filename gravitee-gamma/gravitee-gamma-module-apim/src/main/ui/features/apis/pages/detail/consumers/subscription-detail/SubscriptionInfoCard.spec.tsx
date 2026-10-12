@@ -40,11 +40,26 @@ function valueOf(label: string): HTMLElement {
 }
 
 describe('SubscriptionInfoCard', () => {
-    it('shows the application description and domain', () => {
-        render(<SubscriptionInfoCard subscription={BASE} isLoading={false} />);
+    it('shows the classic application label, description, and domain', () => {
+        render(
+            <SubscriptionInfoCard
+                subscription={{
+                    ...BASE,
+                    application: {
+                        ...BASE.application,
+                        type: 'SIMPLE',
+                        primaryOwner: { id: 'u1', displayName: 'admin' },
+                    },
+                }}
+                isLoading={false}
+            />,
+        );
 
+        expect(valueOf('Application')).toHaveTextContent('Checkout (admin) - Type: SIMPLE');
         expect(screen.getByText('Handles payments')).toBeInTheDocument();
         expect(valueOf('Domain')).toHaveTextContent('checkout.example.com');
+        // Owner is only in the label — not a second standalone line under the description.
+        expect(valueOf('Application').querySelectorAll('p')).toHaveLength(2);
     });
 
     it('keeps the subscribed by row, with a dash when nobody is recorded', () => {

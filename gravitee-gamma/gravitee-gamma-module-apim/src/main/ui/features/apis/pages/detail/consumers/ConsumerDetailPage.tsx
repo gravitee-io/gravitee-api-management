@@ -79,7 +79,7 @@ export function ConsumerDetailPage({ ctx, subscriptionId, canUpdate, canDelete, 
 
                     <SubscriptionInfoCard subscription={subscription} isLoading={false} />
 
-                    <SubscriptionApiKeysCard ctx={ctx} subscription={subscription} canUpdate={canUpdate} />
+                    <SubscriptionApiKeysCard ctx={ctx} subscription={subscription} canUpdate={canUpdate} isFederated={isFederated} />
                 </>
             )}
         </div>

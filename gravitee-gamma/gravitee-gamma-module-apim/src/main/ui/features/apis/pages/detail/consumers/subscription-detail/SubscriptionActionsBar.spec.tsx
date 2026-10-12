@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 
@@ -170,5 +170,56 @@ describe('SubscriptionActionsBar transfer', () => {
         const dialog = screen.getByRole('dialog');
         expect(within(dialog).getByRole('radio', { name: 'plan-gc' })).toBeDisabled();
         expect(within(dialog).getByText(/plans with general conditions cannot be used/i)).toBeInTheDocument();
+    });
+});
+
+const PAUSED_SUBSCRIPTION: Subscription = {
+    id: 'sub-1',
+    status: 'PAUSED',
+    plan: { id: 'plan-1', name: 'API Key', security: { type: 'API_KEY' } },
+    application: { id: 'app-1', name: 'App', apiKeyMode: 'EXCLUSIVE' },
+};
+
+describe('SubscriptionActionsBar end date', () => {
+    beforeEach(() => {
+        mockUseApiPlans.mockReturnValue({ data: [] });
+    });
+
+    it('shows Transfer, Change end date, and Resume on a paused non-federated subscription', () => {
+        renderBar(PAUSED_SUBSCRIPTION);
+
+        expect(screen.getByRole('button', { name: /transfer/i })).not.toBeNull();
+        expect(screen.getByRole('button', { name: /change end date/i })).not.toBeNull();
+        expect(screen.getByRole('button', { name: /^resume$/i })).not.toBeNull();
+        expect(screen.queryByRole('button', { name: /^pause$/i })).toBeNull();
+    });
+
+    it('prefills the local end date and keeps save disabled until that date changes', () => {
+        renderBar({ ...PAUSED_SUBSCRIPTION, endingAt: '2026-10-19T18:30:00.000Z' });
+
+        fireEvent.click(screen.getByRole('button', { name: /change end date/i }));
+        const input = screen.getByLabelText(/End date/) as HTMLInputElement;
+        const ending = new Date('2026-10-19T18:30:00.000Z');
+        const today = new Date();
+        const ymd = (date: Date) =>
+            `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+        expect(input.value).toBe(ymd(ending));
+        expect(input.min).toBe(ymd(today));
+        expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+
+        fireEvent.change(input, { target: { value: '2026-12-01' } });
+        expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+
+        fireEvent.change(input, { target: { value: ymd(ending) } });
+        expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    });
+
+    it('keeps save disabled when the subscription has no end date and the field is still empty', () => {
+        renderBar(PAUSED_SUBSCRIPTION);
+
+        fireEvent.click(screen.getByRole('button', { name: /change end date/i }));
+        expect((screen.getByLabelText(/End date/) as HTMLInputElement).value).toBe('');
+        expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
     });
 });
