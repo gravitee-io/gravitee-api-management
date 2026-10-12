@@ -21,7 +21,7 @@ import { AvatarPicker } from './AvatarPicker';
 describe('AvatarPicker', () => {
     it('should reject a non-image file before encoding it', async () => {
         const onSelect = jest.fn();
-        render(<AvatarPicker onSelect={onSelect} onUseDefault={() => undefined} />);
+        render(<AvatarPicker fallbackName="Ada Lovelace" onSelect={onSelect} onUseDefault={() => undefined} />);
 
         const file = new File(['not an image'], 'notes.txt', { type: 'text/plain' });
         // accept="image/*" is only a picker hint; browsers can still deliver a non-image file.
@@ -34,7 +34,7 @@ describe('AvatarPicker', () => {
     it('should reject a file larger than 1MB', async () => {
         const user = userEvent.setup();
         const onSelect = jest.fn();
-        render(<AvatarPicker onSelect={onSelect} onUseDefault={() => undefined} />);
+        render(<AvatarPicker fallbackName="Ada Lovelace" onSelect={onSelect} onUseDefault={() => undefined} />);
 
         const file = new File([new Uint8Array(1024 * 1024 + 1)], 'huge.png', { type: 'image/png' });
         await user.upload(screen.getByLabelText('Choose avatar image'), file);
@@ -46,7 +46,7 @@ describe('AvatarPicker', () => {
     it('should accept an image under 1MB', async () => {
         const user = userEvent.setup();
         const onSelect = jest.fn();
-        render(<AvatarPicker onSelect={onSelect} onUseDefault={() => undefined} />);
+        render(<AvatarPicker fallbackName="Ada Lovelace" onSelect={onSelect} onUseDefault={() => undefined} />);
 
         const file = new File(['png-bytes'], 'avatar.png', { type: 'image/png' });
         await user.upload(screen.getByLabelText('Choose avatar image'), file);
@@ -62,7 +62,7 @@ describe('AvatarPicker', () => {
                 this.onerror?.(new ProgressEvent('error') as ProgressEvent<FileReader>);
             });
         });
-        render(<AvatarPicker onSelect={onSelect} onUseDefault={() => undefined} />);
+        render(<AvatarPicker fallbackName="Ada Lovelace" onSelect={onSelect} onUseDefault={() => undefined} />);
 
         fireEvent.change(screen.getByLabelText('Choose avatar image'), {
             target: { files: [new File(['png-bytes'], 'avatar.png', { type: 'image/png' })] },
@@ -71,5 +71,48 @@ describe('AvatarPicker', () => {
         expect(await screen.findByText('Could not read that image. Try another file.')).toBeTruthy();
         expect(onSelect).not.toHaveBeenCalled();
         readSpy.mockRestore();
+    });
+
+    it('should show Change picture and Use default after the preview loads', () => {
+        render(<AvatarPicker preview="http://img.test/a.png" fallbackName="Ada Lovelace" onSelect={jest.fn()} onUseDefault={jest.fn()} />);
+
+        fireEvent.load(screen.getByRole('img', { name: 'Avatar' }));
+
+        expect(screen.getByText('Change picture')).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'Use default' })).toBeTruthy();
+    });
+
+    it('should show initials and Upload picture when the preview fails', () => {
+        render(<AvatarPicker preview="http://img.test/a.png" fallbackName="Ada Lovelace" onSelect={jest.fn()} onUseDefault={jest.fn()} />);
+
+        fireEvent.error(screen.getByRole('img', { name: 'Avatar' }));
+
+        expect(screen.getByText('AL')).toBeTruthy();
+        expect(screen.getByText('Upload picture')).toBeTruthy();
+        expect(screen.queryByRole('button', { name: 'Use default' })).toBeNull();
+    });
+
+    it('should show initials and Upload picture when there is no preview', () => {
+        render(<AvatarPicker fallbackName="Ada Lovelace" onSelect={jest.fn()} onUseDefault={jest.fn()} />);
+
+        expect(screen.getByText('AL')).toBeTruthy();
+        expect(screen.getByText('Upload picture')).toBeTruthy();
+        expect(screen.queryByRole('img', { name: 'Avatar' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Use default' })).toBeNull();
+    });
+
+    it('should call onUseDefault without opening the file picker', () => {
+        const onUseDefault = jest.fn();
+        const click = jest.spyOn(HTMLInputElement.prototype, 'click');
+        render(
+            <AvatarPicker preview="http://img.test/a.png" fallbackName="Ada Lovelace" onSelect={jest.fn()} onUseDefault={onUseDefault} />,
+        );
+
+        fireEvent.load(screen.getByRole('img', { name: 'Avatar' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Use default' }));
+
+        expect(onUseDefault).toHaveBeenCalledTimes(1);
+        expect(click).not.toHaveBeenCalled();
+        click.mockRestore();
     });
 });
