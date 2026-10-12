@@ -35,12 +35,4 @@ public record AnalyticsQueryContext(
         if (applicationNamesById == null) applicationNamesById = Map.of();
         if (apiIdsByType == null) apiIdsByType = Map.of();
     }
-
-    public AnalyticsQueryContext withApiNamesById(Map<String, String> apiNamesById) {
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
-    }
-
-    public AnalyticsQueryContext withApplicationNamesById(Map<String, String> applicationNamesById) {
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
-    }
 }
