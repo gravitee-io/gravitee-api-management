@@ -291,7 +291,7 @@ describe('DocumentationTree', () => {
             expect(onEditDetails).toHaveBeenCalledWith(GETTING_STARTED);
         });
 
-        it('offers it on a page synced from its own source, which the server lets be renamed', async () => {
+        it('offers it on a page synced from its own source, whose access can still change', async () => {
             const user = userEvent.setup();
             const syncedPage: ApiDocumentationItem = { ...ENDPOINTS, parentId: undefined, rootId: 'endpoints', source: REFERENCE.source };
             renderTree({ items: [syncedPage] });

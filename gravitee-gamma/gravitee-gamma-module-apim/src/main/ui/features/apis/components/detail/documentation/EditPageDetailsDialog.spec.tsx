@@ -126,8 +126,8 @@ describe('EditPageDetailsDialog', () => {
     });
 
     it('saves the new title and access over the page as the server has it, then closes', async () => {
-        // The server's copy has been linked to a source since the screen loaded the page.
-        mockList.mockResolvedValue({ items: [GUIDES, { ...PAGE, source: SOURCE }], publications: [] });
+        // The server's copy has been moved and hidden since the screen loaded the page.
+        mockList.mockResolvedValue({ items: [GUIDES, { ...PAGE, order: 0, published: false }], publications: [] });
         const { user, onClose } = renderDialog();
 
         await user.clear(titleInput());
@@ -139,11 +139,10 @@ describe('EditPageDetailsDialog', () => {
         expect(mockUpdate).toHaveBeenCalledWith('env-1', 'api-1', 'oauth', {
             type: 'PAGE',
             title: 'OAuth 2.0 setup',
-            order: 2,
-            published: true,
+            order: 0,
+            published: false,
             visibility: 'PRIVATE',
             parentId: 'guides',
-            source: SOURCE,
         });
         expect(notify.success).toHaveBeenCalledWith("Page 'OAuth 2.0 setup' saved");
     });
@@ -158,12 +157,33 @@ describe('EditPageDetailsDialog', () => {
         );
     });
 
-    it('tells that a synced page stays synced when its details change', () => {
-        renderDialog({ page: { ...PAGE, source: SOURCE } });
+    describe('a synced page', () => {
+        const SYNCED_PAGE = { ...PAGE, source: SOURCE };
 
-        expect(
-            screen.getByText('This page is synced from an external source. Renaming it or changing its access keeps it synced.'),
-        ).not.toBeNull();
+        it('keeps its title, which the server refuses to change, saying why', () => {
+            renderDialog({ page: SYNCED_PAGE });
+
+            expect(titleInput().disabled).toBe(true);
+            expect(
+                screen.getByText("This page is synced from an external source, so its title can't change here. Its access can."),
+            ).not.toBeNull();
+        });
+
+        it('changes its access, sending its title and source back unchanged', async () => {
+            mockList.mockResolvedValue({ items: [GUIDES, SYNCED_PAGE], publications: [] });
+            const { user, onClose } = renderDialog({ page: SYNCED_PAGE });
+
+            await user.click(privateSwitch());
+            await user.click(saveButton());
+
+            await waitFor(() => expect(onClose).toHaveBeenCalled());
+            expect(mockUpdate).toHaveBeenCalledWith(
+                'env-1',
+                'api-1',
+                'oauth',
+                expect.objectContaining({ title: 'OAuth setup', visibility: 'PRIVATE', source: SOURCE }),
+            );
+        });
     });
 
     it('says nothing about syncing for a page without a source', () => {
