@@ -8,6 +8,9 @@ todos:
   - id: STORY-02
     content: "Publish-with-propagate must reach an API's documentation. Regression prevention — works today for editor-created pages, would stop working once documentation is API-owned."
     status: completed
+  - id: STORY-02A
+    content: "Keep API-owned documentation out of API Product navigation: an API entry under an API Product shows only its own, portal-owned documentation."
+    status: completed
   - id: STORY-03
     content: "Assign API ownership from the parent when creating an item under an API (the inherited rule), before validation runs."
     status: pending
@@ -559,6 +562,8 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 2. Extend the walk to the API's own items and assert both kinds are reached.
 
 #### STORY-02a — Keep API-Owned Documentation Out of API Product Navigation
+
+**Status:** Done under [PORTAL-234](https://gravitee.atlassian.net/browse/PORTAL-234), as [#20917](https://github.com/gravitee-io/gravitee-api-management/pull/20917), with the test constructors aligned in [#20945](https://github.com/gravitee-io/gravitee-api-management/pull/20945).
 
 **Added 2026-10-06 — requirement clarification and separate implementation story.** **Jira:** [PORTAL-234](https://gravitee.atlassian.net/browse/PORTAL-234). All changes to the original plan's assumptions are collected here to keep this addition easy to review.
 
