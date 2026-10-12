@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.analytics_engine;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -114,9 +115,11 @@ class FilterValueNameResolverImplTest {
             var app1 = new BaseApplicationEntity();
             app1.setId("app-1");
             app1.setName("My App 1");
+            app1.setEnvironmentId(ENVIRONMENT_ID);
             var app2 = new BaseApplicationEntity();
             app2.setId("app-2");
             app2.setName("My App 2");
+            app2.setEnvironmentId(ENVIRONMENT_ID);
 
             when(applicationCrudService.findByIds(ids, "env-id")).thenReturn(List.of(app1, app2));
 
@@ -127,6 +130,14 @@ class FilterValueNameResolverImplTest {
                 .containsEntry("app-2", "My App 2")
                 .containsEntry("1", "Unknown")
                 .hasSize(3);
+        }
+
+        @Test
+        void should_not_look_up_api_products_without_environment() {
+            var result = resolver.resolveNames(null, FilterSpec.Name.API_PRODUCT, List.of("prod-1"));
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(apiProductQueryService);
         }
 
         @Test

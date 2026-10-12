@@ -72,7 +72,12 @@ public class ApplicationCrudServiceImpl implements ApplicationCrudService {
         log.debug("Find all applications by ids : {}", appIds);
 
         try {
-            return applicationRepository.findByIds(appIds).stream().map(ApplicationAdapter.INSTANCE::toEntity).toList();
+            return applicationRepository
+                .findByIds(appIds)
+                .stream()
+                .filter(application -> environmentId == null || environmentId.equals(application.getEnvironmentId()))
+                .map(ApplicationAdapter.INSTANCE::toEntity)
+                .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurred while trying to find all applications using its IDs", e);
         }
