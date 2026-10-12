@@ -4302,9 +4302,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-components@npm:4.5.2":
-  version: 4.5.2
-  resolution: "@gravitee/ui-components@npm:4.5.2"
+"@gravitee/ui-components@npm:4.5.3":
+  version: 4.5.3
+  resolution: "@gravitee/ui-components@npm:4.5.3"
   dependencies:
     "@codemirror/basic-setup": "npm:^0.19.1"
     "@codemirror/language-data": "npm:^0.19.1"
@@ -4343,7 +4343,7 @@ __metadata:
       optional: true
     highlight.js:
       optional: true
-  checksum: 10c0/10950b2b05620b48c9e3140086fc496d87a519ff257a7e5302d11c826e40f58a256feea0e146e3072045aa9ea5f896771a805c357b911509b4c65df3bfb9900e
+  checksum: 10c0/a0899ac0e477d467a1cb804068462db720835746917a012f5165724726d9cc2d732aae8927062b0b6d5402d0b6c30ed857d72c8fc1c14ed4fc0ca18af6ec2af5
   languageName: node
   linkType: hard
 
@@ -17437,7 +17437,7 @@ __metadata:
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
     "@gravitee/ui-analytics": "npm:17.7.5"
-    "@gravitee/ui-components": "npm:4.5.2"
+    "@gravitee/ui-components": "npm:4.5.3"
     "@gravitee/ui-particles-angular": "npm:17.7.5"
     "@gravitee/ui-policy-studio-angular": "npm:17.7.5"
     "@gravitee/ui-schematics": "npm:17.7.5"
