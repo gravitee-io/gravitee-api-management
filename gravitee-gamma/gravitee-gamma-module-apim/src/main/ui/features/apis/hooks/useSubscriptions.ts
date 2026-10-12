@@ -16,7 +16,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
-import { getSubscription, listApiPlans, listSubscriptions, searchApplications } from '../services/subscriptions';
+import { getSubscription, listApiPlans, listApiSubscribers, listSubscriptions, searchApplications } from '../services/subscriptions';
 import type { SubscriptionContext, SubscriptionFilters, SubscriptionStatus } from '../types/subscription';
 import { apiSubscriptionKeys } from '../utils/queryKeys';
 
@@ -99,5 +99,22 @@ export function useApplicationSearch(query: string) {
         queryFn: () => searchApplications(envId, trimmed),
         enabled: Boolean(env && trimmed.length > 0),
         select: data => data.data,
+    });
+}
+
+const SUBSCRIBER_SEARCH_SIZE = 20;
+
+/** Searches the applications subscribed to the API by name; nothing is requested until a term is typed. */
+export function useApiSubscriberSearch(ctx: SubscriptionContext | null, term: string) {
+    const env = useEnvironment();
+    const envId = env?.id ?? '';
+    const safeCtx = ctx ?? SAFE_CTX;
+    const trimmedTerm = term.trim();
+
+    return useQuery({
+        queryKey: apiSubscriptionKeys.subscribers(envId, safeCtx, trimmedTerm),
+        queryFn: ({ signal }) => listApiSubscribers(envId, ctx!.entityId, { name: trimmedTerm, perPage: SUBSCRIBER_SEARCH_SIZE, signal }),
+        enabled: Boolean(env && ctx?.type === 'api' && ctx.entityId && trimmedTerm),
+        select: response => (response.data ?? []).map(subscriber => ({ value: subscriber.id, label: subscriber.name ?? subscriber.id })),
     });
 }

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { Button } from '@gravitee/graphene-core';
-import { PlusIcon } from '@gravitee/graphene-core/icons';
+import { DownloadIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 
 import { ConsumersEmptyState } from './ConsumersEmptyState';
@@ -22,9 +23,17 @@ import { ConsumersFilterBar } from './ConsumersFilterBar';
 import { ConsumersSummaryCards } from './ConsumersSummaryCards';
 import { ConsumersTable } from './ConsumersTable';
 import { CreateSubscription } from './CreateSubscription';
+import { downloadBlob } from '../../../../../shared/browser';
 import { notify } from '../../../../../shared/notify';
 import { useCreateSubscription } from '../../../hooks/useSubscriptionActions';
-import { isSubscriptionFiltersDirty, useApiPlans, useSubscriptionCount, useSubscriptionList } from '../../../hooks/useSubscriptions';
+import {
+    DEFAULT_STATUSES,
+    isSubscriptionFiltersDirty,
+    useApiPlans,
+    useSubscriptionCount,
+    useSubscriptionList,
+} from '../../../hooks/useSubscriptions';
+import { exportSubscriptionsCsv } from '../../../services/subscriptions';
 import type { SubscriptionContext, SubscriptionFilters } from '../../../types/subscription';
 
 const EMPTY_FILTERS: SubscriptionFilters = {
@@ -45,6 +54,8 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
+    const env = useEnvironment();
 
     const entityLabel = ctx.type === 'api-product' ? 'API Product' : 'API';
     const { data, isLoading: isLoadingList } = useSubscriptionList(ctx, filters, page, perPage);
@@ -80,6 +91,25 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
     );
 
     const totalCount = data?.pagination.totalCount ?? 0;
+
+    const handleExport = useCallback(async () => {
+        if (!env) return;
+        setIsExporting(true);
+        try {
+            const blob = await exportSubscriptionsCsv(env.id, ctx.entityId, {
+                ...filters,
+                statuses: filters.statuses.length ? filters.statuses : [...DEFAULT_STATUSES],
+                page: 1,
+                perPage: totalCount,
+            });
+            downloadBlob(blob, `subscriptions-${ctx.entityId}.csv`);
+        } catch (error) {
+            notify.error(error instanceof Error ? error.message : 'Failed to export subscriptions');
+        } finally {
+            setIsExporting(false);
+        }
+    }, [env, ctx.entityId, filters, totalCount]);
+
     const hasAnySubscriptions = totalCount > 0 || isLoading;
     const isFiltered = isSubscriptionFiltersDirty(filters);
 
@@ -99,12 +129,20 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
                     <h1 className="text-2xl font-semibold tracking-tight">Consumers</h1>
                     <p className="text-sm text-muted-foreground">View and manage {entityLabel} consumers and their usage.</p>
                 </div>
-                {canCreate && (
-                    <Button type="button" size="sm" onClick={() => setDialogOpen(true)}>
-                        <PlusIcon className="size-4" aria-hidden />
-                        Create subscription
-                    </Button>
-                )}
+                <div className="flex items-center gap-2">
+                    {ctx.type === 'api' && (
+                        <Button type="button" variant="outline" size="sm" disabled={isExporting || totalCount === 0} onClick={handleExport}>
+                            <DownloadIcon className="size-4" aria-hidden />
+                            Export CSV
+                        </Button>
+                    )}
+                    {canCreate && (
+                        <Button type="button" size="sm" onClick={() => setDialogOpen(true)}>
+                            <PlusIcon className="size-4" aria-hidden />
+                            Create subscription
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {!hasAnySubscriptions && !isFiltered ? (
@@ -118,7 +156,7 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
                         isLoading={isLoading}
                     />
 
-                    <ConsumersFilterBar filters={filters} plans={plans} onChange={handleFilterChange} />
+                    <ConsumersFilterBar filters={filters} plans={plans} ctx={ctx} onChange={handleFilterChange} />
 
                     <ConsumersTable
                         subscriptions={data?.data ?? []}

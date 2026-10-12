@@ -34,10 +34,10 @@ import { useParams } from 'react-router-dom';
 
 import { DiffDialog } from './DiffDialog';
 import { SingleEventDialog } from './SingleEventDialog';
-import { chronologicalEvents, hideCompareRollback, pendingDeploymentEvent } from './utils';
+import { canRollbackTo, chronologicalEvents, isNativeApi, PENDING_DEPLOYMENT_EVENT_ID, pendingDeploymentEvent } from './utils';
 import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
-import { useApiEvents } from '../../../hooks/useApiEvents';
+import { useApiEvents, useLiveDeploymentEvent } from '../../../hooks/useApiEvents';
 import { getCurrentDeployment, rollbackApi } from '../../../services/apis';
 import type { ApiEvent } from '../../../types';
 import { apiDetailKeys, apiEventsKeys } from '../../../utils/queryKeys';
@@ -62,11 +62,15 @@ export function DeploymentHistoryPage() {
     const { data, isLoading } = useApiEvents(apiId, page, pageSize);
     const events = useMemo(() => data?.data ?? [], [data]);
     const totalCount = data?.pagination.totalCount ?? 0;
-    const liveEvent = page === 1 && events.length > 0 ? events[0] : null;
-    const isNative = api?.definitionVersion === 'V4' && api?.type === 'NATIVE';
+    const liveEvent = useLiveDeploymentEvent(apiId, page, events);
+
+    const rollbackContext = useMemo(
+        () => ({ liveEventId: liveEvent?.id, isNative: isNativeApi(api), needsRedeploy }),
+        [api, liveEvent, needsRedeploy],
+    );
     const canRollbackToEvent = useCallback(
-        (event: ApiEvent) => !hideCompareRollback(event, { liveEventId: liveEvent?.id ?? null, needsRedeploy, isNative }),
-        [isNative, liveEvent?.id, needsRedeploy],
+        (event: ApiEvent) => event.id !== PENDING_DEPLOYMENT_EVENT_ID && canRollbackTo(event, rollbackContext),
+        [rollbackContext],
     );
 
     const orderedSelection = chronologicalEvents(selectedEvents);
@@ -168,7 +172,7 @@ export function DeploymentHistoryPage() {
             enableSorting: false,
             cell: ({ row }: Cell<ApiEvent>) => {
                 const event = row.original;
-                const isLive = row.index === 0 && page === 1;
+                const isLive = event.id === liveEvent?.id;
                 const version = event.properties.DEPLOYMENT_NUMBER;
                 return (
                     <div className="flex items-center gap-2 font-medium">
@@ -356,6 +360,8 @@ export function DeploymentHistoryPage() {
                 <DiffDialog
                     left={orderedSelection[0]}
                     right={orderedSelection[1]}
+                    canRollbackLeft={canRollbackToEvent(orderedSelection[0])}
+                    canRollbackRight={canRollbackToEvent(orderedSelection[1])}
                     onClose={handleDiffClose}
                     onRollback={handleRollback}
                     isRollingBack={isRollingBack}

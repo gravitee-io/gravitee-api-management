@@ -17,9 +17,10 @@ import { Button, Card, CardContent, Input, Label } from '@gravitee/graphene-core
 import { XIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useMemo } from 'react';
 
+import { ApplicationFilter } from './ApplicationFilter';
 import { MultiSelectFilter, type MultiSelectFilterOption } from '../../../../../shared/components';
 import { isSubscriptionFiltersDirty } from '../../../hooks/useSubscriptions';
-import type { Plan, SubscriptionFilters, SubscriptionStatus } from '../../../types/subscription';
+import type { Plan, SubscriptionContext, SubscriptionFilters, SubscriptionStatus } from '../../../types/subscription';
 
 const ALL_STATUSES: SubscriptionStatus[] = ['PENDING', 'ACCEPTED', 'REJECTED', 'CLOSED', 'PAUSED', 'RESUMED'];
 
@@ -31,10 +32,11 @@ const STATUS_OPTIONS: MultiSelectFilterOption[] = ALL_STATUSES.map(s => ({
 interface ConsumersFilterBarProps {
     filters: SubscriptionFilters;
     plans: Plan[];
+    ctx: SubscriptionContext;
     onChange: (filters: SubscriptionFilters) => void;
 }
 
-export function ConsumersFilterBar({ filters, plans, onChange }: Readonly<ConsumersFilterBarProps>) {
+export function ConsumersFilterBar({ filters, plans, ctx, onChange }: Readonly<ConsumersFilterBarProps>) {
     const isDirty = isSubscriptionFiltersDirty(filters);
 
     const planOptions = useMemo<MultiSelectFilterOption[]>(() => plans.map(p => ({ value: p.id, label: p.name })), [plans]);
@@ -49,6 +51,13 @@ export function ConsumersFilterBar({ filters, plans, onChange }: Readonly<Consum
     const handlePlans = useCallback(
         (values: string[]) => {
             onChange({ ...filters, planIds: values });
+        },
+        [filters, onChange],
+    );
+
+    const handleApplications = useCallback(
+        (values: string[]) => {
+            onChange({ ...filters, applicationIds: values });
         },
         [filters, onChange],
     );
@@ -90,6 +99,13 @@ export function ConsumersFilterBar({ filters, plans, onChange }: Readonly<Consum
                             emptyMessage="No plans available"
                         />
                     </div>
+
+                    {ctx.type === 'api' && (
+                        <div className="flex-1 space-y-1.5" style={{ minWidth: '140px' }}>
+                            <Label className="text-xs">Application</Label>
+                            <ApplicationFilter ctx={ctx} selectedIds={filters.applicationIds} onChange={handleApplications} />
+                        </div>
+                    )}
 
                     <div className="flex-1 space-y-1.5" style={{ minWidth: '160px' }}>
                         <Label className="text-xs">API Key</Label>
