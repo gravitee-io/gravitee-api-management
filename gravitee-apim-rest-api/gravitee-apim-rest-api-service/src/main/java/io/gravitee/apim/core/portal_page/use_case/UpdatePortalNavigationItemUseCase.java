@@ -21,8 +21,6 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDoma
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
-import io.gravitee.apim.core.portal_page.model.NavigationItemReference.ApiReference;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
@@ -47,7 +45,7 @@ public class UpdatePortalNavigationItemUseCase {
         if (existing == null) {
             throw new PortalNavigationItemNotFoundException(input.navigationItemId);
         }
-        var toUpdate = normalizeParent(input.updatePortalNavigationItem(), existing);
+        var toUpdate = domainService.resolveDestination(input.updatePortalNavigationItem(), existing, input.ownerFixed());
         // Restore the masked secrets before validation: the plugin must validate the configuration it will be given
         if (existing.getSource() != null && toUpdate.getSource() != null) {
             sourceDomainService.mergeSensitiveData(existing.getSource(), toUpdate.getSource());
@@ -65,48 +63,16 @@ public class UpdatePortalNavigationItemUseCase {
     }
 
     /**
-     * API-owned documentation roots are stored without a parent, but are displayed
-     * beneath an API navigation item. Clients may send that displayed parent back
-     * when saving, even when the document is not being moved.
-     *
-     * When the requested parent is a navigation item for the owning API, it is
-     * normalized to null to preserve the API-owned root structure. This also
-     * supports explicitly moving nested documentation back to the API root.
-     *
-     * The displayed parent is retained as renderedParentId only so parent
-     * validation still checks the selected API navigation item.
-     *
-     * Other requested parents retain their existing update semantics.
-     * Parent IDs of portal-owned items are not normalized.
+     * @param ownerFixed see {@link PortalNavigationItemDomainService#resolveDestination}
      */
-    private UpdatePortalNavigationItem normalizeParent(UpdatePortalNavigationItem requested, PortalNavigationItem existing) {
-        var normalized = requested.toBuilder().renderedParentId(null).build();
-        if (requested.getParentId() == null || !(existing.getReference() instanceof ApiReference apiReference)) {
-            return normalized;
-        }
-        boolean isDocumentation = switch (existing.getType()) {
-            case PAGE, FOLDER, LINK -> true;
-            default -> false;
-        };
-        if (!isDocumentation) {
-            return normalized;
-        }
-        var parent = portalNavigationItemsQueryService.findByIdAndEnvironmentId(existing.getEnvironmentId(), requested.getParentId());
-        if (parent instanceof PortalNavigationApi api && apiReference.apiId().equals(api.getApiId())) {
-            // The listing projects API-owned roots beneath itself; it is not their persisted parent.
-            normalized.setParentId(null);
-            normalized.setRenderedParentId(api.getId());
-        }
-        return normalized;
-    }
-
     @Builder
     public record Input(
         String organizationId,
         String environmentId,
         String navigationItemId,
         UpdatePortalNavigationItem updatePortalNavigationItem,
-        boolean propagatePublishToChildren
+        boolean propagatePublishToChildren,
+        boolean ownerFixed
     ) {}
 
     public record Output(PortalNavigationItem updatedItem) {}

@@ -134,6 +134,13 @@ public abstract sealed class PortalNavigationItem
         this.rootId = parent.getRootId();
     }
 
+    /**
+     * The owner follows the place an item is moved to; nothing else changes it after creation.
+     */
+    public void changeOwner(@Nonnull NavigationItemReference owner) {
+        this.reference = owner;
+    }
+
     public void attachTo(@Nullable PortalNavigationItemContainer parent) {
         if (parent == null) {
             markAsRoot();

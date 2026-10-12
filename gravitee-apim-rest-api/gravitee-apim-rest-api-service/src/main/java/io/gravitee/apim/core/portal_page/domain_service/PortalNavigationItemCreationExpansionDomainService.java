@@ -81,17 +81,11 @@ public class PortalNavigationItemCreationExpansionDomainService {
         return type == PortalNavigationItemType.PAGE || type == PortalNavigationItemType.FOLDER || type == PortalNavigationItemType.LINK;
     }
 
-    private static NavigationItemReference inheritReference(NavigationItemReference reference, ParentContext parent) {
-        if (reference instanceof ApiReference || parent == null || parent.productScoped()) {
+    private static NavigationItemReference inheritReference(NavigationItemReference reference, DocumentationDestination destination) {
+        if (reference instanceof ApiReference || destination.apiOwner() == null) {
             return reference;
         }
-        if (parent.type() == PortalNavigationItemType.API && parent.apiId() != null) {
-            return new ApiReference(parent.apiId());
-        }
-        if (parent.type() == PortalNavigationItemType.FOLDER && parent.reference() instanceof ApiReference) {
-            return parent.reference();
-        }
-        return reference;
+        return destination.apiOwner();
     }
 
     private final class OwnershipResolver {
@@ -116,12 +110,12 @@ public class PortalNavigationItemCreationExpansionDomainService {
             }
 
             var parent = resolveParent(item.getParentId(), item.getId());
-            var reference = inheritReference(item.getReference(), parent);
-            builder.reference(reference);
-            if (reference instanceof ApiReference && parent.type() == PortalNavigationItemType.API) {
+            var destination = DocumentationDestination.under(parent.asDestinationParent());
+            builder.reference(inheritReference(item.getReference(), destination));
+            if (destination.renderedParentId() != null) {
                 builder
-                    .parentId(null)
-                    .renderedParentId(item.getParentId())
+                    .parentId(destination.storedParentId())
+                    .renderedParentId(destination.renderedParentId())
                     .visibility(PortalVisibility.resolve(item.getVisibility(), parent.visibility()));
             }
             return builder.build();
@@ -145,9 +139,13 @@ public class PortalNavigationItemCreationExpansionDomainService {
             var parent = resolvedParents.get(currentId);
             for (var node : ancestors.reversed()) {
                 var reference = node.pending() && isDocumentation(node.type())
-                    ? inheritReference(node.reference(), parent)
+                    ? inheritReference(
+                        node.reference(),
+                        DocumentationDestination.under(parent == null ? null : parent.asDestinationParent())
+                    )
                     : node.reference();
                 parent = new ParentContext(
+                    node.id(),
                     node.type(),
                     reference,
                     node.apiId(),
@@ -199,12 +197,17 @@ public class PortalNavigationItemCreationExpansionDomainService {
     ) {}
 
     private record ParentContext(
+        PortalNavigationItemId id,
         PortalNavigationItemType type,
         NavigationItemReference reference,
         String apiId,
         PortalVisibility visibility,
         boolean productScoped
-    ) {}
+    ) {
+        private DocumentationDestination.Parent asDestinationParent() {
+            return new DocumentationDestination.Parent(id, type, reference, apiId, productScoped);
+        }
+    }
 
     private List<CreatePortalNavigationItem> createApiChildren(CreatePortalNavigationItem root, String environmentId) {
         var apiProductId = root.getApiProductId();

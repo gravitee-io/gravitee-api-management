@@ -71,7 +71,8 @@ public class PortalNavigationItemResource extends AbstractResource {
             GraviteeContext.getCurrentEnvironment(),
             navigationItemId,
             mapper.map(updatePortalNavigationItem),
-            propagatePublishToChildren
+            propagatePublishToChildren,
+            false
         );
 
         var output = updatePortalNavigationItemUseCase.execute(input);

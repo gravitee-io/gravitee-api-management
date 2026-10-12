@@ -114,7 +114,8 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
                 environmentId,
                 navigationItemId,
                 toUpdate,
-                propagatePublishToChildren
+                propagatePublishToChildren,
+                true
             )
         );
         return mapper.map(output.updatedItem());

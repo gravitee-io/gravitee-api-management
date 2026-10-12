@@ -45,6 +45,18 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         );
     }
 
+    public static InvalidPortalNavigationItemDataException automationManagedItemCannotChangeOwner(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "The navigation item %s is managed by automation and cannot be moved between the portal and an API.".formatted(itemId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException apiDocumentationCannotHoldListing(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "The navigation item %s is an API or an API Product and cannot be moved into the documentation of an API.".formatted(itemId)
+        );
+    }
+
     public static InvalidPortalNavigationItemDataException notAPage(String itemId) {
         return new InvalidPortalNavigationItemDataException("The navigation item %s is not a page and has no content.".formatted(itemId));
     }

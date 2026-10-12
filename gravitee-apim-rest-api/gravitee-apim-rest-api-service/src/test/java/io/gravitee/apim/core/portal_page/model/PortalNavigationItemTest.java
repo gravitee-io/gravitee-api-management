@@ -176,4 +176,14 @@ class PortalNavigationItemTest {
 
         assertThat(api.getCategoryIds()).isEmpty();
     }
+
+    @Test
+    void should_change_the_owner_of_an_item() {
+        var page = PortalNavigationItemFixtures.aPage("Guide", null);
+        var api = new NavigationItemReference.ApiReference("api-a");
+
+        page.changeOwner(api);
+
+        assertThat(page.getReference()).isEqualTo(api);
+    }
 }

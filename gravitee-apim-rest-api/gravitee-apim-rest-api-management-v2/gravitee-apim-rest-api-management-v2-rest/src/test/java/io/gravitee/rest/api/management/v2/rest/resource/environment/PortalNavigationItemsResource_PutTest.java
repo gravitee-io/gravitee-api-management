@@ -217,6 +217,28 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_hand_a_portal_page_to_the_api_when_moved_under_its_listing() {
+        var api = PortalNavigationItemFixtures.anApi();
+        var page = PortalNavigationItemFixtures.aPage("Portal guide", null);
+        page.markAsRoot();
+        initStorageWith(List.of(api, page));
+
+        var payload = new UpdatePortalNavigationPage()
+            .title(page.getTitle())
+            .type(PortalNavigationItemType.PAGE)
+            .order(0)
+            .parentId(api.getId().id())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC);
+        var response = target.path(page.getId().json()).request().put(json(payload));
+
+        assertThat(response).hasStatus(OK_200);
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, page.getId());
+        assertThat(updated.getReference()).isEqualTo(new ApiReference(api.getApiId()));
+        assertThat(updated.getParentId()).isNull();
+    }
+
+    @Test
     void should_update_portal_navigation_item_title_link() {
         // Given an existing LINK item id from fixtures
         String navId = LINK1_ID;
