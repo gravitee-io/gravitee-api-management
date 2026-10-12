@@ -292,9 +292,9 @@ describe('DocumentationTree', () => {
             await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
 
             expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual([
-                'Edit details',
                 'Add page',
                 'Add folder',
+                'Edit details',
                 'Delete',
             ]);
             await user.click(screen.getByRole('menuitem', { name: 'Add folder' }));
@@ -447,9 +447,9 @@ describe('DocumentationTree', () => {
 
             expect(browserMenuShown).toBe(false);
             expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual([
-                'Edit details',
                 'Add page',
                 'Add folder',
+                'Edit details',
                 'Delete',
             ]);
             await user.click(screen.getByRole('menuitem', { name: 'Delete' }));

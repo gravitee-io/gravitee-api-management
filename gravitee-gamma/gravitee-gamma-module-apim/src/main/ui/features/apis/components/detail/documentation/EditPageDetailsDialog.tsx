@@ -27,7 +27,7 @@ import {
 import { AlertCircleIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useState, type FormEvent } from 'react';
 
-import { PageDetailsFields, privateParentOf } from './PageDetailsFields';
+import { DocumentationItemDetailsFields, privateParentOf } from './DocumentationItemDetailsFields';
 import { notify } from '../../../../../shared/notify';
 import { extractErrorMessage } from '../../../../../shared/notify/extractErrorMessage';
 import { useChangeApiDocumentationItem } from '../../../hooks/useApiDocumentation';
@@ -135,7 +135,7 @@ function EditPageDetailsForm({
                     </Alert>
                 ) : null}
 
-                <PageDetailsFields
+                <DocumentationItemDetailsFields
                     title={title}
                     onTitleChange={handleTitleChange}
                     isPrivate={isPrivate}

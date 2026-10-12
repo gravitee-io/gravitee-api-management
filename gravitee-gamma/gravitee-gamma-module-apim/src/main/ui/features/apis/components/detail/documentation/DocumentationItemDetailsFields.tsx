@@ -25,7 +25,7 @@ export function privateParentOf(parent: PortalNavigationFolder | undefined): Por
 }
 
 /** The title and access of a page or a folder, shared by the dialogs creating one and editing its details. */
-export function PageDetailsFields({
+export function DocumentationItemDetailsFields({
     itemNoun = 'page',
     title,
     onTitleChange,

@@ -28,7 +28,7 @@ import {
 import { AlertCircleIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useState, type FormEvent } from 'react';
 
-import { PageDetailsFields, privateParentOf } from './PageDetailsFields';
+import { DocumentationItemDetailsFields, privateParentOf } from './DocumentationItemDetailsFields';
 import { notify } from '../../../../../shared/notify';
 import { extractErrorMessage } from '../../../../../shared/notify/extractErrorMessage';
 import { useChangeApiDocumentationItem, useCreateApiDocumentationItem } from '../../../hooks/useApiDocumentation';
@@ -137,7 +137,7 @@ function FolderForm({ apiId, folder, parent, syncState = 'NOT_SYNCED', itemsInsi
                 ) : null}
 
                 <div className="flex flex-col gap-1.5">
-                    <PageDetailsFields
+                    <DocumentationItemDetailsFields
                         itemNoun="folder"
                         title={title}
                         onTitleChange={handleTitleChange}
