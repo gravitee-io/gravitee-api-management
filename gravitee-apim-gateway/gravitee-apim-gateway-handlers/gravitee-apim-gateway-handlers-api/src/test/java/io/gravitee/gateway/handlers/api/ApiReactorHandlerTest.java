@@ -49,25 +49,17 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
-<<<<<<< HEAD
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.opentest4j.AssertionFailedError;
-=======
-import java.util.concurrent.atomic.AtomicBoolean;
-import junit.framework.AssertionFailedError;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
->>>>>>> 7356957 (fix(gateway): align v3 client-close cancellation and cover failover)
 
 /**
  * @author GraviteeSource Team
