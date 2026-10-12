@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.assertArg;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -24,10 +27,17 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.infra.domain_service.notification.NotificationCRDDomainServiceImpl;
+import io.gravitee.definition.model.Origin;
+import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -50,6 +60,11 @@ class NotificationCRDServiceImplTest {
     @BeforeEach
     void setUp() {
         underTest = new NotificationCRDDomainServiceImpl(portalNotificationService);
+    }
+
+    @AfterEach
+    void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Test
@@ -91,5 +106,38 @@ class NotificationCRDServiceImplTest {
         verify(portalNotificationService, atMostOnce()).save(
             PortalNotificationConfigEntity.newDefaultEmpty(USER_ID, NotificationReferenceType.API.name(), API_ID, "org1")
         );
+    }
+
+    @Test
+    void should_clear_notification_when_events_are_empty() throws Exception {
+        GraviteeContext.setCurrentOrganization("org-id");
+        var repository = mock(PortalNotificationConfigRepository.class);
+        var service = new NotificationCRDDomainServiceImpl(
+            new PortalNotificationConfigServiceImpl(repository, mock(MembershipService.class), mock(GroupService.class))
+        );
+        var notification = PortalNotificationConfigEntity.builder()
+            .configType(NotificationConfigType.PORTAL)
+            .origin(Origin.KUBERNETES)
+            .hooks(List.of())
+            .groups(List.of("group-id"))
+            .build();
+
+        assertDoesNotThrow(() -> service.syncApiPortalNotifications(API_ID, USER_ID, notification));
+
+        verify(repository).delete(assertArg(config -> assertThat(config.getOrganizationId()).isEqualTo("org-id")));
+    }
+
+    @Test
+    void should_save_notification_with_current_organization() {
+        GraviteeContext.setCurrentOrganization("org-id");
+        var notification = PortalNotificationConfigEntity.builder()
+            .configType(NotificationConfigType.PORTAL)
+            .origin(Origin.KUBERNETES)
+            .hooks(List.of("API_STARTED"))
+            .build();
+
+        underTest.syncApiPortalNotifications(API_ID, USER_ID, notification);
+
+        verify(portalNotificationService).save(assertArg(saved -> assertThat(saved.getOrganizationId()).isEqualTo("org-id")));
     }
 }
