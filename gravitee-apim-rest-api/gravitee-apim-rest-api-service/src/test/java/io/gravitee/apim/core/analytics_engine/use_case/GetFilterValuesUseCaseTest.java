@@ -967,9 +967,9 @@ class GetFilterValuesUseCaseTest {
                     Map.of()
                 )
             );
-            when(planQueryService.findAllByApiIds(eq(Set.of("api-1")), eq(Set.of("env-id")))).thenReturn(
-                List.of(Plan.builder().id("plan-id-1").name("Gold Plan").build())
-            );
+            var plan = Plan.builder().id("plan-id-1").name("Gold Plan").build();
+            when(planQueryService.findAllByApiIds(eq(Set.of("api-1")), eq(Set.of("env-id")))).thenReturn(List.of(plan));
+            when(filterValueNameResolver.planLabels("env-id", List.of(plan))).thenReturn(Map.of("plan-id-1", "Gold Plan · Payments API"));
 
             var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "PLAN", null, null, 1, 10, "Gold"));
 
@@ -977,12 +977,11 @@ class GetFilterValuesUseCaseTest {
                 .hasSize(1)
                 .first()
                 .satisfies(v -> {
-                    assertThat(v.value()).isEqualTo("Gold Plan");
+                    assertThat(v.value()).isEqualTo("Gold Plan · Payments API");
                     assertThat(v.id()).isEqualTo("plan-id-1");
                 });
             assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(1L);
             verifyNoInteractions(filterValuesQueryService);
-            verifyNoInteractions(filterValueNameResolver);
             verify(planQueryService).findAllByApiIds(eq(Set.of("api-1")), eq(Set.of("env-id")));
         }
 
