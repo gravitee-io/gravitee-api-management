@@ -67,10 +67,13 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
                 yield names;
             }
             case PLAN -> planCrudService.findByIds(ids).stream().collect(Collectors.toMap(plan -> plan.getId(), plan -> plan.getName()));
-            case API_PRODUCT -> apiProductQueryService
-                .findByEnvironmentIdAndIdIn(environmentId, new HashSet<>(ids))
-                .stream()
-                .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
+            // API products are looked up per environment: without one there is nothing to scope the lookup to.
+            case API_PRODUCT -> environmentId == null
+                ? Collections.emptyMap()
+                : apiProductQueryService
+                    .findByEnvironmentIdAndIdIn(environmentId, new HashSet<>(ids))
+                    .stream()
+                    .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
             default -> Collections.emptyMap();
         };
     }
