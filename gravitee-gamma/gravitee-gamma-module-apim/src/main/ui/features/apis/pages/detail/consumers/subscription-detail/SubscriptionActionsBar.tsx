@@ -24,11 +24,8 @@ import {
     DialogTitle,
     Input,
     Label,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+    RadioGroup,
+    RadioGroupItem,
     Textarea,
 } from '@gravitee/graphene-core';
 import {
@@ -55,18 +52,37 @@ import {
     useUpdateSubscriptionEndDate,
 } from '../../../../hooks/useSubscriptionActions';
 import { useApiPlans } from '../../../../hooks/useSubscriptions';
-import type { ApproveSubscriptionPayload, Subscription, SubscriptionContext } from '../../../../types/subscription';
+import type { ApproveSubscriptionPayload, Plan, Subscription, SubscriptionContext, SubscriptionPlan } from '../../../../types/subscription';
 
 type InlineAction = 'pause' | 'resume' | 'close' | 'resumeFailure' | null;
+
+/** Classic transfer filter: same security type and mode, excluding the current plan. */
+export function getTransferablePlans(plans: Plan[], currentPlan: SubscriptionPlan): Plan[] {
+    const securityType = currentPlan.security?.type;
+    const mode = currentPlan.mode ?? (securityType ? 'STANDARD' : 'PUSH');
+    return plans.filter(p => {
+        if (p.id === currentPlan.id) return false;
+        if (p.security?.type !== securityType) return false;
+        return (p.mode ?? (p.security?.type ? 'STANDARD' : 'PUSH')) === mode;
+    });
+}
 
 interface SubscriptionActionsBarProps {
     ctx: SubscriptionContext;
     subscription: Subscription;
     canUpdate: boolean;
     canDelete: boolean;
+    /** Classic parity: federated APIs hide Transfer / Pause / Change end date. */
+    isFederated?: boolean;
 }
 
-export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete }: Readonly<SubscriptionActionsBarProps>) {
+export function SubscriptionActionsBar({
+    ctx,
+    subscription,
+    canUpdate,
+    canDelete,
+    isFederated = false,
+}: Readonly<SubscriptionActionsBarProps>) {
     const [inlineAction, setInlineAction] = useState<InlineAction>(null);
     const [approveOpen, setApproveOpen] = useState(false);
     const [rejectOpen, setRejectOpen] = useState(false);
@@ -77,10 +93,7 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
     const [endDate, setEndDate] = useState('');
 
     const { data: plans = [] } = useApiPlans(ctx);
-    const transferPlans = useMemo(
-        () => plans.filter(p => p.id !== subscription.plan.id && p.security?.type === subscription.plan.security?.type),
-        [plans, subscription.plan.id, subscription.plan.security?.type],
-    );
+    const transferPlans = useMemo(() => getTransferablePlans(plans, subscription.plan), [plans, subscription.plan]);
 
     const approveMutation = useApproveSubscription(ctx, subscription.id);
     const rejectMutation = useRejectSubscription(ctx, subscription.id);
@@ -214,20 +227,19 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
                     </Button>
                 )}
 
-                {/* ACCEPTED actions */}
-                {canUpdate && status === 'ACCEPTED' && (
+                {canUpdate && (status === 'ACCEPTED' || status === 'PAUSED') && !isFederated && (
                     <Button type="button" variant="outline" size="sm" onClick={() => setTransferOpen(true)}>
                         <ArrowRightIcon className="size-3.5" aria-hidden />
                         Transfer
                     </Button>
                 )}
-                {canUpdate && (status === 'ACCEPTED' || status === 'PAUSED') && (
+                {canUpdate && (status === 'ACCEPTED' || status === 'PAUSED') && !isFederated && (
                     <Button type="button" variant="outline" size="sm" onClick={() => setEndDateOpen(true)}>
                         <CalendarIcon className="size-3.5" aria-hidden />
                         Change end date
                     </Button>
                 )}
-                {canUpdate && status === 'ACCEPTED' && (
+                {canUpdate && status === 'ACCEPTED' && !isFederated && (
                     <Button type="button" variant="outline" size="sm" onClick={() => setInlineAction('pause')}>
                         <CircleStopIcon className="size-3.5" aria-hidden />
                         Pause
@@ -335,35 +347,58 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
                 </DialogContent>
             </Dialog>
 
-            {/* Transfer dialog */}
-            <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+            <Dialog
+                open={transferOpen}
+                onOpenChange={open => {
+                    setTransferOpen(open);
+                    if (!open) setSelectedPlanId('');
+                }}
+            >
                 <DialogContent style={{ maxWidth: '384px', width: '90vw' }}>
                     <DialogHeader>
                         <DialogTitle>Transfer Subscription</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-2 py-2">
-                        <Label htmlFor="transfer-plan">New plan</Label>
-                        <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
-                            <SelectTrigger id="transfer-plan">
-                                <SelectValue placeholder="Select a plan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {transferPlans.map(p => (
-                                    <SelectItem key={p.id} value={p.id}>
-                                        {p.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {transferPlans.length === 0 && (
-                            <p className="text-xs text-muted-foreground">No compatible plans available for transfer.</p>
+                    <div className="space-y-3 py-2">
+                        {transferPlans.length > 0 ? (
+                            <RadioGroup
+                                value={selectedPlanId}
+                                onValueChange={setSelectedPlanId}
+                                className="gap-0 divide-y rounded-lg border"
+                                aria-label="Select a plan"
+                            >
+                                {transferPlans.map(p => {
+                                    const id = `transfer-plan-${p.id}`;
+                                    // Backend rejects transfers to plans with general conditions
+                                    // (SubscriptionServiceImpl → TransferNotAllowedException); Classic disables the same radios.
+                                    const blocked = Boolean(p.generalConditions);
+                                    return (
+                                        <label
+                                            key={p.id}
+                                            htmlFor={id}
+                                            className="flex cursor-pointer items-start gap-3 px-3 py-3 has-disabled:cursor-not-allowed has-disabled:opacity-50"
+                                        >
+                                            <RadioGroupItem value={p.id} id={id} disabled={blocked} className="mt-0.5" />
+                                            <span className="text-sm font-medium">{p.name}</span>
+                                        </label>
+                                    );
+                                })}
+                            </RadioGroup>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">No transferable plans available</p>
+                        )}
+                        {transferPlans.some(p => p.generalConditions) && (
+                            <p className="text-xs text-muted-foreground">Plans with general conditions cannot be used</p>
                         )}
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setTransferOpen(false)}>
                             Cancel
                         </Button>
-                        <Button type="button" onClick={handleTransfer} disabled={!selectedPlanId || transferMutation.isPending}>
+                        <Button
+                            type="button"
+                            onClick={handleTransfer}
+                            disabled={!selectedPlanId || transferMutation.isPending || transferPlans.length === 0}
+                        >
                             {transferMutation.isPending ? 'Transferring…' : 'Transfer'}
                         </Button>
                     </DialogFooter>
