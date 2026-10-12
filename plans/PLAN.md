@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: STORY-03
     content: "Assign API ownership from the parent when creating an item under an API (the inherited rule), before validation runs."
-    status: pending
+    status: completed
   - id: STORY-04
     content: "Return a newly created API-owned item the way the tree returns it, so the editor draws it in the right place."
     status: pending
@@ -615,6 +615,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 ### PHASE 2 — Decide who owns a new item
 
 #### STORY-03 — Assign API ownership from the parent, before validation runs
+**Status:** Done under [PORTAL-250](https://gravitee.atlassian.net/browse/PORTAL-250), as [#20955](https://github.com/gravitee-io/gravitee-api-management/pull/20955), for single and bulk creation. Folder import is a separate creation path it does not cover: that is the remaining half of STORY-08.
 **Why:** the portal editor's path. An item created under an API, or under a folder the API owns, must belong to the API rather than to the portal menu.
 **Acceptance criteria:**
 - Creating a page under an API's listing row stores it owned by that API with an empty stored parent.
@@ -1525,7 +1526,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Risk | Severity | Mitigation |
 |---|---|---|
 | Bug A detaches items from their API on every edit | **Blocker** | Closed: STORY-01 is merged |
-| Owner assignment placed after validation silently disables a validation rule | High | Assign before validation; test each affected rule explicitly (STORY-03) |
+| Owner assignment placed after validation silently disables a validation rule | High | Closed: STORY-03 assigns the owner in `expand`, before validation (#20955) |
 | An imported folder lands half-owned | High | STORY-08 covers both bypassing creation paths |
 | An update sends a short payload and unlinks a sourced page or rejects every link | High | STORY-29's payload builder is tested for both failures first, and every update goes through it |
 | zone.js turns out to be required and patches globals across Gamma | Medium | STORY-20 settles it before anything depends on it |
