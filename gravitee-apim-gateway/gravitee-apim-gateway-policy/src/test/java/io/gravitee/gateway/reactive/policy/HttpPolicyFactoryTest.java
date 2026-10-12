@@ -26,6 +26,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
+import io.gravitee.gateway.policy.dummy.DummyFailingReactivePolicy;
 import io.gravitee.gateway.policy.dummy.DummyPolicy;
 import io.gravitee.gateway.policy.dummy.DummyPolicyConfiguration;
 import io.gravitee.gateway.policy.dummy.DummyPolicyRequest;
@@ -125,6 +126,18 @@ class HttpPolicyFactoryTest {
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}", "");
         HttpPolicy policy = cut.create(phase, policyManifest, null, policyMetadata);
         assertInstanceOf(DummyReactivePolicy.class, policy);
+    }
+
+    @ParameterizedTest
+    @EnumSource(ExecutionPhase.class)
+    void shouldFailCreateReactivePolicyWhenItCannotBeInstantiated(final ExecutionPhase phase) {
+        PolicyManifest policyManifest = policyManifestBuilder.setPolicy(DummyFailingReactivePolicy.class).build();
+
+        PolicyInstantiationException exception = assertThrows(PolicyInstantiationException.class, () ->
+            cut.create(phase, policyManifest, null, policyMetadata)
+        );
+
+        assertThat(exception.getMessage()).contains("dummy-reactive").contains(phase.toString());
     }
 
     @Test

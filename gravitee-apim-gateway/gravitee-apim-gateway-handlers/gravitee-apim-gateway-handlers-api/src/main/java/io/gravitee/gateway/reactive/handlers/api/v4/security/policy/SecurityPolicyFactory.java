@@ -21,6 +21,7 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.api.policy.base.BaseSecurityPolicy;
+import io.gravitee.gateway.reactive.policy.PolicyInstantiationException;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import lombok.CustomLog;
 
@@ -47,7 +48,20 @@ public class SecurityPolicyFactory {
             }
 
             String policyName = planSecurity.getType().toLowerCase().replaceAll("_", "-");
-            final BasePolicy policy = policyManager.create(executionPhase, new PolicyMetadata(policyName, planSecurity.getConfiguration()));
+            final BasePolicy policy;
+            try {
+                policy = policyManager.create(executionPhase, new PolicyMetadata(policyName, planSecurity.getConfiguration()));
+            } catch (PolicyInstantiationException e) {
+                // Leave the plan out, as a missing policy always did: it cannot grant access and the other plans of
+                // the API keep working. Failing here would stop the whole API from starting.
+                log.error(
+                    "Security policy [{}] (plan [{}], api [{}]) cannot be instantiated, the plan is ignored.",
+                    policyName,
+                    plan.getName(),
+                    apiId
+                );
+                return null;
+            }
 
             if (policy instanceof BaseSecurityPolicy) {
                 return (T) policy;

@@ -41,6 +41,7 @@ import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
+import io.gravitee.gateway.reactive.policy.PolicyInstantiationException;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 import io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -244,6 +245,18 @@ class FlowChainTest {
         obs.assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
 
         // Make sure policy chain has not been created for flow2.
+        verify(policyChainFactory, times(0)).create(FLOW_CHAIN_ID, flow2, REQUEST);
+    }
+
+    @Test
+    void should_fail_without_executing_the_next_flows_if_a_policy_chain_cannot_be_created() {
+        when(policyChainFactory.create(FLOW_CHAIN_ID, flow1, REQUEST)).thenThrow(
+            new PolicyInstantiationException("json-validation", REQUEST)
+        );
+
+        final TestObserver<Void> obs = cut.execute(ctx, REQUEST).test();
+
+        obs.assertError(PolicyInstantiationException.class);
         verify(policyChainFactory, times(0)).create(FLOW_CHAIN_ID, flow2, REQUEST);
     }
 

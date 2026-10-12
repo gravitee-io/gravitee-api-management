@@ -89,6 +89,11 @@ public class HttpPolicyFactory implements PolicyFactory {
 
         if (HttpPolicy.class.isAssignableFrom(policyManifest.policy())) {
             policy = (HttpPolicy) policyPluginFactory.create(policyManifest.policy(), policyConfiguration);
+            if (policy == null) {
+                // The policy is installed and applies to this phase, so a null here can only mean its instantiation
+                // failed. Returning it would let the chain factories skip the step and run the flow unprotected.
+                throw new PolicyInstantiationException(policyManifest.id(), phase);
+            }
         } else if (phase == ExecutionPhase.REQUEST || phase == ExecutionPhase.RESPONSE) {
             StreamType streamType = phase == ExecutionPhase.REQUEST ? StreamType.ON_REQUEST : StreamType.ON_RESPONSE;
             if (policyManifest.accept(streamType)) {
