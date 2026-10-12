@@ -53,6 +53,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.annotation.Bean;
@@ -90,6 +91,7 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         when(analyticsDataPort.computeMeasures(any())).thenReturn(JsonNodeFactory.instance.objectNode());
         when(analyticsDataPort.computeFacets(any())).thenReturn(JsonNodeFactory.instance.objectNode());
         when(analyticsDataPort.computeTimeSeries(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+        when(analyticsDataPort.emptyTimeSeriesResponse()).thenReturn(JsonNodeFactory.instance.objectNode());
     }
 
     @AfterEach
@@ -261,6 +263,148 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             filter.put("operator", operator);
             filter.put("value", value);
             return filter;
+        }
+    }
+
+    @Nested
+    class StrictBody {
+
+        private static final Map<String, Object> LIBRARY_TIME_RANGE = Map.of(
+            "from",
+            "2026-10-11T12:00:00.000Z",
+            "to",
+            "2026-10-12T12:00:00.000Z"
+        );
+        private static final List<Map<String, Object>> LIBRARY_FILTERS = List.of(
+            Map.of("name", "API", "operator", "IN", "value", List.of("api-1"))
+        );
+        private static final List<Map<String, Object>> LIBRARY_RANGES = List.of(
+            Map.of("from", 100, "to", 400),
+            Map.of("from", 400, "to", 600)
+        );
+
+        @Test
+        void should_answer_200_to_the_library_measures_payload() {
+            var response = post(
+                "measures",
+                Map.of(
+                    "timeRange",
+                    LIBRARY_TIME_RANGE,
+                    "filters",
+                    LIBRARY_FILTERS,
+                    "metrics",
+                    List.of(
+                        Map.of(
+                            "name",
+                            "HTTP_REQUESTS",
+                            "measures",
+                            List.of("COUNT"),
+                            "filters",
+                            List.of(Map.of("name", "HTTP_STATUS", "operator", "GTE", "value", 500))
+                        ),
+                        Map.of("name", "HTTP_GATEWAY_RESPONSE_TIME", "measures", List.of("AVG", "P90"))
+                    )
+                )
+            );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_answer_200_to_the_library_facets_payload() {
+            var response = post(
+                "facets",
+                Map.of(
+                    "timeRange",
+                    LIBRARY_TIME_RANGE,
+                    "filters",
+                    LIBRARY_FILTERS,
+                    "by",
+                    List.of("HTTP_STATUS"),
+                    "metrics",
+                    List.of(librarySortedMetric()),
+                    "ranges",
+                    LIBRARY_RANGES,
+                    "limit",
+                    10
+                )
+            );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_answer_200_to_the_library_time_series_payload() {
+            var response = post(
+                "time-series",
+                Map.of(
+                    "timeRange",
+                    LIBRARY_TIME_RANGE,
+                    "filters",
+                    LIBRARY_FILTERS,
+                    "interval",
+                    3_600_000,
+                    "metrics",
+                    List.of(librarySortedMetric()),
+                    "by",
+                    List.of("API"),
+                    "ranges",
+                    LIBRARY_RANGES,
+                    "limit",
+                    5
+                )
+            );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "measures", "facets", "time-series" })
+        void should_answer_400_naming_an_unknown_top_level_key(String path) {
+            var response = post(path, Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT, "apiId", "api-1"));
+
+            assertUnknownKey(response, "apiId");
+        }
+
+        @ParameterizedTest
+        @CsvSource({ "timeRange, form", "metrics, measure", "sorts, direction", "ranges, min", "metricFilters, values" })
+        void should_answer_400_naming_an_unknown_nested_key(String location, String unknownKey) {
+            var metric = new HashMap<String, Object>(Map.of("name", "HTTP_REQUESTS", "measures", List.of("COUNT")));
+            var body = new HashMap<String, Object>(
+                Map.of("timeRange", TIME_RANGE, "interval", 3_600_000, "metrics", List.of(metric), "by", List.of("HTTP_STATUS"))
+            );
+            switch (location) {
+                case "timeRange" -> body.put("timeRange", Map.of(unknownKey, "2026-06-10T00:00:00Z", "to", "2026-06-11T00:00:00Z"));
+                case "metrics" -> metric.put(unknownKey, "COUNT");
+                case "sorts" -> metric.put("sorts", List.of(Map.of("measure", "COUNT", unknownKey, "DESC")));
+                case "ranges" -> body.put("ranges", List.of(Map.of(unknownKey, 100, "to", 400)));
+                default -> metric.put("filters", List.of(Map.of("name", "HTTP_METHOD", "operator", "IN", unknownKey, List.of("GET"))));
+            }
+
+            var response = post("time-series", body);
+
+            assertUnknownKey(response, unknownKey);
+        }
+
+        private static Map<String, Object> librarySortedMetric() {
+            return Map.of(
+                "name",
+                "HTTP_REQUESTS",
+                "measures",
+                List.of("COUNT"),
+                "filters",
+                List.of(Map.of("name", "HTTP_METHOD", "operator", "IN", "value", List.of("GET", "POST"))),
+                "sorts",
+                List.of(Map.of("measure", "COUNT", "order", "DESC"))
+            );
+        }
+
+        private void assertUnknownKey(Response response, String unknownKey) {
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
+                "Property [" + unknownKey + "] is not recognized as a valid property"
+            );
+            verifyNoInteractions(analyticsDataPort);
         }
     }
 

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources.observability.analytics.dto;
 
+import io.gravitee.gamma.rest.resources.RejectUnknownProperties;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.SearchLogsRequestDto.TimeRangeDto;
 import java.util.List;
@@ -22,4 +23,5 @@ import java.util.List;
 /**
  * POST body for {@code /observability/analytics/measures}.
  */
+@RejectUnknownProperties
 public record AnalyticsMeasuresRequestDto(TimeRangeDto timeRange, List<FilterConditionDto> filters, List<MetricQueryDto> metrics) {}

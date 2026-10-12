@@ -405,7 +405,9 @@ paths:
                                               labels:
                                                   "b5c6d7e8-9999-aaaa-bbbb-ccccddddeeee": "Mobile App"
                 "400":
-                    description: The request exceeds the entry / id limits.
+                    description: |
+                        The request exceeds the entry / id limits, or carries a key the schema does not
+                        declare (the message names it).
                     content:
                         application/json:
                             schema:
@@ -929,6 +931,7 @@ paths:
                         - `RECORD_TYPE` with several values, or a filter the decision search cannot apply (`observability.filter.multiple_record_types`, `observability.filter.not_applicable_to_decisions`)
                         - A time-range bound is missing, or `from` is after `to` (`observability.query.time_range_required`, `observability.query.invalid_time_range`)
                         - An array of the body holds a null entry (`observability.query.null_entry`)
+                        - A key the schema does not declare, at any depth: the message names it (no technical code)
                     content:
                         application/json:
                             schema:
@@ -1505,7 +1508,8 @@ paths:
                         or invalid module, a missing title, more than 50 widgets, a widgets payload
                         above 1 MB, a widget with a missing or duplicated `id`, a time range without
                         the fields its `type` requires, or a dashboard filter the catalog refuses (see
-                        `SaveDashboardFilter`).
+                        `SaveDashboardFilter`)
+                        or that carries a key `SaveDashboardFilter` does not declare.
                     content:
                         application/json:
                             schema:
@@ -1702,7 +1706,8 @@ paths:
                         `If-Match` that is not an ETag this API issued, a missing title, more than 50
                         widgets, a widgets payload above 1 MB, a widget with a missing or duplicated
                         `id`, a time range without the fields its `type` requires, or a dashboard
-                        filter the catalog refuses (see `SaveDashboardFilter`).
+                        filter the catalog refuses (see `SaveDashboardFilter`)
+                        or that carries a key `SaveDashboardFilter` does not declare.
                     content:
                         application/json:
                             schema:
@@ -1824,6 +1829,7 @@ components:
                 - A metric, measure, facet or sort order the engine does not know (`observability.query.unknown_metric`, `unknown_measure`, `unknown_facet`, `unknown_sort_order`)
                 - An array of the body holds a null entry (`observability.query.null_entry`)
                 - A combination the engine refuses, such as a facet a metric does not support (no technical code)
+                - A key the schema does not declare, at any depth: the message names it (no technical code)
             content:
                 application/json:
                     schema:
@@ -2100,6 +2106,7 @@ components:
 
         ResolveFilterLabelsRequestEntry:
             type: object
+            additionalProperties: false
             description: A group of entity ids to resolve for one filter.
             required: [filterName, ids]
             properties:
@@ -2117,6 +2124,7 @@ components:
 
         ResolveFilterLabelsRequest:
             type: object
+            additionalProperties: false
             required: [entries]
             properties:
                 entries:
@@ -2154,6 +2162,7 @@ components:
 
         SearchLogsRequest:
             type: object
+            additionalProperties: false
             description: Request body for the logs search endpoint.
             required: [timeRange]
             properties:
@@ -2167,6 +2176,7 @@ components:
 
         TimeRange:
             type: object
+            additionalProperties: false
             description: |
                 ISO-8601 time window. Both bounds are required, and `from` must be before `to`:
                 otherwise the server answers 400 (`observability.query.time_range_required`,
@@ -2186,6 +2196,7 @@ components:
 
         FilterCondition:
             type: object
+            additionalProperties: false
             description: |
                 A single filter condition, checked against the filter catalog of the endpoint's signal.
                 A condition breaking one of these rules is refused with a 400:
@@ -2751,6 +2762,7 @@ components:
 
         MetricQuery:
             type: object
+            additionalProperties: false
             description: A metric to compute with its requested measures. Used by the measures endpoint.
             required: [name, measures]
             properties:
@@ -2787,6 +2799,7 @@ components:
 
         SortSpec:
             type: object
+            additionalProperties: false
             description: Sort directive for facet metric buckets.
             required: [measure, order]
             properties:
@@ -2802,6 +2815,7 @@ components:
 
         FacetMetricQuery:
             type: object
+            additionalProperties: false
             description: |
                 A metric to compute with its measures and optional sort directives. Used by the
                 facets and time-series endpoints.
@@ -2837,6 +2851,7 @@ components:
 
         NumberRange:
             type: object
+            additionalProperties: false
             description: Numeric range for bucket-based aggregations (e.g. status code groups).
             properties:
                 from:
@@ -2850,6 +2865,7 @@ components:
 
         AnalyticsMeasuresRequest:
             type: object
+            additionalProperties: false
             description: Request body for the measures endpoint.
             required: [timeRange, metrics]
             properties:
@@ -2869,6 +2885,7 @@ components:
 
         AnalyticsFacetsRequest:
             type: object
+            additionalProperties: false
             description: Request body for the facets endpoint.
             required: [timeRange, metrics, by]
             properties:
@@ -2906,6 +2923,7 @@ components:
 
         AnalyticsTimeSeriesRequest:
             type: object
+            additionalProperties: false
             description: Request body for the time-series endpoint.
             required: [timeRange, metrics, interval]
             properties:
@@ -3284,6 +3302,7 @@ components:
 
         SaveDashboardFilter:
             type: object
+            additionalProperties: false
             description: |
                 One filter applied to every widget of the dashboard.
 
@@ -3334,6 +3353,9 @@ components:
 
                 `id` is only meaningful on one of the two verbs — see `CreateDashboardRequest`
                 and `UpdateDashboardRequest`, which state which.
+
+                Keys this object does not declare are ignored, so a dashboard read with `GET` can be
+                sent back as is. A filter object is stricter: an unknown key in it is refused with a 400.
             required: [title]
             properties:
                 id:

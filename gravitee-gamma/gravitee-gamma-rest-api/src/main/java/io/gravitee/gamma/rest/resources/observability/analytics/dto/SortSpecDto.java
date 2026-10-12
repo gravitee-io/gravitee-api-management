@@ -16,10 +16,12 @@
 package io.gravitee.gamma.rest.resources.observability.analytics.dto;
 
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsSortSpec;
+import io.gravitee.gamma.rest.resources.RejectUnknownProperties;
 
 /**
  * Wire shape for a sort directive on a facet metric query.
  */
+@RejectUnknownProperties
 public record SortSpecDto(String measure, String order) {
     public AnalyticsSortSpec toCore() {
         return new AnalyticsSortSpec(measure, order);

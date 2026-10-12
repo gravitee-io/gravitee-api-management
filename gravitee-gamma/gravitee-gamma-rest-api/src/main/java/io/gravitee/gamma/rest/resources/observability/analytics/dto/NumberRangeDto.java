@@ -16,10 +16,12 @@
 package io.gravitee.gamma.rest.resources.observability.analytics.dto;
 
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange;
+import io.gravitee.gamma.rest.resources.RejectUnknownProperties;
 
 /**
  * Wire shape for a numeric range on the facets and time-series endpoints.
  */
+@RejectUnknownProperties
 public record NumberRangeDto(Number from, Number to) {
     public AnalyticsNumberRange toCore() {
         return new AnalyticsNumberRange(from, to);
