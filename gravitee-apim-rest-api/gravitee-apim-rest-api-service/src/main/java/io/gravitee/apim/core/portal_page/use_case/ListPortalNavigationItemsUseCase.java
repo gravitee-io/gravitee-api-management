@@ -21,20 +21,18 @@ import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemRenderingDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,6 +55,7 @@ public class ListPortalNavigationItemsUseCase {
     private final PortalNavigationItemSourceDomainService sourceDomainService;
     private final ApiPortalSearchQueryService apiPortalSearchQueryService;
     private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
+    private final PortalNavigationItemRenderingDomainService renderingDomainService;
     private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE = i -> i instanceof PortalNavigationItemContainer;
 
     public Output execute(Input input) {
@@ -223,7 +222,12 @@ public class ListPortalNavigationItemsUseCase {
                 new NavigationItemReference.ApiReference(navApi.getApiId())
             );
             var combined = new ArrayList<>(physicalChildren);
-            combined.addAll(renderUnder(navApi, filterForViewer(splicedRoots, input, visibilityEvaluator)));
+            combined.addAll(
+                filterForViewer(splicedRoots, input, visibilityEvaluator)
+                    .stream()
+                    .map(root -> renderingDomainService.renderUnder(root, navApi))
+                    .toList()
+            );
             return combined;
         }
         return searchItems(input, parent.getId(), false, visibilityEvaluator);
@@ -254,71 +258,6 @@ public class ListPortalNavigationItemsUseCase {
             }
         }
         return filterHiddenItems(narrowed, viewerContext, visibilityEvaluator);
-    }
-
-    /**
-     * The returned model deliberately does not mirror storage: each spliced root is a copy with its
-     * {@code parentId} rewritten to the nav-api row it renders under here, so every client keeps
-     * rebuilding the tree from {@code parentId} unchanged. The original stored item — root, with no
-     * parent — is never mutated; the same root renders differently under each portal that lists the API.
-     */
-    private List<PortalNavigationItem> renderUnder(PortalNavigationItemContainer navApiRow, List<PortalNavigationItem> roots) {
-        return roots
-            .stream()
-            .map(root -> renderedCopy(root, navApiRow))
-            .toList();
-    }
-
-    private PortalNavigationItem renderedCopy(PortalNavigationItem item, PortalNavigationItemContainer parent) {
-        PortalNavigationItem copy = switch (item) {
-            case PortalNavigationPage page -> PortalNavigationPage.builder()
-                .id(page.getId())
-                .organizationId(page.getOrganizationId())
-                .environmentId(page.getEnvironmentId())
-                .reference(page.getReference())
-                .title(page.getTitle())
-                .segment(page.getSegment())
-                .area(page.getArea())
-                .order(page.getOrder())
-                .published(page.getPublished())
-                .visibility(page.getVisibility())
-                .source(page.getSource())
-                .automationMetadata(page.getAutomationMetadata())
-                .portalPageContentId(page.getPortalPageContentId())
-                .build();
-            case PortalNavigationFolder folder -> PortalNavigationFolder.builder()
-                .id(folder.getId())
-                .organizationId(folder.getOrganizationId())
-                .environmentId(folder.getEnvironmentId())
-                .reference(folder.getReference())
-                .title(folder.getTitle())
-                .segment(folder.getSegment())
-                .area(folder.getArea())
-                .order(folder.getOrder())
-                .published(folder.getPublished())
-                .visibility(folder.getVisibility())
-                .source(folder.getSource())
-                .automationMetadata(folder.getAutomationMetadata())
-                .build();
-            case PortalNavigationLink link -> PortalNavigationLink.builder()
-                .id(link.getId())
-                .organizationId(link.getOrganizationId())
-                .environmentId(link.getEnvironmentId())
-                .reference(link.getReference())
-                .title(link.getTitle())
-                .segment(link.getSegment())
-                .area(link.getArea())
-                .order(link.getOrder())
-                .published(link.getPublished())
-                .visibility(link.getVisibility())
-                .source(link.getSource())
-                .automationMetadata(link.getAutomationMetadata())
-                .url(link.getUrl())
-                .build();
-            default -> throw new IllegalStateException("Unexpected API subtree root type: " + item.getClass().getSimpleName());
-        };
-        copy.updateParent(parent);
-        return copy;
     }
 
     /**
