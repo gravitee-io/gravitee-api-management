@@ -16,7 +16,8 @@
 import { Badge, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@gravitee/graphene-core';
 import type { ReactNode } from 'react';
 
-import type { ApiDocumentationItem, PortalVisibility } from '../../../types/apiDocumentation';
+import type { ApiDocumentationItem, ApiPortalPublication, PortalVisibility } from '../../../types/apiDocumentation';
+import { getPublishedSection } from '../../../utils/documentationTree';
 
 type ItemType = ApiDocumentationItem['type'];
 
@@ -42,6 +43,19 @@ export function ItemAccessBadge({ visibility, itemType }: Readonly<{ visibility:
     ) : (
         <ExplainedBadge explanation={`Users don't need to sign in to view this ${ITEM_NOUNS[itemType]}.`}>
             <Badge variant="outline">Public</Badge>
+        </ExplainedBadge>
+    );
+}
+
+export function ApiPublicationBadge({ publications }: Readonly<{ publications: ApiPortalPublication[] }>) {
+    const publishedSection = getPublishedSection(publications);
+    return publishedSection ? (
+        <ExplainedBadge explanation={`Listed in the '${publishedSection}' section of Developer Portal's top navigation.`}>
+            <Badge variant="success">Published in {publishedSection}</Badge>
+        </ExplainedBadge>
+    ) : (
+        <ExplainedBadge explanation="Not in the developer portal. Publish the API to choose the section it appears in.">
+            <Badge variant="outline">Not published</Badge>
         </ExplainedBadge>
     );
 }
