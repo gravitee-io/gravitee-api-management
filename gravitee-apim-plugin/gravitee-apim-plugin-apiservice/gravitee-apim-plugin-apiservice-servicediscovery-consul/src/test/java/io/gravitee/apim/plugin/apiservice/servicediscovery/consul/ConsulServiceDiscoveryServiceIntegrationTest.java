@@ -23,13 +23,11 @@ import static io.gravitee.apim.plugin.apiservice.servicediscovery.consul.factory
 import static io.gravitee.apim.plugin.apiservice.servicediscovery.consul.factory.configuration.EndpointConfigurationFactory.CONSUL_METADATA_WEIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
-import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -69,7 +67,7 @@ import org.springframework.core.env.Environment;
 import org.testcontainers.consul.ConsulContainer;
 import org.testcontainers.utility.DockerImageName;
 
-@ExtendWith(value = { MockitoExtension.class, VertxExtension.class })
+@ExtendWith(value = {MockitoExtension.class, VertxExtension.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ConsulServiceDiscoveryServiceIntegrationTest {
 
@@ -79,10 +77,8 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
     static ConsulContainer consulContainer = new ConsulContainer(DockerImageName.parse("consul:1.15.1"));
 
     private final Vertx vertx = Vertx.vertx();
-    private final PluginConfigurationHelper pluginConfigurationHelper = new PluginConfigurationHelper(
-        mock(Configuration.class),
-        new GraviteeMapper()
-    );
+    private final PluginConfigurationHelper pluginConfigurationHelper =
+            new PluginConfigurationHelper(mock(Configuration.class), new GraviteeMapper());
 
     @Mock
     private DeploymentContext deploymentContext;
@@ -102,9 +98,10 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
     void beforeAll() {
         consulContainer.start();
         client = ConsulClient.create(
-            vertx,
-            new ConsulClientOptions().setHost(consulContainer.getHost()).setPort(consulContainer.getFirstMappedPort())
-        );
+                vertx,
+                new ConsulClientOptions()
+                        .setHost(consulContainer.getHost())
+                        .setPort(consulContainer.getFirstMappedPort()));
     }
 
     @AfterAll
@@ -119,7 +116,8 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
         when(deploymentContext.getTemplateEngine()).thenReturn(TemplateEngine.templateEngine());
         when(gatewayConfiguration.tenant()).thenReturn(Optional.empty());
 
-        when(environment.getProperty(eq("api.pending_requests_timeout"), eq(Long.class), anyLong())).thenReturn(1000L);
+        when(environment.getProperty(eq("api.pending_requests_timeout"), eq(Long.class), anyLong()))
+                .thenReturn(1000L);
         when(deploymentContext.getComponent(Environment.class)).thenReturn(environment);
     }
 
@@ -129,7 +127,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
     }
 
     @Nested
-    @ExtendWith(value = { VertxExtension.class })
+    @ExtendWith(value = {VertxExtension.class})
     class HttpProxyBackend {
 
         private static final String SERVICE_PROXY_SSL_AND_PATH = "service_ssl_path";
@@ -140,11 +138,12 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
             when(deploymentContext.getComponent(Api.class)).thenReturn(api);
 
             endpointManager = new DefaultEndpointManager(
-                api.getDefinition(),
-                endpointConnectorPluginManager(EndpointBuilder.build(HTTP_PROXY, HttpProxyEndpointConnectorFactory.class)),
-                deploymentContext,
-                gatewayConfiguration
-            ).start();
+                            api.getDefinition(),
+                            endpointConnectorPluginManager(
+                                    EndpointBuilder.build(HTTP_PROXY, HttpProxyEndpointConnectorFactory.class)),
+                            deploymentContext,
+                            gatewayConfiguration)
+                    .start();
             when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
         }
 
@@ -154,7 +153,11 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
             var group = api.getDefinition().getEndpointGroups().get(0);
 
             configureDiscoveryInGroup(group, new JsonObject(Map.of("url", consulUrl(), "service", SERVICE_NAME)));
-            registerServiceInConsul(new ServiceOptions().setName(SERVICE_NAME).setId("id1").setAddress("10.0.0.1").setPort(8048));
+            registerServiceInConsul(new ServiceOptions()
+                    .setName(SERVICE_NAME)
+                    .setId("id1")
+                    .setAddress("10.0.0.1")
+                    .setPort(8048));
 
             endpointManager.addListener((event, endpoint) -> {
                 if (event == EndpointManager.Event.ADD) {
@@ -168,29 +171,32 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
 
             var endpoints = endpointManager.all();
             assertThat(endpoints)
-                .extracting(ManagedEndpoint::getDefinition)
-                .hasSize(1)
-                .contains(
-                    Endpoint.builder()
-                        .name("consul#id1")
-                        .type(HTTP_PROXY)
-                        .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048")).toString())
-                        .inheritConfiguration(false)
-                        .build()
-                );
+                    .extracting(ManagedEndpoint::getDefinition)
+                    .hasSize(1)
+                    .contains(Endpoint.builder()
+                            .name("consul#id1")
+                            .type(HTTP_PROXY)
+                            .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048")).toString())
+                            .inheritConfiguration(false)
+                            .build());
         }
 
         @Test
-        void should_create_an_endpoint_in_group_with_inherited_configuration(VertxTestContext testContext) throws Exception {
+        void should_create_an_endpoint_in_group_with_inherited_configuration(VertxTestContext testContext)
+                throws Exception {
             var endpointAdded = testContext.checkpoint();
             var group = api.getDefinition().getEndpointGroups().get(0);
 
             configureSharedConfigurationInGroup(
-                group,
-                new JsonObject(Map.ofEntries(Map.entry("proxy", new JsonObject(Map.of("enabled", "false"))))).toString()
-            );
+                    group,
+                    new JsonObject(Map.ofEntries(Map.entry("proxy", new JsonObject(Map.of("enabled", "false")))))
+                            .toString());
             configureDiscoveryInGroup(group, new JsonObject(Map.of("url", consulUrl(), "service", SERVICE_NAME)));
-            registerServiceInConsul(new ServiceOptions().setName(SERVICE_NAME).setId("id1").setAddress("10.0.0.1").setPort(8048));
+            registerServiceInConsul(new ServiceOptions()
+                    .setName(SERVICE_NAME)
+                    .setId("id1")
+                    .setAddress("10.0.0.1")
+                    .setPort(8048));
 
             endpointManager.addListener((event, endpoint) -> {
                 if (event == EndpointManager.Event.ADD) {
@@ -204,16 +210,14 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
 
             var endpoints = endpointManager.all();
             assertThat(endpoints)
-                .extracting(ManagedEndpoint::getDefinition)
-                .hasSize(1)
-                .contains(
-                    Endpoint.builder()
-                        .name("consul#id1")
-                        .type(HTTP_PROXY)
-                        .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048")).toString())
-                        .inheritConfiguration(true)
-                        .build()
-                );
+                    .extracting(ManagedEndpoint::getDefinition)
+                    .hasSize(1)
+                    .contains(Endpoint.builder()
+                            .name("consul#id1")
+                            .type(HTTP_PROXY)
+                            .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048")).toString())
+                            .inheritConfiguration(true)
+                            .build());
         }
 
         @Test
@@ -221,15 +225,14 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
             var endpointAdded = testContext.checkpoint();
             var group = api.getDefinition().getEndpointGroups().get(0);
 
-            configureDiscoveryInGroup(group, new JsonObject(Map.of("url", consulUrl(), "service", SERVICE_PROXY_SSL_AND_PATH)));
-            registerServiceInConsul(
-                new ServiceOptions()
+            configureDiscoveryInGroup(
+                    group, new JsonObject(Map.of("url", consulUrl(), "service", SERVICE_PROXY_SSL_AND_PATH)));
+            registerServiceInConsul(new ServiceOptions()
                     .setName(SERVICE_PROXY_SSL_AND_PATH)
                     .setId("id1")
                     .setAddress("10.0.0.1")
                     .setPort(8048)
-                    .setMeta(
-                        Map.of(
+                    .setMeta(Map.of(
                             CONSUL_METADATA_SSL,
                             "true",
                             CONSUL_METADATA_PATH,
@@ -237,10 +240,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
                             CONSUL_METADATA_WEIGHT,
                             "2",
                             CONSUL_METADATA_TENANT,
-                            "my-tenant"
-                        )
-                    )
-            );
+                            "my-tenant")));
 
             endpointManager.addListener((event, endpoint) -> {
                 if (event == EndpointManager.Event.ADD) {
@@ -254,34 +254,40 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
 
             var endpoints = endpointManager.all();
             assertThat(endpoints)
-                .extracting(ManagedEndpoint::getDefinition)
-                .hasSize(1)
-                .contains(
-                    Endpoint.builder()
-                        .name("consul#id1")
-                        .type(HTTP_PROXY)
-                        .weight(2)
-                        .tenants(List.of("my-tenant"))
-                        .configuration(new JsonObject(Map.of("target", "https://10.0.0.1:8048/my-path")).toString())
-                        .build()
-                );
+                    .extracting(ManagedEndpoint::getDefinition)
+                    .hasSize(1)
+                    .contains(Endpoint.builder()
+                            .name("consul#id1")
+                            .type(HTTP_PROXY)
+                            .weight(2)
+                            .tenants(List.of("my-tenant"))
+                            .configuration(new JsonObject(Map.of("target", "https://10.0.0.1:8048/my-path")).toString())
+                            .build());
         }
 
         @Test
-        void should_remove_an_endpoint_in_group_when_service_is_deregistered(VertxTestContext testContext) throws Exception {
+        void should_remove_an_endpoint_in_group_when_service_is_deregistered(VertxTestContext testContext)
+                throws Exception {
             var endpointAdded = testContext.checkpoint();
             var serviceDeregistered = testContext.checkpoint();
             var endpointRemoved = testContext.checkpoint();
             var group = api.getDefinition().getEndpointGroups().get(0);
 
             configureDiscoveryInGroup(group, new JsonObject(Map.of("url", consulUrl(), "service", SERVICE_NAME)));
-            registerServiceInConsul(new ServiceOptions().setName(SERVICE_NAME).setId("id1").setAddress("10.0.0.1").setPort(8048));
+            registerServiceInConsul(new ServiceOptions()
+                    .setName(SERVICE_NAME)
+                    .setId("id1")
+                    .setAddress("10.0.0.1")
+                    .setPort(8048));
 
             endpointManager.addListener((event, endpoint) -> {
                 switch (event) {
                     case ADD:
                         endpointAdded.flag();
-                        client.deregisterService("id1").doOnComplete(serviceDeregistered::flag).subscribeOn(Schedulers.io()).subscribe();
+                        client.deregisterService("id1")
+                                .doOnComplete(serviceDeregistered::flag)
+                                .subscribeOn(Schedulers.io())
+                                .subscribe();
                         break;
                     case REMOVE:
                         endpointRemoved.flag();
@@ -298,14 +304,19 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
         }
 
         @Test
-        void should_remove_and_add_endpoint_in_group_when_service_is_updated(VertxTestContext testContext) throws Exception {
+        void should_remove_and_add_endpoint_in_group_when_service_is_updated(VertxTestContext testContext)
+                throws Exception {
             var endpointAdded = testContext.checkpoint(2);
             var serviceUpdated = testContext.checkpoint();
             var endpointRemoved = testContext.checkpoint();
             var group = api.getDefinition().getEndpointGroups().get(0);
 
             configureDiscoveryInGroup(group, new JsonObject(Map.of("url", consulUrl(), "service", SERVICE_NAME)));
-            registerServiceInConsul(new ServiceOptions().setName(SERVICE_NAME).setId("id1").setAddress("10.0.0.1").setPort(8048));
+            registerServiceInConsul(new ServiceOptions()
+                    .setName(SERVICE_NAME)
+                    .setId("id1")
+                    .setAddress("10.0.0.1")
+                    .setPort(8048));
 
             var updateSent = new AtomicBoolean(false);
             endpointManager.addListener((event, endpoint) -> {
@@ -315,13 +326,14 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
 
                         if (!updateSent.get()) {
                             updateSent.set(true);
-                            client
-                                .registerService(
-                                    new ServiceOptions().setName(SERVICE_NAME).setId("id1").setAddress("10.0.0.2").setPort(8048)
-                                )
-                                .doOnComplete(serviceUpdated::flag)
-                                .subscribeOn(Schedulers.io())
-                                .subscribe();
+                            client.registerService(new ServiceOptions()
+                                            .setName(SERVICE_NAME)
+                                            .setId("id1")
+                                            .setAddress("10.0.0.2")
+                                            .setPort(8048))
+                                    .doOnComplete(serviceUpdated::flag)
+                                    .subscribeOn(Schedulers.io())
+                                    .subscribe();
                         }
                         break;
                     case REMOVE:
@@ -336,15 +348,13 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
 
             var endpoints = endpointManager.all();
             assertThat(endpoints)
-                .extracting(ManagedEndpoint::getDefinition)
-                .hasSize(1)
-                .contains(
-                    Endpoint.builder()
-                        .name("consul#id1")
-                        .type(HTTP_PROXY)
-                        .configuration(new JsonObject(Map.of("target", "http://10.0.0.2:8048")).toString())
-                        .build()
-                );
+                    .extracting(ManagedEndpoint::getDefinition)
+                    .hasSize(1)
+                    .contains(Endpoint.builder()
+                            .name("consul#id1")
+                            .type(HTTP_PROXY)
+                            .configuration(new JsonObject(Map.of("target", "http://10.0.0.2:8048")).toString())
+                            .build());
         }
 
         private String consulUrl() {
@@ -352,11 +362,12 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
         }
 
         private void configureDiscoveryInGroup(EndpointGroup group, JsonObject configuration) {
-            group
-                .getServices()
-                .setDiscovery(
-                    Service.builder().enabled(true).type(CONSUL_SERVICE_DISCOVERY_ID).configuration(configuration.toString()).build()
-                );
+            group.getServices()
+                    .setDiscovery(Service.builder()
+                            .enabled(true)
+                            .type(CONSUL_SERVICE_DISCOVERY_ID)
+                            .configuration(configuration.toString())
+                            .build());
         }
 
         private void configureSharedConfigurationInGroup(EndpointGroup group, String sharedConfiguration) {
@@ -368,29 +379,23 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
         }
 
         private DefaultEndpointConnectorPluginManager endpointConnectorPluginManager(
-            EndpointConnectorPlugin<?, ?> endpointConnectorPlugin
-        ) {
+                EndpointConnectorPlugin<?, ?> endpointConnectorPlugin) {
             var pluginManager = new DefaultEndpointConnectorPluginManager(
-                new DefaultEndpointConnectorClassLoaderFactory(),
-                pluginConfigurationHelper
-            );
+                    new DefaultEndpointConnectorClassLoaderFactory(), pluginConfigurationHelper);
             pluginManager.register(endpointConnectorPlugin);
             return pluginManager;
         }
 
         private void startConsulServiceDiscovery(VertxTestContext testContext) throws InterruptedException {
             cut = new ConsulServiceDiscoveryServiceFactory().createService(deploymentContext);
-            cut
-                .start()
-                .andThen(
-                    Completable.create(emitter -> {
+            cut.start()
+                    .andThen(Completable.create(emitter -> {
                         testContext.awaitCompletion(5, TimeUnit.SECONDS);
                         emitter.onComplete();
-                    })
-                )
-                .test()
-                .await()
-                .assertComplete();
+                    }))
+                    .test()
+                    .await()
+                    .assertComplete();
         }
     }
 }

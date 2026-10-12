@@ -68,13 +68,12 @@ class GraviteePortalPageContentValidatorServiceTest {
         environmentTemplateModelProvider = mock(EnvironmentTemplateModelProvider.class);
         when(environmentTemplateModelProvider.getEnvironmentMetadata(any())).thenReturn(Map.of());
         validator = new GraviteePortalPageContentValidatorService(
-            gmdValidator,
-            portalNavigationItemsQueryService,
-            portalNavigationEnclosingApiDomainService,
-            portalNavigationTemplatingService,
-            apiTemplateModelProvider,
-            environmentTemplateModelProvider
-        );
+                gmdValidator,
+                portalNavigationItemsQueryService,
+                portalNavigationEnclosingApiDomainService,
+                portalNavigationTemplatingService,
+                apiTemplateModelProvider,
+                environmentTemplateModelProvider);
     }
 
     @Test
@@ -93,8 +92,10 @@ class GraviteePortalPageContentValidatorServiceTest {
     void should_delegate_validation_to_gmd_validator() {
         // Given
         PortalPageContent<?> existing = GraviteeMarkdownPageContent.create("org", "env", "old");
-        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("test content").build();
-        when(portalNavigationItemsQueryService.findNavigationPageByPortalPageContentId(any(), any())).thenReturn(Optional.empty());
+        UpdatePortalPageContent updateContent =
+                UpdatePortalPageContent.builder().content("test content").build();
+        when(portalNavigationItemsQueryService.findNavigationPageByPortalPageContentId(any(), any()))
+                .thenReturn(Optional.empty());
 
         // When
         validator.validate(existing, updateContent);
@@ -108,82 +109,79 @@ class GraviteePortalPageContentValidatorServiceTest {
     void should_throw_when_validator_rejects_content() {
         // Given
         PortalPageContent<?> existing = GraviteeMarkdownPageContent.create("org", "env", "old");
-        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("").build();
+        UpdatePortalPageContent updateContent =
+                UpdatePortalPageContent.builder().content("").build();
         doThrow(new GraviteeMarkdownContentEmptyException()).when(gmdValidator).validateNotEmpty(any());
 
         // When / Then
         assertThatThrownBy(() -> validator.validate(existing, updateContent))
-            .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
-            .hasMessage("Content must not be null or empty");
+                .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
+                .hasMessage("Content must not be null or empty");
     }
 
     @Test
     void should_map_template_failure_to_validation_exception_when_page_linked_without_api_ancestor() {
         var contentId = PortalPageContentId.random();
         var existing = new GraviteeMarkdownPageContent(
-            contentId,
-            PortalNavigationItemFixtures.ORG_ID,
-            PortalNavigationItemFixtures.ENV_ID,
-            GraviteeMarkdown.of("Hello ${metadata.nope}")
-        );
+                contentId,
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                GraviteeMarkdown.of("Hello ${metadata.nope}"));
         var page = PortalNavigationItemFixtures.aPage("00000000-0000-0000-0000-000000000081", "Page", null, contentId);
         page.markAsRoot();
-        when(
-            portalNavigationItemsQueryService.findNavigationPageByPortalPageContentId(
-                eq(PortalNavigationItemFixtures.ENV_ID),
-                eq(contentId)
-            )
-        ).thenReturn(Optional.of(page));
-        when(portalNavigationEnclosingApiDomainService.findEnclosingApiId(eq(PortalNavigationItemFixtures.ENV_ID), eq(page))).thenReturn(
-            Optional.empty()
-        );
-        when(portalNavigationTemplatingService.renderGraviteeMarkdown(any())).thenThrow(new PortalPageContentTemplateException("missing"));
+        when(portalNavigationItemsQueryService.findNavigationPageByPortalPageContentId(
+                        eq(PortalNavigationItemFixtures.ENV_ID), eq(contentId)))
+                .thenReturn(Optional.of(page));
+        when(portalNavigationEnclosingApiDomainService.findEnclosingApiId(
+                        eq(PortalNavigationItemFixtures.ENV_ID), eq(page)))
+                .thenReturn(Optional.empty());
+        when(portalNavigationTemplatingService.renderGraviteeMarkdown(any()))
+                .thenThrow(new PortalPageContentTemplateException("missing"));
 
-        var update = UpdatePortalPageContent.builder().content("Hello ${metadata.nope}").build();
+        var update = UpdatePortalPageContent.builder()
+                .content("Hello ${metadata.nope}")
+                .build();
 
-        assertThatThrownBy(() -> validator.validate(existing, update)).isInstanceOf(InvalidPortalPageContentTemplateException.class);
-        verify(portalNavigationTemplatingService).renderGraviteeMarkdown(argThat(input -> input.model().containsKey("metadata")));
+        assertThatThrownBy(() -> validator.validate(existing, update))
+                .isInstanceOf(InvalidPortalPageContentTemplateException.class);
+        verify(portalNavigationTemplatingService)
+                .renderGraviteeMarkdown(argThat(input -> input.model().containsKey("metadata")));
     }
 
     @Test
     void should_validate_under_api_context_when_enclosing_api_exists() {
         var contentId = PortalPageContentId.random();
         var existing = new GraviteeMarkdownPageContent(
-            contentId,
-            PortalNavigationItemFixtures.ORG_ID,
-            PortalNavigationItemFixtures.ENV_ID,
-            GraviteeMarkdown.of("${api.name}")
-        );
+                contentId,
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                GraviteeMarkdown.of("${api.name}"));
         var folder = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-000000000080", "Folder");
         folder.markAsRoot();
-        var apiNode = PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-000000000082", "API", folder.getId(), "api-1");
+        var apiNode = PortalNavigationItemFixtures.anApi(
+                "00000000-0000-0000-0000-000000000082", "API", folder.getId(), "api-1");
         apiNode.updateParent(folder);
-        var page = PortalNavigationItemFixtures.aPage("00000000-0000-0000-0000-000000000083", "Page", apiNode.getId(), contentId);
+        var page = PortalNavigationItemFixtures.aPage(
+                "00000000-0000-0000-0000-000000000083", "Page", apiNode.getId(), contentId);
         page.updateParent(apiNode);
 
-        when(
-            portalNavigationItemsQueryService.findNavigationPageByPortalPageContentId(
-                eq(PortalNavigationItemFixtures.ENV_ID),
-                eq(contentId)
-            )
-        ).thenReturn(Optional.of(page));
-        when(portalNavigationEnclosingApiDomainService.findEnclosingApiId(eq(PortalNavigationItemFixtures.ENV_ID), eq(page))).thenReturn(
-            Optional.of("api-1")
-        );
+        when(portalNavigationItemsQueryService.findNavigationPageByPortalPageContentId(
+                        eq(PortalNavigationItemFixtures.ENV_ID), eq(contentId)))
+                .thenReturn(Optional.of(page));
+        when(portalNavigationEnclosingApiDomainService.findEnclosingApiId(
+                        eq(PortalNavigationItemFixtures.ENV_ID), eq(page)))
+                .thenReturn(Optional.of("api-1"));
         var fakeApiModel = new Object();
-        when(
-            apiTemplateModelProvider.getApiTemplateModel(
-                eq(PortalNavigationItemFixtures.ORG_ID),
-                eq(PortalNavigationItemFixtures.ENV_ID),
-                eq("api-1")
-            )
-        ).thenReturn(fakeApiModel);
+        when(apiTemplateModelProvider.getApiTemplateModel(
+                        eq(PortalNavigationItemFixtures.ORG_ID), eq(PortalNavigationItemFixtures.ENV_ID), eq("api-1")))
+                .thenReturn(fakeApiModel);
 
         var update = UpdatePortalPageContent.builder().content("${api.name}").build();
         validator.validate(existing, update);
 
-        verify(portalNavigationTemplatingService).renderGraviteeMarkdown(
-            argThat(input -> input.rawMarkdown().value().equals("${api.name}") && input.model().get("api") == fakeApiModel)
-        );
+        verify(portalNavigationTemplatingService)
+                .renderGraviteeMarkdown(
+                        argThat(input -> input.rawMarkdown().value().equals("${api.name}")
+                                && input.model().get("api") == fakeApiModel));
     }
 }

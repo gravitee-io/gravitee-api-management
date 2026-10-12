@@ -30,16 +30,16 @@ import org.junit.jupiter.api.Test;
 
 class AuthzTimeSeriesQueryAdapterTest extends AbstractQueryAdapterTest {
 
-    private final AuthzTimeSeriesQueryAdapter adapter = new AuthzTimeSeriesQueryAdapter(new AuthzMeasuresQueryAdapter());
+    private final AuthzTimeSeriesQueryAdapter adapter =
+            new AuthzTimeSeriesQueryAdapter(new AuthzMeasuresQueryAdapter());
 
     @Test
     void should_build_a_date_histogram_named_after_the_metric() {
         var query = new TimeSeriesQuery(
-            buildTimeRange(),
-            List.of(),
-            86_400_000L,
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)))
-        );
+                buildTimeRange(),
+                List.of(),
+                86_400_000L,
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))));
 
         var aggs = new JsonObject(adapter.adapt(query)).getJsonObject("aggs");
         var histogram = aggs.getJsonObject("AUTHZ_DECISIONS#TIME_SERIES");
@@ -47,23 +47,27 @@ class AuthzTimeSeriesQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(aggs.fieldNames()).contains("AUTHZ_DECISIONS#TIME_SERIES");
         assertThat(histogram.containsKey("date_histogram")).isTrue();
         assertThat(histogram.getJsonObject("date_histogram").getString("field")).isEqualTo("@timestamp");
-        assertThat(histogram.getJsonObject("date_histogram").containsKey("fixed_interval")).isTrue();
+        assertThat(histogram.getJsonObject("date_histogram").containsKey("fixed_interval"))
+                .isTrue();
     }
 
     @Test
     void should_nest_a_facet_inside_the_date_histogram() {
         var query = new TimeSeriesQuery(
-            buildTimeRange(),
-            List.of(),
-            86_400_000L,
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))),
-            List.of(Facet.AUTHZ_DECISION),
-            10,
-            List.of()
-        );
+                buildTimeRange(),
+                List.of(),
+                86_400_000L,
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))),
+                List.of(Facet.AUTHZ_DECISION),
+                10,
+                List.of());
 
-        var histogram = new JsonObject(adapter.adapt(query)).getJsonObject("aggs").getJsonObject("AUTHZ_DECISIONS#TIME_SERIES");
-        var terms = histogram.getJsonObject("aggs").getJsonObject("AUTHZ_DECISIONS#AUTHZ_DECISION").getJsonObject("terms");
+        var histogram =
+                new JsonObject(adapter.adapt(query)).getJsonObject("aggs").getJsonObject("AUTHZ_DECISIONS#TIME_SERIES");
+        var terms = histogram
+                .getJsonObject("aggs")
+                .getJsonObject("AUTHZ_DECISIONS#AUTHZ_DECISION")
+                .getJsonObject("terms");
 
         assertThat(terms.getString("field")).isEqualTo("verdict");
     }
@@ -71,38 +75,41 @@ class AuthzTimeSeriesQueryAdapterTest extends AbstractQueryAdapterTest {
     @Test
     void should_build_the_facet_of_a_scoped_metric_inside_its_scope_filter_in_each_time_bucket() {
         var query = new TimeSeriesQuery(
-            buildTimeRange(),
-            List.of(),
-            86_400_000L,
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_FORBIDS, Set.of(Measure.COUNT))),
-            List.of(Facet.AUTHZ_ACTION),
-            1,
-            List.of()
-        );
+                buildTimeRange(),
+                List.of(),
+                86_400_000L,
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_FORBIDS, Set.of(Measure.COUNT))),
+                List.of(Facet.AUTHZ_ACTION),
+                1,
+                List.of());
 
-        var histogram = new JsonObject(adapter.adapt(query)).getJsonObject("aggs").getJsonObject("AUTHZ_FORBIDS#TIME_SERIES");
+        var histogram =
+                new JsonObject(adapter.adapt(query)).getJsonObject("aggs").getJsonObject("AUTHZ_FORBIDS#TIME_SERIES");
         var filterAgg = histogram.getJsonObject("aggs").getJsonObject("AUTHZ_FORBIDS#__FILTER__");
-        var terms = filterAgg.getJsonObject("aggs").getJsonObject("AUTHZ_FORBIDS#AUTHZ_ACTION").getJsonObject("terms");
+        var terms = filterAgg
+                .getJsonObject("aggs")
+                .getJsonObject("AUTHZ_FORBIDS#AUTHZ_ACTION")
+                .getJsonObject("terms");
 
         assertThat(histogram.getJsonObject("aggs").fieldNames()).containsExactly("AUTHZ_FORBIDS#__FILTER__");
-        assertThat(filterAgg.getJsonObject("filter").getJsonObject("term").getString("verdict")).isEqualTo("FORBID");
+        assertThat(filterAgg.getJsonObject("filter").getJsonObject("term").getString("verdict"))
+                .isEqualTo("FORBID");
         assertThat(terms.getInteger("size")).isEqualTo(1);
     }
 
     @Test
     void should_reject_more_than_one_facet() {
         var query = new TimeSeriesQuery(
-            buildTimeRange(),
-            List.of(),
-            86_400_000L,
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))),
-            List.of(Facet.AUTHZ_DECISION, Facet.AUTHZ_ACTION),
-            10,
-            List.of()
-        );
+                buildTimeRange(),
+                List.of(),
+                86_400_000L,
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))),
+                List.of(Facet.AUTHZ_DECISION, Facet.AUTHZ_ACTION),
+                10,
+                List.of());
 
         assertThatThrownBy(() -> adapter.adapt(query))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("single facet");
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("single facet");
     }
 }

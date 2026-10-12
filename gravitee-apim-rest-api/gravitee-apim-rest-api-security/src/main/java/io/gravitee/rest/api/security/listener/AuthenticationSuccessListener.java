@@ -69,11 +69,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
         final UserDetails details = (UserDetails) event.getAuthentication().getPrincipal();
         try {
             UserEntity registeredUser = userService.findBySource(
-                GraviteeContext.getCurrentOrganization(),
-                details.getSource(),
-                details.getSourceId(),
-                false
-            );
+                    GraviteeContext.getCurrentOrganization(), details.getSource(), details.getSourceId(), false);
             updateRegisteredUser(registeredUser, details);
             // Principal username is the technical identifier of the user
             // Dirty hack because spring security is requiring a username...
@@ -85,7 +81,10 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                 SecurityContextHolder.getContext().setAuthentication(event.getAuthentication());
             }
         } catch (UserNotFoundException unfe) {
-            log.debug("User not found for source '{}' and sourceId '{}', creating new user.", details.getSource(), details.getSourceId());
+            log.debug(
+                    "User not found for source '{}' and sourceId '{}', creating new user.",
+                    details.getSource(),
+                    details.getSourceId());
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setSource(details.getSource());
             newUser.setSourceId(details.getSourceId());
@@ -100,7 +99,8 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             }
 
             boolean addDefaultRole = false;
-            if (event.getAuthentication().getAuthorities() == null || event.getAuthentication().getAuthorities().isEmpty()) {
+            if (event.getAuthentication().getAuthorities() == null
+                    || event.getAuthentication().getAuthorities().isEmpty()) {
                 addDefaultRole = true;
             }
             UserEntity createdUser = userService.create(GraviteeContext.getExecutionContext(), newUser, addDefaultRole);
@@ -110,18 +110,22 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
 
             if (!addDefaultRole) {
                 String environmentId = GraviteeContext.getCurrentEnvironment() != null
-                    ? GraviteeContext.getCurrentEnvironment()
-                    : GraviteeContext.getDefaultEnvironment();
-                addRoles(RoleScope.ENVIRONMENT, environmentId, createdUser.getId(), event.getAuthentication().getAuthorities());
+                        ? GraviteeContext.getCurrentEnvironment()
+                        : GraviteeContext.getDefaultEnvironment();
                 addRoles(
-                    RoleScope.ORGANIZATION,
-                    createdUser.getOrganizationId(),
-                    createdUser.getId(),
-                    event.getAuthentication().getAuthorities()
-                );
+                        RoleScope.ENVIRONMENT,
+                        environmentId,
+                        createdUser.getId(),
+                        event.getAuthentication().getAuthorities());
+                addRoles(
+                        RoleScope.ORGANIZATION,
+                        createdUser.getOrganizationId(),
+                        createdUser.getId(),
+                        event.getAuthentication().getAuthorities());
             }
         } catch (MembershipAlreadyExistsException e) {
-            log.debug("MembershipAlreadyExistsException ignored in AuthenticationSuccessListener: {}", e.getMessage(), e);
+            log.debug(
+                    "MembershipAlreadyExistsException ignored in AuthenticationSuccessListener: {}", e.getMessage(), e);
         }
 
         userService.connect(GraviteeContext.getExecutionContext(), details.getUsername());
@@ -144,7 +148,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                 sb.append(StringUtils.newStringUtf8(Base64.encodeBase64(pictureData, false)));
                 return sb.toString();
             } else {
-                //null contentType means that pictureData is a String but doesn't starts with HTTP
+                // null contentType means that pictureData is a String but doesn't starts with HTTP
                 log.warn("Unable to compute the user picture from URL.");
             }
         } catch (IOException e) {
@@ -155,11 +159,9 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
     }
 
     private void updateRegisteredUser(UserEntity registeredUser, UserDetails details) {
-        if (
-            (details.getFirstname() != null && !details.getFirstname().equals(registeredUser.getFirstname())) ||
-            (details.getLastname() != null && !details.getLastname().equals(registeredUser.getLastname())) ||
-            (details.getEmail() != null && !details.getEmail().equals(registeredUser.getEmail()))
-        ) {
+        if ((details.getFirstname() != null && !details.getFirstname().equals(registeredUser.getFirstname()))
+                || (details.getLastname() != null && !details.getLastname().equals(registeredUser.getLastname()))
+                || (details.getEmail() != null && !details.getEmail().equals(registeredUser.getEmail()))) {
             UpdateUserEntity updateUserEntity = new UpdateUserEntity(registeredUser);
             updateUserEntity.setFirstname(details.getFirstname());
             updateUserEntity.setLastname(details.getLastname());
@@ -178,11 +180,10 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
      * @param authorities the authorities to parse
      * @return the roles
      */
-    private Set<String> getRolesFromAuthorities(RoleScope roleScope, Collection<? extends GrantedAuthority> authorities) {
-        return authorities
-            .stream()
-            .map(
-                (Function<GrantedAuthority, String>) grantedAuthority -> {
+    private Set<String> getRolesFromAuthorities(
+            RoleScope roleScope, Collection<? extends GrantedAuthority> authorities) {
+        return authorities.stream()
+                .map((Function<GrantedAuthority, String>) grantedAuthority -> {
                     String authority = grantedAuthority.getAuthority();
                     if (authority.contains(":")) {
                         String[] scopeAndName = authority.split(":");
@@ -191,9 +192,8 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                         }
                     }
                     return authority;
-                }
-            )
-            .collect(Collectors.toSet());
+                })
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -207,18 +207,19 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
      * @param authorities
      */
     private void addRoles(
-        RoleScope roleScope,
-        final String referenceId,
-        String userId,
-        Collection<? extends GrantedAuthority> authorities
-    ) {
+            RoleScope roleScope,
+            final String referenceId,
+            String userId,
+            Collection<? extends GrantedAuthority> authorities) {
         Set<String> rolesFromAuthorities = getRolesFromAuthorities(roleScope, authorities);
         if (!rolesFromAuthorities.isEmpty()) {
             MembershipService.MembershipReference membershipRef;
             if (roleScope == RoleScope.ENVIRONMENT) {
-                membershipRef = new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, referenceId);
+                membershipRef =
+                        new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, referenceId);
             } else {
-                membershipRef = new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, referenceId);
+                membershipRef =
+                        new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, referenceId);
             }
 
             rolesFromAuthorities.forEach(role -> {
@@ -226,18 +227,16 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                 if (SystemRole.ADMIN.name().equals(role)) {
                     roleName = role;
                 } else {
-                    Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(
-                        roleScope,
-                        role,
-                        GraviteeContext.getCurrentOrganization()
-                    );
+                    Optional<RoleEntity> optionalRole =
+                            roleService.findByScopeAndName(roleScope, role, GraviteeContext.getCurrentOrganization());
                     if (optionalRole.isPresent()) {
                         roleName = optionalRole.get().getName();
                     } else {
-                        Optional<RoleEntity> first = roleService
-                            .findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), roleScope)
-                            .stream()
-                            .findFirst();
+                        Optional<RoleEntity> first =
+                                roleService
+                                        .findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), roleScope)
+                                        .stream()
+                                        .findFirst();
                         if (first.isPresent()) {
                             roleName = first.get().getName();
                         } else {
@@ -247,19 +246,17 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                 }
                 try {
                     membershipService.addRoleToMemberOnReference(
-                        GraviteeContext.getExecutionContext(),
-                        membershipRef,
-                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                        new MembershipService.MembershipRole(roleScope, roleName)
-                    );
+                            GraviteeContext.getExecutionContext(),
+                            membershipRef,
+                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(roleScope, roleName));
                 } catch (MembershipAlreadyExistsException e) {
                     log.debug(
-                        "MembershipAlreadyExistsException ignored in addRoles for user '{}' and role '{}': {}",
-                        userId,
-                        roleName,
-                        e.getMessage(),
-                        e
-                    );
+                            "MembershipAlreadyExistsException ignored in addRoles for user '{}' and role '{}': {}",
+                            userId,
+                            roleName,
+                            e.getMessage(),
+                            e);
                 }
             });
         }

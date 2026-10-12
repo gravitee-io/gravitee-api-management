@@ -34,6 +34,8 @@ public class PolicyPluginQueryServiceLegacyWrapper implements PolicyPluginQueryS
 
     @Override
     public Set<PolicyPlugin> findAll() {
-        return policyPluginService.findAll().stream().map(PolicyPluginAdapter.INSTANCE::map).collect(Collectors.toSet());
+        return policyPluginService.findAll().stream()
+                .map(PolicyPluginAdapter.INSTANCE::map)
+                .collect(Collectors.toSet());
     }
 }

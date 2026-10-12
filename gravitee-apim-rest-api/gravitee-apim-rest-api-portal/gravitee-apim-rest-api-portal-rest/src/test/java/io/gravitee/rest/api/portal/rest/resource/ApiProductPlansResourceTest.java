@@ -114,15 +114,17 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
     @Test
     void should_exclude_restricted_plan_for_anonymous_viewer() {
         var available = plan("available", "Available", 1);
-        var restricted = plan("restricted", "Restricted", 2).toBuilder().excludedGroups(List.of("excluded-group")).build();
+        var restricted = plan("restricted", "Restricted", 2).toBuilder()
+                .excludedGroups(List.of("excluded-group"))
+                .build();
         givenPlans(available, restricted);
 
         var response = target(API_PRODUCT_ID + "/plans").request().get();
 
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         assertThat(response.readEntity(ApiProductPlansResponse.class).getData())
-            .extracting(ApiProductPlan::getId)
-            .containsExactly("available");
+                .extracting(ApiProductPlan::getId)
+                .containsExactly("available");
     }
 
     @Test
@@ -146,48 +148,51 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
     }
 
     private void givenPlans(io.gravitee.apim.core.plan.model.Plan... plans) {
-        when(
-            planSearchQueryService.searchPlans(
-                eq(API_PRODUCT_ID.toString()),
-                eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
-                any(PlanQuery.class),
-                isNull(),
-                eq(false)
-            )
-        ).thenReturn(List.of(plans));
+        when(planSearchQueryService.searchPlans(
+                        eq(API_PRODUCT_ID.toString()),
+                        eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
+                        any(PlanQuery.class),
+                        isNull(),
+                        eq(false)))
+                .thenReturn(List.of(plans));
     }
 
     private static Plan plan(String id, String name, int order) {
         return Plan.builder()
-            .id(id)
-            .name(name)
-            .order(order)
-            .definitionVersion(DefinitionVersion.V4)
-            .validation(Plan.PlanValidationType.AUTO)
-            .referenceId(API_PRODUCT_ID.toString())
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .planDefinitionHttpV4(
-                io.gravitee.definition.model.v4.plan.Plan.builder().mode(PlanMode.STANDARD).status(PlanStatus.PUBLISHED).build()
-            )
-            .build();
+                .id(id)
+                .name(name)
+                .order(order)
+                .definitionVersion(DefinitionVersion.V4)
+                .validation(Plan.PlanValidationType.AUTO)
+                .referenceId(API_PRODUCT_ID.toString())
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .mode(PlanMode.STANDARD)
+                        .status(PlanStatus.PUBLISHED)
+                        .build())
+                .build();
     }
 
     private static ApiProduct apiProduct() {
-        return ApiProduct.builder().id(API_PRODUCT_ID.toString()).environmentId(ENVIRONMENT_ID).name("AI Workspace").build();
+        return ApiProduct.builder()
+                .id(API_PRODUCT_ID.toString())
+                .environmentId(ENVIRONMENT_ID)
+                .name("AI Workspace")
+                .build();
     }
 
     private static PortalNavigationApiProduct apiProductNavigationItem() {
         return PortalNavigationApiProduct.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("organization-id")
-            .environmentId(ENVIRONMENT_ID)
-            .title("AI Workspace")
-            .segment("ai-workspace")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiProductId(API_PRODUCT_ID.toString())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("organization-id")
+                .environmentId(ENVIRONMENT_ID)
+                .title("AI Workspace")
+                .segment("ai-workspace")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiProductId(API_PRODUCT_ID.toString())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 }

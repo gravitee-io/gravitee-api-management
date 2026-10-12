@@ -28,9 +28,7 @@ class AuthzEntityMapperTest {
 
     @Test
     void toDeploy_resource_event_yields_deployable_with_engine_uid() {
-        Event event = event(
-            "evt-1",
-            """
+        Event event = event("evt-1", """
             {
               "id": "internal-uuid",
               "entityId": "custom.bookings",
@@ -41,8 +39,7 @@ class AuthzEntityMapperTest {
               "environmentId": "env-1",
               "updatedAt": "2026-01-01T00:00:00Z"
             }
-            """
-        );
+            """);
 
         AuthzEntityReactorDeployable d = mapper.toDeploy(event).blockingGet();
 
@@ -57,45 +54,40 @@ class AuthzEntityMapperTest {
 
     @Test
     void toDeploy_auto_derived_entityId_is_passed_through_for_synchronizer_to_filter() {
-        for (String autoDerived : new String[] { "api.bookings", "mcp.bookings.get", "agent.bot" }) {
-            Event event = event(
-                "evt-auto-" + autoDerived,
-                String.format(
-                    """
+        for (String autoDerived : new String[] {"api.bookings", "mcp.bookings.get", "agent.bot"}) {
+            Event event = event("evt-auto-" + autoDerived, String.format("""
                     {
                       "entityId": "%s",
                       "kind": "RESOURCE",
                       "attributes": {},
                       "parents": []
                     }
-                    """,
-                    autoDerived
-                )
-            );
+                    """, autoDerived));
 
             AuthzEntityReactorDeployable d = mapper.toDeploy(event).blockingGet();
-            assertThat(d).as("auto-derived id %s is decoded; filtering happens in the synchronizer", autoDerived).isNotNull();
+            assertThat(d)
+                    .as("auto-derived id %s is decoded; filtering happens in the synchronizer", autoDerived)
+                    .isNotNull();
             assertThat(d.entityId()).isEqualTo(autoDerived);
 
             AuthzEntityReactorDeployable u = mapper.toUndeploy(event).blockingGet();
-            assertThat(u).as("auto-derived id %s undeploy is decoded; filtering happens in the synchronizer", autoDerived).isNotNull();
+            assertThat(u)
+                    .as("auto-derived id %s undeploy is decoded; filtering happens in the synchronizer", autoDerived)
+                    .isNotNull();
             assertThat(u.entityId()).isEqualTo(autoDerived);
         }
     }
 
     @Test
     void toDeploy_principal_event_yields_Principal_engine_uid() {
-        Event event = event(
-            "evt-2",
-            """
+        Event event = event("evt-2", """
             {
               "entityId": "idp.am.alice",
               "kind": "PRINCIPAL",
               "attributes": {"email": "alice@example.com"},
               "parents": ["idp.am.admins"]
             }
-            """
-        );
+            """);
 
         AuthzEntityReactorDeployable d = mapper.toDeploy(event).blockingGet();
 
@@ -147,9 +139,7 @@ class AuthzEntityMapperTest {
 
     @Test
     void toDeploy_typed_entityType_payload_propagates_to_deployable_and_engine_uid() {
-        Event event = event(
-            "evt-typed",
-            """
+        Event event = event("evt-typed", """
             {
               "entityId": "alice",
               "kind": "PRINCIPAL",
@@ -157,8 +147,7 @@ class AuthzEntityMapperTest {
               "attributes": {"email": "alice@example.com"},
               "parents": []
             }
-            """
-        );
+            """);
 
         AuthzEntityReactorDeployable d = mapper.toDeploy(event).blockingGet();
 
@@ -170,17 +159,14 @@ class AuthzEntityMapperTest {
 
     @Test
     void toUndeploy_typed_entityType_payload_propagates_to_deployable_and_engine_uid() {
-        Event event = event(
-            "evt-typed-undeploy",
-            """
+        Event event = event("evt-typed-undeploy", """
             {
               "entityId": "doc-1",
               "kind": "RESOURCE",
               "entityType": "Doc",
               "environmentId": "env-1"
             }
-            """
-        );
+            """);
 
         AuthzEntityReactorDeployable d = mapper.toUndeploy(event).blockingGet();
 
@@ -192,17 +178,14 @@ class AuthzEntityMapperTest {
 
     @Test
     void toDeploy_legacy_payload_without_entityType_yields_null_entityType_on_deployable() {
-        Event event = event(
-            "evt-legacy",
-            """
+        Event event = event("evt-legacy", """
             {
               "entityId": "custom.bookings",
               "kind": "RESOURCE",
               "attributes": {},
               "parents": []
             }
-            """
-        );
+            """);
 
         AuthzEntityReactorDeployable d = mapper.toDeploy(event).blockingGet();
 
@@ -214,9 +197,8 @@ class AuthzEntityMapperTest {
     @Test
     void toDeploy_carries_event_updatedAt() {
         Event event = event(
-            "evt-upd-1",
-            "{\"entityId\": \"custom.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
-        );
+                "evt-upd-1",
+                "{\"entityId\": \"custom.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}");
         event.setUpdatedAt(new java.util.Date(1234L));
 
         AuthzEntityReactorDeployable deployable = mapper.toDeploy(event).blockingGet();
@@ -227,9 +209,8 @@ class AuthzEntityMapperTest {
     @Test
     void toDeploy_defaults_updatedAt_to_zero_when_event_has_none() {
         Event event = event(
-            "evt-upd-2",
-            "{\"entityId\": \"custom.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
-        );
+                "evt-upd-2",
+                "{\"entityId\": \"custom.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}");
         event.setUpdatedAt(null);
 
         AuthzEntityReactorDeployable deployable = mapper.toDeploy(event).blockingGet();

@@ -44,18 +44,19 @@ public class NativeApiDeployer extends AbstractApiDeployer<NativeApi> {
 
     @Override
     public List<String> getPlans(final NativeApi nativeApi) {
-        return nativeApi.getDefinition().getPlans().stream().map(NativePlan::getName).collect(Collectors.toList());
+        return nativeApi.getDefinition().getPlans().stream()
+                .map(NativePlan::getName)
+                .collect(Collectors.toList());
     }
 
     private List<NativePlan> filterPlans(final List<NativePlan> plans) {
         if (plans == null) {
             return List.of();
         }
-        return plans
-            .stream()
-            .filter(plan -> plan.getStatus() != null)
-            .filter(plan -> filterPlanStatus(plan.getStatus().getLabel()))
-            .filter(plan -> filterShardingTag(plan.getName(), plan.getId(), plan.getTags()))
-            .collect(Collectors.toList());
+        return plans.stream()
+                .filter(plan -> plan.getStatus() != null)
+                .filter(plan -> filterPlanStatus(plan.getStatus().getLabel()))
+                .filter(plan -> filterShardingTag(plan.getName(), plan.getId(), plan.getTags()))
+                .collect(Collectors.toList());
     }
 }

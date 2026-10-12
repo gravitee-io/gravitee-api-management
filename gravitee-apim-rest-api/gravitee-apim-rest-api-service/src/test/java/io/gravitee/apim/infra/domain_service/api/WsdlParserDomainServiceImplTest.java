@@ -50,10 +50,12 @@ class WsdlParserDomainServiceImplTest {
 
     @ParameterizedTest
     @ValueSource(
-        strings = {
-            "http://localhost:8080/spec.wsdl", "http://127.0.0.1/spec.wsdl", "http://169.254.1.2/spec.wsdl", "http://192.168.1.1/spec.wsdl",
-        }
-    )
+            strings = {
+                "http://localhost:8080/spec.wsdl",
+                "http://127.0.0.1/spec.wsdl",
+                "http://169.254.1.2/spec.wsdl",
+                "http://192.168.1.1/spec.wsdl",
+            })
     void should_block_ssrf_attack_vectors(String url) {
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
         when(importConfiguration.getImportWhitelist()).thenReturn(List.of());
@@ -64,7 +66,7 @@ class WsdlParserDomainServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "file:///etc/passwd", "not-a-valid-url-or-wsdl", "ftp://example.com/spec.wsdl" })
+    @ValueSource(strings = {"file:///etc/passwd", "not-a-valid-url-or-wsdl", "ftp://example.com/spec.wsdl"})
     void should_fail_parsing_non_url_inputs(String content) {
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
         when(importConfiguration.getImportWhitelist()).thenReturn(List.of());

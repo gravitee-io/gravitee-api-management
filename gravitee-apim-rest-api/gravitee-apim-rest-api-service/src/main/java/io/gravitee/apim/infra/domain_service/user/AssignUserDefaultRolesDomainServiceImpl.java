@@ -38,28 +38,31 @@ public class AssignUserDefaultRolesDomainServiceImpl implements AssignUserDefaul
 
     @Override
     public void assignDefaultRoles(ExecutionContext executionContext, String userId) {
-        RoleScope[] scopes = { RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT };
-        List<RoleEntity> defaultRoleByScopes = roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), scopes);
+        RoleScope[] scopes = {RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT};
+        List<RoleEntity> defaultRoleByScopes =
+                roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), scopes);
         if (defaultRoleByScopes == null || defaultRoleByScopes.isEmpty()) {
             throw new DefaultRoleNotFoundException(scopes);
         }
         for (RoleEntity defaultRoleByScope : defaultRoleByScopes) {
             switch (defaultRoleByScope.getScope()) {
-                case ORGANIZATION -> membershipService.addRoleToMemberOnReference(
-                    executionContext,
-                    new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, executionContext.getOrganizationId()),
-                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(RoleScope.ORGANIZATION, defaultRoleByScope.getName())
-                );
-                case ENVIRONMENT -> membershipService.addRoleToMemberOnReference(
-                    executionContext,
-                    new MembershipService.MembershipReference(
-                        MembershipReferenceType.ENVIRONMENT,
-                        executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : GraviteeContext.getDefaultEnvironment()
-                    ),
-                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, defaultRoleByScope.getName())
-                );
+                case ORGANIZATION ->
+                    membershipService.addRoleToMemberOnReference(
+                            executionContext,
+                            new MembershipService.MembershipReference(
+                                    MembershipReferenceType.ORGANIZATION, executionContext.getOrganizationId()),
+                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(RoleScope.ORGANIZATION, defaultRoleByScope.getName()));
+                case ENVIRONMENT ->
+                    membershipService.addRoleToMemberOnReference(
+                            executionContext,
+                            new MembershipService.MembershipReference(
+                                    MembershipReferenceType.ENVIRONMENT,
+                                    executionContext.hasEnvironmentId()
+                                            ? executionContext.getEnvironmentId()
+                                            : GraviteeContext.getDefaultEnvironment()),
+                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, defaultRoleByScope.getName()));
             }
         }
     }

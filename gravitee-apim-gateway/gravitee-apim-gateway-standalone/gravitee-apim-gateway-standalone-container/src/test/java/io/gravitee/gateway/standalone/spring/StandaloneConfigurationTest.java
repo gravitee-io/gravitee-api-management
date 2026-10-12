@@ -26,6 +26,8 @@ public class StandaloneConfigurationTest {
 
     @Test
     public void shouldReturnGatewayRepositoryScopeProvider() {
-        assertEquals(GatewayRepositoryScopeProvider.class, configuration.repositoryScopeProvider().getClass());
+        assertEquals(
+                GatewayRepositoryScopeProvider.class,
+                configuration.repositoryScopeProvider().getClass());
     }
 }

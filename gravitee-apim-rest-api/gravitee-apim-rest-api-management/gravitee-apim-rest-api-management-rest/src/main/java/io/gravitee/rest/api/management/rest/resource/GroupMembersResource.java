@@ -93,20 +93,17 @@ public class GroupMembersResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List group members")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of group's members",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = GroupMemberEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of group's members",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = GroupMemberEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ),
+    })
     public List<GroupMemberEntity> getGroupMembers() {
         return new ArrayList<>(getGroupMembers(null).getData());
     }
@@ -116,22 +113,19 @@ public class GroupMembersResource extends AbstractResource {
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Operation(summary = "List group members with pagination")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of group's members",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = GroupMemberEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of group's members",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = GroupMemberEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ),
+    })
     public PagedResult<GroupMemberEntity> getGroupMembers(@Valid @BeanParam Pageable pageable) {
-        //check that group exists
+        // check that group exists
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         groupService.findById(executionContext, group);
 
@@ -142,31 +136,20 @@ public class GroupMembersResource extends AbstractResource {
         }
 
         Page<MemberEntity> membersPage = membershipService.getMembersByReference(
-            executionContext,
-            MembershipReferenceType.GROUP,
-            group,
-            commonPageable
-        );
+                executionContext, MembershipReferenceType.GROUP, group, commonPageable);
 
-        Map<String, List<MemberEntity>> members = membersPage
-            .getContent()
-            .stream()
-            .filter(Objects::nonNull)
-            .collect(Collectors.groupingBy(MemberEntity::getId));
+        Map<String, List<MemberEntity>> members = membersPage.getContent().stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(MemberEntity::getId));
 
-        List<GroupMemberEntity> groupMemberEntities = members
-            .keySet()
-            .stream()
-            .map(id -> new GroupMemberEntity(members.get(id).get(0)))
-            .sorted(Comparator.comparing(GroupMemberEntity::getId))
-            .collect(toList());
+        List<GroupMemberEntity> groupMemberEntities = members.keySet().stream()
+                .map(id -> new GroupMemberEntity(members.get(id).get(0)))
+                .sorted(Comparator.comparing(GroupMemberEntity::getId))
+                .collect(toList());
 
         return new PagedResult<>(
-            groupMemberEntities,
-            membersPage.getPageNumber(),
-            (int) membersPage.getPageElements(),
-            (int) membersPage.getTotalElements()
-        );
+                groupMemberEntities, membersPage.getPageNumber(), (int) membersPage.getPageElements(), (int)
+                        membersPage.getTotalElements());
     }
 
     @POST
@@ -177,14 +160,12 @@ public class GroupMembersResource extends AbstractResource {
     @ApiResponse(responseCode = "200", description = "Member has been updated")
     @ApiResponse(responseCode = "400", description = "Membership is not valid")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE),
-            @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE),
+        @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE),
+    })
     public Response addOrUpdateGroupMember(@Valid @NotNull final List<GroupMembership> memberships) {
         // Check that group exists
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -192,29 +173,21 @@ public class GroupMembersResource extends AbstractResource {
 
         // check if user is a 'simple group admin' or a platform admin
         final boolean hasPermission = permissionService.hasPermission(
-            executionContext,
-            ENVIRONMENT_GROUP,
-            GraviteeContext.getCurrentEnvironment(),
-            CREATE,
-            UPDATE,
-            DELETE
-        );
+                executionContext, ENVIRONMENT_GROUP, GraviteeContext.getCurrentEnvironment(), CREATE, UPDATE, DELETE);
         if (!hasPermission) {
             if (groupEntity.getMaxInvitation() != null) {
-                final Set<MemberEntity> members = membershipService.getMembersByReference(
-                    executionContext,
-                    MembershipReferenceType.GROUP,
-                    group
-                );
-                final long membershipsToAddSize = memberships
-                    .stream()
-                    .map(GroupMembership::getId)
-                    .filter(s -> {
-                        final List<String> membershipIdsToSave = members.stream().map(MemberEntity::getId).toList();
-                        return !membershipIdsToSave.contains(s);
-                    })
-                    .count();
-                if ((groupService.getNumberOfMembers(executionContext, group) + membershipsToAddSize) > groupEntity.getMaxInvitation()) {
+                final Set<MemberEntity> members =
+                        membershipService.getMembersByReference(executionContext, MembershipReferenceType.GROUP, group);
+                final long membershipsToAddSize = memberships.stream()
+                        .map(GroupMembership::getId)
+                        .filter(s -> {
+                            final List<String> membershipIdsToSave =
+                                    members.stream().map(MemberEntity::getId).toList();
+                            return !membershipIdsToSave.contains(s);
+                        })
+                        .count();
+                if ((groupService.getNumberOfMembers(executionContext, group) + membershipsToAddSize)
+                        > groupEntity.getMaxInvitation()) {
                     throw new GroupMembersLimitationExceededException(groupEntity.getMaxInvitation());
                 }
             }
@@ -234,11 +207,7 @@ public class GroupMembersResource extends AbstractResource {
 
             if (membership.getId() != null) {
                 Set<RoleEntity> userRoles = membershipService.getRoles(
-                    MembershipReferenceType.GROUP,
-                    group,
-                    MembershipMemberType.USER,
-                    membership.getId()
-                );
+                        MembershipReferenceType.GROUP, group, MembershipMemberType.USER, membership.getId());
                 for (RoleEntity role : userRoles) {
                     switch (role.getScope()) {
                         case API:
@@ -273,8 +242,9 @@ public class GroupMembersResource extends AbstractResource {
                 Map<RoleScope, RoleEntity> roleEntities = new HashMap<>();
                 for (MemberRoleEntity item : membership.getRoles()) {
                     roleService
-                        .findByScopeAndName(item.getRoleScope(), item.getRoleName(), GraviteeContext.getCurrentOrganization())
-                        .ifPresent(roleEntity -> roleEntities.put(item.getRoleScope(), roleEntity));
+                            .findByScopeAndName(
+                                    item.getRoleScope(), item.getRoleName(), GraviteeContext.getCurrentOrganization())
+                            .ifPresent(roleEntity -> roleEntities.put(item.getRoleScope(), roleEntity));
                 }
 
                 MemberEntity updatedMembership = null;
@@ -282,18 +252,18 @@ public class GroupMembersResource extends AbstractResource {
                 // Replace if new role to add
                 RoleEntity apiRoleEntity = roleEntities.get(RoleScope.API);
                 if (apiRoleEntity != null && !apiRoleEntity.equals(previousApiRole)) {
-                    String roleName = getRoleName(RoleScope.API, apiRoleEntity, groupEntity, GroupEntity::isLockApiRole, hasPermission);
+                    String roleName = getRoleName(
+                            RoleScope.API, apiRoleEntity, groupEntity, GroupEntity::isLockApiRole, hasPermission);
 
                     // Block demotion only while the group still owns APIs.
-                    if (
-                        previousApiRole != null &&
-                        previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name()) &&
-                        !roleName.equals(SystemRole.PRIMARY_OWNER.name())
-                    ) {
+                    if (previousApiRole != null
+                            && previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name())
+                            && !roleName.equals(SystemRole.PRIMARY_OWNER.name())) {
                         groupService.assertGroupIsNotPrimaryOwner(executionContext, group, RoleScope.API);
                     }
 
-                    updatedMembership = updateRole(RoleScope.API, roleName, previousApiRole, membership, executionContext);
+                    updatedMembership =
+                            updateRole(RoleScope.API, roleName, previousApiRole, membership, executionContext);
                     if (previousApiRole != null && previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name())) {
                         groupService.updateApiPrimaryOwner(group, null);
                     } else if (roleName.equals(SystemRole.PRIMARY_OWNER.name())) {
@@ -304,36 +274,34 @@ public class GroupMembersResource extends AbstractResource {
                 RoleEntity applicationRoleEntity = roleEntities.get(RoleScope.APPLICATION);
                 if (applicationRoleEntity != null && !applicationRoleEntity.equals(previousApplicationRole)) {
                     String roleName = getRoleName(
-                        RoleScope.APPLICATION,
-                        applicationRoleEntity,
-                        groupEntity,
-                        GroupEntity::isLockApplicationRole,
-                        hasPermission
-                    );
+                            RoleScope.APPLICATION,
+                            applicationRoleEntity,
+                            groupEntity,
+                            GroupEntity::isLockApplicationRole,
+                            hasPermission);
                     updateRole(RoleScope.APPLICATION, roleName, previousApplicationRole, membership, executionContext);
                 }
 
                 RoleEntity apiProductRoleEntity = roleEntities.get(RoleScope.API_PRODUCT);
                 if (apiProductRoleEntity != null && !apiProductRoleEntity.equals(previousApiProductRole)) {
                     String roleName = getRoleName(
-                        RoleScope.API_PRODUCT,
-                        apiProductRoleEntity,
-                        groupEntity,
-                        GroupEntity::isLockApiProductRole,
-                        hasPermission
-                    );
+                            RoleScope.API_PRODUCT,
+                            apiProductRoleEntity,
+                            groupEntity,
+                            GroupEntity::isLockApiProductRole,
+                            hasPermission);
 
                     // Block demotion only while the group still owns API products.
-                    if (
-                        previousApiProductRole != null &&
-                        previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name()) &&
-                        !roleName.equals(SystemRole.PRIMARY_OWNER.name())
-                    ) {
+                    if (previousApiProductRole != null
+                            && previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name())
+                            && !roleName.equals(SystemRole.PRIMARY_OWNER.name())) {
                         groupService.assertGroupIsNotPrimaryOwner(executionContext, group, RoleScope.API_PRODUCT);
                     }
 
-                    updatedMembership = updateRole(RoleScope.API_PRODUCT, roleName, previousApiProductRole, membership, executionContext);
-                    if (previousApiProductRole != null && previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name())) {
+                    updatedMembership = updateRole(
+                            RoleScope.API_PRODUCT, roleName, previousApiProductRole, membership, executionContext);
+                    if (previousApiProductRole != null
+                            && previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name())) {
                         groupService.updateApiProductPrimaryOwner(group, null);
                     } else if (roleName.equals(SystemRole.PRIMARY_OWNER.name())) {
                         groupService.updateApiProductPrimaryOwner(group, updatedMembership.getId());
@@ -342,25 +310,33 @@ public class GroupMembersResource extends AbstractResource {
 
                 RoleEntity integrationRoleEntity = roleEntities.get(RoleScope.INTEGRATION);
                 if (integrationRoleEntity != null && !integrationRoleEntity.equals(previousIntegrationRole)) {
-                    String roleName = getRoleName(RoleScope.INTEGRATION, integrationRoleEntity, groupEntity, e -> true, hasPermission);
+                    String roleName = getRoleName(
+                            RoleScope.INTEGRATION, integrationRoleEntity, groupEntity, e -> true, hasPermission);
                     updateRole(RoleScope.INTEGRATION, roleName, previousIntegrationRole, membership, executionContext);
                 }
 
                 RoleEntity clusterRoleEntity = roleEntities.get(RoleScope.CLUSTER);
                 if (clusterRoleEntity != null && !clusterRoleEntity.equals(previousClusterRole)) {
-                    String roleName = getRoleName(RoleScope.CLUSTER, clusterRoleEntity, groupEntity, e -> true, hasPermission);
+                    String roleName =
+                            getRoleName(RoleScope.CLUSTER, clusterRoleEntity, groupEntity, e -> true, hasPermission);
                     updateRole(RoleScope.CLUSTER, roleName, previousClusterRole, membership, executionContext);
                 }
 
                 RoleEntity explorerRoleEntity = roleEntities.get(RoleScope.EXPLORER);
                 if (explorerRoleEntity != null && !explorerRoleEntity.equals(previousExplorerRole)) {
-                    String roleName = getRoleName(RoleScope.EXPLORER, explorerRoleEntity, groupEntity, e -> true, hasPermission);
+                    String roleName =
+                            getRoleName(RoleScope.EXPLORER, explorerRoleEntity, groupEntity, e -> true, hasPermission);
                     updateRole(RoleScope.EXPLORER, roleName, previousExplorerRole, membership, executionContext);
                 }
 
                 RoleEntity groupRoleEntity = roleEntities.get(RoleScope.GROUP);
                 if (groupRoleEntity != null && !groupRoleEntity.equals(previousGroupRole)) {
-                    updateRole(RoleScope.GROUP, groupRoleEntity.getName(), previousGroupRole, membership, executionContext);
+                    updateRole(
+                            RoleScope.GROUP,
+                            groupRoleEntity.getName(),
+                            previousGroupRole,
+                            membership,
+                            executionContext);
                 }
 
                 // Delete if existing and new role is empty
@@ -374,16 +350,14 @@ public class GroupMembersResource extends AbstractResource {
                 deleteIfNewAndPreviousRoleNull(groupRoleEntity, previousGroupRole, membershipId);
 
                 // Send notification
-                if (
-                    previousApiRole == null &&
-                    previousApiProductRole == null &&
-                    previousApplicationRole == null &&
-                    previousGroupRole == null &&
-                    previousIntegrationRole == null &&
-                    previousClusterRole == null &&
-                    previousExplorerRole == null &&
-                    updatedMembership != null
-                ) {
+                if (previousApiRole == null
+                        && previousApiProductRole == null
+                        && previousApplicationRole == null
+                        && previousGroupRole == null
+                        && previousIntegrationRole == null
+                        && previousClusterRole == null
+                        && previousExplorerRole == null
+                        && updatedMembership != null) {
                     UserEntity userEntity = this.userService.findById(executionContext, updatedMembership.getId());
                     Map<String, Object> params = new HashMap<>();
                     params.put("group", groupEntity);
@@ -394,9 +368,9 @@ public class GroupMembersResource extends AbstractResource {
         }
 
         eventManager.publishEvent(
-            ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
-            new ApplicationAlertMembershipEvent(executionContext.getOrganizationId(), Collections.emptySet(), Collections.singleton(group))
-        );
+                ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
+                new ApplicationAlertMembershipEvent(
+                        executionContext.getOrganizationId(), Collections.emptySet(), Collections.singleton(group)));
 
         return Response.ok().build();
     }
@@ -404,22 +378,20 @@ public class GroupMembersResource extends AbstractResource {
     private void deleteIfNewAndPreviousRoleNull(RoleEntity newRole, RoleEntity previousRole, String membershipId) {
         if (newRole == null && previousRole != null) {
             membershipService.removeRole(
-                MembershipReferenceType.GROUP,
-                group,
-                MembershipMemberType.USER,
-                membershipId,
-                previousRole.getId()
-            );
+                    MembershipReferenceType.GROUP,
+                    group,
+                    MembershipMemberType.USER,
+                    membershipId,
+                    previousRole.getId());
         }
     }
 
     String getRoleName(
-        RoleScope scope,
-        RoleEntity roleEntity,
-        GroupEntity groupEntity,
-        Predicate<GroupEntity> isLocked,
-        boolean hasPermission
-    ) {
+            RoleScope scope,
+            RoleEntity roleEntity,
+            GroupEntity groupEntity,
+            Predicate<GroupEntity> isLocked,
+            boolean hasPermission) {
         String roleName = roleEntity.getName();
         if (!hasPermission && isLocked.test(groupEntity)) {
             String overrideRole = null;
@@ -431,7 +403,8 @@ public class GroupMembersResource extends AbstractResource {
 
             // If a group doesn't have this scope configured, try default roles
             if (overrideRole == null) {
-                final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), scope);
+                final List<RoleEntity> defaultRoles =
+                        roleService.findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), scope);
                 if (defaultRoles != null && !defaultRoles.isEmpty()) {
                     overrideRole = defaultRoles.getFirst().getName();
                 }
@@ -446,26 +419,24 @@ public class GroupMembersResource extends AbstractResource {
     }
 
     MemberEntity updateRole(
-        RoleScope scope,
-        String newRoleName,
-        RoleEntity previousRole,
-        GroupMembership membership,
-        ExecutionContext executionContext
-    ) {
+            RoleScope scope,
+            String newRoleName,
+            RoleEntity previousRole,
+            GroupMembership membership,
+            ExecutionContext executionContext) {
         var updatedMembership = membershipService.addRoleToMemberOnReference(
-            executionContext,
-            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
-            new MembershipService.MembershipMember(membership.getId(), membership.getReference(), MembershipMemberType.USER),
-            new MembershipService.MembershipRole(scope, newRoleName)
-        );
+                executionContext,
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
+                new MembershipService.MembershipMember(
+                        membership.getId(), membership.getReference(), MembershipMemberType.USER),
+                new MembershipService.MembershipRole(scope, newRoleName));
         if (previousRole != null) {
             membershipService.removeRole(
-                MembershipReferenceType.GROUP,
-                group,
-                MembershipMemberType.USER,
-                updatedMembership.getId(),
-                previousRole.getId()
-            );
+                    MembershipReferenceType.GROUP,
+                    group,
+                    MembershipMemberType.USER,
+                    updatedMembership.getId(),
+                    previousRole.getId());
         }
         return updatedMembership;
     }

@@ -32,7 +32,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<QualityRule, String> implements QualityRuleRepository {
+public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<QualityRule, String>
+        implements QualityRuleRepository {
 
     JdbcQualityRuleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "quality_rules");
@@ -41,15 +42,15 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
     @Override
     protected JdbcObjectMapper<QualityRule> buildOrm() {
         return JdbcObjectMapper.builder(QualityRule.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, QualityRule.ReferenceType.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("weight", Types.INTEGER, int.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, QualityRule.ReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("weight", Types.INTEGER, int.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -58,40 +59,38 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
     }
 
     @Override
-    public List<QualityRule> findByReference(QualityRule.ReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<QualityRule> findByReference(QualityRule.ReferenceType referenceType, String referenceId)
+            throws TechnicalException {
         log.debug("JdbcQualityRuleRepository.findByReference({}, {})", referenceType, referenceId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
-                getOrm().getRowMapper(),
-                referenceType.name(),
-                referenceId
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
+                    getOrm().getRowMapper(),
+                    referenceType.name(),
+                    referenceId);
         } catch (final Exception ex) {
-            final String error =
-                "An error occurred when finding all quality rules with findByReference " + referenceType + " [" + referenceId + "]";
+            final String error = "An error occurred when finding all quality rules with findByReference "
+                    + referenceType + " [" + referenceId + "]";
             log.error(error, ex);
             throw new TechnicalException(error, ex);
         }
     }
 
     @Override
-    public List<String> deleteByReferenceIdAndReferenceType(final String referenceId, final QualityRule.ReferenceType referenceType)
-        throws TechnicalException {
+    public List<String> deleteByReferenceIdAndReferenceType(
+            final String referenceId, final QualityRule.ReferenceType referenceType) throws TechnicalException {
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
-                String.class,
-                referenceId,
-                referenceType.name()
-            );
+                    "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                    String.class,
+                    referenceId,
+                    referenceType.name());
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
-                    referenceId,
-                    referenceType.name()
-                );
+                        "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                        referenceId,
+                        referenceType.name());
             }
             return rows;
         } catch (final Exception ex) {

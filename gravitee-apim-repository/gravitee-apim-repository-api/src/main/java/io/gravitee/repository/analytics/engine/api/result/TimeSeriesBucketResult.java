@@ -16,7 +16,6 @@
 package io.gravitee.repository.analytics.engine.api.result;
 
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
-import io.gravitee.repository.analytics.engine.api.query.Facet;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +23,8 @@ import java.util.Map;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record TimeSeriesBucketResult(String key, Long timestamp, List<FacetBucketResult> buckets, Map<Measure, Number> measures) {
+public record TimeSeriesBucketResult(
+        String key, Long timestamp, List<FacetBucketResult> buckets, Map<Measure, Number> measures) {
     public static TimeSeriesBucketResult ofBuckets(String key, Long timestamp, List<FacetBucketResult> buckets) {
         return new TimeSeriesBucketResult(key, timestamp, buckets, null);
     }

@@ -65,17 +65,18 @@ public class PlatformLogsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get platform logs", description = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
+    @Operation(
+            summary = "Get platform logs",
+            description = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Platform logs",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            schema = @Schema(implementation = PlatformRequestItemSearchLogResponse.class)
-        )
-    )
+            responseCode = "200",
+            description = "Platform logs",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PlatformRequestItemSearchLogResponse.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)})
     public SearchLogResponse<PlatformRequestItem> getPlatformLogs(@BeanParam LogsParam param) {
         param.validate();
 
@@ -107,12 +108,7 @@ public class PlatformLogsResource extends AbstractResource {
             applicationIds = applicationService.findIdsByEnvironment(executionContext);
         } else {
             applicationIds = applicationService.findIdsByUserAndPermission(
-                executionContext,
-                getAuthenticatedUser(),
-                null,
-                APPLICATION_LOG,
-                READ
-            );
+                    executionContext, getAuthenticatedUser(), null, APPLICATION_LOG, READ);
         }
         if (!applicationIds.isEmpty()) {
             terms.put("application", applicationIds);
@@ -122,11 +118,10 @@ public class PlatformLogsResource extends AbstractResource {
         if (isAdmin()) {
             apiIds = apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
         } else {
-            apiIds = apiAuthorizationService
-                .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
-                .stream()
-                .filter(appId -> permissionService.hasPermission(executionContext, API_LOG, appId, READ))
-                .collect(Collectors.toSet());
+            apiIds =
+                    apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), null, true).stream()
+                            .filter(appId -> permissionService.hasPermission(executionContext, API_LOG, appId, READ))
+                            .collect(Collectors.toSet());
         }
         if (!apiIds.isEmpty()) {
             terms.put("api", apiIds);
@@ -138,14 +133,18 @@ public class PlatformLogsResource extends AbstractResource {
     @GET
     @Path("/{log}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a specific log", description = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
+    @Operation(
+            summary = "Get a specific log",
+            description = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Single log",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiRequest.class))
-    )
+            responseCode = "200",
+            description = "Single log",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiRequest.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)})
     public ApiRequest getPlatformLog(@PathParam("log") String logId, @QueryParam("timestamp") Long timestamp) {
         return logsService.findApiLog(GraviteeContext.getExecutionContext(), logId, timestamp);
     }
@@ -154,20 +153,20 @@ public class PlatformLogsResource extends AbstractResource {
     @Path("export")
     @Produces("text/csv")
     @Operation(
-        summary = "Export platform logs as CSV",
-        description = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service"
-    )
+            summary = "Export platform logs as CSV",
+            description = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Platform logs as CSV",
-        content = @Content(mediaType = "text/csv", schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "Platform logs as CSV",
+            content = @Content(mediaType = "text/csv", schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)})
     public Response exportPlatformLogsAsCSV(@BeanParam LogsParam param) {
         final SearchLogResponse<PlatformRequestItem> searchLogResponse = getPlatformLogs(param);
         return Response.ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
-            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", "platform", System.currentTimeMillis()))
-            .build();
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        format("attachment;filename=logs-%s-%s.csv", "platform", System.currentTimeMillis()))
+                .build();
     }
 }

@@ -60,8 +60,8 @@ class HttpGetEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitMQE
 
     @org.testcontainers.junit.jupiter.Container
     protected static final VaultContainer vaultContainer = new VaultContainer<>("hashicorp/vault:1.13.3")
-        .withVaultToken(VAULT_TOKEN)
-        .dependsOn(rabbitmqContainer);
+            .withVaultToken(VAULT_TOKEN)
+            .dependsOn(rabbitmqContainer);
 
     @AfterAll
     static void cleanup() {
@@ -70,7 +70,8 @@ class HttpGetEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitMQE
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     @Override
@@ -87,12 +88,14 @@ class HttpGetEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitMQE
         configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "vault");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.host", vaultContainer.getHost());
-        configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.port", vaultContainer.getMappedPort(8200));
+        configurationBuilder.setYamlProperty(
+                "api.secrets.providers[0].configuration.port", vaultContainer.getMappedPort(8200));
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.ssl.enabled", "false");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.method", "token");
         configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.config.token", token);
         try {
-            vaultContainer.execInContainer("vault", "kv", "put", "secret/rabbitmq", "host=" + rabbitmqContainer.getHost());
+            vaultContainer.execInContainer(
+                    "vault", "kv", "put", "secret/rabbitmq", "host=" + rabbitmqContainer.getHost());
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -100,11 +103,10 @@ class HttpGetEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitMQE
 
     @Override
     public void configureSecretProviders(
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-    ) {
-        secretProviderPlugins.add(
-            SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
-        );
+            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                    secretProviderPlugins) {
+        secretProviderPlugins.add(SecretProviderBuilder.build(
+                HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class));
     }
 
     @Override
@@ -114,98 +116,97 @@ class HttpGetEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitMQE
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-rabbitmq-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/http-get/http-get-entrypoint-rabbitmq-endpoint.json"})
     void should_receive_messages(HttpClient client) {
-        client
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                return request.send();
-            })
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMap(response -> publishToRabbitMQ(exchange, routingKey, List.of("message")).andThen(response.body()))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                final JsonObject jsonResponse = new JsonObject(body.toString());
-                final JsonArray items = jsonResponse.getJsonArray("items");
-                assertThat(items).hasSize(1);
-                final JsonObject message = items.getJsonObject(0);
-                assertThat(message.getString("content")).isEqualTo("message");
-                return true;
-            });
+        client.rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                    return request.send();
+                })
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMap(response -> publishToRabbitMQ(exchange, routingKey, List.of("message"))
+                        .andThen(response.body()))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    final JsonObject jsonResponse = new JsonObject(body.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("message");
+                    return true;
+                });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-rabbitmq-endpoint-secret.json" })
+    @DeployApi({"/apis/v4/messages/http-get/http-get-entrypoint-rabbitmq-endpoint-secret.json"})
     void should_receive_messages_with_secret(HttpClient client) {
-        client
-            .rxRequest(HttpMethod.GET, "/test-secret")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                return request.send();
-            })
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMap(response -> publishToRabbitMQ(exchange, routingKey, List.of("message")).andThen(response.body()))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                final JsonObject jsonResponse = new JsonObject(body.toString());
-                final JsonArray items = jsonResponse.getJsonArray("items");
-                assertThat(items).hasSize(1);
-                final JsonObject message = items.getJsonObject(0);
-                assertThat(message.getString("content")).isEqualTo("message");
-                return true;
-            });
+        client.rxRequest(HttpMethod.GET, "/test-secret")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                    return request.send();
+                })
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMap(response -> publishToRabbitMQ(exchange, routingKey, List.of("message"))
+                        .andThen(response.body()))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    final JsonObject jsonResponse = new JsonObject(body.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("message");
+                    return true;
+                });
     }
 
-    @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
+    @EnumSource(
+            value = Qos.class,
+            names = {"AT_MOST_ONCE", "AT_LEAST_ONCE"})
     @ParameterizedTest(name = "should receive 400 bad request with {0} qos")
-    @DeployApi(
-        {
-            "/apis/v4/messages/http-get/http-get-entrypoint-rabbitmq-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get/http-get-entrypoint-rabbitmq-endpoint-at-most-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/http-get/http-get-entrypoint-rabbitmq-endpoint-at-least-once.json",
+        "/apis/v4/messages/http-get/http-get-entrypoint-rabbitmq-endpoint-at-most-once.json",
+    })
     void should_receive_400_bad_request_with_qos(Qos qos, HttpClient client) {
-        client
-            .rxRequest(HttpMethod.GET, "/test-" + qos.getLabel())
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                return request.send();
-            })
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(400))
-            .flatMap(HttpClientResponse::body)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                final JsonObject jsonResponse = new JsonObject(body.toString());
-                assertThat(jsonResponse.getString("message")).isEqualTo("Incompatible Qos between entrypoint and endpoint");
-                assertThat(jsonResponse.getInteger("http_status_code")).isEqualTo(400);
-                return true;
-            });
+        client.rxRequest(HttpMethod.GET, "/test-" + qos.getLabel())
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                    return request.send();
+                })
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(400))
+                .flatMap(HttpClientResponse::body)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    final JsonObject jsonResponse = new JsonObject(body.toString());
+                    assertThat(jsonResponse.getString("message"))
+                            .isEqualTo("Incompatible Qos between entrypoint and endpoint");
+                    assertThat(jsonResponse.getInteger("http_status_code")).isEqualTo(400);
+                    return true;
+                });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-rabbitmq-endpoint-failure.json" })
+    @DeployApi({"/apis/v4/messages/http-get/http-get-entrypoint-rabbitmq-endpoint-failure.json"})
     void should_receive_error_messages_when_error_occurred(HttpClient client) {
-        client
-            .rxRequest(HttpMethod.GET, "/test-failure")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(500);
-                return response.body();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                final JsonObject jsonResponse = new JsonObject(body.toString());
-                assertThat(jsonResponse.getString("message")).isEqualTo("Endpoint connection failed");
-                assertThat(jsonResponse.getInteger("http_status_code")).isEqualTo(500);
-                return true;
-            });
+        client.rxRequest(HttpMethod.GET, "/test-failure")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(500);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    final JsonObject jsonResponse = new JsonObject(body.toString());
+                    assertThat(jsonResponse.getString("message")).isEqualTo("Endpoint connection failed");
+                    assertThat(jsonResponse.getInteger("http_status_code")).isEqualTo(500);
+                    return true;
+                });
     }
 }

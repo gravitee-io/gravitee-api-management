@@ -45,15 +45,14 @@ public class DeleteDashboardUseCase {
 
     public void execute(Input input) {
         var existing = dashboardDomainService
-            .findById(input.dashboardId)
-            .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId));
+                .findById(input.dashboardId)
+                .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId));
         dashboardDomainService.delete(input.dashboardId());
         createAuditLog(existing, input.auditInfo);
     }
 
     private void createAuditLog(Dashboard dashboard, AuditInfo auditInfo) {
-        auditService.createDashboardAuditLog(
-            DashboardAuditLogEntity.builder()
+        auditService.createDashboardAuditLog(DashboardAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(DashboardAuditEvent.DASHBOARD_DELETED)
@@ -62,7 +61,6 @@ public class DeleteDashboardUseCase {
                 .oldValue(dashboard)
                 .createdAt(ZonedDateTime.now(TimeProvider.clock()))
                 .properties(Map.of(AuditProperties.DASHBOARD, dashboard.getId()))
-                .build()
-        );
+                .build());
     }
 }

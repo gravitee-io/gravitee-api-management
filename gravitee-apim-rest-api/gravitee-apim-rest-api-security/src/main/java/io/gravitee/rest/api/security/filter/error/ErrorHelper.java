@@ -31,12 +31,14 @@ public class ErrorHelper {
 
     private static final GraviteeMapper GRAVITEE_MAPPER = new GraviteeMapper();
 
-    public static void sendError(final HttpServletResponse httpServletResponse, final int errorCode, final String errorMsg)
-        throws IOException {
+    public static void sendError(
+            final HttpServletResponse httpServletResponse, final int errorCode, final String errorMsg)
+            throws IOException {
         httpServletResponse.setStatus(errorCode);
         httpServletResponse
-            .getOutputStream()
-            .print(GRAVITEE_MAPPER.writeValueAsString(Error.builder().httpStatus(errorCode).message(errorMsg).build()));
+                .getOutputStream()
+                .print(GRAVITEE_MAPPER.writeValueAsString(
+                        Error.builder().httpStatus(errorCode).message(errorMsg).build()));
         httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
     }
 }

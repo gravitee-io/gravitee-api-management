@@ -37,7 +37,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<ApiQualityRule> implements ApiQualityRuleRepository {
+public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<ApiQualityRule>
+        implements ApiQualityRuleRepository {
 
     JdbcApiQualityRuleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "api_quality_rules");
@@ -46,25 +47,22 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
     @Override
     protected JdbcObjectMapper<ApiQualityRule> buildOrm() {
         return JdbcObjectMapper.builder(ApiQualityRule.class, this.tableName)
-            .updateSql(
-                "update " +
-                    this.tableName +
-                    " set " +
-                    " api = ?" +
-                    " , quality_rule = ?" +
-                    " , checked = ?" +
-                    " , created_at = ? " +
-                    " , updated_at = ? " +
-                    WHERE_CLAUSE +
-                    " api = ? " +
-                    " and quality_rule = ? "
-            )
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("quality_rule", Types.NVARCHAR, String.class)
-            .addColumn("checked", Types.BOOLEAN, boolean.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .updateSql("update " + this.tableName
+                        + " set "
+                        + " api = ?"
+                        + " , quality_rule = ?"
+                        + " , checked = ?"
+                        + " , created_at = ? "
+                        + " , updated_at = ? "
+                        + WHERE_CLAUSE
+                        + " api = ? "
+                        + " and quality_rule = ? ")
+                .addColumn("api", Types.NVARCHAR, String.class)
+                .addColumn("quality_rule", Types.NVARCHAR, String.class)
+                .addColumn("checked", Types.BOOLEAN, boolean.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -72,15 +70,13 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
         log.debug("JdbcApiQualityRuleRepository.findById({}, {})", api, qualityRule);
         try {
             final List<ApiQualityRule> apiQualityRules = jdbcTemplate.query(
-                "select" +
-                    " api, quality_rule, checked, created_at, updated_at " +
-                    " from " +
-                    this.tableName +
-                    " where api = ? and quality_rule = ?",
-                getOrm().getRowMapper(),
-                api,
-                qualityRule
-            );
+                    "select" + " api, quality_rule, checked, created_at, updated_at "
+                            + " from "
+                            + this.tableName
+                            + " where api = ? and quality_rule = ?",
+                    getOrm().getRowMapper(),
+                    api,
+                    qualityRule);
             return apiQualityRules.stream().findFirst();
         } catch (final Exception ex) {
             final String error = "Failed to find apiQualityRule by id";
@@ -94,7 +90,8 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
         log.debug("JdbcApiQualityRuleRepository.create({})", apiQualityRule);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiQualityRule));
-            return findById(apiQualityRule.getApi(), apiQualityRule.getQualityRule()).orElse(null);
+            return findById(apiQualityRule.getApi(), apiQualityRule.getQualityRule())
+                    .orElse(null);
         } catch (final Exception ex) {
             final String error = "Failed to create apiQualityRule";
             log.error(error, ex);
@@ -109,14 +106,12 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(
-                getOrm().buildUpdatePreparedStatementCreator(apiQualityRule, apiQualityRule.getApi(), apiQualityRule.getQualityRule())
-            );
-            return findById(apiQualityRule.getApi(), apiQualityRule.getQualityRule()).orElseThrow(() ->
-                new IllegalStateException(
-                    format("No apiQualityRule found with id [%s, %s]", apiQualityRule.getApi(), apiQualityRule.getQualityRule())
-                )
-            );
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(
+                            apiQualityRule, apiQualityRule.getApi(), apiQualityRule.getQualityRule()));
+            return findById(apiQualityRule.getApi(), apiQualityRule.getQualityRule())
+                    .orElseThrow(() -> new IllegalStateException(format(
+                            "No apiQualityRule found with id [%s, %s]",
+                            apiQualityRule.getApi(), apiQualityRule.getQualityRule())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -130,7 +125,8 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
     public void delete(String api, String qualityRule) throws TechnicalException {
         log.debug("JdbcApiQualityRuleRepository.delete({}, {})", api, qualityRule);
         try {
-            jdbcTemplate.update("delete from " + this.tableName + " where api = ? and quality_rule = ? ", api, qualityRule);
+            jdbcTemplate.update(
+                    "delete from " + this.tableName + " where api = ? and quality_rule = ? ", api, qualityRule);
         } catch (final Exception ex) {
             final String error = "Failed to delete apiQualityRule";
             log.error(error, ex);
@@ -142,9 +138,10 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
     public List<ApiQualityRule> findByQualityRule(String qualityRule) throws TechnicalException {
         log.debug("JdbcApiQualityRuleRepository.findByQualityRule({})", qualityRule);
         try {
-            final String query =
-                "select " + " api, quality_rule, checked, created_at, updated_at " + " from " + this.tableName + " where quality_rule = ? ";
-            return jdbcTemplate.query(query, (PreparedStatement ps) -> ps.setString(1, qualityRule), getOrm().getRowMapper());
+            final String query = "select " + " api, quality_rule, checked, created_at, updated_at " + " from "
+                    + this.tableName + " where quality_rule = ? ";
+            return jdbcTemplate.query(
+                    query, (PreparedStatement ps) -> ps.setString(1, qualityRule), getOrm().getRowMapper());
         } catch (final Exception ex) {
             final String error = "Failed to find apiQualityRule by quality rule";
             log.error(error, ex);
@@ -156,8 +153,8 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
     public List<ApiQualityRule> findByApi(String api) throws TechnicalException {
         log.debug("JdbcApiQualityRuleRepository.findByApi({})", api);
         try {
-            final String query =
-                "select " + " api, quality_rule, checked, created_at, updated_at " + " from " + this.tableName + " where api = ? ";
+            final String query = "select " + " api, quality_rule, checked, created_at, updated_at " + " from "
+                    + this.tableName + " where api = ? ";
             return jdbcTemplate.query(query, (PreparedStatement ps) -> ps.setString(1, api), getOrm().getRowMapper());
         } catch (final Exception ex) {
             final String error = "Failed to find apiQualityRule by api";

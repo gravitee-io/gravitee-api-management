@@ -49,9 +49,8 @@ public class PortalNavigationItemDefaultSegmentUpgrader implements Upgrader {
     private final PortalNavigationItemRepository portalNavigationItemRepository;
 
     public PortalNavigationItemDefaultSegmentUpgrader(
-        @Lazy EnvironmentRepository environmentRepository,
-        @Lazy PortalNavigationItemRepository portalNavigationItemRepository
-    ) {
+            @Lazy EnvironmentRepository environmentRepository,
+            @Lazy PortalNavigationItemRepository portalNavigationItemRepository) {
         this.environmentRepository = environmentRepository;
         this.portalNavigationItemRepository = portalNavigationItemRepository;
     }
@@ -69,26 +68,25 @@ public class PortalNavigationItemDefaultSegmentUpgrader implements Upgrader {
     }
 
     private void migrateEnvironment(String organizationId, String environmentId) throws TechnicalException {
-        var items = portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(organizationId, environmentId);
+        var items =
+                portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(organizationId, environmentId);
 
         // Group by (parentId, area) — mirrors the domain service's sibling query
-        var bySiblingGroup = items
-            .stream()
-            .collect(Collectors.groupingBy(item -> Objects.toString(item.getParentId(), "") + "|" + item.getArea()));
+        var bySiblingGroup = items.stream()
+                .collect(
+                        Collectors.groupingBy(item -> Objects.toString(item.getParentId(), "") + "|" + item.getArea()));
 
         int updatedCount = 0;
         for (var group : bySiblingGroup.values()) {
-            var used = group
-                .stream()
-                .filter(i -> !needsSegmentBackfill(i))
-                .map(PortalNavigationItem::getSegment)
-                .collect(Collectors.toCollection(HashSet::new));
+            var used = group.stream()
+                    .filter(i -> !needsSegmentBackfill(i))
+                    .map(PortalNavigationItem::getSegment)
+                    .collect(Collectors.toCollection(HashSet::new));
 
-            var nullSegmentItems = group
-                .stream()
-                .filter(PortalNavigationItemDefaultSegmentUpgrader::needsSegmentBackfill)
-                .sorted(Comparator.comparingInt(i -> Objects.requireNonNullElse(i.getOrder(), 0)))
-                .toList();
+            var nullSegmentItems = group.stream()
+                    .filter(PortalNavigationItemDefaultSegmentUpgrader::needsSegmentBackfill)
+                    .sorted(Comparator.comparingInt(i -> Objects.requireNonNullElse(i.getOrder(), 0)))
+                    .toList();
 
             for (var item : nullSegmentItems) {
                 String s = uniqueSlug(item.getTitle(), used);
@@ -100,7 +98,8 @@ public class PortalNavigationItemDefaultSegmentUpgrader implements Upgrader {
         }
 
         if (updatedCount > 0) {
-            log.debug("Backfilled segment for {} portal navigation items in environment {}", updatedCount, environmentId);
+            log.debug(
+                    "Backfilled segment for {} portal navigation items in environment {}", updatedCount, environmentId);
         }
     }
 
@@ -113,10 +112,10 @@ public class PortalNavigationItemDefaultSegmentUpgrader implements Upgrader {
         String base = slug(title);
         if (!used.contains(base)) return base;
         return IntStream.iterate(2, n -> n + 1)
-            .mapToObj(n -> base + "-" + n)
-            .filter(c -> !used.contains(c))
-            .findFirst()
-            .orElseThrow();
+                .mapToObj(n -> base + "-" + n)
+                .filter(c -> !used.contains(c))
+                .findFirst()
+                .orElseThrow();
     }
 
     private static String slug(String value) {

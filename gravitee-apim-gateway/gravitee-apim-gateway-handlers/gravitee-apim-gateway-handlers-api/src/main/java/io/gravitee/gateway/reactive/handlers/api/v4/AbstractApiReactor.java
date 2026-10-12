@@ -65,12 +65,11 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
     protected final List<InvokerHook> invokerHooks = new ArrayList<>();
 
     AbstractApiReactor(
-        Configuration configuration,
-        Api api,
-        DefaultEntrypointConnectorResolver entrypointConnectorResolver,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        TracingContext tracingContext
-    ) {
+            Configuration configuration,
+            Api api,
+            DefaultEntrypointConnectorResolver entrypointConnectorResolver,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            TracingContext tracingContext) {
         this.configuration = configuration;
         this.api = api;
         this.entrypointConnectorResolver = entrypointConnectorResolver;
@@ -92,7 +91,8 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
             if (entrypointConnector == null) {
                 return ctx.interruptWith(noEntrypointFailure());
             }
-            // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
+            // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for
+            // endpoint connector resolution).
             ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
 
             return entrypointConnector.handleRequest((C) ctx);
@@ -101,14 +101,16 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
 
     protected Completable handleEntrypointResponse(final MutableExecutionContext ctx) {
         return Completable.defer(() -> {
-            if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
-                final BaseEntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
-                if (entrypointConnector != null) {
-                    return entrypointConnector.handleResponse(ctx);
-                }
-            }
-            return Completable.complete();
-        }).compose(upstream -> timeout(upstream, ctx));
+                    if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
+                        final BaseEntrypointConnector entrypointConnector =
+                                ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+                        if (entrypointConnector != null) {
+                            return entrypointConnector.handleResponse(ctx);
+                        }
+                    }
+                    return Completable.complete();
+                })
+                .compose(upstream -> timeout(upstream, ctx));
     }
 
     protected ExecutionPhase endpointExecutionPhase() {
@@ -123,16 +125,12 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
             return upstream;
         }
 
-        return Completable.defer(() ->
-            upstream.timeout(
+        return Completable.defer(() -> upstream.timeout(
                 Math.max(
-                    requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
-                    requestTimeoutConfiguration.getRequestTimeout() - elapsedMillis(ctx)
-                ),
+                        requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
+                        requestTimeoutConfiguration.getRequestTimeout() - elapsedMillis(ctx)),
                 TimeUnit.MILLISECONDS,
-                onTimeout(ctx)
-            )
-        );
+                onTimeout(ctx)));
     }
 
     /**
@@ -146,8 +144,8 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
     static long elapsedMillis(final MutableExecutionContext ctx) {
         final long timestampNs = ctx.request() instanceof HttpRequestInternal request ? request.timestampNs() : -1;
         return timestampNs > 0
-            ? TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timestampNs)
-            : System.currentTimeMillis() - ctx.request().timestamp();
+                ? TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timestampNs)
+                : System.currentTimeMillis() - ctx.request().timestamp();
     }
 
     abstract void stopNow() throws Exception;
@@ -168,13 +166,12 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
     protected void warnAboutRequestsCutShort(final long stillRunning) {
         if (stillRunning > 0) {
             log.warn(
-                "API reactor is stopping while {} request(s) are still being handled: they will be cut short and " +
-                    "reported as errors. Waited up to {} ms for them ({}). [{}]",
-                stillRunning,
-                pendingRequestsTimeout,
-                PENDING_REQUESTS_TIMEOUT_PROPERTY,
-                this
-            );
+                    "API reactor is stopping while {} request(s) are still being handled: they will be cut short and "
+                            + "reported as errors. Waited up to {} ms for them ({}). [{}]",
+                    stillRunning,
+                    pendingRequestsTimeout,
+                    PENDING_REQUESTS_TIMEOUT_PROPERTY,
+                    this);
         }
     }
 
@@ -186,28 +183,31 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
         final AtomicLong lastSeenPendingRequests = new AtomicLong();
 
         return interval(STOP_UNTIL_INTERVAL_PERIOD_MS, TimeUnit.MILLISECONDS)
-            .timestamp()
-            .observeOn(Schedulers.io())
-            .takeWhile(t -> {
-                final long stillRunning = pendingRequests.get();
-                lastSeenPendingRequests.set(stillRunning);
-                return stillRunning > 0 && (t.value() + 1) * STOP_UNTIL_INTERVAL_PERIOD_MS < pendingRequestsTimeout;
-            })
-            .ignoreElements()
-            .onErrorComplete()
-            .doFinally(() -> {
-                warnAboutRequestsCutShort(lastSeenPendingRequests.get());
-                stopNow();
-            });
+                .timestamp()
+                .observeOn(Schedulers.io())
+                .takeWhile(t -> {
+                    final long stillRunning = pendingRequests.get();
+                    lastSeenPendingRequests.set(stillRunning);
+                    return stillRunning > 0 && (t.value() + 1) * STOP_UNTIL_INTERVAL_PERIOD_MS < pendingRequestsTimeout;
+                })
+                .ignoreElements()
+                .onErrorComplete()
+                .doFinally(() -> {
+                    warnAboutRequestsCutShort(lastSeenPendingRequests.get());
+                    stopNow();
+                });
     }
 
     protected void prepareCommonAttributes(MutableExecutionContext ctx) {
         ctx.setAttribute(ContextAttributes.ATTR_API, api.getId());
         ctx.setAttribute(ContextAttributes.ATTR_API_NAME, api.getName());
-        ctx.setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
+        ctx.setAttribute(
+                ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
         ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
         ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_API_TYPE, api.getDefinition().getType().name());
+        ctx.setInternalAttribute(
+                InternalContextAttributes.ATTR_INTERNAL_API_TYPE,
+                api.getDefinition().getType().name());
     }
 
     protected void dumpAcceptors() {

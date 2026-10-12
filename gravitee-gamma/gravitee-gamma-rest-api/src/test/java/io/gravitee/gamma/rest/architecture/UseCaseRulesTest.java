@@ -31,32 +31,34 @@ import io.gravitee.apim.core.UseCase;
  * dependencies. Catches the most common Hexagonal regression — a use case starts calling another use
  * case, which collapses the "one action per class" contract.
  */
-@AnalyzeClasses(packages = BASE_PACKAGE, importOptions = { ImportOption.DoNotIncludeTests.class })
+@AnalyzeClasses(
+        packages = BASE_PACKAGE,
+        importOptions = {ImportOption.DoNotIncludeTests.class})
 class UseCaseRulesTest {
 
     @ArchTest
     static final ArchRule use_cases_should_reside_in_use_case_packages = classes()
-        .that()
-        .haveSimpleNameEndingWith("UseCase")
-        .and()
-        .resideInAPackage(BASE_PACKAGE + "..")
-        .should()
-        .resideInAPackage(CORE_PACKAGE + "use_case..");
+            .that()
+            .haveSimpleNameEndingWith("UseCase")
+            .and()
+            .resideInAPackage(BASE_PACKAGE + "..")
+            .should()
+            .resideInAPackage(CORE_PACKAGE + "use_case..");
 
     @ArchTest
     static final ArchRule use_cases_should_be_annotated_with_use_case = classes()
-        .that()
-        .resideInAPackage(CORE_PACKAGE + "use_case..")
-        .and()
-        .haveSimpleNameEndingWith("UseCase")
-        .should()
-        .beAnnotatedWith(UseCase.class);
+            .that()
+            .resideInAPackage(CORE_PACKAGE + "use_case..")
+            .and()
+            .haveSimpleNameEndingWith("UseCase")
+            .should()
+            .beAnnotatedWith(UseCase.class);
 
     @ArchTest
     static final ArchRule use_cases_should_not_depend_on_other_use_cases = noClasses()
-        .that()
-        .areAnnotatedWith(UseCase.class)
-        .should()
-        .dependOnClassesThat()
-        .areAnnotatedWith(UseCase.class);
+            .that()
+            .areAnnotatedWith(UseCase.class)
+            .should()
+            .dependOnClassesThat()
+            .areAnnotatedWith(UseCase.class);
 }

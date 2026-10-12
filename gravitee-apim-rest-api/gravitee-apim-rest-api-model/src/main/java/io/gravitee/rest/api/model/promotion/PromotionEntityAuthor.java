@@ -70,13 +70,11 @@ public class PromotionEntityAuthor {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PromotionEntityAuthor that = (PromotionEntityAuthor) o;
-        return (
-            Objects.equals(userId, that.userId) &&
-            Objects.equals(displayName, that.displayName) &&
-            Objects.equals(email, that.email) &&
-            Objects.equals(source, that.source) &&
-            Objects.equals(sourceId, that.sourceId)
-        );
+        return (Objects.equals(userId, that.userId)
+                && Objects.equals(displayName, that.displayName)
+                && Objects.equals(email, that.email)
+                && Objects.equals(source, that.source)
+                && Objects.equals(sourceId, that.sourceId));
     }
 
     @Override
@@ -86,24 +84,21 @@ public class PromotionEntityAuthor {
 
     @Override
     public String toString() {
-        return (
-            "PromotionEntityAuthor{" +
-            "userId='" +
-            userId +
-            '\'' +
-            ", displayName='" +
-            displayName +
-            '\'' +
-            ", email='" +
-            email +
-            '\'' +
-            ", source='" +
-            source +
-            '\'' +
-            ", sourceId='" +
-            sourceId +
-            '\'' +
-            '}'
-        );
+        return ("PromotionEntityAuthor{" + "userId='"
+                + userId
+                + '\''
+                + ", displayName='"
+                + displayName
+                + '\''
+                + ", email='"
+                + email
+                + '\''
+                + ", source='"
+                + source
+                + '\''
+                + ", sourceId='"
+                + sourceId
+                + '\''
+                + '}');
     }
 }

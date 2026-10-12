@@ -49,7 +49,8 @@ public class GetCategoryApisUseCase {
     private final ApiQueryService apiQueryService;
 
     public Output execute(Input input) {
-        var categoryId = validateAndGetCategoryId(input.categoryIdOrKey(), input.executionContext().getEnvironmentId());
+        var categoryId = validateAndGetCategoryId(
+                input.categoryIdOrKey(), input.executionContext().getEnvironmentId());
 
         // Get api category orders by category id
         var apiCategoryOrders = this.apiCategoryOrderQueryService.findAllByCategoryId(categoryId);
@@ -61,40 +62,37 @@ public class GetCategoryApisUseCase {
         var apiCategoryOrderApiIds = extractApiIds(apiCategoryOrders);
 
         var apis = this.getUserApisByCategoryAndApis(
-            input.executionContext(),
-            input.isAdmin(),
-            input.onlyPublishedApiLifecycleState(),
-            input.currentUserId(),
-            categoryId,
-            apiCategoryOrderApiIds
-        ).toList();
+                        input.executionContext(),
+                        input.isAdmin(),
+                        input.onlyPublishedApiLifecycleState(),
+                        input.currentUserId(),
+                        categoryId,
+                        apiCategoryOrderApiIds)
+                .toList();
 
-        var results = mapToResult(apis, apiCategoryOrders).sorted(Comparator.comparingInt(o -> o.apiCategoryOrder.getOrder())).toList();
+        var results = mapToResult(apis, apiCategoryOrders)
+                .sorted(Comparator.comparingInt(o -> o.apiCategoryOrder.getOrder()))
+                .toList();
 
         return new Output(results);
     }
 
     private static Stream<Result> mapToResult(List<Api> apis, Set<ApiCategoryOrder> apiCategoryOrders) {
-        final Map<String, ApiCategoryOrder> apiCategoryOrderByApi = apiCategoryOrders
-            .stream()
-            .collect(Collectors.toMap(ApiCategoryOrder::getApiId, Function.identity()));
-        return apis
-            .stream()
-            .map(api ->
-                Optional.ofNullable(apiCategoryOrderByApi.get(api.getId()))
-                    .map(apiCategoryOrder -> new Result(apiCategoryOrder, api))
-                    .orElse(null)
-            )
-            .filter(Objects::nonNull);
+        final Map<String, ApiCategoryOrder> apiCategoryOrderByApi =
+                apiCategoryOrders.stream().collect(Collectors.toMap(ApiCategoryOrder::getApiId, Function.identity()));
+        return apis.stream()
+                .map(api -> Optional.ofNullable(apiCategoryOrderByApi.get(api.getId()))
+                        .map(apiCategoryOrder -> new Result(apiCategoryOrder, api))
+                        .orElse(null))
+                .filter(Objects::nonNull);
     }
 
     public record Input(
-        ExecutionContext executionContext,
-        String categoryIdOrKey,
-        String currentUserId,
-        boolean isAdmin,
-        boolean onlyPublishedApiLifecycleState
-    ) {
+            ExecutionContext executionContext,
+            String categoryIdOrKey,
+            String currentUserId,
+            boolean isAdmin,
+            boolean onlyPublishedApiLifecycleState) {
         public Input(ExecutionContext executionContext, String categoryIdOrKey, String currentUserId, boolean isAdmin) {
             this(executionContext, categoryIdOrKey, currentUserId, isAdmin, false);
         }
@@ -105,13 +103,12 @@ public class GetCategoryApisUseCase {
     public record Result(ApiCategoryOrder apiCategoryOrder, Api api) {}
 
     private Stream<Api> getUserApisByCategoryAndApis(
-        ExecutionContext executionContext,
-        boolean isAdmin,
-        boolean onlyPublishedApiLifecycleState,
-        String userId,
-        String categoryId,
-        List<String> apiIds
-    ) {
+            ExecutionContext executionContext,
+            boolean isAdmin,
+            boolean onlyPublishedApiLifecycleState,
+            String userId,
+            String categoryId,
+            List<String> apiIds) {
         var apiSearchCriteria = ApiSearchCriteria.builder().category(categoryId);
         if (onlyPublishedApiLifecycleState) {
             apiSearchCriteria.lifecycleStates(List.of(Api.ApiLifecycleState.PUBLISHED));
@@ -125,12 +122,7 @@ public class GetCategoryApisUseCase {
                 apiQueryCriteria.lifecycleStates(List.of(ApiLifecycleState.PUBLISHED));
             }
             var apiIdsInUserScope = this.apiAuthorizationDomainService.findIdsByUser(
-                executionContext,
-                userId,
-                apiQueryCriteria.build(),
-                null,
-                false
-            );
+                    executionContext, userId, apiQueryCriteria.build(), null, false);
 
             if (apiIdsInUserScope == null || apiIdsInUserScope.isEmpty()) {
                 return Stream.empty();
@@ -139,7 +131,10 @@ public class GetCategoryApisUseCase {
             apiSearchCriteria.ids(new ArrayList<>(apiIdsInUserScope));
         }
 
-        return this.apiQueryService.search(apiSearchCriteria.build(), null, ApiFieldFilter.builder().pictureExcluded(true).build());
+        return this.apiQueryService.search(
+                apiSearchCriteria.build(),
+                null,
+                ApiFieldFilter.builder().pictureExcluded(true).build());
     }
 
     private static List<String> extractApiIds(Set<ApiCategoryOrder> apiCategoryOrders) {

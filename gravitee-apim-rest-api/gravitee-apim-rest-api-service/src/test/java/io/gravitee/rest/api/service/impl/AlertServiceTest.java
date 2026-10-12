@@ -116,16 +116,24 @@ public class AlertServiceTest {
         alertService = getAlertService();
         alertService.afterPropertiesSet();
 
-        lenient().when(configuration.getProperty(eq("notifiers.email.subject"), anyString())).thenReturn("[Gravitee.io %s]");
+        lenient()
+                .when(configuration.getProperty(eq("notifiers.email.subject"), anyString()))
+                .thenReturn("[Gravitee.io %s]");
         lenient().when(configuration.getProperty("notifiers.email.host")).thenReturn("my.host.io");
-        lenient().when(configuration.getProperty(eq("notifiers.email.port"), eq(Integer.class))).thenReturn(587);
+        lenient()
+                .when(configuration.getProperty(eq("notifiers.email.port"), eq(Integer.class)))
+                .thenReturn(587);
         lenient().when(configuration.getProperty("notifiers.email.username")).thenReturn("username");
         lenient().when(configuration.getProperty("notifiers.email.password")).thenReturn("password");
         lenient()
-            .when(configuration.getProperty("notifiers.email.authMethods", String[].class))
-            .thenReturn(new String[] { "LOGIN", "PLAIN" });
-        lenient().when(configuration.getProperty("notifiers.email.starttls.enabled", Boolean.class, false)).thenReturn(false);
-        lenient().when(configuration.getProperty("notifiers.email.ssl.trustAll", Boolean.class, false)).thenReturn(false);
+                .when(configuration.getProperty("notifiers.email.authMethods", String[].class))
+                .thenReturn(new String[] {"LOGIN", "PLAIN"});
+        lenient()
+                .when(configuration.getProperty("notifiers.email.starttls.enabled", Boolean.class, false))
+                .thenReturn(false);
+        lenient()
+                .when(configuration.getProperty("notifiers.email.ssl.trustAll", Boolean.class, false))
+                .thenReturn(false);
         var consoleConfigEntity = mock(ConsoleConfigEntity.class);
         lenient().when(cloudHosted.getEnabled()).thenReturn(Boolean.FALSE);
         lenient().when(consoleConfigEntity.getCloudHosted()).thenReturn(cloudHosted);
@@ -134,21 +142,20 @@ public class AlertServiceTest {
 
     protected AlertServiceImpl getAlertService() {
         return new AlertServiceImpl(
-            configuration,
-            objectMapper,
-            alertTriggerRepository,
-            apiService,
-            applicationService,
-            planService,
-            alertEventRepository,
-            triggerProvider,
-            alertTriggerProviderManager,
-            parameterService,
-            apiRepository,
-            alertTriggerConverter,
-            environmentService,
-            configService
-        );
+                configuration,
+                objectMapper,
+                alertTriggerRepository,
+                apiService,
+                applicationService,
+                planService,
+                alertEventRepository,
+                triggerProvider,
+                alertTriggerProviderManager,
+                parameterService,
+                apiRepository,
+                alertTriggerConverter,
+                environmentService,
+                configService);
     }
 
     protected AlertEvent newAlertEvent() {
@@ -179,8 +186,7 @@ public class AlertServiceTest {
         final Notification emailNotification = new Notification();
         emailNotification.setType("default-email");
         emailNotification.setConfiguration(
-            "{\"from\":\"from@example.com\", \"to\":\"from@example.com\", \"subject\":\"[New Alert !]\", \"body\":\"Alert ! Alert !\"}"
-        );
+                "{\"from\":\"from@example.com\", \"to\":\"from@example.com\", \"subject\":\"[New Alert !]\", \"body\":\"Alert ! Alert !\"}");
 
         alert.setNotifications(List.of(emailNotification));
         alert.setConditions(List.of(StringCondition.equals("property", "value").build()));
@@ -189,7 +195,8 @@ public class AlertServiceTest {
         final AlertEventRuleEntity alertEventRuleEntity = new AlertEventRuleEntity();
         alertEventRuleEntity.setEvent(AlertEventType.API_CREATE.name());
         alert.setEventRules(List.of(alertEventRuleEntity));
-        alert.setFilters(List.of(StringCondition.equals("apiId", UUID.randomUUID().toString()).build()));
+        alert.setFilters(List.of(
+                StringCondition.equals("apiId", UUID.randomUUID().toString()).build()));
         alert.setDampening(Dampening.strictCount(1));
         return alert;
     }
@@ -207,8 +214,7 @@ public class AlertServiceTest {
         final Notification emailNotification = new Notification();
         emailNotification.setType("default-email");
         emailNotification.setConfiguration(
-            "{\"from\":\"from@example.com\", \"to\":\"from@example.com\", \"subject\":\"[New Alert !]\", \"body\":\"Alert ! Alert !\"}"
-        );
+                "{\"from\":\"from@example.com\", \"to\":\"from@example.com\", \"subject\":\"[New Alert !]\", \"body\":\"Alert ! Alert !\"}");
 
         alert.setNotifications(List.of(emailNotification));
         alert.setConditions(List.of(StringCondition.equals("property", "value").build()));
@@ -217,7 +223,8 @@ public class AlertServiceTest {
         final AlertEventRuleEntity alertEventRuleEntity = new AlertEventRuleEntity();
         alertEventRuleEntity.setEvent(AlertEventType.API_CREATE.name());
         alert.setEventRules(List.of(alertEventRuleEntity));
-        alert.setFilters(List.of(StringCondition.equals("apiId", UUID.randomUUID().toString()).build()));
+        alert.setFilters(List.of(
+                StringCondition.equals("apiId", UUID.randomUUID().toString()).build()));
         alert.setDampening(Dampening.strictCount(1));
         return alert;
     }
@@ -226,7 +233,8 @@ public class AlertServiceTest {
         return getAlertTriggerFromNew(alertEntity, executionContext.getEnvironmentId());
     }
 
-    protected AlertTrigger getAlertTriggerFromNew(NewAlertTriggerEntity alertEntity, String environmentId) throws JsonProcessingException {
+    protected AlertTrigger getAlertTriggerFromNew(NewAlertTriggerEntity alertEntity, String environmentId)
+            throws JsonProcessingException {
         var alert = new AlertTrigger();
         alert.setId(alertEntity.getId());
         alert.setName(alertEntity.getName());
@@ -238,13 +246,10 @@ public class AlertServiceTest {
         alert.setSeverity(alertEntity.getSeverity().name());
         alert.setTemplate(alertEntity.isTemplate());
         if (alertEntity.getEventRules() != null && !alertEntity.getEventRules().isEmpty()) {
-            alert.setEventRules(
-                alertEntity
-                    .getEventRules()
-                    .stream()
-                    .map(alertEventRuleEntity -> new AlertEventRule(AlertEventType.valueOf(alertEventRuleEntity.getEvent().toUpperCase())))
-                    .collect(toList())
-            );
+            alert.setEventRules(alertEntity.getEventRules().stream()
+                    .map(alertEventRuleEntity -> new AlertEventRule(AlertEventType.valueOf(
+                            alertEventRuleEntity.getEvent().toUpperCase())))
+                    .collect(toList()));
         }
         alert.setEnabled(false);
         alert.setDefinition(objectMapper.writeValueAsString(alertEntity));
@@ -252,7 +257,8 @@ public class AlertServiceTest {
         return alert;
     }
 
-    protected AlertTrigger getAlertTriggerFromUpdate(UpdateAlertTriggerEntity alertEntity) throws JsonProcessingException {
+    protected AlertTrigger getAlertTriggerFromUpdate(UpdateAlertTriggerEntity alertEntity)
+            throws JsonProcessingException {
         var alert = new AlertTrigger();
         alert.setId(alertEntity.getId());
         alert.setName(alertEntity.getName());
@@ -264,13 +270,10 @@ public class AlertServiceTest {
         alert.setSeverity(alertEntity.getSeverity().name());
         alert.setTemplate(false);
         if (alertEntity.getEventRules() != null && !alertEntity.getEventRules().isEmpty()) {
-            alert.setEventRules(
-                alertEntity
-                    .getEventRules()
-                    .stream()
-                    .map(alertEventRuleEntity -> new AlertEventRule(AlertEventType.valueOf(alertEventRuleEntity.getEvent().toUpperCase())))
-                    .collect(toList())
-            );
+            alert.setEventRules(alertEntity.getEventRules().stream()
+                    .map(alertEventRuleEntity -> new AlertEventRule(AlertEventType.valueOf(
+                            alertEventRuleEntity.getEvent().toUpperCase())))
+                    .collect(toList()));
         }
         alert.setEnabled(true);
         alert.setDefinition(objectMapper.writeValueAsString(alertEntity));

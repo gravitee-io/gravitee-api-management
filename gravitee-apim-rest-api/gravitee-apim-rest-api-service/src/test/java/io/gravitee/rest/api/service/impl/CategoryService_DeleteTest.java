@@ -63,11 +63,12 @@ public class CategoryService_DeleteTest {
 
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, never()).delete(any());
-        verify(mockAuditService, never()).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_UPDATED))
-        );
-        verify(mockApiCategoryService, never()).deleteCategoryFromAPIs(eq(GraviteeContext.getExecutionContext()), eq("unknown"));
+        verify(mockAuditService, never())
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_UPDATED)));
+        verify(mockApiCategoryService, never())
+                .deleteCategoryFromAPIs(eq(GraviteeContext.getExecutionContext()), eq("unknown"));
     }
 
     @Test
@@ -81,10 +82,11 @@ public class CategoryService_DeleteTest {
 
         verify(mockCategoryRepository, times(1)).findById("known");
         verify(mockCategoryRepository, times(1)).delete("known");
-        verify(mockAuditService, times(1)).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_DELETED))
-        );
-        verify(mockApiCategoryService, times(1)).deleteCategoryFromAPIs(eq(GraviteeContext.getExecutionContext()), eq("known"));
+        verify(mockAuditService, times(1))
+                .createAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_DELETED)));
+        verify(mockApiCategoryService, times(1))
+                .deleteCategoryFromAPIs(eq(GraviteeContext.getExecutionContext()), eq("known"));
     }
 }

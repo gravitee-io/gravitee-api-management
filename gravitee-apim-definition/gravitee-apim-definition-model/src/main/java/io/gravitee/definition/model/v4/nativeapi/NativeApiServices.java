@@ -24,7 +24,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,6 +53,9 @@ public class NativeApiServices extends AbstractApiServices {
     @JsonIgnore
     @Override
     public List<Plugin> getPlugins() {
-        return Optional.ofNullable(dynamicProperty).filter(Service::isEnabled).map(Service::getPlugins).orElse(List.of());
+        return Optional.ofNullable(dynamicProperty)
+                .filter(Service::isEnabled)
+                .map(Service::getPlugins)
+                .orElse(List.of());
     }
 }

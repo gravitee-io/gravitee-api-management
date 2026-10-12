@@ -41,8 +41,9 @@ public class FlowMcpSelector extends FlowSelector {
         super(FlowSelectorType.MCP);
     }
 
-    public abstract static class FlowMcpSelectorBuilder<C extends FlowMcpSelector, B extends FlowMcpSelector.FlowMcpSelectorBuilder<C, B>>
-        extends FlowSelectorBuilder<C, B> {
+    public abstract static class FlowMcpSelectorBuilder<
+                    C extends FlowMcpSelector, B extends FlowMcpSelector.FlowMcpSelectorBuilder<C, B>>
+            extends FlowSelectorBuilder<C, B> {
 
         FlowMcpSelectorBuilder() {
             type(FlowSelectorType.MCP);

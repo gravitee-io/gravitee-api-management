@@ -50,7 +50,10 @@ public class OpenApiContentTransformerImpl implements OpenApiContentTransformer 
 
             var openApi = descriptor.getSpecification();
             var transformed = applyTryItUrl(openApi, configuration.tryItUrl());
-            transformed = apiContext.map(context -> applyApiContext(openApi, configuration, context)).orElse(false) || transformed;
+            transformed = apiContext
+                            .map(context -> applyApiContext(openApi, configuration, context))
+                            .orElse(false)
+                    || transformed;
             return transformed ? descriptor.toYaml() : content;
         } catch (Exception e) {
             log.warn("Unable to transform OpenAPI content for portal navigation item", e);
@@ -75,10 +78,12 @@ public class OpenApiContentTransformerImpl implements OpenApiContentTransformer 
         return true;
     }
 
-    private static boolean applyApiContext(OpenAPI openApi, SwaggerUiConfiguration configuration, ApiContext apiContext) {
+    private static boolean applyApiContext(
+            OpenAPI openApi, SwaggerUiConfiguration configuration, ApiContext apiContext) {
         var transformed = false;
         if (configuration.entrypointsAsServers()) {
-            transformed = applyEntrypointsAsServers(openApi, apiContext.entrypoints(), configuration.contextPathAsServerPath());
+            transformed = applyEntrypointsAsServers(
+                    openApi, apiContext.entrypoints(), configuration.contextPathAsServerPath());
         }
         if (configuration.contextPathAsServerPath()) {
             transformed = applyContextPathAsServerPath(openApi, apiContext.contextPath()) || transformed;
@@ -86,18 +91,18 @@ public class OpenApiContentTransformerImpl implements OpenApiContentTransformer 
         return transformed;
     }
 
-    private static boolean applyEntrypointsAsServers(OpenAPI openApi, List<String> entrypoints, boolean keepEntrypointPath) {
+    private static boolean applyEntrypointsAsServers(
+            OpenAPI openApi, List<String> entrypoints, boolean keepEntrypointPath) {
         if (entrypoints == null || entrypoints.isEmpty()) {
             return false;
         }
 
-        var servers = entrypoints
-            .stream()
-            .filter(entrypoint -> entrypoint != null && !entrypoint.isBlank())
-            .map(entrypoint -> keepEntrypointPath ? Optional.of(entrypoint) : removePath(entrypoint))
-            .flatMap(Optional::stream)
-            .map(OpenApiContentTransformerImpl::server)
-            .toList();
+        var servers = entrypoints.stream()
+                .filter(entrypoint -> entrypoint != null && !entrypoint.isBlank())
+                .map(entrypoint -> keepEntrypointPath ? Optional.of(entrypoint) : removePath(entrypoint))
+                .flatMap(Optional::stream)
+                .map(OpenApiContentTransformerImpl::server)
+                .toList();
 
         if (!servers.isEmpty()) {
             openApi.setServers(deduplicateByUrl(servers));
@@ -107,7 +112,10 @@ public class OpenApiContentTransformerImpl implements OpenApiContentTransformer 
     }
 
     private static boolean applyContextPathAsServerPath(OpenAPI openApi, Optional<String> contextPath) {
-        if (contextPath.isEmpty() || contextPath.get().isBlank() || openApi.getServers() == null || openApi.getServers().isEmpty()) {
+        if (contextPath.isEmpty()
+                || contextPath.get().isBlank()
+                || openApi.getServers() == null
+                || openApi.getServers().isEmpty()) {
             return false;
         }
 
@@ -129,7 +137,9 @@ public class OpenApiContentTransformerImpl implements OpenApiContentTransformer 
     private static Optional<String> removePath(String url) {
         try {
             var uri = URI.create(url);
-            return Optional.of(new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), null, null, null).toString());
+            return Optional.of(
+                    new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), null, null, null)
+                            .toString());
         } catch (IllegalArgumentException | URISyntaxException e) {
             log.warn("Unable to remove path from OpenAPI server URL [{}]", url, e);
             return Optional.empty();
@@ -139,17 +149,15 @@ public class OpenApiContentTransformerImpl implements OpenApiContentTransformer 
     private static Optional<String> replacePath(String url, String path) {
         try {
             var uri = URI.create(url);
-            return Optional.of(
-                new URI(
-                    uri.getScheme(),
-                    uri.getUserInfo(),
-                    uri.getHost(),
-                    uri.getPort(),
-                    normalizePath(path),
-                    uri.getQuery(),
-                    uri.getFragment()
-                ).toString()
-            );
+            return Optional.of(new URI(
+                            uri.getScheme(),
+                            uri.getUserInfo(),
+                            uri.getHost(),
+                            uri.getPort(),
+                            normalizePath(path),
+                            uri.getQuery(),
+                            uri.getFragment())
+                    .toString());
         } catch (IllegalArgumentException | URISyntaxException e) {
             log.warn("Unable to replace path in OpenAPI server URL [{}]", url, e);
             return Optional.empty();
@@ -166,9 +174,6 @@ public class OpenApiContentTransformerImpl implements OpenApiContentTransformer 
 
     private static List<Server> deduplicateByUrl(List<Server> servers) {
         var urls = new LinkedHashSet<String>();
-        return servers
-            .stream()
-            .filter(server -> urls.add(server.getUrl()))
-            .toList();
+        return servers.stream().filter(server -> urls.add(server.getUrl())).toList();
     }
 }

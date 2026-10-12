@@ -38,7 +38,6 @@ import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
-import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +45,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.StandardEnvironment;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -76,7 +74,8 @@ class HttpPolicyChainFactoryTest {
         when(step2.isEnabled()).thenReturn(true);
         when(flow.getRequest()).thenReturn(List.of(step1, step2));
 
-        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy);
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class)))
+                .thenReturn(policy);
 
         when(step1.getPolicy()).thenReturn("policy-step1");
         when(step1.getConfiguration()).thenReturn("config-step1");
@@ -89,26 +88,22 @@ class HttpPolicyChainFactoryTest {
         final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
-        verify(policyManager, times(1)).create(
-            eq(ExecutionPhase.REQUEST),
-            argThat(
-                metadata ->
-                    metadata.getName().equals("policy-step1") &&
-                    metadata.getConfiguration().equals("config-step1") &&
-                    metadata.getCondition().equals("condition-step1")
-            )
-        );
+        verify(policyManager, times(1))
+                .create(
+                        eq(ExecutionPhase.REQUEST),
+                        argThat(metadata -> metadata.getName().equals("policy-step1")
+                                && metadata.getConfiguration().equals("config-step1")
+                                && metadata.getCondition().equals("condition-step1")));
 
-        verify(policyManager, times(1)).create(
-            eq(ExecutionPhase.REQUEST),
-            argThat(
-                metadata ->
-                    metadata.getName().equals("policy-step2") &&
-                    metadata.getConfiguration().equals("config-step2") &&
-                    metadata.getCondition().equals("condition-step2") &&
-                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.V4_EMULATION_ENGINE)
-            )
-        );
+        verify(policyManager, times(1))
+                .create(
+                        eq(ExecutionPhase.REQUEST),
+                        argThat(metadata -> metadata.getName().equals("policy-step2")
+                                && metadata.getConfiguration().equals("config-step2")
+                                && metadata.getCondition().equals("condition-step2")
+                                && metadata.metadata()
+                                        .get(PolicyMetadata.MetadataKeys.EXECUTION_MODE)
+                                        .equals(ExecutionMode.V4_EMULATION_ENGINE)));
 
         verifyNoMoreInteractions(policyManager);
     }
@@ -124,7 +119,8 @@ class HttpPolicyChainFactoryTest {
         when(step2.isEnabled()).thenReturn(true);
         when(flow.getRequest()).thenReturn(List.of(step1, step2));
 
-        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy);
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class)))
+                .thenReturn(policy);
 
         when(step2.getPolicy()).thenReturn("policy-step2");
         when(step2.getConfiguration()).thenReturn("config-step2");
@@ -133,16 +129,15 @@ class HttpPolicyChainFactoryTest {
         final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
-        verify(policyManager, times(1)).create(
-            eq(ExecutionPhase.REQUEST),
-            argThat(
-                metadata ->
-                    metadata.getName().equals("policy-step2") &&
-                    metadata.getConfiguration().equals("config-step2") &&
-                    metadata.getCondition().equals("condition-step2") &&
-                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.V4_EMULATION_ENGINE)
-            )
-        );
+        verify(policyManager, times(1))
+                .create(
+                        eq(ExecutionPhase.REQUEST),
+                        argThat(metadata -> metadata.getName().equals("policy-step2")
+                                && metadata.getConfiguration().equals("config-step2")
+                                && metadata.getCondition().equals("condition-step2")
+                                && metadata.metadata()
+                                        .get(PolicyMetadata.MetadataKeys.EXECUTION_MODE)
+                                        .equals(ExecutionMode.V4_EMULATION_ENGINE)));
 
         verifyNoMoreInteractions(policyManager);
     }
@@ -158,7 +153,8 @@ class HttpPolicyChainFactoryTest {
         when(step2.isEnabled()).thenReturn(true);
         when(flow.getRequest()).thenReturn(List.of(step1, step2));
 
-        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy);
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class)))
+                .thenReturn(policy);
 
         when(step1.getPolicy()).thenReturn("policy-step1");
         when(step1.getConfiguration()).thenReturn("config-step1");
@@ -172,27 +168,25 @@ class HttpPolicyChainFactoryTest {
             cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
         }
 
-        verify(policyManager, times(1)).create(
-            eq(ExecutionPhase.REQUEST),
-            argThat(
-                metadata ->
-                    metadata.getName().equals("policy-step1") &&
-                    metadata.getConfiguration().equals("config-step1") &&
-                    metadata.getCondition().equals("condition-step1") &&
-                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.V4_EMULATION_ENGINE)
-            )
-        );
+        verify(policyManager, times(1))
+                .create(
+                        eq(ExecutionPhase.REQUEST),
+                        argThat(metadata -> metadata.getName().equals("policy-step1")
+                                && metadata.getConfiguration().equals("config-step1")
+                                && metadata.getCondition().equals("condition-step1")
+                                && metadata.metadata()
+                                        .get(PolicyMetadata.MetadataKeys.EXECUTION_MODE)
+                                        .equals(ExecutionMode.V4_EMULATION_ENGINE)));
 
-        verify(policyManager, times(1)).create(
-            eq(ExecutionPhase.REQUEST),
-            argThat(
-                metadata ->
-                    metadata.getName().equals("policy-step2") &&
-                    metadata.getConfiguration().equals("config-step2") &&
-                    metadata.getCondition().equals("condition-step2") &&
-                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.V4_EMULATION_ENGINE)
-            )
-        );
+        verify(policyManager, times(1))
+                .create(
+                        eq(ExecutionPhase.REQUEST),
+                        argThat(metadata -> metadata.getName().equals("policy-step2")
+                                && metadata.getConfiguration().equals("config-step2")
+                                && metadata.getCondition().equals("condition-step2")
+                                && metadata.metadata()
+                                        .get(PolicyMetadata.MetadataKeys.EXECUTION_MODE)
+                                        .equals(ExecutionMode.V4_EMULATION_ENGINE)));
 
         verifyNoMoreInteractions(policyManager);
     }
@@ -206,7 +200,8 @@ class HttpPolicyChainFactoryTest {
         when(step1.isEnabled()).thenReturn(true);
         when(flow.getResponse()).thenReturn(List.of(step1));
 
-        when(policyManager.create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class))).thenReturn(policy);
+        when(policyManager.create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class)))
+                .thenReturn(policy);
 
         final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.RESPONSE);
         assertNotNull(policyChain);
@@ -226,7 +221,9 @@ class HttpPolicyChainFactoryTest {
         when(step2.isEnabled()).thenReturn(true);
         when(flow.getRequest()).thenReturn(List.of(step1, step2));
 
-        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(null).thenReturn(policy);
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class)))
+                .thenReturn(null)
+                .thenReturn(policy);
 
         when(step1.getPolicy()).thenReturn("policy-step1");
         when(step1.getConfiguration()).thenReturn("config-step1");
@@ -263,11 +260,15 @@ class HttpPolicyChainFactoryTest {
         when(step2.getConfiguration()).thenReturn("config-step2");
         when(step2.getCondition()).thenReturn("condition-step2");
         when(flow.getRequest()).thenReturn(List.of(step1, step2));
-        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy1).thenReturn(policy2);
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class)))
+                .thenReturn(policy1)
+                .thenReturn(policy2);
 
         final HttpPolicyChain policyChain = cut.create("flowchain-test", flow, ExecutionPhase.REQUEST);
 
-        assertThat(policyChain.getPolicyDescriptions()).containsEntry(policy1, "description-1").containsEntry(policy2, "description-2");
+        assertThat(policyChain.getPolicyDescriptions())
+                .containsEntry(policy1, "description-1")
+                .containsEntry(policy2, "description-2");
     }
 
     @Test
@@ -282,7 +283,8 @@ class HttpPolicyChainFactoryTest {
         when(step1.getConfiguration()).thenReturn("config-step1");
         when(step1.getCondition()).thenReturn("condition-step1");
         when(flow.getRequest()).thenReturn(List.of(step1));
-        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy1);
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class)))
+                .thenReturn(policy1);
 
         final HttpPolicyChain policyChain = cut.create("flowchain-test", flow, ExecutionPhase.REQUEST);
 

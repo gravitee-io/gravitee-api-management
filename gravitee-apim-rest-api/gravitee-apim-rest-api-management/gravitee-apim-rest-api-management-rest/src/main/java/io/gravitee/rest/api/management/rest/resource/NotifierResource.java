@@ -51,15 +51,19 @@ public class NotifierResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a notifier", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Operation(
+            summary = "Get a notifier",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Notifier plugin",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = NotifierEntity.class))
-    )
+            responseCode = "200",
+            description = "Notifier plugin",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = NotifierEntity.class)))
     @ApiResponse(responseCode = "404", description = "Notifier not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public NotifierEntity getNotifier(@PathParam("notifier") String notifier) {
         return notifierService.findById(notifier);
     }
@@ -67,15 +71,16 @@ public class NotifierResource {
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a notifier's schema", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Operation(
+            summary = "Get a notifier's schema",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Notifier's schema",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "Notifier's schema",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "404", description = "Notifier not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public String getNotifierSchema(@PathParam("notifier") String notifier) {
         // Check that the notifier exists
         notifierService.findById(notifier);

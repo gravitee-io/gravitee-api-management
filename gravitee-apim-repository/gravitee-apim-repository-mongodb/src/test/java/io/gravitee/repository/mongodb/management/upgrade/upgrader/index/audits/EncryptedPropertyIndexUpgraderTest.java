@@ -38,12 +38,11 @@ class EncryptedPropertyIndexUpgraderTest {
     @Test
     void should_only_index_audits_carrying_the_encrypted_property() {
         Document options = new EncryptedPropertyIndexUpgrader()
-            .buildIndex()
-            .toIndexDefinition()
-            .getIndexOptions();
+                .buildIndex()
+                .toIndexDefinition()
+                .getIndexOptions();
 
-        assertThat(options.get("partialFilterExpression")).isEqualTo(
-            new Document("properties.ENCRYPTED", new Document("$exists", true))
-        );
+        assertThat(options.get("partialFilterExpression"))
+                .isEqualTo(new Document("properties.ENCRYPTED", new Document("$exists", true)));
     }
 }

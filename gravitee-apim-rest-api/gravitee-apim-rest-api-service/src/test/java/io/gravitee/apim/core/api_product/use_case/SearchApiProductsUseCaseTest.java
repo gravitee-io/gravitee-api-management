@@ -70,10 +70,9 @@ class SearchApiProductsUseCaseTest {
     void setUp() {
         apiProductSearchQueryService = new ApiProductSearchQueryServiceInMemory();
         useCase = new SearchApiProductsUseCase(
-            apiProductSearchQueryService,
-            apiProductAccessibleIdsDomainService,
-            new ApiProductDeploymentStateDomainService(eventLatestQueryService, planQueryService, objectMapper)
-        );
+                apiProductSearchQueryService,
+                apiProductAccessibleIdsDomainService,
+                new ApiProductDeploymentStateDomainService(eventLatestQueryService, planQueryService, objectMapper));
     }
 
     @AfterEach
@@ -87,7 +86,8 @@ class SearchApiProductsUseCaseTest {
     void should_delegate_to_query_service_with_correct_arguments_for_admin() {
         var pageable = new PageableImpl(1, 10);
         var sortable = new SortableImpl("name", true);
-        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, "my query", Set.of("id-1"), pageable, sortable, USER_ID, true);
+        var input = SearchApiProductsUseCase.Input.of(
+                ENV_ID, ORG_ID, "my query", Set.of("id-1"), pageable, sortable, USER_ID, true);
 
         var output = useCase.execute(input);
 
@@ -132,7 +132,11 @@ class SearchApiProductsUseCaseTest {
 
     @Test
     void should_return_product_matching_query_for_admin() {
-        var product = ApiProduct.builder().id("product-1").name("My API Product").environmentId(ENV_ID).build();
+        var product = ApiProduct.builder()
+                .id("product-1")
+                .name("My API Product")
+                .environmentId(ENV_ID)
+                .build();
         apiProductSearchQueryService.initWith(List.of(product));
 
         var pageable = new PageableImpl(1, 10);
@@ -148,13 +152,26 @@ class SearchApiProductsUseCaseTest {
 
     @Test
     void should_return_products_filtered_by_ids_for_admin() {
-        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
-        var product2 = ApiProduct.builder().id("id-2").name("Product Two").environmentId(ENV_ID).build();
-        var product3 = ApiProduct.builder().id("id-3").name("Product Three").environmentId(ENV_ID).build();
+        var product1 = ApiProduct.builder()
+                .id("id-1")
+                .name("Product One")
+                .environmentId(ENV_ID)
+                .build();
+        var product2 = ApiProduct.builder()
+                .id("id-2")
+                .name("Product Two")
+                .environmentId(ENV_ID)
+                .build();
+        var product3 = ApiProduct.builder()
+                .id("id-3")
+                .name("Product Three")
+                .environmentId(ENV_ID)
+                .build();
         apiProductSearchQueryService.initWith(List.of(product1, product2, product3));
 
         var pageable = new PageableImpl(1, 10);
-        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1", "id-3"), pageable, null, USER_ID, true);
+        var input = SearchApiProductsUseCase.Input.of(
+                ENV_ID, ORG_ID, null, Set.of("id-1", "id-3"), pageable, null, USER_ID, true);
 
         var output = useCase.execute(input);
 
@@ -165,12 +182,25 @@ class SearchApiProductsUseCaseTest {
 
     @Test
     void should_return_only_owned_products_for_non_admin_user() {
-        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
-        var product2 = ApiProduct.builder().id("id-2").name("Product Two").environmentId(ENV_ID).build();
-        var product3 = ApiProduct.builder().id("id-3").name("Product Three").environmentId(ENV_ID).build();
+        var product1 = ApiProduct.builder()
+                .id("id-1")
+                .name("Product One")
+                .environmentId(ENV_ID)
+                .build();
+        var product2 = ApiProduct.builder()
+                .id("id-2")
+                .name("Product Two")
+                .environmentId(ENV_ID)
+                .build();
+        var product3 = ApiProduct.builder()
+                .id("id-3")
+                .name("Product Three")
+                .environmentId(ENV_ID)
+                .build();
         apiProductSearchQueryService.initWith(List.of(product1, product2, product3));
 
-        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-1", "id-3"));
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID))
+                .thenReturn(Set.of("id-1", "id-3"));
 
         var pageable = new PageableImpl(1, 10);
         var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, false);
@@ -183,14 +213,24 @@ class SearchApiProductsUseCaseTest {
 
     @Test
     void should_intersect_requested_ids_with_owned_ids_for_non_admin() {
-        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
-        var product2 = ApiProduct.builder().id("id-2").name("Product Two").environmentId(ENV_ID).build();
+        var product1 = ApiProduct.builder()
+                .id("id-1")
+                .name("Product One")
+                .environmentId(ENV_ID)
+                .build();
+        var product2 = ApiProduct.builder()
+                .id("id-2")
+                .name("Product Two")
+                .environmentId(ENV_ID)
+                .build();
         apiProductSearchQueryService.initWith(List.of(product1, product2));
 
-        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-1"));
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID))
+                .thenReturn(Set.of("id-1"));
 
         var pageable = new PageableImpl(1, 10);
-        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1", "id-2"), pageable, null, USER_ID, false);
+        var input = SearchApiProductsUseCase.Input.of(
+                ENV_ID, ORG_ID, null, Set.of("id-1", "id-2"), pageable, null, USER_ID, false);
 
         var output = useCase.execute(input);
 
@@ -200,10 +240,15 @@ class SearchApiProductsUseCaseTest {
 
     @Test
     void should_return_empty_page_for_non_admin_with_no_memberships() {
-        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
+        var product1 = ApiProduct.builder()
+                .id("id-1")
+                .name("Product One")
+                .environmentId(ENV_ID)
+                .build();
         apiProductSearchQueryService.initWith(List.of(product1));
 
-        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of());
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID))
+                .thenReturn(Set.of());
 
         var pageable = new PageableImpl(1, 10);
         var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, false);
@@ -217,11 +262,20 @@ class SearchApiProductsUseCaseTest {
 
     @Test
     void should_include_api_products_inherited_via_group_membership_for_non_admin() {
-        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
-        var product2 = ApiProduct.builder().id("id-2").name("Product Two").environmentId(ENV_ID).build();
+        var product1 = ApiProduct.builder()
+                .id("id-1")
+                .name("Product One")
+                .environmentId(ENV_ID)
+                .build();
+        var product2 = ApiProduct.builder()
+                .id("id-2")
+                .name("Product Two")
+                .environmentId(ENV_ID)
+                .build();
         apiProductSearchQueryService.initWith(List.of(product1, product2));
 
-        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-2"));
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID))
+                .thenReturn(Set.of("id-2"));
 
         var pageable = new PageableImpl(1, 10);
         var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, false);
@@ -234,11 +288,20 @@ class SearchApiProductsUseCaseTest {
 
     @Test
     void should_union_direct_and_group_inherited_api_products_for_non_admin() {
-        var product1 = ApiProduct.builder().id("id-1").name("Direct").environmentId(ENV_ID).build();
-        var product2 = ApiProduct.builder().id("id-2").name("Inherited").environmentId(ENV_ID).build();
+        var product1 = ApiProduct.builder()
+                .id("id-1")
+                .name("Direct")
+                .environmentId(ENV_ID)
+                .build();
+        var product2 = ApiProduct.builder()
+                .id("id-2")
+                .name("Inherited")
+                .environmentId(ENV_ID)
+                .build();
         apiProductSearchQueryService.initWith(List.of(product1, product2));
 
-        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-1", "id-2"));
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID))
+                .thenReturn(Set.of("id-1", "id-2"));
 
         var pageable = new PageableImpl(1, 10);
         var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, pageable, null, USER_ID, false);
@@ -251,14 +314,24 @@ class SearchApiProductsUseCaseTest {
 
     @Test
     void should_intersect_requested_ids_with_group_inherited_ids_for_non_admin() {
-        var product1 = ApiProduct.builder().id("id-1").name("Inherited One").environmentId(ENV_ID).build();
-        var product2 = ApiProduct.builder().id("id-2").name("Other").environmentId(ENV_ID).build();
+        var product1 = ApiProduct.builder()
+                .id("id-1")
+                .name("Inherited One")
+                .environmentId(ENV_ID)
+                .build();
+        var product2 = ApiProduct.builder()
+                .id("id-2")
+                .name("Other")
+                .environmentId(ENV_ID)
+                .build();
         apiProductSearchQueryService.initWith(List.of(product1, product2));
 
-        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-1"));
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID))
+                .thenReturn(Set.of("id-1"));
 
         var pageable = new PageableImpl(1, 10);
-        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1", "id-2"), pageable, null, USER_ID, false);
+        var input = SearchApiProductsUseCase.Input.of(
+                ENV_ID, ORG_ID, null, Set.of("id-1", "id-2"), pageable, null, USER_ID, false);
 
         var output = useCase.execute(input);
 
@@ -268,13 +341,19 @@ class SearchApiProductsUseCaseTest {
 
     @Test
     void should_return_empty_page_when_non_admin_requests_ids_they_do_not_own() {
-        var product1 = ApiProduct.builder().id("id-1").name("Product One").environmentId(ENV_ID).build();
+        var product1 = ApiProduct.builder()
+                .id("id-1")
+                .name("Product One")
+                .environmentId(ENV_ID)
+                .build();
         apiProductSearchQueryService.initWith(List.of(product1));
 
-        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID)).thenReturn(Set.of("id-2"));
+        when(apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(ENV_ID, USER_ID))
+                .thenReturn(Set.of("id-2"));
 
         var pageable = new PageableImpl(1, 10);
-        var input = SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1"), pageable, null, USER_ID, false);
+        var input =
+                SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, Set.of("id-1"), pageable, null, USER_ID, false);
 
         var output = useCase.execute(input);
 
@@ -286,50 +365,62 @@ class SearchApiProductsUseCaseTest {
     void should_report_whether_each_matched_product_is_still_deployed() throws Exception {
         // A listing that never resolves this reports every product as "not deployed", whatever the gateway
         // is actually serving.
-        var deployed = ApiProduct.builder().id("id-1").name("Deployed").environmentId(ENV_ID).apiIds(Set.of("api-1")).build();
-        var drifted = ApiProduct.builder().id("id-2").name("Drifted").environmentId(ENV_ID).apiIds(Set.of("api-1", "api-2")).build();
+        var deployed = ApiProduct.builder()
+                .id("id-1")
+                .name("Deployed")
+                .environmentId(ENV_ID)
+                .apiIds(Set.of("api-1"))
+                .build();
+        var drifted = ApiProduct.builder()
+                .id("id-2")
+                .name("Drifted")
+                .environmentId(ENV_ID)
+                .apiIds(Set.of("api-1", "api-2"))
+                .build();
         apiProductSearchQueryService.initWith(List.of(deployed, drifted));
-        eventLatestQueryService.initWith(
-            List.of(
-                aDeployEvent("id-1", ApiProduct.builder().id("id-1").apiIds(Set.of("api-1")).build()),
-                aDeployEvent("id-2", ApiProduct.builder().id("id-2").apiIds(Set.of("api-1")).build())
-            )
-        );
+        eventLatestQueryService.initWith(List.of(
+                aDeployEvent(
+                        "id-1",
+                        ApiProduct.builder().id("id-1").apiIds(Set.of("api-1")).build()),
+                aDeployEvent(
+                        "id-2",
+                        ApiProduct.builder().id("id-2").apiIds(Set.of("api-1")).build())));
 
-        var output = useCase.execute(
-            SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null, USER_ID, true)
-        );
+        var output = useCase.execute(SearchApiProductsUseCase.Input.of(
+                ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null, USER_ID, true));
 
         assertThat(output.page().getContent())
-            .extracting(ApiProduct::getId, ApiProduct::getDeploymentState)
-            .containsExactlyInAnyOrder(
-                tuple("id-1", ApiProduct.DeploymentState.DEPLOYED),
-                tuple("id-2", ApiProduct.DeploymentState.NEED_REDEPLOY)
-            );
+                .extracting(ApiProduct::getId, ApiProduct::getDeploymentState)
+                .containsExactlyInAnyOrder(
+                        tuple("id-1", ApiProduct.DeploymentState.DEPLOYED),
+                        tuple("id-2", ApiProduct.DeploymentState.NEED_REDEPLOY));
     }
 
     @Test
     void should_report_a_product_that_was_never_deployed_as_needing_a_deploy() {
-        apiProductSearchQueryService.initWith(List.of(ApiProduct.builder().id("id-1").name("Fresh").environmentId(ENV_ID).build()));
+        apiProductSearchQueryService.initWith(List.of(ApiProduct.builder()
+                .id("id-1")
+                .name("Fresh")
+                .environmentId(ENV_ID)
+                .build()));
 
-        var output = useCase.execute(
-            SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null, USER_ID, true)
-        );
+        var output = useCase.execute(SearchApiProductsUseCase.Input.of(
+                ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null, USER_ID, true));
 
         assertThat(output.page().getContent())
-            .extracting(ApiProduct::getDeploymentState)
-            .containsExactly(ApiProduct.DeploymentState.NEED_REDEPLOY);
+                .extracting(ApiProduct::getDeploymentState)
+                .containsExactly(ApiProduct.DeploymentState.NEED_REDEPLOY);
     }
 
     private Event aDeployEvent(String apiProductId, ApiProduct deployedPayload) throws Exception {
         return Event.builder()
-            .id("event-" + apiProductId)
-            .type(EventType.DEPLOY_API_PRODUCT)
-            .properties(new EnumMap<>(Map.of(Event.EventProperties.API_PRODUCT_ID, apiProductId)))
-            .payload(objectMapper.writeValueAsString(deployedPayload))
-            .environments(Set.of(ENV_ID))
-            .createdAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
-            .updatedAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
-            .build();
+                .id("event-" + apiProductId)
+                .type(EventType.DEPLOY_API_PRODUCT)
+                .properties(new EnumMap<>(Map.of(Event.EventProperties.API_PRODUCT_ID, apiProductId)))
+                .payload(objectMapper.writeValueAsString(deployedPayload))
+                .environments(Set.of(ENV_ID))
+                .createdAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
+                .updatedAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
+                .build();
     }
 }

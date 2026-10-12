@@ -41,12 +41,11 @@ public interface PromotionService {
     List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId);
 
     PromotionEntity create(
-        ExecutionContext executionContext,
-        final String sourceEnvironmentId,
-        String api,
-        PromotionRequestEntity promotionRequest,
-        String userId
-    );
+            ExecutionContext executionContext,
+            final String sourceEnvironmentId,
+            String api,
+            PromotionRequestEntity promotionRequest,
+            String userId);
 
     PromotionEntity promote(ExecutionContext executionContext, String id) throws TechnicalException;
 

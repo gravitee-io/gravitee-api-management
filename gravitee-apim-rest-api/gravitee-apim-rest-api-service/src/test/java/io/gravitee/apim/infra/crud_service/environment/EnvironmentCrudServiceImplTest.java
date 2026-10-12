@@ -61,9 +61,8 @@ class EnvironmentCrudServiceImplTest {
 
         @SneakyThrows
         private void givenEnvironment(Environment environment) {
-            when(environmentRepository.findById(environment.getId())).thenReturn(
-                Optional.of(EnvironmentAdapter.INSTANCE.toRepository(environment))
-            );
+            when(environmentRepository.findById(environment.getId()))
+                    .thenReturn(Optional.of(EnvironmentAdapter.INSTANCE.toRepository(environment)));
         }
     }
 
@@ -86,9 +85,8 @@ class EnvironmentCrudServiceImplTest {
 
         @SneakyThrows
         private void givenEnvironment(Environment environment) {
-            when(environmentRepository.findByCockpitId(environment.getId())).thenReturn(
-                Optional.of(EnvironmentAdapter.INSTANCE.toRepository(environment))
-            );
+            when(environmentRepository.findByCockpitId(environment.getId()))
+                    .thenReturn(Optional.of(EnvironmentAdapter.INSTANCE.toRepository(environment)));
         }
     }
 

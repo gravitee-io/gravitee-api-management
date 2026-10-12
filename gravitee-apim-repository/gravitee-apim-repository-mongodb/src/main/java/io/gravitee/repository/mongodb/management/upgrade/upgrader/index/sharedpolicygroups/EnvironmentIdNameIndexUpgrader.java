@@ -28,10 +28,10 @@ public class EnvironmentIdNameIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("sharedpolicygroups")
-            .name("e1n1")
-            .key("environmentId", ascending())
-            .key("name", ascending())
-            .build();
+                .collection("sharedpolicygroups")
+                .name("e1n1")
+                .key("environmentId", ascending())
+                .key("name", ascending())
+                .build();
     }
 }

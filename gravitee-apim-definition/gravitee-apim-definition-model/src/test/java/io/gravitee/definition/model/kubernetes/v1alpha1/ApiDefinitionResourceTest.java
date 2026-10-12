@@ -31,7 +31,8 @@ class ApiDefinitionResourceTest {
 
     @Test
     void shouldRemoveUnsupportedFields() throws Exception {
-        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+        ApiDefinitionResource resource =
+                new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
 
         assertFalse(resource.getSpec().has("createdAt"));
         assertFalse(resource.getSpec().has("definition_context"));
@@ -55,7 +56,8 @@ class ApiDefinitionResourceTest {
 
     @Test
     void shouldRemoveIds() throws Exception {
-        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+        ApiDefinitionResource resource =
+                new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
 
         resource.removeIds();
 
@@ -73,7 +75,8 @@ class ApiDefinitionResourceTest {
 
     @Test
     public void shouldMapPages() throws Exception {
-        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+        ApiDefinitionResource resource =
+                new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
 
         ObjectNode pages = (ObjectNode) resource.getSpec().get("pages");
         assertTrue(pages.has("Aside"));
@@ -90,9 +93,7 @@ class ApiDefinitionResourceTest {
     @Test
     public void shouldMapPageWithoutName() throws Exception {
         ApiDefinitionResource resource = new ApiDefinitionResource(
-            "api-definition",
-            readDefinition("api-definition-with-page-without-name.json")
-        );
+                "api-definition", readDefinition("api-definition-with-page-without-name.json"));
 
         ObjectNode pages = (ObjectNode) resource.getSpec().get("pages");
         assertTrue(pages.has("Aside"));
@@ -116,7 +117,8 @@ class ApiDefinitionResourceTest {
 
     @Test
     public void shouldIncludeGroups() throws Exception {
-        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+        ApiDefinitionResource resource =
+                new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
 
         assertTrue(resource.getSpec().has("groups"));
 
@@ -129,7 +131,8 @@ class ApiDefinitionResourceTest {
         String contextRefName = "apim-dev-ctx";
         String contextRefNamespace = "default";
 
-        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+        ApiDefinitionResource resource =
+                new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
 
         resource.setContextRef(contextRefName, contextRefNamespace);
 
@@ -147,7 +150,8 @@ class ApiDefinitionResourceTest {
     void shouldSetContextPath() throws Exception {
         String contextPath = "/new-context-path";
 
-        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+        ApiDefinitionResource resource =
+                new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
 
         resource.setContextPath(contextPath);
 
@@ -167,7 +171,8 @@ class ApiDefinitionResourceTest {
     public void shouldSetVersion() throws Exception {
         String version = "1.0.0-alpha";
 
-        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
+        ApiDefinitionResource resource =
+                new ApiDefinitionResource("api-definition", readDefinition("api-definition.json"));
 
         resource.setVersion(version);
 

@@ -34,7 +34,8 @@ public class ThemeMapper {
     public ThemeResponse convert(ThemeEntity themeEntity, String basePath) {
         final ThemeResponse themeResponse = new ThemeResponse();
         themeResponse.setDefinition(themeEntity.getDefinition());
-        themeResponse.setType(ThemeResponse.TypeEnum.valueOf(themeEntity.getType().name()));
+        themeResponse.setType(
+                ThemeResponse.TypeEnum.valueOf(themeEntity.getType().name()));
         themeResponse.setLinks(computeLinks(themeEntity.getUpdatedAt(), basePath));
         return themeResponse;
     }
@@ -56,7 +57,8 @@ public class ThemeMapper {
     }
 
     public ThemeLinks computeLinks(ZonedDateTime updatedAt, String basePath) {
-        return this.computeLinks(updatedAt == null ? "" : String.valueOf(updatedAt.toInstant().toEpochMilli()), basePath);
+        return this.computeLinks(
+                updatedAt == null ? "" : String.valueOf(updatedAt.toInstant().toEpochMilli()), basePath);
     }
 
     private ThemeLinks computeLinks(String hash, String basePath) {

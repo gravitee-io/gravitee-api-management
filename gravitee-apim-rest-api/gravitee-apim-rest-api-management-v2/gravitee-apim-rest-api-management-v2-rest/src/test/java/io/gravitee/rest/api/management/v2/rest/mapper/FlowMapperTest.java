@@ -45,7 +45,6 @@ public class FlowMapperTest {
     /**
      * Http Flow
      */
-
     @Test
     void should_map_from_HttpFlowEntityV4() throws JsonProcessingException {
         var flowEntityV4 = FlowFixtures.aModelFlowHttpV4();
@@ -76,7 +75,8 @@ public class FlowMapperTest {
     @Test
     void should_map_from_HttpFlowEntityV4_with_MCP_Selector() throws JsonProcessingException {
         var flowEntityV4 = FlowFixtures.aModelFlowHttpV4();
-        flowEntityV4.setSelectors(List.of(McpSelector.builder().methods(Set.of("mcp")).build()));
+        flowEntityV4.setSelectors(
+                List.of(McpSelector.builder().methods(Set.of("mcp")).build()));
         var flowV4 = flowMapper.mapFromHttpV4(flowEntityV4);
         assertThat(flowV4).isNotNull();
         assertHttpFlowV4Equals(flowEntityV4, flowV4);
@@ -98,7 +98,6 @@ public class FlowMapperTest {
     /**
      * Native Flow
      */
-
     @Test
     void should_map_from_NativeFlowEntityV4() throws JsonProcessingException {
         var flowEntityV4 = FlowFixtures.aModelFlowNativeV4();
@@ -140,28 +139,32 @@ public class FlowMapperTest {
             switch (flowSelectors.get(0).getType()) {
                 case MCP:
                     final McpSelector mcpSelector = (McpSelector) flowSelectors.get(0);
-                    final io.gravitee.rest.api.management.v2.rest.model.McpSelector mcpSelectorV4 = flowV4Selectors.get(0).getMcpSelector();
+                    final io.gravitee.rest.api.management.v2.rest.model.McpSelector mcpSelectorV4 =
+                            flowV4Selectors.get(0).getMcpSelector();
 
-                    assertEquals(mcpSelector.getMethods(), mcpSelectorV4.getMethods().stream().collect(Collectors.toSet()));
+                    assertEquals(
+                            mcpSelector.getMethods(),
+                            mcpSelectorV4.getMethods().stream().collect(Collectors.toSet()));
                     break;
                 case CHANNEL:
                     final ChannelSelector selector = (ChannelSelector) flowSelectors.get(0);
-                    final io.gravitee.rest.api.management.v2.rest.model.ChannelSelector selectorV4 = flowV4Selectors
-                        .get(0)
-                        .getChannelSelector();
+                    final io.gravitee.rest.api.management.v2.rest.model.ChannelSelector selectorV4 =
+                            flowV4Selectors.get(0).getChannelSelector();
 
                     assertEquals(selector.getChannel(), selectorV4.getChannel());
-                    assertEquals(selector.getChannelOperator().name(), selectorV4.getChannelOperator().name());
+                    assertEquals(
+                            selector.getChannelOperator().name(),
+                            selectorV4.getChannelOperator().name());
                     assertEquals(selector.getEntrypoints(), selectorV4.getEntrypoints());
                     assertEquals(selector.getType().name(), selectorV4.getType().name());
 
                     assertEquals(
-                        selector.getOperations().stream().map(Enum::name).collect(Collectors.toSet()),
-                        selectorV4.getOperations().stream().map(Enum::name).collect(Collectors.toSet())
-                    );
+                            selector.getOperations().stream().map(Enum::name).collect(Collectors.toSet()),
+                            selectorV4.getOperations().stream().map(Enum::name).collect(Collectors.toSet()));
                     break;
                 default:
-                    throw new IllegalStateException("Unexpected value: " + flowSelectors.get(0).getType());
+                    throw new IllegalStateException(
+                            "Unexpected value: " + flowSelectors.get(0).getType());
             }
         }
 
@@ -219,17 +222,20 @@ public class FlowMapperTest {
         assertFlowV2Equals(flowEntityV2, flowV2);
     }
 
-    private void assertFlowV2Equals(io.gravitee.definition.model.flow.Flow flowEntityV2, FlowV2 flowV2) throws JsonProcessingException {
+    private void assertFlowV2Equals(io.gravitee.definition.model.flow.Flow flowEntityV2, FlowV2 flowV2)
+            throws JsonProcessingException {
         assertEquals(flowEntityV2.getName(), flowV2.getName());
         assertEquals(flowEntityV2.getPath(), flowV2.getPathOperator().getPath());
-        assertEquals(flowEntityV2.getOperator().name(), flowV2.getPathOperator().getOperator().name());
+        assertEquals(
+                flowEntityV2.getOperator().name(),
+                flowV2.getPathOperator().getOperator().name());
         assertEquals(flowEntityV2.getCondition(), flowV2.getCondition());
         assertStepsV2Equals(flowEntityV2.getPre(), flowV2.getPre());
         assertStepsV2Equals(flowEntityV2.getPost(), flowV2.getPost());
     }
 
     private void assertStepsV2Equals(List<io.gravitee.definition.model.flow.Step> steps, List<StepV2> stepsV2)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         assertEquals(steps.size(), stepsV2.size());
 
         for (int i = 0; i < steps.size(); i++) {

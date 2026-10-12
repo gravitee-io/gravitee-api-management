@@ -48,12 +48,11 @@ public class TagQueryServiceImpl implements TagQueryService {
             }
 
             var groups = tagRepository.findByReference(organizationId, TagReferenceType.ORGANIZATION);
-            return groups
-                .stream()
-                .filter(group -> group.getName().equals(name))
-                .map(TagAdapter.INSTANCE::toModel)
-                .sorted(Comparator.comparing(Tag::getName))
-                .toList();
+            return groups.stream()
+                    .filter(group -> group.getName().equals(name))
+                    .map(TagAdapter.INSTANCE::toModel)
+                    .sorted(Comparator.comparing(Tag::getName))
+                    .toList();
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException("An error occurs while trying to find tags by name", ex);
         }

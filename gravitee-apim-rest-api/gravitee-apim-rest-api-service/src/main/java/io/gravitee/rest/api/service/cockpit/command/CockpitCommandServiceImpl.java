@@ -30,25 +30,26 @@ public class CockpitCommandServiceImpl implements CockpitCommandService {
     private final CockpitConnector cockpitConnector;
 
     public CockpitCommandServiceImpl(
-        // Need to make this injection lazy to be sure cockpit-connector plugin has been loaded before looking for this bean
-        @Lazy CockpitConnector cockpitConnector
-    ) {
+            // Need to make this injection lazy to be sure cockpit-connector plugin has been loaded before looking for
+            // this bean
+            @Lazy CockpitConnector cockpitConnector) {
         this.cockpitConnector = cockpitConnector;
     }
 
     @Override
     public BridgeReply send(BridgeCommand command) {
         return cockpitConnector
-            .sendCommand(command)
-            .onErrorResumeNext(error -> {
-                log.debug("Failed on call of cockpit", error);
-                return Single.just(new BridgeReply(command.getId(), error.getMessage() != null ? error.getMessage() : error.toString()));
-            })
-            .flatMap(reply ->
-                reply instanceof BridgeReply bridgeReply
-                    ? Single.just(bridgeReply)
-                    : Single.just(new BridgeReply(command.getId(), "Unknown reply type: " + reply.getClass().getName()))
-            )
-            .blockingGet();
+                .sendCommand(command)
+                .onErrorResumeNext(error -> {
+                    log.debug("Failed on call of cockpit", error);
+                    return Single.just(new BridgeReply(
+                            command.getId(), error.getMessage() != null ? error.getMessage() : error.toString()));
+                })
+                .flatMap(reply -> reply instanceof BridgeReply bridgeReply
+                        ? Single.just(bridgeReply)
+                        : Single.just(new BridgeReply(
+                                command.getId(),
+                                "Unknown reply type: " + reply.getClass().getName())))
+                .blockingGet();
     }
 }

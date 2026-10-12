@@ -54,8 +54,8 @@ class ClientAbortPropagationV4EmulationIntegrationTest extends AbstractGatewayTe
 
     @Test
     @DeployApi(API)
-    void should_release_pool_slot_when_in_flight_request_is_aborted(HttpClient httpClient, GatewayDynamicConfig.HttpConfig gateway)
-        throws Exception {
+    void should_release_pool_slot_when_in_flight_request_is_aborted(
+            HttpClient httpClient, GatewayDynamicConfig.HttpConfig gateway) throws Exception {
         stubSlowThenFastBackend(6000);
 
         // Dispatched to the backend (single connection acquired), then aborted while the backend is still answering.
@@ -68,18 +68,18 @@ class ClientAbortPropagationV4EmulationIntegrationTest extends AbstractGatewayTe
 
     @Test
     @DeployApi(API)
-    void should_release_pool_slot_when_queued_request_is_aborted(HttpClient httpClient, GatewayDynamicConfig.HttpConfig gateway)
-        throws Exception {
+    void should_release_pool_slot_when_queued_request_is_aborted(
+            HttpClient httpClient, GatewayDynamicConfig.HttpConfig gateway) throws Exception {
         // First backend call is slow (3s) to keep the single connection busy; every later call answers immediately, so
         // any latency observed on the probe is pool-acquisition wait, not backend time.
         stubSlowThenFastBackend(3000);
 
         var slowRequest = httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMap(HttpClientResponse::rxBody)
-            .test();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMap(HttpClientResponse::rxBody)
+                .test();
         Thread.sleep(500);
 
         // Aborted while queued for the connection: it must never hold the slot once granted.
@@ -91,14 +91,15 @@ class ClientAbortPropagationV4EmulationIntegrationTest extends AbstractGatewayTe
     }
 
     private void stubSlowThenFastBackend(int slowDelayMillis) {
-        wiremock.stubFor(
-            get(BACKEND_PATH)
+        wiremock.stubFor(get(BACKEND_PATH)
                 .inScenario("single-slot")
                 .whenScenarioStateIs(STARTED)
                 .willReturn(ok("slow").withFixedDelay(slowDelayMillis))
-                .willSetStateTo("fast")
-        );
-        wiremock.stubFor(get(BACKEND_PATH).inScenario("single-slot").whenScenarioStateIs("fast").willReturn(ok("fast")));
+                .willSetStateTo("fast"));
+        wiremock.stubFor(get(BACKEND_PATH)
+                .inScenario("single-slot")
+                .whenScenarioStateIs("fast")
+                .willReturn(ok("fast")));
     }
 
     /**
@@ -107,7 +108,8 @@ class ClientAbortPropagationV4EmulationIntegrationTest extends AbstractGatewayTe
      */
     private void abortClientRequest(int gatewayPort, long holdMillis) throws Exception {
         try (Socket socket = new Socket("localhost", gatewayPort)) {
-            socket.getOutputStream().write("GET /test HTTP/1.1\r\nHost: localhost\r\n\r\n".getBytes(StandardCharsets.UTF_8));
+            socket.getOutputStream()
+                    .write("GET /test HTTP/1.1\r\nHost: localhost\r\n\r\n".getBytes(StandardCharsets.UTF_8));
             socket.getOutputStream().flush();
             Thread.sleep(holdMillis);
         }
@@ -118,16 +120,17 @@ class ClientAbortPropagationV4EmulationIntegrationTest extends AbstractGatewayTe
     private void assertProbeAcquiresSlotWithin(HttpClient httpClient, long budgetMillis) {
         long probeStart = System.currentTimeMillis();
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMap(HttpClientResponse::rxBody)
-            .test()
-            .awaitDone(15, TimeUnit.SECONDS)
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMap(HttpClientResponse::rxBody)
+                .test()
+                .awaitDone(15, TimeUnit.SECONDS)
+                .assertComplete();
         long probeLatency = System.currentTimeMillis() - probeStart;
         assertThat(probeLatency)
-            .as("probe latency — the backend call of the aborted request must be cancelled, not kept until it answers")
-            .isLessThan(budgetMillis);
+                .as(
+                        "probe latency — the backend call of the aborted request must be cancelled, not kept until it answers")
+                .isLessThan(budgetMillis);
     }
 }

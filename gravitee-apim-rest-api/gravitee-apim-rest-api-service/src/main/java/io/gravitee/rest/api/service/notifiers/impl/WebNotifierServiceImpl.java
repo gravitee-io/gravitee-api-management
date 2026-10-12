@@ -61,7 +61,12 @@ public class WebNotifierServiceImpl implements WebNotifierService {
     @Autowired
     private Vertx vertx;
 
-    public void request(HttpMethod method, final String uri, final Map<String, String> headers, String body, boolean useSystemProxy) {
+    public void request(
+            HttpMethod method,
+            final String uri,
+            final Map<String, String> headers,
+            String body,
+            boolean useSystemProxy) {
         if (uri == null || uri.isEmpty()) {
             log.error("Webhook Notifier configuration is empty");
             return;
@@ -72,11 +77,11 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
 
         final HttpClientOptions clientOptions = new HttpClientOptions()
-            .setSsl(ssl)
-            .setTrustAll(true)
-            .setKeepAlive(false)
-            .setTcpKeepAlive(false)
-            .setConnectTimeout(httpClientTimeout());
+                .setSsl(ssl)
+                .setTrustAll(true)
+                .setKeepAlive(false)
+                .setTcpKeepAlive(false)
+                .setConnectTimeout(httpClientTimeout());
 
         final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(1);
 
@@ -99,16 +104,18 @@ public class WebNotifierServiceImpl implements WebNotifierService {
 
         final HttpClient httpClient = vertx.createHttpClient(clientOptions, poolOptions);
 
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
+        final int port = requestUri.getPort() != -1
+                ? requestUri.getPort()
+                : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
         RequestOptions options = new RequestOptions()
-            .setMethod(io.vertx.core.http.HttpMethod.valueOf(method.name()))
-            .setHost(requestUri.getHost())
-            .setPort(port)
-            .setURI(requestUri.toString())
-            .setTimeout(httpClientTimeout());
+                .setMethod(io.vertx.core.http.HttpMethod.valueOf(method.name()))
+                .setHost(requestUri.getHost())
+                .setPort(port)
+                .setURI(requestUri.toString())
+                .setTimeout(httpClientTimeout());
 
-        //headers
+        // headers
         options.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         options.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.getBytes(StandardCharsets.UTF_8).length));
         headers.forEach(options::putHeader);
@@ -117,16 +124,14 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         Future<HttpClientRequest> requestFuture = httpClient.request(options);
 
         requestFuture
-            .onFailure(throwable -> {
-                future.completeExceptionally(throwable);
+                .onFailure(throwable -> {
+                    future.completeExceptionally(throwable);
 
-                // Close client
-                httpClient.close();
-            })
-            .onSuccess(request -> {
-                request
-                    .response()
-                    .onComplete(asyncResponse -> {
+                    // Close client
+                    httpClient.close();
+                })
+                .onSuccess(request -> {
+                    request.response().onComplete(asyncResponse -> {
                         if (asyncResponse.failed()) {
                             future.completeExceptionally(asyncResponse.cause());
 
@@ -144,23 +149,19 @@ public class WebNotifierServiceImpl implements WebNotifierService {
                                     httpClient.close();
                                 });
                             } else {
-                                future.completeExceptionally(
-                                    new TechnicalManagementException(
-                                        " Error on url '" +
-                                            uri +
-                                            "'. Status code: " +
-                                            response.statusCode() +
-                                            ". Message: " +
-                                            response.statusMessage(),
-                                        null
-                                    )
-                                );
+                                future.completeExceptionally(new TechnicalManagementException(
+                                        " Error on url '" + uri
+                                                + "'. Status code: "
+                                                + response.statusCode()
+                                                + ". Message: "
+                                                + response.statusMessage(),
+                                        null));
                             }
                         }
                     });
 
-                request.end(body);
-            });
+                    request.end(body);
+                });
 
         try {
             future.get();
@@ -187,15 +188,15 @@ public class WebNotifierServiceImpl implements WebNotifierService {
     }
 
     private String httpClientProxyHttpHost() {
-        return configuration.getProperty("httpClient.proxy.http.host", System.getProperty("http.proxyHost", "localhost"));
+        return configuration.getProperty(
+                "httpClient.proxy.http.host", System.getProperty("http.proxyHost", "localhost"));
     }
 
     private Integer httpClientProxyHttpPort() {
         return configuration.getProperty(
-            "httpClient.proxy.http.port",
-            Integer.class,
-            Integer.valueOf(System.getProperty("http.proxyPort", "3128"))
-        );
+                "httpClient.proxy.http.port",
+                Integer.class,
+                Integer.valueOf(System.getProperty("http.proxyPort", "3128")));
     }
 
     private String httpClientProxyHttpUsername() {
@@ -207,15 +208,15 @@ public class WebNotifierServiceImpl implements WebNotifierService {
     }
 
     private String httpClientProxyHttpsHost() {
-        return configuration.getProperty("httpClient.proxy.https.host", System.getProperty("https.proxyHost", "localhost"));
+        return configuration.getProperty(
+                "httpClient.proxy.https.host", System.getProperty("https.proxyHost", "localhost"));
     }
 
     private Integer httpClientProxyHttpsPort() {
         return configuration.getProperty(
-            "httpClient.proxy.https.port",
-            Integer.class,
-            Integer.valueOf(System.getProperty("https.proxyPort", "3128"))
-        );
+                "httpClient.proxy.https.port",
+                Integer.class,
+                Integer.valueOf(System.getProperty("https.proxyPort", "3128")));
     }
 
     private String httpClientProxyHttpsUsername() {

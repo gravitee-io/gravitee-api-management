@@ -21,7 +21,6 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
-import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
@@ -45,7 +44,8 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void search() throws TechnicalException {
-        List<Subscription> subscriptions = cut.search(SubscriptionCriteria.builder().build());
+        List<Subscription> subscriptions =
+                cut.search(SubscriptionCriteria.builder().build());
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -53,12 +53,10 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void searchWithReferenceIdsAndReferenceTypeCriteria() throws TechnicalException {
-        List<Subscription> subscriptions = cut.search(
-            SubscriptionCriteria.builder()
+        List<Subscription> subscriptions = cut.search(SubscriptionCriteria.builder()
                 .referenceIds(List.of("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88"))
                 .referenceType(SubscriptionReferenceType.API_PRODUCT)
-                .build()
-        );
+                .build());
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -67,10 +65,7 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
     @Test
     public void testSortablePageableSearch() throws TechnicalException {
         Page<Subscription> subscriptions = cut.search(
-            SubscriptionCriteria.builder().build(),
-            new SortableBuilder().build(),
-            new PageableBuilder().build()
-        );
+                SubscriptionCriteria.builder().build(), new SortableBuilder().build(), new PageableBuilder().build());
 
         assertNotNull(subscriptions);
         assertNotNull(subscriptions.getContent());
@@ -79,7 +74,8 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void testSortableSearch() throws TechnicalException {
-        List<Subscription> subscriptions = cut.search(SubscriptionCriteria.builder().build(), new SortableBuilder().build());
+        List<Subscription> subscriptions =
+                cut.search(SubscriptionCriteria.builder().build(), new SortableBuilder().build());
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -95,7 +91,8 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void findReferenceIdsOrderByNumberOfSubscriptions() throws TechnicalException {
-        Set<String> subscriptions = cut.findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria.builder().build(), Order.ASC);
+        Set<String> subscriptions = cut.findReferenceIdsOrderByNumberOfSubscriptions(
+                SubscriptionCriteria.builder().build(), Order.ASC);
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -103,10 +100,8 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void findByReferenceIdAndReferenceType() throws TechnicalException {
-        Set<Subscription> subscriptions = cut.findByReferenceIdAndReferenceType(
-            "test-api-product-id",
-            SubscriptionReferenceType.API_PRODUCT
-        );
+        Set<Subscription> subscriptions =
+                cut.findByReferenceIdAndReferenceType("test-api-product-id", SubscriptionReferenceType.API_PRODUCT);
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -115,10 +110,7 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
     @Test
     public void findByIdAndReferenceIdAndReferenceType() throws TechnicalException {
         Optional<Subscription> subscription = cut.findByIdAndReferenceIdAndReferenceType(
-            "test-subscription-id",
-            "test-api-product-id",
-            SubscriptionReferenceType.API_PRODUCT
-        );
+                "test-subscription-id", "test-api-product-id", SubscriptionReferenceType.API_PRODUCT);
 
         assertNotNull(subscription);
         assertFalse(subscription.isPresent());

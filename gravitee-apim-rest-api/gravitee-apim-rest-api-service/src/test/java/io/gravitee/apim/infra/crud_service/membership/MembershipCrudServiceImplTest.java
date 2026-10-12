@@ -62,20 +62,18 @@ class MembershipCrudServiceImplTest {
             verify(membershipRepository).create(captor.capture());
 
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    io.gravitee.repository.management.model.Membership.builder()
-                        .id("membership-id")
-                        .referenceType(io.gravitee.repository.management.model.MembershipReferenceType.API)
-                        .referenceId("api-id")
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .memberId("user-id")
-                        .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
-                        .roleId("role-id")
-                        .source("system")
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(io.gravitee.repository.management.model.Membership.builder()
+                            .id("membership-id")
+                            .referenceType(io.gravitee.repository.management.model.MembershipReferenceType.API)
+                            .referenceId("api-id")
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                            .memberId("user-id")
+                            .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
+                            .roleId("role-id")
+                            .source("system")
+                            .build());
         }
 
         @Test
@@ -99,8 +97,8 @@ class MembershipCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to create the membership: membership-id");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to create the membership: membership-id");
         }
     }
 
@@ -115,10 +113,12 @@ class MembershipCrudServiceImplTest {
 
         @Test
         void should_throw_if_deletion_problem_occurs() throws TechnicalException {
-            doThrow(new TechnicalException("exception")).when(membershipRepository).delete("membership-id");
+            doThrow(new TechnicalException("exception"))
+                    .when(membershipRepository)
+                    .delete("membership-id");
             assertThatThrownBy(() -> service.delete("membership-id"))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to delete the membership: membership-id");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to delete the membership: membership-id");
             verify(membershipRepository).delete("membership-id");
         }
     }

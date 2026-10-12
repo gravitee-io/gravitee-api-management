@@ -40,17 +40,14 @@ public class ScoringRulesetQueryServiceImpl extends AbstractService implements S
     @Override
     public List<ScoringRuleset> findByReference(String referenceId, ScoringRuleset.ReferenceType referenceType) {
         try {
-            return scoringRulesetRepository
-                .findAllByReferenceId(referenceId, referenceType.name())
-                .stream()
-                .map(ScoringRulesetAdapter.INSTANCE::toEntity)
-                .toList();
+            return scoringRulesetRepository.findAllByReferenceId(referenceId, referenceType.name()).stream()
+                    .map(ScoringRulesetAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             log.error("An error occurred while finding Scoring ruleset [{}:{}]", referenceType, referenceId, e);
             throw new TechnicalManagementException(
-                "An error occurred while finding Scoring ruleset [%s:%s] ".formatted(referenceType, referenceId),
-                e
-            );
+                    "An error occurred while finding Scoring ruleset [%s:%s] ".formatted(referenceType, referenceId),
+                    e);
         }
     }
 }

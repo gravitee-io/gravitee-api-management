@@ -56,13 +56,14 @@ public class ValidateApiClusterBindingService {
         } catch (JsonProcessingException e) {
             // Unparseable definition: leave existing start/deploy behaviour unchanged, but trace it —
             // a corrupted definition silently bypasses the virtual-cluster binding guard.
-            log.warn("Unable to parse native API definition of API {}; skipping virtual cluster binding validation", apiId, e);
+            log.warn(
+                    "Unable to parse native API definition of API {}; skipping virtual cluster binding validation",
+                    apiId,
+                    e);
             return;
         }
-        Optional<String> virtualClusterCrossId = VirtualClusterBoundApisQueryService.extractVirtualClusterCrossId(
-            nativeDefinition,
-            objectMapper
-        );
+        Optional<String> virtualClusterCrossId =
+                VirtualClusterBoundApisQueryService.extractVirtualClusterCrossId(nativeDefinition, objectMapper);
         if (virtualClusterCrossId.isEmpty()) {
             return;
         }
@@ -70,17 +71,13 @@ public class ValidateApiClusterBindingService {
         // PENDING means the cluster is deployed at the gateway with not-yet-redeployed edits
         // (a cluster only reaches PENDING from DEPLOYED), so it is a valid target.
         boolean deployed = clusterQueryService
-            .findByCrossIdAndEnvironmentId(crossId, environmentId)
-            .map(
-                cluster ->
-                    cluster.getLifecycleState() == ClusterLifecycleState.DEPLOYED ||
-                    cluster.getLifecycleState() == ClusterLifecycleState.PENDING
-            )
-            .orElse(false);
+                .findByCrossIdAndEnvironmentId(crossId, environmentId)
+                .map(cluster -> cluster.getLifecycleState() == ClusterLifecycleState.DEPLOYED
+                        || cluster.getLifecycleState() == ClusterLifecycleState.PENDING)
+                .orElse(false);
         if (!deployed) {
-            throw new ApiNotDeployableException(
-                "The API {" + apiId + "} cannot be deployed or started because its virtual cluster {" + crossId + "} is not deployed"
-            );
+            throw new ApiNotDeployableException("The API {" + apiId
+                    + "} cannot be deployed or started because its virtual cluster {" + crossId + "} is not deployed");
         }
     }
 }

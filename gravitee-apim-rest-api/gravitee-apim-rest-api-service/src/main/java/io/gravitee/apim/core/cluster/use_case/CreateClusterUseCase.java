@@ -62,8 +62,8 @@ public class CreateClusterUseCase {
     public Output execute(Input input) {
         Instant now = TimeProvider.instantNow();
         String crossId = StringUtils.isEmpty(input.createCluster.getCrossId())
-            ? StringUtils.slugify(input.createCluster.getName())
-            : input.createCluster.getCrossId();
+                ? StringUtils.slugify(input.createCluster.getName())
+                : input.createCluster.getCrossId();
 
         Object configuration = input.createCluster.getConfiguration();
         if (input.createCluster.getType() == ClusterType.KAFKA_CLUSTER && configuration != null) {
@@ -71,18 +71,18 @@ public class CreateClusterUseCase {
         }
 
         Cluster clusterToCreate = Cluster.builder()
-            .type(input.createCluster.getType())
-            .crossId(crossId)
-            .name(input.createCluster.getName())
-            .description(input.createCluster.getDescription())
-            .configuration(configuration)
-            .id(UuidString.generateRandom())
-            .createdAt(now)
-            .updatedAt(now)
-            .environmentId(input.auditInfo().environmentId())
-            .organizationId(input.auditInfo().organizationId())
-            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
-            .build();
+                .type(input.createCluster.getType())
+                .crossId(crossId)
+                .name(input.createCluster.getName())
+                .description(input.createCluster.getDescription())
+                .configuration(configuration)
+                .id(UuidString.generateRandom())
+                .createdAt(now)
+                .updatedAt(now)
+                .environmentId(input.auditInfo().environmentId())
+                .organizationId(input.auditInfo().organizationId())
+                .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+                .build();
 
         validateClusterService.validateForCreate(clusterToCreate);
 
@@ -96,24 +96,24 @@ public class CreateClusterUseCase {
     }
 
     private Membership createClusterPrimaryOwner(String memberId, String clusterId, Instant createdAt) {
-        ZonedDateTime createdAtZonedDateTime = createdAt.atZone(TimeProvider.clock().getZone());
+        ZonedDateTime createdAtZonedDateTime =
+                createdAt.atZone(TimeProvider.clock().getZone());
         Role role = roleQueryService
-            .findByScopeAndNameAndOrganizationId(
-                Role.Scope.CLUSTER,
-                "PRIMARY_OWNER",
-                GraviteeContext.getExecutionContext().getOrganizationId()
-            )
-            .orElseThrow();
+                .findByScopeAndNameAndOrganizationId(
+                        Role.Scope.CLUSTER,
+                        "PRIMARY_OWNER",
+                        GraviteeContext.getExecutionContext().getOrganizationId())
+                .orElseThrow();
         Membership membership = Membership.builder()
-            .id(UuidString.generateRandom())
-            .memberId(memberId)
-            .memberType(Membership.Type.USER)
-            .referenceId(clusterId)
-            .referenceType(Membership.ReferenceType.CLUSTER)
-            .roleId(role.getId())
-            .createdAt(createdAtZonedDateTime)
-            .updatedAt(createdAtZonedDateTime)
-            .build();
+                .id(UuidString.generateRandom())
+                .memberId(memberId)
+                .memberType(Membership.Type.USER)
+                .referenceId(clusterId)
+                .referenceType(Membership.ReferenceType.CLUSTER)
+                .roleId(role.getId())
+                .createdAt(createdAtZonedDateTime)
+                .updatedAt(createdAtZonedDateTime)
+                .build();
         return membershipCrudService.create(membership);
     }
 
@@ -122,24 +122,18 @@ public class CreateClusterUseCase {
         if (config.connections() == null || config.connections().isEmpty()) {
             return configuration;
         }
-        List<KafkaClusterConnection> updatedConnections = config
-            .connections()
-            .stream()
-            .map(conn ->
-                new KafkaClusterConnection(
-                    StringUtils.isEmpty(conn.crossId()) ? StringUtils.slugify(conn.name()) : conn.crossId(),
-                    conn.name(),
-                    conn.bootstrapServers(),
-                    conn.security()
-                )
-            )
-            .toList();
+        List<KafkaClusterConnection> updatedConnections = config.connections().stream()
+                .map(conn -> new KafkaClusterConnection(
+                        StringUtils.isEmpty(conn.crossId()) ? StringUtils.slugify(conn.name()) : conn.crossId(),
+                        conn.name(),
+                        conn.bootstrapServers(),
+                        conn.security()))
+                .toList();
         return objectMapper.convertValue(new KafkaClusterConfiguration(updatedConnections), Object.class);
     }
 
     private void createAuditLog(Cluster cluster, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_CREATED)
@@ -147,7 +141,6 @@ public class CreateClusterUseCase {
                 .newValue(cluster)
                 .createdAt(cluster.getCreatedAt().atZone(TimeProvider.clock().getZone()))
                 .properties(Map.of(AuditProperties.CLUSTER, cluster.getId()))
-                .build()
-        );
+                .build());
     }
 }

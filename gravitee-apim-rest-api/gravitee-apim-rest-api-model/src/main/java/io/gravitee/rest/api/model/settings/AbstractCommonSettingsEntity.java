@@ -24,7 +24,7 @@ import io.gravitee.common.util.MultiValueMap;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties(value = { "baseURL" })
+@JsonIgnoreProperties(value = {"baseURL"})
 public abstract class AbstractCommonSettingsEntity {
 
     public static final String METADATA_READONLY = "readonly";

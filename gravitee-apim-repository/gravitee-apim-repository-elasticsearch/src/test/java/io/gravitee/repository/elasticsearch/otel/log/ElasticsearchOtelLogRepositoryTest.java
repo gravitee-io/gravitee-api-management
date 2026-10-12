@@ -55,7 +55,8 @@ class ElasticsearchOtelLogRepositoryTest {
     }
 
     @Test
-    void findLogs_should_target_org_scoped_index_and_filter_by_trace_id_without_event_name_discriminator() throws Exception {
+    void findLogs_should_target_org_scoped_index_and_filter_by_trace_id_without_event_name_discriminator()
+            throws Exception {
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
         repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
@@ -78,9 +79,11 @@ class ElasticsearchOtelLogRepositoryTest {
             assertThat(clause.path("exists").path("field").asText(null)).isNotEqualTo("event_name");
         }
         assertThat(hasTraceId).isTrue();
-        assertThat(body.path("query").path("bool").path("must_not").isMissingNode()).isTrue();
+        assertThat(body.path("query").path("bool").path("must_not").isMissingNode())
+                .isTrue();
         // Sort by @timestamp ascending so consumers see entries in chronological order.
-        assertThat(body.path("sort").get(0).path("@timestamp").path("order").asText()).isEqualTo("asc");
+        assertThat(body.path("sort").get(0).path("@timestamp").path("order").asText())
+                .isEqualTo("asc");
         // Default limit from the criteria's compact constructor.
         assertThat(body.path("size").asInt()).isEqualTo(5000);
     }
@@ -91,8 +94,10 @@ class ElasticsearchOtelLogRepositoryTest {
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
         repository
-            .findLogs(QUERY_CONTEXT, new OtelLogSearchCriteria(null, Map.of(), Map.of("gravitee.api.id", "api-1"), null, null, null))
-            .blockingGet();
+                .findLogs(
+                        QUERY_CONTEXT,
+                        new OtelLogSearchCriteria(null, Map.of(), Map.of("gravitee.api.id", "api-1"), null, null, null))
+                .blockingGet();
 
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
@@ -107,18 +112,16 @@ class ElasticsearchOtelLogRepositoryTest {
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
         repository
-            .findLogs(
-                QUERY_CONTEXT,
-                new OtelLogSearchCriteria(
-                    "a1b2c3d4",
-                    Map.of(),
-                    Map.of("gravitee.env.id", "test-env", "gravitee.module", "apim"),
-                    null,
-                    null,
-                    null
-                )
-            )
-            .blockingGet();
+                .findLogs(
+                        QUERY_CONTEXT,
+                        new OtelLogSearchCriteria(
+                                "a1b2c3d4",
+                                Map.of(),
+                                Map.of("gravitee.env.id", "test-env", "gravitee.module", "apim"),
+                                null,
+                                null,
+                                null))
+                .blockingGet();
 
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
@@ -127,7 +130,8 @@ class ElasticsearchOtelLogRepositoryTest {
         boolean hasModule = false;
         for (JsonNode clause : body.path("query").path("bool").path("filter")) {
             JsonNode term = clause.path("term");
-            if ("test-env".equals(term.path("resource.attributes.gravitee.env.id").asText(null))) hasEnv = true;
+            if ("test-env"
+                    .equals(term.path("resource.attributes.gravitee.env.id").asText(null))) hasEnv = true;
             if ("apim".equals(term.path("resource.attributes.gravitee.module").asText(null))) hasModule = true;
         }
         assertThat(hasEnv).isTrue();
@@ -141,15 +145,21 @@ class ElasticsearchOtelLogRepositoryTest {
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
         repository
-            .findLogs(QUERY_CONTEXT, new OtelLogSearchCriteria("a1b2c3d4", Map.of("some.attribute", "value"), Map.of(), null, null, null))
-            .blockingGet();
+                .findLogs(
+                        QUERY_CONTEXT,
+                        new OtelLogSearchCriteria(
+                                "a1b2c3d4", Map.of("some.attribute", "value"), Map.of(), null, null, null))
+                .blockingGet();
 
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
         JsonNode body = MAPPER.readTree(bodyCaptor.getValue());
         boolean hasAttribute = false;
         for (JsonNode clause : body.path("query").path("bool").path("filter")) {
-            if ("value".equals(clause.path("term").path("attributes.some.attribute").asText(null))) hasAttribute = true;
+            if ("value"
+                    .equals(clause.path("term")
+                            .path("attributes.some.attribute")
+                            .asText(null))) hasAttribute = true;
         }
         assertThat(hasAttribute).isTrue();
     }
@@ -162,8 +172,11 @@ class ElasticsearchOtelLogRepositoryTest {
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
         repository
-            .findLogs(QUERY_CONTEXT, new OtelLogSearchCriteria("a1b2c3d4", Map.of("event.name", "exception"), Map.of(), null, null, null))
-            .blockingGet();
+                .findLogs(
+                        QUERY_CONTEXT,
+                        new OtelLogSearchCriteria(
+                                "a1b2c3d4", Map.of("event.name", "exception"), Map.of(), null, null, null))
+                .blockingGet();
 
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
@@ -185,7 +198,9 @@ class ElasticsearchOtelLogRepositoryTest {
         Instant end = Instant.parse("2026-04-30T11:00:00Z");
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
-        repository.findLogs(QUERY_CONTEXT, new OtelLogSearchCriteria("a1b2c3d4", Map.of(), Map.of(), start, end, null)).blockingGet();
+        repository
+                .findLogs(QUERY_CONTEXT, new OtelLogSearchCriteria("a1b2c3d4", Map.of(), Map.of(), start, end, null))
+                .blockingGet();
 
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
@@ -208,7 +223,9 @@ class ElasticsearchOtelLogRepositoryTest {
     void findLogs_should_use_criteria_limit_as_search_size() throws Exception {
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
-        repository.findLogs(QUERY_CONTEXT, new OtelLogSearchCriteria("a1b2c3d4", Map.of(), Map.of(), null, null, 100)).blockingGet();
+        repository
+                .findLogs(QUERY_CONTEXT, new OtelLogSearchCriteria("a1b2c3d4", Map.of(), Map.of(), null, null, 100))
+                .blockingGet();
 
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
@@ -222,20 +239,28 @@ class ElasticsearchOtelLogRepositoryTest {
         // OTel-standard `event.name` attribute so consumers don't carry ES-specific knowledge.
         SearchResponse response = new SearchResponse();
         SearchHits hits = new SearchHits();
-        hits.setHits(
-            List.of(
-                eventHit("a1b2c3d4", "11223344aabbccdd", "gravitee.policy.pre", "2026-04-30T10:00:00.100Z", "policy-id-1"),
-                eventHit("a1b2c3d4", "11223344aabbccdd", "gravitee.policy.post", "2026-04-30T10:00:00.200Z", "policy-id-1")
-            )
-        );
+        hits.setHits(List.of(
+                eventHit(
+                        "a1b2c3d4",
+                        "11223344aabbccdd",
+                        "gravitee.policy.pre",
+                        "2026-04-30T10:00:00.100Z",
+                        "policy-id-1"),
+                eventHit(
+                        "a1b2c3d4",
+                        "11223344aabbccdd",
+                        "gravitee.policy.post",
+                        "2026-04-30T10:00:00.200Z",
+                        "policy-id-1")));
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records)
-            .extracting(r -> r.attributes().get("event.name"))
-            .containsExactly("gravitee.policy.pre", "gravitee.policy.post");
+                .extracting(r -> r.attributes().get("event.name"))
+                .containsExactly("gravitee.policy.pre", "gravitee.policy.post");
         assertThat(records.get(0).traceId()).isEqualTo("a1b2c3d4");
         assertThat(records.get(0).spanId()).isEqualTo("11223344aabbccdd");
         assertThat(records.get(0).attributes()).containsEntry("gravitee.policy.id", "policy-id-1");
@@ -259,7 +284,8 @@ class ElasticsearchOtelLogRepositoryTest {
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records.get(0).attributes()).containsEntry("event.name", "exception");
     }
@@ -280,7 +306,8 @@ class ElasticsearchOtelLogRepositoryTest {
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records).hasSize(1);
         OtelLogRecord payload = records.get(0);
@@ -307,7 +334,8 @@ class ElasticsearchOtelLogRepositoryTest {
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records.get(0).body()).isEqualTo("nested-body");
     }
@@ -324,13 +352,19 @@ class ElasticsearchOtelLogRepositoryTest {
         orphanSource.put("event_name", "exception");
         orphanSource.put("@timestamp", "2026-04-30T10:00:00.100Z");
         orphan.setSource(MAPPER.valueToTree(orphanSource));
-        hits.setHits(
-            List.of(orphan, eventHit("a1b2c3d4", "11223344aabbccdd", "gravitee.policy.pre", "2026-04-30T10:00:00.200Z", "policy-id-1"))
-        );
+        hits.setHits(List.of(
+                orphan,
+                eventHit(
+                        "a1b2c3d4",
+                        "11223344aabbccdd",
+                        "gravitee.policy.pre",
+                        "2026-04-30T10:00:00.200Z",
+                        "policy-id-1")));
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records).hasSize(1);
         assertThat(records.get(0).attributes()).containsEntry("event.name", "gravitee.policy.pre");
@@ -343,7 +377,8 @@ class ElasticsearchOtelLogRepositoryTest {
         // than failing so consumers (gamma use case) can still return the trace's spans.
         when(client.search(any(), any(), any())).thenReturn(Single.error(new RuntimeException("logs index missing")));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records).isEmpty();
     }
@@ -355,11 +390,13 @@ class ElasticsearchOtelLogRepositoryTest {
         // extract both parts to produce an accurate Instant.
         SearchResponse response = new SearchResponse();
         SearchHits hits = new SearchHits();
-        hits.setHits(List.of(eventHit("a1b2c3d4", "11223344aabbccdd", "exception", "1778515640168.675208", "policy-id-1")));
+        hits.setHits(
+                List.of(eventHit("a1b2c3d4", "11223344aabbccdd", "exception", "1778515640168.675208", "policy-id-1")));
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records.get(0).timestamp()).isEqualTo(Instant.ofEpochSecond(1778515640L, 168_675_208L));
     }
@@ -370,11 +407,13 @@ class ElasticsearchOtelLogRepositoryTest {
         // ISO first and only falls back to the decimal-epoch-millis form on DateTimeParseException.
         SearchResponse response = new SearchResponse();
         SearchHits hits = new SearchHits();
-        hits.setHits(List.of(eventHit("a1b2c3d4", "11223344aabbccdd", "exception", "2026-04-30T10:00:00.100Z", "policy-id-1")));
+        hits.setHits(List.of(
+                eventHit("a1b2c3d4", "11223344aabbccdd", "exception", "2026-04-30T10:00:00.100Z", "policy-id-1")));
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records.get(0).timestamp()).isEqualTo(Instant.parse("2026-04-30T10:00:00.100Z"));
     }
@@ -389,7 +428,8 @@ class ElasticsearchOtelLogRepositoryTest {
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records.get(0).timestamp()).isEqualTo(Instant.ofEpochMilli(1778515640168L));
     }
@@ -404,7 +444,8 @@ class ElasticsearchOtelLogRepositoryTest {
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records).hasSize(1);
         assertThat(records.get(0).timestamp()).isNull();
@@ -414,7 +455,8 @@ class ElasticsearchOtelLogRepositoryTest {
     void should_resolve_envId_placeholder_in_index_template() {
         // Logs-explorer use cases will template {envId} into a per-env data-stream name; verify the
         // placeholder is substituted from QueryContext (lowercased — ES data streams require it).
-        ElasticsearchOtelLogRepository perEnvRepo = new ElasticsearchOtelLogRepository("logs-apim.otel-{orgId}-{envId}", client);
+        ElasticsearchOtelLogRepository perEnvRepo =
+                new ElasticsearchOtelLogRepository("logs-apim.otel-{orgId}-{envId}", client);
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
         perEnvRepo.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
@@ -443,7 +485,8 @@ class ElasticsearchOtelLogRepositoryTest {
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         // Structured body is JSON-serialised; assert both expected fragments are present (key order isn't
         // guaranteed across HashMap iteration).
@@ -470,9 +513,12 @@ class ElasticsearchOtelLogRepositoryTest {
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
-        assertThat(records.get(0).attributes()).containsEntry("http.request.method", "POST").containsEntry("http.status_code", "200");
+        assertThat(records.get(0).attributes())
+                .containsEntry("http.request.method", "POST")
+                .containsEntry("http.status_code", "200");
     }
 
     @Test
@@ -488,27 +534,26 @@ class ElasticsearchOtelLogRepositoryTest {
         source.put("span_id", "11223344aabbccdd");
         source.put("@timestamp", "2026-04-30T10:00:00.100Z");
         source.put(
-            "attributes",
-            List.of(
-                Map.of("key", "http.method", "value", Map.of("stringValue", "POST")),
-                Map.of("key", "http.status_code", "value", Map.of("intValue", 200)),
-                Map.of("key", "http.duration_ms", "value", Map.of("doubleValue", 12.5)),
-                Map.of("key", "http.cached", "value", Map.of("boolValue", true))
-            )
-        );
+                "attributes",
+                List.of(
+                        Map.of("key", "http.method", "value", Map.of("stringValue", "POST")),
+                        Map.of("key", "http.status_code", "value", Map.of("intValue", 200)),
+                        Map.of("key", "http.duration_ms", "value", Map.of("doubleValue", 12.5)),
+                        Map.of("key", "http.cached", "value", Map.of("boolValue", true))));
         SearchHit hit = new SearchHit();
         hit.setSource(MAPPER.valueToTree(source));
         hits.setHits(List.of(hit));
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records.get(0).attributes())
-            .containsEntry("http.method", "POST")
-            .containsEntry("http.status_code", "200")
-            .containsEntry("http.duration_ms", "12.5")
-            .containsEntry("http.cached", "true");
+                .containsEntry("http.method", "POST")
+                .containsEntry("http.status_code", "200")
+                .containsEntry("http.duration_ms", "12.5")
+                .containsEntry("http.cached", "true");
     }
 
     @Test
@@ -523,14 +568,17 @@ class ElasticsearchOtelLogRepositoryTest {
         source.put("@timestamp", "2026-04-30T10:00:00.100Z");
         Map<String, Object> withoutValue = new HashMap<>();
         withoutValue.put("key", "orphan");
-        source.put("attributes", List.of(withoutValue, Map.of("key", "http.method", "value", Map.of("stringValue", "POST"))));
+        source.put(
+                "attributes",
+                List.of(withoutValue, Map.of("key", "http.method", "value", Map.of("stringValue", "POST"))));
         SearchHit hit = new SearchHit();
         hit.setSource(MAPPER.valueToTree(source));
         hits.setHits(List.of(hit));
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records.get(0).attributes()).hasSize(1).containsEntry("http.method", "POST");
     }
@@ -546,19 +594,18 @@ class ElasticsearchOtelLogRepositoryTest {
         source.put("span_id", "11223344aabbccdd");
         source.put("@timestamp", "2026-04-30T10:00:00.100Z");
         source.put(
-            "attributes",
-            List.of(
-                Map.of("key", "weird", "value", Map.of("arrayValue", List.of("a", "b"))),
-                Map.of("key", "http.method", "value", Map.of("stringValue", "POST"))
-            )
-        );
+                "attributes",
+                List.of(
+                        Map.of("key", "weird", "value", Map.of("arrayValue", List.of("a", "b"))),
+                        Map.of("key", "http.method", "value", Map.of("stringValue", "POST"))));
         SearchHit hit = new SearchHit();
         hit.setSource(MAPPER.valueToTree(source));
         hits.setHits(List.of(hit));
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records.get(0).attributes()).hasSize(1).containsEntry("http.method", "POST");
     }
@@ -580,7 +627,8 @@ class ElasticsearchOtelLogRepositoryTest {
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records.get(0).attributes()).containsEntry("raw", "scalar-value");
     }
@@ -597,24 +645,31 @@ class ElasticsearchOtelLogRepositoryTest {
         source.put("span_id", "11223344aabbccdd");
         source.put("@timestamp", "2026-04-30T10:00:00.100Z");
         source.put(
-            "resource",
-            Map.of(
-                "attributes",
-                Map.of("gravitee", Map.of("module", "apim", "env", Map.of("id", "test-env"), "api", Map.of("id", "api-1")))
-            )
-        );
+                "resource",
+                Map.of(
+                        "attributes",
+                        Map.of(
+                                "gravitee",
+                                Map.of(
+                                        "module",
+                                        "apim",
+                                        "env",
+                                        Map.of("id", "test-env"),
+                                        "api",
+                                        Map.of("id", "api-1")))));
         SearchHit hit = new SearchHit();
         hit.setSource(MAPPER.valueToTree(source));
         hits.setHits(List.of(hit));
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records.get(0).resourceAttributes())
-            .containsEntry("gravitee.module", "apim")
-            .containsEntry("gravitee.env.id", "test-env")
-            .containsEntry("gravitee.api.id", "api-1");
+                .containsEntry("gravitee.module", "apim")
+                .containsEntry("gravitee.env.id", "test-env")
+                .containsEntry("gravitee.api.id", "api-1");
     }
 
     @Test
@@ -625,16 +680,19 @@ class ElasticsearchOtelLogRepositoryTest {
         SearchHits hits = new SearchHits();
         SearchHit nullSourceHit = new SearchHit();
         nullSourceHit.setSource(null);
-        hits.setHits(
-            List.of(
+        hits.setHits(List.of(
                 nullSourceHit,
-                eventHit("a1b2c3d4", "11223344aabbccdd", "gravitee.policy.pre", "2026-04-30T10:00:00.100Z", "policy-id-1")
-            )
-        );
+                eventHit(
+                        "a1b2c3d4",
+                        "11223344aabbccdd",
+                        "gravitee.policy.pre",
+                        "2026-04-30T10:00:00.100Z",
+                        "policy-id-1")));
         response.setSearchHits(hits);
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+        List<OtelLogRecord> records =
+                repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
 
         assertThat(records).hasSize(1);
         assertThat(records.get(0).attributes()).containsEntry("event.name", "gravitee.policy.pre");

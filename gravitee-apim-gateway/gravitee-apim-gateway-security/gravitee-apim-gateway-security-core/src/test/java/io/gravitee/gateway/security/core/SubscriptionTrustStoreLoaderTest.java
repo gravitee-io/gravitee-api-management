@@ -90,53 +90,57 @@ class SubscriptionTrustStoreLoaderTest {
     @SneakyThrows
     @Test
     void should_build_id_based_on_subscription_id() {
-        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
-            new SubscriptionCertificate(Subscription.builder().id("subscriptionId").build(), certificate, fingerprint)
-        );
+        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(new SubscriptionCertificate(
+                Subscription.builder().id("subscriptionId").build(), certificate, fingerprint));
         assertThat(loader.id()).isGreaterThan("sub_subscriptionId_cert_");
     }
 
     @SneakyThrows
     @Test
     void should_start_a_loader() {
-        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
-            new SubscriptionCertificate(Subscription.builder().id("subscriptionId").build(), certificate, fingerprint)
-        );
+        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(new SubscriptionCertificate(
+                Subscription.builder().id("subscriptionId").build(), certificate, fingerprint));
 
         final List<KeyStoreEvent> keyStoreEvents = new ArrayList<>();
         loader.setEventHandler(keyStoreEvents::add);
 
         loader.start();
-        assertThat(keyStoreEvents)
-            .hasSize(1)
-            .first()
-            .satisfies(event -> {
-                assertThat(event.loaderId()).isEqualTo(loader.id());
-                assertThat(event).isInstanceOf(KeyStoreEvent.LoadEvent.class);
-                assertThat(((KeyStoreEvent.LoadEvent) event).keyStore()).satisfies(keyStore -> {
-                    assertThat(Collections.list(keyStore.aliases())).containsExactly("cert");
-                    assertThat(keyStore.getCertificate("cert")).isEqualTo(certificate);
-                });
+        assertThat(keyStoreEvents).hasSize(1).first().satisfies(event -> {
+            assertThat(event.loaderId()).isEqualTo(loader.id());
+            assertThat(event).isInstanceOf(KeyStoreEvent.LoadEvent.class);
+            assertThat(((KeyStoreEvent.LoadEvent) event).keyStore()).satisfies(keyStore -> {
+                assertThat(Collections.list(keyStore.aliases())).containsExactly("cert");
+                assertThat(keyStore.getCertificate("cert")).isEqualTo(certificate);
             });
+        });
     }
 
     @Test
     void should_return_empty_set_when_client_certificate_is_null() {
-        var subscription = Subscription.builder().id("subscriptionId").clientCertificate(null).build();
+        var subscription = Subscription.builder()
+                .id("subscriptionId")
+                .clientCertificate(null)
+                .build();
         var result = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
         assertThat(result).isEmpty();
     }
 
     @Test
     void should_return_empty_set_when_client_certificate_is_blank() {
-        var subscription = Subscription.builder().id("subscriptionId").clientCertificate("   ").build();
+        var subscription = Subscription.builder()
+                .id("subscriptionId")
+                .clientCertificate("   ")
+                .build();
         var result = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
         assertThat(result).isEmpty();
     }
 
     @Test
     void should_return_empty_set_when_client_certificate_is_empty_string() {
-        var subscription = Subscription.builder().id("subscriptionId").clientCertificate("").build();
+        var subscription = Subscription.builder()
+                .id("subscriptionId")
+                .clientCertificate("")
+                .build();
         var result = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
         assertThat(result).isEmpty();
     }
@@ -147,7 +151,10 @@ class SubscriptionTrustStoreLoaderTest {
         var pkcs7Bytes = PKCS7Utils.createBundle(List.of(CERTIFICATE));
         var base64Bundle = Base64.getEncoder().encodeToString(pkcs7Bytes);
 
-        var subscription = Subscription.builder().id("subscriptionId").clientCertificate(base64Bundle).build();
+        var subscription = Subscription.builder()
+                .id("subscriptionId")
+                .clientCertificate(base64Bundle)
+                .build();
         var result = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
         assertThat(result).hasSize(1);
         assertThat(result.iterator().next().certificate()).isEqualTo(certificate);
@@ -156,20 +163,16 @@ class SubscriptionTrustStoreLoaderTest {
     @SneakyThrows
     @Test
     void should_not_start_a_loader_already_started() {
-        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
-            new SubscriptionCertificate(Subscription.builder().id("subscriptionId").build(), certificate, fingerprint)
-        );
+        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(new SubscriptionCertificate(
+                Subscription.builder().id("subscriptionId").build(), certificate, fingerprint));
         final List<KeyStoreEvent> keyStoreEvents = new ArrayList<>();
         loader.setEventHandler(keyStoreEvents::add);
 
         loader.start();
-        assertThat(keyStoreEvents)
-            .hasSize(1)
-            .first()
-            .satisfies(event -> {
-                assertThat(event.loaderId()).isEqualTo(loader.id());
-                assertThat(event).isInstanceOf(KeyStoreEvent.LoadEvent.class);
-            });
+        assertThat(keyStoreEvents).hasSize(1).first().satisfies(event -> {
+            assertThat(event.loaderId()).isEqualTo(loader.id());
+            assertThat(event).isInstanceOf(KeyStoreEvent.LoadEvent.class);
+        });
 
         // Try to start again
         loader.start();

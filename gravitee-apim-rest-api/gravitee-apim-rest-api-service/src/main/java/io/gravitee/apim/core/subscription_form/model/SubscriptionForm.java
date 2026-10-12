@@ -94,9 +94,6 @@ public class SubscriptionForm {
      * Stops dedicating this form to an API (mutates in place).
      */
     public void unassignApi(String apiId) {
-        this.apiIds = apiIds
-            .stream()
-            .filter(id -> !id.equals(apiId))
-            .toList();
+        this.apiIds = apiIds.stream().filter(id -> !id.equals(apiId)).toList();
     }
 }

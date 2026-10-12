@@ -82,16 +82,13 @@ public class ApiServicePluginServiceTest {
         var plugins = cut.findAll();
 
         assertThat(plugins)
-            .isNotNull()
-            .isNotEmpty()
-            .allMatch(
-                plugin ->
-                    plugin.getId().equals(API_SERVICE_PLUGIN_ID) &&
-                    plugin.getDescription().equals(API_SERVICE_PLUGIN_DESCRIPTION) &&
-                    plugin.getName().equals(API_SERVICE_PLUGIN_NAME) &&
-                    plugin.getVersion().equals(API_SERVICE_PLUGIN_VERSION) &&
-                    plugin.getCategory().equals(API_SERVICE_PLUGIN_CATEGORY)
-            );
+                .isNotNull()
+                .isNotEmpty()
+                .allMatch(plugin -> plugin.getId().equals(API_SERVICE_PLUGIN_ID)
+                        && plugin.getDescription().equals(API_SERVICE_PLUGIN_DESCRIPTION)
+                        && plugin.getName().equals(API_SERVICE_PLUGIN_NAME)
+                        && plugin.getVersion().equals(API_SERVICE_PLUGIN_VERSION)
+                        && plugin.getCategory().equals(API_SERVICE_PLUGIN_CATEGORY));
     }
 
     @Test
@@ -101,15 +98,12 @@ public class ApiServicePluginServiceTest {
         var plugin = cut.findById(API_SERVICE_PLUGIN_ID);
 
         assertThat(plugin)
-            .isNotNull()
-            .matches(
-                p ->
-                    p.getId().equals(API_SERVICE_PLUGIN_ID) &&
-                    p.getDescription().equals(API_SERVICE_PLUGIN_DESCRIPTION) &&
-                    p.getName().equals(API_SERVICE_PLUGIN_NAME) &&
-                    p.getVersion().equals(API_SERVICE_PLUGIN_VERSION) &&
-                    p.getCategory().equals(API_SERVICE_PLUGIN_CATEGORY)
-            );
+                .isNotNull()
+                .matches(p -> p.getId().equals(API_SERVICE_PLUGIN_ID)
+                        && p.getDescription().equals(API_SERVICE_PLUGIN_DESCRIPTION)
+                        && p.getName().equals(API_SERVICE_PLUGIN_NAME)
+                        && p.getVersion().equals(API_SERVICE_PLUGIN_VERSION)
+                        && p.getCategory().equals(API_SERVICE_PLUGIN_CATEGORY));
     }
 
     @Test

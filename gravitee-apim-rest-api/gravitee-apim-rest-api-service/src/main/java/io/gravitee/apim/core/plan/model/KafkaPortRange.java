@@ -35,7 +35,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @ToString
-@EqualsAndHashCode(of = { "planId" })
+@EqualsAndHashCode(of = {"planId"})
 public class KafkaPortRange {
 
     private String planId;

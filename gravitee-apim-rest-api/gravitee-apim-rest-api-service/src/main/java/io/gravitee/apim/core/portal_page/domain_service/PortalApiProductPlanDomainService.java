@@ -36,26 +36,23 @@ public class PortalApiProductPlanDomainService {
     private final PlanSearchQueryService planSearchQueryService;
     private final PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
 
-    public List<Plan> findAccessiblePlans(String environmentId, String apiProductId, PortalNavigationItemViewerContext viewerContext) {
-        var accessibleApiProduct = portalApiProductAccessDomainService.findAccessible(environmentId, apiProductId, viewerContext);
+    public List<Plan> findAccessiblePlans(
+            String environmentId, String apiProductId, PortalNavigationItemViewerContext viewerContext) {
+        var accessibleApiProduct =
+                portalApiProductAccessDomainService.findAccessible(environmentId, apiProductId, viewerContext);
         var userId = viewerContext.userId().orElse(null);
         var query = PlanQuery.builder()
-            .referenceId(apiProductId)
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .status(List.of(PlanStatus.PUBLISHED))
-            .build();
+                .referenceId(apiProductId)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .status(List.of(PlanStatus.PUBLISHED))
+                .build();
 
         return planSearchQueryService
-            .searchPlans(apiProductId, GenericPlanEntity.ReferenceType.API_PRODUCT, query, userId, false)
-            .stream()
-            .filter(plan ->
-                planExcludedGroupsDomainService.isUserAuthorizedToAccessApiProductPlan(
-                    accessibleApiProduct.apiProduct(),
-                    plan.getExcludedGroups(),
-                    userId
-                )
-            )
-            .sorted(comparingInt(Plan::getOrder))
-            .toList();
+                .searchPlans(apiProductId, GenericPlanEntity.ReferenceType.API_PRODUCT, query, userId, false)
+                .stream()
+                .filter(plan -> planExcludedGroupsDomainService.isUserAuthorizedToAccessApiProductPlan(
+                        accessibleApiProduct.apiProduct(), plan.getExcludedGroups(), userId))
+                .sorted(comparingInt(Plan::getOrder))
+                .toList();
     }
 }

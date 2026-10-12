@@ -23,22 +23,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.OptionalInt;
 
-public class SubscriptionCrudServiceInMemory implements SubscriptionCrudService, InMemoryAlternative<SubscriptionEntity> {
+public class SubscriptionCrudServiceInMemory
+        implements SubscriptionCrudService, InMemoryAlternative<SubscriptionEntity> {
 
     final ArrayList<SubscriptionEntity> storage = new ArrayList<>();
 
     @Override
     public SubscriptionEntity get(String subscriptionId) {
-        return storage
-            .stream()
-            .filter(subscription -> subscriptionId.equals(subscription.getId()))
-            .findFirst()
-            .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+        return storage.stream()
+                .filter(subscription -> subscriptionId.equals(subscription.getId()))
+                .findFirst()
+                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
     }
 
     @Override
     public SubscriptionEntity update(SubscriptionEntity subscriptionEntity) {
-        OptionalInt index = this.findIndex(this.storage, subscription -> subscription.getId().equals(subscriptionEntity.getId()));
+        OptionalInt index = this.findIndex(
+                this.storage, subscription -> subscription.getId().equals(subscriptionEntity.getId()));
         if (index.isPresent()) {
             storage.set(index.getAsInt(), subscriptionEntity);
             return subscriptionEntity;

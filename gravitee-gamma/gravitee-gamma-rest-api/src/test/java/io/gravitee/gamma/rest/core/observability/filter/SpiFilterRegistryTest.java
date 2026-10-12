@@ -49,9 +49,16 @@ class SpiFilterRegistryTest {
         // Full unified vocabulary: every static filter plus the extensible API_TYPE (no contributors).
         assertThat(result).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
         assertThat(result)
-            .extracting(FilterSpec::name)
-            .contains("API", "HTTP_STATUS", "API_TYPE", "HTTP_GATEWAY_RESPONSE_TIME", "MCP_PROXY_METHOD", "URI", "HTTP_PATH")
-            .doesNotContain("HTTP_PATH_MAPPING");
+                .extracting(FilterSpec::name)
+                .contains(
+                        "API",
+                        "HTTP_STATUS",
+                        "API_TYPE",
+                        "HTTP_GATEWAY_RESPONSE_TIME",
+                        "MCP_PROXY_METHOD",
+                        "URI",
+                        "HTTP_PATH")
+                .doesNotContain("HTTP_PATH_MAPPING");
     }
 
     @Test
@@ -63,14 +70,14 @@ class SpiFilterRegistryTest {
         assertThat(apiType.type()).isEqualTo(FilterType.ENUM);
         assertThat(apiType.operators()).containsExactly(FilterOperator.EQ, FilterOperator.IN);
         assertThat(apiType.enumValues())
-            .extracting(FilterSpec.EnumValue::value)
-            .containsExactly(pickableApiTypeNames())
-            .doesNotContain(ApiType.AUTHZ_DECISION.name());
+                .extracting(FilterSpec.EnumValue::value)
+                .containsExactly(pickableApiTypeNames())
+                .doesNotContain(ApiType.AUTHZ_DECISION.name());
         assertThat(apiType.enumValues())
-            .filteredOn(v -> v.value().equals("NATIVE"))
-            .singleElement()
-            .extracting(FilterSpec.EnumValue::label)
-            .isEqualTo("Kafka (native)");
+                .filteredOn(v -> v.value().equals("NATIVE"))
+                .singleElement()
+                .extracting(FilterSpec.EnumValue::label)
+                .isEqualTo("Kafka (native)");
     }
 
     @Test
@@ -81,9 +88,9 @@ class SpiFilterRegistryTest {
         List<FilterSpec> result = registry.getFilters(null, Set.of(ApiType.NATIVE));
 
         assertThat(result)
-            .extracting(FilterSpec::name)
-            .contains("API", "APPLICATION", "PLAN", "NATIVE_CONNECTION_STATUS", "API_TYPE")
-            .doesNotContain("HTTP_STATUS", "GATEWAY", "API_PRODUCT", "MCP_PROXY_METHOD");
+                .extracting(FilterSpec::name)
+                .contains("API", "APPLICATION", "PLAN", "NATIVE_CONNECTION_STATUS", "API_TYPE")
+                .doesNotContain("HTTP_STATUS", "GATEWAY", "API_PRODUCT", "MCP_PROXY_METHOD");
     }
 
     @Test
@@ -95,9 +102,9 @@ class SpiFilterRegistryTest {
         // picker on an LLM dashboard came back empty.
         for (ApiType apiType : List.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A)) {
             assertThat(registry.getFilters(null, Set.of(apiType)))
-                .as("API_PRODUCT on %s", apiType)
-                .extracting(FilterSpec::name)
-                .contains("API_PRODUCT");
+                    .as("API_PRODUCT on %s", apiType)
+                    .extracting(FilterSpec::name)
+                    .contains("API_PRODUCT");
         }
     }
 
@@ -113,26 +120,25 @@ class SpiFilterRegistryTest {
         List<FilterSpec> result = registry.getFilters(Set.of(Signal.LOGS), Set.of(ApiType.AUTHZ_DECISION));
 
         assertThat(result)
-            .extracting(FilterSpec::name)
-            .containsExactlyInAnyOrder(
-                "API",
-                "AUTHZ_DECISION",
-                "AUTHZ_SUBJECT_ID",
-                "AUTHZ_ACTION",
-                "AUTHZ_RESOURCE_ID",
-                "AUTHZ_CALLER",
-                "AUTHZ_STATUS",
-                "AUTHZ_INDETERMINATE_CAUSE",
-                "AUTHZ_ERROR_TYPE",
-                "AUTHZ_PDP",
-                "AUTHZ_MATCHED_POLICY",
-                "AUTHZ_REASON",
-                "AUTHZ_POLICY_VERSION",
-                // A decision carries the request id of the call it guarded, so this is the join back
-                // to that call's HTTP log. It was absent here only until the search could apply it.
-                "REQUEST_ID"
-            )
-            .doesNotContain("API_TYPE", "RECORD_TYPE", "ENTRYPOINT", "HTTP_STATUS", "PAYLOAD", "AUTHZ_OPERATION");
+                .extracting(FilterSpec::name)
+                .containsExactlyInAnyOrder(
+                        "API",
+                        "AUTHZ_DECISION",
+                        "AUTHZ_SUBJECT_ID",
+                        "AUTHZ_ACTION",
+                        "AUTHZ_RESOURCE_ID",
+                        "AUTHZ_CALLER",
+                        "AUTHZ_STATUS",
+                        "AUTHZ_INDETERMINATE_CAUSE",
+                        "AUTHZ_ERROR_TYPE",
+                        "AUTHZ_PDP",
+                        "AUTHZ_MATCHED_POLICY",
+                        "AUTHZ_REASON",
+                        "AUTHZ_POLICY_VERSION",
+                        // A decision carries the request id of the call it guarded, so this is the join back
+                        // to that call's HTTP log. It was absent here only until the search could apply it.
+                        "REQUEST_ID")
+                .doesNotContain("API_TYPE", "RECORD_TYPE", "ENTRYPOINT", "HTTP_STATUS", "PAYLOAD", "AUTHZ_OPERATION");
     }
 
     @Test
@@ -142,8 +148,15 @@ class SpiFilterRegistryTest {
         List<FilterSpec> result = registry.getFilters(Set.of(Signal.ANALYTICS), Set.of(ApiType.AUTHZ_DECISION));
 
         assertThat(result.stream().map(FilterSpec::name).toList())
-            .contains("AUTHZ_DECISION", "AUTHZ_STATUS", "AUTHZ_CALLER", "AUTHZ_ACTION", "AUTHZ_PDP")
-            .doesNotContain("ENTRYPOINT", "HTTP_STATUS", "PAYLOAD", "API_TYPE", "RECORD_TYPE", "AUTHZ_OPERATION", "AUTHZ_SEARCH_TYPE");
+                .contains("AUTHZ_DECISION", "AUTHZ_STATUS", "AUTHZ_CALLER", "AUTHZ_ACTION", "AUTHZ_PDP")
+                .doesNotContain(
+                        "ENTRYPOINT",
+                        "HTTP_STATUS",
+                        "PAYLOAD",
+                        "API_TYPE",
+                        "RECORD_TYPE",
+                        "AUTHZ_OPERATION",
+                        "AUTHZ_SEARCH_TYPE");
     }
 
     @Test
@@ -163,8 +176,8 @@ class SpiFilterRegistryTest {
 
         assertThat(result).allSatisfy(spec -> assertThat(spec.operators()).isNotEmpty());
         assertThat(result)
-            .filteredOn(spec -> spec.type() == FilterType.ENUM)
-            .allSatisfy(spec -> assertThat(spec.enumValues()).isNotEmpty());
+                .filteredOn(spec -> spec.type() == FilterType.ENUM)
+                .allSatisfy(spec -> assertThat(spec.enumValues()).isNotEmpty());
     }
 
     @Test
@@ -181,15 +194,14 @@ class SpiFilterRegistryTest {
     @Test
     void should_reject_a_module_filter_that_redefines_a_host_owned_name() {
         FilterSpec rogueApi = new FilterSpec(
-            "API",
-            "Rogue API",
-            FilterType.KEYWORD,
-            List.of(FilterOperator.EQ),
-            null,
-            null,
-            Set.of(Signal.LOGS),
-            Set.of(ApiType.LLM)
-        );
+                "API",
+                "Rogue API",
+                FilterType.KEYWORD,
+                List.of(FilterOperator.EQ),
+                null,
+                null,
+                Set.of(Signal.LOGS),
+                Set.of(ApiType.LLM));
         FilterRegistry registry = registryWith(filtersContributor(rogueApi));
 
         FilterSpec api = byName(registry, "API");
@@ -197,21 +209,23 @@ class SpiFilterRegistryTest {
         // Host definition wins (cross-cutting), the module's is ignored.
         assertThat(api.label()).isEqualTo("API");
         assertThat(api.apiTypes()).isEqualTo(ApiType.ALL);
-        assertThat(registry.getFilters(null, null)).extracting(FilterSpec::name).filteredOn("API"::equals).hasSize(1);
+        assertThat(registry.getFilters(null, null))
+                .extracting(FilterSpec::name)
+                .filteredOn("API"::equals)
+                .hasSize(1);
     }
 
     @Test
     void should_reject_a_module_filter_that_redefines_an_extensible_host_filter() {
         FilterSpec rogueApiType = new FilterSpec(
-            "API_TYPE",
-            "Rogue",
-            FilterType.ENUM,
-            List.of(FilterOperator.EQ),
-            List.of(new FilterSpec.EnumValue("X", "X")),
-            null,
-            Signal.ALL,
-            ApiType.ALL
-        );
+                "API_TYPE",
+                "Rogue",
+                FilterType.ENUM,
+                List.of(FilterOperator.EQ),
+                List.of(new FilterSpec.EnumValue("X", "X")),
+                null,
+                Signal.ALL,
+                ApiType.ALL);
         FilterRegistry registry = registryWith(filtersContributor(rogueApiType));
 
         // API_TYPE stays the host extensible filter (baseline values), the module's is ignored.
@@ -221,28 +235,26 @@ class SpiFilterRegistryTest {
     @Test
     void should_extend_api_type_with_contributed_values() {
         FilterRegistry registry = registryWith(
-            valuesContributor(ExtensibleFilters.API_TYPE, new FilterSpec.EnumValue("CUSTOM", "Custom kind"))
-        );
+                valuesContributor(ExtensibleFilters.API_TYPE, new FilterSpec.EnumValue("CUSTOM", "Custom kind")));
 
         assertThat(byName(registry, "API_TYPE").enumValues())
-            .extracting(FilterSpec.EnumValue::value, FilterSpec.EnumValue::label)
-            .contains(tuple("NATIVE", "Kafka (native)"), tuple("CUSTOM", "Custom kind"));
+                .extracting(FilterSpec.EnumValue::value, FilterSpec.EnumValue::label)
+                .contains(tuple("NATIVE", "Kafka (native)"), tuple("CUSTOM", "Custom kind"));
     }
 
     @Test
     void should_deduplicate_a_contributed_value_already_in_the_baseline() {
         FilterRegistry registry = registryWith(
-            valuesContributor(ExtensibleFilters.API_TYPE, new FilterSpec.EnumValue("LLM", "duplicate label"))
-        );
+                valuesContributor(ExtensibleFilters.API_TYPE, new FilterSpec.EnumValue("LLM", "duplicate label")));
 
         FilterSpec apiType = byName(registry, "API_TYPE");
 
         assertThat(apiType.enumValues()).hasSize(pickableApiTypeNames().length); // no duplicate added
         assertThat(apiType.enumValues())
-            .filteredOn(v -> v.value().equals("LLM"))
-            .singleElement()
-            .extracting(FilterSpec.EnumValue::label)
-            .isEqualTo("LLM"); // baseline label wins
+                .filteredOn(v -> v.value().equals("LLM"))
+                .singleElement()
+                .extracting(FilterSpec.EnumValue::label)
+                .isEqualTo("LLM"); // baseline label wins
     }
 
     @Test
@@ -254,13 +266,13 @@ class SpiFilterRegistryTest {
         List<FilterSpec> result = registryWith().getFilters(Set.of(Signal.ANALYTICS), Set.of(ApiType.NATIVE));
 
         assertThat(result)
-            .extracting(FilterSpec::name)
-            .contains("NATIVE_CLIENT_ID", "NATIVE_CLIENT_SOFTWARE_NAME")
-            // FAILURE_ORIGIN is derived from the error key rather than stored, so the engine cannot group by
-            // it. NATIVE_CLIENT_SOFTWARE_VERSION is stored but not groupable on its own — several clients
-            // share version numbers — and the core AnalyticsQueryValidator rejects it, so advertising it here
-            // would make Gamma offer a filter that answers with a 400.
-            .doesNotContain("FAILURE_ORIGIN", "NATIVE_CLIENT_SOFTWARE_VERSION");
+                .extracting(FilterSpec::name)
+                .contains("NATIVE_CLIENT_ID", "NATIVE_CLIENT_SOFTWARE_NAME")
+                // FAILURE_ORIGIN is derived from the error key rather than stored, so the engine cannot group by
+                // it. NATIVE_CLIENT_SOFTWARE_VERSION is stored but not groupable on its own — several clients
+                // share version numbers — and the core AnalyticsQueryValidator rejects it, so advertising it here
+                // would make Gamma offer a filter that answers with a 400.
+                .doesNotContain("FAILURE_ORIGIN", "NATIVE_CLIENT_SOFTWARE_VERSION");
     }
 
     @Test
@@ -272,23 +284,22 @@ class SpiFilterRegistryTest {
         List<FilterSpec> result = registry.getFilters(Set.of(Signal.LOGS), Set.of(ApiType.NATIVE));
 
         assertThat(result)
-            .extracting(FilterSpec::name)
-            .containsExactly(
-                "API",
-                "APPLICATION",
-                "PLAN",
-                "ENTRYPOINT",
-                "ERROR_KEY",
-                "REQUEST_ID",
-                "TRANSACTION_ID",
-                "NATIVE_CONNECTION_STATUS",
-                "FAILURE_ORIGIN",
-                "NATIVE_CLIENT_ID",
-                "NATIVE_CLIENT_SOFTWARE_NAME",
-                "NATIVE_CLIENT_SOFTWARE_VERSION",
-                "API_TYPE",
-                "RECORD_TYPE"
-            );
+                .extracting(FilterSpec::name)
+                .containsExactly(
+                        "API",
+                        "APPLICATION",
+                        "PLAN",
+                        "ENTRYPOINT",
+                        "ERROR_KEY",
+                        "REQUEST_ID",
+                        "TRANSACTION_ID",
+                        "NATIVE_CONNECTION_STATUS",
+                        "FAILURE_ORIGIN",
+                        "NATIVE_CLIENT_ID",
+                        "NATIVE_CLIENT_SOFTWARE_NAME",
+                        "NATIVE_CLIENT_SOFTWARE_VERSION",
+                        "API_TYPE",
+                        "RECORD_TYPE");
     }
 
     private static FilterRegistry registryWith(FilterContributor... contributors) {
@@ -304,25 +315,22 @@ class SpiFilterRegistryTest {
     }
 
     private static FilterSpec byName(FilterRegistry registry, String name) {
-        return registry
-            .getFilters(null, null)
-            .stream()
-            .filter(spec -> spec.name().equals(name))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Filter '" + name + "' not found"));
+        return registry.getFilters(null, null).stream()
+                .filter(spec -> spec.name().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Filter '" + name + "' not found"));
     }
 
     private static FilterSpec llmModel() {
         return new FilterSpec(
-            "LLM_MODEL",
-            "LLM model",
-            FilterType.KEYWORD,
-            List.of(FilterOperator.EQ, FilterOperator.IN),
-            null,
-            null,
-            Set.of(Signal.LOGS, Signal.ANALYTICS),
-            Set.of(ApiType.LLM)
-        );
+                "LLM_MODEL",
+                "LLM model",
+                FilterType.KEYWORD,
+                List.of(FilterOperator.EQ, FilterOperator.IN),
+                null,
+                null,
+                Set.of(Signal.LOGS, Signal.ANALYTICS),
+                Set.of(ApiType.LLM));
     }
 
     /**
@@ -332,20 +340,18 @@ class SpiFilterRegistryTest {
      */
     @Test
     void should_not_declare_two_filters_with_the_same_label_for_an_api_kind() {
-        var specs = Arrays.stream(StaticFilters.values()).map(StaticFilters::toSpec).toList();
+        var specs =
+                Arrays.stream(StaticFilters.values()).map(StaticFilters::toSpec).toList();
 
         var duplicates = Arrays.stream(ApiType.values())
-            .flatMap(kind ->
-                specs
-                    .stream()
-                    .filter(spec -> spec.apiTypes().contains(kind))
-                    .collect(Collectors.groupingBy(FilterSpec::label))
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getValue().size() > 1)
-                    .map(e -> kind + ": " + e.getKey())
-            )
-            .toList();
+                .flatMap(kind -> specs.stream()
+                        .filter(spec -> spec.apiTypes().contains(kind))
+                        .collect(Collectors.groupingBy(FilterSpec::label))
+                        .entrySet()
+                        .stream()
+                        .filter(e -> e.getValue().size() > 1)
+                        .map(e -> kind + ": " + e.getKey()))
+                .toList();
 
         assertThat(duplicates).isEmpty();
     }

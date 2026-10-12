@@ -75,12 +75,11 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     private final List<UpdatePortalNavigationItemValidationRule> updateRules;
 
     public PortalNavigationItemValidatorService(
-        PortalNavigationItemsQueryService navigationItemsQueryService,
-        PortalPageContentQueryService pageContentQueryService,
-        ApiProductQueryService apiProductQueryService,
-        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
-        ApiCrudService apiCrudService
-    ) {
+            PortalNavigationItemsQueryService navigationItemsQueryService,
+            PortalPageContentQueryService pageContentQueryService,
+            ApiProductQueryService apiProductQueryService,
+            PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
+            ApiCrudService apiCrudService) {
         this.navigationItemsQueryService = navigationItemsQueryService;
         this.bulkCreateRules = List.of(new DuplicateApiIdsInPayloadRule(), new DuplicateApiProductIdsInPayloadRule());
 
@@ -90,42 +89,44 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         var segmentConflictRule = new SegmentConflictRule(navigationItemsQueryService);
         var linkUrlRule = new LinkUrlRule();
         var externalSourceItemTypeRule = new ExternalSourceItemTypeRule();
-        var sourceConfigurationRule = new SourceConfigurationRule(portalNavigationItemSourceDomainService::validateSourceConfiguration);
-        var sourceAutomationExclusivityRule = new SourceAutomationExclusivityRule(navigationItemsQueryService, pageContentQueryService);
-        var sourcedItemReadOnlyRule = new SourcedItemReadOnlyRule(new SourcedAncestorFinder(navigationItemsQueryService));
-        var fileListingSourceOnFolderRule = new FileListingSourceOnFolderRule(portalNavigationItemSourceDomainService::supportsFileListing);
+        var sourceConfigurationRule =
+                new SourceConfigurationRule(portalNavigationItemSourceDomainService::validateSourceConfiguration);
+        var sourceAutomationExclusivityRule =
+                new SourceAutomationExclusivityRule(navigationItemsQueryService, pageContentQueryService);
+        var sourcedItemReadOnlyRule =
+                new SourcedItemReadOnlyRule(new SourcedAncestorFinder(navigationItemsQueryService));
+        var fileListingSourceOnFolderRule =
+                new FileListingSourceOnFolderRule(portalNavigationItemSourceDomainService::supportsFileListing);
 
         this.createRules = List.of(
-            new UniqueItemIdRule(navigationItemsQueryService),
-            new HomepageUniquenessRule(navigationItemsQueryService),
-            new PageContentExistsRule(pageContentQueryService),
-            titleRequiredRule,
-            new ApiItemCreateRule(apiProductQueryService),
-            new ApiProductItemCreateRule(apiProductQueryService),
-            new ApiDocumentationAreaRule(),
-            new ReferencedApiExistsRule(apiCrudService),
-            linkUrlRule,
-            parentRule,
-            segmentConflictRule,
-            externalSourceItemTypeRule,
-            sourceConfigurationRule,
-            sourceAutomationExclusivityRule,
-            sourcedItemReadOnlyRule
-        );
+                new UniqueItemIdRule(navigationItemsQueryService),
+                new HomepageUniquenessRule(navigationItemsQueryService),
+                new PageContentExistsRule(pageContentQueryService),
+                titleRequiredRule,
+                new ApiItemCreateRule(apiProductQueryService),
+                new ApiProductItemCreateRule(apiProductQueryService),
+                new ApiDocumentationAreaRule(),
+                new ReferencedApiExistsRule(apiCrudService),
+                linkUrlRule,
+                parentRule,
+                segmentConflictRule,
+                externalSourceItemTypeRule,
+                sourceConfigurationRule,
+                sourceAutomationExclusivityRule,
+                sourcedItemReadOnlyRule);
         this.updateRules = List.of(
-            new TypeConsistencyRule(),
-            titleRequiredRule,
-            new ApiItemUpdateRule(apiProductQueryService),
-            new ApiProductItemUpdateRule(),
-            parentRule,
-            segmentConflictRule,
-            linkUrlRule,
-            externalSourceItemTypeRule,
-            sourceConfigurationRule,
-            sourceAutomationExclusivityRule,
-            sourcedItemReadOnlyRule,
-            fileListingSourceOnFolderRule
-        );
+                new TypeConsistencyRule(),
+                titleRequiredRule,
+                new ApiItemUpdateRule(apiProductQueryService),
+                new ApiProductItemUpdateRule(),
+                parentRule,
+                segmentConflictRule,
+                linkUrlRule,
+                externalSourceItemTypeRule,
+                sourceConfigurationRule,
+                sourceAutomationExclusivityRule,
+                sourcedItemReadOnlyRule,
+                fileListingSourceOnFolderRule);
     }
 
     @Override
@@ -134,44 +135,36 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     }
 
     private void validate(
-        List<CreatePortalNavigationItem> creates,
-        List<PendingUpdate> updates,
-        String environmentId,
-        Set<PortalPageContentId> pendingContentIds,
-        Set<PortalNavigationItemId> itemIdsBeingReplaced
-    ) {
-        List<PortalNavigationItem> navigationItems = shouldFetch(creates, updates) ? fetchAllNavigationItems(environmentId) : List.of();
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
-            .stream()
-            .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
-        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById = creates
-            .stream()
-            .filter(item -> item.getId() != null)
-            .collect(Collectors.toMap(CreatePortalNavigationItem::getId, Function.identity(), (first, ignored) -> first));
+            List<CreatePortalNavigationItem> creates,
+            List<PendingUpdate> updates,
+            String environmentId,
+            Set<PortalPageContentId> pendingContentIds,
+            Set<PortalNavigationItemId> itemIdsBeingReplaced) {
+        List<PortalNavigationItem> navigationItems =
+                shouldFetch(creates, updates) ? fetchAllNavigationItems(environmentId) : List.of();
+        Map<PortalNavigationItemId, PortalNavigationItem> itemsById =
+                navigationItems.stream().collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
+        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById = creates.stream()
+                .filter(item -> item.getId() != null)
+                .collect(Collectors.toMap(
+                        CreatePortalNavigationItem::getId, Function.identity(), (first, ignored) -> first));
 
         List<PendingUpdate> augmentedUpdates = withDescendantsOfPendingContainers(creates, updates, environmentId);
         List<PendingSegmentClaim> pendingSegmentClaims = collectPendingSegmentClaims(creates, augmentedUpdates);
-        Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId = updates
-            .stream()
-            .filter(u -> u.existing() != null && u.existing().getId() != null)
-            .collect(Collectors.toMap(u -> u.existing().getId(), Function.identity(), (first, ignored) -> first));
+        Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId = updates.stream()
+                .filter(u -> u.existing() != null && u.existing().getId() != null)
+                .collect(Collectors.toMap(u -> u.existing().getId(), Function.identity(), (first, ignored) -> first));
 
         CreateValidationContext createCtx = new CreateValidationContext(
-            navigationItems,
-            itemsById,
-            pendingItemsById,
-            pendingUpdatesByExistingId,
-            pendingSegmentClaims,
-            pendingContentIds,
-            itemIdsBeingReplaced
-        );
+                navigationItems,
+                itemsById,
+                pendingItemsById,
+                pendingUpdatesByExistingId,
+                pendingSegmentClaims,
+                pendingContentIds,
+                itemIdsBeingReplaced);
         UpdateValidationContext updateCtx = new UpdateValidationContext(
-            navigationItems,
-            itemsById,
-            pendingItemsById,
-            pendingUpdatesByExistingId,
-            pendingSegmentClaims
-        );
+                navigationItems, itemsById, pendingItemsById, pendingUpdatesByExistingId, pendingSegmentClaims);
 
         for (BulkCreatePortalNavigationItemValidationRule rule : bulkCreateRules) {
             rule.validate(creates, environmentId, createCtx);
@@ -184,31 +177,27 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         }
     }
 
-    // Include pre-existing descendants of pending container creates and of pending container updates that change visibility.
-    // Descendants that already have their own pending update in this batch are skipped: that update is their validation.
+    // Include pre-existing descendants of pending container creates and of pending container updates that change
+    // visibility.
+    // Descendants that already have their own pending update in this batch are skipped: that update is their
+    // validation.
     private List<PendingUpdate> withDescendantsOfPendingContainers(
-        List<CreatePortalNavigationItem> creates,
-        List<PendingUpdate> updates,
-        String environmentId
-    ) {
-        var alreadyPendingIds = updates
-            .stream()
-            .map(PendingUpdate::existing)
-            .filter(Objects::nonNull)
-            .map(PortalNavigationItem::getId)
-            .collect(Collectors.toSet());
+            List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates, String environmentId) {
+        var alreadyPendingIds = updates.stream()
+                .map(PendingUpdate::existing)
+                .filter(Objects::nonNull)
+                .map(PortalNavigationItem::getId)
+                .collect(Collectors.toSet());
 
-        var descendantsOfCreates = creates
-            .stream()
-            .filter(PortalNavigationItemValidatorService::isPendingContainer)
-            .flatMap(container -> descendantsOf(container.getId(), environmentId).stream());
-        var descendantsOfUpdates = updates
-            .stream()
-            .filter(PortalNavigationItemValidatorService::isContainerVisibilityChange)
-            .flatMap(update -> descendantsOf(update.existing().getId(), environmentId).stream());
+        var descendantsOfCreates = creates.stream()
+                .filter(PortalNavigationItemValidatorService::isPendingContainer)
+                .flatMap(container -> descendantsOf(container.getId(), environmentId).stream());
+        var descendantsOfUpdates = updates.stream()
+                .filter(PortalNavigationItemValidatorService::isContainerVisibilityChange)
+                .flatMap(update -> descendantsOf(update.existing().getId(), environmentId).stream());
         var descendantUpdates = Stream.concat(descendantsOfCreates, descendantsOfUpdates)
-            .filter(descendant -> !alreadyPendingIds.contains(descendant.getId()))
-            .map(PortalNavigationItemValidatorService::asUnchangedUpdate);
+                .filter(descendant -> !alreadyPendingIds.contains(descendant.getId()))
+                .map(PortalNavigationItemValidatorService::asUnchangedUpdate);
         return Stream.concat(updates.stream(), descendantUpdates).toList();
     }
 
@@ -219,13 +208,11 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     private static boolean isContainerVisibilityChange(PendingUpdate update) {
         var existing = update.existing();
         var toUpdate = update.toUpdate();
-        return (
-            existing != null &&
-            existing.getId() != null &&
-            existing.getType().isContainer() &&
-            toUpdate.getVisibility() != null &&
-            toUpdate.getVisibility() != existing.getVisibility()
-        );
+        return (existing != null
+                && existing.getId() != null
+                && existing.getType().isContainer()
+                && toUpdate.getVisibility() != null
+                && toUpdate.getVisibility() != existing.getVisibility());
     }
 
     private List<PortalNavigationItem> descendantsOf(PortalNavigationItemId containerId, String environmentId) {
@@ -239,16 +226,16 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
 
     private static UpdatePortalNavigationItem unchangedUpdateFor(PortalNavigationItem item) {
         return UpdatePortalNavigationItem.builder()
-            .type(item.getType())
-            .title(item.getTitle())
-            .segment(item.getSegment())
-            .order(item.getOrder())
-            .parentId(item.getParentId())
-            .visibility(item.getVisibility())
-            .published(item.getPublished())
-            .source(item.getSource())
-            .url(item instanceof PortalNavigationLink link ? link.getUrl() : null)
-            .build();
+                .type(item.getType())
+                .title(item.getTitle())
+                .segment(item.getSegment())
+                .order(item.getOrder())
+                .parentId(item.getParentId())
+                .visibility(item.getVisibility())
+                .published(item.getPublished())
+                .source(item.getSource())
+                .url(item instanceof PortalNavigationLink link ? link.getUrl() : null)
+                .build();
     }
 
     @Override
@@ -267,11 +254,10 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
      * {@link CreateValidationContext#itemIdsBeingReplaced()}.
      */
     public void validateOne(
-        CreatePortalNavigationItem item,
-        String environmentId,
-        Set<PortalPageContentId> pendingContentIds,
-        Set<PortalNavigationItemId> itemIdsBeingReplaced
-    ) {
+            CreatePortalNavigationItem item,
+            String environmentId,
+            Set<PortalPageContentId> pendingContentIds,
+            Set<PortalNavigationItemId> itemIdsBeingReplaced) {
         validate(List.of(item), List.of(), environmentId, pendingContentIds, itemIdsBeingReplaced);
     }
 
@@ -281,43 +267,40 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     }
 
     private static List<PendingSegmentClaim> collectPendingSegmentClaims(
-        List<CreatePortalNavigationItem> creates,
-        List<PendingUpdate> updates
-    ) {
-        var fromCreates = creates
-            .stream()
-            .filter(c -> c.getId() != null)
-            .map(PendingSegmentClaim::forCreate);
+            List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates) {
+        var fromCreates = creates.stream().filter(c -> c.getId() != null).map(PendingSegmentClaim::forCreate);
         var fromUpdates = updates.stream().map(u -> PendingSegmentClaim.forUpdate(u.existing(), u.toUpdate()));
         // Record the old slot when an update relocates or renames, so a same-batch sibling can safely take it over.
-        var released = updates
-            .stream()
-            .filter(PortalNavigationItemValidatorService::vacatesSlot)
-            .map(u -> PendingSegmentClaim.forRelease(u.existing()));
+        var released = updates.stream()
+                .filter(PortalNavigationItemValidatorService::vacatesSlot)
+                .map(u -> PendingSegmentClaim.forRelease(u.existing()));
         return Stream.concat(Stream.concat(fromCreates, fromUpdates), released).toList();
     }
 
     private static boolean vacatesSlot(PendingUpdate update) {
         var existing = update.existing();
         var toUpdate = update.toUpdate();
-        return (
-            !Objects.equals(existing.getParentId(), toUpdate.getParentId()) || !Objects.equals(existing.getSegment(), toUpdate.getSegment())
-        );
+        return (!Objects.equals(existing.getParentId(), toUpdate.getParentId())
+                || !Objects.equals(existing.getSegment(), toUpdate.getSegment()));
     }
 
     private static boolean shouldFetch(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates) {
-        return (hasApiOrApiProductItems(creates) || updates.stream().anyMatch(u -> u.existing() instanceof PortalNavigationItemContainer));
+        return (hasApiOrApiProductItems(creates)
+                || updates.stream().anyMatch(u -> u.existing() instanceof PortalNavigationItemContainer));
     }
 
     private List<PortalNavigationItem> fetchAllNavigationItems(String environmentId) {
-        var criteria = PortalNavigationItemQueryCriteria.builder().environmentId(environmentId).root(false).build();
+        var criteria = PortalNavigationItemQueryCriteria.builder()
+                .environmentId(environmentId)
+                .root(false)
+                .build();
         return navigationItemsQueryService.search(criteria);
     }
 
     private static boolean hasApiOrApiProductItems(List<CreatePortalNavigationItem> items) {
-        return items
-            .stream()
-            .anyMatch(item -> item.getType() == PortalNavigationItemType.API || item.getType() == PortalNavigationItemType.API_PRODUCT);
+        return items.stream()
+                .anyMatch(item -> item.getType() == PortalNavigationItemType.API
+                        || item.getType() == PortalNavigationItemType.API_PRODUCT);
     }
 
     private void applyValidationRules(PendingUpdate pending, UpdateValidationContext updateCtx) {
@@ -328,7 +311,8 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         }
     }
 
-    private void applyValidationRules(CreatePortalNavigationItem item, CreateValidationContext createCtx, String environmentId) {
+    private void applyValidationRules(
+            CreatePortalNavigationItem item, CreateValidationContext createCtx, String environmentId) {
         for (CreatePortalNavigationItemValidationRule rule : createRules) {
             if (rule.appliesTo(item)) {
                 rule.validate(item, environmentId, createCtx);

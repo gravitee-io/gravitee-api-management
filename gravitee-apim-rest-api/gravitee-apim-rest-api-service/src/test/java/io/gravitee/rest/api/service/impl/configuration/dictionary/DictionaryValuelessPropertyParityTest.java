@@ -44,12 +44,11 @@ class DictionaryValuelessPropertyParityTest {
     @Test
     void should_report_the_same_message_on_both_paths() {
         Dictionary dictionary = Dictionary.builder()
-            .type(DictionaryType.MANUAL)
-            .properties(List.of(new DictionaryProperty(PROPERTY_KEY, null, null, null)))
-            .build();
+                .type(DictionaryType.MANUAL)
+                .properties(List.of(new DictionaryProperty(PROPERTY_KEY, null, null, null)))
+                .build();
 
-        assertThatThrownBy(() -> validateDictionary.validate(dictionary)).hasMessage(
-            new DictionaryPropertyValueRequiredException(PROPERTY_KEY).getMessage()
-        );
+        assertThatThrownBy(() -> validateDictionary.validate(dictionary))
+                .hasMessage(new DictionaryPropertyValueRequiredException(PROPERTY_KEY).getMessage());
     }
 }

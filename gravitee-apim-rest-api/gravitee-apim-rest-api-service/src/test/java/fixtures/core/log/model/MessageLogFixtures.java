@@ -23,34 +23,30 @@ import java.util.function.Supplier;
 
 public class MessageLogFixtures {
 
-    private static final Supplier<AggregatedMessageLog.AggregatedMessageLogBuilder> BASE_BUILDER_SUPPLIER = () ->
-        AggregatedMessageLog.builder()
-            .requestId("request-id")
-            .clientIdentifier("client-identifier")
-            .correlationId("correlation-id")
-            .parentCorrelationId("parent-correlation-id")
-            .operation(MessageOperation.SUBSCRIBE)
-            .entrypoint(
-                AggregatedMessageLog.Message.builder()
-                    .id("message-id")
-                    .connectorId("http-get")
-                    .payload("message-payload")
-                    .isError(false)
-                    .headers(Map.of("X-Header", List.of("header-value")))
-                    .metadata(Map.of("X-Metdata", "metadata-value"))
-                    .build()
-            )
-            .endpoint(
-                AggregatedMessageLog.Message.builder()
-                    .id("message-id")
-                    .connectorId("kafka")
-                    .payload("message-payload")
-                    .isError(false)
-                    .headers(Map.of("X-Header", List.of("header-value")))
-                    .metadata(Map.of("X-Metdata", "metadata-value"))
-                    .build()
-            )
-            .timestamp("2020-02-01T20:00:00.00Z");
+    private static final Supplier<AggregatedMessageLog.AggregatedMessageLogBuilder> BASE_BUILDER_SUPPLIER =
+            () -> AggregatedMessageLog.builder()
+                    .requestId("request-id")
+                    .clientIdentifier("client-identifier")
+                    .correlationId("correlation-id")
+                    .parentCorrelationId("parent-correlation-id")
+                    .operation(MessageOperation.SUBSCRIBE)
+                    .entrypoint(AggregatedMessageLog.Message.builder()
+                            .id("message-id")
+                            .connectorId("http-get")
+                            .payload("message-payload")
+                            .isError(false)
+                            .headers(Map.of("X-Header", List.of("header-value")))
+                            .metadata(Map.of("X-Metdata", "metadata-value"))
+                            .build())
+                    .endpoint(AggregatedMessageLog.Message.builder()
+                            .id("message-id")
+                            .connectorId("kafka")
+                            .payload("message-payload")
+                            .isError(false)
+                            .headers(Map.of("X-Header", List.of("header-value")))
+                            .metadata(Map.of("X-Metdata", "metadata-value"))
+                            .build())
+                    .timestamp("2020-02-01T20:00:00.00Z");
 
     public static AggregatedMessageLog aMessageLog() {
         return BASE_BUILDER_SUPPLIER.get().build();

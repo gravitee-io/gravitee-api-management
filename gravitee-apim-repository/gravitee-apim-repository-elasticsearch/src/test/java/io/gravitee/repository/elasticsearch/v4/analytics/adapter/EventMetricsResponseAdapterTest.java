@@ -49,8 +49,10 @@ class EventMetricsResponseAdapterTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS = "downstream-active-connections";
     private static final String FIELD_UPSTREAM_ACTIVE_CONNECTIONS = "upstream-active-connections";
-    private static final String FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT = "downstream-publish-messages-count-increment";
-    private static final String FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT = "upstream-publish-messages-count-increment";
+    private static final String FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT =
+            "downstream-publish-messages-count-increment";
+    private static final String FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT =
+            "upstream-publish-messages-count-increment";
 
     @Nested
     class AdaptResponse {
@@ -73,9 +75,10 @@ class EventMetricsResponseAdapterTest {
             assertTrue(result1.isEmpty());
 
             var mixed = List.of(
-                new io.gravitee.repository.log.v4.model.analytics.Aggregation(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, AggregationType.VALUE),
-                new io.gravitee.repository.log.v4.model.analytics.Aggregation(FIELD_UPSTREAM_ACTIVE_CONNECTIONS, AggregationType.DELTA)
-            );
+                    new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                            FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, AggregationType.VALUE),
+                    new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                            FIELD_UPSTREAM_ACTIVE_CONNECTIONS, AggregationType.DELTA));
 
             var result2 = EventMetricsResponseAdapter.adapt(response, buildHistogramQuery(mixed));
 
@@ -92,26 +95,20 @@ class EventMetricsResponseAdapterTest {
             response.setTimedOut(false);
             var aggregations = new HashMap<String, Aggregation>();
             aggregations.put(
-                FILTERED_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
-                buildValueAggregation(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 2.0)
-            );
+                    FILTERED_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
+                    buildValueAggregation(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 2.0));
             aggregations.put(
-                FILTERED_PREFIX + FIELD_UPSTREAM_ACTIVE_CONNECTIONS,
-                buildValueAggregation(FIELD_UPSTREAM_ACTIVE_CONNECTIONS, 3.0)
-            );
+                    FILTERED_PREFIX + FIELD_UPSTREAM_ACTIVE_CONNECTIONS,
+                    buildValueAggregation(FIELD_UPSTREAM_ACTIVE_CONNECTIONS, 3.0));
             aggregations.put(FILTERED_PREFIX + "no-hit", buildValueAggregationWithNoHit("no-hit"));
             response.setAggregations(aggregations);
 
-            var query = buildHistogramQuery(
-                List.of(
+            var query = buildHistogramQuery(List.of(
                     new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
-                        AggregationType.VALUE
-                    ),
-                    new io.gravitee.repository.log.v4.model.analytics.Aggregation(FIELD_UPSTREAM_ACTIVE_CONNECTIONS, AggregationType.VALUE),
-                    new io.gravitee.repository.log.v4.model.analytics.Aggregation("no-hit", AggregationType.VALUE)
-                )
-            );
+                            FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, AggregationType.VALUE),
+                    new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                            FIELD_UPSTREAM_ACTIVE_CONNECTIONS, AggregationType.VALUE),
+                    new io.gravitee.repository.log.v4.model.analytics.Aggregation("no-hit", AggregationType.VALUE)));
 
             Optional<EventAnalyticsAggregate> result = EventMetricsResponseAdapter.adapt(response, query);
 
@@ -127,7 +124,8 @@ class EventMetricsResponseAdapterTest {
         private Aggregation buildValueAggregation(String field, double value) {
             final ObjectNode source = MAPPER.createObjectNode().put(field, value);
             final ObjectNode hit = MAPPER.createObjectNode().set("_source", source);
-            final ObjectNode hits = MAPPER.createObjectNode().set("hits", MAPPER.createArrayNode().add(hit));
+            final ObjectNode hits = MAPPER.createObjectNode()
+                    .set("hits", MAPPER.createArrayNode().add(hit));
             final ObjectNode total = MAPPER.createObjectNode().put("value", 1);
             hits.set("total", total);
 
@@ -162,29 +160,20 @@ class EventMetricsResponseAdapterTest {
             response.setTimedOut(false);
             var aggregations = new HashMap<String, Aggregation>();
             aggregations.put(
-                FILTERED_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                buildDeltaAggregation(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, 15.0)
-            );
+                    FILTERED_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
+                    buildDeltaAggregation(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, 15.0));
             aggregations.put(
-                FILTERED_PREFIX + FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                buildDeltaAggregation(FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, 2.0)
-            );
+                    FILTERED_PREFIX + FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
+                    buildDeltaAggregation(FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, 2.0));
             aggregations.put(FILTERED_PREFIX + "no-value", buildDeltaAggregationWithNoValue("no-value"));
             response.setAggregations(aggregations);
 
-            var query = buildHistogramQuery(
-                List.of(
+            var query = buildHistogramQuery(List.of(
                     new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                        AggregationType.DELTA
-                    ),
+                            FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, AggregationType.DELTA),
                     new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                        AggregationType.DELTA
-                    ),
-                    new io.gravitee.repository.log.v4.model.analytics.Aggregation("no-value", AggregationType.DELTA)
-                )
-            );
+                            FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, AggregationType.DELTA),
+                    new io.gravitee.repository.log.v4.model.analytics.Aggregation("no-value", AggregationType.DELTA)));
 
             Optional<EventAnalyticsAggregate> result = EventMetricsResponseAdapter.adapt(response, query);
 
@@ -228,37 +217,25 @@ class EventMetricsResponseAdapterTest {
             var seriesWithNull = new HashMap<String, Double>();
             seriesWithNull.put(FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, 8.0);
             seriesWithNull.put("no-value", null);
-            trendAgg.setBuckets(
-                List.of(
+            trendAgg.setBuckets(List.of(
                     intervalBucket(
-                        1000L,
-                        Map.of(
-                            FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                            10.0,
-                            FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                            5.0
-                        )
-                    ),
+                            1000L,
+                            Map.of(
+                                    FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
+                                    10.0,
+                                    FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
+                                    5.0)),
                     intervalBucket(2000L, Map.of(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, 12.0)),
-                    intervalBucket(3000L, seriesWithNull)
-                )
-            );
+                    intervalBucket(3000L, seriesWithNull)));
             aggregations.put("trend", trendAgg);
             response.setAggregations(aggregations);
 
-            var query = buildHistogramQuery(
-                List.of(
+            var query = buildHistogramQuery(List.of(
                     new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                        AggregationType.TREND
-                    ),
+                            FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, AggregationType.TREND),
                     new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                        AggregationType.TREND
-                    ),
-                    new io.gravitee.repository.log.v4.model.analytics.Aggregation("no-value", AggregationType.TREND)
-                )
-            );
+                            FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, AggregationType.TREND),
+                    new io.gravitee.repository.log.v4.model.analytics.Aggregation("no-value", AggregationType.TREND)));
 
             Optional<EventAnalyticsAggregate> result = EventMetricsResponseAdapter.adapt(response, query);
 
@@ -280,38 +257,28 @@ class EventMetricsResponseAdapterTest {
             var seriesWithNull = new HashMap<String, Double>();
             seriesWithNull.put(FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, 8.0);
             seriesWithNull.put("no-value", null);
-            trendAgg.setBuckets(
-                List.of(
+            trendAgg.setBuckets(List.of(
                     intervalBucket(
-                        1000L,
-                        Map.of(
-                            FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                            10.0,
-                            FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                            5.0
-                        )
-                    ),
+                            1000L,
+                            Map.of(
+                                    FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
+                                    10.0,
+                                    FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
+                                    5.0)),
                     intervalBucket(2000L, Map.of(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, 12.0)),
-                    intervalBucket(3000L, seriesWithNull)
-                )
-            );
+                    intervalBucket(3000L, seriesWithNull)));
             aggregations.put("trend", trendAgg);
             response.setAggregations(aggregations);
 
             var query = buildHistogramQuery(
-                List.of(
-                    new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                        AggregationType.TREND_RATE
-                    ),
-                    new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                        AggregationType.TREND_RATE
-                    ),
-                    new io.gravitee.repository.log.v4.model.analytics.Aggregation("no-value", AggregationType.TREND_RATE)
-                ),
-                Duration.ofSeconds(2)
-            );
+                    List.of(
+                            new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                                    FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, AggregationType.TREND_RATE),
+                            new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                                    FIELD_UPSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, AggregationType.TREND_RATE),
+                            new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                                    "no-value", AggregationType.TREND_RATE)),
+                    Duration.ofSeconds(2));
 
             Optional<EventAnalyticsAggregate> result = EventMetricsResponseAdapter.adapt(response, query);
 
@@ -330,19 +297,15 @@ class EventMetricsResponseAdapterTest {
             response.setTimedOut(false);
             var aggregations = new HashMap<String, Aggregation>();
             var trendAgg = new Aggregation();
-            trendAgg.setBuckets(List.of(intervalBucket(1000L, Map.of(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, 10.0))));
+            trendAgg.setBuckets(
+                    List.of(intervalBucket(1000L, Map.of(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, 10.0))));
             aggregations.put("trend", trendAgg);
             response.setAggregations(aggregations);
 
             var query = buildHistogramQuery(
-                List.of(
-                    new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT,
-                        AggregationType.TREND_RATE
-                    )
-                ),
-                Duration.ofSeconds(2)
-            );
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                            FIELD_DOWNSTREAM_PUBLISH_MESSAGES_COUNT_INCREMENT, AggregationType.TREND_RATE)),
+                    Duration.ofSeconds(2));
 
             Optional<EventAnalyticsAggregate> result = EventMetricsResponseAdapter.adapt(response, query);
 
@@ -370,14 +333,13 @@ class EventMetricsResponseAdapterTest {
         }
     }
 
-    private static HistogramQuery buildHistogramQuery(List<io.gravitee.repository.log.v4.model.analytics.Aggregation> aggregations) {
+    private static HistogramQuery buildHistogramQuery(
+            List<io.gravitee.repository.log.v4.model.analytics.Aggregation> aggregations) {
         return buildHistogramQuery(aggregations, Duration.ofSeconds(10));
     }
 
     private static HistogramQuery buildHistogramQuery(
-        List<io.gravitee.repository.log.v4.model.analytics.Aggregation> aggregations,
-        Duration interval
-    ) {
+            List<io.gravitee.repository.log.v4.model.analytics.Aggregation> aggregations, Duration interval) {
         Optional<String> query = Optional.empty();
         List<Term> terms = List.of();
 

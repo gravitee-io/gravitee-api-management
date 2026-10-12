@@ -42,12 +42,13 @@ public class PlanOperationsUseCase {
     private final DeprecatePlanDomainService deprecatePlanDomainService;
 
     public Output execute(Input input) {
-        log.debug("Executing plan operation {} for plan {} on reference {}", input.operation, input.planId, input.referenceId);
+        log.debug(
+                "Executing plan operation {} for plan {} on reference {}",
+                input.operation,
+                input.planId,
+                input.referenceId);
         final Plan plan = planSearchQueryService.findByPlanIdAndReferenceIdAndReferenceType(
-            input.planId,
-            input.referenceId,
-            input.referenceType
-        );
+                input.planId, input.referenceId, input.referenceType);
         return switch (input.operation) {
             case DELETE -> {
                 deletePlanDomainService.delete(plan, input.auditInfo);
@@ -67,12 +68,11 @@ public class PlanOperationsUseCase {
 
     @Builder
     public record Input(
-        String planId,
-        String referenceId,
-        GenericPlanEntity.ReferenceType referenceType,
-        Operation operation,
-        AuditInfo auditInfo
-    ) {}
+            String planId,
+            String referenceId,
+            GenericPlanEntity.ReferenceType referenceType,
+            Operation operation,
+            AuditInfo auditInfo) {}
 
     public record Output(Plan plan) {}
 

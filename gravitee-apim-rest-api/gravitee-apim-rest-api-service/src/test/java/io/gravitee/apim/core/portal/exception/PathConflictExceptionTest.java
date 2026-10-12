@@ -35,20 +35,30 @@ class PathConflictExceptionTest {
     void segmentTaken_builds_an_exception_referencing_the_kind_the_location_and_the_segment_reason() {
         var exception = PathConflictException.segmentTaken(PathConflictException.EntryKind.LISTING, "/projects/alpha");
 
-        assertThat(exception.getMessage()).contains("Listing").contains("/projects/alpha").contains("path segment");
+        assertThat(exception.getMessage())
+                .contains("Listing")
+                .contains("/projects/alpha")
+                .contains("path segment");
     }
 
     @Test
     void navigationIdTaken_builds_an_exception_referencing_the_kind_the_location_and_the_nav_id_reason() {
-        var exception = PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, "/projects/alpha");
+        var exception =
+                PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, "/projects/alpha");
 
-        assertThat(exception.getMessage()).contains("Listing").contains("/projects/alpha").contains("nav id");
+        assertThat(exception.getMessage())
+                .contains("Listing")
+                .contains("/projects/alpha")
+                .contains("nav id");
     }
 
     @Test
     void segmentTaken_labels_a_link_entry_as_a_link() {
         var exception = PathConflictException.segmentTaken(PathConflictException.EntryKind.LINK, "/projects/alpha");
 
-        assertThat(exception.getMessage()).contains("Link").contains("/projects/alpha").contains("path segment");
+        assertThat(exception.getMessage())
+                .contains("Link")
+                .contains("/projects/alpha")
+                .contains("path segment");
     }
 }

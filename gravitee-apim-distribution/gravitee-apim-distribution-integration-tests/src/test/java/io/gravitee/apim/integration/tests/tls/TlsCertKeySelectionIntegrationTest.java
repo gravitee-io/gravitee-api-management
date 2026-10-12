@@ -79,50 +79,54 @@ public class TlsCertKeySelectionIntegrationTest {
             brightCert = genResult.certs().get(BRIGHT_SIDE_FQDN).toPem();
             darkCert = genResult.certs().get(DARK_SIDE_FQDN).toPem();
             darkAlias = genResult.aliases().get(DARK_SIDE_FQDN);
-            config
-                .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
-                .set("http.ssl.keystore.path", genResult.location().toAbsolutePath().toString())
-                .set("http.ssl.keystore.password", new String(PASSWORD));
+            config.set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
+                    .set(
+                            "http.ssl.keystore.path",
+                            genResult.location().toAbsolutePath().toString())
+                    .set("http.ssl.keystore.password", new String(PASSWORD));
         }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-            entrypoints.putIfAbsent("tcp-proxy", EntrypointBuilder.build("tcp-proxy", TcpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "tcp-proxy", EntrypointBuilder.build("tcp-proxy", TcpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
-            endpoints.putIfAbsent("tcp-proxy", EndpointBuilder.build("tcp-proxy", TcpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "tcp-proxy", EndpointBuilder.build("tcp-proxy", TcpProxyEndpointConnectorFactory.class));
         }
 
         void shouldFallbackOnBrightCertTest(GatewayDynamicConfig.HttpConfig httpConfig) {
-            // We call with another domain name, it should use the fallback on first alias of the keystore => bright cert
-            var httpClient = getBean(Vertx.class).createHttpClient(
-                new HttpClientOptions()
-                    .setSsl(true)
-                    .setVerifyHost(false) // given the host is not the good one, we bypass this check
-                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(brightCert)))
-            );
+            // We call with another domain name, it should use the fallback on first alias of the keystore => bright
+            // cert
+            var httpClient = getBean(Vertx.class)
+                    .createHttpClient(new HttpClientOptions()
+                            .setSsl(true)
+                            .setVerifyHost(false) // given the host is not the good one, we bypass this check
+                            .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(brightCert))));
             assertApiCall(httpClient, httpConfig.httpPort(), "www.foo.com", GATEWAY_HTTP_API_URI);
         }
 
         void shouldFallbackOnDefaultAliasTest(GatewayDynamicConfig.HttpConfig httpConfig) {
             // We call with another domain name, it should use the fallback on default alias => dark cert
-            var httpClient = getBean(Vertx.class).createHttpClient(
-                new HttpClientOptions()
-                    .setSsl(true)
-                    .setVerifyHost(false) // given the host is not the good one, we bypass this check
-                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(darkCert)))
-            );
+            var httpClient = getBean(Vertx.class)
+                    .createHttpClient(new HttpClientOptions()
+                            .setSsl(true)
+                            .setVerifyHost(false) // given the host is not the good one, we bypass this check
+                            .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(darkCert))));
             assertApiCall(httpClient, httpConfig.httpPort(), "www.foo.com", GATEWAY_HTTP_API_URI);
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/api.json" })
+    @DeployApi({"/apis/v4/http/api.json"})
     class SNIFallbackNoAlias extends AbstractTlsSelectionTest {
 
         @Override
@@ -139,7 +143,7 @@ public class TlsCertKeySelectionIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/api.json" })
+    @DeployApi({"/apis/v4/http/api.json"})
     class SNIFallbackWithAlias extends AbstractTlsSelectionTest {
 
         @Override
@@ -157,7 +161,7 @@ public class TlsCertKeySelectionIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/api.json" })
+    @DeployApi({"/apis/v4/http/api.json"})
     class NoSNIFallbackNoAlias extends AbstractTlsSelectionTest {
 
         @Test
@@ -168,7 +172,7 @@ public class TlsCertKeySelectionIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/api.json" })
+    @DeployApi({"/apis/v4/http/api.json"})
     class NoSNIFallbackWithAlias extends AbstractTlsSelectionTest {
 
         @Override

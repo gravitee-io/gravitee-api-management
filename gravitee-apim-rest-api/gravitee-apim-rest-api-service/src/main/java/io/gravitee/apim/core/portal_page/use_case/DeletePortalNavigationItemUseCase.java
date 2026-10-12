@@ -33,16 +33,22 @@ public class DeletePortalNavigationItemUseCase {
     private final PortalNavigationSourcedItemsDomainService sourcedItemsDomainService;
 
     public Output execute(Input input) {
-        var existing = portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), input.navigationItemId());
+        var existing = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                input.environmentId(), input.navigationItemId());
         if (existing == null) {
-            throw new PortalNavigationItemNotFoundException(input.navigationItemId().json());
+            throw new PortalNavigationItemNotFoundException(
+                    input.navigationItemId().json());
         }
 
         if (existing.getSource() != null) {
-            throw InvalidPortalNavigationItemDataException.sourcedItemCannotBeDeleted(existing.getId().json());
+            throw InvalidPortalNavigationItemDataException.sourcedItemCannotBeDeleted(
+                    existing.getId().json());
         }
-        if (sourcedItemsDomainService.findSourcedAncestor(input.environmentId(), existing).isPresent()) {
-            throw InvalidPortalNavigationItemDataException.childOfSourcedItemIsReadOnly(existing.getId().json());
+        if (sourcedItemsDomainService
+                .findSourcedAncestor(input.environmentId(), existing)
+                .isPresent()) {
+            throw InvalidPortalNavigationItemDataException.childOfSourcedItemIsReadOnly(
+                    existing.getId().json());
         }
 
         portalNavigationItemDomainService.deleteWithDescendants(existing);

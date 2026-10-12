@@ -78,14 +78,14 @@ public class JacksonSerializationDeserializationTest {
 
         @Test
         void should_serialize_JavaTime_attribute() throws JsonProcessingException {
-            var object = MyPojo.builder().dateTime(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC)).build();
+            var object = MyPojo.builder()
+                    .dateTime(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                    .build();
 
             var result = serializer.serialize(object);
 
-            assertThat(result).isEqualTo(
-                """
-                {"dateTime":1580674922.000000000}"""
-            );
+            assertThat(result).isEqualTo("""
+                {"dateTime":1580674922.000000000}""");
         }
     }
 
@@ -96,18 +96,16 @@ public class JacksonSerializationDeserializationTest {
 
         @Test
         void should_throw_when_unknown_properties() {
-            var throwable = Assertions.catchThrowable(() ->
-                deserializer.deserialize("{\"aString\":\"aString\",\"aBoolean\":true, \"unknown\":123}", MyPojo.class)
-            );
+            var throwable = Assertions.catchThrowable(() -> deserializer.deserialize(
+                    "{\"aString\":\"aString\",\"aBoolean\":true, \"unknown\":123}", MyPojo.class));
 
             assertThat(throwable).hasCauseInstanceOf(UnrecognizedPropertyException.class);
         }
 
         @Test
         void should_not_deserialize_custom_methods_starting_with_setter() {
-            var throwable = Assertions.catchThrowable(() ->
-                deserializer.deserialize("{\"aString\":\"aString\",\"aBoolean\":true, \"time\":123}", MyPojo.class)
-            );
+            var throwable = Assertions.catchThrowable(() -> deserializer.deserialize(
+                    "{\"aString\":\"aString\",\"aBoolean\":true, \"time\":123}", MyPojo.class));
 
             assertThat(throwable).hasCauseInstanceOf(UnrecognizedPropertyException.class);
         }
@@ -116,9 +114,10 @@ public class JacksonSerializationDeserializationTest {
         void should_deserialize_JavaTime_attribute() throws JsonProcessingException {
             var result = deserializer.deserialize("{\"dateTime\":1580675922.000000000}", MyPojo.class);
 
-            assertThat(result).isEqualTo(
-                MyPojo.builder().dateTime(Instant.parse("2020-02-02T20:38:42.00Z").atZone(ZoneOffset.UTC)).build()
-            );
+            assertThat(result)
+                    .isEqualTo(MyPojo.builder()
+                            .dateTime(Instant.parse("2020-02-02T20:38:42.00Z").atZone(ZoneOffset.UTC))
+                            .build());
         }
     }
 

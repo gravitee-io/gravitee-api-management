@@ -35,31 +35,31 @@ class JsonFormatterTest extends AbstractFormatterTest {
         return Type.JSON;
     }
 
-    @CsvSource(
-        {
-            "log, log.Log, log.json, json/log.json",
-            "metrics, http.Metrics, metrics.json, json/metrics.json",
-            "metrics with additional, http.Metrics, metrics-with-additional.json, json/metrics-with-additional.json",
-            "endpoint status, health.EndpointStatus, endpoint-status.json, json/endpoint-status.json",
-            "monitor, monitor.Monitor, monitor.json, json/monitor.json",
-            "v4 log, v4.log.Log, v4/log.json, json/v4/log.json",
-            "v4 metrics, v4.metric.Metrics, v4/metrics.json, json/v4/metrics.json",
-            "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, json/v4/metrics-with-additional.json",
-            "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, json/v4/message-metrics.json",
-            "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, json/v4/message-metrics-with-additional.json",
-            "message log, v4.log.MessageLog, v4/message-log.json, json/v4/message-log.json",
-            "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, json/v4/api-event-metrics.json",
-            "decision report, v4.report.DecisionReport, v4/decision-report.json, json/v4/decision-report.json",
-            "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, json/v4/application-event-metrics.json",
-            "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, json/v4/topic-event-metrics.json",
-            "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, json/v4/operation-event-metrics.json",
-        }
-    )
+    @CsvSource({
+        "log, log.Log, log.json, json/log.json",
+        "metrics, http.Metrics, metrics.json, json/metrics.json",
+        "metrics with additional, http.Metrics, metrics-with-additional.json, json/metrics-with-additional.json",
+        "endpoint status, health.EndpointStatus, endpoint-status.json, json/endpoint-status.json",
+        "monitor, monitor.Monitor, monitor.json, json/monitor.json",
+        "v4 log, v4.log.Log, v4/log.json, json/v4/log.json",
+        "v4 metrics, v4.metric.Metrics, v4/metrics.json, json/v4/metrics.json",
+        "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, json/v4/metrics-with-additional.json",
+        "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, json/v4/message-metrics.json",
+        "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, json/v4/message-metrics-with-additional.json",
+        "message log, v4.log.MessageLog, v4/message-log.json, json/v4/message-log.json",
+        "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, json/v4/api-event-metrics.json",
+        "decision report, v4.report.DecisionReport, v4/decision-report.json, json/v4/decision-report.json",
+        "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, json/v4/application-event-metrics.json",
+        "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, json/v4/topic-event-metrics.json",
+        "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, json/v4/operation-event-metrics.json",
+    })
     @ParameterizedTest(name = "{0}")
     @SuppressWarnings("unused")
     void should_format(String testName, String className, String input, String output) throws IOException {
         var given = readGiven(input, className);
         var expected = readExpected(output);
-        assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+        assertThat(JSON.readTree(formatter.format(given).getBytes()))
+                .usingRecursiveComparison()
+                .isEqualTo(JSON.readTree(expected));
     }
 }

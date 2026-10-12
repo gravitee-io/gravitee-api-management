@@ -52,13 +52,13 @@ public class ESIndexMappingsDistributionBuilder {
      */
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
-            args = new String[] { "es-index-templates" };
+            args = new String[] {"es-index-templates"};
         }
 
         FreeMarkerComponent freeMarkerComponent = FreeMarkerComponent.builder()
-            .classLoader(ElasticsearchReporter.class.getClassLoader())
-            .classLoaderTemplateBase("/freemarker/")
-            .build();
+                .classLoader(ElasticsearchReporter.class.getClassLoader())
+                .classLoaderTemplateBase("/freemarker/")
+                .build();
 
         ReporterConfiguration configuration = new ReporterConfiguration();
         PipelineConfiguration pipelineConfiguration = new PipelineConfiguration(freeMarkerComponent);
@@ -68,7 +68,8 @@ public class ESIndexMappingsDistributionBuilder {
 
         for (Class<? extends AbstractIndexPreparer> clazz : classes) {
             log.info("Found index preparer class: {}", clazz.getName());
-            AbstractIndexPreparer indexPreparer = buildIndexPreparer(clazz, configuration, pipelineConfiguration, freeMarkerComponent);
+            AbstractIndexPreparer indexPreparer =
+                    buildIndexPreparer(clazz, configuration, pipelineConfiguration, freeMarkerComponent);
 
             // Create the target directory structure if it does not exist.
             Path dir = ensureDirectoryStructure(args[0], indexPreparer);
@@ -76,7 +77,8 @@ public class ESIndexMappingsDistributionBuilder {
             // Write the pipeline file.
             Path file = dir.resolve("pipeline.json");
             Files.writeString(file, pipelineConfiguration.createPipeline());
-            log.info("Generated pipeline template {}", indexPreparer.getTemplatePathPrefix() + "/" + file.getFileName());
+            log.info(
+                    "Generated pipeline template {}", indexPreparer.getTemplatePathPrefix() + "/" + file.getFileName());
 
             for (Type type : Type.values()) {
                 String template = jsonPrettify(indexPreparer.generateIndexTemplate(type));
@@ -86,28 +88,28 @@ public class ESIndexMappingsDistributionBuilder {
                 file = dir.resolve(type.getType() + ".json");
                 Files.writeString(file, template);
 
-                log.info("Generated index template {}", indexPreparer.getTemplatePathPrefix() + "/" + file.getFileName());
+                log.info(
+                        "Generated index template {}",
+                        indexPreparer.getTemplatePathPrefix() + "/" + file.getFileName());
             }
         }
     }
 
     private static AbstractIndexPreparer buildIndexPreparer(
-        Class<? extends AbstractIndexPreparer> clazz,
-        ReporterConfiguration configuration,
-        PipelineConfiguration pipelineConfiguration,
-        FreeMarkerComponent freeMarkerComponent
-    ) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+            Class<? extends AbstractIndexPreparer> clazz,
+            ReporterConfiguration configuration,
+            PipelineConfiguration pipelineConfiguration,
+            FreeMarkerComponent freeMarkerComponent)
+            throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         Constructor<? extends AbstractIndexPreparer> constructor = clazz.getConstructor(
-            ReporterConfiguration.class,
-            PipelineConfiguration.class,
-            FreeMarkerComponent.class,
-            Client.class
-        );
-        AbstractIndexPreparer indexPreparer = constructor.newInstance(configuration, pipelineConfiguration, freeMarkerComponent, null);
+                ReporterConfiguration.class, PipelineConfiguration.class, FreeMarkerComponent.class, Client.class);
+        AbstractIndexPreparer indexPreparer =
+                constructor.newInstance(configuration, pipelineConfiguration, freeMarkerComponent, null);
         return indexPreparer;
     }
 
-    private static Path ensureDirectoryStructure(String target, AbstractIndexPreparer indexPreparer) throws IOException {
+    private static Path ensureDirectoryStructure(String target, AbstractIndexPreparer indexPreparer)
+            throws IOException {
         String folderPath = target + "/" + indexPreparer.getTemplatePathPrefix();
         Path dir = java.nio.file.Paths.get(folderPath);
         if (!dir.toFile().exists()) {

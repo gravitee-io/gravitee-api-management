@@ -100,9 +100,9 @@ class PageService_SensitiveSourceTest {
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockSensitiveFetcherConfiguration.class);
         when(fetcherPlugin.clazz()).thenReturn(PageService_MockSensitiveFetcher.class.getName());
         when(fetcherPluginManager.get(FETCHER_TYPE)).thenReturn(fetcherPlugin);
-        when(fetcherConfigurationFactory.create(any(), anyString())).thenAnswer(invocation ->
-            JSON_MAPPER.readValue(invocation.<String>getArgument(1), invocation.<Class<?>>getArgument(0))
-        );
+        when(fetcherConfigurationFactory.create(any(), anyString()))
+                .thenAnswer(invocation ->
+                        JSON_MAPPER.readValue(invocation.<String>getArgument(1), invocation.<Class<?>>getArgument(0)));
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mock(AutowireCapableBeanFactory.class));
     }
 
@@ -110,18 +110,15 @@ class PageService_SensitiveSourceTest {
     void should_reject_an_update_keeping_a_masked_secret_for_another_address() throws TechnicalException {
         givenStoredPage("{\"url\":\"https://a.example/doc.md\",\"token\":\"stored-secret\"}");
 
-        assertThatThrownBy(() ->
-            pageService.update(
-                EXECUTION_CONTEXT,
-                PAGE_ID,
-                updateWithSource("{\"url\":\"https://b.example/doc.md\",\"token\":\"" + MASKED + "\"}")
-            )
-        )
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("token")
-            .hasMessageContaining("actual value")
-            .hasMessageNotContaining("b.example")
-            .hasMessageNotContaining("stored-secret");
+        assertThatThrownBy(() -> pageService.update(
+                        EXECUTION_CONTEXT,
+                        PAGE_ID,
+                        updateWithSource("{\"url\":\"https://b.example/doc.md\",\"token\":\"" + MASKED + "\"}")))
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("token")
+                .hasMessageContaining("actual value")
+                .hasMessageNotContaining("b.example")
+                .hasMessageNotContaining("stored-secret");
         verify(pageRepository, never()).update(any());
     }
 
@@ -131,10 +128,10 @@ class PageService_SensitiveSourceTest {
         when(pageRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         pageService.update(
-            EXECUTION_CONTEXT,
-            PAGE_ID,
-            updateWithSource("{\"url\":\"https://a.example/doc.md\",\"branch\":\"dev\",\"token\":\"" + MASKED + "\"}")
-        );
+                EXECUTION_CONTEXT,
+                PAGE_ID,
+                updateWithSource(
+                        "{\"url\":\"https://a.example/doc.md\",\"branch\":\"dev\",\"token\":\"" + MASKED + "\"}"));
 
         assertThat(persistedToken()).isEqualTo("stored-secret");
     }
@@ -146,10 +143,9 @@ class PageService_SensitiveSourceTest {
         when(pageRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         pageService.update(
-            EXECUTION_CONTEXT,
-            PAGE_ID,
-            updateWithSource("{\"url\":\"https://b.example/doc.md\",\"token\":\"" + MASKED + "\"}")
-        );
+                EXECUTION_CONTEXT,
+                PAGE_ID,
+                updateWithSource("{\"url\":\"https://b.example/doc.md\",\"token\":\"" + MASKED + "\"}"));
 
         assertThat(persistedToken()).isNull();
     }
@@ -159,7 +155,10 @@ class PageService_SensitiveSourceTest {
         givenStoredPage("{\"url\":\"https://a.example/doc.md\",\"token\":\"stored-secret\"}");
         when(pageRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        pageService.update(EXECUTION_CONTEXT, PAGE_ID, updateWithSource("{\"url\":\"https://b.example/doc.md\",\"token\":\"new-secret\"}"));
+        pageService.update(
+                EXECUTION_CONTEXT,
+                PAGE_ID,
+                updateWithSource("{\"url\":\"https://b.example/doc.md\",\"token\":\"new-secret\"}"));
 
         assertThat(persistedToken()).isEqualTo("new-secret");
     }
@@ -185,9 +184,9 @@ class PageService_SensitiveSourceTest {
         rootPage.setSource(pageSourceEntity("{\"url\":\"https://b.example/docs\",\"token\":\"" + MASKED + "\"}"));
 
         assertThatThrownBy(() -> pageService.importFiles(EXECUTION_CONTEXT, API_ID, rootPage))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageNotContaining("b.example")
-            .hasMessageNotContaining("stored-secret");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageNotContaining("b.example")
+                .hasMessageNotContaining("stored-secret");
         verify(pageRepository, never()).update(any());
     }
 
@@ -225,7 +224,9 @@ class PageService_SensitiveSourceTest {
     private String persistedToken() throws Exception {
         var captor = ArgumentCaptor.forClass(Page.class);
         verify(pageRepository).update(captor.capture());
-        var token = JSON_MAPPER.readTree(captor.getValue().getSource().getConfiguration()).get("token");
+        var token = JSON_MAPPER
+                .readTree(captor.getValue().getSource().getConfiguration())
+                .get("token");
         return token == null || token.isNull() ? null : token.textValue();
     }
 

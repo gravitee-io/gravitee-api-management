@@ -70,14 +70,18 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
     public void setUp() {
         super.setUp();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder().id(APPLICATION).build()));
+        applicationCrudServiceInMemory.initWith(
+                List.of(BaseApplicationEntity.builder().id(APPLICATION).build()));
     }
 
     @AfterEach
@@ -89,67 +93,66 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
     @Test
     public void should_return_404_if_not_found() {
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
+        assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
-        subscriptionCrudServiceInMemory.initWith(
-            List.of(
-                SubscriptionEntity.builder()
-                    .id(SUBSCRIPTION)
-                    .apiId("ANOTHER_API")
-                    .referenceId("ANOTHER_API")
-                    .referenceType(SubscriptionReferenceType.API)
-                    .planId(PLAN)
-                    .applicationId(APPLICATION)
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .build()
-            )
-        );
+        subscriptionCrudServiceInMemory.initWith(List.of(SubscriptionEntity.builder()
+                .id(SUBSCRIPTION)
+                .apiId("ANOTHER_API")
+                .referenceId("ANOTHER_API")
+                .referenceType(SubscriptionReferenceType.API)
+                .planId(PLAN)
+                .applicationId(APPLICATION)
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .build()));
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
+        assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertThat(response).hasStatus(FORBIDDEN_403).asError().hasMessage("You do not have sufficient rights to access this resource");
+        assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 
     @Test
     public void should_return_subscription_when_subscription_closed() {
-        subscriptionCrudServiceInMemory.initWith(
-            List.of(
-                SubscriptionEntity.builder()
-                    .id(SUBSCRIPTION)
-                    .apiId(API)
-                    .referenceId(API)
-                    .referenceType(SubscriptionReferenceType.API)
-                    .planId(PLAN)
-                    .applicationId(APPLICATION)
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .build()
-            )
-        );
+        subscriptionCrudServiceInMemory.initWith(List.of(SubscriptionEntity.builder()
+                .id(SUBSCRIPTION)
+                .apiId(API)
+                .referenceId(API)
+                .referenceType(SubscriptionReferenceType.API)
+                .planId(PLAN)
+                .applicationId(APPLICATION)
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .build()));
 
         apiCrudService.initWith(List.of(builder().id(API).build()));
 
         final Response response = rootTarget().request().post(Entity.json(null));
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(Subscription.class)
-            .extracting(Subscription::getStatus)
-            .isEqualTo(SubscriptionStatus.CLOSED);
+                .hasStatus(OK_200)
+                .asEntity(Subscription.class)
+                .extracting(Subscription::getStatus)
+                .isEqualTo(SubscriptionStatus.CLOSED);
     }
 }

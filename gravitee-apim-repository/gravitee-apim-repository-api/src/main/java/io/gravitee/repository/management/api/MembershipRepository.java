@@ -29,7 +29,9 @@ import java.util.stream.Stream;
  */
 public interface MembershipRepository extends FindAllRepository<Membership> {
     Membership create(Membership membership) throws TechnicalException;
+
     Membership update(Membership membership) throws TechnicalException;
+
     void delete(String membershipId) throws TechnicalException;
 
     /**
@@ -39,9 +41,11 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @return List of IDs for deleted membership
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType)
+            throws TechnicalException;
 
-    List<Membership> findByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType) throws TechnicalException;
+    List<Membership> findByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType)
+            throws TechnicalException;
 
     /**
      * find membership by id.
@@ -69,7 +73,7 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId)
-        throws TechnicalException;
+            throws TechnicalException;
 
     /**
      * find all memberships for a specific reference
@@ -80,8 +84,8 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId)
-        throws TechnicalException;
+    Set<Membership> findByReferencesAndRoleId(
+            MembershipReferenceType referenceType, List<String> referenceIds, String roleId) throws TechnicalException;
 
     /**
      * find all memberships for a member and a referenceType
@@ -93,16 +97,12 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType
-    ) throws TechnicalException;
+            String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType)
+            throws TechnicalException;
 
     Stream<String> findRefIdsByMemberIdAndMemberTypeAndReferenceType(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType
-    ) throws TechnicalException;
+            String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType)
+            throws TechnicalException;
     /**
      * find all memberships for a member and a referenceType and SourceId
      * @param memberId the member
@@ -113,11 +113,8 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndSource(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        String sourceId
-    ) throws TechnicalException;
+            String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String sourceId)
+            throws TechnicalException;
 
     /**
      * find all memberships for a list of member and a referenceType
@@ -129,10 +126,8 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByMemberIdsAndMemberTypeAndReferenceType(
-        List<String> memberIds,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType
-    ) throws TechnicalException;
+            List<String> memberIds, MembershipMemberType memberType, MembershipReferenceType referenceType)
+            throws TechnicalException;
 
     /**
      * find all memberships for a role
@@ -153,11 +148,8 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        String roleId
-    ) throws TechnicalException;
+            String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String roleId)
+            throws TechnicalException;
 
     /**
      * find all memberships for a member, a referenceType and a list of roles
@@ -169,11 +161,11 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        Collection<String> roleIds
-    ) throws TechnicalException;
+            String memberId,
+            MembershipMemberType memberType,
+            MembershipReferenceType referenceType,
+            Collection<String> roleIds)
+            throws TechnicalException;
 
     /**
      * find all reference ids for a member, a referenceType and a list of roles
@@ -185,11 +177,11 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<String> findRefIdByMemberAndRefTypeAndRoleIdIn(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        Collection<String> roleIds
-    ) throws TechnicalException;
+            String memberId,
+            MembershipMemberType memberType,
+            MembershipReferenceType referenceType,
+            Collection<String> roleIds)
+            throws TechnicalException;
 
     /**
      * find all memberships for a member, a referenceType, a referenceId and a role
@@ -203,12 +195,12 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        String referenceId,
-        String roleId
-    ) throws TechnicalException;
+            String memberId,
+            MembershipMemberType memberType,
+            MembershipReferenceType referenceType,
+            String referenceId,
+            String roleId)
+            throws TechnicalException;
 
     /**
      * find all memberships for a member, a referenceType and a referenceId
@@ -221,17 +213,10 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     default Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        String referenceId
-    ) throws TechnicalException {
+            String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId)
+            throws TechnicalException {
         return findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
-            memberId,
-            memberType,
-            referenceType,
-            referenceId == null ? null : Set.of(referenceId)
-        );
+                memberId, memberType, referenceType, referenceId == null ? null : Set.of(referenceId));
     }
 
     /**
@@ -246,11 +231,11 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        Set<String> referenceIds
-    ) throws TechnicalException;
+            String memberId,
+            MembershipMemberType memberType,
+            MembershipReferenceType referenceType,
+            Set<String> referenceIds)
+            throws TechnicalException;
 
     /**
      * find all memberships for a member
@@ -259,5 +244,6 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) throws TechnicalException;
+    Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType)
+            throws TechnicalException;
 }

@@ -34,8 +34,8 @@ public class ContextPathValidationResult {
 
     public List<VirtualHost> toVirtualHosts() {
         return this.sanitizedPaths.stream()
-            .map(p -> new VirtualHost(p.getHost(), p.getPath(), p.isOverrideAccess()))
-            .toList();
+                .map(p -> new VirtualHost(p.getHost(), p.getPath(), p.isOverrideAccess()))
+                .toList();
     }
 
     public boolean hasError() {

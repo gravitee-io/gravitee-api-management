@@ -24,9 +24,7 @@ class ScoreComputingDomainServiceTest {
     private final ScoreComputingDomainService scoreComputingDomainService = new ScoreComputingDomainService();
 
     @ParameterizedTest
-    @CsvSource(
-        delimiterString = "|",
-        textBlock = """
+    @CsvSource(delimiterString = "|", textBlock = """
         # ERRORS | WARNINGS | INFOS | HINTS | EXPECTED_SCORE
           0      | 0        | 0     | 0     | 1
           0      | 0        | 0     | 1     | 0.99
@@ -37,9 +35,9 @@ class ScoreComputingDomainServiceTest {
           1      | 1        | 1     | 1     | 0.84
           1      | 2        | 3     | 4     | 0.74
           4      | 3        | 2     | 1     | 0.55
-        """
-    )
+        """)
     void should_compute_score(Long nbErrors, Long nbWarnings, Long nbInfos, Long nbHints, Double expectedScore) {
-        Assertions.assertThat(scoreComputingDomainService.computeScore(nbErrors, nbWarnings, nbInfos, nbHints)).isEqualTo(expectedScore);
+        Assertions.assertThat(scoreComputingDomainService.computeScore(nbErrors, nbWarnings, nbInfos, nbHints))
+                .isEqualTo(expectedScore);
     }
 }

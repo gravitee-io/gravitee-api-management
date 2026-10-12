@@ -59,123 +59,108 @@ public class RedisTokenBucketRateLimitRepository implements TokenBucketRateLimit
 
     @Override
     public Single<TokenBucketConsumeResult> refillAndTryConsume(
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        Supplier<TokenBucket> supplier
-    ) {
+            String key,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            Supplier<TokenBucket> supplier) {
         TokenBucketCalculator.requireValidArgs(tokensRequested, refillPeriodMillis, capacity);
         if (!redisClient.isConnected()) {
             return Single.error(new RedisNotConnectedException());
         }
 
         String subscription = supplier.get().getSubscription();
-        long expireAt = System.currentTimeMillis() + TokenBucketCalculator.ttlMillis(refillRate, refillPeriodMillis, capacity);
+        long expireAt =
+                System.currentTimeMillis() + TokenBucketCalculator.ttlMillis(refillRate, refillPeriodMillis, capacity);
         String redisKey = REDIS_KEY_PREFIX + key;
 
-        return SingleHelper.toSingle(
-            (Consumer<Handler<AsyncResult<Response>>>) asyncResultHandler ->
-                redisClient
-                    .redisApi()
-                    .flatMap(redisAPI ->
-                        redisAPI
-                            .evalsha(
-                                args(
-                                    redisClient.scriptSha1(SCRIPT_TOKEN_BUCKET_KEY),
-                                    redisKey,
-                                    tokensRequested,
-                                    refillRate,
-                                    refillPeriodMillis,
-                                    capacity,
-                                    nowMillis,
-                                    subscription,
-                                    expireAt
-                                )
-                            )
-                            .recover(t -> {
-                                if (!RedisScriptSupport.isNoScript(t)) {
-                                    return Future.failedFuture(t);
-                                }
-                                final String source = redisClient.scriptSource(SCRIPT_TOKEN_BUCKET_KEY);
-                                if (source == null) {
-                                    return Future.failedFuture(
-                                        new IllegalStateException(
-                                            "Cannot recover from NOSCRIPT: token-bucket script source unavailable (script was never loaded)"
-                                        )
-                                    );
-                                }
-                                // On Redis Cluster, SCRIPT LOAD only reaches the contacted node; an EVALSHA routed by
-                                // hash slot to another master returns NOSCRIPT. NOSCRIPT means the script did not run,
-                                // so replaying via EVAL (which caches it on that node) cannot double-consume.
-                                log.debug(
-                                    "EVALSHA returned NOSCRIPT; falling back to EVAL to load the token-bucket script on the target node"
-                                );
-                                return redisAPI
-                                    .eval(
-                                        args(
-                                            source,
-                                            redisKey,
-                                            tokensRequested,
-                                            refillRate,
-                                            refillPeriodMillis,
-                                            capacity,
-                                            nowMillis,
-                                            subscription,
-                                            expireAt
-                                        )
-                                    )
-                                    .recover(evalError -> {
-                                        evalError.addSuppressed(t);
-                                        return Future.failedFuture(evalError);
-                                    });
-                            })
-                            .timeout(operationTimeout, TimeUnit.MILLISECONDS)
-                            .recover(t -> RedisScriptSupport.mapTimeout(t, operationTimeout))
-                    )
-                    .onFailure(t -> {
-                        logOperationFailure(t);
-                        redisClient.notifyConnectionFailure(t);
-                    })
-                    .onComplete(asyncResultHandler)
-        ).map(response -> {
-            boolean allowed = response.get(0).toLong() == 1L;
-            long newTokens = response.get(1).toLong();
-            return new TokenBucketConsumeResult(
-                allowed,
-                newTokens,
-                TokenBucketCalculator.nextAvailableAtMillis(newTokens, refillRate, refillPeriodMillis, nowMillis)
-            );
-        });
+        return SingleHelper.toSingle((Consumer<Handler<AsyncResult<Response>>>) asyncResultHandler -> redisClient
+                        .redisApi()
+                        .flatMap(redisAPI -> redisAPI.evalsha(args(
+                                        redisClient.scriptSha1(SCRIPT_TOKEN_BUCKET_KEY),
+                                        redisKey,
+                                        tokensRequested,
+                                        refillRate,
+                                        refillPeriodMillis,
+                                        capacity,
+                                        nowMillis,
+                                        subscription,
+                                        expireAt))
+                                .recover(t -> {
+                                    if (!RedisScriptSupport.isNoScript(t)) {
+                                        return Future.failedFuture(t);
+                                    }
+                                    final String source = redisClient.scriptSource(SCRIPT_TOKEN_BUCKET_KEY);
+                                    if (source == null) {
+                                        return Future.failedFuture(
+                                                new IllegalStateException(
+                                                        "Cannot recover from NOSCRIPT: token-bucket script source unavailable (script was never loaded)"));
+                                    }
+                                    // On Redis Cluster, SCRIPT LOAD only reaches the contacted node; an EVALSHA routed
+                                    // by
+                                    // hash slot to another master returns NOSCRIPT. NOSCRIPT means the script did not
+                                    // run,
+                                    // so replaying via EVAL (which caches it on that node) cannot double-consume.
+                                    log.debug(
+                                            "EVALSHA returned NOSCRIPT; falling back to EVAL to load the token-bucket script on the target node");
+                                    return redisAPI.eval(args(
+                                                    source,
+                                                    redisKey,
+                                                    tokensRequested,
+                                                    refillRate,
+                                                    refillPeriodMillis,
+                                                    capacity,
+                                                    nowMillis,
+                                                    subscription,
+                                                    expireAt))
+                                            .recover(evalError -> {
+                                                evalError.addSuppressed(t);
+                                                return Future.failedFuture(evalError);
+                                            });
+                                })
+                                .timeout(operationTimeout, TimeUnit.MILLISECONDS)
+                                .recover(t -> RedisScriptSupport.mapTimeout(t, operationTimeout)))
+                        .onFailure(t -> {
+                            logOperationFailure(t);
+                            redisClient.notifyConnectionFailure(t);
+                        })
+                        .onComplete(asyncResultHandler))
+                .map(response -> {
+                    boolean allowed = response.get(0).toLong() == 1L;
+                    long newTokens = response.get(1).toLong();
+                    return new TokenBucketConsumeResult(
+                            allowed,
+                            newTokens,
+                            TokenBucketCalculator.nextAvailableAtMillis(
+                                    newTokens, refillRate, refillPeriodMillis, nowMillis));
+                });
     }
 
     // numkeys is "1": only the bucket key is a KEY, so all keys touched share one hash slot.
     // scriptRef is a SHA on the EVALSHA path and the script source on the EVAL fallback path.
     static List<String> args(
-        String scriptRef,
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long now,
-        String subscription,
-        long expireAt
-    ) {
+            String scriptRef,
+            String key,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long now,
+            String subscription,
+            long expireAt) {
         return Arrays.asList(
-            scriptRef,
-            "1", // numkeys
-            key,
-            Long.toString(tokensRequested),
-            Long.toString(refillRate),
-            Long.toString(refillPeriodMillis),
-            Long.toString(capacity),
-            Long.toString(now),
-            subscription == null ? "" : subscription,
-            Long.toString(expireAt)
-        );
+                scriptRef,
+                "1", // numkeys
+                key,
+                Long.toString(tokensRequested),
+                Long.toString(refillRate),
+                Long.toString(refillPeriodMillis),
+                Long.toString(capacity),
+                Long.toString(now),
+                subscription == null ? "" : subscription,
+                Long.toString(expireAt));
     }
 
     private void logOperationFailure(Throwable t) {

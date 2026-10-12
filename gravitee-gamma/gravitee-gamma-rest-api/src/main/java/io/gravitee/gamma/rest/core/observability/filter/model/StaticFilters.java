@@ -80,25 +80,30 @@ public enum StaticFilters {
     ENTRYPOINT("Entrypoint", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, ApiType.API_KINDS),
 
     // --- HTTP -----------------------------------------------------------------------------------
-    HTTP_METHOD("HTTP Method", FilterType.ENUM, Defs.EQ_IN, Defs.HTTP_METHODS, null, Defs.LOGS_ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    HTTP_METHOD(
+            "HTTP Method",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.HTTP_METHODS,
+            null,
+            Defs.LOGS_ANALYTICS,
+            Defs.HTTP_CONNECTION_KINDS),
     HTTP_STATUS(
-        "Status Code",
-        FilterType.NUMBER,
-        Defs.NUMBER_OPS,
-        null,
-        new Range(100, 599),
-        Defs.LOGS_ANALYTICS,
-        Defs.HTTP_CONNECTION_KINDS
-    ),
+            "Status Code",
+            FilterType.NUMBER,
+            Defs.NUMBER_OPS,
+            null,
+            new Range(100, 599),
+            Defs.LOGS_ANALYTICS,
+            Defs.HTTP_CONNECTION_KINDS),
     HTTP_STATUS_CODE_GROUP(
-        "Status Code Group",
-        FilterType.ENUM,
-        Defs.EQ_IN,
-        Defs.STATUS_CODE_GROUPS,
-        null,
-        Defs.LOGS_ANALYTICS,
-        Defs.HTTP_CONNECTION_KINDS
-    ),
+            "Status Code Group",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.STATUS_CODE_GROUPS,
+            null,
+            Defs.LOGS_ANALYTICS,
+            Defs.HTTP_CONNECTION_KINDS),
     // Two fields, two names, one signal each — see the class javadoc. Advertising one of them on
     // both signals would make the same `=` match the templated path on a dashboard and the concrete
     // request in the logs.
@@ -106,37 +111,41 @@ public enum StaticFilters {
     URI("Request URI", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.HTTP_CONNECTION_KINDS),
     HOST("Host", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     HTTP_GATEWAY_RESPONSE_TIME(
-        "Gateway Response Time",
-        FilterType.NUMBER,
-        Defs.NUMBER_OPS,
-        null,
-        null,
-        Defs.LOGS_ANALYTICS,
-        Defs.HTTP_CONNECTION_KINDS
-    ),
-    HTTP_GATEWAY_LATENCY("Latency", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+            "Gateway Response Time",
+            FilterType.NUMBER,
+            Defs.NUMBER_OPS,
+            null,
+            null,
+            Defs.LOGS_ANALYTICS,
+            Defs.HTTP_CONNECTION_KINDS),
+    HTTP_GATEWAY_LATENCY(
+            "Latency", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     HTTP_ENDPOINT_RESPONSE_TIME(
-        "Endpoint Response Time",
-        FilterType.NUMBER,
-        Defs.NUMBER_OPS,
-        null,
-        null,
-        Defs.ANALYTICS,
-        Defs.HTTP_LLM_MCP_A2A
-    ),
-    HTTP_REQUEST_CONTENT_LENGTH("Request Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    HTTP_RESPONSE_CONTENT_LENGTH("Response Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+            "Endpoint Response Time",
+            FilterType.NUMBER,
+            Defs.NUMBER_OPS,
+            null,
+            null,
+            Defs.ANALYTICS,
+            Defs.HTTP_LLM_MCP_A2A),
+    HTTP_REQUEST_CONTENT_LENGTH(
+            "Request Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    HTTP_RESPONSE_CONTENT_LENGTH(
+            "Response Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     GEO_IP_COUNTRY("Country", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     GEO_IP_REGION("Region", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     GEO_IP_CITY("City", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     GEO_IP_CONTINENT("Continent", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    HTTP_USER_AGENT_OS_NAME(
+            "User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    HTTP_USER_AGENT_DEVICE(
+            "User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     // The analytics engine has no error-key dimension; the platform catalog serves it for logs only.
     ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_CONNECTION_KINDS_NATIVE),
     REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.REQUEST_BEARING_KINDS),
-    TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_CONNECTION_KINDS_NATIVE),
+    TRANSACTION_ID(
+            "Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_CONNECTION_KINDS_NATIVE),
     // MESSAGE is deliberately absent: the connection-level body a payload search reads is never
     // recorded for a Message API — AnalyticsValidationServiceImpl rejects `logging.content.payload`
     // on that api type, only the `message*` flags are accepted. Message bodies live in the nested
@@ -144,73 +153,117 @@ public enum StaticFilters {
     PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
 
     // --- Authz decisions ------------------------------------------------------------------------
-    AUTHZ_DECISION("Decision", FilterType.ENUM, Defs.EQ_IN, Defs.DECISIONS, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_DECISION(
+            "Decision", FilterType.ENUM, Defs.EQ_IN, Defs.DECISIONS, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
     AUTHZ_SUBJECT_ID("Subject", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
     AUTHZ_ACTION("Action", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
-    AUTHZ_RESOURCE_ID("Resource", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
-    AUTHZ_CALLER("Caller kind", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_CALLERS, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
-    AUTHZ_STATUS("Outcome status", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_STATUSES, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_RESOURCE_ID(
+            "Resource", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_CALLER(
+            "Caller kind",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.AUTHZ_CALLERS,
+            null,
+            Defs.LOGS_ANALYTICS,
+            Defs.DECISION_RECORDS),
+    AUTHZ_STATUS(
+            "Outcome status",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.AUTHZ_STATUSES,
+            null,
+            Defs.LOGS_ANALYTICS,
+            Defs.DECISION_RECORDS),
     AUTHZ_INDETERMINATE_CAUSE(
-        "Indeterminate cause",
-        FilterType.ENUM,
-        Defs.EQ_IN,
-        Defs.AUTHZ_INDETERMINATE_CAUSES,
-        null,
-        Defs.LOGS,
-        Defs.DECISION_RECORDS
-    ),
-    AUTHZ_ERROR_TYPE("Error type", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_ERROR_TYPES, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    AUTHZ_OPERATION("Operation", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_OPERATIONS, null, Defs.ANALYTICS, Set.of(ApiType.AUTHZ)),
-    AUTHZ_SEARCH_TYPE("Search Type", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_SEARCH_TYPES, null, Defs.ANALYTICS, Set.of(ApiType.AUTHZ)),
+            "Indeterminate cause",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.AUTHZ_INDETERMINATE_CAUSES,
+            null,
+            Defs.LOGS,
+            Defs.DECISION_RECORDS),
+    AUTHZ_ERROR_TYPE(
+            "Error type", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_ERROR_TYPES, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    AUTHZ_OPERATION(
+            "Operation",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.AUTHZ_OPERATIONS,
+            null,
+            Defs.ANALYTICS,
+            Set.of(ApiType.AUTHZ)),
+    AUTHZ_SEARCH_TYPE(
+            "Search Type",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.AUTHZ_SEARCH_TYPES,
+            null,
+            Defs.ANALYTICS,
+            Set.of(ApiType.AUTHZ)),
 
     AUTHZ_PDP("PDP Gateway", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
     AUTHZ_MATCHED_POLICY("Matched policy", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    AUTHZ_POLICY_VERSION("Engine generation", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    AUTHZ_POLICY_VERSION(
+            "Engine generation", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
 
     AUTHZ_REASON("Reason", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
 
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
-    LLM_PROXY_PROVIDER("LLM Provider", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
+    LLM_PROXY_PROVIDER(
+            "LLM Provider", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
 
     // --- MCP ------------------------------------------------------------------------------------
-    MCP_PROXY_METHOD("MCP Method", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
+    MCP_PROXY_METHOD(
+            "MCP Method", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
     MCP_PROXY_TOOL("MCP Tool", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
-    MCP_PROXY_RESOURCE("MCP Resource", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
-    MCP_PROXY_PROMPT("MCP Prompt", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
+    MCP_PROXY_RESOURCE(
+            "MCP Resource", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
+    MCP_PROXY_PROMPT(
+            "MCP Prompt", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
 
     // --- Message --------------------------------------------------------------------------------
     MESSAGE_OPERATION_TYPE(
-        "Operation",
-        FilterType.ENUM,
-        Defs.EQ_IN,
-        Defs.MESSAGE_OPERATIONS,
-        null,
-        Defs.ANALYTICS,
-        Set.of(ApiType.MESSAGE)
-    ),
-    MESSAGE_CONNECTOR_TYPE("Connector Type", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.MESSAGE)),
-    MESSAGE_SIZE("Message Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Set.of(ApiType.MESSAGE)),
-    MESSAGE_COUNT("Message Count", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Set.of(ApiType.MESSAGE)),
-    MESSAGE_ERROR_COUNT("Errors", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Set.of(ApiType.MESSAGE)),
+            "Operation",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.MESSAGE_OPERATIONS,
+            null,
+            Defs.ANALYTICS,
+            Set.of(ApiType.MESSAGE)),
+    MESSAGE_CONNECTOR_TYPE(
+            "Connector Type", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.MESSAGE)),
+    MESSAGE_SIZE(
+            "Message Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Set.of(ApiType.MESSAGE)),
+    MESSAGE_COUNT(
+            "Message Count", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Set.of(ApiType.MESSAGE)),
+    MESSAGE_ERROR_COUNT(
+            "Errors", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Set.of(ApiType.MESSAGE)),
 
     // --- Native (Kafka) -------------------------------------------------------------------------
     NATIVE_CONNECTION_STATUS(
-        "Native Connection Status",
-        FilterType.ENUM,
-        Defs.EQ_IN,
-        Defs.NATIVE_CONNECTION_STATUSES,
-        null,
-        Defs.LOGS_ANALYTICS,
-        Set.of(ApiType.NATIVE)
-    ),
+            "Native Connection Status",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.NATIVE_CONNECTION_STATUSES,
+            null,
+            Defs.LOGS_ANALYTICS,
+            Set.of(ApiType.NATIVE)),
     /**
      * Derived (never stored in ES): the logs search translates each requested origin into a
      * boolean predicate over the error key + native connection status, mirroring the
      * classification of {@code FailureOriginClassifier}/{@code NativeFailureOriginRules}.
      * LOGS-only until the analytics engine learns the same translation.
      */
-    FAILURE_ORIGIN("Failure Origin", FilterType.ENUM, Defs.EQ_IN, Defs.FAILURE_ORIGINS, null, Defs.LOGS, Set.of(ApiType.NATIVE)),
+    FAILURE_ORIGIN(
+            "Failure Origin",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.FAILURE_ORIGINS,
+            null,
+            Defs.LOGS,
+            Set.of(ApiType.NATIVE)),
     /**
      * Analytics counterpart of {@link #FAILURE_ORIGIN}: the side the gateway <em>stored</em>, rather
      * than the origin the logs derive from the error key. Two names for one idea is a smell, but the
@@ -219,16 +272,16 @@ public enum StaticFilters {
      * being grouped. They agree in practice: the classifier trusts the stored side first.
      */
     NATIVE_FAILURE_SIDE(
-        "Failure Side",
-        FilterType.ENUM,
-        Defs.EQ_IN,
-        Defs.NATIVE_FAILURE_SIDES,
-        null,
-        Defs.ANALYTICS,
-        Set.of(ApiType.NATIVE)
-    ),
+            "Failure Side",
+            FilterType.ENUM,
+            Defs.EQ_IN,
+            Defs.NATIVE_FAILURE_SIDES,
+            null,
+            Defs.ANALYTICS,
+            Set.of(ApiType.NATIVE)),
     /** Kafka {@code client.id} — the only attribution left once a connection fails before authenticating. */
-    NATIVE_CLIENT_ID("Kafka Client ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.NATIVE)),
+    NATIVE_CLIENT_ID(
+            "Kafka Client ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.NATIVE)),
     /**
      * KIP-511 client library name, e.g. {@code librdkafka} or {@code apache-kafka-java}. Answers the
      * fleet question ("who is still on this client?"). {@link #NATIVE_CLIENT_SOFTWARE_VERSION} narrows it
@@ -244,14 +297,13 @@ public enum StaticFilters {
      * work through management-v2 and fail here.
      */
     NATIVE_CLIENT_SOFTWARE_NAME(
-        "Kafka Client Library",
-        FilterType.KEYWORD,
-        Defs.EQ_IN,
-        null,
-        null,
-        Defs.LOGS_ANALYTICS,
-        Set.of(ApiType.NATIVE)
-    ),
+            "Kafka Client Library",
+            FilterType.KEYWORD,
+            Defs.EQ_IN,
+            null,
+            null,
+            Defs.LOGS_ANALYTICS,
+            Set.of(ApiType.NATIVE)),
     /**
      * KIP-511 client library version, e.g. {@code 2.6.1}. LOGS-only on purpose: several clients share
      * version numbers, so a version detached from its library identifies nothing and would make a
@@ -259,14 +311,13 @@ public enum StaticFilters {
      * librdkafka 1.8", which the library filter alone cannot.
      */
     NATIVE_CLIENT_SOFTWARE_VERSION(
-        "Kafka Client Library Version",
-        FilterType.KEYWORD,
-        Defs.EQ_IN,
-        null,
-        null,
-        Defs.LOGS,
-        Set.of(ApiType.NATIVE)
-    ),
+            "Kafka Client Library Version",
+            FilterType.KEYWORD,
+            Defs.EQ_IN,
+            null,
+            null,
+            Defs.LOGS,
+            Set.of(ApiType.NATIVE)),
     /**
      * Dimensions of the Kafka event metrics, ANALYTICS-only: they live in the {@code event-metrics} data
      * stream, which the logs signal does not read. Both are KEYWORD rather than ENUM — a topic name
@@ -277,7 +328,8 @@ public enum StaticFilters {
      * {@link #withoutValueListing()}.
      */
     NATIVE_TOPIC("Kafka Topic", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.NATIVE)),
-    NATIVE_OPERATION("Kafka Operation", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.NATIVE)),
+    NATIVE_OPERATION(
+            "Kafka Operation", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.NATIVE)),
 
     // --- Edge -----------------------------------------------------------------------------------
     EDGE_PROVIDER("Edge Provider", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.EDGE)),
@@ -294,14 +346,13 @@ public enum StaticFilters {
     private final Set<ApiType> apiTypes;
 
     StaticFilters(
-        String label,
-        FilterType type,
-        List<FilterOperator> operators,
-        List<EnumValue> enumValues,
-        Range range,
-        Set<Signal> signals,
-        Set<ApiType> apiTypes
-    ) {
+            String label,
+            FilterType type,
+            List<FilterOperator> operators,
+            List<EnumValue> enumValues,
+            Range range,
+            Set<Signal> signals,
+            Set<ApiType> apiTypes) {
         this.label = label;
         this.type = type;
         this.operators = operators;
@@ -353,7 +404,8 @@ public enum StaticFilters {
         private static final Set<Signal> ANALYTICS = Set.of(Signal.ANALYTICS);
         private static final Set<Signal> LOGS_ANALYTICS = Set.of(Signal.LOGS, Signal.ANALYTICS);
 
-        private static final Set<ApiType> HTTP_LLM_MCP_A2A = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A);
+        private static final Set<ApiType> HTTP_LLM_MCP_A2A =
+                Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A);
 
         /**
          * Kinds whose observability rows are HTTP connection documents, MESSAGE included: the
@@ -365,31 +417,15 @@ public enum StaticFilters {
          * carries host and latency alongside the rest, so the analytics-only filters belong here too.
          * Splitting them off would make MESSAGE follow the signal, which was never why it was excluded.
          */
-        private static final Set<ApiType> HTTP_CONNECTION_KINDS = Set.of(
-            ApiType.HTTP_PROXY,
-            ApiType.LLM,
-            ApiType.MCP,
-            ApiType.A2A,
-            ApiType.MESSAGE
-        );
+        private static final Set<ApiType> HTTP_CONNECTION_KINDS =
+                Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.MESSAGE);
 
-        private static final Set<ApiType> HTTP_CONNECTION_KINDS_NATIVE = Set.of(
-            ApiType.HTTP_PROXY,
-            ApiType.LLM,
-            ApiType.MCP,
-            ApiType.A2A,
-            ApiType.MESSAGE,
-            ApiType.NATIVE
-        );
-        private static final Set<ApiType> APP_TYPES = Set.of(
-            ApiType.HTTP_PROXY,
-            ApiType.LLM,
-            ApiType.MCP,
-            ApiType.A2A,
-            ApiType.MESSAGE,
-            ApiType.NATIVE
-        );
-        private static final Set<ApiType> GATEWAY_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.EDGE);
+        private static final Set<ApiType> HTTP_CONNECTION_KINDS_NATIVE =
+                Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.MESSAGE, ApiType.NATIVE);
+        private static final Set<ApiType> APP_TYPES =
+                Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.MESSAGE, ApiType.NATIVE);
+        private static final Set<ApiType> GATEWAY_TYPES =
+                Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.EDGE);
         private static final Set<ApiType> DECISION_RECORDS = Set.of(ApiType.AUTHZ_DECISION);
 
         /**
@@ -402,63 +438,57 @@ public enum StaticFilters {
          * {@code TRANSACTION_ID}.
          */
         private static final Set<ApiType> REQUEST_BEARING_KINDS = Set.of(
-            ApiType.HTTP_PROXY,
-            ApiType.LLM,
-            ApiType.MCP,
-            ApiType.A2A,
-            ApiType.MESSAGE,
-            ApiType.NATIVE,
-            ApiType.AUTHZ_DECISION
-        );
+                ApiType.HTTP_PROXY,
+                ApiType.LLM,
+                ApiType.MCP,
+                ApiType.A2A,
+                ApiType.MESSAGE,
+                ApiType.NATIVE,
+                ApiType.AUTHZ_DECISION);
 
         private static final List<EnumValue> HTTP_METHODS = List.of(
-            self("CONNECT"),
-            self("DELETE"),
-            self("GET"),
-            self("HEAD"),
-            self("OPTIONS"),
-            self("PATCH"),
-            self("POST"),
-            self("PUT"),
-            self("TRACE"),
-            new EnumValue("OTHER", "Other")
-        );
+                self("CONNECT"),
+                self("DELETE"),
+                self("GET"),
+                self("HEAD"),
+                self("OPTIONS"),
+                self("PATCH"),
+                self("POST"),
+                self("PUT"),
+                self("TRACE"),
+                new EnumValue("OTHER", "Other"));
 
         private static final List<EnumValue> STATUS_CODE_GROUPS = List.of(
-            new EnumValue("1XX", "1xx Informational"),
-            new EnumValue("2XX", "2xx Success"),
-            new EnumValue("3XX", "3xx Redirection"),
-            new EnumValue("4XX", "4xx Client Error"),
-            new EnumValue("5XX", "5xx Server Error")
-        );
+                new EnumValue("1XX", "1xx Informational"),
+                new EnumValue("2XX", "2xx Success"),
+                new EnumValue("3XX", "3xx Redirection"),
+                new EnumValue("4XX", "4xx Client Error"),
+                new EnumValue("5XX", "5xx Server Error"));
 
         private static final List<EnumValue> MESSAGE_OPERATIONS = List.of(self("Publish"), self("Subscribe"));
 
         private static final List<EnumValue> FAILURE_ORIGINS = List.of(
-            new EnumValue("NONE", "No failure"),
-            new EnumValue("CLIENT_TO_GATEWAY", "Client \u2194 Gateway"),
-            new EnumValue("GATEWAY_TO_BROKER", "Gateway \u2194 Broker"),
-            new EnumValue("GATEWAY_INTERNAL", "Gateway internal"),
-            new EnumValue("UNKNOWN", "Undetermined")
-        );
+                new EnumValue("NONE", "No failure"),
+                new EnumValue("CLIENT_TO_GATEWAY", "Client \u2194 Gateway"),
+                new EnumValue("GATEWAY_TO_BROKER", "Gateway \u2194 Broker"),
+                new EnumValue("GATEWAY_INTERNAL", "Gateway internal"),
+                new EnumValue("UNKNOWN", "Undetermined"));
 
         /**
          * Raw values written by the gateway. Labels borrow the logs' user-facing wording so the two
          * screens read the same, even though the underlying vocabularies differ.
          */
         private static final List<EnumValue> NATIVE_FAILURE_SIDES = List.of(
-            new EnumValue("DOWNSTREAM", "Client \u2194 Gateway"),
-            new EnumValue("UPSTREAM", "Gateway \u2194 Broker"),
-            new EnumValue("INTERNAL", "Gateway internal")
-        );
+                new EnumValue("DOWNSTREAM", "Client \u2194 Gateway"),
+                new EnumValue("UPSTREAM", "Gateway \u2194 Broker"),
+                new EnumValue("INTERNAL", "Gateway internal"));
 
         private static final List<EnumValue> NATIVE_CONNECTION_STATUSES = List.of(
-            new EnumValue("CONNECTED", "Connected"),
-            new EnumValue("DISCONNECTED", "Disconnected"),
-            new EnumValue("CONNECTION_ERROR", "Connection error"),
-            new EnumValue("SESSION_ERROR", "Session error"),
-            new EnumValue("INTERNAL_ERROR", "Internal error")
-        );
+                new EnumValue("CONNECTED", "Connected"),
+                new EnumValue("DISCONNECTED", "Disconnected"),
+                new EnumValue("CONNECTION_ERROR", "Connection error"),
+                new EnumValue("SESSION_ERROR", "Session error"),
+                new EnumValue("INTERNAL_ERROR", "Internal error"));
 
         /**
          * What produced the decision, as the reporter writes it (lowercase wire values). {@code reactor}
@@ -466,45 +496,40 @@ public enum StaticFilters {
          * only pre-2.7.1 documents carry it and nothing emits it today.
          */
         private static final List<EnumValue> AUTHZ_CALLERS = List.of(
-            new EnumValue("pep", "PEP policy"),
-            new EnumValue("gateway", "AuthZEN endpoint"),
-            new EnumValue("authzen", "AuthZEN policy"),
-            new EnumValue("unknown", "Unknown")
-        );
+                new EnumValue("pep", "PEP policy"),
+                new EnumValue("gateway", "AuthZEN endpoint"),
+                new EnumValue("authzen", "AuthZEN policy"),
+                new EnumValue("unknown", "Unknown"));
 
-        private static final List<EnumValue> AUTHZ_STATUSES = List.of(new EnumValue("success", "Success"), new EnumValue("error", "Error"));
+        private static final List<EnumValue> AUTHZ_STATUSES =
+                List.of(new EnumValue("success", "Success"), new EnumValue("error", "Error"));
 
         private static final List<EnumValue> AUTHZ_INDETERMINATE_CAUSES = List.of(
-            new EnumValue("NOT_APPLICABLE", "Not applicable"),
-            new EnumValue("TIMEOUT", "Timeout"),
-            new EnumValue("ERROR", "Error"),
-            new EnumValue("NOT_READY", "Not ready")
-        );
+                new EnumValue("NOT_APPLICABLE", "Not applicable"),
+                new EnumValue("TIMEOUT", "Timeout"),
+                new EnumValue("ERROR", "Error"),
+                new EnumValue("NOT_READY", "Not ready"));
 
         private static final List<EnumValue> AUTHZ_ERROR_TYPES = List.of(
-            new EnumValue("evaluation_timeout", "Evaluation timeout"),
-            new EnumValue("pdp_unavailable", "PDP unavailable"),
-            new EnumValue("evaluation_failed", "Evaluation failed"),
-            new EnumValue("agent_unresolved", "Agent unresolved")
-        );
+                new EnumValue("evaluation_timeout", "Evaluation timeout"),
+                new EnumValue("pdp_unavailable", "PDP unavailable"),
+                new EnumValue("evaluation_failed", "Evaluation failed"),
+                new EnumValue("agent_unresolved", "Agent unresolved"));
 
         private static final List<EnumValue> AUTHZ_OPERATIONS = List.of(
-            new EnumValue("evaluation", "Evaluation"),
-            new EnumValue("evaluations", "Batch evaluation"),
-            new EnumValue("search", "Search")
-        );
+                new EnumValue("evaluation", "Evaluation"),
+                new EnumValue("evaluations", "Batch evaluation"),
+                new EnumValue("search", "Search"));
 
         private static final List<EnumValue> AUTHZ_SEARCH_TYPES = List.of(
-            new EnumValue("subject", "Subject"),
-            new EnumValue("resource", "Resource"),
-            new EnumValue("action", "Action")
-        );
+                new EnumValue("subject", "Subject"),
+                new EnumValue("resource", "Resource"),
+                new EnumValue("action", "Action"));
 
         private static final List<EnumValue> DECISIONS = List.of(
-            new EnumValue("PERMIT", "Permit"),
-            new EnumValue("FORBID", "Forbid"),
-            new EnumValue("NOT_APPLICABLE", "Not applicable")
-        );
+                new EnumValue("PERMIT", "Permit"),
+                new EnumValue("FORBID", "Forbid"),
+                new EnumValue("NOT_APPLICABLE", "Not applicable"));
 
         /** Enum value whose display label is identical to its wire value. */
         private static EnumValue self(String value) {

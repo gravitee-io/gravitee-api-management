@@ -50,8 +50,11 @@ public interface KeyStoreMapper {
     }
 
     io.gravitee.node.vertx.client.ssl.pem.PEMKeyStore map(PEMKeyStore keystore);
+
     io.gravitee.node.vertx.client.ssl.jks.JKSKeyStore map(JKSKeyStore keystore);
+
     io.gravitee.node.vertx.client.ssl.pkcs12.PKCS12KeyStore map(PKCS12KeyStore keystore);
+
     io.gravitee.node.vertx.client.ssl.none.NoneKeyStore map(NoneKeyStore keystore);
 
     enum KeyStoreImplementation {

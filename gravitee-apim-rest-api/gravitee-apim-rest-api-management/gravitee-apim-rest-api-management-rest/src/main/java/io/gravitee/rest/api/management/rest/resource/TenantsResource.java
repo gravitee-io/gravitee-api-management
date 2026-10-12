@@ -54,103 +54,96 @@ public class TenantsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List tenants")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of tenants",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = TenantEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of tenants",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = TenantEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<TenantEntity> getTenants() {
         return tenantService
-            .findByReference(GraviteeContext.getCurrentOrganization(), TenantReferenceType.ORGANIZATION)
-            .stream()
-            .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-            .collect(Collectors.toList());
+                .findByReference(GraviteeContext.getCurrentOrganization(), TenantReferenceType.ORGANIZATION)
+                .stream()
+                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+                .collect(Collectors.toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a tenant", description = "User must have the MANAGEMENT_TENANT[CREATE] permission to use this service")
+    @Operation(
+            summary = "Create a tenant",
+            description = "User must have the MANAGEMENT_TENANT[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of tenants",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = TenantEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of tenants",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = TenantEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.CREATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.CREATE),
+    })
     public List<TenantEntity> createTenants(@Valid @NotNull final List<NewTenantEntity> tenant) {
         return tenantService.create(
-            GraviteeContext.getExecutionContext(),
-            tenant,
-            GraviteeContext.getCurrentOrganization(),
-            TenantReferenceType.ORGANIZATION
-        );
+                GraviteeContext.getExecutionContext(),
+                tenant,
+                GraviteeContext.getCurrentOrganization(),
+                TenantReferenceType.ORGANIZATION);
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update a tenant", description = "User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service")
+    @Operation(
+            summary = "Update a tenant",
+            description = "User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of tenants",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = TenantEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of tenants",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = TenantEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.UPDATE),
+    })
     public List<TenantEntity> updateTenants(@Valid @NotNull final List<UpdateTenantEntity> tenant) {
         return tenantService.update(
-            GraviteeContext.getExecutionContext(),
-            tenant,
-            GraviteeContext.getCurrentOrganization(),
-            TenantReferenceType.ORGANIZATION
-        );
+                GraviteeContext.getExecutionContext(),
+                tenant,
+                GraviteeContext.getCurrentOrganization(),
+                TenantReferenceType.ORGANIZATION);
     }
 
     @Path("{tenant}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Delete a tenant", description = "User must have the MANAGEMENT_TENANT[DELETE] permission to use this service")
+    @Operation(
+            summary = "Delete a tenant",
+            description = "User must have the MANAGEMENT_TENANT[DELETE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of tenants",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = TenantEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of tenants",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = TenantEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.DELETE),
-            @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.DELETE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.DELETE),
+        @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.DELETE),
+    })
     public void deleteTenant(@PathParam("tenant") String tenant) {
         tenantService.delete(
-            GraviteeContext.getExecutionContext(),
-            tenant,
-            GraviteeContext.getCurrentOrganization(),
-            TenantReferenceType.ORGANIZATION
-        );
+                GraviteeContext.getExecutionContext(),
+                tenant,
+                GraviteeContext.getCurrentOrganization(),
+                TenantReferenceType.ORGANIZATION);
     }
 }

@@ -33,14 +33,13 @@ public final class RequestEntries {
         if (entries == null) {
             return List.of();
         }
-        return entries
-            .stream()
-            .map(entry -> {
-                if (entry == null) {
-                    throw InvalidObservabilityQueryException.nullEntry(field);
-                }
-                return mapper.apply(entry);
-            })
-            .toList();
+        return entries.stream()
+                .map(entry -> {
+                    if (entry == null) {
+                        throw InvalidObservabilityQueryException.nullEntry(field);
+                    }
+                    return mapper.apply(entry);
+                })
+                .toList();
     }
 }

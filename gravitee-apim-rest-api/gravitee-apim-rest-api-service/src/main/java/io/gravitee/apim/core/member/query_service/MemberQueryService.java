@@ -36,5 +36,9 @@ public interface MemberQueryService {
 
     void addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role);
 
-    void deleteReferenceMember(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
+    void deleteReferenceMember(
+            MembershipReferenceType referenceType,
+            String referenceId,
+            MembershipMemberType memberType,
+            String memberId);
 }

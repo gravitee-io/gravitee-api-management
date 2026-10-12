@@ -83,13 +83,12 @@ public class DeployerFactory {
 
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
-            subscriptionService,
-            subscriptionDispatcherSupplier.get(),
-            commandRepository,
-            node,
-            objectMapper,
-            distributedSyncService
-        );
+                subscriptionService,
+                subscriptionDispatcherSupplier.get(),
+                commandRepository,
+                node,
+                objectMapper,
+                distributedSyncService);
     }
 
     public ApiKeyDeployer createApiKeyDeployer() {
@@ -135,10 +134,10 @@ public class DeployerFactory {
     public ApiProductDeployer createApiProductDeployer() {
         if (apiProductSubscriptionRefresher == null) {
             throw new IllegalStateException(
-                "ApiProductSubscriptionRefresher is not available. API Product deploy requires repository sync to be enabled."
-            );
+                    "ApiProductSubscriptionRefresher is not available. API Product deploy requires repository sync to be enabled.");
         }
-        return new ApiProductDeployer(apiProductManager, planCache, distributedSyncService, apiProductSubscriptionRefresher);
+        return new ApiProductDeployer(
+                apiProductManager, planCache, distributedSyncService, apiProductSubscriptionRefresher);
     }
 
     public AuthzEntityDeployer createAuthzEntityDeployer() {

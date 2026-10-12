@@ -33,7 +33,7 @@ import org.jspecify.annotations.Nullable;
 public class LoggableContentType {
 
     private static final String DEFAULT_EXCLUDED_CONTENT_TYPES =
-        "video.*|audio.*|image.*|application/octet-stream|application/pdf|text/event-stream";
+            "video.*|audio.*|image.*|application/octet-stream|application/pdf|text/event-stream";
     private Predicate<String> defaultPattern;
 
     @Setter
@@ -42,20 +42,20 @@ public class LoggableContentType {
 
     private Predicate<String> matcher(Stream<Supplier<String>> regex, @Nullable BaseExecutionContext ctx) {
         Pattern overridePattern = ctx != null
-            ? ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_OVERRIDE_LOGGABLE_CONTENT_TYPE_PATTERN)
-            : null;
+                ? ctx.getInternalAttribute(
+                        InternalContextAttributes.ATTR_INTERNAL_OVERRIDE_LOGGABLE_CONTENT_TYPE_PATTERN)
+                : null;
         return overridePattern != null ? overridePattern.asPredicate() : buildDefault(regex, ctx);
     }
 
     private Predicate<String> buildDefault(Stream<Supplier<String>> regex, @Nullable BaseExecutionContext ctx) {
         if (defaultPattern == null) {
-            defaultPattern = regex
-                .filter(Objects::nonNull)
-                .map(Supplier::get)
-                .filter(pattern -> pattern != null && !pattern.isEmpty())
-                .flatMap(pattern -> Stream.ofNullable(buildPattern(pattern, ctx)))
-                .findFirst()
-                .orElse(contentType -> true);
+            defaultPattern = regex.filter(Objects::nonNull)
+                    .map(Supplier::get)
+                    .filter(pattern -> pattern != null && !pattern.isEmpty())
+                    .flatMap(pattern -> Stream.ofNullable(buildPattern(pattern, ctx)))
+                    .findFirst()
+                    .orElse(contentType -> true);
         }
         return defaultPattern;
     }
@@ -65,11 +65,10 @@ public class LoggableContentType {
             return Pattern.compile(pattern).asPredicate();
         } catch (PatternSyntaxException e) {
             if (ctx != null) {
-                ctx.warnWith(
-                    new ExecutionWarn("BAD_REGEX_CONTENT_TYPE")
+                ctx.warnWith(new ExecutionWarn("BAD_REGEX_CONTENT_TYPE")
                         .cause(e)
-                        .message("Invalid Content-Type filter regex provided ('%s'). Default one will be used.".formatted(pattern))
-                );
+                        .message("Invalid Content-Type filter regex provided ('%s'). Default one will be used."
+                                .formatted(pattern)));
             }
             return null;
         }
@@ -79,21 +78,22 @@ public class LoggableContentType {
      * Determines if body can be logged for APIv4
      */
     public boolean isContentTypeLoggable(@Nullable final String contentType, BaseExecutionContext ctx) {
-        return (
-            contentType == null ||
-            !matcher(Stream.of(() -> excludedResponseTypes, () -> DEFAULT_EXCLUDED_CONTENT_TYPES), ctx).test(contentType)
-        );
+        return (contentType == null
+                || !matcher(Stream.of(() -> excludedResponseTypes, () -> DEFAULT_EXCLUDED_CONTENT_TYPES), ctx)
+                        .test(contentType));
     }
 
     /**
      * Determines if body can be logged for APIv2
      */
-    public boolean isContentTypeLoggable(@Nullable final String contentType, @Nullable final LoggingContext loggingContext) {
-        Stream<Supplier<String>> getExcludedResponseTypes = loggingContext != null
-            ? Stream.of(loggingContext::getExcludedResponseTypes)
-            : Stream.empty();
+    public boolean isContentTypeLoggable(
+            @Nullable final String contentType, @Nullable final LoggingContext loggingContext) {
+        Stream<Supplier<String>> getExcludedResponseTypes =
+                loggingContext != null ? Stream.of(loggingContext::getExcludedResponseTypes) : Stream.empty();
         Stream<Supplier<String>> defaultPattern = Stream.of(() -> DEFAULT_EXCLUDED_CONTENT_TYPES);
-        return (contentType == null || !matcher(Stream.concat(getExcludedResponseTypes, defaultPattern), null).test(contentType));
+        return (contentType == null
+                || !matcher(Stream.concat(getExcludedResponseTypes, defaultPattern), null)
+                        .test(contentType));
     }
 
     public void reset() {

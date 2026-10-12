@@ -29,49 +29,51 @@ import com.tngtech.archunit.lang.ArchRule;
  * Enforces the naming conventions from gamma-rest-api AGENTS.md §2 — each suffix lives in its
  * prescribed package so a reader can navigate by name alone.
  */
-@AnalyzeClasses(packages = BASE_PACKAGE, importOptions = { ImportOption.DoNotIncludeTests.class })
+@AnalyzeClasses(
+        packages = BASE_PACKAGE,
+        importOptions = {ImportOption.DoNotIncludeTests.class})
 class NamingConventionTest {
 
     @ArchTest
     static final ArchRule repository_interfaces_should_reside_in_core_port_repository = classes()
-        .that()
-        .areInterfaces()
-        .and()
-        .haveSimpleNameEndingWith("Repository")
-        .and()
-        .resideInAPackage(BASE_PACKAGE + "..")
-        .should()
-        .resideInAPackage(CORE_PACKAGE + "port.repository..")
-        .allowEmptyShould(true);
+            .that()
+            .areInterfaces()
+            .and()
+            .haveSimpleNameEndingWith("Repository")
+            .and()
+            .resideInAPackage(BASE_PACKAGE + "..")
+            .should()
+            .resideInAPackage(CORE_PACKAGE + "port.repository..")
+            .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule repository_implementations_should_reside_in_infra_repository = classes()
-        .that()
-        .areNotInterfaces()
-        .and()
-        .haveSimpleNameEndingWith("Repository")
-        .and()
-        .resideInAPackage(BASE_PACKAGE + "..")
-        .should()
-        .resideInAPackage(INFRA_PACKAGE + "repository..")
-        .allowEmptyShould(true);
+            .that()
+            .areNotInterfaces()
+            .and()
+            .haveSimpleNameEndingWith("Repository")
+            .and()
+            .resideInAPackage(BASE_PACKAGE + "..")
+            .should()
+            .resideInAPackage(INFRA_PACKAGE + "repository..")
+            .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule domain_services_should_reside_in_core_domain_service = classes()
-        .that()
-        .haveSimpleNameEndingWith("DomainService")
-        .and()
-        .resideInAPackage(BASE_PACKAGE + "..")
-        .should()
-        .resideInAPackage(CORE_PACKAGE + "domain_service..")
-        .allowEmptyShould(true);
+            .that()
+            .haveSimpleNameEndingWith("DomainService")
+            .and()
+            .resideInAPackage(BASE_PACKAGE + "..")
+            .should()
+            .resideInAPackage(CORE_PACKAGE + "domain_service..")
+            .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule adapters_should_reside_in_infra_adapter = classes()
-        .that()
-        .haveSimpleNameEndingWith("Adapter")
-        .and()
-        .resideInAPackage(BASE_PACKAGE + "..")
-        .should()
-        .resideInAPackage(INFRA_PACKAGE + "adapter..");
+            .that()
+            .haveSimpleNameEndingWith("Adapter")
+            .and()
+            .resideInAPackage(BASE_PACKAGE + "..")
+            .should()
+            .resideInAPackage(INFRA_PACKAGE + "adapter..");
 }

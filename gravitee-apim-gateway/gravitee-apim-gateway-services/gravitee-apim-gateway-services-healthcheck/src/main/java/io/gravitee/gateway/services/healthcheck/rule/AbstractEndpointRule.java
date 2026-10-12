@@ -35,11 +35,7 @@ public abstract class AbstractEndpointRule<T extends Endpoint> implements Endpoi
     private ProxyOptions systemProxyOptions;
 
     protected AbstractEndpointRule(
-        final Api api,
-        final T endpoint,
-        final HealthCheckService service,
-        final ProxyOptions systemProxyOptions
-    ) {
+            final Api api, final T endpoint, final HealthCheckService service, final ProxyOptions systemProxyOptions) {
         this.api = api;
         this.endpoint = endpoint;
         this.service = service;

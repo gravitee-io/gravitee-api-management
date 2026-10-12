@@ -62,14 +62,13 @@ public class UpdateDynamicPropertiesUseCase {
     private final PropertyDomainService propertyDomainService;
 
     public UpdateDynamicPropertiesUseCase(
-        ApiCrudService apiCrudService,
-        ApiStateDomainService apiStateDomainService,
-        EnvironmentCrudService environmentCrudService,
-        AuditDomainService auditDomainService,
-        ApiEventQueryService apiEventQueryService,
-        CategoryDomainService categoryDomainService,
-        PropertyDomainService propertyDomainService
-    ) {
+            ApiCrudService apiCrudService,
+            ApiStateDomainService apiStateDomainService,
+            EnvironmentCrudService environmentCrudService,
+            AuditDomainService auditDomainService,
+            ApiEventQueryService apiEventQueryService,
+            CategoryDomainService categoryDomainService,
+            PropertyDomainService propertyDomainService) {
         this.apiCrudService = apiCrudService;
         this.apiStateDomainService = apiStateDomainService;
         this.environmentCrudService = environmentCrudService;
@@ -90,13 +89,11 @@ public class UpdateDynamicPropertiesUseCase {
 
         final List<Property> previousProperties = getCurrentProperties(api);
         final Api apiBeforeSync = snapshotOf(api);
-        List<Property> dynamicProperties = propertyDomainService.keepStoredEncryption(
-            api.getId(),
-            previousProperties,
-            input.dynamicProperties()
-        );
+        List<Property> dynamicProperties =
+                propertyDomainService.keepStoredEncryption(api.getId(), previousProperties, input.dynamicProperties());
         if (input.encryptOnFetch()) {
-            dynamicProperties = propertyDomainService.encryptOnFetch(api.getId(), previousProperties, dynamicProperties);
+            dynamicProperties =
+                    propertyDomainService.encryptOnFetch(api.getId(), previousProperties, dynamicProperties);
         }
         final boolean needToBeUpdated = api.updateDynamicProperties(dynamicProperties);
 
@@ -108,8 +105,7 @@ public class UpdateDynamicPropertiesUseCase {
 
         final Api updated = apiCrudService.update(api);
 
-        auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditDomainService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .apiId(updated.getId())
                 .environmentId(auditInfo.environmentId())
                 .organizationId(auditInfo.organizationId())
@@ -118,34 +114,32 @@ public class UpdateDynamicPropertiesUseCase {
                 .oldValue(apiBeforeSync)
                 .newValue(updated)
                 .createdAt(ZonedDateTime.ofInstant(api.getUpdatedAt().toInstant(), ZoneId.systemDefault()))
-                .properties(
-                    EncryptedPropertyAuditMarker.mark(
+                .properties(EncryptedPropertyAuditMarker.mark(
                         Map.of(AuditProperties.API, api.getId()),
                         apiBeforeSync.getApiDefinitionValue(),
-                        updated.getApiDefinitionValue()
-                    )
-                )
-                .build()
-        );
+                        updated.getApiDefinitionValue()))
+                .build());
 
         // We can force a redeployment only if:
-        // - the API was synchronized before the properties are updated (i.e. no manual changes have been done by a user)
+        // - the API was synchronized before the properties are updated (i.e. no manual changes have been done by a
+        // user)
         // - and the properties have changed
         if (isApiSynchronized && needRedployment(getCurrentProperties(api), previousProperties)) {
-            // Get the api from latest deployment event of the api to deploy the api with the same dynamic properties configuration
+            // Get the api from latest deployment event of the api to deploy the api with the same dynamic properties
+            // configuration
             // It avoids to deploy changes on the configuration that has not been explicitly deployed by the user
             apiEventQueryService
-                .findLastPublishedApi(auditInfo.organizationId(), auditInfo.environmentId(), api.getId())
-                .ifPresent(deployedApi -> {
-                    final Service deployedDynamicPropertiesService = getDynamicPropertyService(deployedApi);
-                    if (deployedDynamicPropertiesService == null) {
-                        return;
-                    }
-                    // If the deployed api has the service enabled, then redeploy with the service enabled.
-                    if (deployedDynamicPropertiesService.isEnabled()) {
-                        setDynamicPropertyService(updated, deployedDynamicPropertiesService);
-                    }
-                });
+                    .findLastPublishedApi(auditInfo.organizationId(), auditInfo.environmentId(), api.getId())
+                    .ifPresent(deployedApi -> {
+                        final Service deployedDynamicPropertiesService = getDynamicPropertyService(deployedApi);
+                        if (deployedDynamicPropertiesService == null) {
+                            return;
+                        }
+                        // If the deployed api has the service enabled, then redeploy with the service enabled.
+                        if (deployedDynamicPropertiesService.isEnabled()) {
+                            setDynamicPropertyService(updated, deployedDynamicPropertiesService);
+                        }
+                    });
             apiStateDomainService.redeployWithSyncedDynamicProperties(updated, input.pluginId() + " sync", auditInfo);
         }
     }
@@ -169,17 +163,18 @@ public class UpdateDynamicPropertiesUseCase {
      */
     private static List<Property> getCurrentProperties(Api api) {
         return Optional.ofNullable(api.getApiDefinitionValue())
-            .filter(AbstractApi.class::isInstance)
-            .map(AbstractApi.class::cast)
-            .map(AbstractApi::getProperties)
-            .orElse(Collections.emptyList())
-            .stream()
-            .toList();
+                .filter(AbstractApi.class::isInstance)
+                .map(AbstractApi.class::cast)
+                .map(AbstractApi::getProperties)
+                .orElse(Collections.emptyList())
+                .stream()
+                .toList();
     }
 
     private static Api snapshotOf(Api api) {
         var definitionCopy = switch (api.getApiDefinitionValue()) {
-            case io.gravitee.definition.model.v4.Api httpV4 -> httpV4.toBuilder().build();
+            case io.gravitee.definition.model.v4.Api httpV4 ->
+                httpV4.toBuilder().build();
             case NativeApi nativeV4 -> nativeV4.toBuilder().build();
             case null, default -> api.getApiDefinitionValue();
         };
@@ -194,10 +189,10 @@ public class UpdateDynamicPropertiesUseCase {
      */
     private static Service getDynamicPropertyService(Api api) {
         return switch (api.getApiDefinitionValue()) {
-            case io.gravitee.definition.model.v4.Api httpV4 -> httpV4.getServices() == null
-                ? null
-                : httpV4.getServices().getDynamicProperty();
-            case NativeApi nativeV4 -> nativeV4.getServices() == null ? null : nativeV4.getServices().getDynamicProperty();
+            case io.gravitee.definition.model.v4.Api httpV4 ->
+                httpV4.getServices() == null ? null : httpV4.getServices().getDynamicProperty();
+            case NativeApi nativeV4 ->
+                nativeV4.getServices() == null ? null : nativeV4.getServices().getDynamicProperty();
             case null, default -> null;
         };
     }
@@ -229,9 +224,13 @@ public class UpdateDynamicPropertiesUseCase {
 
     private AuditInfo buildAuditInfo(Input input, Api apiForUpdate) {
         return AuditInfo.builder()
-            .environmentId(apiForUpdate.getEnvironmentId())
-            .organizationId(environmentCrudService.get(apiForUpdate.getEnvironmentId()).getOrganizationId())
-            .actor(AuditActor.builder().userId(String.format("%s-management-api-service", input.pluginId())).build())
-            .build();
+                .environmentId(apiForUpdate.getEnvironmentId())
+                .organizationId(environmentCrudService
+                        .get(apiForUpdate.getEnvironmentId())
+                        .getOrganizationId())
+                .actor(AuditActor.builder()
+                        .userId(String.format("%s-management-api-service", input.pluginId()))
+                        .build())
+                .build();
     }
 }

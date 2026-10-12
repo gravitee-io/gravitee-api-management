@@ -28,7 +28,7 @@ import lombok.With;
 public class Path {
 
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("[//]+");
-    private static final Pattern VALID_PATH = Pattern.compile("^[/.a-zA-Z0-9-_]*$"); //[-a-zA-Z0-9@:%_\+.~#?&//=]
+    private static final Pattern VALID_PATH = Pattern.compile("^[/.a-zA-Z0-9-_]*$"); // [-a-zA-Z0-9@:%_\+.~#?&//=]
     private static final String URI_PATH_SEPARATOR = "/";
     private static final char URI_PATH_SEPARATOR_CHAR = '/';
 
@@ -112,7 +112,8 @@ public class Path {
         }
 
         public String toString() {
-            return "Path.PathBuilder(host=" + this.host + ", path=" + this.path + ", overrideAccess=" + this.overrideAccess + ")";
+            return "Path.PathBuilder(host=" + this.host + ", path=" + this.path + ", overrideAccess="
+                    + this.overrideAccess + ")";
         }
     }
 }

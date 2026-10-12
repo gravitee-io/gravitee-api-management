@@ -65,7 +65,8 @@ public class CheckSubscriptionPolicyTest {
         when(request.timestamp()).thenReturn(currentTimeMillis());
 
         when(executionContext.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID))
+                .thenReturn(CLIENT_ID);
         when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn(PLAN_ID);
         when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(executionContext.request()).thenReturn(request);
@@ -78,17 +79,14 @@ public class CheckSubscriptionPolicyTest {
         PolicyChain policyChain = mock(PolicyChain.class);
 
         // Search subscription now includes all criteria so the result is empty in case of bad clientId or planId.
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.empty());
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID))
+                .thenReturn(Optional.empty());
 
         policy.execute(policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(
-            argThat(
-                result ->
-                    result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                    CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())
-            )
-        );
+        verify(policyChain, times(1))
+                .failWith(argThat(result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
+                        && CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())));
     }
 
     @Test
@@ -98,14 +96,16 @@ public class CheckSubscriptionPolicyTest {
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(false);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED))
+                .thenReturn(false);
 
         when(executionContext.request()).thenReturn(request);
         when(executionContext.response()).thenReturn(response);
 
         Subscription subscription = new Subscription();
 
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID))
+                .thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -119,8 +119,10 @@ public class CheckSubscriptionPolicyTest {
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED))
+                .thenReturn(true);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID))
+                .thenReturn(CLIENT_ID);
         when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn(PLAN_ID);
         when(executionContext.request()).thenReturn(request);
         when(executionContext.response()).thenReturn(response);
@@ -130,7 +132,8 @@ public class CheckSubscriptionPolicyTest {
         subscription.setPlan(PLAN_ID);
         subscription.setApplication("application-id");
 
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID))
+                .thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -146,7 +149,8 @@ public class CheckSubscriptionPolicyTest {
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        when(executionContext.getAttribute(ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION)).thenReturn(false);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION))
+                .thenReturn(false);
         when(executionContext.response()).thenReturn(response);
 
         policy.execute(policyChain, executionContext);

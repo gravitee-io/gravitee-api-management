@@ -96,37 +96,44 @@ class ApiCRDExportDomainServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        userCrudService.initWith(
-            List.of(
-                BaseUserEntity.builder().id(USER_ID).source(IdpSource.GRAVITEE).sourceId("user").build(),
-                BaseUserEntity.builder().id(PO_ID).source(IdpSource.GRAVITEE).sourceId("user").build()
-            )
-        );
-        groupQueryServiceInMemory.initWith(List.of(Group.builder().id(GROUP_ID).name(GROUP_NAME).build()));
+        userCrudService.initWith(List.of(
+                BaseUserEntity.builder()
+                        .id(USER_ID)
+                        .source(IdpSource.GRAVITEE)
+                        .sourceId("user")
+                        .build(),
+                BaseUserEntity.builder()
+                        .id(PO_ID)
+                        .source(IdpSource.GRAVITEE)
+                        .sourceId("user")
+                        .build()));
+        groupQueryServiceInMemory.initWith(
+                List.of(Group.builder().id(GROUP_ID).name(GROUP_NAME).build()));
         apiCRDExportDomainService = new ApiCRDExportDomainServiceImpl(
-            exportService,
-            apiCrudService,
-            userCrudService,
-            groupQueryServiceInMemory,
-            notificationCRDDomainService
-        );
+                exportService,
+                apiCrudService,
+                userCrudService,
+                groupQueryServiceInMemory,
+                notificationCRDDomainService);
         lenient().when(apiCrudService.get(API_ID)).thenReturn(new Api());
     }
 
     @Test
     void should_export_as_a_crd_spec_and_generate_cross_id() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
-            exportApiEntity(apiEntity().build())
-        );
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(exportApiEntity(apiEntity().build()));
 
         when(apiCrudService.get(API_ID)).thenReturn(new Api());
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            false
-        );
+                API_ID,
+                IDExportStrategy.ALL,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                false);
 
         verify(apiCrudService, times(2)).get(API_ID);
 
@@ -145,16 +152,18 @@ class ApiCRDExportDomainServiceImplTest {
 
     @Test
     void should_export_as_a_crd_spec_and_keep_cross_id() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
-            exportApiEntity(apiEntity().crossId("cross-id").build())
-        );
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build()));
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            false
-        );
+                API_ID,
+                IDExportStrategy.ALL,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                false);
 
         verify(apiCrudService, never()).update(any());
 
@@ -171,16 +180,18 @@ class ApiCRDExportDomainServiceImplTest {
 
     @Test
     void should_set_member_source_and_source_id() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
-            exportApiEntity(apiEntity().crossId("cross-id").build())
-        );
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build()));
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            false
-        );
+                API_ID,
+                IDExportStrategy.ALL,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                false);
 
         assertSoftly(soft -> {
             soft.assertThat(spec.getMembers()).hasSize(1);
@@ -194,34 +205,45 @@ class ApiCRDExportDomainServiceImplTest {
     void should_remove_primary_owner_member() {
         var apiEntity = exportApiEntity(apiEntity().crossId("cross-id").build());
         var membersWithPrimaryOwner = new HashSet<>(apiEntity.getMembers());
-        var poRole = RoleEntity.builder().name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
-        membersWithPrimaryOwner.add(MemberEntity.builder().id(PO_ID).roles(List.of(poRole)).build());
+        var poRole = RoleEntity.builder()
+                .name(SystemRole.PRIMARY_OWNER.name())
+                .scope(RoleScope.API)
+                .build();
+        membersWithPrimaryOwner.add(
+                MemberEntity.builder().id(PO_ID).roles(List.of(poRole)).build());
         apiEntity.setMembers(membersWithPrimaryOwner);
 
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(apiEntity);
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(apiEntity);
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            false
-        );
+                API_ID,
+                IDExportStrategy.ALL,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                false);
 
         assertThat(spec.getMembers()).noneMatch(member -> member.getRole().equals("PRIMARY_OWNER"));
     }
 
     @Test
     void should_map_group_id_to_name() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
-            exportApiEntity(apiEntity().crossId("cross-id").groups(Set.of(GROUP_ID)).build())
-        );
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(exportApiEntity(
+                        apiEntity().crossId("cross-id").groups(Set.of(GROUP_ID)).build()));
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            false
-        );
+                API_ID,
+                IDExportStrategy.ALL,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                false);
 
         assertSoftly(soft -> {
             soft.assertThat(spec.getGroups()).hasSize(1);
@@ -232,16 +254,18 @@ class ApiCRDExportDomainServiceImplTest {
 
     @Test
     void should_export_page_with_null_name_with_hrid() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
-            exportApiEntity(apiEntity().crossId("cross-id").build(), true)
-        );
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build(), true));
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            false
-        );
+                API_ID,
+                IDExportStrategy.ALL,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                false);
 
         assertSoftly(soft -> {
             soft.assertThat(spec.getPages()).hasSize(1);
@@ -251,16 +275,18 @@ class ApiCRDExportDomainServiceImplTest {
 
     @Test
     void should_export_page_with_null_name_without_hrid() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
-            exportApiEntity(apiEntity().crossId("cross-id").build(), false)
-        );
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build(), false));
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            false
-        );
+                API_ID,
+                IDExportStrategy.ALL,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                false);
 
         assertSoftly(soft -> {
             soft.assertThat(spec.getPages()).hasSize(1);
@@ -270,118 +296,121 @@ class ApiCRDExportDomainServiceImplTest {
 
     @Test
     void should_export_with_only_hrid() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
-            exportApiEntity(apiEntity(true).crossId("cross-id").build(), true)
-        );
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(exportApiEntity(apiEntity(true).crossId("cross-id").build(), true));
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.HRID,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            false
-        );
+                API_ID,
+                IDExportStrategy.HRID,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                false);
 
         assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isNull();
             soft.assertThat(spec.getCrossId()).isNull();
             soft.assertThat(spec.getHrid()).isEqualTo("api-hrid");
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft
-                .assertThat(spec.getPlans().get("plan-name"))
-                .isInstanceOfSatisfying(PlanCRD.class, plan -> {
-                    soft.assertThat(plan.getId()).isNull();
-                    soft.assertThat(plan.getHrid()).isNotNull();
-                    soft.assertThat(plan.getGeneralConditions()).isNull();
-                    soft.assertThat(plan.getGeneralConditionsHrid()).isEqualTo("general-conditions-hrid");
-                });
+            soft.assertThat(spec.getPlans().get("plan-name")).isInstanceOfSatisfying(PlanCRD.class, plan -> {
+                soft.assertThat(plan.getId()).isNull();
+                soft.assertThat(plan.getHrid()).isNotNull();
+                soft.assertThat(plan.getGeneralConditions()).isNull();
+                soft.assertThat(plan.getGeneralConditionsHrid()).isEqualTo("general-conditions-hrid");
+            });
             soft.assertThat(spec.getPages()).hasSize(1);
-            soft
-                .assertThat(spec.getPages().get("page-hrid"))
-                .isInstanceOfSatisfying(PageCRD.class, page -> {
-                    soft.assertThat(page.getId()).isNull();
-                    soft.assertThat(page.getHrid()).isNotNull();
-                    soft.assertThat(page.getParentId()).isNull();
-                    soft.assertThat(page.getParentHrid()).isNotNull();
-                });
+            soft.assertThat(spec.getPages().get("page-hrid")).isInstanceOfSatisfying(PageCRD.class, page -> {
+                soft.assertThat(page.getId()).isNull();
+                soft.assertThat(page.getHrid()).isNotNull();
+                soft.assertThat(page.getParentId()).isNull();
+                soft.assertThat(page.getParentHrid()).isNotNull();
+            });
         });
     }
 
     @Test
     void should_export_without_hrid() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
-            exportApiEntity(apiEntity(true).crossId("cross-id").build(), true)
-        );
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(exportApiEntity(apiEntity(true).crossId("cross-id").build(), true));
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.GUID,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            false
-        );
+                API_ID,
+                IDExportStrategy.GUID,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                false);
 
         assertSoftly(soft -> {
             soft.assertThat(spec.getId()).isEqualTo("api-id");
             soft.assertThat(spec.getCrossId()).isEqualTo("cross-id");
             soft.assertThat(spec.getHrid()).isNull();
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft
-                .assertThat(spec.getPlans().get("plan-name"))
-                .isInstanceOfSatisfying(PlanCRD.class, plan -> {
-                    soft.assertThat(plan.getId()).isEqualTo("plan-id");
-                    soft.assertThat(plan.getHrid()).isNull();
-                    soft.assertThat(plan.getGeneralConditions()).isEqualTo("general-conditions-id");
-                    soft.assertThat(plan.getGeneralConditionsHrid()).isNull();
-                });
+            soft.assertThat(spec.getPlans().get("plan-name")).isInstanceOfSatisfying(PlanCRD.class, plan -> {
+                soft.assertThat(plan.getId()).isEqualTo("plan-id");
+                soft.assertThat(plan.getHrid()).isNull();
+                soft.assertThat(plan.getGeneralConditions()).isEqualTo("general-conditions-id");
+                soft.assertThat(plan.getGeneralConditionsHrid()).isNull();
+            });
             soft.assertThat(spec.getPages()).hasSize(1);
-            soft
-                .assertThat(spec.getPages().get("page-hrid"))
-                .isInstanceOfSatisfying(PageCRD.class, page -> {
-                    soft.assertThat(page.getId()).isEqualTo("page-id");
-                    soft.assertThat(page.getHrid()).isNull();
-                    soft.assertThat(page.getParentId()).isEqualTo("parent-id");
-                    soft.assertThat(page.getParentHrid()).isNull();
-                });
+            soft.assertThat(spec.getPages().get("page-hrid")).isInstanceOfSatisfying(PageCRD.class, page -> {
+                soft.assertThat(page.getId()).isEqualTo("page-id");
+                soft.assertThat(page.getHrid()).isNull();
+                soft.assertThat(page.getParentId()).isEqualTo("parent-id");
+                soft.assertThat(page.getParentHrid()).isNull();
+            });
         });
     }
 
     @Test
     void should_export_notification_with_group_names() {
         var notificationConfig = PortalNotificationConfigEntity.builder()
-            .hooks(List.of("SUBSCRIPTION_NEW", "API_UPDATED"))
-            .groups(List.of(GROUP_ID))
-            .build();
+                .hooks(List.of("SUBSCRIPTION_NEW", "API_UPDATED"))
+                .groups(List.of(GROUP_ID))
+                .build();
 
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
-            exportApiEntity(apiEntity().crossId("cross-id").build())
-        );
-        when(notificationCRDDomainService.getApiConsoleNotification(API_ID, USER_ID)).thenReturn(notificationConfig);
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build()));
+        when(notificationCRDDomainService.getApiConsoleNotification(API_ID, USER_ID))
+                .thenReturn(notificationConfig);
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            true
-        );
+                API_ID,
+                IDExportStrategy.ALL,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                true);
 
         assertSoftly(soft -> {
             soft.assertThat(spec.getConsoleNotificationConfiguration()).isNotNull();
-            soft.assertThat(spec.getConsoleNotificationConfiguration().getHooks()).containsExactly("SUBSCRIPTION_NEW", "API_UPDATED");
-            soft.assertThat(spec.getConsoleNotificationConfiguration().getGroups()).containsExactly(GROUP_NAME);
+            soft.assertThat(spec.getConsoleNotificationConfiguration().getHooks())
+                    .containsExactly("SUBSCRIPTION_NEW", "API_UPDATED");
+            soft.assertThat(spec.getConsoleNotificationConfiguration().getGroups())
+                    .containsExactly(GROUP_NAME);
         });
     }
 
     @Test
     void should_not_export_notification_when_disabled() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
-            exportApiEntity(apiEntity().crossId("cross-id").build())
-        );
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+                .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build()));
 
         var spec = apiCRDExportDomainService.export(
-            API_ID,
-            IDExportStrategy.ALL,
-            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build(),
-            false
-        );
+                API_ID,
+                IDExportStrategy.ALL,
+                AuditInfo.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .actor(AuditActor.builder().userId(USER_ID).build())
+                        .build(),
+                false);
 
         verify(notificationCRDDomainService, never()).getApiConsoleNotification(any(), any());
         assertThat(spec.getConsoleNotificationConfiguration()).isNull();
@@ -393,32 +422,27 @@ class ApiCRDExportDomainServiceImplTest {
 
     private static ExportApiEntity exportApiEntity(ApiEntity apiEntity, boolean withHrid) {
         return ExportApiEntity.builder()
-            .members(Set.of(MemberEntity.builder().id(USER_ID).roles(List.of(RoleEntity.builder().name("OWNER").build())).build()))
-            .apiEntity(apiEntity)
-            .pages(
-                List.of(
-                    PageEntity.builder()
+                .members(Set.of(MemberEntity.builder()
+                        .id(USER_ID)
+                        .roles(List.of(RoleEntity.builder().name("OWNER").build()))
+                        .build()))
+                .apiEntity(apiEntity)
+                .pages(List.of(PageEntity.builder()
                         .id("page-id")
                         .hrid(withHrid ? "page-hrid" : null)
                         .parentId("parent-id")
                         .parentHrid(withHrid ? "parent-hrid" : null)
                         .name(null)
-                        .build()
-                )
-            )
-            .plans(
-                Set.of(
-                    PlanEntity.builder()
+                        .build()))
+                .plans(Set.of(PlanEntity.builder()
                         .name("plan-name")
                         .id("plan-id")
                         .hrid(withHrid ? "plan-hrid" : null)
                         .generalConditions("general-conditions-id")
                         .generalConditionsHrid(withHrid ? "general-conditions-hrid" : null)
                         .security(new PlanSecurity("key-less", "{}"))
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
     }
 
     private static ApiEntity.ApiEntityBuilder apiEntity() {
@@ -427,28 +451,22 @@ class ApiCRDExportDomainServiceImplTest {
 
     private static ApiEntity.ApiEntityBuilder apiEntity(boolean withHrid) {
         return ApiEntity.builder()
-            .name("api-name")
-            .id(API_ID)
-            .hrid(withHrid ? "api-hrid" : null)
-            .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/api-path"))).build()))
-            .endpointGroups(
-                List.of(
-                    EndpointGroup.builder()
+                .name("api-name")
+                .id(API_ID)
+                .hrid(withHrid ? "api-hrid" : null)
+                .listeners(List.of(HttpListener.builder()
+                        .paths(List.of(new Path("/api-path")))
+                        .build()))
+                .endpointGroups(List.of(EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
-                        .endpoints(
-                            List.of(
-                                Endpoint.builder()
-                                    .name("default-endpoint")
-                                    .type("http-proxy")
-                                    .inheritConfiguration(true)
-                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            );
+                        .endpoints(List.of(Endpoint.builder()
+                                .name("default-endpoint")
+                                .type("http-proxy")
+                                .inheritConfiguration(true)
+                                .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                .build()))
+                        .build()));
     }
 }

@@ -27,10 +27,7 @@ public class MediaQueryServiceInMemory implements MediaQueryService, InMemoryAlt
 
     @Override
     public List<Media> findAllByApiId(String apiId) {
-        return storage
-            .stream()
-            .filter(media -> media.getApiId().equals(apiId))
-            .toList();
+        return storage.stream().filter(media -> media.getApiId().equals(apiId)).toList();
     }
 
     @Override

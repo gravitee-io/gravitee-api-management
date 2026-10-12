@@ -39,10 +39,9 @@ public class MembershipCrudServiceInMemory implements MembershipCrudService, InM
 
     @Override
     public Collection<Membership> findByApiId(String apiId) {
-        return storage
-            .stream()
-            .filter(m -> m.getReferenceType() == Membership.ReferenceType.API && apiId.equals(m.getReferenceId()))
-            .toList();
+        return storage.stream()
+                .filter(m -> m.getReferenceType() == Membership.ReferenceType.API && apiId.equals(m.getReferenceId()))
+                .toList();
     }
 
     @Override

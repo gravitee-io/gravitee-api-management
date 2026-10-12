@@ -86,7 +86,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * reset. The advertised list is identical under {@code required}: it is built from the trust store, not from the
  * client auth mode.
  */
-@DeployApi(value = { "/apis/plan/v4-proxy-api.json" })
+@DeployApi(value = {"/apis/plan/v4-proxy-api.json"})
 abstract class AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest extends AbstractGatewayTest {
 
     /** The leaf a subscription registers at runtime. Not a certificate authority, and the DN the ticket reported. */
@@ -115,12 +115,14 @@ abstract class AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest extend
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
@@ -130,23 +132,24 @@ abstract class AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest extend
 
     @Override
     protected void configureHttpClient(
-        HttpClientOptions options,
-        PoolOptions poolOptions,
-        GatewayDynamicConfig.Config gatewayConfig,
-        ParameterContext parameterContext
-    ) {
-        configureTrustedHttpClient(options, gatewayConfig.httpPort(), parameterContext.findAnnotation(WithCert.class).isPresent());
+            HttpClientOptions options,
+            PoolOptions poolOptions,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext) {
+        configureTrustedHttpClient(
+                options,
+                gatewayConfig.httpPort(),
+                parameterContext.findAnnotation(WithCert.class).isPresent());
     }
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder config) {
-        config
-            .httpSecured(true)
-            .set("http.ssl.clientAuth", "request")
-            .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED)
-            // a statically configured trust store, so the two origins can be told apart in the advertised list
-            .set("http.ssl.truststore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PEM)
-            .set("http.ssl.truststore.path", getUrl(CONFIGURED_TRUST_STORE).getPath());
+        config.httpSecured(true)
+                .set("http.ssl.clientAuth", "request")
+                .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED)
+                // a statically configured trust store, so the two origins can be told apart in the advertised list
+                .set("http.ssl.truststore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PEM)
+                .set("http.ssl.truststore.path", getUrl(CONFIGURED_TRUST_STORE).getPath());
 
         Boolean sendAuthorities = sendClientCertificateAuthorities();
         if (sendAuthorities != null) {
@@ -158,9 +161,11 @@ abstract class AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest extend
     void setUpSubscriptionTrustStore() {
         subscriptionTrustStoreLoaderManager = getBean(SubscriptionTrustStoreLoaderManager.class);
         // Cheat to use the real SubscriptionTrustStoreLoaderManager instance with SubscriptionService mock
-        final SubscriptionCacheService subscriptionService = (SubscriptionCacheService) getBean(SubscriptionService.class);
+        final SubscriptionCacheService subscriptionService =
+                (SubscriptionCacheService) getBean(SubscriptionService.class);
         when(subscriptionService.getByApiAndSecurityToken(any(), any(), any())).thenCallRealMethod();
-        ReflectionTestUtils.setField(subscriptionService, "subscriptionTrustStoreLoaderManager", subscriptionTrustStoreLoaderManager);
+        ReflectionTestUtils.setField(
+                subscriptionService, "subscriptionTrustStoreLoaderManager", subscriptionTrustStoreLoaderManager);
     }
 
     /**
@@ -174,21 +179,18 @@ abstract class AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest extend
         subscription.setApplication("application-id");
         subscription.setId("subscription-id");
         subscription.setPlan(PlanHelper.PLAN_MTLS_ID);
-        subscription.setClientCertificate(
-            Base64.getEncoder().encodeToString(Files.readAllBytes(Paths.get(getUrl(SUBSCRIPTION_LEAF).getPath())))
-        );
+        subscription.setClientCertificate(Base64.getEncoder()
+                .encodeToString(
+                        Files.readAllBytes(Paths.get(getUrl(SUBSCRIPTION_LEAF).getPath()))));
         subscriptionTrustStoreLoaderManager.registerSubscription(subscription, Set.of());
         // registerSubscription swallows MalformedCertificateException and returns nothing, so a certificate that
         // failed to load would leave every assertion below vacuously true. Check it really made it in.
-        assertThat(
-            subscriptionTrustStoreLoaderManager.getByCertificate(
-                subscription.getApi(),
-                subscription.getPlan(),
-                CertificateUtils.generateThumbprint(readCertificate(SUBSCRIPTION_LEAF), "SHA-256")
-            )
-        )
-            .as("the subscription certificate never reached the gateway trust store")
-            .isPresent();
+        assertThat(subscriptionTrustStoreLoaderManager.getByCertificate(
+                        subscription.getApi(),
+                        subscription.getPlan(),
+                        CertificateUtils.generateThumbprint(readCertificate(SUBSCRIPTION_LEAF), "SHA-256")))
+                .as("the subscription certificate never reached the gateway trust store")
+                .isPresent();
         return subscription;
     }
 
@@ -213,13 +215,13 @@ abstract class AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest extend
     protected List<String> advertisedCertificateAuthorities(int gatewayPort, String protocol) throws Exception {
         CapturingKeyManager keyManager = new CapturingKeyManager();
         SSLContext context = SSLContext.getInstance("TLS");
-        context.init(new KeyManager[] { keyManager }, new TrustManager[] { new TrustEverything() }, null);
+        context.init(new KeyManager[] {keyManager}, new TrustManager[] {new TrustEverything()}, null);
 
         try (SSLSocket socket = (SSLSocket) context.getSocketFactory().createSocket("localhost", gatewayPort)) {
             // without this a gateway that accepts the connection and never answers hangs the whole CI job instead
             // of failing the test
             socket.setSoTimeout((int) HANDSHAKE_TIMEOUT.toMillis());
-            socket.setEnabledProtocols(new String[] { protocol });
+            socket.setEnabledProtocols(new String[] {protocol});
             socket.startHandshake();
             // TLS 1.3 sends the CertificateRequest after the client considers the handshake done, so exchange
             // application data to make sure it has been processed before asserting
@@ -230,8 +232,8 @@ abstract class AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest extend
         // an empty list is only meaningful if the gateway did ask for a certificate: "asked for none" and "never
         // asked" would otherwise be indistinguishable, and the assertions below would hold for both
         assertThat(keyManager.wasAskedForACertificate())
-            .as("the gateway did not send a CertificateRequest, so nothing was advertised to capture")
-            .isTrue();
+                .as("the gateway did not send a CertificateRequest, so nothing was advertised to capture")
+                .isTrue();
         return keyManager.sentAuthorities();
     }
 
@@ -248,7 +250,9 @@ abstract class AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest extend
         }
 
         List<String> sentAuthorities() {
-            return sentAuthorities == null ? List.of() : Arrays.stream(sentAuthorities).map(Principal::getName).toList();
+            return sentAuthorities == null
+                    ? List.of()
+                    : Arrays.stream(sentAuthorities).map(Principal::getName).toList();
         }
 
         @Override

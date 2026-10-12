@@ -80,7 +80,8 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
     @Test
     void summarize_returns_count_by_connection_status_when_permitted() {
         givenPermission(RolePermission.API_NATIVE_LOG, true);
-        when(analyticsRepository.searchNativeApiFacets(any(), any())).thenReturn(facetsResult(CONNECTION_STATUS_COUNTS));
+        when(analyticsRepository.searchNativeApiFacets(any(), any()))
+                .thenReturn(facetsResult(CONNECTION_STATUS_COUNTS));
 
         Response response = summarize(FROM_MILLIS, TO_MILLIS);
 
@@ -131,9 +132,9 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
     @Test
     void getLog_returns_unique_log_when_permitted() {
         givenPermission(RolePermission.API_NATIVE_ANALYTICS, true);
-        when(
-            nativeApiLogCrudService.findLog(any(ExecutionContext.class), eq(API), eq(REQUEST_ID), eq(FROM_MILLIS), eq(TO_MILLIS))
-        ).thenReturn(optionalLog());
+        when(nativeApiLogCrudService.findLog(
+                        any(ExecutionContext.class), eq(API), eq(REQUEST_ID), eq(FROM_MILLIS), eq(TO_MILLIS)))
+                .thenReturn(optionalLog());
 
         Response response = getLog(FROM_MILLIS, TO_MILLIS);
 
@@ -172,9 +173,9 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
     @Test
     void getLog_returns_404_when_log_not_found() {
         givenPermission(RolePermission.API_NATIVE_ANALYTICS, true);
-        when(
-            nativeApiLogCrudService.findLog(any(ExecutionContext.class), eq(API), eq(REQUEST_ID), eq(FROM_MILLIS), eq(TO_MILLIS))
-        ).thenReturn(Optional.empty());
+        when(nativeApiLogCrudService.findLog(
+                        any(ExecutionContext.class), eq(API), eq(REQUEST_ID), eq(FROM_MILLIS), eq(TO_MILLIS)))
+                .thenReturn(Optional.empty());
 
         Response response = getLog(FROM_MILLIS, TO_MILLIS);
 
@@ -205,21 +206,24 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
         // Elasticsearch will page to. A `last` link computed from the count alone points at a page that comes
         // back as a 400, so the links are bounded by what is reachable while the count stays as it is.
         givenPermission(RolePermission.API_NATIVE_LOG, true);
-        when(nativeApiLogCrudService.searchLogs(any(ExecutionContext.class), eq(API), any(), eq(1), eq(10))).thenReturn(
-            new SearchLogsResponse<>(50_000L, filteredLogs(), 10_000L)
-        );
+        when(nativeApiLogCrudService.searchLogs(any(ExecutionContext.class), eq(API), any(), eq(1), eq(10)))
+                .thenReturn(new SearchLogsResponse<>(50_000L, filteredLogs(), 10_000L));
 
         Response response = rootTarget()
-            .queryParam("from", FROM_MILLIS)
-            .queryParam("to", TO_MILLIS)
-            .queryParam("perPage", 10)
-            .request()
-            .get();
+                .queryParam("from", FROM_MILLIS)
+                .queryParam("to", TO_MILLIS)
+                .queryParam("perPage", 10)
+                .request()
+                .get();
 
         assertThat(response).hasStatus(OK_200);
         var body = response.readEntity(NativeApiLogsResponse.class);
-        assertThat(body.getPagination().getTotalCount()).as("the count stays truthful").isEqualTo(50_000L);
-        assertThat(body.getLinks().getLast()).as("the last link stops at the last servable page").contains("page=1000");
+        assertThat(body.getPagination().getTotalCount())
+                .as("the count stays truthful")
+                .isEqualTo(50_000L);
+        assertThat(body.getLinks().getLast())
+                .as("the last link stops at the last servable page")
+                .contains("page=1000");
     }
 
     @Test
@@ -228,20 +232,21 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
         // and ends past it, which the store refuses. At perPage=30 the bound is 9 990, not 10 000 — otherwise
         // `last` is page 334, whose from=9990 plus 30 reaches past the window and answers 400.
         givenPermission(RolePermission.API_NATIVE_LOG, true);
-        when(nativeApiLogCrudService.searchLogs(any(ExecutionContext.class), eq(API), any(), eq(1), eq(30))).thenReturn(
-            new SearchLogsResponse<>(50_000L, filteredLogs(), 10_000L)
-        );
+        when(nativeApiLogCrudService.searchLogs(any(ExecutionContext.class), eq(API), any(), eq(1), eq(30)))
+                .thenReturn(new SearchLogsResponse<>(50_000L, filteredLogs(), 10_000L));
 
         Response response = rootTarget()
-            .queryParam("from", FROM_MILLIS)
-            .queryParam("to", TO_MILLIS)
-            .queryParam("perPage", 30)
-            .request()
-            .get();
+                .queryParam("from", FROM_MILLIS)
+                .queryParam("to", TO_MILLIS)
+                .queryParam("perPage", 30)
+                .request()
+                .get();
 
         assertThat(response).hasStatus(OK_200);
         var body = response.readEntity(NativeApiLogsResponse.class);
-        assertThat(body.getLinks().getLast()).as("the last page must fit entirely inside the window").contains("page=333");
+        assertThat(body.getLinks().getLast())
+                .as("the last page must fit entirely inside the window")
+                .contains("page=333");
         assertThat(body.getReachableCount()).isEqualTo(9_990L);
     }
 
@@ -249,16 +254,15 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
     void getFilteredLogs_links_to_every_page_when_the_store_sets_no_window() {
         // The no-op repository, or any store that pages without a window, reports no bound at all.
         givenPermission(RolePermission.API_NATIVE_LOG, true);
-        when(nativeApiLogCrudService.searchLogs(any(ExecutionContext.class), eq(API), any(), eq(1), eq(10))).thenReturn(
-            new SearchLogsResponse<>(50_000L, filteredLogs())
-        );
+        when(nativeApiLogCrudService.searchLogs(any(ExecutionContext.class), eq(API), any(), eq(1), eq(10)))
+                .thenReturn(new SearchLogsResponse<>(50_000L, filteredLogs()));
 
         Response response = rootTarget()
-            .queryParam("from", FROM_MILLIS)
-            .queryParam("to", TO_MILLIS)
-            .queryParam("perPage", 10)
-            .request()
-            .get();
+                .queryParam("from", FROM_MILLIS)
+                .queryParam("to", TO_MILLIS)
+                .queryParam("perPage", 10)
+                .request()
+                .get();
 
         var body = response.readEntity(NativeApiLogsResponse.class);
         assertThat(body.getLinks().getLast()).contains("page=5000");
@@ -269,23 +273,26 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
         givenPermission(RolePermission.API_NATIVE_LOG, true);
         var logs = filteredLogs();
         var filterCaptor = ArgumentCaptor.forClass(NativeApiLogCrudService.Filter.class);
-        when(nativeApiLogCrudService.searchLogs(any(ExecutionContext.class), eq(API), filterCaptor.capture(), eq(1), eq(10))).thenReturn(
-            new SearchLogsResponse<>(2L, logs)
-        );
+        when(nativeApiLogCrudService.searchLogs(
+                        any(ExecutionContext.class), eq(API), filterCaptor.capture(), eq(1), eq(10)))
+                .thenReturn(new SearchLogsResponse<>(2L, logs));
 
         Response response = rootTarget()
-            .queryParam("from", FROM_MILLIS)
-            .queryParam("to", TO_MILLIS)
-            .queryParam("perPage", 10)
-            .queryParam("applicationIds", APPLICATION_ID + ",app-2")
-            .queryParam("planIds", PLAN_ID)
-            .queryParam("connectionStatuses", STATUS_CONNECTED + "," + STATUS_CONNECTION_ERROR)
-            .request()
-            .get();
+                .queryParam("from", FROM_MILLIS)
+                .queryParam("to", TO_MILLIS)
+                .queryParam("perPage", 10)
+                .queryParam("applicationIds", APPLICATION_ID + ",app-2")
+                .queryParam("planIds", PLAN_ID)
+                .queryParam("connectionStatuses", STATUS_CONNECTED + "," + STATUS_CONNECTION_ERROR)
+                .request()
+                .get();
 
         assertThat(response).hasStatus(OK_200);
         var body = response.readEntity(NativeApiLogsResponse.class);
-        assertThat(body.getData()).hasSize(2).extracting(NativeApiLog::getRequestId).containsExactly(REQUEST_ID, "r2");
+        assertThat(body.getData())
+                .hasSize(2)
+                .extracting(NativeApiLog::getRequestId)
+                .containsExactly(REQUEST_ID, "r2");
         assertThat(body.getPagination().getTotalCount()).isEqualTo(2L);
 
         var first = body.getData().get(0);
@@ -316,10 +323,8 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
         assertThat(capturedFilter.to()).isEqualTo(TO_MILLIS);
         assertThat(capturedFilter.applicationIds()).containsExactlyInAnyOrder(APPLICATION_ID, "app-2");
         assertThat(capturedFilter.planIds()).containsExactly(PLAN_ID);
-        assertThat(capturedFilter.connectionStatuses()).containsExactlyInAnyOrder(
-            NativeConnectionStatus.CONNECTED,
-            NativeConnectionStatus.CONNECTION_ERROR
-        );
+        assertThat(capturedFilter.connectionStatuses())
+                .containsExactlyInAnyOrder(NativeConnectionStatus.CONNECTED, NativeConnectionStatus.CONNECTION_ERROR);
     }
 
     @Test
@@ -335,7 +340,11 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
     void getFilteredLogs_returns_403_when_permission_denied() {
         givenPermission(RolePermission.API_NATIVE_LOG, false);
 
-        Response response = rootTarget().queryParam("from", FROM_MILLIS).queryParam("to", TO_MILLIS).request().get();
+        Response response = rootTarget()
+                .queryParam("from", FROM_MILLIS)
+                .queryParam("to", TO_MILLIS)
+                .request()
+                .get();
 
         assertThat(response).hasStatus(FORBIDDEN_403);
     }
@@ -344,23 +353,37 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
     void getFilteredLogs_returns_403_when_only_native_analytics_granted() {
         givenPermission(RolePermission.API_NATIVE_ANALYTICS, true);
 
-        Response response = rootTarget().queryParam("from", FROM_MILLIS).queryParam("to", TO_MILLIS).request().get();
+        Response response = rootTarget()
+                .queryParam("from", FROM_MILLIS)
+                .queryParam("to", TO_MILLIS)
+                .request()
+                .get();
 
         assertThat(response).hasStatus(FORBIDDEN_403);
     }
 
     private Response summarize(long from, long to) {
-        return rootTarget().path("summary").queryParam("from", from).queryParam("to", to).request().get();
+        return rootTarget()
+                .path("summary")
+                .queryParam("from", from)
+                .queryParam("to", to)
+                .request()
+                .get();
     }
 
     private Response getLog(long from, long to) {
-        return rootTarget().path(REQUEST_ID).queryParam("from", from).queryParam("to", to).request().get();
+        return rootTarget()
+                .path(REQUEST_ID)
+                .queryParam("from", from)
+                .queryParam("to", to)
+                .request()
+                .get();
     }
 
     private void givenPermission(RolePermission permission, boolean granted) {
-        when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), permission, API, RolePermissionAction.READ)).thenReturn(
-            granted
-        );
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(), permission, API, RolePermissionAction.READ))
+                .thenReturn(granted);
     }
 
     private Optional<io.gravitee.apim.core.log.model.NativeApiLog> optionalLog() {
@@ -368,16 +391,18 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
     }
 
     private List<io.gravitee.apim.core.log.model.NativeApiLog> filteredLogs() {
-        var log2 = io.gravitee.apim.core.log.model.NativeApiLog.builder().apiId(API).requestId("r2").timestamp(TIMESTAMP_ISO).build();
+        var log2 = io.gravitee.apim.core.log.model.NativeApiLog.builder()
+                .apiId(API)
+                .requestId("r2")
+                .timestamp(TIMESTAMP_ISO)
+                .build();
         return List.of(buildNativeApiLog(API, REQUEST_ID), log2);
     }
 
     private static FacetsResult facetsResult(Map<String, Long> countsByStatus) {
-        var buckets = countsByStatus
-            .entrySet()
-            .stream()
-            .map(entry -> new FacetBucketResult(entry.getKey(), List.of(), Map.of(Measure.COUNT, entry.getValue())))
-            .toList();
+        var buckets = countsByStatus.entrySet().stream()
+                .map(entry -> new FacetBucketResult(entry.getKey(), List.of(), Map.of(Measure.COUNT, entry.getValue())))
+                .toList();
         return new FacetsResult(List.of(new MetricFacetsResult(Metric.NATIVE_CONNECTIONS_SUMMARY, buckets)));
     }
 }

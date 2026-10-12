@@ -34,7 +34,8 @@ public final class SearchAuthzDecisionLogsResponseAdapter {
         if (hits == null || hits.getHits() == null || hits.getHits().isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(AuthzDecisionLogSourceMapper.from(hits.getHits().getFirst().getSource()));
+        return Optional.of(
+                AuthzDecisionLogSourceMapper.from(hits.getHits().getFirst().getSource()));
     }
 
     public static LogResponse<AuthzDecisionLog> adapt(SearchResponse response) {
@@ -44,12 +45,9 @@ public final class SearchAuthzDecisionLogsResponseAdapter {
         }
         var total = hits.getTotal() == null ? 0 : hits.getTotal().getValue();
         return new LogResponse<>(
-            total,
-            hits
-                .getHits()
-                .stream()
-                .map(hit -> AuthzDecisionLogSourceMapper.from(hit.getSource()))
-                .toList()
-        );
+                total,
+                hits.getHits().stream()
+                        .map(hit -> AuthzDecisionLogSourceMapper.from(hit.getSource()))
+                        .toList());
     }
 }

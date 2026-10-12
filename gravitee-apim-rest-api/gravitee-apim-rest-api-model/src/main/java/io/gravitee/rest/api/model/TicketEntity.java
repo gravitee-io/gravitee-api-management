@@ -98,15 +98,13 @@ public class TicketEntity {
         if (this == o) return true;
         if (!(o instanceof TicketEntity)) return false;
         TicketEntity that = (TicketEntity) o;
-        return (
-            Objects.equals(id, that.id) &&
-            Objects.equals(subject, that.subject) &&
-            Objects.equals(content, that.content) &&
-            Objects.equals(application, that.application) &&
-            Objects.equals(api, that.api) &&
-            Objects.equals(fromUser, that.fromUser) &&
-            Objects.equals(createdAt, that.createdAt)
-        );
+        return (Objects.equals(id, that.id)
+                && Objects.equals(subject, that.subject)
+                && Objects.equals(content, that.content)
+                && Objects.equals(application, that.application)
+                && Objects.equals(api, that.api)
+                && Objects.equals(fromUser, that.fromUser)
+                && Objects.equals(createdAt, that.createdAt));
     }
 
     @Override
@@ -116,30 +114,27 @@ public class TicketEntity {
 
     @Override
     public String toString() {
-        return (
-            "TicketEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            "subject='" +
-            subject +
-            '\'' +
-            ", content='" +
-            content +
-            '\'' +
-            ", application='" +
-            application +
-            '\'' +
-            ", api='" +
-            api +
-            '\'' +
-            ", fromUser='" +
-            fromUser +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            '}'
-        );
+        return ("TicketEntity{" + "id='"
+                + id
+                + '\''
+                + "subject='"
+                + subject
+                + '\''
+                + ", content='"
+                + content
+                + '\''
+                + ", application='"
+                + application
+                + '\''
+                + ", api='"
+                + api
+                + '\''
+                + ", fromUser='"
+                + fromUser
+                + '\''
+                + ", createdAt='"
+                + createdAt
+                + '\''
+                + '}');
     }
 }

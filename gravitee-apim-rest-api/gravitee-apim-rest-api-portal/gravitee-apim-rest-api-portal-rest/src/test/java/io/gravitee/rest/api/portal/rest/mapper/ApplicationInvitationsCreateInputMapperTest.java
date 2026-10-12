@@ -32,14 +32,11 @@ class ApplicationInvitationsCreateInputMapperTest {
     @Test
     void should_map_input_with_default_notify_true() {
         var input = new InvitationCreateInput()
-            .recipients(
-                List.of(
-                    new InvitationRecipientInput().email(" Alice@Example.com "),
-                    new InvitationRecipientInput().email("BOB@example.com")
-                )
-            )
-            .role(" USER ")
-            .confirmationPageUrl(CONFIRMATION_PAGE_URL);
+                .recipients(List.of(
+                        new InvitationRecipientInput().email(" Alice@Example.com "),
+                        new InvitationRecipientInput().email("BOB@example.com")))
+                .role(" USER ")
+                .confirmationPageUrl(CONFIRMATION_PAGE_URL);
         input.setNotify(null);
 
         var result = cut.toCreateApplicationInvitations(input);
@@ -53,9 +50,9 @@ class ApplicationInvitationsCreateInputMapperTest {
     @Test
     void should_map_input_with_explicit_notify_false() {
         var input = new InvitationCreateInput()
-            .recipients(List.of(new InvitationRecipientInput().email("alice@example.com")))
-            .role("USER")
-            .notify(false);
+                .recipients(List.of(new InvitationRecipientInput().email("alice@example.com")))
+                .role("USER")
+                .notify(false);
 
         var result = cut.toCreateApplicationInvitations(input);
 
@@ -67,14 +64,11 @@ class ApplicationInvitationsCreateInputMapperTest {
     @Test
     void should_deduplicate_recipients_after_email_normalization() {
         var input = new InvitationCreateInput()
-            .recipients(
-                List.of(
-                    new InvitationRecipientInput().email("Alice@Example.com"),
-                    new InvitationRecipientInput().email(" alice@example.com ")
-                )
-            )
-            .role("USER")
-            .notify(false);
+                .recipients(List.of(
+                        new InvitationRecipientInput().email("Alice@Example.com"),
+                        new InvitationRecipientInput().email(" alice@example.com ")))
+                .role("USER")
+                .notify(false);
 
         var result = cut.toCreateApplicationInvitations(input);
 

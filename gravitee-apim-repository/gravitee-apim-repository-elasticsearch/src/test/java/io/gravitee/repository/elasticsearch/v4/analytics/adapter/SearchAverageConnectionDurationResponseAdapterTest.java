@@ -46,7 +46,8 @@ class SearchAverageConnectionDurationResponseAdapterTest {
     void should_return_empty_result_if_no_aggregation() {
         final SearchResponse searchResponse = new SearchResponse();
 
-        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse)).isEmpty();
+        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse))
+                .isEmpty();
     }
 
     @Test
@@ -54,7 +55,8 @@ class SearchAverageConnectionDurationResponseAdapterTest {
         final SearchResponse searchResponse = new SearchResponse();
         searchResponse.setAggregations(Map.of());
 
-        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse)).isEmpty();
+        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse))
+                .isEmpty();
     }
 
     @ParameterizedTest
@@ -64,23 +66,20 @@ class SearchAverageConnectionDurationResponseAdapterTest {
         final Aggregation aggregation = new Aggregation();
         searchResponse.setAggregations(Map.of(ENTRYPOINTS_AGG, aggregation));
 
-        aggregation.setBuckets(
-            buckets
-                .entrySet()
-                .stream()
-                .map(bucket ->
-                    (JsonNode) objectMapper
+        aggregation.setBuckets(buckets.entrySet().stream()
+                .map(bucket -> (JsonNode) objectMapper
                         .createObjectNode()
                         .put("key", bucket.getKey())
-                        .set(AVG_ENDED_REQUEST_DURATION_MS, objectMapper.createObjectNode().put("value", bucket.getValue()))
-                )
-                .toList()
-        );
+                        .set(
+                                AVG_ENDED_REQUEST_DURATION_MS,
+                                objectMapper.createObjectNode().put("value", bucket.getValue())))
+                .toList());
 
-        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate -> {
-            assertThat(countAggregate.getAverage()).isEqualTo(expectedCount);
-            assertThat(countAggregate.getAverageBy()).containsAllEntriesOf(buckets);
-        });
+        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse))
+                .hasValueSatisfying(countAggregate -> {
+                    assertThat(countAggregate.getAverage()).isEqualTo(expectedCount);
+                    assertThat(countAggregate.getAverageBy()).containsAllEntriesOf(buckets);
+                });
     }
 
     @Test
@@ -90,14 +89,16 @@ class SearchAverageConnectionDurationResponseAdapterTest {
         searchResponse.setAggregations(Map.of(ENTRYPOINTS_AGG, aggregation));
         aggregation.setBuckets(Collections.emptyList());
 
-        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse)).isEmpty();
+        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse))
+                .isEmpty();
     }
 
     private static Stream<Arguments> provideSearchData() {
         return Stream.of(
-            Arguments.of(Map.of("http-get", 1.0), 1.0),
-            Arguments.of(Map.of("sse", 0.0), 0.0),
-            Arguments.of(Map.of("http-get", 11.0, "http-post", 200.0, "websocket", 5.0, "the-unknown-endpoint", 10000.0), 2554.0)
-        );
+                Arguments.of(Map.of("http-get", 1.0), 1.0),
+                Arguments.of(Map.of("sse", 0.0), 0.0),
+                Arguments.of(
+                        Map.of("http-get", 11.0, "http-post", 200.0, "websocket", 5.0, "the-unknown-endpoint", 10000.0),
+                        2554.0));
     }
 }

@@ -63,21 +63,29 @@ public class DictionariesResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_DICTIONARY,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(@Valid @NotNull DictionarySpec spec, @QueryParam("dryRun") boolean dryRun) {
         var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
         validateDictionaryDomainService.validate(dictionary);
 
         if (dryRun) {
-            return Response.ok(DictionaryMapper.INSTANCE.toDictionaryState(spec)).build();
+            return Response.ok(DictionaryMapper.INSTANCE.toDictionaryState(spec))
+                    .build();
         }
 
-        dictionary.setId(HRIDToUUID.dictionary().context(getAuditInfo()).hrid(spec.getHrid()).id());
+        dictionary.setId(HRIDToUUID.dictionary()
+                .context(getAuditInfo())
+                .hrid(spec.getHrid())
+                .id());
         var executionContext = GraviteeContext.getExecutionContext();
         var result = createOrUpdateDictionaryCRDUseCase.execute(
-            new CreateOrUpdateDictionaryUseCase.Input(executionContext, dictionary, spec.getDeployed())
-        );
+                new CreateOrUpdateDictionaryUseCase.Input(executionContext, dictionary, spec.getDeployed()));
 
-        return Response.ok(DictionaryMapper.INSTANCE.toDictionaryState(result.dictionary(), executionContext)).build();
+        return Response.ok(DictionaryMapper.INSTANCE.toDictionaryState(result.dictionary(), executionContext))
+                .build();
     }
 }

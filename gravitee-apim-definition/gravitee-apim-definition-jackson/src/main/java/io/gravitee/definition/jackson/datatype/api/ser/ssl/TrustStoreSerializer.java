@@ -40,11 +40,13 @@ public abstract class TrustStoreSerializer<T extends TrustStore> extends StdScal
     }
 
     @Override
-    public void serializeWithType(T value, JsonGenerator g, SerializerProvider provider, TypeSerializer typeSer) throws IOException {
+    public void serializeWithType(T value, JsonGenerator g, SerializerProvider provider, TypeSerializer typeSer)
+            throws IOException {
         serialize(value, g, provider);
     }
 
-    protected void doSerialize(T trustStore, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(T trustStore, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         jgen.writeStringField("type", trustStore.getType().name());
     }
 

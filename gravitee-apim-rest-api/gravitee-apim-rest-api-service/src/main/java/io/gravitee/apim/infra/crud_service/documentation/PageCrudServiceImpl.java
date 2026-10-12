@@ -99,12 +99,14 @@ public class PageCrudServiceImpl implements PageCrudService {
     public List<Page> findByApiId(String apiId) {
         try {
             log.debug("Find a pages by API id : {}", apiId);
-            var pages = pageRepository.search(
-                new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId(apiId).build()
-            );
+            var pages = pageRepository.search(new PageCriteria.Builder()
+                    .referenceType(PageReferenceType.API.name())
+                    .referenceId(apiId)
+                    .build());
             return PageAdapter.INSTANCE.toEntityList(pages);
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException(String.format("An error occurred while trying to find a pages by API id: %s", apiId), ex);
+            throw new TechnicalDomainException(
+                    String.format("An error occurred while trying to find a pages by API id: %s", apiId), ex);
         }
     }
 
@@ -112,13 +114,16 @@ public class PageCrudServiceImpl implements PageCrudService {
     public void updateCrossIds(List<Page> pages) {
         log.debug("Update pages cross IDs : {}", pages);
         try {
-            pageRepository.updateCrossIds(pages.stream().map(PageAdapter.INSTANCE::toRepository).toList());
+            pageRepository.updateCrossIds(
+                    pages.stream().map(PageAdapter.INSTANCE::toRepository).toList());
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(String.format("An error occurred while trying to update pages cross IDs %s", pages), e);
+            throw new TechnicalDomainException(
+                    String.format("An error occurred while trying to update pages cross IDs %s", pages), e);
         }
     }
 
-    private io.gravitee.repository.management.model.Page createDocumentation(io.gravitee.repository.management.model.Page page) {
+    private io.gravitee.repository.management.model.Page createDocumentation(
+            io.gravitee.repository.management.model.Page page) {
         try {
             return pageRepository.create(page);
         } catch (TechnicalException e) {

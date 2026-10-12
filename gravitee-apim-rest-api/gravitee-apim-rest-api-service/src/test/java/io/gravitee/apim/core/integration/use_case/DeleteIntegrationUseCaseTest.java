@@ -58,31 +58,31 @@ public class DeleteIntegrationUseCaseTest {
     void setUp() {
         IntegrationCrudService integrationCrudService = integrationCrudServiceInMemory;
         ApiQueryService apiQueryService = apiQueryServiceInMemory;
-        AuditDomainService auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        DeleteMembershipDomainService deleteMembershipDomainService = new DeleteMembershipDomainService(
-            membershipQueryService,
-            membershipCrudService,
-            auditDomainService
-        );
+        AuditDomainService auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        DeleteMembershipDomainService deleteMembershipDomainService =
+                new DeleteMembershipDomainService(membershipQueryService, membershipCrudService, auditDomainService);
         usecase = new DeleteIntegrationUseCase(integrationCrudService, apiQueryService, deleteMembershipDomainService);
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            integrationCrudServiceInMemory,
-            apiQueryServiceInMemory,
-            membershipCrudService,
-            membershipQueryService,
-            auditCrudService,
-            userCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        integrationCrudServiceInMemory,
+                        apiQueryServiceInMemory,
+                        membershipCrudService,
+                        membershipQueryService,
+                        auditCrudService,
+                        userCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_delete_integration() {
         integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration()));
-        var input = DeleteIntegrationUseCase.Input.builder().integrationId(INTEGRATION_ID).build();
+        var input = DeleteIntegrationUseCase.Input.builder()
+                .integrationId(INTEGRATION_ID)
+                .build();
 
         usecase.execute(input);
 
@@ -92,16 +92,18 @@ public class DeleteIntegrationUseCaseTest {
     @Test
     void should_delete_integration_memberships() {
         var integrationMember = Membership.builder()
-            .id("membership-id")
-            .roleId("role-id")
-            .referenceId(INTEGRATION_ID)
-            .referenceType(Membership.ReferenceType.INTEGRATION)
-            .memberId("user-id")
-            .memberType(Membership.Type.USER)
-            .build();
+                .id("membership-id")
+                .roleId("role-id")
+                .referenceId(INTEGRATION_ID)
+                .referenceType(Membership.ReferenceType.INTEGRATION)
+                .memberId("user-id")
+                .memberType(Membership.Type.USER)
+                .build();
         givenExistingMemberships(List.of(integrationMember));
         integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration()));
-        var input = DeleteIntegrationUseCase.Input.builder().integrationId(INTEGRATION_ID).build();
+        var input = DeleteIntegrationUseCase.Input.builder()
+                .integrationId(INTEGRATION_ID)
+                .build();
 
         usecase.execute(input);
 
@@ -112,19 +114,23 @@ public class DeleteIntegrationUseCaseTest {
     void should_throw_error_when_associated_federated_apis_found() {
         integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration()));
         apiQueryServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
-        var input = DeleteIntegrationUseCase.Input.builder().integrationId(INTEGRATION_ID).build();
+        var input = DeleteIntegrationUseCase.Input.builder()
+                .integrationId(INTEGRATION_ID)
+                .build();
 
         assertThatThrownBy(() -> usecase.execute(input))
-            .isInstanceOf(AssociatedApisFoundException.class)
-            .hasMessage("Associated APIs found for federation with id: integration-id");
+                .isInstanceOf(AssociatedApisFoundException.class)
+                .hasMessage("Associated APIs found for federation with id: integration-id");
     }
 
     @Test
     void should_throw_error_when_integration_not_found() {
-        var input = DeleteIntegrationUseCase.Input.builder().integrationId(INTEGRATION_ID).build();
+        var input = DeleteIntegrationUseCase.Input.builder()
+                .integrationId(INTEGRATION_ID)
+                .build();
         assertThatThrownBy(() -> usecase.execute(input))
-            .isInstanceOf(IntegrationNotFoundException.class)
-            .hasMessage("Integration not found.");
+                .isInstanceOf(IntegrationNotFoundException.class)
+                .hasMessage("Integration not found.");
     }
 
     private void givenExistingMemberships(List<Membership> memberships) {

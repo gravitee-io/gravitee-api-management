@@ -18,10 +18,8 @@ package io.gravitee.gateway.connector.spring;
 import io.gravitee.gateway.connector.ConnectorRegistry;
 import io.gravitee.gateway.connector.plugin.ConnectorRegistryImpl;
 import io.gravitee.plugin.connector.ConnectorPluginManager;
-import io.gravitee.plugin.connector.spring.ConnectorPluginConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

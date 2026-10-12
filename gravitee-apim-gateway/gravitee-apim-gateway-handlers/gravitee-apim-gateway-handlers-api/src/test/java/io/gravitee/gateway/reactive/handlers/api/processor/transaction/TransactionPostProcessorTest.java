@@ -33,19 +33,21 @@ class TransactionPostProcessorTest extends AbstractProcessorTest {
     private TransactionPostProcessor transactionPostProcessor;
 
     @Test
-    @DisplayName("By default should override Transaction Id and Request Id headers set by the backend, by the ones set by APIM")
+    @DisplayName(
+            "By default should override Transaction Id and Request Id headers set by the backend, by the ones set by APIM")
     void handleWithOverrideByDefault() {
         Configuration nodeConfiguration = mock(Configuration.class);
-        when(nodeConfiguration.getProperty("handlers.request.transaction.overrideMode")).thenReturn(null);
-        when(nodeConfiguration.getProperty(eq("handlers.request.transaction.header"), anyString())).thenReturn(
-            TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER
-        );
-        when(nodeConfiguration.getProperty("handlers.request.request.overrideMode")).thenReturn(null);
-        when(nodeConfiguration.getProperty(eq("handlers.request.request.header"), anyString())).thenReturn(
-            TransactionHeader.DEFAULT_REQUEST_ID_HEADER
-        );
+        when(nodeConfiguration.getProperty("handlers.request.transaction.overrideMode"))
+                .thenReturn(null);
+        when(nodeConfiguration.getProperty(eq("handlers.request.transaction.header"), anyString()))
+                .thenReturn(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER);
+        when(nodeConfiguration.getProperty("handlers.request.request.overrideMode"))
+                .thenReturn(null);
+        when(nodeConfiguration.getProperty(eq("handlers.request.request.header"), anyString()))
+                .thenReturn(TransactionHeader.DEFAULT_REQUEST_ID_HEADER);
 
-        TransactionPostProcessorConfiguration processorConfiguration = new TransactionPostProcessorConfiguration(nodeConfiguration);
+        TransactionPostProcessorConfiguration processorConfiguration =
+                new TransactionPostProcessorConfiguration(nodeConfiguration);
 
         transactionPostProcessor = new TransactionPostProcessor(processorConfiguration);
 
@@ -57,14 +59,17 @@ class TransactionPostProcessorTest extends AbstractProcessorTest {
 
         transactionPostProcessor.execute(spyCtx).test().assertResult();
 
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(List.of("transaction-id"));
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER)).isEqualTo(List.of("request-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER))
+                .isEqualTo(List.of("transaction-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER))
+                .isEqualTo(List.of("request-id"));
     }
 
     @Test
     @DisplayName("Should override Transaction Id and Request Id headers set by the backend, by the ones set by APIM")
     void handleWithOverrideBackendModeNone() {
-        instantiateTransactionPostProcessor(TransactionHeaderOverrideMode.OVERRIDE, TransactionHeaderOverrideMode.OVERRIDE);
+        instantiateTransactionPostProcessor(
+                TransactionHeaderOverrideMode.OVERRIDE, TransactionHeaderOverrideMode.OVERRIDE);
 
         spyCtx.request().headers().set(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER, "transaction-id");
         spyCtx.request().headers().set(TransactionHeader.DEFAULT_REQUEST_ID_HEADER, "request-id");
@@ -74,8 +79,10 @@ class TransactionPostProcessorTest extends AbstractProcessorTest {
 
         transactionPostProcessor.execute(spyCtx).test().assertResult();
 
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(List.of("transaction-id"));
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER)).isEqualTo(List.of("request-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER))
+                .isEqualTo(List.of("transaction-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER))
+                .isEqualTo(List.of("request-id"));
     }
 
     @Test
@@ -91,12 +98,10 @@ class TransactionPostProcessorTest extends AbstractProcessorTest {
 
         transactionPostProcessor.execute(spyCtx).test().assertResult();
 
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(
-            List.of("backend-transaction-id", "transaction-id")
-        );
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER)).isEqualTo(
-            List.of("backend-request-id", "request-id")
-        );
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER))
+                .isEqualTo(List.of("backend-transaction-id", "transaction-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER))
+                .isEqualTo(List.of("backend-request-id", "request-id"));
     }
 
     @Test
@@ -112,14 +117,18 @@ class TransactionPostProcessorTest extends AbstractProcessorTest {
 
         transactionPostProcessor.execute(spyCtx).test().assertResult();
 
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(List.of("backend-transaction-id"));
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER)).isEqualTo(List.of("backend-request-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER))
+                .isEqualTo(List.of("backend-transaction-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER))
+                .isEqualTo(List.of("backend-request-id"));
     }
 
     @Test
-    @DisplayName("Should override Transaction Id header's value but not Request Id header because empty, by the ones set by APIM")
+    @DisplayName(
+            "Should override Transaction Id header's value but not Request Id header because empty, by the ones set by APIM")
     void handleWithOverrideWithoutHeaderValue() {
-        instantiateTransactionPostProcessor(TransactionHeaderOverrideMode.OVERRIDE, TransactionHeaderOverrideMode.OVERRIDE);
+        instantiateTransactionPostProcessor(
+                TransactionHeaderOverrideMode.OVERRIDE, TransactionHeaderOverrideMode.OVERRIDE);
 
         spyCtx.request().headers().set(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER, "transaction-id");
 
@@ -128,26 +137,28 @@ class TransactionPostProcessorTest extends AbstractProcessorTest {
 
         transactionPostProcessor.execute(spyCtx).test().assertResult();
 
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(List.of("transaction-id"));
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER)).isEqualTo(List.of("backend-request-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER))
+                .isEqualTo(List.of("transaction-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER))
+                .isEqualTo(List.of("backend-request-id"));
     }
 
     private void instantiateTransactionPostProcessor(
-        TransactionHeaderOverrideMode transactionOverrideMode,
-        TransactionHeaderOverrideMode requestHeaderOverrideMode
-    ) {
+            TransactionHeaderOverrideMode transactionOverrideMode,
+            TransactionHeaderOverrideMode requestHeaderOverrideMode) {
         Configuration nodeConfiguration = mock(Configuration.class);
-        when(nodeConfiguration.getProperty("handlers.request.transaction.overrideMode")).thenReturn(transactionOverrideMode.name());
-        when(nodeConfiguration.getProperty(eq("handlers.request.transaction.header"), anyString())).thenReturn(
-            TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER
-        );
+        when(nodeConfiguration.getProperty("handlers.request.transaction.overrideMode"))
+                .thenReturn(transactionOverrideMode.name());
+        when(nodeConfiguration.getProperty(eq("handlers.request.transaction.header"), anyString()))
+                .thenReturn(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER);
 
-        when(nodeConfiguration.getProperty("handlers.request.request.overrideMode")).thenReturn(requestHeaderOverrideMode.name());
-        when(nodeConfiguration.getProperty(eq("handlers.request.request.header"), anyString())).thenReturn(
-            TransactionHeader.DEFAULT_REQUEST_ID_HEADER
-        );
+        when(nodeConfiguration.getProperty("handlers.request.request.overrideMode"))
+                .thenReturn(requestHeaderOverrideMode.name());
+        when(nodeConfiguration.getProperty(eq("handlers.request.request.header"), anyString()))
+                .thenReturn(TransactionHeader.DEFAULT_REQUEST_ID_HEADER);
 
-        TransactionPostProcessorConfiguration processorConfiguration = new TransactionPostProcessorConfiguration(nodeConfiguration);
+        TransactionPostProcessorConfiguration processorConfiguration =
+                new TransactionPostProcessorConfiguration(nodeConfiguration);
 
         transactionPostProcessor = new TransactionPostProcessor(processorConfiguration);
     }

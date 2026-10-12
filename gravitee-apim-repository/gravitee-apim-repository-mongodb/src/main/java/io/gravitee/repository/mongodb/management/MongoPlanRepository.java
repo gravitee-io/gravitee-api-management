@@ -97,7 +97,9 @@ public class MongoPlanRepository implements PlanRepository {
     public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
         try {
             Iterable<PlanMongo> plans = internalPlanRepository.findAllById(ids);
-            return StreamSupport.stream(plans.spliterator(), false).map(this::map).collect(Collectors.toSet());
+            return StreamSupport.stream(plans.spliterator(), false)
+                    .map(this::map)
+                    .collect(Collectors.toSet());
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find plans by id list", ex);
         }
@@ -107,7 +109,9 @@ public class MongoPlanRepository implements PlanRepository {
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete plan by environment [{}]", environmentId);
         try {
-            final var plans = internalPlanRepository.deleteByEnvironmentId(environmentId).stream().map(PlanMongo::getId).toList();
+            final var plans = internalPlanRepository.deleteByEnvironmentId(environmentId).stream()
+                    .map(PlanMongo::getId)
+                    .toList();
             log.debug("Delete plan by environment [{}] - Done", environmentId);
             return plans;
         } catch (Exception e) {
@@ -151,31 +155,28 @@ public class MongoPlanRepository implements PlanRepository {
 
     @Override
     public Set<Plan> findByReferenceIdAndReferenceType(String referenceId, Plan.PlanReferenceType planReferenceType)
-        throws TechnicalException {
-        return internalPlanRepository
-            .findByReferenceIdAndReferenceType(referenceId, planReferenceType.name())
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
+            throws TechnicalException {
+        return internalPlanRepository.findByReferenceIdAndReferenceType(referenceId, planReferenceType.name()).stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public List<Plan> findByReferenceIdsAndReferenceTypeAndEnvironment(
-        List<String> referenceIds,
-        Plan.PlanReferenceType planReferenceType,
-        Set<String> environments
-    ) {
+            List<String> referenceIds, Plan.PlanReferenceType planReferenceType, Set<String> environments) {
         return internalPlanRepository
-            .findByReferenceIdsAndReferenceTypeAndEnvironments(referenceIds, planReferenceType, environments)
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toList());
+                .findByReferenceIdsAndReferenceTypeAndEnvironments(referenceIds, planReferenceType, environments)
+                .stream()
+                .map(this::map)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(String id, String referenceId, Plan.PlanReferenceType planReferenceType)
-        throws TechnicalException {
-        return internalPlanRepository.findByIdAndReferenceIdAndReferenceType(id, referenceId, planReferenceType.name()).map(this::map);
+    public Optional<Plan> findByIdAndReferenceIdAndReferenceType(
+            String id, String referenceId, Plan.PlanReferenceType planReferenceType) throws TechnicalException {
+        return internalPlanRepository
+                .findByIdAndReferenceIdAndReferenceType(id, referenceId, planReferenceType.name())
+                .map(this::map);
     }
 
     @Override
@@ -184,7 +185,9 @@ public class MongoPlanRepository implements PlanRepository {
             return Set.of();
         }
         try {
-            return internalPlanRepository.findByCrossIdIn(crossIds).stream().map(this::map).collect(Collectors.toSet());
+            return internalPlanRepository.findByCrossIdIn(crossIds).stream()
+                    .map(this::map)
+                    .collect(Collectors.toSet());
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find plans by crossId list", ex);
         }

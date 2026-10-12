@@ -28,16 +28,20 @@ class EvaluableExecutionFailureTest {
 
     @Test
     void should_expose_cause_from_diagnostic_message() {
-        ExecutionFailure failure = new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR");
+        ExecutionFailure failure =
+                new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR");
 
-        EvaluableExecutionFailure evaluable = new EvaluableExecutionFailure(failure, "Received fatal alert: handshake_failure");
+        EvaluableExecutionFailure evaluable =
+                new EvaluableExecutionFailure(failure, "Received fatal alert: handshake_failure");
 
         assertThat(evaluable.getCause()).isEqualTo("Received fatal alert: handshake_failure");
     }
 
     @Test
     void should_fallback_cause_to_message_when_diagnostic_message_is_null() {
-        ExecutionFailure failure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY").message("Policy failed");
+        ExecutionFailure failure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+                .key("POLICY_ERROR_KEY")
+                .message("Policy failed");
 
         EvaluableExecutionFailure evaluable = new EvaluableExecutionFailure(failure, null);
 
@@ -46,7 +50,8 @@ class EvaluableExecutionFailureTest {
 
     @Test
     void should_return_null_cause_when_no_diagnostic_and_no_message() {
-        ExecutionFailure failure = new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR");
+        ExecutionFailure failure =
+                new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR");
 
         EvaluableExecutionFailure evaluable = new EvaluableExecutionFailure(failure, null);
 
@@ -55,9 +60,12 @@ class EvaluableExecutionFailureTest {
 
     @Test
     void should_leave_message_unchanged() {
-        ExecutionFailure failure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY").message("Policy failed");
+        ExecutionFailure failure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+                .key("POLICY_ERROR_KEY")
+                .message("Policy failed");
 
-        // Even with a diagnostic cause, getMessage() keeps returning the raw ExecutionFailure message (no breaking change).
+        // Even with a diagnostic cause, getMessage() keeps returning the raw ExecutionFailure message (no breaking
+        // change).
         EvaluableExecutionFailure evaluable = new EvaluableExecutionFailure(failure, "Policy failed (some cause)");
 
         assertThat(evaluable.getMessage()).isEqualTo("Policy failed");

@@ -32,15 +32,21 @@ public class ApiExportParam {
     @QueryParam("removeIds")
     private boolean removeIds;
 
-    @Parameter(description = "the context path to assign to the exported spec (default is the existing context path of the exported API")
+    @Parameter(
+            description =
+                    "the context path to assign to the exported spec (default is the existing context path of the exported API")
     @QueryParam("contextPath")
     private String contextPath;
 
-    @Parameter(description = "the API version to assign to the exported spec (default is the existing version of the exported API")
+    @Parameter(
+            description =
+                    "the API version to assign to the exported spec (default is the existing version of the exported API")
     @QueryParam("version")
     private String version;
 
-    @Parameter(description = "the management context name to assign to the exported spec (if not defined, no context is added)")
+    @Parameter(
+            description =
+                    "the management context name to assign to the exported spec (if not defined, no context is added)")
     @QueryParam("managementContextName")
     private String managementContextName;
 

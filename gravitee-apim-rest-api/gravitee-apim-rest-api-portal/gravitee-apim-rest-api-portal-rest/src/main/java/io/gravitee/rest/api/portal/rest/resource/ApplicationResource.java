@@ -66,7 +66,7 @@ public class ApplicationResource extends AbstractResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)})
     public Response deleteApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
         applicationService.archive(GraviteeContext.getExecutionContext(), applicationId);
         return Response.noContent().build();
@@ -74,7 +74,7 @@ public class ApplicationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public Response getApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
         var appEntity = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
@@ -102,9 +102,10 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Path("configuration")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public Response getApplicationType(@PathParam("applicationId") String applicationId) {
-        ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
+        ApplicationEntity applicationEntity =
+                applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
         ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(applicationEntity.getType());
         return Response.ok(applicationType).build();
     }
@@ -112,11 +113,10 @@ public class ApplicationResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response updateApplicationByApplicationId(
-        @PathParam("applicationId") String applicationId,
-        @Valid @NotNull(message = "Input must not be null.") Application application
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @Valid @NotNull(message = "Input must not be null.") Application application) {
         if (!applicationId.equalsIgnoreCase(application.getId())) {
             throw new BadRequestException("'applicationId' is not the same that the application in payload");
         }
@@ -132,7 +132,8 @@ public class ApplicationResource extends AbstractResource {
         updateApplicationEntity.setBackground(application.getBackground());
         updateApplicationEntity.setGroups(appEntity.getGroups());
         if (application.getApiKeyMode() != null) {
-            updateApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(application.getApiKeyMode().name()));
+            updateApplicationEntity.setApiKeyMode(
+                    ApiKeyMode.valueOf(application.getApiKeyMode().name()));
         }
 
         if (application.getSettings() != null) {
@@ -156,16 +157,17 @@ public class ApplicationResource extends AbstractResource {
         var updatedEntity = applicationService.update(executionContext, applicationId, updateApplicationEntity);
         var updatedApp = applicationMapper.convert(executionContext, updatedEntity, uriInfo);
         return Response.ok(addApplicationLinks(updatedApp))
-            .tag(Long.toString(updatedApp.getUpdatedAt().toInstant().toEpochMilli()))
-            .lastModified(Date.from(updatedApp.getUpdatedAt().toInstant()))
-            .build();
+                .tag(Long.toString(updatedApp.getUpdatedAt().toInstant().toEpochMilli()))
+                .lastModified(Date.from(updatedApp.getUpdatedAt().toInstant()))
+                .build();
     }
 
     @GET
     @Path("picture")
-    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
-    public Response getPictureByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
+    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
+    public Response getPictureByApplicationId(
+            @Context Request request, @PathParam("applicationId") String applicationId) {
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
         InlinePictureEntity image = applicationService.getPicture(GraviteeContext.getExecutionContext(), applicationId);
         return createPictureResponse(request, image);
@@ -173,11 +175,13 @@ public class ApplicationResource extends AbstractResource {
 
     @GET
     @Path("background")
-    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
-    public Response getBackgroundByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
+    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
+    public Response getBackgroundByApplicationId(
+            @Context Request request, @PathParam("applicationId") String applicationId) {
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
-        InlinePictureEntity image = applicationService.getBackground(GraviteeContext.getExecutionContext(), applicationId);
+        InlinePictureEntity image =
+                applicationService.getBackground(GraviteeContext.getExecutionContext(), applicationId);
         return createPictureResponse(request, image);
     }
 
@@ -185,24 +189,20 @@ public class ApplicationResource extends AbstractResource {
     @Path("/_renew_secret")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response renewApplicationSecret(@PathParam("applicationId") String applicationId) {
         Application renwedApplication = applicationMapper.convert(
-            GraviteeContext.getExecutionContext(),
-            applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), applicationId),
-            uriInfo
-        );
+                GraviteeContext.getExecutionContext(),
+                applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), applicationId),
+                uriInfo);
 
         return Response.ok(addApplicationLinks(renwedApplication)).build();
     }
 
     private Application addApplicationLinks(Application application) {
-        return application.links(
-            applicationMapper.computeApplicationLinks(
+        return application.links(applicationMapper.computeApplicationLinks(
                 PortalApiLinkHelper.applicationsURL(uriInfo.getBaseUriBuilder(), application.getId()),
-                application.getUpdatedAt()
-            )
-        );
+                application.getUpdatedAt()));
     }
 
     @Path("members")

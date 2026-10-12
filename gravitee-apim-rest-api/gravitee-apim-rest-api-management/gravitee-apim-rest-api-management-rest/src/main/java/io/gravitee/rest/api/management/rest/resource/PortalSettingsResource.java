@@ -65,12 +65,14 @@ public class PortalSettingsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the portal settings")
     @ApiResponse(
-        responseCode = "200",
-        description = "Portal configuration",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalSettingsEntity.class))
-    )
+            responseCode = "200",
+            description = "Portal configuration",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PortalSettingsEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = READ)})
     public PortalSettingsEntity getPortalSettings() {
         return configService.getPortalSettings(GraviteeContext.getExecutionContext());
     }
@@ -80,15 +82,20 @@ public class PortalSettingsResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Save the portal settings")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated portal settings",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalSettingsEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated portal settings",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PortalSettingsEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SETTINGS,
+                acls = {CREATE, UPDATE, DELETE})
+    })
     public Response savePortalSettings(
-        @Parameter(name = "config", required = true) @Valid @NotNull PortalSettingsEntity portalSettingsEntity
-    ) {
+            @Parameter(name = "config", required = true) @Valid @NotNull PortalSettingsEntity portalSettingsEntity) {
         // check that environment exists
         environmentService.findById(GraviteeContext.getCurrentEnvironment());
 
@@ -100,20 +107,23 @@ public class PortalSettingsResource {
     @Path("email/branded-senders/reset")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Reset the environment branded senders, deleting the environment override so the value falls back through the cascade (organization, or system configuration if set)"
-    )
+            summary =
+                    "Reset the environment branded senders, deleting the environment override so the value falls back through the cascade (organization, or system configuration if set)")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated portal settings",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalSettingsEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated portal settings",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = PortalSettingsEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = UPDATE)})
     public Response resetPortalBrandedSenders() {
         // Fail fast with 404 (findById throws) when the current environment does not exist, before resetting anything.
         environmentService.findById(GraviteeContext.getCurrentEnvironment());
 
-        PortalSettingsEntity portalSettingsEntity = configService.resetPortalBrandedSenders(GraviteeContext.getExecutionContext());
+        PortalSettingsEntity portalSettingsEntity =
+                configService.resetPortalBrandedSenders(GraviteeContext.getExecutionContext());
         return Response.ok().entity(portalSettingsEntity).build();
     }
 }

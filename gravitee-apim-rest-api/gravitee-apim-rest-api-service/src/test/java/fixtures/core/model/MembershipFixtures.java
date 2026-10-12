@@ -27,8 +27,7 @@ public class MembershipFixtures {
 
     private static final String APPLICATION_MEMBERSHIP_UUID = "00000000-0000-0000-0000-000000000001";
 
-    private static final Supplier<Membership.MembershipBuilder> BASE = () ->
-        Membership.builder()
+    private static final Supplier<Membership.MembershipBuilder> BASE = () -> Membership.builder()
             .id("membership-id")
             .source("system")
             .memberId("user-id")
@@ -38,48 +37,56 @@ public class MembershipFixtures {
             .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 
     public static Membership anApiMembership() {
-        return BASE.get().referenceType(Membership.ReferenceType.API).referenceId("api-id").build();
+        return BASE.get()
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId("api-id")
+                .build();
     }
 
     public static Membership anApiMembership(String apiId) {
-        return BASE.get().referenceType(Membership.ReferenceType.API).referenceId(apiId).build();
+        return BASE.get()
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(apiId)
+                .build();
     }
 
     public static Membership anApplicationMembership(String applicationId, String memberId, String roleId) {
         return BASE.get()
-            .id(APPLICATION_MEMBERSHIP_UUID)
-            .referenceType(Membership.ReferenceType.APPLICATION)
-            .referenceId(applicationId)
-            .memberId(memberId)
-            .roleId(roleId)
-            .build();
+                .id(APPLICATION_MEMBERSHIP_UUID)
+                .referenceType(Membership.ReferenceType.APPLICATION)
+                .referenceId(applicationId)
+                .memberId(memberId)
+                .roleId(roleId)
+                .build();
     }
 
-    public static Membership anApplicationMembership(String membershipId, String applicationId, String memberId, String roleId) {
+    public static Membership anApplicationMembership(
+            String membershipId, String applicationId, String memberId, String roleId) {
         return BASE.get()
-            .id(membershipId)
-            .referenceType(Membership.ReferenceType.APPLICATION)
-            .referenceId(applicationId)
-            .memberId(memberId)
-            .roleId(roleId)
-            .build();
+                .id(membershipId)
+                .referenceType(Membership.ReferenceType.APPLICATION)
+                .referenceId(applicationId)
+                .memberId(memberId)
+                .roleId(roleId)
+                .build();
     }
 
     public static Membership anApiPrimaryOwnerUserMembership(String apiId, String userId, String organizationId) {
         return BASE.get()
-            .referenceType(Membership.ReferenceType.API)
-            .referenceId(apiId)
-            .memberId(userId)
-            .roleId(apiPrimaryOwnerRoleId(organizationId))
-            .build();
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(apiId)
+                .memberId(userId)
+                .roleId(apiPrimaryOwnerRoleId(organizationId))
+                .build();
     }
 
-    public static Membership anApplicationPrimaryOwnerUserMembership(String applicationId, String userId, String organizationId) {
+    public static Membership anApplicationPrimaryOwnerUserMembership(
+            String applicationId, String userId, String organizationId) {
         return BASE.get()
-            .referenceType(Membership.ReferenceType.APPLICATION)
-            .referenceId(applicationId)
-            .memberId(userId)
-            .roleId(applicationPrimaryOwnerRoleId(organizationId))
-            .build();
+                .referenceType(Membership.ReferenceType.APPLICATION)
+                .referenceId(applicationId)
+                .memberId(userId)
+                .roleId(applicationPrimaryOwnerRoleId(organizationId))
+                .build();
     }
 }

@@ -34,18 +34,17 @@ import lombok.CustomLog;
  */
 @CustomLog
 public class DistributedSharedPolicyGroupSynchronizer
-    extends AbstractDistributedSynchronizer<SharedPolicyGroupReactorDeployable, SharedPolicyGroupDeployer> {
+        extends AbstractDistributedSynchronizer<SharedPolicyGroupReactorDeployable, SharedPolicyGroupDeployer> {
 
     private final DeployerFactory deployerFactory;
     private final SharedPolicyGroupMapper sharedPolicyGroupMapper;
 
     public DistributedSharedPolicyGroupSynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final SharedPolicyGroupMapper sharedPolicyGroupMapper
-    ) {
+            final DistributedEventFetcher distributedEventFetcher,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final DeployerFactory deployerFactory,
+            final SharedPolicyGroupMapper sharedPolicyGroupMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.sharedPolicyGroupMapper = sharedPolicyGroupMapper;

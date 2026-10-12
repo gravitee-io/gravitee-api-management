@@ -23,7 +23,6 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -256,46 +255,43 @@ public class ApiModel implements GenericApiModel {
     }
 
     public String toString() {
-        return (
-            "ApiEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", version='" +
-            version +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", proxy=" +
-            proxy +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            ", visibility=" +
-            visibility +
-            ", state=" +
-            state +
-            ", primaryOwner=" +
-            primaryOwner +
-            ", tags=" +
-            tags +
-            ", category=" +
-            categories +
-            ", groups=" +
-            groups +
-            ", metadata=" +
-            metadata +
-            ", lifecycleState=" +
-            lifecycleState +
-            ", disableMembershipNotifications=" +
-            disableMembershipNotifications +
-            '}'
-        );
+        return ("ApiEntity{" + "id='"
+                + id
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", version='"
+                + version
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", proxy="
+                + proxy
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + ", visibility="
+                + visibility
+                + ", state="
+                + state
+                + ", primaryOwner="
+                + primaryOwner
+                + ", tags="
+                + tags
+                + ", category="
+                + categories
+                + ", groups="
+                + groups
+                + ", metadata="
+                + metadata
+                + ", lifecycleState="
+                + lifecycleState
+                + ", disableMembershipNotifications="
+                + disableMembershipNotifications
+                + '}');
     }
 
     public ExecutionMode getExecutionMode() {

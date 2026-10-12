@@ -60,12 +60,11 @@ public class ApiSubscriptionsResource_UpdateTest extends AbstractApiSubscription
 
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .referenceId("ANOTHER-API")
-            .referenceType("API")
-            .build();
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .id(SUBSCRIPTION)
+                .referenceId("ANOTHER-API")
+                .referenceType("API")
+                .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
 
@@ -79,14 +78,12 @@ public class ApiSubscriptionsResource_UpdateTest extends AbstractApiSubscription
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().put(Entity.json(SubscriptionFixtures.anUpdateSubscription()));
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -98,19 +95,17 @@ public class ApiSubscriptionsResource_UpdateTest extends AbstractApiSubscription
 
     @Test
     public void should_update_subscription() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .referenceId(API)
-            .referenceType("API")
-            .plan(PLAN)
-            .build();
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                .id(SUBSCRIPTION)
+                .referenceId(API)
+                .referenceType("API")
+                .plan(PLAN)
+                .build();
         final UpdateSubscription updateSubscription = SubscriptionFixtures.anUpdateSubscription();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
-        when(subscriptionService.update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionEntity.class))).thenReturn(
-            subscriptionEntity
-        );
+        when(subscriptionService.update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionEntity.class)))
+                .thenReturn(subscriptionEntity);
 
         final Response response = rootTarget().request().put(Entity.json(updateSubscription));
         assertEquals(OK_200, response.getStatus());
@@ -118,12 +113,12 @@ public class ApiSubscriptionsResource_UpdateTest extends AbstractApiSubscription
         final Subscription subscription = response.readEntity(Subscription.class);
         assertEquals(SUBSCRIPTION, subscription.getId());
 
-        verify(subscriptionService).update(
-            eq(GraviteeContext.getExecutionContext()),
-            Mockito.<UpdateSubscriptionEntity>argThat(updateSubscriptionEntity -> {
-                assertEquals(SUBSCRIPTION, updateSubscriptionEntity.getId());
-                return true;
-            })
-        );
+        verify(subscriptionService)
+                .update(
+                        eq(GraviteeContext.getExecutionContext()),
+                        Mockito.<UpdateSubscriptionEntity>argThat(updateSubscriptionEntity -> {
+                            assertEquals(SUBSCRIPTION, updateSubscriptionEntity.getId());
+                            return true;
+                        }));
     }
 }

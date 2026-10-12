@@ -23,11 +23,13 @@ import org.junit.jupiter.api.Test;
 
 class ApplicationInvitationsSearchCriteriaMapperTest {
 
-    private final ApplicationInvitationsSearchCriteriaMapper mapper = ApplicationInvitationsSearchCriteriaMapper.INSTANCE;
+    private final ApplicationInvitationsSearchCriteriaMapper mapper =
+            ApplicationInvitationsSearchCriteriaMapper.INSTANCE;
 
     @Test
     void should_map_email_filter() {
-        var input = new ApplicationInvitationsSearchInput().filters(new ApplicationInvitationsSearchFilters().email("alice"));
+        var input = new ApplicationInvitationsSearchInput()
+                .filters(new ApplicationInvitationsSearchFilters().email("alice"));
 
         var criteria = mapper.toSearchCriteria(input);
 

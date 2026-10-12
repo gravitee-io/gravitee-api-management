@@ -41,9 +41,8 @@ public abstract class CorsRequestProcessor extends AbstractProcessor<ExecutionCo
             return false;
         }
 
-        boolean allowed =
-            cors.getAccessControlAllowOrigin().contains(ALLOW_ORIGIN_PUBLIC_WILDCARD) ||
-            cors.getAccessControlAllowOrigin().contains(origin);
+        boolean allowed = cors.getAccessControlAllowOrigin().contains(ALLOW_ORIGIN_PUBLIC_WILDCARD)
+                || cors.getAccessControlAllowOrigin().contains(origin);
 
         if (allowed) {
             return allowed;

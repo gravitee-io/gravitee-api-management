@@ -36,12 +36,13 @@ public final class CockpitUserHelper {
      * @param cockpitUserId the cockpit user ID to resolve
      * @return the resolved user ID or the original cockpit user ID as fallback
      */
-    public static String resolveApimUserId(UserRepository userRepository, ExecutionContext executionContext, String cockpitUserId) {
+    public static String resolveApimUserId(
+            UserRepository userRepository, ExecutionContext executionContext, String cockpitUserId) {
         try {
             return userRepository
-                .findBySource(COCKPIT_SOURCE, cockpitUserId, executionContext.getOrganizationId())
-                .map(User::getId)
-                .orElse(cockpitUserId);
+                    .findBySource(COCKPIT_SOURCE, cockpitUserId, executionContext.getOrganizationId())
+                    .map(User::getId)
+                    .orElse(cockpitUserId);
         } catch (TechnicalException ex) {
             return cockpitUserId;
         }

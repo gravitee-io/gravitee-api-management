@@ -51,21 +51,19 @@ public class PropertyDomainService {
             return new ArrayList<>();
         }
         Map<String, Property> storedByKey = indexByKey(storedProperties);
-        return apiProperties
-            .stream()
-            .map(property -> encryptProperty(storedByKey, property))
-            .filter(Objects::nonNull)
-            .toList();
+        return apiProperties.stream()
+                .map(property -> encryptProperty(storedByKey, property))
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     private static Map<String, Property> indexByKey(List<Property> properties) {
         if (properties == null) {
             return Map.of();
         }
-        return properties
-            .stream()
-            .filter(Objects::nonNull)
-            .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
+        return properties.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
     }
 
     private Property encryptProperty(Map<String, Property> storedByKey, EncryptableProperty property) {
@@ -74,14 +72,19 @@ public class PropertyDomainService {
         }
         if (ENCRYPTED_VALUE_MASK.equals(property.getValue())) {
             Property stored = Optional.ofNullable(storedByKey.get(property.getKey()))
-                .filter(Property::isEncrypted)
-                .orElseThrow(() -> new MaskedApiPropertyValueException(property.getKey()));
-            return property.toPropertyBuilder().value(stored.getValue()).encrypted(true).build();
+                    .filter(Property::isEncrypted)
+                    .orElseThrow(() -> new MaskedApiPropertyValueException(property.getKey()));
+            return property.toPropertyBuilder()
+                    .value(stored.getValue())
+                    .encrypted(true)
+                    .build();
         }
         var asPropertyBuilder = property.toPropertyBuilder();
         if (property.isEncryptable() && !property.isEncrypted()) {
             try {
-                asPropertyBuilder.value(dataEncryptor.encrypt(property.getValue())).encrypted(true);
+                asPropertyBuilder
+                        .value(dataEncryptor.encrypt(property.getValue()))
+                        .encrypted(true);
             } catch (GeneralSecurityException e) {
                 throw new TechnicalDomainException("Unable to encrypt property [" + property.getKey() + "]", e);
             }
@@ -100,28 +103,28 @@ public class PropertyDomainService {
         rejectChangedValuesThatAreNotCiphertext(storedProperties, incomingProperties);
     }
 
-    private void rejectChangedValuesThatAreNotCiphertext(List<Property> storedProperties, List<EncryptableProperty> incomingProperties) {
+    private void rejectChangedValuesThatAreNotCiphertext(
+            List<Property> storedProperties, List<EncryptableProperty> incomingProperties) {
         if (storedProperties == null || incomingProperties == null) {
             return;
         }
-        Map<String, String> storedCiphertextByKey = storedProperties
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(Property::isEncrypted)
-            .filter(property -> property.getValue() != null)
-            .collect(Collectors.toMap(Property::getKey, Property::getValue, (first, second) -> first));
-        incomingProperties
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(EncryptableProperty::isEncrypted)
-            .filter(incoming -> !ENCRYPTED_VALUE_MASK.equals(incoming.getValue()))
-            .filter(incoming -> storedCiphertextByKey.containsKey(incoming.getKey()))
-            .filter(incoming -> !storedCiphertextByKey.get(incoming.getKey()).equals(incoming.getValue()))
-            .filter(incoming -> !decrypts(incoming.getValue()))
-            .findFirst()
-            .ifPresent(incoming -> {
-                throw new ApiPropertyNotCiphertextException(incoming.getKey());
-            });
+        Map<String, String> storedCiphertextByKey = storedProperties.stream()
+                .filter(Objects::nonNull)
+                .filter(Property::isEncrypted)
+                .filter(property -> property.getValue() != null)
+                .collect(Collectors.toMap(Property::getKey, Property::getValue, (first, second) -> first));
+        incomingProperties.stream()
+                .filter(Objects::nonNull)
+                .filter(EncryptableProperty::isEncrypted)
+                .filter(incoming -> !ENCRYPTED_VALUE_MASK.equals(incoming.getValue()))
+                .filter(incoming -> storedCiphertextByKey.containsKey(incoming.getKey()))
+                .filter(incoming ->
+                        !storedCiphertextByKey.get(incoming.getKey()).equals(incoming.getValue()))
+                .filter(incoming -> !decrypts(incoming.getValue()))
+                .findFirst()
+                .ifPresent(incoming -> {
+                    throw new ApiPropertyNotCiphertextException(incoming.getKey());
+                });
     }
 
     private boolean decrypts(String value) {
@@ -136,44 +139,41 @@ public class PropertyDomainService {
         }
     }
 
-    public List<Property> encryptRestoredValuesOfEncryptedKeys(List<Property> storedProperties, List<Property> restoredProperties) {
+    public List<Property> encryptRestoredValuesOfEncryptedKeys(
+            List<Property> storedProperties, List<Property> restoredProperties) {
         if (storedProperties == null || restoredProperties == null) {
             return restoredProperties;
         }
-        Set<String> encryptedKeys = storedProperties
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(Property::isEncrypted)
-            .map(Property::getKey)
-            .collect(Collectors.toSet());
-        return encryptProperties(
-            storedProperties,
-            restoredProperties
-                .stream()
+        Set<String> encryptedKeys = storedProperties.stream()
                 .filter(Objects::nonNull)
-                .map(restored -> {
-                    var encryptable = EncryptableProperty.fromProperty(restored);
-                    encryptable.setEncryptable(encryptedKeys.contains(restored.getKey()));
-                    return encryptable;
-                })
-                .toList()
-        );
+                .filter(Property::isEncrypted)
+                .map(Property::getKey)
+                .collect(Collectors.toSet());
+        return encryptProperties(
+                storedProperties,
+                restoredProperties.stream()
+                        .filter(Objects::nonNull)
+                        .map(restored -> {
+                            var encryptable = EncryptableProperty.fromProperty(restored);
+                            encryptable.setEncryptable(encryptedKeys.contains(restored.getKey()));
+                            return encryptable;
+                        })
+                        .toList());
     }
 
-    public List<Property> keepStoredEncryption(String apiId, List<Property> storedProperties, List<Property> fetchedProperties) {
-        Map<String, Property> encryptedDynamicPropertiesByKey = storedProperties
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(Property::isDynamic)
-            .filter(Property::isEncrypted)
-            .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
-        return fetchedProperties
-            .stream()
-            .map(fetched -> {
-                var stored = encryptedDynamicPropertiesByKey.get(fetched.getKey());
-                return stored == null ? fetched : reEncrypt(apiId, stored, fetched);
-            })
-            .toList();
+    public List<Property> keepStoredEncryption(
+            String apiId, List<Property> storedProperties, List<Property> fetchedProperties) {
+        Map<String, Property> encryptedDynamicPropertiesByKey = storedProperties.stream()
+                .filter(Objects::nonNull)
+                .filter(Property::isDynamic)
+                .filter(Property::isEncrypted)
+                .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
+        return fetchedProperties.stream()
+                .map(fetched -> {
+                    var stored = encryptedDynamicPropertiesByKey.get(fetched.getKey());
+                    return stored == null ? fetched : reEncrypt(apiId, stored, fetched);
+                })
+                .toList();
     }
 
     private Property reEncrypt(String apiId, Property stored, Property fetched) {
@@ -182,13 +182,17 @@ public class PropertyDomainService {
         }
         try {
             return Property.builder()
-                .key(fetched.getKey())
-                .value(dataEncryptor.encrypt(fetched.getValue()))
-                .encrypted(true)
-                .dynamic(fetched.isDynamic())
-                .build();
+                    .key(fetched.getKey())
+                    .value(dataEncryptor.encrypt(fetched.getValue()))
+                    .encrypted(true)
+                    .dynamic(fetched.isDynamic())
+                    .build();
         } catch (GeneralSecurityException | RuntimeException e) {
-            log.error("Unable to encrypt dynamic property [{}] of API [{}]; keeping the stored value", fetched.getKey(), apiId, e);
+            log.error(
+                    "Unable to encrypt dynamic property [{}] of API [{}]; keeping the stored value",
+                    fetched.getKey(),
+                    apiId,
+                    e);
             return stored;
         }
     }
@@ -201,25 +205,23 @@ public class PropertyDomainService {
             return dataEncryptor.decrypt(stored.getValue());
         } catch (GeneralSecurityException | IllegalArgumentException e) {
             log.warn(
-                "Stored value of encrypted dynamic property [{}] of API [{}] could not be decrypted; it will be encrypted again",
-                stored.getKey(),
-                apiId
-            );
+                    "Stored value of encrypted dynamic property [{}] of API [{}] could not be decrypted; it will be encrypted again",
+                    stored.getKey(),
+                    apiId);
             return null;
         }
     }
 
     public List<Property> encryptOnFetch(String apiId, List<Property> storedProperties, List<Property> properties) {
-        Map<String, Property> storedDynamicPropertiesByKey = storedProperties
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(Property::isDynamic)
-            .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
-        return properties
-            .stream()
-            .map(property -> encryptIfNotEncrypted(apiId, storedDynamicPropertiesByKey.get(property.getKey()), property))
-            .filter(Objects::nonNull)
-            .toList();
+        Map<String, Property> storedDynamicPropertiesByKey = storedProperties.stream()
+                .filter(Objects::nonNull)
+                .filter(Property::isDynamic)
+                .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
+        return properties.stream()
+                .map(property ->
+                        encryptIfNotEncrypted(apiId, storedDynamicPropertiesByKey.get(property.getKey()), property))
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     private Property encryptIfNotEncrypted(String apiId, Property stored, Property property) {
@@ -228,17 +230,25 @@ public class PropertyDomainService {
         }
         try {
             return Property.builder()
-                .key(property.getKey())
-                .value(dataEncryptor.encrypt(property.getValue()))
-                .encrypted(true)
-                .dynamic(property.isDynamic())
-                .build();
+                    .key(property.getKey())
+                    .value(dataEncryptor.encrypt(property.getValue()))
+                    .encrypted(true)
+                    .dynamic(property.isDynamic())
+                    .build();
         } catch (GeneralSecurityException e) {
             if (stored != null) {
-                log.error("Unable to encrypt property [{}] of API [{}] on fetch; keeping the stored value", property.getKey(), apiId, e);
+                log.error(
+                        "Unable to encrypt property [{}] of API [{}] on fetch; keeping the stored value",
+                        property.getKey(),
+                        apiId,
+                        e);
                 return stored;
             }
-            log.error("Unable to encrypt new property [{}] of API [{}] on fetch; dropping it", property.getKey(), apiId, e);
+            log.error(
+                    "Unable to encrypt new property [{}] of API [{}] on fetch; dropping it",
+                    property.getKey(),
+                    apiId,
+                    e);
             return null;
         }
     }

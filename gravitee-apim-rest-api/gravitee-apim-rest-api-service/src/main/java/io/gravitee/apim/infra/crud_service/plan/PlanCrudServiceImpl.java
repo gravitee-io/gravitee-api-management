@@ -48,11 +48,12 @@ public class PlanCrudServiceImpl implements PlanCrudService {
         try {
             log.debug("Get plan by id : {}", planId);
             return planRepository
-                .findById(planId)
-                .map(PlanAdapter.INSTANCE::fromRepository)
-                .orElseThrow(() -> new PlanNotFoundException(planId));
+                    .findById(planId)
+                    .map(PlanAdapter.INSTANCE::fromRepository)
+                    .orElseThrow(() -> new PlanNotFoundException(planId));
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException(String.format("An error occurred while trying to get a plan by id: %s", planId), ex);
+            throw new TechnicalDomainException(
+                    String.format("An error occurred while trying to get a plan by id: %s", planId), ex);
         }
     }
 
@@ -62,7 +63,8 @@ public class PlanCrudServiceImpl implements PlanCrudService {
             log.debug("Find a plan by id : {}", planId);
             return planRepository.findById(planId).map(PlanAdapter.INSTANCE::fromRepository);
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException(String.format("An error occurred while trying to find a plan by id: %s", planId), ex);
+            throw new TechnicalDomainException(
+                    String.format("An error occurred while trying to find a plan by id: %s", planId), ex);
         }
     }
 
@@ -71,9 +73,12 @@ public class PlanCrudServiceImpl implements PlanCrudService {
         log.debug("Find all plan by ids : {}", planIds);
 
         try {
-            return planRepository.findByIdIn(planIds).stream().map(PlanAdapter.INSTANCE::fromRepository).toList();
+            return planRepository.findByIdIn(planIds).stream()
+                    .map(PlanAdapter.INSTANCE::fromRepository)
+                    .toList();
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(String.format("An error occurred while trying to find all plan by ids %s", planIds), e);
+            throw new TechnicalDomainException(
+                    String.format("An error occurred while trying to find all plan by ids %s", planIds), e);
         }
     }
 
@@ -82,9 +87,12 @@ public class PlanCrudServiceImpl implements PlanCrudService {
         log.debug("Find all plans by crossIds : {}", crossIds);
 
         try {
-            return planRepository.findByCrossIds(crossIds).stream().map(PlanAdapter.INSTANCE::fromRepository).collect(Collectors.toSet());
+            return planRepository.findByCrossIds(crossIds).stream()
+                    .map(PlanAdapter.INSTANCE::fromRepository)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(String.format("An error occurred while trying to find plans by crossIds %s", crossIds), e);
+            throw new TechnicalDomainException(
+                    String.format("An error occurred while trying to find plans by crossIds %s", crossIds), e);
         }
     }
 
@@ -92,25 +100,28 @@ public class PlanCrudServiceImpl implements PlanCrudService {
     public void updateCrossIds(List<Plan> plans) {
         log.debug("Update plans cross IDs : {}", plans);
         try {
-            planRepository.updateCrossIds(plans.stream().map(PlanAdapter.INSTANCE::toRepository).toList());
+            planRepository.updateCrossIds(
+                    plans.stream().map(PlanAdapter.INSTANCE::toRepository).toList());
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(String.format("An error occurred while trying to update plans cross IDs %s", plans), e);
+            throw new TechnicalDomainException(
+                    String.format("An error occurred while trying to update plans cross IDs %s", plans), e);
         }
     }
 
     @Override
-    public Optional<Plan> findByPlanIdAndReferenceIdAndReferenceType(String planId, String referenceId, String referenceType) {
+    public Optional<Plan> findByPlanIdAndReferenceIdAndReferenceType(
+            String planId, String referenceId, String referenceType) {
         try {
             log.debug("Get plan by id : {}", planId);
             return planRepository
-                .findByIdAndReferenceIdAndReferenceType(
-                    planId,
-                    referenceId,
-                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType)
-                )
-                .map(PlanAdapter.INSTANCE::fromRepository);
+                    .findByIdAndReferenceIdAndReferenceType(
+                            planId,
+                            referenceId,
+                            io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType))
+                    .map(PlanAdapter.INSTANCE::fromRepository);
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException(String.format("An error occurred while trying to get a plan by id: %s", planId), ex);
+            throw new TechnicalDomainException(
+                    String.format("An error occurred while trying to get a plan by id: %s", planId), ex);
         }
     }
 
@@ -118,25 +129,22 @@ public class PlanCrudServiceImpl implements PlanCrudService {
     public Collection<Plan> findByReferenceIdAndReferenceType(String referenceId, String referenceType) {
         try {
             log.debug("Find a plan by reference id : {}", referenceId);
-            return stream(
-                planRepository.findByReferenceIdAndReferenceType(
-                    referenceId,
-                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType)
-                )
-            )
-                .map(PlanAdapter.INSTANCE::fromRepository)
-                .toList();
+            return stream(planRepository.findByReferenceIdAndReferenceType(
+                            referenceId,
+                            io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType)))
+                    .map(PlanAdapter.INSTANCE::fromRepository)
+                    .toList();
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to find a plan by reference id: %s", referenceId),
-                ex
-            );
+                    String.format("An error occurred while trying to find a plan by reference id: %s", referenceId),
+                    ex);
         }
     }
 
     @Override
     public Collection<Plan> findByApiId(String apiId) {
-        return findByReferenceIdAndReferenceType(apiId, io.gravitee.repository.management.model.Plan.PlanReferenceType.API.name());
+        return findByReferenceIdAndReferenceType(
+                apiId, io.gravitee.repository.management.model.Plan.PlanReferenceType.API.name());
     }
 
     @Override

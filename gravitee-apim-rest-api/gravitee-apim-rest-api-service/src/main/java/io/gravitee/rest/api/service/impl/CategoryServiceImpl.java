@@ -76,7 +76,9 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     public List<CategoryEntity> findAll(final String environmentId) {
         try {
             log.debug("Find all categories");
-            return categoryRepository.findAllByEnvironment(environmentId).stream().map(this::convert).collect(Collectors.toList());
+            return categoryRepository.findAllByEnvironment(environmentId).stream()
+                    .map(this::convert)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to find all categories", ex);
         }
@@ -85,11 +87,9 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     @Override
     public Set<CategoryEntity> findByIdIn(String environmentId, Set<String> ids) {
         try {
-            return categoryRepository
-                .findByEnvironmentIdAndIdIn(environmentId, ids)
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+            return categoryRepository.findByEnvironmentIdAndIdIn(environmentId, ids).stream()
+                    .map(this::convert)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find categories by ids", e);
         }
@@ -99,7 +99,9 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     public List<CategoryEntity> findByPage(String page) {
         try {
             log.debug("Find all categories by page");
-            return categoryRepository.findByPage(page).stream().map(this::convert).collect(Collectors.toList());
+            return categoryRepository.findByPage(page).stream()
+                    .map(this::convert)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to find all categories by page", ex);
         }
@@ -109,7 +111,9 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     public CategoryEntity findById(final String id, final String environmentId) {
         try {
             log.debug("Find category by id : {}", id);
-            Optional<Category> category = categoryRepository.findById(id).filter(c -> c.getEnvironmentId().equalsIgnoreCase(environmentId));
+            Optional<Category> category = categoryRepository
+                    .findById(id)
+                    .filter(c -> c.getEnvironmentId().equalsIgnoreCase(environmentId));
             if (category.isEmpty()) {
                 category = categoryRepository.findByKey(id, environmentId);
             }
@@ -136,11 +140,10 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     public CategoryEntity create(ExecutionContext executionContext, NewCategoryEntity newCategory) {
         // First we prevent the duplicate category name
         final List<CategoryEntity> categories = findAll(executionContext.getEnvironmentId());
-        final Optional<CategoryEntity> optionalCategory = categories
-            .stream()
-            .filter(v -> v.getName().equalsIgnoreCase((newCategory.getName())))
-            .filter(v -> v.getKey().equalsIgnoreCase(IdGenerator.generate((newCategory.getName()))))
-            .findAny();
+        final Optional<CategoryEntity> optionalCategory = categories.stream()
+                .filter(v -> v.getName().equalsIgnoreCase((newCategory.getName())))
+                .filter(v -> v.getKey().equalsIgnoreCase(IdGenerator.generate((newCategory.getName()))))
+                .findAny();
 
         if (optionalCategory.isPresent()) {
             throw new DuplicateCategoryNameException(optionalCategory.get().getName());
@@ -158,40 +161,40 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             category.setOrder(categories.size());
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(CATEGORY, category.getId()))
-                    .event(CATEGORY_CREATED)
-                    .createdAt(createdAt)
-                    .oldValue(null)
-                    .newValue(category)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(CATEGORY, category.getId()))
+                            .event(CATEGORY_CREATED)
+                            .createdAt(createdAt)
+                            .oldValue(null)
+                            .newValue(category)
+                            .build());
 
             return createdCategory;
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to create category " + newCategory.getName(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to create category " + newCategory.getName(), ex);
         }
     }
 
     @Override
-    public CategoryEntity update(ExecutionContext executionContext, String categoryId, UpdateCategoryEntity categoryEntity) {
+    public CategoryEntity update(
+            ExecutionContext executionContext, String categoryId, UpdateCategoryEntity categoryEntity) {
         try {
             log.debug("Update Category {}", categoryId);
 
             final Category categoryToUpdate = categoryRepository
-                .findById(categoryId)
-                .filter(category -> category.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-                .orElseThrow(() -> new CategoryNotFoundException(categoryId));
+                    .findById(categoryId)
+                    .filter(category ->
+                            category.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                    .orElseThrow(() -> new CategoryNotFoundException(categoryId));
             Category category = convert(categoryEntity, categoryToUpdate.getEnvironmentId());
 
             // check if picture has been set
             // If no new picture and the current picture url is not the default one, keep the current picture
-            if (
-                categoryEntity.getPicture() == null &&
-                categoryEntity.getPictureUrl() != null &&
-                categoryEntity.getPictureUrl().indexOf("?hash") > 0
-            ) {
+            if (categoryEntity.getPicture() == null
+                    && categoryEntity.getPictureUrl() != null
+                    && categoryEntity.getPictureUrl().indexOf("?hash") > 0) {
                 category.setPicture(categoryToUpdate.getPicture());
             }
             final Date updatedAt = new Date();
@@ -199,30 +202,32 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             category.setUpdatedAt(updatedAt);
             CategoryEntity updatedCategory = convert(categoryRepository.update(category));
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(CATEGORY, category.getId()))
-                    .event(CATEGORY_UPDATED)
-                    .createdAt(updatedAt)
-                    .oldValue(categoryToUpdate)
-                    .newValue(category)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(CATEGORY, category.getId()))
+                            .event(CATEGORY_UPDATED)
+                            .createdAt(updatedAt)
+                            .oldValue(categoryToUpdate)
+                            .newValue(category)
+                            .build());
 
             return updatedCategory;
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to update category " + categoryEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to update category " + categoryEntity.getName(), ex);
         }
     }
 
     @Override
-    public List<CategoryEntity> update(ExecutionContext executionContext, final List<UpdateCategoryEntity> categoriesEntities) {
+    public List<CategoryEntity> update(
+            ExecutionContext executionContext, final List<UpdateCategoryEntity> categoriesEntities) {
         final List<CategoryEntity> savedCategories = new ArrayList<>(categoriesEntities.size());
         categoriesEntities.forEach(categoryEntity -> {
             try {
                 Optional<Category> optCategoryToUpdate = categoryRepository
-                    .findById(categoryEntity.getId())
-                    .filter(category -> category.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
+                        .findById(categoryEntity.getId())
+                        .filter(category ->
+                                category.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
                 if (optCategoryToUpdate.isPresent()) {
                     final Category categoryToUpdate = optCategoryToUpdate.get();
                     Category category = convert(categoryEntity, categoryToUpdate.getEnvironmentId());
@@ -241,18 +246,18 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                     category.setUpdatedAt(updatedAt);
                     savedCategories.add(convert(categoryRepository.update(category)));
                     auditService.createAuditLog(
-                        executionContext,
-                        AuditService.AuditLogData.builder()
-                            .properties(Collections.singletonMap(CATEGORY, category.getId()))
-                            .event(CATEGORY_UPDATED)
-                            .createdAt(updatedAt)
-                            .oldValue(categoryToUpdate)
-                            .newValue(category)
-                            .build()
-                    );
+                            executionContext,
+                            AuditService.AuditLogData.builder()
+                                    .properties(Collections.singletonMap(CATEGORY, category.getId()))
+                                    .event(CATEGORY_UPDATED)
+                                    .createdAt(updatedAt)
+                                    .oldValue(categoryToUpdate)
+                                    .newValue(category)
+                                    .build());
                 }
             } catch (TechnicalException ex) {
-                throw new TechnicalManagementException("An error occurs while trying to update category " + categoryEntity.getName(), ex);
+                throw new TechnicalManagementException(
+                        "An error occurs while trying to update category " + categoryEntity.getName(), ex);
             }
         });
         return savedCategories;
@@ -262,21 +267,21 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     public void delete(ExecutionContext executionContext, final String categoryId) {
         try {
             Optional<Category> categoryOptional = categoryRepository
-                .findById(categoryId)
-                .filter(category -> category.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
+                    .findById(categoryId)
+                    .filter(category ->
+                            category.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
             if (categoryOptional.isPresent()) {
                 Category categoryToDelete = categoryOptional.get();
                 categoryRepository.delete(categoryToDelete.getId());
                 auditService.createAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(Collections.singletonMap(CATEGORY, categoryId))
-                        .event(CATEGORY_DELETED)
-                        .createdAt(new Date())
-                        .oldValue(null)
-                        .newValue(categoryToDelete)
-                        .build()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(Collections.singletonMap(CATEGORY, categoryId))
+                                .event(CATEGORY_DELETED)
+                                .createdAt(new Date())
+                                .oldValue(null)
+                                .newValue(categoryToDelete)
+                                .build());
 
                 // delete all reference on APIs
                 apiCategoryService.deleteCategoryFromAPIs(executionContext, categoryId);

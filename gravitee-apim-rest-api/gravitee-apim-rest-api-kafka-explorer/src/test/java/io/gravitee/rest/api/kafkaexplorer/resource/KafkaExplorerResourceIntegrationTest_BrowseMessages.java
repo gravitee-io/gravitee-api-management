@@ -47,7 +47,9 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
         var adminProps = new Properties();
         adminProps.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, plaintextBootstrapServers());
         try (var admin = AdminClient.create(adminProps)) {
-            admin.createTopics(List.of(new NewTopic(BROWSE_TOPIC, 2, (short) 1))).all().get(10, TimeUnit.SECONDS);
+            admin.createTopics(List.of(new NewTopic(BROWSE_TOPIC, 2, (short) 1)))
+                    .all()
+                    .get(10, TimeUnit.SECONDS);
         }
 
         var producerProps = new Properties();
@@ -65,7 +67,8 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
 
     @Test
     void should_return_200_with_messages_using_newest_mode() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new BrowseMessagesRequest().clusterId(CLUSTER_ID).topicName(BROWSE_TOPIC);
 
@@ -75,26 +78,25 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
         var body = (BrowseMessagesResponse) response.getEntity();
         assertThat(body.getData()).isNotEmpty();
         assertThat(body.getTotalFetched()).isGreaterThanOrEqualTo(body.getData().size());
-        body
-            .getData()
-            .forEach(msg -> {
-                assertThat(msg.getPartition()).isGreaterThanOrEqualTo(0);
-                assertThat(msg.getOffset()).isGreaterThanOrEqualTo(0);
-                assertThat(msg.getTimestamp()).isGreaterThan(0);
-                assertThat(msg.getKey()).startsWith("key-");
-                assertThat(msg.getValue()).contains("index");
-                assertThat(msg.getHeaders()).isNotEmpty();
-            });
+        body.getData().forEach(msg -> {
+            assertThat(msg.getPartition()).isGreaterThanOrEqualTo(0);
+            assertThat(msg.getOffset()).isGreaterThanOrEqualTo(0);
+            assertThat(msg.getTimestamp()).isGreaterThan(0);
+            assertThat(msg.getKey()).startsWith("key-");
+            assertThat(msg.getValue()).contains("index");
+            assertThat(msg.getHeaders()).isNotEmpty();
+        });
     }
 
     @Test
     void should_return_200_with_messages_using_oldest_mode() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new BrowseMessagesRequest()
-            .clusterId(CLUSTER_ID)
-            .topicName(BROWSE_TOPIC)
-            .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
+                .clusterId(CLUSTER_ID)
+                .topicName(BROWSE_TOPIC)
+                .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
 
         var response = resource.browseMessages(request, 50);
 
@@ -105,13 +107,14 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
 
     @Test
     void should_return_200_with_messages_filtered_by_partition() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new BrowseMessagesRequest()
-            .clusterId(CLUSTER_ID)
-            .topicName(BROWSE_TOPIC)
-            .partition(0)
-            .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
+                .clusterId(CLUSTER_ID)
+                .topicName(BROWSE_TOPIC)
+                .partition(0)
+                .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
 
         var response = resource.browseMessages(request, 50);
 
@@ -123,13 +126,14 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
 
     @Test
     void should_return_200_with_messages_filtered_by_key() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new BrowseMessagesRequest()
-            .clusterId(CLUSTER_ID)
-            .topicName(BROWSE_TOPIC)
-            .keyFilter("key-0")
-            .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
+                .clusterId(CLUSTER_ID)
+                .topicName(BROWSE_TOPIC)
+                .keyFilter("key-0")
+                .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
 
         var response = resource.browseMessages(request, 50);
 
@@ -141,13 +145,14 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
 
     @Test
     void should_return_200_with_messages_filtered_by_value() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new BrowseMessagesRequest()
-            .clusterId(CLUSTER_ID)
-            .topicName(BROWSE_TOPIC)
-            .valueFilter("index\":0")
-            .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
+                .clusterId(CLUSTER_ID)
+                .topicName(BROWSE_TOPIC)
+                .valueFilter("index\":0")
+                .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
 
         var response = resource.browseMessages(request, 50);
 
@@ -159,12 +164,13 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
 
     @Test
     void should_return_200_with_limited_messages() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new BrowseMessagesRequest()
-            .clusterId(CLUSTER_ID)
-            .topicName(BROWSE_TOPIC)
-            .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
+                .clusterId(CLUSTER_ID)
+                .topicName(BROWSE_TOPIC)
+                .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
 
         var response = resource.browseMessages(request, 2);
 
@@ -208,7 +214,8 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
 
     @Test
     void should_return_502_when_broker_unreachable() {
-        givenClusterWithConfig(Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new BrowseMessagesRequest().clusterId(CLUSTER_ID).topicName(BROWSE_TOPIC);
 

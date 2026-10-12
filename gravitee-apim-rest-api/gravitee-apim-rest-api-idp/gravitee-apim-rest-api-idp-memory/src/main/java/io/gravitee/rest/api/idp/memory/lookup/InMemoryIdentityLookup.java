@@ -69,11 +69,10 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
 
     @Override
     public Collection<User> search(String query) {
-        return users
-            .stream()
-            .filter(username -> username.contains(query))
-            .map(username -> convert(userDetailsService.loadUserByUsername(username)))
-            .collect(Collectors.toList());
+        return users.stream()
+                .filter(username -> username.contains(query))
+                .map(username -> convert(userDetailsService.loadUserByUsername(username)))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -96,7 +95,8 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
                 userIdx++;
 
                 io.gravitee.rest.api.idp.api.authentication.UserDetails newUser =
-                    new io.gravitee.rest.api.idp.api.authentication.UserDetails(username, password, email, authorities);
+                        new io.gravitee.rest.api.idp.api.authentication.UserDetails(
+                                username, password, email, authorities);
 
                 newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
                 newUser.setSourceId(username);
@@ -129,12 +129,11 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
         user.setFirstname(userDetails.getFirstname());
         user.setLastname(userDetails.getLastname());
 
-        if (userDetails.getAuthorities() != null && !userDetails.getAuthorities().isEmpty()) {
-            final Map<String, String> roles = userDetails
-                .getAuthorities()
-                .stream()
-                .map(g -> g.getAuthority().split(":"))
-                .collect(Collectors.toMap(values -> values[0], values -> values[1]));
+        if (userDetails.getAuthorities() != null
+                && !userDetails.getAuthorities().isEmpty()) {
+            final Map<String, String> roles = userDetails.getAuthorities().stream()
+                    .map(g -> g.getAuthority().split(":"))
+                    .collect(Collectors.toMap(values -> values[0], values -> values[1]));
             user.setRoles(roles);
         }
         return user;

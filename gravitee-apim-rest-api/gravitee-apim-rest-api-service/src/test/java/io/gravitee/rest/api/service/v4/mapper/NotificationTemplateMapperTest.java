@@ -74,19 +74,19 @@ public class NotificationTemplateMapperTest {
 
     private NotificationTemplateCommandEntity aNotificationTemplateCommandEntity(Instant now) {
         return NotificationTemplateCommandEntity.builder()
-            .id("1")
-            .hook("hook")
-            .scope("scope")
-            .name("name")
-            .description("description")
-            .title("title")
-            .content("content")
-            .type(NotificationTemplateType.EMAIL)
-            .createdAt(Date.from(now))
-            .updatedAt(Date.from(now))
-            .enabled(false)
-            .templateName("template name")
-            .build();
+                .id("1")
+                .hook("hook")
+                .scope("scope")
+                .name("name")
+                .description("description")
+                .title("title")
+                .content("content")
+                .type(NotificationTemplateType.EMAIL)
+                .createdAt(Date.from(now))
+                .updatedAt(Date.from(now))
+                .enabled(false)
+                .templateName("template name")
+                .build();
     }
 
     private static NotificationTemplateEntity aNotificationTemplateEntity(Instant now) {

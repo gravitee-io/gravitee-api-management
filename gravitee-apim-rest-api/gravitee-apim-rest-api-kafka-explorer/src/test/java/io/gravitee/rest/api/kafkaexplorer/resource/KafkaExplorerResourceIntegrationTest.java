@@ -42,19 +42,17 @@ class KafkaExplorerResourceIntegrationTest extends AbstractKafkaExplorerResource
 
         @Test
         void should_return_200_with_valid_credentials() {
-            givenClusterWithConfig(
-                Map.of(
+            givenClusterWithConfig(Map.of(
                     "bootstrapServers",
                     saslBootstrapServers(),
                     "security",
                     Map.of(
-                        "protocol",
-                        "SASL_PLAINTEXT",
-                        "sasl",
-                        Map.of("mechanism", Map.of("type", "PLAIN", "username", SASL_USERNAME, "password", SASL_PASSWORD))
-                    )
-                )
-            );
+                            "protocol",
+                            "SASL_PLAINTEXT",
+                            "sasl",
+                            Map.of(
+                                    "mechanism",
+                                    Map.of("type", "PLAIN", "username", SASL_USERNAME, "password", SASL_PASSWORD)))));
 
             var request = new DescribeClusterRequest().clusterId(CLUSTER_ID);
 
@@ -68,19 +66,23 @@ class KafkaExplorerResourceIntegrationTest extends AbstractKafkaExplorerResource
 
         @Test
         void should_return_502_with_wrong_credentials() {
-            givenClusterWithConfig(
-                Map.of(
+            givenClusterWithConfig(Map.of(
                     "bootstrapServers",
                     saslBootstrapServers(),
                     "security",
                     Map.of(
-                        "protocol",
-                        "SASL_PLAINTEXT",
-                        "sasl",
-                        Map.of("mechanism", Map.of("type", "PLAIN", "username", SASL_USERNAME, "password", "wrong-password"))
-                    )
-                )
-            );
+                            "protocol",
+                            "SASL_PLAINTEXT",
+                            "sasl",
+                            Map.of(
+                                    "mechanism",
+                                    Map.of(
+                                            "type",
+                                            "PLAIN",
+                                            "username",
+                                            SASL_USERNAME,
+                                            "password",
+                                            "wrong-password")))));
 
             var request = new DescribeClusterRequest().clusterId(CLUSTER_ID);
 
@@ -96,8 +98,8 @@ class KafkaExplorerResourceIntegrationTest extends AbstractKafkaExplorerResource
     class Ssl {
 
         private static final String TRUSTSTORE_PATH = Path.of("src/test/resources/docker/ssl/broker.truststore.p12")
-            .toAbsolutePath()
-            .toString();
+                .toAbsolutePath()
+                .toString();
         private static final String TRUSTSTORE_PASSWORD = "test1234";
 
         @Test
@@ -105,11 +107,14 @@ class KafkaExplorerResourceIntegrationTest extends AbstractKafkaExplorerResource
             var sslConfig = new HashMap<String, Object>();
             sslConfig.put("trustAll", false);
             sslConfig.put("hostnameVerifier", false);
-            sslConfig.put("trustStore", Map.of("type", "PKCS12", "path", TRUSTSTORE_PATH, "password", TRUSTSTORE_PASSWORD));
+            sslConfig.put(
+                    "trustStore", Map.of("type", "PKCS12", "path", TRUSTSTORE_PATH, "password", TRUSTSTORE_PASSWORD));
 
-            givenClusterWithConfig(
-                Map.of("bootstrapServers", sslBootstrapServers(), "security", Map.of("protocol", "SSL", "ssl", sslConfig))
-            );
+            givenClusterWithConfig(Map.of(
+                    "bootstrapServers",
+                    sslBootstrapServers(),
+                    "security",
+                    Map.of("protocol", "SSL", "ssl", sslConfig)));
 
             var request = new DescribeClusterRequest().clusterId(CLUSTER_ID);
 
@@ -129,11 +134,14 @@ class KafkaExplorerResourceIntegrationTest extends AbstractKafkaExplorerResource
             var sslConfig = new HashMap<String, Object>();
             sslConfig.put("trustAll", false);
             sslConfig.put("hostnameVerifier", false);
-            sslConfig.put("trustStore", Map.of("type", "PKCS12", "content", base64Content, "password", TRUSTSTORE_PASSWORD));
+            sslConfig.put(
+                    "trustStore", Map.of("type", "PKCS12", "content", base64Content, "password", TRUSTSTORE_PASSWORD));
 
-            givenClusterWithConfig(
-                Map.of("bootstrapServers", sslBootstrapServers(), "security", Map.of("protocol", "SSL", "ssl", sslConfig))
-            );
+            givenClusterWithConfig(Map.of(
+                    "bootstrapServers",
+                    sslBootstrapServers(),
+                    "security",
+                    Map.of("protocol", "SSL", "ssl", sslConfig)));
 
             var request = new DescribeClusterRequest().clusterId(CLUSTER_ID);
 

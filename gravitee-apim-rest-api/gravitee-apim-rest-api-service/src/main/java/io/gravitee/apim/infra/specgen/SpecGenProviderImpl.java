@@ -52,11 +52,10 @@ public class SpecGenProviderImpl implements SpecGenProvider {
     private final boolean specGenEnabled;
 
     public SpecGenProviderImpl(
-        @Value("${cloud.enabled:false}") boolean cloudEnabled,
-        @Value("${spec-gen.enabled:false}") boolean specGenEnabled,
-        @Lazy CockpitConnector cockpitConnector,
-        @Lazy InstallationService installationService
-    ) {
+            @Value("${cloud.enabled:false}") boolean cloudEnabled,
+            @Value("${spec-gen.enabled:false}") boolean specGenEnabled,
+            @Lazy CockpitConnector cockpitConnector,
+            @Lazy InstallationService installationService) {
         this.cloudEnabled = cloudEnabled;
         this.specGenEnabled = specGenEnabled;
         this.cockpitConnector = cockpitConnector;
@@ -71,24 +70,26 @@ public class SpecGenProviderImpl implements SpecGenProvider {
         var command = new SpecGenRequestCommand(buildPayload(apiId, Operation.valueOf(operation.name()), userId));
 
         return cockpitConnector
-            .sendCommand(command)
-            .cast(SpecGenRequestReply.class)
-            .map(reply -> new ApiSpecGenRequestReply(ApiSpecGenRequestState.valueOf(reply.getRequestState().name())))
-            .doOnError(t ->
-                log.error("An error had occurred while sending command [{}] with payload [{}]", command.getId(), command.getPayload(), t)
-            )
-            .onErrorResumeWith(Single.just(new ApiSpecGenRequestReply(UNAVAILABLE)));
+                .sendCommand(command)
+                .cast(SpecGenRequestReply.class)
+                .map(reply -> new ApiSpecGenRequestReply(
+                        ApiSpecGenRequestState.valueOf(reply.getRequestState().name())))
+                .doOnError(t -> log.error(
+                        "An error had occurred while sending command [{}] with payload [{}]",
+                        command.getId(),
+                        command.getPayload(),
+                        t))
+                .onErrorResumeWith(Single.just(new ApiSpecGenRequestReply(UNAVAILABLE)));
     }
 
     private SpecGenCommandPayload<SpecGenRequest> buildPayload(String apiId, Operation operation, String userId) {
         var context = getExecutionContext();
 
         return new SpecGenCommandPayload<>(
-            generateRandom(),
-            context.getOrganizationId(),
-            context.getEnvironmentId(),
-            installationService.get().getAdditionalInformation().get(COCKPIT_INSTALLATION_ID),
-            new SpecGenRequest(apiId, OPEN_API, operation, userId)
-        );
+                generateRandom(),
+                context.getOrganizationId(),
+                context.getEnvironmentId(),
+                installationService.get().getAdditionalInformation().get(COCKPIT_INSTALLATION_ID),
+                new SpecGenRequest(apiId, OPEN_API, operation, userId));
     }
 }

@@ -35,58 +35,61 @@ class AnalyticsVocabularyMappingTest {
      */
     private static Set<String> logsOnlyFilterNames() {
         var catalog = new AnalyticsDefinitionYAMLQueryService();
-        var analytics = catalog
-            .getFilters(Set.of(Signal.ANALYTICS))
-            .stream()
-            .map(spec -> spec.name().name())
-            .collect(Collectors.toSet());
+        var analytics = catalog.getFilters(Set.of(Signal.ANALYTICS)).stream()
+                .map(spec -> spec.name().name())
+                .collect(Collectors.toSet());
 
-        return catalog
-            .getAllFilters()
-            .stream()
-            .map(spec -> spec.name().name())
-            .filter(name -> !analytics.contains(name))
-            .collect(Collectors.toSet());
+        return catalog.getAllFilters().stream()
+                .map(spec -> spec.name().name())
+                .filter(name -> !analytics.contains(name))
+                .collect(Collectors.toSet());
     }
 
     @Test
     void should_refuse_exactly_the_logs_only_filters_on_the_analytics_catalog() {
         var refused = Arrays.stream(FilterSpec.Name.values())
-            .filter(name -> {
-                try {
-                    AnalyticsDefinitionMapper.INSTANCE.mapAnalyticsFilterName(name);
-                    return false;
-                } catch (IllegalArgumentException e) {
-                    return true;
-                }
-            })
-            .map(Enum::name)
-            .collect(java.util.stream.Collectors.toSet());
+                .filter(name -> {
+                    try {
+                        AnalyticsDefinitionMapper.INSTANCE.mapAnalyticsFilterName(name);
+                        return false;
+                    } catch (IllegalArgumentException e) {
+                        return true;
+                    }
+                })
+                .map(Enum::name)
+                .collect(java.util.stream.Collectors.toSet());
 
         assertThat(refused)
-            .as("AnalyticsQueryValidator rejects these at query time; the catalog must not advertise them")
-            .isEqualTo(logsOnlyFilterNames());
+                .as("AnalyticsQueryValidator rejects these at query time; the catalog must not advertise them")
+                .isEqualTo(logsOnlyFilterNames());
     }
 
     @Test
     void should_map_every_analytics_filter_onto_the_same_generated_name() {
         var renamed = Arrays.stream(FilterSpec.Name.values())
-            .filter(name -> !logsOnlyFilterNames().contains(name.name()))
-            .filter(name -> !AnalyticsDefinitionMapper.INSTANCE.mapAnalyticsFilterName(name).name().equals(name.name()))
-            .toList();
+                .filter(name -> !logsOnlyFilterNames().contains(name.name()))
+                .filter(name -> !AnalyticsDefinitionMapper.INSTANCE
+                        .mapAnalyticsFilterName(name)
+                        .name()
+                        .equals(name.name()))
+                .toList();
 
-        assertThat(renamed).as("the REST contract name must equal the core name, or clients receive an unknown filter").isEmpty();
+        assertThat(renamed)
+                .as("the REST contract name must equal the core name, or clients receive an unknown filter")
+                .isEmpty();
     }
 
     @Test
     void should_map_every_filter_onto_the_observability_catalog() {
         var unmapped = Arrays.stream(FilterSpec.Name.values())
-            .filter(name -> {
-                var mapped = AnalyticsDefinitionMapper.INSTANCE.mapObservabilityFilterName(name);
-                return mapped == null || !mapped.name().equals(name.name());
-            })
-            .toList();
+                .filter(name -> {
+                    var mapped = AnalyticsDefinitionMapper.INSTANCE.mapObservabilityFilterName(name);
+                    return mapped == null || !mapped.name().equals(name.name());
+                })
+                .toList();
 
-        assertThat(unmapped).as("the observability catalog carries every filter, logs-only ones included").isEmpty();
+        assertThat(unmapped)
+                .as("the observability catalog carries every filter, logs-only ones included")
+                .isEmpty();
     }
 }

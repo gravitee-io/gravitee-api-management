@@ -50,55 +50,51 @@ public class UpdateIntegrationUseCase {
 
         var validatedGroups = validateGroups(input);
 
-        var integration = integrationCrudService.findById(integrationId).orElseThrow(() -> new IntegrationNotFoundException(integrationId));
+        var integration = integrationCrudService
+                .findById(integrationId)
+                .orElseThrow(() -> new IntegrationNotFoundException(integrationId));
         var integrationToUpdate = switch (integration) {
-            case Integration.ApiIntegration apiIntegration -> apiIntegration.update(
-                input.updateFields().name(),
-                input.updateFields().description(),
-                validatedGroups
-            );
-            case Integration.A2aIntegration a2aIntegration -> a2aIntegration.update(
-                input.updateFields().name(),
-                input.updateFields().description(),
-                validatedGroups,
-                input.updateFields().wellKnownUrls()
-            );
+            case Integration.ApiIntegration apiIntegration ->
+                apiIntegration.update(
+                        input.updateFields().name(), input.updateFields().description(), validatedGroups);
+            case Integration.A2aIntegration a2aIntegration ->
+                a2aIntegration.update(
+                        input.updateFields().name(),
+                        input.updateFields().description(),
+                        validatedGroups,
+                        input.updateFields().wellKnownUrls());
         };
 
         return new Output(integrationCrudService.update(integrationToUpdate));
     }
 
     private Set<String> validateGroups(Input input) {
-        var validationResult = validateGroupsDomainService.validateAndSanitize(
-            new ValidateGroupsDomainService.Input(
+        var validationResult = validateGroupsDomainService.validateAndSanitize(new ValidateGroupsDomainService.Input(
                 input.auditInfo.environmentId(),
                 input.updateFields().groups(),
                 null,
                 null,
                 Group.GroupEvent.API_CREATE,
-                false
-            )
-        );
+                false));
 
-        if (validationResult.errors().isPresent() && !validationResult.errors().get().isEmpty()) {
-            validationResult
-                .errors()
-                .get()
-                .forEach(error -> log.error(error.getMessage(), error));
+        if (validationResult.errors().isPresent()
+                && !validationResult.errors().get().isEmpty()) {
+            validationResult.errors().get().forEach(error -> log.error(error.getMessage(), error));
             throw new IntegrationGroupValidationException(input.integrationId());
         }
 
-        return validationResult.value().isPresent() ? validationResult.value().get().groups() : Set.of();
+        return validationResult.value().isPresent()
+                ? validationResult.value().get().groups()
+                : Set.of();
     }
 
     @Builder
     public record Input(String integrationId, UpdateFields updateFields, AuditInfo auditInfo) {
         public record UpdateFields(
-            String name,
-            String description,
-            Set<String> groups,
-            Collection<Integration.A2aIntegration.WellKnownUrl> wellKnownUrls
-        ) {}
+                String name,
+                String description,
+                Set<String> groups,
+                Collection<Integration.A2aIntegration.WellKnownUrl> wellKnownUrls) {}
     }
 
     public record Output(Integration integration) {}

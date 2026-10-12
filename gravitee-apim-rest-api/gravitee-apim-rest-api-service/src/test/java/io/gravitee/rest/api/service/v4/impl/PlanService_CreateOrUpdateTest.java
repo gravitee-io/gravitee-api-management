@@ -189,7 +189,9 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getReferenceType()).thenReturn(GenericPlanEntity.ReferenceType.API);
         mockPrivateCreate(expected);
 
-        doThrow(PlanNotFoundException.class).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        doThrow(PlanNotFoundException.class)
+                .when(planSearchService)
+                .findById(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
@@ -218,7 +220,8 @@ public class PlanService_CreateOrUpdateTest {
     @Test
     public void shouldPassApiResourceNamesIntoFlowValidationOnCreate() throws Exception {
         final PlanEntity expected = initPlanEntity("created");
-        String definitionJson = "{\"resources\":[{\"name\":\"schema-registry\",\"type\":\"schema-registry\",\"configuration\":{}}]}";
+        String definitionJson =
+                "{\"resources\":[{\"name\":\"schema-registry\",\"type\":\"schema-registry\",\"configuration\":{}}]}";
 
         when(planEntity.getId()).thenReturn(null);
         when(planEntity.getSecurity()).thenReturn(new PlanSecurity("oauth2", "{ \"foo\": \"bar\"}"));
@@ -228,19 +231,17 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getFlows()).thenReturn(List.of(new Flow()));
         when(api.getDefinition()).thenReturn(definitionJson);
         when(api.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
-        when(objectMapper.readValue(eq(definitionJson), eq(io.gravitee.definition.model.v4.Api.class))).thenReturn(
-            new ObjectMapper().readValue(definitionJson, io.gravitee.definition.model.v4.Api.class)
-        );
-        when(flowValidationService.validateAndSanitize(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(objectMapper.readValue(eq(definitionJson), eq(io.gravitee.definition.model.v4.Api.class)))
+                .thenReturn(new ObjectMapper().readValue(definitionJson, io.gravitee.definition.model.v4.Api.class));
+        when(flowValidationService.validateAndSanitize(any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
         mockPrivateCreate(expected);
 
         planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
-        verify(flowValidationService).validateAndSanitize(
-            eq(io.gravitee.definition.model.v4.ApiType.PROXY),
-            any(),
-            eq(Set.of("schema-registry"))
-        );
+        verify(flowValidationService)
+                .validateAndSanitize(
+                        eq(io.gravitee.definition.model.v4.ApiType.PROXY), any(), eq(Set.of("schema-registry")));
     }
 
     @Test
@@ -265,9 +266,9 @@ public class PlanService_CreateOrUpdateTest {
         when(oldPlan.getEnvironmentId()).thenReturn(ENV_ID);
 
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(oldPlan));
-        when(
-            parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
         when(planRepository.update(any())).thenAnswer(returnsFirstArg());
 
         planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
@@ -289,9 +290,9 @@ public class PlanService_CreateOrUpdateTest {
         when(plan.getMode()).thenReturn(Plan.PlanMode.STANDARD);
 
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(
-            parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
 
         when(planRepository.update(any())).thenAnswer(returnsFirstArg());
     }
@@ -307,9 +308,9 @@ public class PlanService_CreateOrUpdateTest {
         when(plan.getReferenceType()).thenReturn(Plan.PlanReferenceType.API);
         lenient().when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.create(any())).thenReturn(plan);
-        when(
-            parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
     }
 
     private PlanEntity initPlanEntity(String planId) {

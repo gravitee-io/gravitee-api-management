@@ -61,10 +61,10 @@ class ApiOwnedNavigationDomainServiceTest {
     private static final String OTHER_API_ID = "api-b";
 
     private final PortalNavigationItemsCrudServiceInMemory crudService = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory(
-        crudService.storage()
-    );
-    private final ApiOwnedNavigationDomainService service = new ApiOwnedNavigationDomainService(queryService, crudService);
+    private final PortalNavigationItemsQueryServiceInMemory queryService =
+            new PortalNavigationItemsQueryServiceInMemory(crudService.storage());
+    private final ApiOwnedNavigationDomainService service =
+            new ApiOwnedNavigationDomainService(queryService, crudService);
 
     @Nested
     class FindOwnedItems {
@@ -79,25 +79,35 @@ class ApiOwnedNavigationDomainServiceTest {
         @Test
         void should_return_owned_items_at_any_depth() {
             var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
-            var nestedFolder = aFolder("OAuth", folder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
-            var nestedPage = aPage("Setup", nestedFolder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
+            var nestedFolder = aFolder("OAuth", folder.getId()).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .build();
+            var nestedPage = aPage("Setup", nestedFolder.getId()).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .build();
             queryService.initWith(List.of(folder, nestedFolder, nestedPage));
 
             assertThat(service.findOwnedItems(ENV_ID, API_ID))
-                .extracting(PortalNavigationItem::getId)
-                .containsExactlyInAnyOrder(folder.getId(), nestedFolder.getId(), nestedPage.getId());
+                    .extracting(PortalNavigationItem::getId)
+                    .containsExactlyInAnyOrder(folder.getId(), nestedFolder.getId(), nestedPage.getId());
         }
 
         @Test
         void should_not_return_items_owned_by_another_api_or_by_the_portal() {
-            var owned = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
-            var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+            var owned = aPage("Overview", null).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .build();
+            var foreign = aPage("Other overview", null).toBuilder()
+                    .reference(ownedBy(OTHER_API_ID))
+                    .build();
             var section = aFolder("APIs");
             var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
             var storedUnderListing = aPage("Legacy page", listing.getId());
             queryService.initWith(List.of(owned, foreign, section, listing, storedUnderListing));
 
-            assertThat(service.findOwnedItems(ENV_ID, API_ID)).extracting(PortalNavigationItem::getId).containsExactly(owned.getId());
+            assertThat(service.findOwnedItems(ENV_ID, API_ID))
+                    .extracting(PortalNavigationItem::getId)
+                    .containsExactly(owned.getId());
         }
     }
 
@@ -107,33 +117,47 @@ class ApiOwnedNavigationDomainServiceTest {
         @Test
         void should_not_return_a_child_owned_by_someone_else_stored_under_an_owned_folder() {
             var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
-            var ownedPage = aPage("Setup", folder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
+            var ownedPage = aPage("Setup", folder.getId()).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .build();
             var portalPage = aPage("Portal page", folder.getId());
-            var foreignFolder = aFolder("Foreign", folder.getId()).toBuilder().reference(ownedBy(OTHER_API_ID)).build();
-            var pageUnderForeignFolder = aPage("Nested", foreignFolder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
+            var foreignFolder = aFolder("Foreign", folder.getId()).toBuilder()
+                    .reference(ownedBy(OTHER_API_ID))
+                    .build();
+            var pageUnderForeignFolder = aPage("Nested", foreignFolder.getId()).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .build();
             queryService.initWith(List.of(folder, ownedPage, portalPage, foreignFolder, pageUnderForeignFolder));
 
             assertThat(service.findOwnedItems(ENV_ID, API_ID))
-                .extracting(PortalNavigationItem::getId)
-                .containsExactlyInAnyOrder(folder.getId(), ownedPage.getId());
+                    .extracting(PortalNavigationItem::getId)
+                    .containsExactlyInAnyOrder(folder.getId(), ownedPage.getId());
         }
 
         @Test
         @Timeout(5)
         void should_return_each_item_once_when_the_hierarchy_loops() {
             var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
-            var page = aPage("Setup", folder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
+            var page = aPage("Setup", folder.getId()).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .build();
             // A corrupted hierarchy in which the folder is also reported as a child of its own page
             var loopingQueryService = new PortalNavigationItemsQueryServiceInMemory(List.of(folder, page)) {
                 @Override
-                public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {
-                    return page.getId().equals(parentId) ? List.of(folder) : super.findByParentIdAndEnvironmentId(environmentId, parentId);
+                public List<PortalNavigationItem> findByParentIdAndEnvironmentId(
+                        String environmentId, PortalNavigationItemId parentId) {
+                    return page.getId().equals(parentId)
+                            ? List.of(folder)
+                            : super.findByParentIdAndEnvironmentId(environmentId, parentId);
                 }
             };
 
-            var ownedItems = new ApiOwnedNavigationDomainService(loopingQueryService, crudService).findOwnedItems(ENV_ID, API_ID);
+            var ownedItems = new ApiOwnedNavigationDomainService(loopingQueryService, crudService)
+                    .findOwnedItems(ENV_ID, API_ID);
 
-            assertThat(ownedItems).extracting(PortalNavigationItem::getId).containsExactlyInAnyOrder(folder.getId(), page.getId());
+            assertThat(ownedItems)
+                    .extracting(PortalNavigationItem::getId)
+                    .containsExactlyInAnyOrder(folder.getId(), page.getId());
         }
 
         @Test
@@ -141,24 +165,26 @@ class ApiOwnedNavigationDomainServiceTest {
             var items = new ArrayList<PortalNavigationItem>();
             PortalNavigationItemId parentId = null;
             for (int depth = 0; depth < 20_000; depth++) {
-                var folder = aFolder("Level " + depth, parentId).toBuilder().reference(ownedBy(API_ID)).build();
+                var folder = aFolder("Level " + depth, parentId).toBuilder()
+                        .reference(ownedBy(API_ID))
+                        .build();
                 items.add(folder);
                 parentId = folder.getId();
             }
-            var childrenByParentId = items
-                .stream()
-                .filter(PortalNavigationItem::hasParent)
-                .collect(Collectors.toMap(PortalNavigationItem::getParentId, List::of));
+            var childrenByParentId = items.stream()
+                    .filter(PortalNavigationItem::hasParent)
+                    .collect(Collectors.toMap(PortalNavigationItem::getParentId, List::of));
             var indexedQueryService = new PortalNavigationItemsQueryServiceInMemory(items) {
                 @Override
-                public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {
+                public List<PortalNavigationItem> findByParentIdAndEnvironmentId(
+                        String environmentId, PortalNavigationItemId parentId) {
                     return childrenByParentId.getOrDefault(parentId, List.of());
                 }
             };
 
-            assertThat(new ApiOwnedNavigationDomainService(indexedQueryService, crudService).findOwnedItems(ENV_ID, API_ID)).hasSize(
-                20_000
-            );
+            assertThat(new ApiOwnedNavigationDomainService(indexedQueryService, crudService)
+                            .findOwnedItems(ENV_ID, API_ID))
+                    .hasSize(20_000);
         }
     }
 
@@ -231,8 +257,9 @@ class ApiOwnedNavigationDomainServiceTest {
             queryService.initWith(List.of(folder, listing));
 
             assertThatThrownBy(() -> service.findStandaloneListings(ENV_ID, API_ID))
-                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessage(InvalidPortalNavigationItemDataException.cyclicParentHierarchy().getMessage());
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessage(InvalidPortalNavigationItemDataException.cyclicParentHierarchy()
+                            .getMessage());
         }
     }
 
@@ -247,11 +274,12 @@ class ApiOwnedNavigationDomainServiceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { false, true })
+        @ValueSource(booleans = {false, true})
         void should_recognize_direct_and_folder_nested_api_product_members(boolean nested) {
             var product = anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-id");
             var folder = aFolder("Members", product.getId());
-            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", nested ? folder.getId() : product.getId(), API_ID);
+            var listing = anApi(
+                    PortalNavigationItemId.random().json(), "Api A", nested ? folder.getId() : product.getId(), API_ID);
             queryService.initWith(List.of(product, folder, listing));
 
             assertThat(service.isInApiProductContext(ENV_ID, listing)).isTrue();
@@ -264,39 +292,43 @@ class ApiOwnedNavigationDomainServiceTest {
 
         @Test
         void should_return_false_when_the_parent_is_missing() {
-            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", PortalNavigationItemId.random(), API_ID);
+            var listing =
+                    anApi(PortalNavigationItemId.random().json(), "Api A", PortalNavigationItemId.random(), API_ID);
 
             assertThat(service.isInApiProductContext(ENV_ID, listing)).isFalse();
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { false, true })
+        @ValueSource(booleans = {false, true})
         void should_cache_the_entire_chain_and_read_shared_ancestors_once(boolean productContext) {
             PortalNavigationItem root = productContext
-                ? anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-id")
-                : aFolder("APIs");
+                    ? anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-id")
+                    : aFolder("APIs");
             var sharedAncestor = aFolder("Shared ancestor", root.getId());
             var sharedParent = aFolder("Shared parent", sharedAncestor.getId());
             var first = anApi(PortalNavigationItemId.random().json(), "First listing", sharedParent.getId(), API_ID);
             var second = anApi(PortalNavigationItemId.random().json(), "Second listing", sharedParent.getId(), API_ID);
-            var countingQueryService = spy(
-                new PortalNavigationItemsQueryServiceInMemory(List.of(root, sharedAncestor, sharedParent, first, second))
-            );
+            var countingQueryService = spy(new PortalNavigationItemsQueryServiceInMemory(
+                    List.of(root, sharedAncestor, sharedParent, first, second)));
             var countingService = new ApiOwnedNavigationDomainService(countingQueryService, crudService);
             var contextById = new HashMap<PortalNavigationItemId, Boolean>();
 
-            assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById)).isEqualTo(productContext);
-            assertThat(countingService.isInApiProductContext(ENV_ID, second, contextById)).isEqualTo(productContext);
-            assertThat(countingService.isInApiProductContext(ENV_ID, sharedAncestor, contextById)).isEqualTo(productContext);
-            assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById)).isEqualTo(productContext);
+            assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById))
+                    .isEqualTo(productContext);
+            assertThat(countingService.isInApiProductContext(ENV_ID, second, contextById))
+                    .isEqualTo(productContext);
+            assertThat(countingService.isInApiProductContext(ENV_ID, sharedAncestor, contextById))
+                    .isEqualTo(productContext);
+            assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById))
+                    .isEqualTo(productContext);
 
             assertThat(contextById)
-                .hasSize(5)
-                .containsEntry(root.getId(), productContext)
-                .containsEntry(sharedAncestor.getId(), productContext)
-                .containsEntry(sharedParent.getId(), productContext)
-                .containsEntry(first.getId(), productContext)
-                .containsEntry(second.getId(), productContext);
+                    .hasSize(5)
+                    .containsEntry(root.getId(), productContext)
+                    .containsEntry(sharedAncestor.getId(), productContext)
+                    .containsEntry(sharedParent.getId(), productContext)
+                    .containsEntry(first.getId(), productContext)
+                    .containsEntry(second.getId(), productContext);
             verify(countingQueryService).findByIdAndEnvironmentId(ENV_ID, sharedParent.getId());
             verify(countingQueryService).findByIdAndEnvironmentId(ENV_ID, sharedAncestor.getId());
             verify(countingQueryService).findByIdAndEnvironmentId(ENV_ID, root.getId());
@@ -312,20 +344,22 @@ class ApiOwnedNavigationDomainServiceTest {
             var countingService = new ApiOwnedNavigationDomainService(countingQueryService, crudService);
             var contextById = new HashMap<PortalNavigationItemId, Boolean>();
 
-            assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById)).isFalse();
-            assertThat(countingService.isInApiProductContext(ENV_ID, second, contextById)).isFalse();
+            assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById))
+                    .isFalse();
+            assertThat(countingService.isInApiProductContext(ENV_ID, second, contextById))
+                    .isFalse();
 
             assertThat(contextById)
-                .hasSize(3)
-                .containsEntry(first.getId(), false)
-                .containsEntry(second.getId(), false)
-                .containsEntry(missingParentId, false);
+                    .hasSize(3)
+                    .containsEntry(first.getId(), false)
+                    .containsEntry(second.getId(), false)
+                    .containsEntry(missingParentId, false);
             verify(countingQueryService).findByIdAndEnvironmentId(ENV_ID, missingParentId);
             verifyNoMoreInteractions(countingQueryService);
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { false, true })
+        @ValueSource(booleans = {false, true})
         @Timeout(5)
         void should_reject_self_and_multi_node_cycles_without_caching_a_result(boolean multipleNodes) {
             var first = aFolder("First");
@@ -336,8 +370,9 @@ class ApiOwnedNavigationDomainServiceTest {
             var contextById = new HashMap<PortalNavigationItemId, Boolean>();
 
             assertThatThrownBy(() -> service.isInApiProductContext(ENV_ID, listing, contextById))
-                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessage(InvalidPortalNavigationItemDataException.cyclicParentHierarchy().getMessage());
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessage(InvalidPortalNavigationItemDataException.cyclicParentHierarchy()
+                            .getMessage());
             assertThat(contextById).isEmpty();
         }
 
@@ -361,7 +396,9 @@ class ApiOwnedNavigationDomainServiceTest {
 
         @Test
         void should_return_an_item_owned_by_the_api() {
-            var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+            var page = aPage("Overview", null).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .build();
             queryService.initWith(List.of(page));
 
             assertThat(service.requireOwnedItem(ENV_ID, API_ID, page.getId())).isEqualTo(page);
@@ -371,19 +408,19 @@ class ApiOwnedNavigationDomainServiceTest {
         void should_reject_an_unknown_item() {
             var unknownId = PortalNavigationItemId.random();
 
-            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, unknownId)).isInstanceOf(
-                PortalNavigationItemNotFoundException.class
-            );
+            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, unknownId))
+                    .isInstanceOf(PortalNavigationItemNotFoundException.class);
         }
 
         @Test
         void should_reject_an_item_owned_by_another_api() {
-            var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+            var foreign = aPage("Other overview", null).toBuilder()
+                    .reference(ownedBy(OTHER_API_ID))
+                    .build();
             queryService.initWith(List.of(foreign));
 
-            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, foreign.getId())).isInstanceOf(
-                PortalNavigationItemNotFoundException.class
-            );
+            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, foreign.getId()))
+                    .isInstanceOf(PortalNavigationItemNotFoundException.class);
         }
 
         @Test
@@ -393,9 +430,8 @@ class ApiOwnedNavigationDomainServiceTest {
             var storedUnderListing = aPage("Legacy page", listing.getId());
             queryService.initWith(List.of(section, listing, storedUnderListing));
 
-            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, storedUnderListing.getId())).isInstanceOf(
-                PortalNavigationItemNotFoundException.class
-            );
+            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, storedUnderListing.getId()))
+                    .isInstanceOf(PortalNavigationItemNotFoundException.class);
         }
 
         @Test
@@ -404,9 +440,8 @@ class ApiOwnedNavigationDomainServiceTest {
             var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
             queryService.initWith(List.of(section, listing));
 
-            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, listing.getId())).isInstanceOf(
-                PortalNavigationItemNotFoundException.class
-            );
+            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, listing.getId()))
+                    .isInstanceOf(PortalNavigationItemNotFoundException.class);
         }
     }
 
@@ -415,7 +450,9 @@ class ApiOwnedNavigationDomainServiceTest {
 
         @Test
         void should_return_a_page_owned_by_the_api() {
-            var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+            var page = aPage("Overview", null).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .build();
             queryService.initWith(List.of(page));
 
             assertThat(service.requireOwnedPage(ENV_ID, API_ID, page.getId())).isEqualTo(page);
@@ -426,41 +463,40 @@ class ApiOwnedNavigationDomainServiceTest {
             var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
             queryService.initWith(List.of(folder));
 
-            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, folder.getId())).isInstanceOf(
-                InvalidPortalNavigationItemDataException.class
-            );
+            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, folder.getId()))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class);
         }
 
         @Test
         void should_reject_a_link_owned_by_the_api() {
             var link = PortalNavigationLink.builder()
-                .id(PortalNavigationItemId.random())
-                .organizationId(ORG_ID)
-                .environmentId(ENV_ID)
-                .title("Status page")
-                .segment("status-page")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .url("https://status.example.com")
-                .published(false)
-                .visibility(PortalVisibility.PUBLIC)
-                .reference(ownedBy(API_ID))
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .title("Status page")
+                    .segment("status-page")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .url("https://status.example.com")
+                    .published(false)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .reference(ownedBy(API_ID))
+                    .build();
             queryService.initWith(List.of(link));
 
-            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, link.getId())).isInstanceOf(
-                InvalidPortalNavigationItemDataException.class
-            );
+            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, link.getId()))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class);
         }
 
         @Test
         void should_reject_a_page_owned_by_another_api() {
-            var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+            var foreign = aPage("Other overview", null).toBuilder()
+                    .reference(ownedBy(OTHER_API_ID))
+                    .build();
             queryService.initWith(List.of(foreign));
 
-            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, foreign.getId())).isInstanceOf(
-                PortalNavigationItemNotFoundException.class
-            );
+            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, foreign.getId()))
+                    .isInstanceOf(PortalNavigationItemNotFoundException.class);
         }
 
         @Test
@@ -468,18 +504,16 @@ class ApiOwnedNavigationDomainServiceTest {
             var portalPage = aPage("Home", null);
             queryService.initWith(List.of(portalPage));
 
-            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, portalPage.getId())).isInstanceOf(
-                PortalNavigationItemNotFoundException.class
-            );
+            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, portalPage.getId()))
+                    .isInstanceOf(PortalNavigationItemNotFoundException.class);
         }
 
         @Test
         void should_reject_an_unknown_item() {
             var unknownId = PortalNavigationItemId.random();
 
-            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, unknownId)).isInstanceOf(
-                PortalNavigationItemNotFoundException.class
-            );
+            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, unknownId))
+                    .isInstanceOf(PortalNavigationItemNotFoundException.class);
         }
     }
 
@@ -495,21 +529,26 @@ class ApiOwnedNavigationDomainServiceTest {
 
         @Test
         void should_replace_an_owner_set_by_the_caller() {
-            var claimed = service.claimForApi(ENV_ID, API_ID, aPageToCreate().reference(ownedBy(OTHER_API_ID)).build());
+            var claimed = service.claimForApi(
+                    ENV_ID,
+                    API_ID,
+                    aPageToCreate().reference(ownedBy(OTHER_API_ID)).build());
 
             assertThat(claimed.getReference()).isEqualTo(ownedBy(API_ID));
         }
 
         @Test
         void should_force_unpublished_even_when_published_is_requested() {
-            var claimed = service.claimForApi(ENV_ID, API_ID, aPageToCreate().published(true).build());
+            var claimed = service.claimForApi(
+                    ENV_ID, API_ID, aPageToCreate().published(true).build());
 
             assertThat(claimed.getPublished()).isFalse();
         }
 
         @Test
         void should_force_the_top_navigation_area() {
-            var claimed = service.claimForApi(ENV_ID, API_ID, aPageToCreate().area(PortalArea.HOMEPAGE).build());
+            var claimed = service.claimForApi(
+                    ENV_ID, API_ID, aPageToCreate().area(PortalArea.HOMEPAGE).build());
 
             assertThat(claimed.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
         }
@@ -519,18 +558,21 @@ class ApiOwnedNavigationDomainServiceTest {
             var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
             queryService.initWith(List.of(folder));
 
-            var claimed = service.claimForApi(ENV_ID, API_ID, aPageToCreate().parentId(folder.getId()).build());
+            var claimed = service.claimForApi(
+                    ENV_ID, API_ID, aPageToCreate().parentId(folder.getId()).build());
 
             assertThat(claimed.getParentId()).isEqualTo(folder.getId());
         }
 
         @Test
         void should_reject_a_parent_owned_by_another_api() {
-            var foreignFolder = aFolder("Auth").toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+            var foreignFolder =
+                    aFolder("Auth").toBuilder().reference(ownedBy(OTHER_API_ID)).build();
             queryService.initWith(List.of(foreignFolder));
             var item = aPageToCreate().parentId(foreignFolder.getId()).build();
 
-            assertThatThrownBy(() -> service.claimForApi(ENV_ID, API_ID, item)).isInstanceOf(PortalNavigationItemNotFoundException.class);
+            assertThatThrownBy(() -> service.claimForApi(ENV_ID, API_ID, item))
+                    .isInstanceOf(PortalNavigationItemNotFoundException.class);
         }
 
         @Test
@@ -539,25 +581,27 @@ class ApiOwnedNavigationDomainServiceTest {
             queryService.initWith(List.of(section));
             var item = aPageToCreate().parentId(section.getId()).build();
 
-            assertThatThrownBy(() -> service.claimForApi(ENV_ID, API_ID, item)).isInstanceOf(PortalNavigationItemNotFoundException.class);
+            assertThatThrownBy(() -> service.claimForApi(ENV_ID, API_ID, item))
+                    .isInstanceOf(PortalNavigationItemNotFoundException.class);
         }
 
         @ParameterizedTest
-        @EnumSource(value = PortalNavigationItemType.class, names = { "API", "API_PRODUCT" })
+        @EnumSource(
+                value = PortalNavigationItemType.class,
+                names = {"API", "API_PRODUCT"})
         void should_reject_a_type_that_is_not_documentation(PortalNavigationItemType type) {
             var item = aPageToCreate().type(type).build();
 
-            assertThatThrownBy(() -> service.claimForApi(ENV_ID, API_ID, item)).isInstanceOf(
-                InvalidPortalNavigationItemDataException.class
-            );
+            assertThatThrownBy(() -> service.claimForApi(ENV_ID, API_ID, item))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class);
         }
 
         private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder aPageToCreate() {
             return CreatePortalNavigationItem.builder()
-                .title("Overview")
-                .type(PortalNavigationItemType.PAGE)
-                .area(PortalArea.TOP_NAVBAR)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN);
+                    .title("Overview")
+                    .type(PortalNavigationItemType.PAGE)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN);
         }
     }
 
@@ -566,39 +610,55 @@ class ApiOwnedNavigationDomainServiceTest {
 
         @Test
         void should_set_the_flag_on_every_item_the_api_owns_at_any_depth() {
-            var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).published(false).build();
-            var nestedFolder = aFolder("OAuth", folder.getId()).toBuilder().reference(ownedBy(API_ID)).published(false).build();
-            var nestedPage = aPage("Setup", nestedFolder.getId()).toBuilder().reference(ownedBy(API_ID)).published(false).build();
+            var folder = aFolder("Auth").toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .published(false)
+                    .build();
+            var nestedFolder = aFolder("OAuth", folder.getId()).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .published(false)
+                    .build();
+            var nestedPage = aPage("Setup", nestedFolder.getId()).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .published(false)
+                    .build();
             queryService.initWith(List.of(folder, nestedFolder, nestedPage));
 
             service.setPublished(ENV_ID, API_ID, true);
 
             assertThat(crudService.storage())
-                .hasSize(3)
-                .allSatisfy(item -> assertThat(item.getPublished()).isTrue());
+                    .hasSize(3)
+                    .allSatisfy(item -> assertThat(item.getPublished()).isTrue());
         }
 
         @Test
         void should_unset_the_flag_on_every_item_the_api_owns() {
-            var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(true).build();
+            var page = aPage("Overview", null).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .published(true)
+                    .build();
             queryService.initWith(List.of(page));
 
             service.setPublished(ENV_ID, API_ID, false);
 
             assertThat(crudService.storage())
-                .singleElement()
-                .satisfies(item -> assertThat(item.getPublished()).isFalse());
+                    .singleElement()
+                    .satisfies(item -> assertThat(item.getPublished()).isFalse());
         }
 
         @Test
         void should_not_touch_items_of_another_api_or_of_the_portal() {
-            var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).published(false).build();
+            var foreign = aPage("Other overview", null).toBuilder()
+                    .reference(ownedBy(OTHER_API_ID))
+                    .published(false)
+                    .build();
             var section = aFolder("APIs").toBuilder().published(false).build();
             queryService.initWith(List.of(foreign, section));
 
             service.setPublished(ENV_ID, API_ID, true);
 
-            assertThat(crudService.storage()).allSatisfy(item -> assertThat(item.getPublished()).isFalse());
+            assertThat(crudService.storage())
+                    .allSatisfy(item -> assertThat(item.getPublished()).isFalse());
         }
     }
 
@@ -617,7 +677,8 @@ class ApiOwnedNavigationDomainServiceTest {
         void should_reject_an_unknown_section() {
             var unknownId = PortalNavigationItemId.random();
 
-            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, unknownId)).isInstanceOf(ParentNotFoundException.class);
+            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, unknownId))
+                    .isInstanceOf(ParentNotFoundException.class);
         }
 
         @Test
@@ -641,7 +702,9 @@ class ApiOwnedNavigationDomainServiceTest {
 
         @Test
         void should_reject_a_folder_outside_the_main_navigation() {
-            var homepageFolder = aFolder("Homepage blocks").toBuilder().area(PortalArea.HOMEPAGE).build();
+            var homepageFolder = aFolder("Homepage blocks").toBuilder()
+                    .area(PortalArea.HOMEPAGE)
+                    .build();
             queryService.initWith(List.of(homepageFolder));
 
             assertNotAPublishLocation(homepageFolder.getId());
@@ -649,7 +712,8 @@ class ApiOwnedNavigationDomainServiceTest {
 
         @Test
         void should_reject_a_folder_owned_by_an_api() {
-            var apiFolder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
+            var apiFolder =
+                    aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
             queryService.initWith(List.of(apiFolder));
 
             assertNotAPublishLocation(apiFolder.getId());
@@ -664,9 +728,8 @@ class ApiOwnedNavigationDomainServiceTest {
         }
 
         private void assertNotAPublishLocation(PortalNavigationItemId id) {
-            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, id)).isInstanceOf(
-                InvalidPortalNavigationItemDataException.class
-            );
+            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, id))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class);
         }
     }
 

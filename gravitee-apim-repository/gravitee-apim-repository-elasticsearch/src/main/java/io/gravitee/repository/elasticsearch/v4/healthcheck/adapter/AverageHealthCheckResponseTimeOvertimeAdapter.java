@@ -29,14 +29,17 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class AverageHealthCheckResponseTimeOvertimeAdapter
-    implements QueryResponseAdapter<AverageHealthCheckResponseTimeOvertimeQuery, AverageHealthCheckResponseTimeOvertime> {
+        implements QueryResponseAdapter<
+                AverageHealthCheckResponseTimeOvertimeQuery, AverageHealthCheckResponseTimeOvertime> {
 
     private static final String TIME_FIELD = "@timestamp";
     public static final String AGGREGATION_BY_DATE = "by_date";
     public static final String AGGREGATION_AVG_RESPONSE_TIME = "avg_response-time";
 
     public JsonNode adaptQuery(AverageHealthCheckResponseTimeOvertimeQuery query, ElasticsearchInfo esInfo) {
-        return json().put("size", 0).<ObjectNode>set("query", query(query)).set("aggregations", aggregations(query, esInfo));
+        return json().put("size", 0)
+                .<ObjectNode>set("query", query(query))
+                .set("aggregations", aggregations(query, esInfo));
     }
 
     public Maybe<AverageHealthCheckResponseTimeOvertime> adaptResponse(SearchResponse response) {
@@ -49,16 +52,16 @@ public class AverageHealthCheckResponseTimeOvertimeAdapter
             return Maybe.empty();
         }
 
-        final var buckets = entrypointsAggregation
-            .getBuckets()
-            .stream()
-            .map(json ->
-                Map.of(json.get("key_as_string").asText(), Math.round(json.get(AGGREGATION_AVG_RESPONSE_TIME).get("value").asDouble()))
-            )
-            .reduce(new LinkedHashMap<>(), (acc, b) -> {
-                acc.putAll(b);
-                return acc;
-            });
+        final var buckets = entrypointsAggregation.getBuckets().stream()
+                .map(json -> Map.of(
+                        json.get("key_as_string").asText(),
+                        Math.round(json.get(AGGREGATION_AVG_RESPONSE_TIME)
+                                .get("value")
+                                .asDouble())))
+                .reduce(new LinkedHashMap<>(), (acc, b) -> {
+                    acc.putAll(b);
+                    return acc;
+                });
 
         return Maybe.just(new AverageHealthCheckResponseTimeOvertime(buckets));
     }
@@ -81,21 +84,23 @@ public class AverageHealthCheckResponseTimeOvertimeAdapter
     }
 
     private ObjectNode aggregations(AverageHealthCheckResponseTimeOvertimeQuery query, ElasticsearchInfo esInfo) {
-        String intervalFieldName = esInfo.getVersion().canUseDateHistogramFixedInterval() ? "fixed_interval" : "interval";
-        ObjectNode histogram = json()
-            .put("field", TIME_FIELD)
-            .put(intervalFieldName, query.interval().toMillis() + "ms")
-            .put("offset", HistogramGrid.offsetMillis(query.from(), query.interval()) + "ms")
-            .put("min_doc_count", 0)
-            .set(
-                "extended_bounds",
-                json()
-                    // we don't need to align it on interval ES make it for us
-                    .put("min", query.from().toEpochMilli())
-                    .put("max", query.to().toEpochMilli())
-            );
-        ObjectNode agg = json().set(AGGREGATION_AVG_RESPONSE_TIME, json().set("avg", json().put("field", "response-time")));
+        String intervalFieldName =
+                esInfo.getVersion().canUseDateHistogramFixedInterval() ? "fixed_interval" : "interval";
+        ObjectNode histogram = json().put("field", TIME_FIELD)
+                .put(intervalFieldName, query.interval().toMillis() + "ms")
+                .put("offset", HistogramGrid.offsetMillis(query.from(), query.interval()) + "ms")
+                .put("min_doc_count", 0)
+                .set(
+                        "extended_bounds",
+                        json()
+                                // we don't need to align it on interval ES make it for us
+                                .put("min", query.from().toEpochMilli())
+                                .put("max", query.to().toEpochMilli()));
+        ObjectNode agg =
+                json().set(AGGREGATION_AVG_RESPONSE_TIME, json().set("avg", json().put("field", "response-time")));
 
-        return json().set(AGGREGATION_BY_DATE, json().<ObjectNode>set("date_histogram", histogram).set("aggregations", agg));
+        return json().set(
+                        AGGREGATION_BY_DATE,
+                        json().<ObjectNode>set("date_histogram", histogram).set("aggregations", agg));
     }
 }

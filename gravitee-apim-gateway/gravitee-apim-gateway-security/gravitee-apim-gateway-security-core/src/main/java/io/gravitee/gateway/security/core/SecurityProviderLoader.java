@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 public class SecurityProviderLoader {
 
     List<AuthenticationHandler> getSecurityProviders() {
-        return ServiceLoader.load(AuthenticationHandler.class).stream().map(ServiceLoader.Provider::get).collect(Collectors.toList());
+        return ServiceLoader.load(AuthenticationHandler.class).stream()
+                .map(ServiceLoader.Provider::get)
+                .collect(Collectors.toList());
     }
 }

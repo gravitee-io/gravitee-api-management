@@ -64,79 +64,73 @@ class RoleQueryServiceImplTest {
         @SneakyThrows
         void should_query_for_api_role() {
             // Given
-            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenAnswer(invocation ->
-                Optional.empty()
-            );
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> Optional.empty());
 
             // When
-            service.findApiRole("role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
+            service.findApiRole(
+                    "role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
 
             // Then
-            verify(roleRepository).findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.API,
-                "role-name",
-                "organization-id",
-                RoleReferenceType.ORGANIZATION
-            );
+            verify(roleRepository)
+                    .findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.API, "role-name", "organization-id", RoleReferenceType.ORGANIZATION);
         }
 
         @Test
         @SneakyThrows
         void should_return_requested_role_and_adapt_it() {
             // Given
-            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenAnswer(invocation ->
-                Optional.of(
-                    Role.builder()
-                        .id("role-id")
-                        .name(invocation.getArgument(1))
-                        .referenceId(invocation.getArgument(2))
-                        .referenceType(invocation.getArgument(3))
-                        .scope(invocation.getArgument(0))
-                        .createdAt(Date.from(INSTANT_NOW))
-                        .updatedAt(Date.from(INSTANT_NOW))
-                        .description("role description")
-                        .defaultRole(true)
-                        .system(true)
-                        .permissions(new int[] { 1, 2, 3 })
-                        .build()
-                )
-            );
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> Optional.of(Role.builder()
+                            .id("role-id")
+                            .name(invocation.getArgument(1))
+                            .referenceId(invocation.getArgument(2))
+                            .referenceType(invocation.getArgument(3))
+                            .scope(invocation.getArgument(0))
+                            .createdAt(Date.from(INSTANT_NOW))
+                            .updatedAt(Date.from(INSTANT_NOW))
+                            .description("role description")
+                            .defaultRole(true)
+                            .system(true)
+                            .permissions(new int[] {1, 2, 3})
+                            .build()));
 
             // When
-            var result = service.findApiRole("role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
+            var result = service.findApiRole(
+                    "role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
 
             // Then
-            Assertions.assertThat(result).contains(
-                io.gravitee.apim.core.membership.model.Role.builder()
-                    .id("role-id")
-                    .name("role-name")
-                    .referenceId("organization-id")
-                    .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
-                    .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .description("role description")
-                    .defaultRole(true)
-                    .system(true)
-                    .permissions(new int[] { 1, 2, 3 })
-                    .build()
-            );
+            Assertions.assertThat(result)
+                    .contains(io.gravitee.apim.core.membership.model.Role.builder()
+                            .id("role-id")
+                            .name("role-name")
+                            .referenceId("organization-id")
+                            .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
+                            .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
+                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .description("role description")
+                            .defaultRole(true)
+                            .system(true)
+                            .permissions(new int[] {1, 2, 3})
+                            .build());
         }
 
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenThrow(
-                TechnicalException.class
-            );
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                    .thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() ->
-                service.findApiRole("role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"))
-            );
+            Throwable throwable = catchThrowable(() -> service.findApiRole(
+                    "role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id")));
 
             // Then
-            assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessage("An error occurs while trying to find api role");
+            assertThat(throwable)
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to find api role");
         }
     }
 
@@ -147,84 +141,73 @@ class RoleQueryServiceImplTest {
         @SneakyThrows
         void should_query_for_application_role() {
             // Given
-            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenAnswer(invocation ->
-                Optional.empty()
-            );
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> Optional.empty());
 
             // When
-            service.findApplicationRole("role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
+            service.findApplicationRole(
+                    "role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
 
             // Then
-            verify(roleRepository).findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.APPLICATION,
-                "role-name",
-                "organization-id",
-                RoleReferenceType.ORGANIZATION
-            );
+            verify(roleRepository)
+                    .findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.APPLICATION, "role-name", "organization-id", RoleReferenceType.ORGANIZATION);
         }
 
         @Test
         @SneakyThrows
         void should_return_requested_role_and_adapt_it() {
             // Given
-            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenAnswer(invocation ->
-                Optional.of(
-                    Role.builder()
-                        .id("role-id")
-                        .name(invocation.getArgument(1))
-                        .referenceId(invocation.getArgument(2))
-                        .referenceType(invocation.getArgument(3))
-                        .scope(invocation.getArgument(0))
-                        .createdAt(Date.from(INSTANT_NOW))
-                        .updatedAt(Date.from(INSTANT_NOW))
-                        .description("role description")
-                        .defaultRole(true)
-                        .system(true)
-                        .permissions(new int[] { 1, 2, 3 })
-                        .build()
-                )
-            );
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> Optional.of(Role.builder()
+                            .id("role-id")
+                            .name(invocation.getArgument(1))
+                            .referenceId(invocation.getArgument(2))
+                            .referenceType(invocation.getArgument(3))
+                            .scope(invocation.getArgument(0))
+                            .createdAt(Date.from(INSTANT_NOW))
+                            .updatedAt(Date.from(INSTANT_NOW))
+                            .description("role description")
+                            .defaultRole(true)
+                            .system(true)
+                            .permissions(new int[] {1, 2, 3})
+                            .build()));
 
             // When
             var result = service.findApplicationRole(
-                "role-name",
-                new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id")
-            );
+                    "role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
 
             // Then
-            Assertions.assertThat(result).contains(
-                io.gravitee.apim.core.membership.model.Role.builder()
-                    .id("role-id")
-                    .name("role-name")
-                    .referenceId("organization-id")
-                    .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
-                    .scope(io.gravitee.apim.core.membership.model.Role.Scope.APPLICATION)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .description("role description")
-                    .defaultRole(true)
-                    .system(true)
-                    .permissions(new int[] { 1, 2, 3 })
-                    .build()
-            );
+            Assertions.assertThat(result)
+                    .contains(io.gravitee.apim.core.membership.model.Role.builder()
+                            .id("role-id")
+                            .name("role-name")
+                            .referenceId("organization-id")
+                            .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
+                            .scope(io.gravitee.apim.core.membership.model.Role.Scope.APPLICATION)
+                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .description("role description")
+                            .defaultRole(true)
+                            .system(true)
+                            .permissions(new int[] {1, 2, 3})
+                            .build());
         }
 
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenThrow(
-                TechnicalException.class
-            );
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                    .thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() ->
-                service.findApplicationRole("role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"))
-            );
+            Throwable throwable = catchThrowable(() -> service.findApplicationRole(
+                    "role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id")));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to find application role");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to find application role");
         }
     }
 
@@ -235,84 +218,73 @@ class RoleQueryServiceImplTest {
         @SneakyThrows
         void should_query_for_integration_role() {
             // Given
-            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenAnswer(invocation ->
-                Optional.empty()
-            );
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> Optional.empty());
 
             // When
-            service.findIntegrationRole("role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
+            service.findIntegrationRole(
+                    "role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
 
             // Then
-            verify(roleRepository).findByScopeAndNameAndReferenceIdAndReferenceType(
-                RoleScope.INTEGRATION,
-                "role-name",
-                "organization-id",
-                RoleReferenceType.ORGANIZATION
-            );
+            verify(roleRepository)
+                    .findByScopeAndNameAndReferenceIdAndReferenceType(
+                            RoleScope.INTEGRATION, "role-name", "organization-id", RoleReferenceType.ORGANIZATION);
         }
 
         @Test
         @SneakyThrows
         void should_return_requested_role_and_adapt_it() {
             // Given
-            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenAnswer(invocation ->
-                Optional.of(
-                    Role.builder()
-                        .id("role-id")
-                        .name(invocation.getArgument(1))
-                        .referenceId(invocation.getArgument(2))
-                        .referenceType(invocation.getArgument(3))
-                        .scope(invocation.getArgument(0))
-                        .createdAt(Date.from(INSTANT_NOW))
-                        .updatedAt(Date.from(INSTANT_NOW))
-                        .description("role description")
-                        .defaultRole(true)
-                        .system(true)
-                        .permissions(new int[] { 1, 2, 3 })
-                        .build()
-                )
-            );
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> Optional.of(Role.builder()
+                            .id("role-id")
+                            .name(invocation.getArgument(1))
+                            .referenceId(invocation.getArgument(2))
+                            .referenceType(invocation.getArgument(3))
+                            .scope(invocation.getArgument(0))
+                            .createdAt(Date.from(INSTANT_NOW))
+                            .updatedAt(Date.from(INSTANT_NOW))
+                            .description("role description")
+                            .defaultRole(true)
+                            .system(true)
+                            .permissions(new int[] {1, 2, 3})
+                            .build()));
 
             // When
             var result = service.findIntegrationRole(
-                "role-name",
-                new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id")
-            );
+                    "role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"));
 
             // Then
-            Assertions.assertThat(result).contains(
-                io.gravitee.apim.core.membership.model.Role.builder()
-                    .id("role-id")
-                    .name("role-name")
-                    .referenceId("organization-id")
-                    .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
-                    .scope(io.gravitee.apim.core.membership.model.Role.Scope.INTEGRATION)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .description("role description")
-                    .defaultRole(true)
-                    .system(true)
-                    .permissions(new int[] { 1, 2, 3 })
-                    .build()
-            );
+            Assertions.assertThat(result)
+                    .contains(io.gravitee.apim.core.membership.model.Role.builder()
+                            .id("role-id")
+                            .name("role-name")
+                            .referenceId("organization-id")
+                            .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
+                            .scope(io.gravitee.apim.core.membership.model.Role.Scope.INTEGRATION)
+                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .description("role description")
+                            .defaultRole(true)
+                            .system(true)
+                            .permissions(new int[] {1, 2, 3})
+                            .build());
         }
 
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any())).thenThrow(
-                TechnicalException.class
-            );
+            when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
+                    .thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() ->
-                service.findIntegrationRole("role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id"))
-            );
+            Throwable throwable = catchThrowable(() -> service.findIntegrationRole(
+                    "role-name", new ReferenceContext(ReferenceContext.Type.ORGANIZATION, "organization-id")));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to find integration role");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to find integration role");
         }
     }
 
@@ -323,9 +295,8 @@ class RoleQueryServiceImplTest {
         @SneakyThrows
         void should_query_all_roles_with_id_in_list() {
             // Given
-            when(roleRepository.findAllByIdIn(eq(Set.of("role-id", "other-role")))).thenReturn(
-                Set.of(Role.builder().id("role-id").build())
-            );
+            when(roleRepository.findAllByIdIn(eq(Set.of("role-id", "other-role"))))
+                    .thenReturn(Set.of(Role.builder().id("role-id").build()));
 
             // When
             service.findByIds(Set.of("role-id", "other-role"));
@@ -355,8 +326,8 @@ class RoleQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to find role by list of ids");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to find role by list of ids");
         }
     }
 }

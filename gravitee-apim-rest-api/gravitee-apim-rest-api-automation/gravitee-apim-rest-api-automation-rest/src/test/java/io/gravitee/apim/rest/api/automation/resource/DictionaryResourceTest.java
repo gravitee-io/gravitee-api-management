@@ -42,7 +42,6 @@ import io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryNotF
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -77,21 +76,27 @@ class DictionaryResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_dictionary_state() throws Exception {
-            var id = HRIDToUUID.dictionary().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("my-dict").id();
+            var id = HRIDToUUID.dictionary()
+                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                    .hrid("my-dict")
+                    .id();
             var entity = DictionaryEntity.builder()
-                .id(id)
-                .name("My Dictionary")
-                .key("my-dict")
-                .type(DictionaryType.MANUAL)
-                .state(Lifecycle.State.STOPPED)
-                .properties(Map.of("key1", "value1"))
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .deployedAt(new Date())
-                .build();
+                    .id(id)
+                    .name("My Dictionary")
+                    .key("my-dict")
+                    .type(DictionaryType.MANUAL)
+                    .state(Lifecycle.State.STOPPED)
+                    .properties(Map.of("key1", "value1"))
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .deployedAt(new Date())
+                    .build();
             when(dictionaryAutomationDomainService.findById(any(), eq(id))).thenReturn(Optional.of(entity));
 
-            try (var response = rootTarget("my-dict").request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget("my-dict")
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var body = response.readEntity(String.class);
                 assertThat(body).doesNotContain("encryptedProperties");
@@ -106,36 +111,50 @@ class DictionaryResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getDeployed()).isTrue();
                     soft.assertThat(state.getManual()).isNotNull();
                     soft.assertThat(state.getManual().getProperties()).isNotNull();
-                    soft.assertThat(state.getManual().getProperties()).containsExactlyEntriesOf(Map.of("key1", "value1"));
+                    soft.assertThat(state.getManual().getProperties())
+                            .containsExactlyEntriesOf(Map.of("key1", "value1"));
                 });
             }
         }
 
         @Test
         void should_return_an_encrypted_property_without_its_value() throws Exception {
-            var id = HRIDToUUID.dictionary().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("my-dict").id();
+            var id = HRIDToUUID.dictionary()
+                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                    .hrid("my-dict")
+                    .id();
             var entity = DictionaryEntity.builder()
-                .id(id)
-                .name("My Dictionary")
-                .key("my-dict")
-                .type(DictionaryType.MANUAL)
-                .state(Lifecycle.State.STOPPED)
-                .properties(Map.of("url", "https://backend", "apiKey", "cipher"))
-                .propertyOptions(Map.of("apiKey", DictionaryPropertyOptions.builder().encrypted(true).build()))
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
+                    .id(id)
+                    .name("My Dictionary")
+                    .key("my-dict")
+                    .type(DictionaryType.MANUAL)
+                    .state(Lifecycle.State.STOPPED)
+                    .properties(Map.of("url", "https://backend", "apiKey", "cipher"))
+                    .propertyOptions(Map.of(
+                            "apiKey",
+                            DictionaryPropertyOptions.builder().encrypted(true).build()))
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
             when(dictionaryAutomationDomainService.findById(any(), eq(id))).thenReturn(Optional.of(entity));
 
-            try (var response = rootTarget("my-dict").request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget("my-dict")
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var body = response.readEntity(String.class);
                 assertThat(body).doesNotContain("cipher");
 
                 var state = MAPPER.readValue(body, DictionaryState.class);
-                assertThat(state.getManual().getProperties()).containsExactlyEntriesOf(Map.of("url", "https://backend"));
+                assertThat(state.getManual().getProperties())
+                        .containsExactlyEntriesOf(Map.of("url", "https://backend"));
                 assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys("apiKey");
-                assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isNull();
+                assertThat(state.getManual()
+                                .getEncryptedProperties()
+                                .get("apiKey")
+                                .getValue())
+                        .isNull();
             }
         }
 
@@ -146,32 +165,36 @@ class DictionaryResourceTest extends AbstractResourceTest {
             trigger.setUnit(TimeUnit.SECONDS);
             var provider = new DictionaryProviderEntity();
             provider.setType("HTTP");
-            provider.setConfiguration(new ObjectMapper().createObjectNode().put("url", "http://example.com").put("method", "GET"));
+            provider.setConfiguration(new ObjectMapper()
+                    .createObjectNode()
+                    .put("url", "http://example.com")
+                    .put("method", "GET"));
 
             var entity = DictionaryEntity.builder()
-                .id("dyn-id")
-                .name("Dynamic Dict")
-                .key("dyn-dict")
-                .type(DictionaryType.DYNAMIC)
-                .state(Lifecycle.State.STARTED)
-                .provider(provider)
-                .trigger(trigger)
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
+                    .id("dyn-id")
+                    .name("Dynamic Dict")
+                    .key("dyn-dict")
+                    .type(DictionaryType.DYNAMIC)
+                    .state(Lifecycle.State.STARTED)
+                    .provider(provider)
+                    .trigger(trigger)
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
             when(dictionaryAutomationDomainService.findById(any(), any())).thenReturn(Optional.of(entity));
-            when(
-                permissionService.hasPermission(
-                    any(),
-                    eq(RolePermission.ENVIRONMENT_DICTIONARY),
-                    any(),
-                    eq(RolePermissionAction.CREATE),
-                    eq(RolePermissionAction.UPDATE),
-                    eq(RolePermissionAction.DELETE)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            any(),
+                            eq(RolePermission.ENVIRONMENT_DICTIONARY),
+                            any(),
+                            eq(RolePermissionAction.CREATE),
+                            eq(RolePermissionAction.UPDATE),
+                            eq(RolePermissionAction.DELETE)))
+                    .thenReturn(false);
 
-            try (var response = rootTarget("dyn-dict").request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget("dyn-dict")
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(DictionaryState.class);
                 SoftAssertions.assertSoftly(soft -> {
@@ -185,7 +208,10 @@ class DictionaryResourceTest extends AbstractResourceTest {
         void should_return_404_when_not_found() {
             when(dictionaryAutomationDomainService.findById(any(), any())).thenReturn(Optional.empty());
 
-            try (var response = rootTarget("unknown").request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget("unknown")
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
             }
         }
@@ -196,16 +222,19 @@ class DictionaryResourceTest extends AbstractResourceTest {
 
         @Test
         void should_delete_dictionary() {
-            var id = HRIDToUUID.dictionary().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("my-dict").id();
+            var id = HRIDToUUID.dictionary()
+                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                    .hrid("my-dict")
+                    .id();
             var entity = DictionaryEntity.builder()
-                .id("dict-id")
-                .name("My Dictionary")
-                .key("my-dict")
-                .type(DictionaryType.MANUAL)
-                .state(Lifecycle.State.STOPPED)
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
+                    .id("dict-id")
+                    .name("My Dictionary")
+                    .key("my-dict")
+                    .type(DictionaryType.MANUAL)
+                    .state(Lifecycle.State.STOPPED)
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
             when(dictionaryAutomationDomainService.findById(any(), eq(id))).thenReturn(Optional.of(entity));
 
             try (var response = rootTarget("my-dict").request().delete()) {
@@ -216,7 +245,9 @@ class DictionaryResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_not_found() {
-            Mockito.doThrow(new DictionaryNotFoundException("unknown")).when(deleteDictionaryUseCase).execute(any());
+            Mockito.doThrow(new DictionaryNotFoundException("unknown"))
+                    .when(deleteDictionaryUseCase)
+                    .execute(any());
 
             try (var response = rootTarget("unknown").request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);

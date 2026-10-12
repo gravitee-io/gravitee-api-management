@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -32,7 +31,7 @@ import org.mapstruct.factory.Mappers;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class, DateMapper.class})
 public interface SubscriptionMapper {
     SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
 
@@ -60,7 +59,8 @@ public interface SubscriptionMapper {
 
     SubscriptionStatus map(io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus subscriptionStatus);
 
-    Set<SubscriptionStatus> mapToStatusSet(Collection<io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus> subscriptionStatus);
+    Set<SubscriptionStatus> mapToStatusSet(
+            Collection<io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus> subscriptionStatus);
 
     @Mapping(target = "entrypointConfiguration", qualifiedByName = "deserializeConfiguration")
     SubscriptionConsumerConfiguration map(SubscriptionConfigurationEntity subscriptionConfigurationEntity);
@@ -70,14 +70,16 @@ public interface SubscriptionMapper {
 
     @Mapping(target = "application", source = "applicationId")
     @Mapping(target = "plan", source = "planId")
-    @Mapping(target = "configuration", source = "consumerConfiguration", qualifiedByName = "mapConsumerConfigurationToEntity")
+    @Mapping(
+            target = "configuration",
+            source = "consumerConfiguration",
+            qualifiedByName = "mapConsumerConfigurationToEntity")
     NewSubscriptionEntity map(CreateSubscription createSubscription);
 
     @Mapping(
-        target = "configuration",
-        source = "updateSubscription.consumerConfiguration",
-        qualifiedByName = "mapConsumerConfigurationToEntity"
-    )
+            target = "configuration",
+            source = "updateSubscription.consumerConfiguration",
+            qualifiedByName = "mapConsumerConfigurationToEntity")
     @Mapping(target = "id", expression = "java(subscriptionId)")
     UpdateSubscriptionEntity map(UpdateSubscription updateSubscription, String subscriptionId);
 
@@ -98,10 +100,7 @@ public interface SubscriptionMapper {
         if (subscriptionIds == null) {
             return List.of();
         }
-        return subscriptionIds
-            .stream()
-            .map(id -> new BaseSubscription().id(id))
-            .toList();
+        return subscriptionIds.stream().map(id -> new BaseSubscription().id(id)).toList();
     }
 
     @Mapping(source = "subscriptions", target = "subscriptions", qualifiedByName = "toBaseSubscriptionsList")
@@ -125,9 +124,9 @@ public interface SubscriptionMapper {
 
     default Subscription.OriginEnum mapOrigin(OriginContext.Origin origin) {
         return origin == null
-            ? null
-            : OriginContext.Origin.KUBERNETES == origin
-                ? Subscription.OriginEnum.KUBERNETES
-                : Subscription.OriginEnum.MANAGEMENT;
+                ? null
+                : OriginContext.Origin.KUBERNETES == origin
+                        ? Subscription.OriginEnum.KUBERNETES
+                        : Subscription.OriginEnum.MANAGEMENT;
     }
 }

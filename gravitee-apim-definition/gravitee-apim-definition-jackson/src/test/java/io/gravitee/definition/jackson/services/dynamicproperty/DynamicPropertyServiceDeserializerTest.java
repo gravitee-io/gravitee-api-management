@@ -35,7 +35,9 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
 
     @Test
     public void definition_withDynamicProperty() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty.json", Api.class);
+        Api api = load(
+                "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty.json",
+                Api.class);
         DynamicPropertyService dynamicPropertyService = api.getService(DynamicPropertyService.class);
 
         Assertions.assertNotNull(dynamicPropertyService);
@@ -53,37 +55,43 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
         DynamicPropertyProviderConfiguration configuration = dynamicPropertyService.getConfiguration();
         Assertions.assertNotNull(configuration);
 
-        Assertions.assertEquals("http://my_configuration_url", ((HttpDynamicPropertyProviderConfiguration) configuration).getUrl());
+        Assertions.assertEquals(
+                "http://my_configuration_url", ((HttpDynamicPropertyProviderConfiguration) configuration).getUrl());
         Assertions.assertEquals("{}", ((HttpDynamicPropertyProviderConfiguration) configuration).getSpecification());
-        Assertions.assertEquals(HttpMethod.POST, ((HttpDynamicPropertyProviderConfiguration) configuration).getMethod());
-        Assertions.assertEquals(1, ((HttpDynamicPropertyProviderConfiguration) configuration).getHeaders().size());
-        Assertions.assertTrue(
-            ((HttpDynamicPropertyProviderConfiguration) configuration).getHeaders()
-                .stream()
-                .allMatch(header -> header.getName().equals("Content-type"))
-        );
+        Assertions.assertEquals(
+                HttpMethod.POST, ((HttpDynamicPropertyProviderConfiguration) configuration).getMethod());
+        Assertions.assertEquals(
+                1,
+                ((HttpDynamicPropertyProviderConfiguration) configuration)
+                        .getHeaders()
+                        .size());
+        Assertions.assertTrue(((HttpDynamicPropertyProviderConfiguration) configuration)
+                .getHeaders().stream().allMatch(header -> header.getName().equals("Content-type")));
     }
 
     @Test
     public void definition_withDynamicProperty_badUnit() throws Exception {
-        assertThrows(JsonMappingException.class, () ->
-            load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json", Api.class)
-        );
+        assertThrows(
+                JsonMappingException.class,
+                () -> load(
+                        "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json",
+                        Api.class));
     }
 
     @Test
     public void definition_withDynamicProperty_noProvider() throws Exception {
-        assertThrows(JsonMappingException.class, () ->
-            load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json", Api.class)
-        );
+        assertThrows(
+                JsonMappingException.class,
+                () -> load(
+                        "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json",
+                        Api.class));
     }
 
     @Test
     public void definition_withDynamicProperty_unitInLowerCase() throws Exception {
         Api api = load(
-            "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-unitInLowerCase.json",
-            Api.class
-        );
+                "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-unitInLowerCase.json",
+                Api.class);
         DynamicPropertyService dynamicPropertyService = api.getService(DynamicPropertyService.class);
         Assertions.assertNotNull(dynamicPropertyService);
         Assertions.assertTrue(dynamicPropertyService.isEnabled());
@@ -92,15 +100,19 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
 
     @Test
     public void definition_withDynamicProperty_httpProvider_noUrl() throws Exception {
-        assertThrows(JsonMappingException.class, () ->
-            load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noUrl.json", Api.class)
-        );
+        assertThrows(
+                JsonMappingException.class,
+                () -> load(
+                        "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noUrl.json",
+                        Api.class));
     }
 
     @Test
     public void definition_withDynamicProperty_httpProvider_noSpecification() throws Exception {
-        assertThrows(JsonMappingException.class, () ->
-            load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noSpecification.json", Api.class)
-        );
+        assertThrows(
+                JsonMappingException.class,
+                () -> load(
+                        "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noSpecification.json",
+                        Api.class));
     }
 }

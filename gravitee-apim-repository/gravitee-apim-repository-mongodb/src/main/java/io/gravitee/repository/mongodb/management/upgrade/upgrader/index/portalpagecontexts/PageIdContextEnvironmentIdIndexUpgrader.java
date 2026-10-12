@@ -28,12 +28,12 @@ public class PageIdContextEnvironmentIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("portal_page_contexts")
-            .name("ppc_page_ctx_env_unique")
-            .key("pageId", ascending())
-            .key("contextType", ascending())
-            .key("environmentId", ascending())
-            .unique(true)
-            .build();
+                .collection("portal_page_contexts")
+                .name("ppc_page_ctx_env_unique")
+                .key("pageId", ascending())
+                .key("contextType", ascending())
+                .key("environmentId", ascending())
+                .unique(true)
+                .build();
     }
 }

@@ -33,7 +33,8 @@ import org.springframework.stereotype.Component;
 public class PortalNavigationItemDefaultSegmentMongoUpgrader extends MongoUpgrader {
 
     public static final int PORTAL_NAVIGATION_ITEM_DEFAULT_SEGMENT_MONGO_UPGRADER_ORDER =
-        PortalNavigationItemDefaultRootIdMongoUpgrader.PORTAL_NAVIGATION_ITEM_DEFAULT_ROOT_ID_MONGO_UPGRADER_ORDER + 1;
+            PortalNavigationItemDefaultRootIdMongoUpgrader.PORTAL_NAVIGATION_ITEM_DEFAULT_ROOT_ID_MONGO_UPGRADER_ORDER
+                    + 1;
 
     public static final String SEGMENT = "segment";
     public static final String DEFAULT_SEGMENT = "__CHANGE_ME__";
@@ -45,10 +46,10 @@ public class PortalNavigationItemDefaultSegmentMongoUpgrader extends MongoUpgrad
 
     @Override
     public boolean upgrade() {
-        var result = this.getCollection("portal_navigation_items").updateMany(
-            Filters.or(Filters.eq(SEGMENT, null), Filters.eq(SEGMENT, "")),
-            Updates.set(SEGMENT, DEFAULT_SEGMENT)
-        );
+        var result = this.getCollection("portal_navigation_items")
+                .updateMany(
+                        Filters.or(Filters.eq(SEGMENT, null), Filters.eq(SEGMENT, "")),
+                        Updates.set(SEGMENT, DEFAULT_SEGMENT));
         return result.wasAcknowledged();
     }
 

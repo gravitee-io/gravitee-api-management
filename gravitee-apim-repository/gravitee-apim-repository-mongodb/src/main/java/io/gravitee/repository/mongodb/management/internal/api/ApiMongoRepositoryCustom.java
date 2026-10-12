@@ -36,7 +36,8 @@ public interface ApiMongoRepositoryCustom {
      * {@code (afterName, afterId)} position, or the first page when {@code afterId} is {@code null}.
      * Unlike an offset page, its cost does not grow with the page number and it needs no count.
      */
-    List<ApiMongo> searchAfter(ApiCriteria criteria, ApiFieldFilter apiFieldFilter, String afterName, String afterId, int limit);
+    List<ApiMongo> searchAfter(
+            ApiCriteria criteria, ApiFieldFilter apiFieldFilter, String afterName, String afterId, int limit);
 
     /**
      * Find ids of APIs matching the given criteria.

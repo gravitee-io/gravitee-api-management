@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -66,8 +65,10 @@ public class MigrationResult<T> {
             @Override
             public BinaryOperator<CollectState<T>> combiner() {
                 return (a, b) -> {
-                    List<Issue> issues = Stream.concat(a.issues.stream(), b.issues.stream()).toList();
-                    List<T> values = Stream.concat(a.values.stream(), b.values.stream()).toList();
+                    List<Issue> issues =
+                            Stream.concat(a.issues.stream(), b.issues.stream()).toList();
+                    List<T> values =
+                            Stream.concat(a.values.stream(), b.values.stream()).toList();
                     return new CollectState<>(new ArrayList<>(values), new ArrayList<>(issues));
                 };
             }
@@ -99,7 +100,9 @@ public class MigrationResult<T> {
     }
 
     public State state() {
-        return value == null ? State.IMPOSSIBLE : stream(issues).map(Issue::state).max(STATE_COMPARATOR).orElse(State.MIGRATABLE);
+        return value == null
+                ? State.IMPOSSIBLE
+                : stream(issues).map(Issue::state).max(STATE_COMPARATOR).orElse(State.MIGRATABLE);
     }
 
     public MigrationResult<T> addIssue(Issue issue) {
@@ -132,7 +135,8 @@ public class MigrationResult<T> {
         } catch (RuntimeException e) {
             mappingIssue = Stream.of(new Issue(e.getMessage(), State.IMPOSSIBLE));
         }
-        return new MigrationResult<>(newValue, Stream.concat(mappingIssue, stream(issues)).toList());
+        return new MigrationResult<>(
+                newValue, Stream.concat(mappingIssue, stream(issues)).toList());
     }
 
     public <U> MigrationResult<U> flatMap(Function<T, MigrationResult<U>> mapper) {

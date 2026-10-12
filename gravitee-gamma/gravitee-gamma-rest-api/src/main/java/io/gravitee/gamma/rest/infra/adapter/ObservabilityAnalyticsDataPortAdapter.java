@@ -80,12 +80,10 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId) {
         var auditInfo = currentAuditInfo(organizationId, environmentId);
         var userContext = userContextLoader.loadApis(new UserContext(auditInfo));
-        return userContext
-            .apis()
-            .orElseGet(Collections::emptyList)
-            .stream()
-            .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())))
-            .toList();
+        return userContext.apis().orElseGet(Collections::emptyList).stream()
+                .map(api ->
+                        new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())))
+                .toList();
     }
 
     @Override
@@ -106,7 +104,9 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     @Override
     public JsonNode computeMeasures(MeasuresQuery query) {
         var auditInfo = currentAuditInfo(query.organizationId(), query.environmentId());
-        var response = computeMeasuresUseCase.execute(new ComputeMeasuresUseCase.Input(auditInfo, toApimRequest(query))).response();
+        var response = computeMeasuresUseCase
+                .execute(new ComputeMeasuresUseCase.Input(auditInfo, toApimRequest(query)))
+                .response();
         JsonNode node = objectMapper.valueToTree(response);
         ConditionsNotAppliedEnricher.enrichMeasures(node, query.conditionsNotApplied());
         return node;
@@ -115,7 +115,9 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     @Override
     public JsonNode computeFacets(FacetsQuery query) {
         var auditInfo = currentAuditInfo(query.organizationId(), query.environmentId());
-        var response = computeFacetsUseCase.execute(new ComputeFacetsUseCase.Input(auditInfo, toApimRequest(query))).response();
+        var response = computeFacetsUseCase
+                .execute(new ComputeFacetsUseCase.Input(auditInfo, toApimRequest(query)))
+                .response();
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichFacetsResponse(node);
         ConditionsNotAppliedEnricher.enrichFacets(node, query.conditionsNotApplied());
@@ -125,7 +127,9 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     @Override
     public JsonNode computeTimeSeries(TimeSeriesQuery query) {
         var auditInfo = currentAuditInfo(query.organizationId(), query.environmentId());
-        var response = computeTimeSeriesUseCase.execute(new ComputeTimeSeriesUseCase.Input(auditInfo, toApimRequest(query))).response();
+        var response = computeTimeSeriesUseCase
+                .execute(new ComputeTimeSeriesUseCase.Input(auditInfo, toApimRequest(query)))
+                .response();
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichTimeSeriesResponse(node);
         ConditionsNotAppliedEnricher.enrichTimeSeries(node, query.conditionsNotApplied());
@@ -150,30 +154,29 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     // ---- Translation: Gamma → APIM ----
 
     private static MeasuresRequest toApimRequest(MeasuresQuery query) {
-        return new MeasuresRequest(toTimeRange(query.scope()), translateFilters(query.scope()), toApimMetrics(query.metrics()));
+        return new MeasuresRequest(
+                toTimeRange(query.scope()), translateFilters(query.scope()), toApimMetrics(query.metrics()));
     }
 
     private static FacetsRequest toApimRequest(FacetsQuery query) {
         return new FacetsRequest(
-            toTimeRange(query.scope()),
-            translateFilters(query.scope()),
-            toApimFacetMetrics(query.metrics()),
-            toApimFacetNames(query.facets()),
-            query.limit(),
-            toApimRanges(query.ranges())
-        );
+                toTimeRange(query.scope()),
+                translateFilters(query.scope()),
+                toApimFacetMetrics(query.metrics()),
+                toApimFacetNames(query.facets()),
+                query.limit(),
+                toApimRanges(query.ranges()));
     }
 
     private static TimeSeriesRequest toApimRequest(TimeSeriesQuery query) {
         return new TimeSeriesRequest(
-            toTimeRange(query.scope()),
-            query.interval(),
-            translateFilters(query.scope()),
-            toApimFacetMetrics(query.metrics()),
-            toApimFacetNames(query.facets()),
-            query.facetSize(),
-            toApimRanges(query.ranges())
-        );
+                toTimeRange(query.scope()),
+                query.interval(),
+                translateFilters(query.scope()),
+                toApimFacetMetrics(query.metrics()),
+                toApimFacetNames(query.facets()),
+                query.facetSize(),
+                toApimRanges(query.ranges()));
     }
 
     private static TimeRange toTimeRange(AnalyticsRequestPipeline.PreparedScope scope) {
@@ -181,15 +184,20 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     }
 
     private static List<Filter> translateFilters(AnalyticsRequestPipeline.PreparedScope scope) {
-        return scope.filters().stream().map(ObservabilityAnalyticsDataPortAdapter::translateFilter).toList();
+        return scope.filters().stream()
+                .map(ObservabilityAnalyticsDataPortAdapter::translateFilter)
+                .toList();
     }
 
     private static Filter translateFilter(FilterCondition condition) {
         var name = FilterSpec.Name.valueOf(condition.name());
-        var operator = io.gravitee.apim.core.observability.model.FilterOperator.valueOf(condition.operator().name());
+        var operator = io.gravitee.apim.core.observability.model.FilterOperator.valueOf(
+                condition.operator().name());
         Object value = (condition.operator() == FilterOperator.IN || condition.operator() == FilterOperator.NOT_IN)
-            ? condition.values()
-            : (condition.values() != null && !condition.values().isEmpty() ? condition.values().getFirst() : null);
+                ? condition.values()
+                : (condition.values() != null && !condition.values().isEmpty()
+                        ? condition.values().getFirst()
+                        : null);
         return new Filter(name, operator, value);
     }
 
@@ -199,93 +207,82 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         if (metrics == null) {
             return List.of();
         }
-        return metrics
-            .stream()
-            .map(m ->
-                new MetricMeasuresRequest(
-                    toApimMetricName(m.metricName()),
-                    m
-                        .measures()
-                        .stream()
-                        .map(measure -> toApimMeasure(m.metricName(), measure))
-                        .toList()
-                )
-            )
-            .toList();
+        return metrics.stream()
+                .map(m -> new MetricMeasuresRequest(
+                        toApimMetricName(m.metricName()),
+                        m.measures().stream()
+                                .map(measure -> toApimMeasure(m.metricName(), measure))
+                                .toList()))
+                .toList();
     }
 
     private static List<FacetMetricMeasuresRequest> toApimFacetMetrics(List<AnalyticsFacetMetricQuery> metrics) {
         if (metrics == null) {
             return List.of();
         }
-        return metrics
-            .stream()
-            .map(m ->
-                new FacetMetricMeasuresRequest(
-                    toApimMetricName(m.metricName()),
-                    m
-                        .measures()
-                        .stream()
-                        .map(measure -> toApimMeasure(m.metricName(), measure))
-                        .toList(),
-                    toApimSorts(m.metricName(), m.sorts())
-                )
-            )
-            .toList();
+        return metrics.stream()
+                .map(m -> new FacetMetricMeasuresRequest(
+                        toApimMetricName(m.metricName()),
+                        m.measures().stream()
+                                .map(measure -> toApimMeasure(m.metricName(), measure))
+                                .toList(),
+                        toApimSorts(m.metricName(), m.sorts())))
+                .toList();
     }
 
     private static List<FacetMetricMeasuresRequest.Sort> toApimSorts(String metricName, List<AnalyticsSortSpec> sorts) {
         if (sorts == null) {
             return List.of();
         }
-        return sorts
-            .stream()
-            .map(s -> new FacetMetricMeasuresRequest.Sort(toApimMeasure(metricName, s.measure()), toApimSortOrder(s.order())))
-            .toList();
+        return sorts.stream()
+                .map(s -> new FacetMetricMeasuresRequest.Sort(
+                        toApimMeasure(metricName, s.measure()), toApimSortOrder(s.order())))
+                .toList();
     }
 
     private static List<FacetSpec.Name> toApimFacetNames(List<String> facets) {
         if (facets == null) {
             return List.of();
         }
-        return facets.stream().map(ObservabilityAnalyticsDataPortAdapter::toApimFacetName).toList();
+        return facets.stream()
+                .map(ObservabilityAnalyticsDataPortAdapter::toApimFacetName)
+                .toList();
     }
 
     private static MetricSpec.Name toApimMetricName(String metric) {
-        return toEnum(MetricSpec.Name.class, metric).orElseThrow(() -> InvalidObservabilityQueryException.unknownMetric(metric));
+        return toEnum(MetricSpec.Name.class, metric)
+                .orElseThrow(() -> InvalidObservabilityQueryException.unknownMetric(metric));
     }
 
     private static MetricSpec.Measure toApimMeasure(String metric, String measure) {
-        return toEnum(MetricSpec.Measure.class, measure).orElseThrow(() ->
-            InvalidObservabilityQueryException.unknownMeasure(metric, measure)
-        );
+        return toEnum(MetricSpec.Measure.class, measure)
+                .orElseThrow(() -> InvalidObservabilityQueryException.unknownMeasure(metric, measure));
     }
 
     private static FacetSpec.Name toApimFacetName(String facet) {
-        return toEnum(FacetSpec.Name.class, facet).orElseThrow(() -> InvalidObservabilityQueryException.unknownFacet(facet));
+        return toEnum(FacetSpec.Name.class, facet)
+                .orElseThrow(() -> InvalidObservabilityQueryException.unknownFacet(facet));
     }
 
     // Case-insensitive like the filter operators: "desc" is unambiguous, only an unknown order is refused.
     private static FacetMetricMeasuresRequest.Sort.Order toApimSortOrder(String order) {
-        return toEnum(FacetMetricMeasuresRequest.Sort.Order.class, order == null ? null : order.toUpperCase(Locale.ROOT)).orElseThrow(() ->
-            InvalidObservabilityQueryException.unknownSortOrder(order)
-        );
+        return toEnum(
+                        FacetMetricMeasuresRequest.Sort.Order.class,
+                        order == null ? null : order.toUpperCase(Locale.ROOT))
+                .orElseThrow(() -> InvalidObservabilityQueryException.unknownSortOrder(order));
     }
 
     private static <E extends Enum<E>> Optional<E> toEnum(Class<E> type, String name) {
         return Arrays.stream(type.getEnumConstants())
-            .filter(constant -> constant.name().equals(name))
-            .findFirst();
+                .filter(constant -> constant.name().equals(name))
+                .findFirst();
     }
 
     private static List<NumberRange> toApimRanges(List<AnalyticsNumberRange> ranges) {
         if (ranges == null) {
             return List.of();
         }
-        return ranges
-            .stream()
-            .map(r -> new NumberRange(r.from(), r.to()))
-            .toList();
+        return ranges.stream().map(r -> new NumberRange(r.from(), r.to())).toList();
     }
 
     // ---- Audit / Security ----
@@ -294,13 +291,21 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         AuditActor actor;
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails user) {
-            actor = AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build();
+            actor = AuditActor.builder()
+                    .userId(user.getUsername())
+                    .userSource(user.getSource())
+                    .userSourceId(user.getSourceId())
+                    .build();
         } else {
             String userId = (authentication != null && authentication.getPrincipal() != null)
-                ? authentication.getPrincipal().toString()
-                : "unknown";
+                    ? authentication.getPrincipal().toString()
+                    : "unknown";
             actor = AuditActor.builder().userId(userId).build();
         }
-        return AuditInfo.builder().organizationId(organizationId).environmentId(environmentId).actor(actor).build();
+        return AuditInfo.builder()
+                .organizationId(organizationId)
+                .environmentId(environmentId)
+                .actor(actor)
+                .build();
     }
 }

@@ -62,10 +62,11 @@ public abstract class AbstractRabbitMQEndpointIntegrationTest extends AbstractGa
     protected static final String PASSWORD = "admin";
 
     @Container
-    protected static final RabbitMQContainer rabbitmqContainer = new RabbitMQContainer("rabbitmq:3.11-management-alpine")
-        .withUser(USER, PASSWORD, Set.of("administrator"))
-        .withPermission("/", USER, ".*", ".*", ".*")
-        .withStartupTimeout(Duration.ofMinutes(2));
+    protected static final RabbitMQContainer rabbitmqContainer = new RabbitMQContainer(
+                    "rabbitmq:3.11-management-alpine")
+            .withUser(USER, PASSWORD, Set.of("administrator"))
+            .withPermission("/", USER, ".*", ".*", ".*")
+            .withStartupTimeout(Duration.ofMinutes(2));
 
     protected String exchange;
     protected String routingKey;
@@ -90,22 +91,17 @@ public abstract class AbstractRabbitMQEndpointIntegrationTest extends AbstractGa
 
         if (definitionClass.isAssignableFrom(Api.class)) {
             Api apiDefinition = (Api) api.getDefinition();
-            apiDefinition
-                .getEndpointGroups()
-                .stream()
-                .flatMap(eg -> eg.getEndpoints().stream())
-                .filter(endpoint -> endpoint.getType().equals("rabbitmq"))
-                .forEach(endpoint -> {
-                    endpoint.setConfiguration(
-                        endpoint
-                            .getConfiguration()
-                            .replace("rabbitmq-host", rabbitmqContainer.getHost())
-                            .replace("5672", rabbitmqContainer.getAmqpPort().toString())
-                    );
-                    endpoint.setSharedConfigurationOverride(
-                        endpoint.getSharedConfigurationOverride().replace("my-exchange", exchange).replace("a.routing.key", routingKey)
-                    );
-                });
+            apiDefinition.getEndpointGroups().stream()
+                    .flatMap(eg -> eg.getEndpoints().stream())
+                    .filter(endpoint -> endpoint.getType().equals("rabbitmq"))
+                    .forEach(endpoint -> {
+                        endpoint.setConfiguration(endpoint.getConfiguration()
+                                .replace("rabbitmq-host", rabbitmqContainer.getHost())
+                                .replace("5672", rabbitmqContainer.getAmqpPort().toString()));
+                        endpoint.setSharedConfigurationOverride(endpoint.getSharedConfigurationOverride()
+                                .replace("my-exchange", exchange)
+                                .replace("a.routing.key", routingKey));
+                    });
         }
     }
 
@@ -122,20 +118,20 @@ public abstract class AbstractRabbitMQEndpointIntegrationTest extends AbstractGa
      */
     private void waitForRabbitMQReady() {
         Awaitility.await()
-            .atMost(60, TimeUnit.SECONDS)
-            .pollInterval(1, TimeUnit.SECONDS)
-            .pollDelay(Duration.ZERO)
-            .ignoreExceptions()
-            .until(() -> {
-                ConnectionFactory testFactory = new ConnectionFactory();
-                testFactory.setHost(rabbitmqContainer.getHost());
-                testFactory.setPort(rabbitmqContainer.getAmqpPort());
-                testFactory.setUsername(USER);
-                testFactory.setPassword(PASSWORD);
-                try (var connection = testFactory.newConnection()) {
-                    return connection.isOpen();
-                }
-            });
+                .atMost(60, TimeUnit.SECONDS)
+                .pollInterval(1, TimeUnit.SECONDS)
+                .pollDelay(Duration.ZERO)
+                .ignoreExceptions()
+                .until(() -> {
+                    ConnectionFactory testFactory = new ConnectionFactory();
+                    testFactory.setHost(rabbitmqContainer.getHost());
+                    testFactory.setPort(rabbitmqContainer.getAmqpPort());
+                    testFactory.setUsername(USER);
+                    testFactory.setPassword(PASSWORD);
+                    try (var connection = testFactory.newConnection()) {
+                        return connection.isOpen();
+                    }
+                });
         log.info("RabbitMQ is ready to accept connections");
     }
 
@@ -149,31 +145,36 @@ public abstract class AbstractRabbitMQEndpointIntegrationTest extends AbstractGa
     protected Flowable<Delivery> subscribeToRabbitMQ(final String exchange, String routingKey) {
         String queue = "queue-" + UUID.randomUUID();
 
-        var exchangeSpec = ExchangeSpecification.exchange(exchange).type("topic").durable(false).autoDelete(true);
+        var exchangeSpec = ExchangeSpecification.exchange(exchange)
+                .type("topic")
+                .durable(false)
+                .autoDelete(true);
         var queueSpec = QueueSpecification.queue(queue).durable(false).autoDelete(true);
-        var bindingSpec = BindingSpecification.binding().exchange(exchange).routingKey(routingKey).queue(queue);
+        var bindingSpec = BindingSpecification.binding()
+                .exchange(exchange)
+                .routingKey(routingKey)
+                .queue(queue);
 
-        return RxJava3Adapter.fluxToFlowable(
-            sender
-                .declare(exchangeSpec)
+        return RxJava3Adapter.fluxToFlowable(sender.declare(exchangeSpec)
                 .flatMap(declareOk -> sender.declare(queueSpec))
                 .flatMap(declareOk -> sender.bind(bindingSpec))
-                .flatMapMany(bindOk -> receiver.consumeAutoAck(queue))
-        );
+                .flatMapMany(bindOk -> receiver.consumeAutoAck(queue)));
     }
 
     protected Completable publishToRabbitMQ(final String exchange, String routingKey, List<String> messages) {
         return publishToRabbitMQ(exchange, routingKey, messages, 0);
     }
 
-    protected Completable publishToRabbitMQ(final String exchange, String routingKey, List<String> messages, final long delay) {
-        return publishToRabbitMQ(Flux.fromIterable(messages).map(m -> new OutboundMessage(exchange, routingKey, m.getBytes())), delay);
+    protected Completable publishToRabbitMQ(
+            final String exchange, String routingKey, List<String> messages, final long delay) {
+        return publishToRabbitMQ(
+                Flux.fromIterable(messages).map(m -> new OutboundMessage(exchange, routingKey, m.getBytes())), delay);
     }
 
     protected Completable publishToRabbitMQ(Flux<OutboundMessage> messages, final long delay) {
         return RxJava3Adapter.fluxToFlowable(
-            sender.sendWithPublishConfirms(messages).delaySubscription(Duration.ofMillis(delay))
-        ).ignoreElements();
+                        sender.sendWithPublishConfirms(messages).delaySubscription(Duration.ofMillis(delay)))
+                .ignoreElements();
     }
 
     private void initSenderAndReceiverForTest() {

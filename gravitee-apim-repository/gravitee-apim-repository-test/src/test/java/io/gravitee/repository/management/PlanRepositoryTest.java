@@ -78,32 +78,30 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         final Optional<Plan> plan = planRepository.findById("plan-v4");
 
         assertThat(plan)
-            .isPresent()
-            .get()
-            .usingRecursiveComparison()
-            .isEqualTo(
-                Plan.builder()
-                    .id("plan-v4")
-                    .definitionVersion(DefinitionVersion.V4)
-                    .name("Free plan")
-                    .description("Description of the free plan")
-                    .api("api2")
-                    .environmentId("DEFAULT")
-                    .security(Plan.PlanSecurityType.API_KEY)
-                    .validation(Plan.PlanValidationType.AUTO)
-                    .type(Plan.PlanType.API)
-                    .mode(Plan.PlanMode.STANDARD)
-                    .apiType(ApiType.PROXY)
-                    .referenceId("api2")
-                    .referenceType(Plan.PlanReferenceType.API)
-                    .status(Plan.Status.PUBLISHED)
-                    .order(0)
-                    .createdAt(new Date(1506964899000L))
-                    .characteristics(List.of("charac_v4"))
-                    .excludedGroups(List.of(("grp_v4")))
-                    .tags(Set.of("tag_v4"))
-                    .build()
-            );
+                .isPresent()
+                .get()
+                .usingRecursiveComparison()
+                .isEqualTo(Plan.builder()
+                        .id("plan-v4")
+                        .definitionVersion(DefinitionVersion.V4)
+                        .name("Free plan")
+                        .description("Description of the free plan")
+                        .api("api2")
+                        .environmentId("DEFAULT")
+                        .security(Plan.PlanSecurityType.API_KEY)
+                        .validation(Plan.PlanValidationType.AUTO)
+                        .type(Plan.PlanType.API)
+                        .mode(Plan.PlanMode.STANDARD)
+                        .apiType(ApiType.PROXY)
+                        .referenceId("api2")
+                        .referenceType(Plan.PlanReferenceType.API)
+                        .status(Plan.Status.PUBLISHED)
+                        .order(0)
+                        .createdAt(new Date(1506964899000L))
+                        .characteristics(List.of("charac_v4"))
+                        .excludedGroups(List.of(("grp_v4")))
+                        .tags(Set.of("tag_v4"))
+                        .build());
     }
 
     @Test
@@ -136,36 +134,32 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindByIdIn_v4() throws TechnicalException {
         Set<Plan> plans = planRepository.findByIdIn(List.of("my-plan", "plan-v4"));
         assertThat(plans)
-            .hasSize(2)
-            .extracting(
-                Plan::getId,
-                Plan::getName,
-                Plan::getDefinitionVersion,
-                Plan::getApiType,
-                Plan::getCharacteristics,
-                Plan::getExcludedGroups,
-                Plan::getTags
-            )
-            .contains(
-                tuple(
-                    "plan-v4",
-                    "Free plan",
-                    DefinitionVersion.V4,
-                    ApiType.PROXY,
-                    List.of("charac_v4"),
-                    List.of("grp_v4"),
-                    Set.of("tag_v4")
-                ),
-                tuple(
-                    "my-plan",
-                    "Free plan",
-                    null,
-                    ApiType.NATIVE,
-                    List.of("charac 1", "charac 2"),
-                    List.of("grp1"),
-                    Set.of("tag1", "tag2")
-                )
-            );
+                .hasSize(2)
+                .extracting(
+                        Plan::getId,
+                        Plan::getName,
+                        Plan::getDefinitionVersion,
+                        Plan::getApiType,
+                        Plan::getCharacteristics,
+                        Plan::getExcludedGroups,
+                        Plan::getTags)
+                .contains(
+                        tuple(
+                                "plan-v4",
+                                "Free plan",
+                                DefinitionVersion.V4,
+                                ApiType.PROXY,
+                                List.of("charac_v4"),
+                                List.of("grp_v4"),
+                                Set.of("tag_v4")),
+                        tuple(
+                                "my-plan",
+                                "Free plan",
+                                null,
+                                ApiType.NATIVE,
+                                List.of("charac 1", "charac 2"),
+                                List.of("grp1"),
+                                Set.of("tag1", "tag2")));
     }
 
     @Test
@@ -197,16 +191,18 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertNull(planOAuth2.get().getPublishedAt());
         assertNull(planOAuth2.get().getClosedAt());
         assertEquals(emptyList(), planOAuth2.get().getCharacteristics());
-        assertEquals("7c546c6b-2f2f-4487-946c-6b2f2f648784", planOAuth2.get().getExcludedGroups().get(0));
         assertEquals(
-            "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
-            planOAuth2.get().getSecurityDefinition()
-        );
+                "7c546c6b-2f2f-4487-946c-6b2f2f648784",
+                planOAuth2.get().getExcludedGroups().get(0));
         assertEquals(
-            "{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}",
-            planOAuth2.get().getDefinition()
-        );
-        assertEquals("#context.attributes['jwt'].claims['iss'] == 'toto'", planOAuth2.get().getSelectionRule());
+                "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
+                planOAuth2.get().getSecurityDefinition());
+        assertEquals(
+                "{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}",
+                planOAuth2.get().getDefinition());
+        assertEquals(
+                "#context.attributes['jwt'].claims['iss'] == 'toto'",
+                planOAuth2.get().getSelectionRule());
     }
 
     @Test
@@ -230,65 +226,58 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Plan> plans = planRepository.findByApi("api2");
 
         assertThat(plans)
-            .hasSize(1)
-            .extracting(
-                Plan::getId,
-                Plan::getName,
-                Plan::getDefinitionVersion,
-                Plan::getApiType,
-                Plan::getCharacteristics,
-                Plan::getExcludedGroups,
-                Plan::getTags
-            )
-            .contains(
-                tuple(
-                    "plan-v4",
-                    "Free plan",
-                    DefinitionVersion.V4,
-                    ApiType.PROXY,
-                    List.of("charac_v4"),
-                    List.of("grp_v4"),
-                    Set.of("tag_v4")
-                )
-            );
+                .hasSize(1)
+                .extracting(
+                        Plan::getId,
+                        Plan::getName,
+                        Plan::getDefinitionVersion,
+                        Plan::getApiType,
+                        Plan::getCharacteristics,
+                        Plan::getExcludedGroups,
+                        Plan::getTags)
+                .contains(tuple(
+                        "plan-v4",
+                        "Free plan",
+                        DefinitionVersion.V4,
+                        ApiType.PROXY,
+                        List.of("charac_v4"),
+                        List.of("grp_v4"),
+                        Set.of("tag_v4")));
     }
 
     @Test
     public void findByApisAndEnvironments() throws Exception {
-        final List<Plan> plans = planRepository.findByApisAndEnvironments(Arrays.asList("api1", "api2"), Set.of("DEFAULT"));
+        final List<Plan> plans =
+                planRepository.findByApisAndEnvironments(Arrays.asList("api1", "api2"), Set.of("DEFAULT"));
 
         assertThat(plans)
-            .hasSize(3)
-            .extracting(
-                Plan::getId,
-                Plan::getName,
-                Plan::getDefinitionVersion,
-                Plan::getApiType,
-                Plan::getCharacteristics,
-                Plan::getExcludedGroups,
-                Plan::getTags
-            )
-            .contains(
-                tuple(
-                    "my-plan",
-                    "Free plan",
-                    null,
-                    ApiType.NATIVE,
-                    List.of("charac 1", "charac 2"),
-                    List.of("grp1"),
-                    Set.of("tag1", "tag2")
-                ),
-                tuple("products", "Products", null, ApiType.MESSAGE, emptyList(), emptyList(), emptySet()),
-                tuple(
-                    "plan-v4",
-                    "Free plan",
-                    DefinitionVersion.V4,
-                    ApiType.PROXY,
-                    List.of("charac_v4"),
-                    List.of("grp_v4"),
-                    Set.of("tag_v4")
-                )
-            );
+                .hasSize(3)
+                .extracting(
+                        Plan::getId,
+                        Plan::getName,
+                        Plan::getDefinitionVersion,
+                        Plan::getApiType,
+                        Plan::getCharacteristics,
+                        Plan::getExcludedGroups,
+                        Plan::getTags)
+                .contains(
+                        tuple(
+                                "my-plan",
+                                "Free plan",
+                                null,
+                                ApiType.NATIVE,
+                                List.of("charac 1", "charac 2"),
+                                List.of("grp1"),
+                                Set.of("tag1", "tag2")),
+                        tuple("products", "Products", null, ApiType.MESSAGE, emptyList(), emptyList(), emptySet()),
+                        tuple(
+                                "plan-v4",
+                                "Free plan",
+                                DefinitionVersion.V4,
+                                ApiType.PROXY,
+                                List.of("charac_v4"),
+                                List.of("grp_v4"),
+                                Set.of("tag_v4")));
     }
 
     @Test
@@ -326,15 +315,19 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
 
         final Plan createdPlan = optional.get();
         Assertions.assertEquals(plan.getName(), createdPlan.getName(), "Invalid plan name.");
-        Assertions.assertEquals(plan.getGeneralConditions(), createdPlan.getGeneralConditions(), "Invalid GeneralCondition.");
+        Assertions.assertEquals(
+                plan.getGeneralConditions(), createdPlan.getGeneralConditions(), "Invalid GeneralCondition.");
         Assertions.assertEquals(plan.getDescription(), createdPlan.getDescription(), "Invalid plan description.");
         Assertions.assertEquals(plan.getValidation(), createdPlan.getValidation(), "Invalid plan validation.");
         Assertions.assertEquals(plan.getType(), createdPlan.getType(), "Invalid plan type.");
         Assertions.assertEquals(plan.getReferenceId(), createdPlan.getReferenceId(), "Invalid plan API.");
-        Assertions.assertTrue(compareDate(plan.getCreatedAt(), createdPlan.getCreatedAt()), "Invalid plan created date.");
-        Assertions.assertTrue(compareDate(plan.getUpdatedAt(), createdPlan.getUpdatedAt()), "Invalid plan updated date.");
+        Assertions.assertTrue(
+                compareDate(plan.getCreatedAt(), createdPlan.getCreatedAt()), "Invalid plan created date.");
+        Assertions.assertTrue(
+                compareDate(plan.getUpdatedAt(), createdPlan.getUpdatedAt()), "Invalid plan updated date.");
         Assertions.assertEquals(plan.getStatus(), createdPlan.getStatus(), "Invalid plan status.");
-        Assertions.assertTrue(compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()), "Invalid plan published date.");
+        Assertions.assertTrue(
+                compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()), "Invalid plan published date.");
         Assertions.assertTrue(compareDate(plan.getClosedAt(), createdPlan.getClosedAt()), "Invalid plan closed date.");
         Assertions.assertEquals(plan.getSecurity(), createdPlan.getSecurity(), "Invalid plan security.");
         Assertions.assertEquals(plan.getApiType(), createdPlan.getApiType(), "Invalid plan apiType.");
@@ -343,23 +336,23 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void should_create_v4() throws Exception {
         var toCreate = Plan.builder()
-            .id("a-plan-v4")
-            .definitionVersion(DefinitionVersion.V4)
-            .name("Plan V4")
-            .description("Description of the V4 plan")
-            .referenceId("api2")
-            .environmentId("DEFAULT")
-            .security(Plan.PlanSecurityType.API_KEY)
-            .validation(Plan.PlanValidationType.AUTO)
-            .type(Plan.PlanType.API)
-            .mode(Plan.PlanMode.STANDARD)
-            .apiType(ApiType.NATIVE)
-            .status(Plan.Status.PUBLISHED)
-            .order(0)
-            .createdAt(new Date(1506964899000L))
-            .characteristics(emptyList())
-            .excludedGroups(emptyList())
-            .build();
+                .id("a-plan-v4")
+                .definitionVersion(DefinitionVersion.V4)
+                .name("Plan V4")
+                .description("Description of the V4 plan")
+                .referenceId("api2")
+                .environmentId("DEFAULT")
+                .security(Plan.PlanSecurityType.API_KEY)
+                .validation(Plan.PlanValidationType.AUTO)
+                .type(Plan.PlanType.API)
+                .mode(Plan.PlanMode.STANDARD)
+                .apiType(ApiType.NATIVE)
+                .status(Plan.Status.PUBLISHED)
+                .order(0)
+                .createdAt(new Date(1506964899000L))
+                .characteristics(emptyList())
+                .excludedGroups(emptyList())
+                .build();
 
         var created = planRepository.create(toCreate);
 
@@ -385,8 +378,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         plan.setClosedAt(parse("14/02/2016"));
         plan.setSecurity(Plan.PlanSecurityType.OAUTH2);
         plan.setSecurityDefinition(
-            "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}"
-        );
+                "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
         plan.setCommentRequired(true);
         plan.setApiType(ApiType.NATIVE);
 
@@ -397,22 +389,28 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
 
         final Plan createdPlan = optional.get();
         Assertions.assertEquals(plan.getName(), createdPlan.getName(), "Invalid oauth2 plan name.");
-        Assertions.assertEquals(plan.getDescription(), createdPlan.getDescription(), "Invalid oauth2 plan description.");
+        Assertions.assertEquals(
+                plan.getDescription(), createdPlan.getDescription(), "Invalid oauth2 plan description.");
         Assertions.assertEquals(plan.getValidation(), createdPlan.getValidation(), "Invalid oauth2 plan validation.");
         Assertions.assertEquals(plan.getType(), createdPlan.getType(), "Invalid oauth2 plan type.");
         Assertions.assertEquals(plan.getReferenceId(), createdPlan.getReferenceId(), "Invalid oauth2 plan API.");
-        Assertions.assertTrue(compareDate(plan.getCreatedAt(), createdPlan.getCreatedAt()), "Invalid oauth2 plan created date.");
-        Assertions.assertTrue(compareDate(plan.getUpdatedAt(), createdPlan.getUpdatedAt()), "Invalid oauth2 plan updated date.");
+        Assertions.assertTrue(
+                compareDate(plan.getCreatedAt(), createdPlan.getCreatedAt()), "Invalid oauth2 plan created date.");
+        Assertions.assertTrue(
+                compareDate(plan.getUpdatedAt(), createdPlan.getUpdatedAt()), "Invalid oauth2 plan updated date.");
         Assertions.assertEquals(plan.getStatus(), createdPlan.getStatus(), "Invalid oauth2 plan status.");
-        Assertions.assertTrue(compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()), "Invalid oauth2 plan published date.");
-        Assertions.assertTrue(compareDate(plan.getClosedAt(), createdPlan.getClosedAt()), "Invalid oauth2 plan closed date.");
+        Assertions.assertTrue(
+                compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()),
+                "Invalid oauth2 plan published date.");
+        Assertions.assertTrue(
+                compareDate(plan.getClosedAt(), createdPlan.getClosedAt()), "Invalid oauth2 plan closed date.");
         Assertions.assertEquals(plan.getSecurity(), createdPlan.getSecurity(), "Invalid oauth2 plan security.");
         Assertions.assertEquals(
-            plan.getSecurityDefinition(),
-            createdPlan.getSecurityDefinition(),
-            "Invalid oauth2 plan security definition."
-        );
-        Assertions.assertEquals(plan.isCommentRequired(), createdPlan.isCommentRequired(), "Invalid oauth2 plan comment required.");
+                plan.getSecurityDefinition(),
+                createdPlan.getSecurityDefinition(),
+                "Invalid oauth2 plan security definition.");
+        Assertions.assertEquals(
+                plan.isCommentRequired(), createdPlan.isCommentRequired(), "Invalid oauth2 plan comment required.");
         Assertions.assertEquals(plan.getApiType(), createdPlan.getApiType(), "Invalid oauth2 plan apiType.");
     }
 
@@ -436,7 +434,8 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
 
         final Plan planUpdated = optionalUpdated.get();
         Assertions.assertEquals(plan.getName(), planUpdated.getName(), "Invalid saved plan name.");
-        Assertions.assertEquals(plan.getGeneralConditions(), planUpdated.getGeneralConditions(), "Invalid saved general conditions.");
+        Assertions.assertEquals(
+                plan.getGeneralConditions(), planUpdated.getGeneralConditions(), "Invalid saved general conditions.");
         Assertions.assertEquals(plan.getDescription(), planUpdated.getDescription(), "Invalid plan description.");
         Assertions.assertEquals(plan.getStatus(), planUpdated.getStatus(), "Invalid plan status.");
         Assertions.assertEquals(plan.getTags().size(), planUpdated.getTags().size(), "Invalid plan tags.");
@@ -464,7 +463,8 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         Assertions.assertEquals(plan.getName(), planUpdated.getName(), "Invalid saved plan name.");
         Assertions.assertEquals(plan.getDescription(), planUpdated.getDescription(), "Invalid plan description.");
         Assertions.assertEquals(plan.getStatus(), planUpdated.getStatus(), "Invalid plan status.");
-        Assertions.assertEquals(plan.getSecurityDefinition(), planUpdated.getSecurityDefinition(), "Invalid plan security definition.");
+        Assertions.assertEquals(
+                plan.getSecurityDefinition(), planUpdated.getSecurityDefinition(), "Invalid plan security definition.");
         Assertions.assertEquals(plan.getApiType(), planUpdated.getApiType(), "Invalid plan apiType.");
     }
 
@@ -501,13 +501,10 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertThat(deleted).containsOnly("plan-deleted-1", "plan-deleted-2");
         assertEquals(
-            0,
-            planRepository
-                .findAll()
-                .stream()
-                .filter(plan -> "ToBeDeleted".equals(plan.getEnvironmentId()))
-                .count()
-        );
+                0,
+                planRepository.findAll().stream()
+                        .filter(plan -> "ToBeDeleted".equals(plan.getEnvironmentId()))
+                        .count());
     }
 
     @Test
@@ -569,37 +566,35 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByReferenceIdAndReferenceType_forApiProduct() throws Exception {
         Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType(
-            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-            Plan.PlanReferenceType.API_PRODUCT
-        );
+                "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", Plan.PlanReferenceType.API_PRODUCT);
 
         assertThat(plans)
-            .extracting(Plan::getId, Plan::getReferenceId, Plan::getReferenceType)
-            .containsExactly(tuple("api-product-plan-1", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", Plan.PlanReferenceType.API_PRODUCT));
+                .extracting(Plan::getId, Plan::getReferenceId, Plan::getReferenceType)
+                .containsExactly(tuple(
+                        "api-product-plan-1",
+                        "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
+                        Plan.PlanReferenceType.API_PRODUCT));
     }
 
     @Test
     public void shouldFindByIdAndReferenceIdAndReferenceType() throws Exception {
         Optional<Plan> plan = planRepository.findByIdAndReferenceIdAndReferenceType(
-            "api-product-plan-1",
-            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-            Plan.PlanReferenceType.API_PRODUCT
-        );
+                "api-product-plan-1", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", Plan.PlanReferenceType.API_PRODUCT);
 
         assertThat(plan)
-            .isPresent()
-            .get()
-            .extracting(Plan::getId, Plan::getReferenceId, Plan::getReferenceType)
-            .containsExactly("api-product-plan-1", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", Plan.PlanReferenceType.API_PRODUCT);
+                .isPresent()
+                .get()
+                .extracting(Plan::getId, Plan::getReferenceId, Plan::getReferenceType)
+                .containsExactly(
+                        "api-product-plan-1",
+                        "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
+                        Plan.PlanReferenceType.API_PRODUCT);
     }
 
     @Test
     public void shouldNotFindByIdAndReferenceIdAndReferenceTypeDoesNotMatch() throws Exception {
         Optional<Plan> plan = planRepository.findByIdAndReferenceIdAndReferenceType(
-            "api-product-plan-1",
-            "another-api-product",
-            Plan.PlanReferenceType.API_PRODUCT
-        );
+                "api-product-plan-1", "another-api-product", Plan.PlanReferenceType.API_PRODUCT);
 
         assertThat(plan).isEmpty();
     }
@@ -609,18 +604,19 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         Set<Plan> plans = planRepository.findByCrossIds(List.of("cross-id-alpha", "cross-id-beta"));
 
         assertThat(plans)
-            .extracting(Plan::getId, Plan::getCrossId, Plan::getReferenceId)
-            .containsExactlyInAnyOrder(
-                tuple("plan-cross-id-alpha", "cross-id-alpha", "api-cross-test-1"),
-                tuple("plan-cross-id-beta", "cross-id-beta", "api-cross-test-2")
-            );
+                .extracting(Plan::getId, Plan::getCrossId, Plan::getReferenceId)
+                .containsExactlyInAnyOrder(
+                        tuple("plan-cross-id-alpha", "cross-id-alpha", "api-cross-test-1"),
+                        tuple("plan-cross-id-beta", "cross-id-beta", "api-cross-test-2"));
     }
 
     @Test
     public void shouldFindByCrossIds_returnsOnlyMatchingPlans() throws TechnicalException {
         Set<Plan> plans = planRepository.findByCrossIds(List.of("cross-id-alpha", "cross-id-unknown"));
 
-        assertThat(plans).extracting(Plan::getId, Plan::getCrossId).containsExactly(tuple("plan-cross-id-alpha", "cross-id-alpha"));
+        assertThat(plans)
+                .extracting(Plan::getId, Plan::getCrossId)
+                .containsExactly(tuple("plan-cross-id-alpha", "cross-id-alpha"));
     }
 
     @Test

@@ -59,100 +59,89 @@ class AggregatedMessageLogCrudServiceImplTest {
 
     @Test
     void should_search_api_message_logs() throws AnalyticsException {
-        when(logRepository.searchAggregatedMessageLog(any(QueryContext.class), any())).thenReturn(new LogResponse<>(0L, List.of()));
+        when(logRepository.searchAggregatedMessageLog(any(QueryContext.class), any()))
+                .thenReturn(new LogResponse<>(0L, List.of()));
 
-        cut.searchApiAggregatedMessageLog(GraviteeContext.getExecutionContext(), "api-id", "request-id", new PageableImpl(1, 10));
+        cut.searchApiAggregatedMessageLog(
+                GraviteeContext.getExecutionContext(), "api-id", "request-id", new PageableImpl(1, 10));
 
         var captorQueryContext = ArgumentCaptor.forClass(QueryContext.class);
         var captorConnectionLogDetailQuery = ArgumentCaptor.forClass(MessageLogQuery.class);
-        verify(logRepository).searchAggregatedMessageLog(captorQueryContext.capture(), captorConnectionLogDetailQuery.capture());
+        verify(logRepository)
+                .searchAggregatedMessageLog(captorQueryContext.capture(), captorConnectionLogDetailQuery.capture());
 
         assertThat(captorQueryContext.getValue().getOrgId()).isEqualTo("DEFAULT");
         assertThat(captorQueryContext.getValue().getEnvId()).isEqualTo("DEFAULT");
 
-        assertThat(captorConnectionLogDetailQuery.getValue()).isEqualTo(
-            MessageLogQuery.builder()
-                .filter(MessageLogQuery.Filter.builder().apiId("api-id").requestId("request-id").build())
-                .page(1)
-                .size(10)
-                .build()
-        );
+        assertThat(captorConnectionLogDetailQuery.getValue())
+                .isEqualTo(MessageLogQuery.builder()
+                        .filter(MessageLogQuery.Filter.builder()
+                                .apiId("api-id")
+                                .requestId("request-id")
+                                .build())
+                        .page(1)
+                        .size(10)
+                        .build());
     }
 
     @Test
     void should_return_api_message_logs() throws AnalyticsException {
         final var expectedMessageLog = AggregatedMessageLog.builder()
-            .apiId("api-id")
-            .clientIdentifier("client-identifier")
-            .timestamp("2020-02-01T20:00:00.00Z")
-            .requestId("request-id")
-            .clientIdentifier("client-identifier")
-            .correlationId("correlation-id")
-            .parentCorrelationId("parent-correlation-id")
-            .operation(MessageOperation.SUBSCRIBE.getLabel())
-            .entrypoint(
-                AggregatedMessageLog.Message.builder()
-                    .connectorId("http-get")
-                    .id("message-id")
-                    .payload("message-payload")
-                    .headers(Map.of("X-Header", List.of("header-value")))
-                    .metadata(Map.of("X-Metdata", "metadata-value"))
-                    .build()
-            )
-            .endpoint(
-                AggregatedMessageLog.Message.builder()
-                    .connectorId("kafka")
-                    .id("message-id")
-                    .payload("message-payload")
-                    .headers(Map.of("X-Header", List.of("header-value")))
-                    .metadata(Map.of("X-Metdata", "metadata-value"))
-                    .build()
-            )
-            .build();
-        when(logRepository.searchAggregatedMessageLog(any(QueryContext.class), any())).thenReturn(
-            new LogResponse<>(1L, List.of(expectedMessageLog))
-        );
+                .apiId("api-id")
+                .clientIdentifier("client-identifier")
+                .timestamp("2020-02-01T20:00:00.00Z")
+                .requestId("request-id")
+                .clientIdentifier("client-identifier")
+                .correlationId("correlation-id")
+                .parentCorrelationId("parent-correlation-id")
+                .operation(MessageOperation.SUBSCRIBE.getLabel())
+                .entrypoint(AggregatedMessageLog.Message.builder()
+                        .connectorId("http-get")
+                        .id("message-id")
+                        .payload("message-payload")
+                        .headers(Map.of("X-Header", List.of("header-value")))
+                        .metadata(Map.of("X-Metdata", "metadata-value"))
+                        .build())
+                .endpoint(AggregatedMessageLog.Message.builder()
+                        .connectorId("kafka")
+                        .id("message-id")
+                        .payload("message-payload")
+                        .headers(Map.of("X-Header", List.of("header-value")))
+                        .metadata(Map.of("X-Metdata", "metadata-value"))
+                        .build())
+                .build();
+        when(logRepository.searchAggregatedMessageLog(any(QueryContext.class), any()))
+                .thenReturn(new LogResponse<>(1L, List.of(expectedMessageLog)));
 
         var result = cut.searchApiAggregatedMessageLog(
-            GraviteeContext.getExecutionContext(),
-            "api-id",
-            "request-id",
-            new PageableImpl(1, 10)
-        );
+                GraviteeContext.getExecutionContext(), "api-id", "request-id", new PageableImpl(1, 10));
 
         SoftAssertions.assertSoftly(soft -> {
             assertThat(result.total()).isOne();
-            assertThat(result.logs()).isEqualTo(
-                List.of(
-                    io.gravitee.apim.core.log.model.AggregatedMessageLog.builder()
-                        .apiId(expectedMessageLog.getApiId())
-                        .requestId(expectedMessageLog.getRequestId())
-                        .clientIdentifier(expectedMessageLog.getClientIdentifier())
-                        .timestamp(expectedMessageLog.getTimestamp())
-                        .correlationId(expectedMessageLog.getCorrelationId())
-                        .parentCorrelationId("parent-correlation-id")
-                        .operation(MessageOperation.fromLabel(expectedMessageLog.getOperation()))
-                        .entrypoint(
-                            io.gravitee.apim.core.log.model.AggregatedMessageLog.Message.builder()
-                                .connectorId("http-get")
-                                .id(expectedMessageLog.getEntrypoint().getId())
-                                .payload(expectedMessageLog.getEntrypoint().getPayload())
-                                .headers(expectedMessageLog.getEntrypoint().getHeaders())
-                                .metadata(expectedMessageLog.getEntrypoint().getMetadata())
-                                .build()
-                        )
-                        .endpoint(
-                            io.gravitee.apim.core.log.model.AggregatedMessageLog.Message.builder()
-                                .connectorId("kafka")
-                                .id(expectedMessageLog.getEndpoint().getId())
-                                .payload(expectedMessageLog.getEndpoint().getPayload())
-                                .headers(expectedMessageLog.getEndpoint().getHeaders())
-                                .metadata(expectedMessageLog.getEndpoint().getMetadata())
-                                .build()
-                        )
-                        .build()
-                )
-            );
+            assertThat(result.logs())
+                    .isEqualTo(List.of(io.gravitee.apim.core.log.model.AggregatedMessageLog.builder()
+                            .apiId(expectedMessageLog.getApiId())
+                            .requestId(expectedMessageLog.getRequestId())
+                            .clientIdentifier(expectedMessageLog.getClientIdentifier())
+                            .timestamp(expectedMessageLog.getTimestamp())
+                            .correlationId(expectedMessageLog.getCorrelationId())
+                            .parentCorrelationId("parent-correlation-id")
+                            .operation(MessageOperation.fromLabel(expectedMessageLog.getOperation()))
+                            .entrypoint(io.gravitee.apim.core.log.model.AggregatedMessageLog.Message.builder()
+                                    .connectorId("http-get")
+                                    .id(expectedMessageLog.getEntrypoint().getId())
+                                    .payload(expectedMessageLog.getEntrypoint().getPayload())
+                                    .headers(expectedMessageLog.getEntrypoint().getHeaders())
+                                    .metadata(expectedMessageLog.getEntrypoint().getMetadata())
+                                    .build())
+                            .endpoint(io.gravitee.apim.core.log.model.AggregatedMessageLog.Message.builder()
+                                    .connectorId("kafka")
+                                    .id(expectedMessageLog.getEndpoint().getId())
+                                    .payload(expectedMessageLog.getEndpoint().getPayload())
+                                    .headers(expectedMessageLog.getEndpoint().getHeaders())
+                                    .metadata(expectedMessageLog.getEndpoint().getMetadata())
+                                    .build())
+                            .build()));
         });
     }
 }

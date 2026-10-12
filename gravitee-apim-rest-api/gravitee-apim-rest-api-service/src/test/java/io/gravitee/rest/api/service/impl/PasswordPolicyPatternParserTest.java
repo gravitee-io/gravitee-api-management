@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 class PasswordPolicyPatternParserTest {
 
     private static final String DEFAULT_PATTERN =
-        "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\\-#\\\"'&§`£€%°()|\\[\\]$^@])(?!.*(.)\\1{2,}).{12,128}$";
+            "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\\-#\\\"'&§`£€%°()|\\[\\]$^@])(?!.*(.)\\1{2,}).{12,128}$";
 
     private PasswordPolicyPatternParser parser;
 
@@ -38,13 +38,16 @@ class PasswordPolicyPatternParserTest {
         var rules = parser.parse(DEFAULT_PATTERN);
 
         assertThat(rules)
-            .extracting("id")
-            .containsExactly("minLength", "maxLength", "digit", "uppercase", "lowercase", "special", "noConsecutive");
+                .extracting("id")
+                .containsExactly(
+                        "minLength", "maxLength", "digit", "uppercase", "lowercase", "special", "noConsecutive");
         assertThat(rules.getFirst().getLabel()).isEqualTo("At least 12 characters");
         assertThat(rules.getFirst().getPattern()).isEqualTo("^.{12,}$");
         assertThat(rules.get(1).getLabel()).isEqualTo("At most 128 characters");
         assertThat(rules.get(1).getPattern()).isEqualTo("^.{0,128}$");
-        assertThat(rules).allMatch(rule -> rule.getPattern() != null && !rule.getPattern().isBlank());
+        assertThat(rules)
+                .allMatch(
+                        rule -> rule.getPattern() != null && !rule.getPattern().isBlank());
     }
 
     @Test
@@ -61,22 +64,32 @@ class PasswordPolicyPatternParserTest {
     @Test
     void should_reject_passwords_not_meeting_length_constraints() {
         var rules = parser.parse("^(?=.*[0-9]).{8,64}$");
-        var minLengthRule = rules
-            .stream()
-            .filter(rule -> "minLength".equals(rule.getId()))
-            .findFirst()
-            .orElseThrow();
-        var maxLengthRule = rules
-            .stream()
-            .filter(rule -> "maxLength".equals(rule.getId()))
-            .findFirst()
-            .orElseThrow();
+        var minLengthRule = rules.stream()
+                .filter(rule -> "minLength".equals(rule.getId()))
+                .findFirst()
+                .orElseThrow();
+        var maxLengthRule = rules.stream()
+                .filter(rule -> "maxLength".equals(rule.getId()))
+                .findFirst()
+                .orElseThrow();
 
-        assertThat(Pattern.compile(minLengthRule.getPattern()).matcher("a".repeat(7)).matches()).isFalse();
-        assertThat(Pattern.compile(minLengthRule.getPattern()).matcher("a".repeat(8)).matches()).isTrue();
+        assertThat(Pattern.compile(minLengthRule.getPattern())
+                        .matcher("a".repeat(7))
+                        .matches())
+                .isFalse();
+        assertThat(Pattern.compile(minLengthRule.getPattern())
+                        .matcher("a".repeat(8))
+                        .matches())
+                .isTrue();
 
-        assertThat(Pattern.compile(maxLengthRule.getPattern()).matcher("a".repeat(65)).matches()).isFalse();
-        assertThat(Pattern.compile(maxLengthRule.getPattern()).matcher("a".repeat(64)).matches()).isTrue();
+        assertThat(Pattern.compile(maxLengthRule.getPattern())
+                        .matcher("a".repeat(65))
+                        .matches())
+                .isFalse();
+        assertThat(Pattern.compile(maxLengthRule.getPattern())
+                        .matcher("a".repeat(64))
+                        .matches())
+                .isTrue();
     }
 
     @Test
@@ -115,7 +128,8 @@ class PasswordPolicyPatternParserTest {
         String validPassword = "LongEnough1!abc";
 
         assertThat(allRulesSatisfied(validPassword, rules)).isTrue();
-        assertThat(Pattern.compile(DEFAULT_PATTERN).matcher(validPassword).matches()).isTrue();
+        assertThat(Pattern.compile(DEFAULT_PATTERN).matcher(validPassword).matches())
+                .isTrue();
 
         assertThat(allRulesSatisfied("Short1!a", rules)).isFalse();
         assertThat(allRulesSatisfied("longenough1!abc", rules)).isFalse();
@@ -124,24 +138,21 @@ class PasswordPolicyPatternParserTest {
         String maxLengthPassword = buildPasswordWithoutTripleConsecutive(validPassword, 128);
         assertThat(maxLengthPassword).hasSize(128);
         assertThat(allRulesSatisfied(maxLengthPassword, rules)).isTrue();
-        assertThat(Pattern.compile(DEFAULT_PATTERN).matcher(maxLengthPassword).matches()).isTrue();
+        assertThat(Pattern.compile(DEFAULT_PATTERN).matcher(maxLengthPassword).matches())
+                .isTrue();
 
         String tooLongPassword = buildPasswordWithoutTripleConsecutive(validPassword, 129);
         assertThat(tooLongPassword).hasSize(129);
         assertThat(allRulesSatisfied(tooLongPassword, rules)).isFalse();
-        assertThat(Pattern.compile(DEFAULT_PATTERN).matcher(tooLongPassword).matches()).isFalse();
+        assertThat(Pattern.compile(DEFAULT_PATTERN).matcher(tooLongPassword).matches())
+                .isFalse();
     }
 
     @Test
     void should_not_emit_duplicate_rule_ids() {
         var rules = parser.parse(DEFAULT_PATTERN);
 
-        assertThat(
-            rules
-                .stream()
-                .map(rule -> rule.getId())
-                .distinct()
-        ).hasSameSizeAs(rules);
+        assertThat(rules.stream().map(rule -> rule.getId()).distinct()).hasSameSizeAs(rules);
     }
 
     @Test
@@ -170,9 +181,8 @@ class PasswordPolicyPatternParserTest {
     @Test
     void should_report_a_lookahead_it_cannot_turn_into_a_rule() {
         // Letters outside a-z / A-Z classify as neither case nor special, so no rule describes them.
-        assertThat(parser.untranslatedFragments("^(?=.*[0-9])(?=.*[\u00e0\u00e9\u00ee]).{8,}$")).containsExactly(
-            "(?=.*[\u00e0\u00e9\u00ee])"
-        );
+        assertThat(parser.untranslatedFragments("^(?=.*[0-9])(?=.*[\u00e0\u00e9\u00ee]).{8,}$"))
+                .containsExactly("(?=.*[\u00e0\u00e9\u00ee])");
     }
 
     @Test
@@ -186,24 +196,29 @@ class PasswordPolicyPatternParserTest {
         // Both classes are "special", so parse keeps the first and drops the second: the requirement
         // to include a hyphen or underscore reaches no rule, and a password without one is refused
         // after every rule the client did receive was satisfied.
-        assertThat(parser.parse("^(?=.*[!@#])(?=.*[\\-_]).{12,}$")).extracting("id").containsExactly("minLength", "special");
+        assertThat(parser.parse("^(?=.*[!@#])(?=.*[\\-_]).{12,}$"))
+                .extracting("id")
+                .containsExactly("minLength", "special");
 
-        assertThat(parser.untranslatedFragments("^(?=.*[!@#])(?=.*[\\-_]).{12,}$")).containsExactly("(?=.*[\\-_])");
+        assertThat(parser.untranslatedFragments("^(?=.*[!@#])(?=.*[\\-_]).{12,}$"))
+                .containsExactly("(?=.*[\\-_])");
     }
 
     @Test
     void should_not_report_a_lookahead_that_merely_repeats_one_it_already_translated() {
-        assertThat(parser.untranslatedFragments("^(?=.*[A-Z])(?=.*[A-Z]).{12,}$")).isEmpty();
+        assertThat(parser.untranslatedFragments("^(?=.*[A-Z])(?=.*[A-Z]).{12,}$"))
+                .isEmpty();
     }
 
     @Test
     void should_report_a_repeated_untranslatable_lookahead_once() {
-        assertThat(parser.untranslatedFragments("^(?=.*[àéî])(?=.*[àéî]).{8,}$")).containsExactly("(?=.*[àéî])");
+        assertThat(parser.untranslatedFragments("^(?=.*[àéî])(?=.*[àéî]).{8,}$"))
+                .containsExactly("(?=.*[àéî])");
     }
 
     private static String buildPasswordWithoutTripleConsecutive(String prefix, int targetLength) {
         StringBuilder password = new StringBuilder(prefix);
-        char[] alternates = { 'y', 'z' };
+        char[] alternates = {'y', 'z'};
         int index = 0;
         while (password.length() < targetLength) {
             password.append(alternates[index % alternates.length]);
@@ -212,7 +227,10 @@ class PasswordPolicyPatternParserTest {
         return password.toString();
     }
 
-    private static boolean allRulesSatisfied(String password, java.util.List<io.gravitee.rest.api.model.PasswordPolicyRuleEntity> rules) {
-        return rules.stream().allMatch(rule -> Pattern.compile(rule.getPattern()).matcher(password).find());
+    private static boolean allRulesSatisfied(
+            String password, java.util.List<io.gravitee.rest.api.model.PasswordPolicyRuleEntity> rules) {
+        return rules.stream()
+                .allMatch(rule ->
+                        Pattern.compile(rule.getPattern()).matcher(password).find());
     }
 }

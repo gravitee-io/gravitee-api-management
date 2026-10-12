@@ -28,11 +28,12 @@ public class RestApiRepositoryScopeProviderTest {
 
     @Test
     public void shouldReturnManagementAndAnalyticsScopes() {
-        Assertions.assertArrayEquals(new Scope[] { Scope.MANAGEMENT, Scope.ANALYTICS }, provider.getHandledScopes());
+        Assertions.assertArrayEquals(new Scope[] {Scope.MANAGEMENT, Scope.ANALYTICS}, provider.getHandledScopes());
     }
 
     @Test
     public void shouldReturnOtelTracesAndOtelLogsAsOptionalScopes() {
-        Assertions.assertArrayEquals(new Scope[] { Scope.OTEL_TRACES, Scope.OTEL_LOGS }, provider.getOptionalHandledScopes());
+        Assertions.assertArrayEquals(
+                new Scope[] {Scope.OTEL_TRACES, Scope.OTEL_LOGS}, provider.getOptionalHandledScopes());
     }
 }

@@ -26,7 +26,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface InvitationMongoRepository extends MongoRepository<InvitationMongo, String>, InvitationMongoRepositoryCustom {
+public interface InvitationMongoRepository
+        extends MongoRepository<InvitationMongo, String>, InvitationMongoRepositoryCustom {
     List<InvitationMongo> findByEmail(String email);
 
     List<InvitationMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);

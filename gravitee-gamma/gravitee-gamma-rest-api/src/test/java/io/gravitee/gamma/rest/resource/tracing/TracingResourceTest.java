@@ -65,7 +65,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = { ResourceContextConfiguration.class, TracingTestConfiguration.class })
+@ContextConfiguration(classes = {ResourceContextConfiguration.class, TracingTestConfiguration.class})
 class TracingResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
@@ -101,7 +101,11 @@ class TracingResourceTest extends AbstractResourceTest {
 
     @AfterEach
     void resetUseCases() {
-        reset(searchTracesUseCase, getTraceDetailUseCase, getTraceFilterDefinitionsUseCase, getTraceFilterValuesUseCase);
+        reset(
+                searchTracesUseCase,
+                getTraceDetailUseCase,
+                getTraceFilterDefinitionsUseCase,
+                getTraceFilterValuesUseCase);
     }
 
     @Nested
@@ -126,7 +130,8 @@ class TracingResourceTest extends AbstractResourceTest {
         @Test
         void should_return_traces_with_logs_aligned_envelope_and_iso_8601_start_time() {
             Trace trace = new Trace(TRACE_ID, SAMPLE_INSTANT, 1_234_000L, "gateway", "GET /pets", SpanStatus.OK, 3);
-            when(searchTracesUseCase.execute(any())).thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(trace), 0, 1, 1)));
+            when(searchTracesUseCase.execute(any()))
+                    .thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(trace), 0, 1, 1)));
 
             Response response = postSearch(Map.of("apiId", API_ID));
 
@@ -155,30 +160,36 @@ class TracingResourceTest extends AbstractResourceTest {
 
         @Test
         void should_pass_filters_in_body_through_to_the_use_case() {
-            when(searchTracesUseCase.execute(any())).thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(), 0, 0, 0)));
+            when(searchTracesUseCase.execute(any()))
+                    .thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(), 0, 0, 0)));
 
-            Response response = postSearch(
-                Map.of("apiId", API_ID, "filters", List.of(Map.of("name", "HTTP_METHOD", "operator", "EQ", "value", "POST")))
-            );
+            Response response = postSearch(Map.of(
+                    "apiId",
+                    API_ID,
+                    "filters",
+                    List.of(Map.of("name", "HTTP_METHOD", "operator", "EQ", "value", "POST"))));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             ArgumentCaptor<SearchTracesUseCase.Input> captor = ArgumentCaptor.forClass(SearchTracesUseCase.Input.class);
             Mockito.verify(searchTracesUseCase).execute(captor.capture());
-            assertThat(captor.getValue().filters())
-                .singleElement()
-                .satisfies(c -> {
-                    assertThat(c.name()).isEqualTo("HTTP_METHOD");
-                    assertThat(c.operator()).isEqualTo(FilterOperator.EQ);
-                    // DTO normalises the polymorphic wire value to the core's List<String>.
-                    assertThat(c.values()).containsExactly("POST");
-                });
+            assertThat(captor.getValue().filters()).singleElement().satisfies(c -> {
+                assertThat(c.name()).isEqualTo("HTTP_METHOD");
+                assertThat(c.operator()).isEqualTo(FilterOperator.EQ);
+                // DTO normalises the polymorphic wire value to the core's List<String>.
+                assertThat(c.values()).containsExactly("POST");
+            });
         }
 
         @Test
         void should_pass_time_range_iso_strings_through_to_the_use_case() {
-            when(searchTracesUseCase.execute(any())).thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(), 0, 0, 0)));
+            when(searchTracesUseCase.execute(any()))
+                    .thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(), 0, 0, 0)));
 
-            postSearch(Map.of("apiId", API_ID, "timeRange", Map.of("from", "2026-05-26T10:00:00Z", "to", "2026-05-26T11:00:00Z")));
+            postSearch(Map.of(
+                    "apiId",
+                    API_ID,
+                    "timeRange",
+                    Map.of("from", "2026-05-26T10:00:00Z", "to", "2026-05-26T11:00:00Z")));
 
             ArgumentCaptor<SearchTracesUseCase.Input> captor = ArgumentCaptor.forClass(SearchTracesUseCase.Input.class);
             Mockito.verify(searchTracesUseCase).execute(captor.capture());
@@ -188,13 +199,14 @@ class TracingResourceTest extends AbstractResourceTest {
 
         @Test
         void should_pass_pagination_query_params_to_the_use_case() {
-            when(searchTracesUseCase.execute(any())).thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(), 0, 0, 0)));
+            when(searchTracesUseCase.execute(any()))
+                    .thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(), 0, 0, 0)));
 
             rootTarget("search")
-                .queryParam("page", 3)
-                .queryParam("perPage", 50)
-                .request()
-                .post(Entity.entity(Map.of("apiId", API_ID), MediaType.APPLICATION_JSON_TYPE));
+                    .queryParam("page", 3)
+                    .queryParam("perPage", 50)
+                    .request()
+                    .post(Entity.entity(Map.of("apiId", API_ID), MediaType.APPLICATION_JSON_TYPE));
 
             ArgumentCaptor<SearchTracesUseCase.Input> captor = ArgumentCaptor.forClass(SearchTracesUseCase.Input.class);
             Mockito.verify(searchTracesUseCase).execute(captor.capture());
@@ -229,29 +241,21 @@ class TracingResourceTest extends AbstractResourceTest {
         @Test
         void should_return_trace_detail_with_spans_status_kind_and_epoch_ms_timestamps() {
             Span span = new Span(
-                "span-1",
-                null,
-                "GET /pets",
-                "gateway",
-                SAMPLE_INSTANT,
-                1_234_000L,
-                SpanStatus.OK,
-                SpanKind.SERVER,
-                Map.of("http.method", "GET"),
-                List.<SpanEvent>of(),
-                List.<PayloadLog>of()
-            );
+                    "span-1",
+                    null,
+                    "GET /pets",
+                    "gateway",
+                    SAMPLE_INSTANT,
+                    1_234_000L,
+                    SpanStatus.OK,
+                    SpanKind.SERVER,
+                    Map.of("http.method", "GET"),
+                    List.<SpanEvent>of(),
+                    List.<PayloadLog>of());
             TraceDetail detail = new TraceDetail(
-                TRACE_ID,
-                SAMPLE_INSTANT,
-                1_234_000L,
-                "gateway",
-                "GET /pets",
-                SpanStatus.OK,
-                1,
-                List.of(span)
-            );
-            when(getTraceDetailUseCase.execute(any())).thenReturn(new GetTraceDetailUseCase.Output(Optional.of(detail)));
+                    TRACE_ID, SAMPLE_INSTANT, 1_234_000L, "gateway", "GET /pets", SpanStatus.OK, 1, List.of(span));
+            when(getTraceDetailUseCase.execute(any()))
+                    .thenReturn(new GetTraceDetailUseCase.Output(Optional.of(detail)));
 
             Response response = detailRequest().request().get();
 
@@ -286,14 +290,14 @@ class TracingResourceTest extends AbstractResourceTest {
         @Test
         void should_return_data_envelope_with_lowercase_type_and_uppercase_operators() {
             TraceFilterSpec spec = new TraceFilterSpec(
-                "HTTP_METHOD",
-                "HTTP method",
-                FilterType.ENUM,
-                List.of(FilterOperator.EQ),
-                List.of("GET", "POST"),
-                null
-            );
-            when(getTraceFilterDefinitionsUseCase.execute(any())).thenReturn(new GetTraceFilterDefinitionsUseCase.Output(List.of(spec)));
+                    "HTTP_METHOD",
+                    "HTTP method",
+                    FilterType.ENUM,
+                    List.of(FilterOperator.EQ),
+                    List.of("GET", "POST"),
+                    null);
+            when(getTraceFilterDefinitionsUseCase.execute(any()))
+                    .thenReturn(new GetTraceFilterDefinitionsUseCase.Output(List.of(spec)));
 
             Response response = rootTarget("filters/definition").request().get();
 
@@ -314,28 +318,31 @@ class TracingResourceTest extends AbstractResourceTest {
 
         @Test
         void should_pass_module_query_param_to_use_case_when_provided() {
-            when(getTraceFilterDefinitionsUseCase.execute(any())).thenReturn(new GetTraceFilterDefinitionsUseCase.Output(List.of()));
+            when(getTraceFilterDefinitionsUseCase.execute(any()))
+                    .thenReturn(new GetTraceFilterDefinitionsUseCase.Output(List.of()));
 
-            Response response = rootTarget("filters/definition").queryParam("module", MODULE).request().get();
+            Response response = rootTarget("filters/definition")
+                    .queryParam("module", MODULE)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            ArgumentCaptor<GetTraceFilterDefinitionsUseCase.Input> captor = ArgumentCaptor.forClass(
-                GetTraceFilterDefinitionsUseCase.Input.class
-            );
+            ArgumentCaptor<GetTraceFilterDefinitionsUseCase.Input> captor =
+                    ArgumentCaptor.forClass(GetTraceFilterDefinitionsUseCase.Input.class);
             Mockito.verify(getTraceFilterDefinitionsUseCase).execute(captor.capture());
             assertThat(captor.getValue().moduleId()).isEqualTo(MODULE);
         }
 
         @Test
         void should_be_callable_without_module_query_param() {
-            when(getTraceFilterDefinitionsUseCase.execute(any())).thenReturn(new GetTraceFilterDefinitionsUseCase.Output(List.of()));
+            when(getTraceFilterDefinitionsUseCase.execute(any()))
+                    .thenReturn(new GetTraceFilterDefinitionsUseCase.Output(List.of()));
 
             Response response = rootTarget("filters/definition").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            ArgumentCaptor<GetTraceFilterDefinitionsUseCase.Input> captor = ArgumentCaptor.forClass(
-                GetTraceFilterDefinitionsUseCase.Input.class
-            );
+            ArgumentCaptor<GetTraceFilterDefinitionsUseCase.Input> captor =
+                    ArgumentCaptor.forClass(GetTraceFilterDefinitionsUseCase.Input.class);
             Mockito.verify(getTraceFilterDefinitionsUseCase).execute(captor.capture());
             assertThat(captor.getValue().moduleId()).isNull();
         }
@@ -347,12 +354,11 @@ class TracingResourceTest extends AbstractResourceTest {
         @Test
         void should_return_200_with_logs_aligned_envelope_for_enum_filter() {
             TraceFilterValuesPage page = new TraceFilterValuesPage(
-                List.of(new TraceFilterValue("GET", null), new TraceFilterValue("POST", null)),
-                2L
-            );
+                    List.of(new TraceFilterValue("GET", null), new TraceFilterValue("POST", null)), 2L);
             when(getTraceFilterValuesUseCase.execute(any())).thenReturn(new GetTraceFilterValuesUseCase.Output(page));
 
-            Response response = rootTarget("filters/HTTP_METHOD/values").request().get();
+            Response response =
+                    rootTarget("filters/HTTP_METHOD/values").request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
@@ -368,20 +374,20 @@ class TracingResourceTest extends AbstractResourceTest {
 
         @Test
         void should_forward_query_module_page_perPage_to_use_case() {
-            when(getTraceFilterValuesUseCase.execute(any())).thenReturn(
-                new GetTraceFilterValuesUseCase.Output(new TraceFilterValuesPage(List.of(), 0L))
-            );
+            when(getTraceFilterValuesUseCase.execute(any()))
+                    .thenReturn(new GetTraceFilterValuesUseCase.Output(new TraceFilterValuesPage(List.of(), 0L)));
 
             Response response = rootTarget("filters/HTTP_METHOD/values")
-                .queryParam("module", MODULE)
-                .queryParam("query", "ge")
-                .queryParam("page", 2)
-                .queryParam("perPage", 5)
-                .request()
-                .get();
+                    .queryParam("module", MODULE)
+                    .queryParam("query", "ge")
+                    .queryParam("page", 2)
+                    .queryParam("perPage", 5)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            ArgumentCaptor<GetTraceFilterValuesUseCase.Input> captor = ArgumentCaptor.forClass(GetTraceFilterValuesUseCase.Input.class);
+            ArgumentCaptor<GetTraceFilterValuesUseCase.Input> captor =
+                    ArgumentCaptor.forClass(GetTraceFilterValuesUseCase.Input.class);
             Mockito.verify(getTraceFilterValuesUseCase).execute(captor.capture());
             assertThat(captor.getValue().filterName()).isEqualTo("HTTP_METHOD");
             assertThat(captor.getValue().moduleId()).isEqualTo(MODULE);
@@ -392,11 +398,11 @@ class TracingResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_use_case_throws_UnsupportedFilterException_for_non_enum_type() {
-            when(getTraceFilterValuesUseCase.execute(any())).thenThrow(
-                UnsupportedFilterException.valueListingNotSupported("HTTP_STATUS_CODE", "NUMBER")
-            );
+            when(getTraceFilterValuesUseCase.execute(any()))
+                    .thenThrow(UnsupportedFilterException.valueListingNotSupported("HTTP_STATUS_CODE", "NUMBER"));
 
-            Response response = rootTarget("filters/HTTP_STATUS_CODE/values").request().get();
+            Response response =
+                    rootTarget("filters/HTTP_STATUS_CODE/values").request().get();
 
             // ValidationDomainException → 400 via apim's ValidationDomainExceptionMapper. The technical
             // code is captured at the exception layer (asserted in the use-case test) — the apim mapper

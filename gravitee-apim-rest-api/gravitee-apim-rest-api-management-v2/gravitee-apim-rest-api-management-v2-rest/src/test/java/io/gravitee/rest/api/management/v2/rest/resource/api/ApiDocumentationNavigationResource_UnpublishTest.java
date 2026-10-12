@@ -68,14 +68,21 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
+        apiCrudService.initWith(List.of(Api.builder()
+                .id(API_ID)
+                .name("My API")
+                .environmentId(ENVIRONMENT)
+                .build()));
     }
 
     @AfterEach
@@ -96,8 +103,8 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
 
         assertThat(response).hasStatus(NO_CONTENT_204);
         assertThat(portalNavigationItemCrudService.storage())
-            .extracting(PortalNavigationItem::getId)
-            .containsExactlyInAnyOrder(section.getId(), listing.getId(), page.getId());
+                .extracting(PortalNavigationItem::getId)
+                .containsExactlyInAnyOrder(section.getId(), listing.getId(), page.getId());
         assertThat(listing.getPublished()).isFalse();
         assertThat(page.getPublished()).isFalse();
         assertThat(section.getPublished()).isTrue();
@@ -131,14 +138,12 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
         var section = aSection();
         var listing = aListing(section);
         portalNavigationItemCrudService.initWith(List.of(section, listing));
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         Response response = unpublish();
 
@@ -152,14 +157,12 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
         var listing = aListing(section);
         portalNavigationItemCrudService.initWith(List.of(section, listing));
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(true);
 
         Response response = unpublish();
 
@@ -178,18 +181,18 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
     }
 
     private static PortalNavigationApi aListing(PortalNavigationFolder section) {
-        var listing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
+        var listing = PortalNavigationItemFixtures.anApi(
+                PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
         listing.setEnvironmentId(ENVIRONMENT);
         listing.updateParent(section);
         return listing;
     }
 
     private static PortalNavigationPage aPublishedPageOwnedByTheApi() {
-        var page = PortalNavigationItemFixtures.aPage("Overview", null)
-            .toBuilder()
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .published(true)
-            .build();
+        var page = PortalNavigationItemFixtures.aPage("Overview", null).toBuilder()
+                .reference(new NavigationItemReference.ApiReference(API_ID))
+                .published(true)
+                .build();
         page.setEnvironmentId(ENVIRONMENT);
         page.markAsRoot();
         return page;

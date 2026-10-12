@@ -62,9 +62,8 @@ public class PortalApplicationClientCertificatesResourceTest extends AbstractRes
         ClientCertificate cert2 = createClientCertificate("cert-2", "Certificate 2");
         Page<ClientCertificate> page = new Page<>(List.of(cert1, cert2), 1, 2, 2);
 
-        when(getClientCertificatesUseCase.execute(any(GetClientCertificatesUseCase.Input.class))).thenReturn(
-            new GetClientCertificatesUseCase.Output(page)
-        );
+        when(getClientCertificatesUseCase.execute(any(GetClientCertificatesUseCase.Input.class)))
+                .thenReturn(new GetClientCertificatesUseCase.Output(page));
 
         final Response response = target().request().get();
 
@@ -85,9 +84,8 @@ public class PortalApplicationClientCertificatesResourceTest extends AbstractRes
 
         ClientCertificate created = createClientCertificate("new-cert-id", "My Certificate");
 
-        when(createClientCertificateUseCase.execute(any(CreateClientCertificateUseCase.Input.class))).thenReturn(
-            new CreateClientCertificateUseCase.Output(created)
-        );
+        when(createClientCertificateUseCase.execute(any(CreateClientCertificateUseCase.Input.class)))
+                .thenReturn(new CreateClientCertificateUseCase.Output(created));
 
         final Response response = target().request().post(Entity.json(createRequest));
 
@@ -125,11 +123,11 @@ public class PortalApplicationClientCertificatesResourceTest extends AbstractRes
     public void should_validate_certificate_and_return_metadata() {
         var expiration = new Date();
         var certInfo = new CertificateInfo(expiration, "CN=test", "CN=ca", "abc123");
-        when(validateClientCertificateUseCase.execute(any(ValidateClientCertificateUseCase.Input.class))).thenReturn(
-            new ValidateClientCertificateUseCase.Output(certInfo)
-        );
+        when(validateClientCertificateUseCase.execute(any(ValidateClientCertificateUseCase.Input.class)))
+                .thenReturn(new ValidateClientCertificateUseCase.Output(certInfo));
 
-        var request = new ValidateCertificateRequest("-----BEGIN CERTIFICATE-----\nMIIBkTCB...\n-----END CERTIFICATE-----");
+        var request =
+                new ValidateCertificateRequest("-----BEGIN CERTIFICATE-----\nMIIBkTCB...\n-----END CERTIFICATE-----");
         final Response response = target("/_validate").request().post(Entity.json(request));
 
         SoftAssertions.assertSoftly(soft -> {
@@ -151,21 +149,20 @@ public class PortalApplicationClientCertificatesResourceTest extends AbstractRes
 
     private ClientCertificate createClientCertificate(String id, String name) {
         return new ClientCertificate(
-            id,
-            null,
-            APPLICATION_ID,
-            name,
-            null,
-            null,
-            new Date(),
-            new Date(),
-            "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----",
-            null,
-            null,
-            null,
-            null,
-            null,
-            ClientCertificateStatus.ACTIVE
-        );
+                id,
+                null,
+                APPLICATION_ID,
+                name,
+                null,
+                null,
+                new Date(),
+                new Date(),
+                "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----",
+                null,
+                null,
+                null,
+                null,
+                null,
+                ClientCertificateStatus.ACTIVE);
     }
 }

@@ -28,7 +28,8 @@ import io.gravitee.policy.api.annotations.OnResponse;
 public class TemplateVariablePolicy {
 
     @OnResponse
-    public void onResponse(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
+    public void onResponse(
+            Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
         String node = executionContext.getTemplateEngine().getValue("{#node.version}", String.class);
         String api = executionContext.getTemplateEngine().getValue("{#api.id}", String.class);
         response.headers().set("node", node);

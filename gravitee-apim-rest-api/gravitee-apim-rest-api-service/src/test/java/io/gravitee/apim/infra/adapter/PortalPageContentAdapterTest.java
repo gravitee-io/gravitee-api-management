@@ -46,11 +46,11 @@ class PortalPageContentAdapterTest {
         void should_map_gravitee_markdown_content_to_entity() {
             // Given
             var repositoryContent = io.gravitee.repository.management.model.PortalPageContent.builder()
-                .id("550e8400-e29b-41d4-a716-446655440000")
-                .type(io.gravitee.repository.management.model.PortalPageContent.Type.GRAVITEE_MARKDOWN)
-                .content("# Welcome\n\nThis is a sample page content.")
-                .configuration("{}")
-                .build();
+                    .id("550e8400-e29b-41d4-a716-446655440000")
+                    .type(io.gravitee.repository.management.model.PortalPageContent.Type.GRAVITEE_MARKDOWN)
+                    .content("# Welcome\n\nThis is a sample page content.")
+                    .configuration("{}")
+                    .build();
 
             // When
             var entity = adapter.toEntity(repositoryContent);
@@ -58,7 +58,8 @@ class PortalPageContentAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(GraviteeMarkdownPageContent.class);
             var markdownContent = (GraviteeMarkdownPageContent) entity;
-            assertThat(markdownContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440000"));
+            assertThat(markdownContent.getId())
+                    .isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440000"));
             assertThat(markdownContent.getContent().value()).isEqualTo("# Welcome\n\nThis is a sample page content.");
         }
 
@@ -66,11 +67,11 @@ class PortalPageContentAdapterTest {
         void should_map_gravitee_markdown_content_with_empty_configuration() {
             // Given
             var repositoryContent = io.gravitee.repository.management.model.PortalPageContent.builder()
-                .id("550e8400-e29b-41d4-a716-446655440001")
-                .type(io.gravitee.repository.management.model.PortalPageContent.Type.GRAVITEE_MARKDOWN)
-                .content("Simple content without configuration")
-                .configuration(null)
-                .build();
+                    .id("550e8400-e29b-41d4-a716-446655440001")
+                    .type(io.gravitee.repository.management.model.PortalPageContent.Type.GRAVITEE_MARKDOWN)
+                    .content("Simple content without configuration")
+                    .configuration(null)
+                    .build();
 
             // When
             var entity = adapter.toEntity(repositoryContent);
@@ -78,7 +79,8 @@ class PortalPageContentAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(GraviteeMarkdownPageContent.class);
             var markdownContent = (GraviteeMarkdownPageContent) entity;
-            assertThat(markdownContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440001"));
+            assertThat(markdownContent.getId())
+                    .isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440001"));
             assertThat(markdownContent.getContent().value()).isEqualTo("Simple content without configuration");
         }
 
@@ -86,12 +88,12 @@ class PortalPageContentAdapterTest {
         void should_map_openapi_content_to_entity() {
             // Given
             var repositoryContent = io.gravitee.repository.management.model.PortalPageContent.builder()
-                .id("550e8400-e29b-41d4-a716-446655440002")
-                .organizationId("ORG")
-                .environmentId("ENV")
-                .type(io.gravitee.repository.management.model.PortalPageContent.Type.OPENAPI)
-                .content("openapi: 3.0.0\ninfo:\n  title: Test API")
-                .build();
+                    .id("550e8400-e29b-41d4-a716-446655440002")
+                    .organizationId("ORG")
+                    .environmentId("ENV")
+                    .type(io.gravitee.repository.management.model.PortalPageContent.Type.OPENAPI)
+                    .content("openapi: 3.0.0\ninfo:\n  title: Test API")
+                    .build();
 
             // When
             var entity = adapter.toEntity(repositoryContent);
@@ -99,7 +101,8 @@ class PortalPageContentAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(OpenApiPageContent.class);
             var openApiContent = (OpenApiPageContent) entity;
-            assertThat(openApiContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440002"));
+            assertThat(openApiContent.getId())
+                    .isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440002"));
             assertThat(openApiContent.getContent().value()).isEqualTo("openapi: 3.0.0\ninfo:\n  title: Test API");
             assertThat(openApiContent.getViewerSettings()).isInstanceOf(RedocConfiguration.class);
         }
@@ -108,10 +111,7 @@ class PortalPageContentAdapterTest {
         void should_map_openapi_content_with_redoc_configuration_to_entity() {
             // Given
             var repositoryContent = anOpenApiPageContent(
-                "550e8400-e29b-41d4-a716-446655440004",
-                "openapi: 3.0.0",
-                "{\"viewer\":\"REDOC\"}"
-            );
+                    "550e8400-e29b-41d4-a716-446655440004", "openapi: 3.0.0", "{\"viewer\":\"REDOC\"}");
 
             // When
             var entity = adapter.toEntity(repositoryContent);
@@ -119,19 +119,20 @@ class PortalPageContentAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(OpenApiPageContent.class);
             var openApiContent = (OpenApiPageContent) entity;
-            assertThat(openApiContent.getViewerSettings()).isInstanceOfSatisfying(RedocConfiguration.class, configuration ->
-                assertThat(configuration.tryItUrl()).isEmpty()
-            );
+            assertThat(openApiContent.getViewerSettings())
+                    .isInstanceOfSatisfying(
+                            RedocConfiguration.class,
+                            configuration ->
+                                    assertThat(configuration.tryItUrl()).isEmpty());
         }
 
         @Test
         void should_map_openapi_content_with_redoc_try_it_url_configuration_to_entity() {
             // Given
             var repositoryContent = anOpenApiPageContent(
-                "550e8400-e29b-41d4-a716-446655440006",
-                "openapi: 3.0.0",
-                "{\"viewer\":\"REDOC\",\"tryItUrl\":\"https://redoc.example.com\"}"
-            );
+                    "550e8400-e29b-41d4-a716-446655440006",
+                    "openapi: 3.0.0",
+                    "{\"viewer\":\"REDOC\",\"tryItUrl\":\"https://redoc.example.com\"}");
 
             // When
             var entity = adapter.toEntity(repositoryContent);
@@ -139,24 +140,25 @@ class PortalPageContentAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(OpenApiPageContent.class);
             var openApiContent = (OpenApiPageContent) entity;
-            assertThat(openApiContent.getViewerSettings()).isInstanceOfSatisfying(RedocConfiguration.class, configuration ->
-                assertThat(configuration.tryItUrl()).isEqualTo("https://redoc.example.com")
-            );
+            assertThat(openApiContent.getViewerSettings())
+                    .isInstanceOfSatisfying(
+                            RedocConfiguration.class,
+                            configuration ->
+                                    assertThat(configuration.tryItUrl()).isEqualTo("https://redoc.example.com"));
         }
 
         @Test
         void should_map_openapi_content_with_swagger_configuration_to_entity() {
             // Given
             var repositoryContent = io.gravitee.repository.management.model.PortalPageContent.builder()
-                .id("550e8400-e29b-41d4-a716-446655440005")
-                .organizationId("ORG")
-                .environmentId("ENV")
-                .type(io.gravitee.repository.management.model.PortalPageContent.Type.OPENAPI)
-                .content("openapi: 3.0.0")
-                .configuration(
-                    "{\"viewer\":\"SWAGGER\",\"displayOperationId\":true,\"docExpansion\":\"full\",\"maxDisplayedTags\":3,\"tryItUrl\":\"https://try-it.example.com\",\"contextPathAsServerPath\":true}"
-                )
-                .build();
+                    .id("550e8400-e29b-41d4-a716-446655440005")
+                    .organizationId("ORG")
+                    .environmentId("ENV")
+                    .type(io.gravitee.repository.management.model.PortalPageContent.Type.OPENAPI)
+                    .content("openapi: 3.0.0")
+                    .configuration(
+                            "{\"viewer\":\"SWAGGER\",\"displayOperationId\":true,\"docExpansion\":\"full\",\"maxDisplayedTags\":3,\"tryItUrl\":\"https://try-it.example.com\",\"contextPathAsServerPath\":true}")
+                    .build();
 
             // When
             var entity = adapter.toEntity(repositoryContent);
@@ -164,25 +166,26 @@ class PortalPageContentAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(OpenApiPageContent.class);
             var openApiContent = (OpenApiPageContent) entity;
-            assertThat(openApiContent.getViewerSettings()).isInstanceOfSatisfying(SwaggerUiConfiguration.class, configuration -> {
-                assertThat(configuration.displayOperationId()).isTrue();
-                assertThat(configuration.docExpansion()).isEqualTo("full");
-                assertThat(configuration.maxDisplayedTags()).isEqualTo(3);
-                assertThat(configuration.tryItUrl()).isEqualTo("https://try-it.example.com");
-                assertThat(configuration.contextPathAsServerPath()).isTrue();
-            });
+            assertThat(openApiContent.getViewerSettings())
+                    .isInstanceOfSatisfying(SwaggerUiConfiguration.class, configuration -> {
+                        assertThat(configuration.displayOperationId()).isTrue();
+                        assertThat(configuration.docExpansion()).isEqualTo("full");
+                        assertThat(configuration.maxDisplayedTags()).isEqualTo(3);
+                        assertThat(configuration.tryItUrl()).isEqualTo("https://try-it.example.com");
+                        assertThat(configuration.contextPathAsServerPath()).isTrue();
+                    });
         }
 
         @Test
         void should_map_asyncapi_content_to_entity() {
             // Given
             var repositoryContent = io.gravitee.repository.management.model.PortalPageContent.builder()
-                .id("550e8400-e29b-41d4-a716-446655440003")
-                .organizationId("ORG")
-                .environmentId("ENV")
-                .type(io.gravitee.repository.management.model.PortalPageContent.Type.ASYNCAPI)
-                .content("asyncapi: '3.0.0'\ninfo:\n  title: Test API")
-                .build();
+                    .id("550e8400-e29b-41d4-a716-446655440003")
+                    .organizationId("ORG")
+                    .environmentId("ENV")
+                    .type(io.gravitee.repository.management.model.PortalPageContent.Type.ASYNCAPI)
+                    .content("asyncapi: '3.0.0'\ninfo:\n  title: Test API")
+                    .build();
 
             // When
             var entity = adapter.toEntity(repositoryContent);
@@ -190,7 +193,8 @@ class PortalPageContentAdapterTest {
             // Then
             assertThat(entity).isInstanceOf(AsyncApiPageContent.class);
             var asyncApiContent = (AsyncApiPageContent) entity;
-            assertThat(asyncApiContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
+            assertThat(asyncApiContent.getId())
+                    .isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
             assertThat(asyncApiContent.getContent().value()).isEqualTo("asyncapi: '3.0.0'\ninfo:\n  title: Test API");
         }
     }
@@ -202,54 +206,55 @@ class PortalPageContentAdapterTest {
         void should_map_gravitee_markdown_content_to_repository() {
             // Given
             final var entityContent = new GraviteeMarkdownPageContent(
-                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440000"),
-                "DEFAULT_ORG",
-                "DEFAULT_ENV",
-                new GraviteeMarkdown("# Welcome\n\nThis is a sample page content.")
-            );
+                    PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440000"),
+                    "DEFAULT_ORG",
+                    "DEFAULT_ENV",
+                    new GraviteeMarkdown("# Welcome\n\nThis is a sample page content."));
 
             // When
             var repositoryContent = adapter.toRepository(entityContent);
 
             // Then
             assertThat(repositoryContent.getType()).isEqualTo(PortalPageContent.Type.GRAVITEE_MARKDOWN);
-            assertThat(repositoryContent.getId()).isEqualTo(entityContent.getId().toString());
+            assertThat(repositoryContent.getId())
+                    .isEqualTo(entityContent.getId().toString());
             assertThat(repositoryContent.getOrganizationId()).isEqualTo("DEFAULT_ORG");
             assertThat(repositoryContent.getEnvironmentId()).isEqualTo("DEFAULT_ENV");
-            assertThat(repositoryContent.getContent()).isEqualTo(entityContent.getContent().value());
+            assertThat(repositoryContent.getContent())
+                    .isEqualTo(entityContent.getContent().value());
         }
 
         @Test
         void should_map_asyncapi_content_to_repository() {
             // Given
             final var entityContent = new AsyncApiPageContent(
-                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"),
-                "DEFAULT_ORG",
-                "DEFAULT_ENV",
-                new AsyncApi("asyncapi: '3.0.0'\ninfo:\n  title: Test")
-            );
+                    PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"),
+                    "DEFAULT_ORG",
+                    "DEFAULT_ENV",
+                    new AsyncApi("asyncapi: '3.0.0'\ninfo:\n  title: Test"));
 
             // When
             var repositoryContent = adapter.toRepository(entityContent);
 
             // Then
             assertThat(repositoryContent.getType()).isEqualTo(PortalPageContent.Type.ASYNCAPI);
-            assertThat(repositoryContent.getId()).isEqualTo(entityContent.getId().toString());
+            assertThat(repositoryContent.getId())
+                    .isEqualTo(entityContent.getId().toString());
             assertThat(repositoryContent.getOrganizationId()).isEqualTo("DEFAULT_ORG");
             assertThat(repositoryContent.getEnvironmentId()).isEqualTo("DEFAULT_ENV");
-            assertThat(repositoryContent.getContent()).isEqualTo(entityContent.getContent().value());
+            assertThat(repositoryContent.getContent())
+                    .isEqualTo(entityContent.getContent().value());
         }
 
         @Test
         void should_map_openapi_content_with_viewer_configuration_to_repository() {
             // Given
             final var entityContent = PortalPageContentFixtures.anOpenApiPageContent(
-                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440004"),
-                "DEFAULT_ORG",
-                "DEFAULT_ENV",
-                "openapi: 3.0.0",
-                aSwaggerUiConfiguration()
-            );
+                    PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440004"),
+                    "DEFAULT_ORG",
+                    "DEFAULT_ENV",
+                    "openapi: 3.0.0",
+                    aSwaggerUiConfiguration());
 
             // When
             var repositoryContent = adapter.toRepository(entityContent);
@@ -266,12 +271,11 @@ class PortalPageContentAdapterTest {
         void should_map_openapi_content_with_redoc_try_it_url_configuration_to_repository() {
             // Given
             final var entityContent = PortalPageContentFixtures.anOpenApiPageContent(
-                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440006"),
-                "DEFAULT_ORG",
-                "DEFAULT_ENV",
-                "openapi: 3.0.0",
-                new RedocConfiguration("https://redoc.example.com")
-            );
+                    PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440006"),
+                    "DEFAULT_ORG",
+                    "DEFAULT_ENV",
+                    "openapi: 3.0.0",
+                    new RedocConfiguration("https://redoc.example.com"));
 
             // When
             var repositoryContent = adapter.toRepository(entityContent);

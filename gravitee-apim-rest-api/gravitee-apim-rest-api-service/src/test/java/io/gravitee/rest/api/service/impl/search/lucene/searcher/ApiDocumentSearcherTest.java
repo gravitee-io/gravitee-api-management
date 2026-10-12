@@ -31,12 +31,14 @@ public class ApiDocumentSearcherTest {
 
     @Test
     public void should_complete_query_with_filters() {
-        var query = QueryBuilder.create(ApiEntity.class).setQuery("name: Foobar AND name: \"Foo Foo\"").build();
+        var query = QueryBuilder.create(ApiEntity.class)
+                .setQuery("name: Foobar AND name: \"Foo Foo\"")
+                .build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
-        assertThat(builder.build()).hasToString(
-            "#(+(name_lowercase:\"foobar\" name_lowercase:foobar) +(name_lowercase:\"foo foo\" name_lowercase:foo foo))"
-        );
+        assertThat(builder.build())
+                .hasToString(
+                        "#(+(name_lowercase:\"foobar\" name_lowercase:foobar) +(name_lowercase:\"foo foo\" name_lowercase:foo foo))");
     }
 
     @Test
@@ -49,17 +51,21 @@ public class ApiDocumentSearcherTest {
 
     @Test
     public void should_complete_query_with_filters_and_text() {
-        var query = QueryBuilder.create(ApiEntity.class).setQuery("categories:Sports AND Cycling").build();
+        var query = QueryBuilder.create(ApiEntity.class)
+                .setQuery("categories:Sports AND Cycling")
+                .build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
-        assertThat(builder.build()).hasToString(
-            "#(+(categories:\"sports\" categories:sports)) +(+((name:*Cycling*)^20.0 (name_lowercase:*cycling*)^18.0 (name_sorted:*cycling*)^15.0 (name:*Cycling*)^12.0 (name_lowercase:*cycling*)^10.0 (paths:*Cycling*)^8.0 (paths_lowercase:*cycling*)^7.0 description:*Cycling* description_lowercase:*cycling* hosts:*Cycling* hosts_lowercase:*cycling* ownerName:*Cycling* ownerName_lowercase:*cycling* labels:*Cycling* labels_lowercase:*cycling* categories:*Cycling* tags:*Cycling* metadata:*Cycling*))"
-        );
+        assertThat(builder.build())
+                .hasToString(
+                        "#(+(categories:\"sports\" categories:sports)) +(+((name:*Cycling*)^20.0 (name_lowercase:*cycling*)^18.0 (name_sorted:*cycling*)^15.0 (name:*Cycling*)^12.0 (name_lowercase:*cycling*)^10.0 (paths:*Cycling*)^8.0 (paths_lowercase:*cycling*)^7.0 description:*Cycling* description_lowercase:*cycling* hosts:*Cycling* hosts_lowercase:*cycling* ownerName:*Cycling* ownerName_lowercase:*cycling* labels:*Cycling* labels_lowercase:*cycling* categories:*Cycling* tags:*Cycling* metadata:*Cycling*))");
     }
 
     @Test
     public void should_complete_query_with_origin() {
-        var query = QueryBuilder.create(ApiEntity.class).setQuery("origin:kubernetes").build();
+        var query = QueryBuilder.create(ApiEntity.class)
+                .setQuery("origin:kubernetes")
+                .build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
         assertThat(builder.build()).hasToString("#(origin:\"kubernetes\" origin:kubernetes)");
@@ -67,7 +73,9 @@ public class ApiDocumentSearcherTest {
 
     @Test
     public void should_complete_query_with_has_health_check() {
-        var query = QueryBuilder.create(ApiEntity.class).setQuery("has_health_check:true").build();
+        var query = QueryBuilder.create(ApiEntity.class)
+                .setQuery("has_health_check:true")
+                .build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
         assertThat(builder.build()).hasToString("#(has_health_check:\"true\" has_health_check:true)");
@@ -75,7 +83,9 @@ public class ApiDocumentSearcherTest {
 
     @Test
     public void should_complete_query_with_allow_in_api_products() {
-        var query = QueryBuilder.create(ApiEntity.class).setQuery("allow_in_api_products:true").build();
+        var query = QueryBuilder.create(ApiEntity.class)
+                .setQuery("allow_in_api_products:true")
+                .build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
         assertThat(builder.build()).hasToString("#(allow_in_api_products:\"true\" allow_in_api_products:true)");
@@ -83,15 +93,20 @@ public class ApiDocumentSearcherTest {
 
     @Test
     public void should_convert_description_to_lowercase() {
-        var query = QueryBuilder.create(ApiEntity.class).setQuery("description:TestValue").build();
+        var query = QueryBuilder.create(ApiEntity.class)
+                .setQuery("description:TestValue")
+                .build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
-        assertThat(builder.build()).hasToString("#(description_lowercase:\"testvalue\" description_lowercase:testvalue)");
+        assertThat(builder.build())
+                .hasToString("#(description_lowercase:\"testvalue\" description_lowercase:testvalue)");
     }
 
     @Test
     public void should_convert_owner_to_lowercase() {
-        var query = QueryBuilder.create(ApiEntity.class).setQuery("ownerName:JohnDoe").build();
+        var query = QueryBuilder.create(ApiEntity.class)
+                .setQuery("ownerName:JohnDoe")
+                .build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
         assertThat(builder.build()).hasToString("#(ownerName_lowercase:\"johndoe\" ownerName_lowercase:johndoe)");
@@ -99,7 +114,8 @@ public class ApiDocumentSearcherTest {
 
     @Test
     public void should_convert_labels_to_lowercase() {
-        var query = QueryBuilder.create(ApiEntity.class).setQuery("labels:MyLabel").build();
+        var query =
+                QueryBuilder.create(ApiEntity.class).setQuery("labels:MyLabel").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
         assertThat(builder.build()).hasToString("#(labels_lowercase:\"mylabel\" labels_lowercase:mylabel)");

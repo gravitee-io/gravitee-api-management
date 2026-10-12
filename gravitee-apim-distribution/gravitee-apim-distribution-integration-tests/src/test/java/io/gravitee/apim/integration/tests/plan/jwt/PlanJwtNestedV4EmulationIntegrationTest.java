@@ -81,37 +81,35 @@ public class PlanJwtNestedV4EmulationIntegrationTest extends AbstractGatewayTest
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_200_success_with_nested_jwt_and_subscription(
-        final String apiId,
-        final boolean requireWiremock,
-        final HttpClient client,
-        GatewayDynamicConfig.HttpConfig httpConfig
-    ) throws Exception {
+            final String apiId,
+            final boolean requireWiremock,
+            final HttpClient client,
+            GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
         String jwtToken = generateJWT(5000, Map.of("act", Map.of("repository", JWT_CLIENT_ID)));
-        whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_NESTED_ID).thenReturn(
-            Optional.of(createSubscription(apiId, PLAN_JWT_NESTED_ID, false))
-        );
+        whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_NESTED_ID)
+                .thenReturn(Optional.of(createSubscription(apiId, PLAN_JWT_NESTED_ID, false)));
 
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                request.putHeader("Authorization", "Bearer " + jwtToken);
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(60, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).contains("endpoint response");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    request.putHeader("Authorization", "Bearer " + jwtToken);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(60, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains("endpoint response");
+                    return true;
+                });
 
         if (requireWiremock) {
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -121,11 +119,11 @@ public class PlanJwtNestedV4EmulationIntegrationTest extends AbstractGatewayTest
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_401_unauthorized_with_wrong_nested_jwt(
-        final String apiId,
-        final boolean requireWiremock,
-        final HttpClient client,
-        GatewayDynamicConfig.HttpConfig httpConfig
-    ) throws Exception {
+            final String apiId,
+            final boolean requireWiremock,
+            final HttpClient client,
+            GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
         String jwtToken = generateJWT(5000, Map.of("act", Map.of("repository", "wrong-client-id")));
         whenSearchingSubscription(apiId, "wrong-client-id", PLAN_JWT_NESTED_ID).thenReturn(Optional.empty());
 
@@ -133,23 +131,22 @@ public class PlanJwtNestedV4EmulationIntegrationTest extends AbstractGatewayTest
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                request.putHeader("Authorization", "Bearer " + jwtToken);
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(401);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("Unauthorized");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    request.putHeader("Authorization", "Bearer " + jwtToken);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(401);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("Unauthorized");
+                    return true;
+                });
 
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
@@ -162,11 +159,11 @@ public class PlanJwtNestedV4EmulationIntegrationTest extends AbstractGatewayTest
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_401_when_nested_claim_parent_present_but_leaf_absent(
-        final String apiId,
-        final boolean requireWiremock,
-        final HttpClient client,
-        GatewayDynamicConfig.HttpConfig httpConfig
-    ) throws Exception {
+            final String apiId,
+            final boolean requireWiremock,
+            final HttpClient client,
+            GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
         // JWT has "act" object but no "repository" leaf — clientIdClaim "act.repository" resolves to null.
         String jwtToken = generateJWT(5000, Map.of("act", Map.of("other_key", "some-value")));
 
@@ -174,23 +171,22 @@ public class PlanJwtNestedV4EmulationIntegrationTest extends AbstractGatewayTest
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                request.putHeader("Authorization", "Bearer " + jwtToken);
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(401);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("Unauthorized");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    request.putHeader("Authorization", "Bearer " + jwtToken);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(401);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("Unauthorized");
+                    return true;
+                });
 
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
@@ -206,53 +202,50 @@ public class PlanJwtNestedV4EmulationIntegrationTest extends AbstractGatewayTest
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_200_with_flat_claim_jwt_regression(
-        final String apiId,
-        final boolean requireWiremock,
-        final HttpClient client,
-        GatewayDynamicConfig.HttpConfig httpConfig
-    ) throws Exception {
+            final String apiId,
+            final boolean requireWiremock,
+            final HttpClient client,
+            GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
         // Standard JWT with a flat client_id — no nested path needed.
         String jwtToken = generateJWT(5000);
-        whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID).thenReturn(Optional.of(createSubscription(apiId, PLAN_JWT_ID, false)));
+        whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID)
+                .thenReturn(Optional.of(createSubscription(apiId, PLAN_JWT_ID, false)));
 
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                request.putHeader("Authorization", "Bearer " + jwtToken);
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(60, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).contains("endpoint response");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    request.putHeader("Authorization", "Bearer " + jwtToken);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(60, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains("endpoint response");
+                    return true;
+                });
 
         if (requireWiremock) {
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
     }
 
-    protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(String api, String clientId, String plan) {
-        return when(
-            getBean(SubscriptionService.class).getByApiAndSecurityToken(
-                eq(api),
-                argThat(
-                    securityToken ->
-                        securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name()) &&
-                        securityToken.getTokenValue().equals(clientId)
-                ),
-                eq(plan)
-            )
-        );
+    protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(
+            String api, String clientId, String plan) {
+        return when(getBean(SubscriptionService.class)
+                .getByApiAndSecurityToken(
+                        eq(api),
+                        argThat(securityToken ->
+                                securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name())
+                                        && securityToken.getTokenValue().equals(clientId)),
+                        eq(plan)));
     }
 }

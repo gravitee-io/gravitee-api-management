@@ -66,9 +66,12 @@ class BrandedSendersEnvironmentReaderTest {
         var result = reader.read();
 
         assertThat(result).isPresent();
-        assertThat(BrandedSenders.parse(result.get())).containsExactly(
-            BrandedSenderConfig.builder().domains(List.of("example.com")).from("noreply@example.com").subject("[Example] %s").build()
-        );
+        assertThat(BrandedSenders.parse(result.get()))
+                .containsExactly(BrandedSenderConfig.builder()
+                        .domains(List.of("example.com"))
+                        .from("noreply@example.com")
+                        .subject("[Example] %s")
+                        .build());
     }
 
     @Test
@@ -84,14 +87,17 @@ class BrandedSendersEnvironmentReaderTest {
         var result = reader.read();
 
         assertThat(result).isPresent();
-        assertThat(BrandedSenders.parse(result.get())).containsExactly(
-            BrandedSenderConfig.builder()
-                .domains(List.of("example.com", "example.org"))
-                .from("noreply@example.com")
-                .subject("[Example] %s")
-                .build(),
-            BrandedSenderConfig.builder().domains(List.of("sample.net")).from("noreply@sample.net").build()
-        );
+        assertThat(BrandedSenders.parse(result.get()))
+                .containsExactly(
+                        BrandedSenderConfig.builder()
+                                .domains(List.of("example.com", "example.org"))
+                                .from("noreply@example.com")
+                                .subject("[Example] %s")
+                                .build(),
+                        BrandedSenderConfig.builder()
+                                .domains(List.of("sample.net"))
+                                .from("noreply@sample.net")
+                                .build());
     }
 
     @Test
@@ -134,14 +140,19 @@ class BrandedSendersEnvironmentReaderTest {
     @Test
     void should_read_the_flat_json_string_form() {
         reader = reader();
-        stub("email.branded_senders", "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stub(
+                "email.branded_senders",
+                "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
 
         var result = reader.read();
 
         assertThat(result).isPresent();
-        assertThat(BrandedSenders.parse(result.get())).containsExactly(
-            BrandedSenderConfig.builder().domains(List.of("example.com")).from("noreply@example.com").subject("[Example] %s").build()
-        );
+        assertThat(BrandedSenders.parse(result.get()))
+                .containsExactly(BrandedSenderConfig.builder()
+                        .domains(List.of("example.com"))
+                        .from("noreply@example.com")
+                        .subject("[Example] %s")
+                        .build());
         assertThat(reader.isConfigured()).isTrue();
     }
 
@@ -150,7 +161,9 @@ class BrandedSendersEnvironmentReaderTest {
         reader = reader();
         // AC2 promises the flat / env-var form works too; it must get the same ';'-escaping as the native path so a
         // ';' in a subject does not truncate the value at the parameter read path.
-        stub("email.branded_senders", "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[a; b] %s\"}]");
+        stub(
+                "email.branded_senders",
+                "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[a; b] %s\"}]");
 
         var result = reader.read();
 
@@ -164,9 +177,8 @@ class BrandedSendersEnvironmentReaderTest {
         reader = reader();
         // CR/LF smuggled into the flat form is caught by the same serialiser validation and left editable + logged.
         stub(
-            "email.branded_senders",
-            "[{\"domains\":[\"example.com\"],\"from\":\"a@example.com\\r\\nBcc: evil@example.org\",\"subject\":\"[X] %s\"}]"
-        );
+                "email.branded_senders",
+                "[{\"domains\":[\"example.com\"],\"from\":\"a@example.com\\r\\nBcc: evil@example.org\",\"subject\":\"[X] %s\"}]");
 
         assertThat(reader.read()).isEmpty();
         assertThat(reader.isConfigured()).isFalse();
@@ -183,9 +195,11 @@ class BrandedSendersEnvironmentReaderTest {
         var result = reader.read();
 
         assertThat(result).isPresent();
-        assertThat(BrandedSenders.parse(result.get())).containsExactly(
-            BrandedSenderConfig.builder().domains(List.of("example.com")).from("noreply@example.com").build()
-        );
+        assertThat(BrandedSenders.parse(result.get()))
+                .containsExactly(BrandedSenderConfig.builder()
+                        .domains(List.of("example.com"))
+                        .from("noreply@example.com")
+                        .build());
     }
 
     @Test
@@ -203,7 +217,8 @@ class BrandedSendersEnvironmentReaderTest {
         assertThat(result).isPresent();
         var configurations = BrandedSenders.parse(result.get());
         assertThat(configurations).hasSize(3);
-        assertThat(configurations).anySatisfy(config -> assertThat(config.getFrom()).isEqualTo("noreply@third.com"));
+        assertThat(configurations)
+                .anySatisfy(config -> assertThat(config.getFrom()).isEqualTo("noreply@third.com"));
     }
 
     @Test
@@ -251,18 +266,22 @@ class BrandedSendersEnvironmentReaderTest {
 
         // The reader's assumption made explicit: Spring flattens the list to indexed properties.
         assertThat(realEnvironment.getProperty("email.branded_senders[0].from")).isEqualTo("noreply@example.com");
-        assertThat(realEnvironment.getProperty("email.branded_senders[0].domains[1]")).isEqualTo("example.org");
+        assertThat(realEnvironment.getProperty("email.branded_senders[0].domains[1]"))
+                .isEqualTo("example.org");
 
         var result = new BrandedSendersEnvironmentReader(realEnvironment).read();
 
         assertThat(result).isPresent();
-        assertThat(BrandedSenders.parse(result.get())).containsExactly(
-            BrandedSenderConfig.builder()
-                .domains(List.of("example.com", "example.org"))
-                .from("noreply@example.com")
-                .subject("[Example] %s")
-                .build(),
-            BrandedSenderConfig.builder().domains(List.of("sample.net")).from("noreply@sample.net").build()
-        );
+        assertThat(BrandedSenders.parse(result.get()))
+                .containsExactly(
+                        BrandedSenderConfig.builder()
+                                .domains(List.of("example.com", "example.org"))
+                                .from("noreply@example.com")
+                                .subject("[Example] %s")
+                                .build(),
+                        BrandedSenderConfig.builder()
+                                .domains(List.of("sample.net"))
+                                .from("noreply@sample.net")
+                                .build());
     }
 }

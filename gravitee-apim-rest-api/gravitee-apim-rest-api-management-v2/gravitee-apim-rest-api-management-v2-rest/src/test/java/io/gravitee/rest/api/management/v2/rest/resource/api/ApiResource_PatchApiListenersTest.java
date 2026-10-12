@@ -91,51 +91,54 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setUpdatedAt(Date.from(Instant.ofEpochMilli(1000)));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            apiEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(apiEntity);
 
         roleQueryService.resetSystemRoles(ORGANIZATION);
-        primaryOwnerDomainService.initWith(
-            List.of(Map.entry(API, PrimaryOwnerEntity.builder().id(USER_NAME).type(PrimaryOwnerEntity.Type.USER).build()))
-        );
-        membershipQueryServiceInMemory.initWith(
-            List.of(
-                Membership.builder()
-                    .memberId(USER_NAME)
-                    .referenceId(API)
-                    .roleId("api-po-id-" + ORGANIZATION)
-                    .referenceType(Membership.ReferenceType.API)
-                    .memberType(Membership.Type.USER)
-                    .build()
-            )
-        );
+        primaryOwnerDomainService.initWith(List.of(Map.entry(
+                API,
+                PrimaryOwnerEntity.builder()
+                        .id(USER_NAME)
+                        .type(PrimaryOwnerEntity.Type.USER)
+                        .build())));
+        membershipQueryServiceInMemory.initWith(List.of(Membership.builder()
+                .memberId(USER_NAME)
+                .referenceId(API)
+                .roleId("api-po-id-" + ORGANIZATION)
+                .referenceType(Membership.ReferenceType.API)
+                .memberType(Membership.Type.USER)
+                .build()));
 
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .validateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).updateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).validateV4(any(), any());
     }
 
     @AfterEach
     public void tearDown() {
-        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService)
+                .forEach(InMemoryAlternative::reset);
         reset(updateApiDomainService, apiSearchServiceV4);
     }
 
     private void givenApiWithListeners(List<Listener> listeners) {
         var base = ApiFixtures.aProxyApiV4();
-        var api = base.toBuilder().apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder().listeners(listeners).build()).build();
+        var api = base.toBuilder()
+                .apiDefinitionValue(base.getApiDefinitionHttpV4().toBuilder()
+                        .listeners(listeners)
+                        .build())
+                .build();
         apiCrudService.initWith(List.of(api));
     }
 
     private static HttpListener defaultHttpListener(String path) {
         return HttpListener.builder()
-            .paths(List.of(Path.builder().path(path).build()))
-            .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-            .build();
+                .paths(List.of(Path.builder().path(path).build()))
+                .entrypoints(List.of(Entrypoint.builder()
+                        .type("http-proxy")
+                        .configuration("{}")
+                        .build()))
+                .build();
     }
 
     private static String toJson(Object value) {
@@ -148,24 +151,22 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
 
     private static Map<String, Object> uppercaseListenerMap(String typeUppercase, String path) {
         return Map.of(
-            "type",
-            typeUppercase,
-            "paths",
-            List.of(Map.of("path", path)),
-            "entrypoints",
-            List.of(Map.of("type", "http-proxy", "configuration", "{}"))
-        );
+                "type",
+                typeUppercase,
+                "paths",
+                List.of(Map.of("path", path)),
+                "entrypoints",
+                List.of(Map.of("type", "http-proxy", "configuration", "{}")));
     }
 
     private static Map<String, Object> lowercaseListenerMap(String typeLowercase, String path) {
         return Map.of(
-            "type",
-            typeLowercase,
-            "paths",
-            List.of(Map.of("path", path)),
-            "entrypoints",
-            List.of(Map.of("type", "http-proxy", "configuration", "{}"))
-        );
+                "type",
+                typeLowercase,
+                "paths",
+                List.of(Map.of("path", path)),
+                "entrypoints",
+                List.of(Map.of("type", "http-proxy", "configuration", "{}")));
     }
 
     private ApiV4 patchAndAssertOk(String body, String contentType) {
@@ -187,7 +188,9 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
         var persistedListeners = capturePersistedListeners();
         Assertions.assertThat(persistedListeners).hasSize(1);
         Assertions.assertThat(persistedListeners.getFirst().getType()).isEqualTo(ListenerType.HTTP);
-        Assertions.assertThat(((HttpListener) persistedListeners.getFirst()).getPaths()).extracting(Path::getPath).containsExactly("/http");
+        Assertions.assertThat(((HttpListener) persistedListeners.getFirst()).getPaths())
+                .extracting(Path::getPath)
+                .containsExactly("/http");
     }
 
     @Test
@@ -204,8 +207,8 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
         Assertions.assertThat(persistedListeners).hasSize(1);
         Assertions.assertThat(persistedListeners.getFirst()).isInstanceOf(HttpListener.class);
         Assertions.assertThat(((HttpListener) persistedListeners.getFirst()).getPaths())
-            .extracting(Path::getPath)
-            .containsExactly("/existing");
+                .extracting(Path::getPath)
+                .containsExactly("/existing");
     }
 
     private List<Listener> capturePersistedListeners() {
@@ -242,20 +245,20 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
 
     private void wireRealListenerValidator() {
         var listenerValidator = new ListenerValidationServiceImpl(
-            mock(VerifyApiPathDomainService.class),
-            mock(EntrypointConnectorPluginService.class),
-            mock(EndpointConnectorPluginService.class),
-            mock(CorsValidationService.class),
-            mock(VerifyApiHostsDomainService.class)
-        );
+                mock(VerifyApiPathDomainService.class),
+                mock(EntrypointConnectorPluginService.class),
+                mock(EndpointConnectorPluginService.class),
+                mock(CorsValidationService.class),
+                mock(VerifyApiHostsDomainService.class));
         doAnswer(inv -> {
-            var api = (Api) inv.getArgument(0);
-            var entity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
-            listenerValidator.validateAndSanitizeHttpV4(null, api.getId(), entity.getListeners(), entity.getEndpointGroups());
-            return api;
-        })
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
+                    var api = (Api) inv.getArgument(0);
+                    var entity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
+                    listenerValidator.validateAndSanitizeHttpV4(
+                            null, api.getId(), entity.getListeners(), entity.getEndpointGroups());
+                    return api;
+                })
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
     }
 
     @Test
@@ -270,7 +273,7 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "http", "tcp", "subscription", "kafka" })
+    @ValueSource(strings = {"http", "tcp", "subscription", "kafka"})
     void patch_lowercase_listener_type_returns_400(String lowercaseType) {
         givenApiWithListeners(List.of(defaultHttpListener("/existing")));
 

@@ -19,7 +19,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -34,7 +33,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
-import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -80,17 +78,12 @@ public class GroupValidationServiceImplTest {
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
         defaultGroupEntity.setId(defaultGroup);
-        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)).thenReturn(Set.of(defaultGroupEntity));
+        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE))
+                .thenReturn(Set.of(defaultGroupEntity));
 
         // When
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            executionContext,
-            null,
-            groups,
-            null,
-            new PrimaryOwnerEntity(new UserEntity()),
-            true
-        );
+                executionContext, null, groups, null, new PrimaryOwnerEntity(new UserEntity()), true);
 
         // Then
         assertThat(validatedGroups).isNotNull();
@@ -99,7 +92,8 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnValidatedGroupsWithNoApiWithoutDefaultGroupWithoutApiPrimaryOwnerAndCurrentUserPrimaryOwner() {
+    public void
+            shouldReturnValidatedGroupsWithNoApiWithoutDefaultGroupWithoutApiPrimaryOwnerAndCurrentUserPrimaryOwner() {
         // Given
         String groupId = "group";
         Set<String> groups = Set.of(groupId);
@@ -111,13 +105,7 @@ public class GroupValidationServiceImplTest {
 
         // When
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            executionContext,
-            null,
-            groups,
-            null,
-            new PrimaryOwnerEntity(new UserEntity()),
-            false
-        );
+                executionContext, null, groups, null, new PrimaryOwnerEntity(new UserEntity()), false);
 
         // Then
         assertThat(validatedGroups).isNotNull();
@@ -137,25 +125,21 @@ public class GroupValidationServiceImplTest {
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
         defaultGroupEntity.setId(defaultGroup);
-        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)).thenReturn(Set.of(defaultGroupEntity));
+        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE))
+                .thenReturn(Set.of(defaultGroupEntity));
 
         GroupEntity currentPrimaryOwner = new GroupEntity();
         String currentGroupId = "current";
         currentPrimaryOwner.setId(currentGroupId);
         // When
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            executionContext,
-            null,
-            groups,
-            null,
-            new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL),
-            true
-        );
+                executionContext, null, groups, null, new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL), true);
 
         // Then
         assertThat(validatedGroups).isNotNull();
         assertThat(validatedGroups.size()).isEqualTo(3);
-        assertThat(validatedGroups.containsAll(Set.of(groupId, defaultGroup, currentGroupId))).isTrue();
+        assertThat(validatedGroups.containsAll(Set.of(groupId, defaultGroup, currentGroupId)))
+                .isTrue();
     }
 
     @Test
@@ -171,17 +155,12 @@ public class GroupValidationServiceImplTest {
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
         defaultGroupEntity.setId(defaultGroup);
-        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)).thenReturn(Set.of(defaultGroupEntity));
+        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE))
+                .thenReturn(Set.of(defaultGroupEntity));
 
         // When
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            executionContext,
-            null,
-            groups,
-            null,
-            new PrimaryOwnerEntity(new UserEntity()),
-            true
-        );
+                executionContext, null, groups, null, new PrimaryOwnerEntity(new UserEntity()), true);
 
         // Then
         assertThat(validatedGroups).isNotNull();
@@ -203,24 +182,19 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.GROUP);
         membershipEntity.setMemberId("group");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
-            membershipEntity
-        );
+        when(membershipService.getPrimaryOwner(
+                        executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
+                .thenReturn(membershipEntity);
 
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
         defaultGroupEntity.setId(defaultGroup);
-        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)).thenReturn(Set.of(defaultGroupEntity));
+        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE))
+                .thenReturn(Set.of(defaultGroupEntity));
 
         // When
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            executionContext,
-            apiId,
-            groups,
-            null,
-            new PrimaryOwnerEntity(new UserEntity()),
-            true
-        );
+                executionContext, apiId, groups, null, new PrimaryOwnerEntity(new UserEntity()), true);
 
         // Then
         assertThat(validatedGroups).isNotNull();
@@ -243,24 +217,19 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.GROUP);
         membershipEntity.setMemberId("group");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
-            membershipEntity
-        );
+        when(membershipService.getPrimaryOwner(
+                        executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
+                .thenReturn(membershipEntity);
 
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
         defaultGroupEntity.setId(defaultGroup);
-        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)).thenReturn(Set.of(defaultGroupEntity));
+        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE))
+                .thenReturn(Set.of(defaultGroupEntity));
 
         // When
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            executionContext,
-            apiId,
-            groups,
-            null,
-            new PrimaryOwnerEntity(new UserEntity()),
-            true
-        );
+                executionContext, apiId, groups, null, new PrimaryOwnerEntity(new UserEntity()), true);
 
         // Then
         assertThat(validatedGroups).isNotNull();
@@ -282,24 +251,19 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.USER);
         membershipEntity.setMemberId("user");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
-            membershipEntity
-        );
+        when(membershipService.getPrimaryOwner(
+                        executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
+                .thenReturn(membershipEntity);
 
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
         defaultGroupEntity.setId(defaultGroup);
-        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)).thenReturn(Set.of(defaultGroupEntity));
+        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE))
+                .thenReturn(Set.of(defaultGroupEntity));
 
         // When
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            executionContext,
-            apiId,
-            groups,
-            null,
-            new PrimaryOwnerEntity(new UserEntity()),
-            true
-        );
+                executionContext, apiId, groups, null, new PrimaryOwnerEntity(new UserEntity()), true);
 
         // Then
         assertThat(validatedGroups).isNotNull();
@@ -322,24 +286,19 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.USER);
         membershipEntity.setMemberId("user");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
-            membershipEntity
-        );
+        when(membershipService.getPrimaryOwner(
+                        executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
+                .thenReturn(membershipEntity);
 
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
         defaultGroupEntity.setId(defaultGroup);
-        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)).thenReturn(Set.of(defaultGroupEntity));
+        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE))
+                .thenReturn(Set.of(defaultGroupEntity));
 
         // When
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            executionContext,
-            apiId,
-            groups,
-            null,
-            new PrimaryOwnerEntity(new UserEntity()),
-            true
-        );
+                executionContext, apiId, groups, null, new PrimaryOwnerEntity(new UserEntity()), true);
 
         // Then
         assertThat(validatedGroups).isNotNull();
@@ -362,32 +321,28 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.USER);
         membershipEntity.setMemberId("user");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
-            membershipEntity
-        );
+        when(membershipService.getPrimaryOwner(
+                        executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
+                .thenReturn(membershipEntity);
 
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
         defaultGroupEntity.setId(defaultGroup);
-        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)).thenReturn(Set.of(defaultGroupEntity));
+        when(groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE))
+                .thenReturn(Set.of(defaultGroupEntity));
 
         GroupEntity currentPrimaryOwner = new GroupEntity();
         String currentGroupId = "current";
         currentPrimaryOwner.setId(currentGroupId);
         // When
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            executionContext,
-            apiId,
-            groups,
-            null,
-            new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL),
-            true
-        );
+                executionContext, apiId, groups, null, new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL), true);
 
         // Then
         assertThat(validatedGroups).isNotNull();
         assertThat(validatedGroups.size()).isEqualTo(2);
-        assertThat(validatedGroups.containsAll(Set.of(currentGroupId, defaultGroup))).isTrue();
+        assertThat(validatedGroups.containsAll(Set.of(currentGroupId, defaultGroup)))
+                .isTrue();
     }
 
     @Test
@@ -398,29 +353,21 @@ public class GroupValidationServiceImplTest {
         when(groupService.findByIds(groups)).thenThrow(new GroupsNotFoundException(Set.of(groupId)));
 
         // When
-        assertThatExceptionOfType(InvalidDataException.class).isThrownBy(() ->
-            groupValidationService.validateAndSanitize(
-                GraviteeContext.getExecutionContext(),
-                null,
-                groups,
-                null,
-                new PrimaryOwnerEntity(new UserEntity()),
-                true
-            )
-        );
+        assertThatExceptionOfType(InvalidDataException.class)
+                .isThrownBy(() -> groupValidationService.validateAndSanitize(
+                        GraviteeContext.getExecutionContext(),
+                        null,
+                        groups,
+                        null,
+                        new PrimaryOwnerEntity(new UserEntity()),
+                        true));
     }
 
     @Test
     public void shouldIgnoreEmptyList() {
         Set<String> emptyGroups = Set.of();
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            null,
-            emptyGroups,
-            null,
-            null,
-            true
-        );
+                GraviteeContext.getExecutionContext(), null, emptyGroups, null, null, true);
         Assertions.assertThat(validatedGroups).isEmpty();
         Assertions.assertThat(validatedGroups).isEqualTo(emptyGroups);
     }
@@ -447,22 +394,16 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.USER);
         membershipEntity.setMemberId("user");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
-            membershipEntity
-        );
+        when(membershipService.getPrimaryOwner(
+                        executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
+                .thenReturn(membershipEntity);
 
         UserEntity userEntity = new UserEntity();
         userEntity.setId("user");
 
         // When
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            executionContext,
-            apiId,
-            groups,
-            null,
-            new PrimaryOwnerEntity(userEntity),
-            false
-        );
+                executionContext, apiId, groups, null, new PrimaryOwnerEntity(userEntity), false);
 
         // Then
         Assertions.assertThat(validatedGroups).contains(poGroupId);
@@ -474,13 +415,7 @@ public class GroupValidationServiceImplTest {
         Set<String> existingGroups = Set.of("existing1", "existing2");
 
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            null,
-            null,
-            existingGroups,
-            null,
-            false
-        );
+                GraviteeContext.getExecutionContext(), null, null, existingGroups, null, false);
 
         assertThat(validatedGroups).isNotNull();
         assertThat(validatedGroups).isEqualTo(existingGroups);

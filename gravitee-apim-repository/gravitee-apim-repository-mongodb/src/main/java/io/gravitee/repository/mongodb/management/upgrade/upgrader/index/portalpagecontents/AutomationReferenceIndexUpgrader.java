@@ -29,11 +29,11 @@ public class AutomationReferenceIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("portal_page_contents")
-            .name("automation_reference_1")
-            .key("environmentId", ascending())
-            .key("automationMetadata.referenceType", ascending())
-            .key("automationMetadata.referenceId", ascending())
-            .build();
+                .collection("portal_page_contents")
+                .name("automation_reference_1")
+                .key("environmentId", ascending())
+                .key("automationMetadata.referenceType", ascending())
+                .key("automationMetadata.referenceId", ascending())
+                .build();
     }
 }

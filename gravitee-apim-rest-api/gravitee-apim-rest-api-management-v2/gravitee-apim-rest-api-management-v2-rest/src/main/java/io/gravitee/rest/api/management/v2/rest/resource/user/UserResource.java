@@ -62,138 +62,114 @@ public class UserResource extends AbstractResource {
     @GET
     @Path("/apis")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ)})
     public Response getUserApis(
-        @PathParam("userId") String userId,
-        @BeanParam PaginationParam paginationParam,
-        @QueryParam("environmentId") String environmentId
-    ) {
-        var output = getUserApisUseCase.execute(
-            new GetUserApisUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
-        );
+            @PathParam("userId") String userId,
+            @BeanParam PaginationParam paginationParam,
+            @QueryParam("environmentId") String environmentId) {
+        var output = getUserApisUseCase.execute(new GetUserApisUseCase.Input(
+                userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage()));
 
-        List<UserApi> data = output
-            .data()
-            .stream()
-            .map(api ->
-                new UserApi()
-                    .id(api.getId())
-                    .name(api.getName())
-                    .version(api.getVersion())
-                    .visibility(api.getVisibility())
-                    .environmentId(api.getEnvironmentId())
-                    .environmentName(api.getEnvironmentName())
-            )
-            .toList();
+        List<UserApi> data = output.data().stream()
+                .map(api -> new UserApi()
+                        .id(api.getId())
+                        .name(api.getName())
+                        .version(api.getVersion())
+                        .visibility(api.getVisibility())
+                        .environmentId(api.getEnvironmentId())
+                        .environmentName(api.getEnvironmentName()))
+                .toList();
 
-        return Response.ok(
-            new UserApisResponse()
-                .data(data)
-                .pagination(PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
-                .links(computePaginationLinks(output.totalCount(), paginationParam))
-        ).build();
+        return Response.ok(new UserApisResponse()
+                        .data(data)
+                        .pagination(
+                                PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
+                        .links(computePaginationLinks(output.totalCount(), paginationParam)))
+                .build();
     }
 
     @GET
     @Path("/api-products")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ)})
     public Response getUserApiProducts(
-        @PathParam("userId") String userId,
-        @BeanParam PaginationParam paginationParam,
-        @QueryParam("environmentId") String environmentId
-    ) {
-        var output = getUserApiProductsUseCase.execute(
-            new GetUserApiProductsUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
-        );
+            @PathParam("userId") String userId,
+            @BeanParam PaginationParam paginationParam,
+            @QueryParam("environmentId") String environmentId) {
+        var output = getUserApiProductsUseCase.execute(new GetUserApiProductsUseCase.Input(
+                userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage()));
 
-        List<UserApiProduct> data = output
-            .data()
-            .stream()
-            .map(userApiProduct ->
-                new UserApiProduct()
-                    .id(userApiProduct.getId())
-                    .name(userApiProduct.getName())
-                    .version(userApiProduct.getVersion())
-                    .visibility(userApiProduct.getVisibility())
-                    .environmentId(userApiProduct.getEnvironmentId())
-                    .environmentName(userApiProduct.getEnvironmentName())
-            )
-            .toList();
+        List<UserApiProduct> data = output.data().stream()
+                .map(userApiProduct -> new UserApiProduct()
+                        .id(userApiProduct.getId())
+                        .name(userApiProduct.getName())
+                        .version(userApiProduct.getVersion())
+                        .visibility(userApiProduct.getVisibility())
+                        .environmentId(userApiProduct.getEnvironmentId())
+                        .environmentName(userApiProduct.getEnvironmentName()))
+                .toList();
 
-        return Response.ok(
-            new UserApiProductsResponse()
-                .data(data)
-                .pagination(PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
-                .links(computePaginationLinks(output.totalCount(), paginationParam))
-        ).build();
+        return Response.ok(new UserApiProductsResponse()
+                        .data(data)
+                        .pagination(
+                                PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
+                        .links(computePaginationLinks(output.totalCount(), paginationParam)))
+                .build();
     }
 
     @GET
     @Path("/applications")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ)})
     public Response getUserApplications(
-        @PathParam("userId") String userId,
-        @BeanParam PaginationParam paginationParam,
-        @QueryParam("environmentId") String environmentId
-    ) {
-        var output = getUserApplicationsUseCase.execute(
-            new GetUserApplicationsUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
-        );
+            @PathParam("userId") String userId,
+            @BeanParam PaginationParam paginationParam,
+            @QueryParam("environmentId") String environmentId) {
+        var output = getUserApplicationsUseCase.execute(new GetUserApplicationsUseCase.Input(
+                userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage()));
 
-        List<UserApplication> data = output
-            .data()
-            .stream()
-            .map(app ->
-                new UserApplication()
-                    .id(app.getId())
-                    .name(app.getName())
-                    .environmentId(app.getEnvironmentId())
-                    .environmentName(app.getEnvironmentName())
-            )
-            .toList();
+        List<UserApplication> data = output.data().stream()
+                .map(app -> new UserApplication()
+                        .id(app.getId())
+                        .name(app.getName())
+                        .environmentId(app.getEnvironmentId())
+                        .environmentName(app.getEnvironmentName()))
+                .toList();
 
-        return Response.ok(
-            new UserApplicationsResponse()
-                .data(data)
-                .pagination(PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
-                .links(computePaginationLinks(output.totalCount(), paginationParam))
-        ).build();
+        return Response.ok(new UserApplicationsResponse()
+                        .data(data)
+                        .pagination(
+                                PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
+                        .links(computePaginationLinks(output.totalCount(), paginationParam)))
+                .build();
     }
 
     @GET
     @Path("/groups")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ)})
     public Response getUserGroups(
-        @PathParam("userId") String userId,
-        @BeanParam PaginationParam paginationParam,
-        @QueryParam("environmentId") String environmentId
-    ) {
-        var output = getUserGroupsUseCase.execute(
-            new GetUserGroupsUseCase.Input(userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage())
-        );
+            @PathParam("userId") String userId,
+            @BeanParam PaginationParam paginationParam,
+            @QueryParam("environmentId") String environmentId) {
+        var output = getUserGroupsUseCase.execute(new GetUserGroupsUseCase.Input(
+                userId, environmentId, paginationParam.getPage(), paginationParam.getPerPage()));
 
-        List<UserGroup> data = output
-            .data()
-            .stream()
-            .map(group ->
-                new UserGroup()
-                    .id(group.getId())
-                    .name(group.getName())
-                    .environmentId(group.getEnvironmentId())
-                    .environmentName(group.getEnvironmentName())
-                    .roles(group.getRoles())
-                    .isApiPrimaryOwner(group.isApiPrimaryOwner())
-            )
-            .toList();
+        List<UserGroup> data = output.data().stream()
+                .map(group -> new UserGroup()
+                        .id(group.getId())
+                        .name(group.getName())
+                        .environmentId(group.getEnvironmentId())
+                        .environmentName(group.getEnvironmentName())
+                        .roles(group.getRoles())
+                        .isApiPrimaryOwner(group.isApiPrimaryOwner()))
+                .toList();
 
-        return Response.ok(
-            new UserGroupsResponse()
-                .data(data)
-                .pagination(PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
-                .links(computePaginationLinks(output.totalCount(), paginationParam))
-        ).build();
+        return Response.ok(new UserGroupsResponse()
+                        .data(data)
+                        .pagination(
+                                PaginationInfo.computePaginationInfo(output.totalCount(), data.size(), paginationParam))
+                        .links(computePaginationLinks(output.totalCount(), paginationParam)))
+                .build();
     }
 }

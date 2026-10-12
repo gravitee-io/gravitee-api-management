@@ -25,9 +25,9 @@ public class PortalNavigationItemEnvironmentIdIndexUpgrader extends IndexUpgrade
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("portal_navigation_items")
-            .key("environmentId", ascending())
-            .name("e1")
-            .build();
+                .collection("portal_navigation_items")
+                .key("environmentId", ascending())
+                .name("e1")
+                .build();
     }
 }

@@ -33,7 +33,8 @@ import org.springframework.stereotype.Component;
 public class SubscriptionFormValidationConstraintsMongoUpgrader extends MongoUpgrader {
 
     public static final int SUBSCRIPTION_FORM_VALIDATION_CONSTRAINTS_MONGO_UPGRADER_ORDER =
-        PortalNavigationItemDefaultRootIdMongoUpgrader.PORTAL_NAVIGATION_ITEM_DEFAULT_ROOT_ID_MONGO_UPGRADER_ORDER + 1;
+            PortalNavigationItemDefaultRootIdMongoUpgrader.PORTAL_NAVIGATION_ITEM_DEFAULT_ROOT_ID_MONGO_UPGRADER_ORDER
+                    + 1;
 
     @Override
     public String version() {
@@ -42,10 +43,8 @@ public class SubscriptionFormValidationConstraintsMongoUpgrader extends MongoUpg
 
     @Override
     public boolean upgrade() {
-        var result = this.getCollection("subscription_forms").updateMany(
-            Filters.eq("validationConstraints", null),
-            Updates.set("validationConstraints", "{}")
-        );
+        var result = this.getCollection("subscription_forms")
+                .updateMany(Filters.eq("validationConstraints", null), Updates.set("validationConstraints", "{}"));
         return result.wasAcknowledged();
     }
 

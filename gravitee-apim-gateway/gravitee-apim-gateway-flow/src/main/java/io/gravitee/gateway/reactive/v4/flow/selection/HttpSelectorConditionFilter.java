@@ -20,7 +20,6 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.flow.condition.evaluation.PathPatterns;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.http.HttpConditionFilter;
@@ -40,32 +39,29 @@ public class HttpSelectorConditionFilter implements HttpConditionFilter<Flow> {
 
     @Override
     public Maybe<Flow> filter(final HttpBaseExecutionContext ctx, final Flow flow) {
-        return flow
-            .selectorByType(SelectorType.HTTP)
-            .map(selector -> {
-                HttpSelector httpSelector = (HttpSelector) selector;
-                if (isMethodMatches(ctx, httpSelector) && isPathMatches(ctx, httpSelector)) {
-                    return Maybe.just(flow);
-                } else {
-                    return Maybe.<Flow>empty();
-                }
-            })
-            .orElse(Maybe.just(flow));
+        return flow.selectorByType(SelectorType.HTTP)
+                .map(selector -> {
+                    HttpSelector httpSelector = (HttpSelector) selector;
+                    if (isMethodMatches(ctx, httpSelector) && isPathMatches(ctx, httpSelector)) {
+                        return Maybe.just(flow);
+                    } else {
+                        return Maybe.<Flow>empty();
+                    }
+                })
+                .orElse(Maybe.just(flow));
     }
 
     private boolean isPathMatches(final HttpBaseExecutionContext ctx, final HttpSelector httpSelector) {
         Pattern pattern = pathPatterns.getOrCreate(httpSelector.getPath());
         String pathInfo = ctx.request().pathInfo();
         return (httpSelector.getPathOperator() == Operator.EQUALS)
-            ? pattern.matcher(pathInfo).matches()
-            : pattern.matcher(pathInfo).lookingAt();
+                ? pattern.matcher(pathInfo).matches()
+                : pattern.matcher(pathInfo).lookingAt();
     }
 
     private boolean isMethodMatches(final HttpBaseExecutionContext ctx, final HttpSelector httpSelector) {
-        return (
-            httpSelector.getMethods() == null ||
-            httpSelector.getMethods().isEmpty() ||
-            httpSelector.getMethods().contains(ctx.request().method())
-        );
+        return (httpSelector.getMethods() == null
+                || httpSelector.getMethods().isEmpty()
+                || httpSelector.getMethods().contains(ctx.request().method()));
     }
 }

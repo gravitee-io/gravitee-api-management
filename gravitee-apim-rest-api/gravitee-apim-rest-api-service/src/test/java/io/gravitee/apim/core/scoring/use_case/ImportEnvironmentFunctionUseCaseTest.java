@@ -72,33 +72,28 @@ class ImportEnvironmentFunctionUseCaseTest {
     void should_create_function() {
         // Given
         ImportEnvironmentFunctionUseCase.Input input = new ImportEnvironmentFunctionUseCase.Input(
-            new ImportEnvironmentFunctionUseCase.NewFunction("name", "payload"),
-            AUDIT_INFO
-        );
+                new ImportEnvironmentFunctionUseCase.NewFunction("name", "payload"), AUDIT_INFO);
 
         // When
         useCase.execute(input);
 
         // Then
-        assertThat(scoringFunctionCrudService.storage()).contains(
-            ScoringFunction.builder()
-                .id("generated-id")
-                .name("name")
-                .payload("payload")
-                .referenceId(ENVIRONMENT_ID)
-                .referenceType(ScoringFunction.ReferenceType.ENVIRONMENT)
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .build()
-        );
+        assertThat(scoringFunctionCrudService.storage())
+                .contains(ScoringFunction.builder()
+                        .id("generated-id")
+                        .name("name")
+                        .payload("payload")
+                        .referenceId(ENVIRONMENT_ID)
+                        .referenceType(ScoringFunction.ReferenceType.ENVIRONMENT)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_function_id() {
         // Given
         ImportEnvironmentFunctionUseCase.Input input = new ImportEnvironmentFunctionUseCase.Input(
-            new ImportEnvironmentFunctionUseCase.NewFunction("name", "payload"),
-            AUDIT_INFO
-        );
+                new ImportEnvironmentFunctionUseCase.NewFunction("name", "payload"), AUDIT_INFO);
 
         // When
         ImportEnvironmentFunctionUseCase.Output output = useCase.execute(input);

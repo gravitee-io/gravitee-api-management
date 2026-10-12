@@ -78,19 +78,19 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
     @Test
     void should_update_portal_menu_link() {
         // Given
-        io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
-            .toBuilder()
-            .id(PORTAL_MENU_LINK_ID)
-            .environmentId(ENV_ID)
-            .build();
+        io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink portalMenuLink =
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id(PORTAL_MENU_LINK_ID)
+                        .environmentId(ENV_ID)
+                        .build();
         portalMenuLinkCrudServiceInMemory.initWith(List.of(portalMenuLink));
 
         // When
         var portalMenuLinkToUpdate = new UpdatePortalMenuLink()
-            .name("new menu link")
-            .target("http://newTarget")
-            .visibility(UpdatePortalMenuLink.VisibilityEnum.PUBLIC)
-            .order(100);
+                .name("new menu link")
+                .target("http://newTarget")
+                .visibility(UpdatePortalMenuLink.VisibilityEnum.PUBLIC)
+                .order(100);
         final Response response = rootTarget().request().put(json(portalMenuLinkToUpdate));
 
         // Then
@@ -98,35 +98,37 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
         var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalMenuLink.class);
 
         assertThat(result)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", PORTAL_MENU_LINK_ID)
-            .hasFieldOrPropertyWithValue("target", portalMenuLinkToUpdate.getTarget())
-            .hasFieldOrPropertyWithValue("name", portalMenuLinkToUpdate.getName())
-            .hasFieldOrPropertyWithValue("type", PortalMenuLink.TypeEnum.EXTERNAL)
-            .hasFieldOrPropertyWithValue("visibility", PortalMenuLink.VisibilityEnum.PUBLIC)
-            .hasFieldOrPropertyWithValue("order", portalMenuLinkToUpdate.getOrder());
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PORTAL_MENU_LINK_ID)
+                .hasFieldOrPropertyWithValue("target", portalMenuLinkToUpdate.getTarget())
+                .hasFieldOrPropertyWithValue("name", portalMenuLinkToUpdate.getName())
+                .hasFieldOrPropertyWithValue("type", PortalMenuLink.TypeEnum.EXTERNAL)
+                .hasFieldOrPropertyWithValue("visibility", PortalMenuLink.VisibilityEnum.PUBLIC)
+                .hasFieldOrPropertyWithValue("order", portalMenuLinkToUpdate.getOrder());
     }
 
     @Test
     void should_return_400_if_execute_fails_with_invalid_data_exception() {
         // Given
-        io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
-            .toBuilder()
-            .id(PORTAL_MENU_LINK_ID)
-            .environmentId(ENV_ID)
-            .build();
+        io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink portalMenuLink =
+                PortalMenuLinkFixtures.aPortalMenuLink().toBuilder()
+                        .id(PORTAL_MENU_LINK_ID)
+                        .environmentId(ENV_ID)
+                        .build();
         portalMenuLinkCrudServiceInMemory.initWith(List.of(portalMenuLink));
 
         // When
-        var updatePortalMenuLink = PortalMenuLinkFixtures.anUpdatePortalMenuLink().toBuilder().name(null).build();
+        var updatePortalMenuLink = PortalMenuLinkFixtures.anUpdatePortalMenuLink().toBuilder()
+                .name(null)
+                .build();
         final Response response = rootTarget().request().put(json(updatePortalMenuLink));
 
         // Then
         MAPIAssertions.assertThat(response)
-            .hasStatus(BAD_REQUEST_400)
-            .asError()
-            .hasHttpStatus(BAD_REQUEST_400)
-            .hasMessage("Name is required.");
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Name is required.");
     }
 
     @Test
@@ -136,32 +138,30 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
 
         // Then
         MAPIAssertions.assertThat(response)
-            .hasStatus(BAD_REQUEST_400)
-            .asError()
-            .hasHttpStatus(BAD_REQUEST_400)
-            .hasMessage("Validation error");
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
     }
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
         // Given
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.ENVIRONMENT_SETTINGS),
-                eq(ENV_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.ENVIRONMENT_SETTINGS),
+                        eq(ENV_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         // When
         final Response response = rootTarget().request().put(json(PortalMenuLinkFixtures.anUpdatePortalMenuLink()));
 
         // Then
         MAPIAssertions.assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 }

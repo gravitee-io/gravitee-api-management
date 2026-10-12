@@ -46,11 +46,11 @@ class SearchEventsUseCaseTest {
     public static final String ENVIRONMENT_ID = "environment-id";
 
     private static final BaseUserEntity USER = BaseUserEntity.builder()
-        .id("user-id")
-        .firstname("John")
-        .lastname("Doe")
-        .email("john.doe@gravitee.io")
-        .build();
+            .id("user-id")
+            .firstname("John")
+            .lastname("Doe")
+            .email("john.doe@gravitee.io")
+            .build();
 
     EventQueryServiceInMemory eventQueryService = new EventQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
@@ -71,28 +71,28 @@ class SearchEventsUseCaseTest {
     void should_return_events_with_their_initiators_of_the_requested_api() {
         // Given
         userCrudService.initWith(List.of(USER));
-        var expected = EventFixtures.anApiEvent(API_ID).toBuilder().environments(Set.of(ENVIRONMENT_ID)).build();
-        eventQueryService.initWith(
-            List.of(
+        var expected = EventFixtures.anApiEvent(API_ID).toBuilder()
+                .environments(Set.of(ENVIRONMENT_ID))
+                .build();
+        eventQueryService.initWith(List.of(
                 expected,
-                Event.builder().id("event2").properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api"))).build(),
-                Event.builder().id("event3").properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api"))).build()
-            )
-        );
+                Event.builder()
+                        .id("event2")
+                        .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
+                        .build(),
+                Event.builder()
+                        .id("event3")
+                        .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
+                        .build()));
 
-        var result = useCase.execute(
-            new SearchEventsUseCase.Input(
-                new EventQueryService.SearchQuery(
-                    ENVIRONMENT_ID,
-                    Optional.empty(),
-                    Optional.of(API_ID),
-                    List.of(),
-                    Map.of(),
-                    Optional.of(0L),
-                    Optional.of(Instant.now().toEpochMilli())
-                )
-            )
-        );
+        var result = useCase.execute(new SearchEventsUseCase.Input(new EventQueryService.SearchQuery(
+                ENVIRONMENT_ID,
+                Optional.empty(),
+                Optional.of(API_ID),
+                List.of(),
+                Map.of(),
+                Optional.of(0L),
+                Optional.of(Instant.now().toEpochMilli()))));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
@@ -103,42 +103,31 @@ class SearchEventsUseCaseTest {
     @Test
     void should_return_events_sorted_by_desc_createdAt() {
         // Given
-        eventQueryService.initWith(
-            List.of(
-                EventFixtures.anEvent()
-                    .toBuilder()
-                    .id("1")
-                    .environments(Set.of(ENVIRONMENT_ID))
-                    .createdAt(ZonedDateTime.parse("2020-02-01T20:22:02.00Z"))
-                    .build(),
-                EventFixtures.anEvent()
-                    .toBuilder()
-                    .id("2")
-                    .environments(Set.of(ENVIRONMENT_ID))
-                    .createdAt(ZonedDateTime.parse("2020-02-02T20:22:02.00Z"))
-                    .build(),
-                EventFixtures.anEvent()
-                    .toBuilder()
-                    .id("3")
-                    .environments(Set.of(ENVIRONMENT_ID))
-                    .createdAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z"))
-                    .build()
-            )
-        );
+        eventQueryService.initWith(List.of(
+                EventFixtures.anEvent().toBuilder()
+                        .id("1")
+                        .environments(Set.of(ENVIRONMENT_ID))
+                        .createdAt(ZonedDateTime.parse("2020-02-01T20:22:02.00Z"))
+                        .build(),
+                EventFixtures.anEvent().toBuilder()
+                        .id("2")
+                        .environments(Set.of(ENVIRONMENT_ID))
+                        .createdAt(ZonedDateTime.parse("2020-02-02T20:22:02.00Z"))
+                        .build(),
+                EventFixtures.anEvent().toBuilder()
+                        .id("3")
+                        .environments(Set.of(ENVIRONMENT_ID))
+                        .createdAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z"))
+                        .build()));
 
-        var result = useCase.execute(
-            new SearchEventsUseCase.Input(
-                new EventQueryService.SearchQuery(
-                    ENVIRONMENT_ID,
-                    Optional.empty(),
-                    Optional.empty(),
-                    List.of(),
-                    Map.of(),
-                    Optional.of(0L),
-                    Optional.of(Instant.now().toEpochMilli())
-                )
-            )
-        );
+        var result = useCase.execute(new SearchEventsUseCase.Input(new EventQueryService.SearchQuery(
+                ENVIRONMENT_ID,
+                Optional.empty(),
+                Optional.empty(),
+                List.of(),
+                Map.of(),
+                Optional.of(0L),
+                Optional.of(Instant.now().toEpochMilli()))));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
@@ -152,26 +141,23 @@ class SearchEventsUseCaseTest {
         var expectedTotal = 15;
         var pageNumber = 2;
         var pageSize = 5;
-        eventQueryService.initWith(
-            IntStream.range(0, expectedTotal)
-                .mapToObj(i -> EventFixtures.anEvent().toBuilder().id(String.valueOf(i)).environments(Set.of(ENVIRONMENT_ID)).build())
-                .collect(Collectors.toList())
-        );
+        eventQueryService.initWith(IntStream.range(0, expectedTotal)
+                .mapToObj(i -> EventFixtures.anEvent().toBuilder()
+                        .id(String.valueOf(i))
+                        .environments(Set.of(ENVIRONMENT_ID))
+                        .build())
+                .collect(Collectors.toList()));
 
-        var result = useCase.execute(
-            new SearchEventsUseCase.Input(
+        var result = useCase.execute(new SearchEventsUseCase.Input(
                 new EventQueryService.SearchQuery(
-                    ENVIRONMENT_ID,
-                    Optional.empty(),
-                    Optional.empty(),
-                    List.of(),
-                    Map.of(),
-                    Optional.of(0L),
-                    Optional.of(Instant.now().toEpochMilli())
-                ),
-                new PageableImpl(pageNumber, pageSize)
-            )
-        );
+                        ENVIRONMENT_ID,
+                        Optional.empty(),
+                        Optional.empty(),
+                        List.of(),
+                        Map.of(),
+                        Optional.of(0L),
+                        Optional.of(Instant.now().toEpochMilli())),
+                new PageableImpl(pageNumber, pageSize)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);

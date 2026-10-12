@@ -22,9 +22,10 @@ public enum PortalVisibility {
     PUBLIC,
     PRIVATE;
 
-    public static PortalVisibility resolve(@Nullable PortalVisibility callerVisibility, @Nullable PortalVisibility parentVisibility) {
+    public static PortalVisibility resolve(
+            @Nullable PortalVisibility callerVisibility, @Nullable PortalVisibility parentVisibility) {
         return Optional.ofNullable(callerVisibility)
-            .or(() -> Optional.ofNullable(parentVisibility))
-            .orElse(PUBLIC);
+                .or(() -> Optional.ofNullable(parentVisibility))
+                .orElse(PUBLIC);
     }
 }

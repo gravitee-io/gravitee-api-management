@@ -25,11 +25,10 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record MetricFacetsResponse(
-    MetricSpec.Name metric,
-    MetricSpec.Unit unit,
-    List<FacetBucketResponse> buckets,
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) List<FilterSpec.Name> ignoredFilters
-) {
+        MetricSpec.Name metric,
+        MetricSpec.Unit unit,
+        List<FacetBucketResponse> buckets,
+        @JsonInclude(JsonInclude.Include.NON_EMPTY) List<FilterSpec.Name> ignoredFilters) {
     public MetricFacetsResponse {
         ignoredFilters = ignoredFilters == null ? List.of() : List.copyOf(ignoredFilters);
     }

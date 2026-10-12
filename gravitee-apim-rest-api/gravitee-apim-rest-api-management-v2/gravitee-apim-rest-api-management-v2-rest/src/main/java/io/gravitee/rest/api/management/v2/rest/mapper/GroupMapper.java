@@ -32,7 +32,7 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface GroupMapper {
     Logger log = NodeLoggerFactory.getLogger(GroupMapper.class);
     GroupMapper INSTANCE = Mappers.getMapper(GroupMapper.class);
@@ -47,19 +47,18 @@ public interface GroupMapper {
         if (Objects.isNull(events)) {
             return null;
         }
-        return events
-            .stream()
-            .map(event -> {
-                if (Objects.nonNull(event)) {
-                    try {
-                        return GroupEvent.fromValue(event.getEvent());
-                    } catch (IllegalArgumentException e) {
-                        log.error("Unable to parse GroupEventRuleEntity: " + event.getEvent());
+        return events.stream()
+                .map(event -> {
+                    if (Objects.nonNull(event)) {
+                        try {
+                            return GroupEvent.fromValue(event.getEvent());
+                        } catch (IllegalArgumentException e) {
+                            log.error("Unable to parse GroupEventRuleEntity: " + event.getEvent());
+                        }
                     }
-                }
-                return null;
-            })
-            .collect(Collectors.toList());
+                    return null;
+                })
+                .collect(Collectors.toList());
     }
 
     @Named("mapApiRole")
@@ -87,18 +86,18 @@ public interface GroupMapper {
             return null;
         }
 
-        return eventRules
-            .stream()
-            .filter(Objects::nonNull)
-            .map(rule -> {
-                try {
-                    return GroupEvent.fromValue(rule.event().name());
-                } catch (IllegalArgumentException e) {
-                    log.error("Unable to parse GroupEventRule: " + rule.event().name());
-                    return null;
-                }
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+        return eventRules.stream()
+                .filter(Objects::nonNull)
+                .map(rule -> {
+                    try {
+                        return GroupEvent.fromValue(rule.event().name());
+                    } catch (IllegalArgumentException e) {
+                        log.error("Unable to parse GroupEventRule: "
+                                + rule.event().name());
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

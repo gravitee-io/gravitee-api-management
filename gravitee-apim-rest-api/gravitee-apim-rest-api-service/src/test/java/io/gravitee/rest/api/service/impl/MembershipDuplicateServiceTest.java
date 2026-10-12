@@ -71,12 +71,12 @@ public class MembershipDuplicateServiceTest {
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
         lenient()
-            .when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API))
-            .thenReturn(RoleEntity.builder().id(PRIMARY_OWNER_ROLE_ID).build());
+                .when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API))
+                .thenReturn(RoleEntity.builder().id(PRIMARY_OWNER_ROLE_ID).build());
 
         lenient()
-            .when(roleService.findDefaultRoleByScopes(ORGANIZATION_ID, RoleScope.API))
-            .thenReturn(List.of(RoleEntity.builder().id(DEFAULT_ROLE_ID).build()));
+                .when(roleService.findDefaultRoleByScopes(ORGANIZATION_ID, RoleScope.API))
+                .thenReturn(List.of(RoleEntity.builder().id(DEFAULT_ROLE_ID).build()));
     }
 
     @AfterEach
@@ -88,174 +88,160 @@ public class MembershipDuplicateServiceTest {
     void should_do_nothing_when_no_primary_owner_role_found() {
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(null);
 
-        membershipDuplicateService.duplicateMemberships(GraviteeContext.getExecutionContext(), SOURCE_API_ID, DUPLICATED_API_ID, null);
+        membershipDuplicateService.duplicateMemberships(
+                GraviteeContext.getExecutionContext(), SOURCE_API_ID, DUPLICATED_API_ID, null);
 
         verifyNoInteractions(membershipService);
     }
 
     @Test
     void should_duplicate_membership() {
-        MembershipEntity member1 = aUserMembershipForApi()
-            .toBuilder()
-            .id("m1")
-            .memberId("user1")
-            .referenceId(SOURCE_API_ID)
-            .roleId("role1")
-            .build();
-        MembershipEntity member2 = aGroupMembershipForApi()
-            .toBuilder()
-            .id("m2")
-            .memberId("group1")
-            .referenceId(SOURCE_API_ID)
-            .roleId("role2")
-            .build();
-        when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID)).thenReturn(Set.of(member1, member2));
+        MembershipEntity member1 = aUserMembershipForApi().toBuilder()
+                .id("m1")
+                .memberId("user1")
+                .referenceId(SOURCE_API_ID)
+                .roleId("role1")
+                .build();
+        MembershipEntity member2 = aGroupMembershipForApi().toBuilder()
+                .id("m2")
+                .memberId("group1")
+                .referenceId(SOURCE_API_ID)
+                .roleId("role2")
+                .build();
+        when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID))
+                .thenReturn(Set.of(member1, member2));
 
-        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any())).thenAnswer(invocation ->
-            MemberEntity.builder()
-                .id(invocation.getArgument(4))
-                .type(invocation.getArgument(3))
-                .referenceType(invocation.getArgument(1))
-                .referenceId(invocation.getArgument(2))
-                .roles(List.of(RoleEntity.builder().id(invocation.getArgument(5)).build()))
-                .build()
-        );
+        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> MemberEntity.builder()
+                        .id(invocation.getArgument(4))
+                        .type(invocation.getArgument(3))
+                        .referenceType(invocation.getArgument(1))
+                        .referenceId(invocation.getArgument(2))
+                        .roles(List.of(RoleEntity.builder()
+                                .id(invocation.getArgument(5))
+                                .build()))
+                        .build());
 
         var duplicated = membershipDuplicateService.duplicateMemberships(
-            GraviteeContext.getExecutionContext(),
-            SOURCE_API_ID,
-            DUPLICATED_API_ID,
-            USER_ID
-        );
+                GraviteeContext.getExecutionContext(), SOURCE_API_ID, DUPLICATED_API_ID, USER_ID);
 
         Assertions.assertThat(duplicated)
-            .hasSize(2)
-            .extracting(MemberEntity::getReferenceId, MemberEntity::getId, MemberEntity::getRoles)
-            .contains(
-                tuple(DUPLICATED_API_ID, member1.getMemberId(), List.of(RoleEntity.builder().id("role1").build())),
-                tuple(DUPLICATED_API_ID, member2.getMemberId(), List.of(RoleEntity.builder().id("role2").build()))
-            );
+                .hasSize(2)
+                .extracting(MemberEntity::getReferenceId, MemberEntity::getId, MemberEntity::getRoles)
+                .contains(
+                        tuple(
+                                DUPLICATED_API_ID,
+                                member1.getMemberId(),
+                                List.of(RoleEntity.builder().id("role1").build())),
+                        tuple(
+                                DUPLICATED_API_ID,
+                                member2.getMemberId(),
+                                List.of(RoleEntity.builder().id("role2").build())));
     }
 
     @Test
     void should_duplicate_source_primary_owner_by_updating_the_role_to_default_one() {
-        MembershipEntity member1 = aUserMembershipForApi()
-            .toBuilder()
-            .id("m1")
-            .memberId("user1")
-            .referenceId(SOURCE_API_ID)
-            .roleId("role1")
-            .build();
-        MembershipEntity primaryOwner = aUserMembershipForApi()
-            .toBuilder()
-            .id("po")
-            .memberId("po")
-            .referenceId(SOURCE_API_ID)
-            .roleId(PRIMARY_OWNER_ROLE_ID)
-            .build();
-        MembershipEntity member2 = aGroupMembershipForApi()
-            .toBuilder()
-            .id("m2")
-            .memberId("group1")
-            .referenceId(SOURCE_API_ID)
-            .roleId("role2")
-            .build();
-        when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID)).thenReturn(
-            Set.of(member1, primaryOwner, member2)
-        );
+        MembershipEntity member1 = aUserMembershipForApi().toBuilder()
+                .id("m1")
+                .memberId("user1")
+                .referenceId(SOURCE_API_ID)
+                .roleId("role1")
+                .build();
+        MembershipEntity primaryOwner = aUserMembershipForApi().toBuilder()
+                .id("po")
+                .memberId("po")
+                .referenceId(SOURCE_API_ID)
+                .roleId(PRIMARY_OWNER_ROLE_ID)
+                .build();
+        MembershipEntity member2 = aGroupMembershipForApi().toBuilder()
+                .id("m2")
+                .memberId("group1")
+                .referenceId(SOURCE_API_ID)
+                .roleId("role2")
+                .build();
+        when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID))
+                .thenReturn(Set.of(member1, primaryOwner, member2));
 
-        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any())).thenAnswer(invocation ->
-            MemberEntity.builder()
-                .id(invocation.getArgument(4))
-                .type(invocation.getArgument(3))
-                .referenceType(invocation.getArgument(1))
-                .referenceId(invocation.getArgument(2))
-                .roles(List.of(RoleEntity.builder().id(invocation.getArgument(5)).build()))
-                .build()
-        );
+        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> MemberEntity.builder()
+                        .id(invocation.getArgument(4))
+                        .type(invocation.getArgument(3))
+                        .referenceType(invocation.getArgument(1))
+                        .referenceId(invocation.getArgument(2))
+                        .roles(List.of(RoleEntity.builder()
+                                .id(invocation.getArgument(5))
+                                .build()))
+                        .build());
 
         var duplicated = membershipDuplicateService.duplicateMemberships(
-            GraviteeContext.getExecutionContext(),
-            SOURCE_API_ID,
-            DUPLICATED_API_ID,
-            USER_ID
-        );
+                GraviteeContext.getExecutionContext(), SOURCE_API_ID, DUPLICATED_API_ID, USER_ID);
 
         Assertions.assertThat(duplicated)
-            .hasSize(3)
-            .extracting(MemberEntity::getReferenceId, MemberEntity::getId, MemberEntity::getRoles)
-            .contains(tuple(DUPLICATED_API_ID, primaryOwner.getMemberId(), List.of(RoleEntity.builder().id(DEFAULT_ROLE_ID).build())));
+                .hasSize(3)
+                .extracting(MemberEntity::getReferenceId, MemberEntity::getId, MemberEntity::getRoles)
+                .contains(tuple(
+                        DUPLICATED_API_ID,
+                        primaryOwner.getMemberId(),
+                        List.of(RoleEntity.builder().id(DEFAULT_ROLE_ID).build())));
     }
 
     @Test
     void should_ignore_source_membership_of_new_primary_owner() {
-        MembershipEntity member1 = aUserMembershipForApi()
-            .toBuilder()
-            .id("m1")
-            .memberId("user1")
-            .referenceId(SOURCE_API_ID)
-            .roleId("role1")
-            .build();
-        MembershipEntity sourcePrimaryOwner = aUserMembershipForApi()
-            .toBuilder()
-            .id("po")
-            .memberId("po")
-            .referenceId(SOURCE_API_ID)
-            .roleId(PRIMARY_OWNER_ROLE_ID)
-            .build();
-        MembershipEntity newPO = aUserMembershipForApi()
-            .toBuilder()
-            .id("newPO")
-            .memberId(USER_ID)
-            .referenceId(SOURCE_API_ID)
-            .roleId("a-role")
-            .build();
-        MembershipEntity member2 = aGroupMembershipForApi()
-            .toBuilder()
-            .id("m2")
-            .memberId("group1")
-            .referenceId(SOURCE_API_ID)
-            .roleId("role2")
-            .build();
-        when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID)).thenReturn(
-            Set.of(member1, sourcePrimaryOwner, newPO, member2)
-        );
+        MembershipEntity member1 = aUserMembershipForApi().toBuilder()
+                .id("m1")
+                .memberId("user1")
+                .referenceId(SOURCE_API_ID)
+                .roleId("role1")
+                .build();
+        MembershipEntity sourcePrimaryOwner = aUserMembershipForApi().toBuilder()
+                .id("po")
+                .memberId("po")
+                .referenceId(SOURCE_API_ID)
+                .roleId(PRIMARY_OWNER_ROLE_ID)
+                .build();
+        MembershipEntity newPO = aUserMembershipForApi().toBuilder()
+                .id("newPO")
+                .memberId(USER_ID)
+                .referenceId(SOURCE_API_ID)
+                .roleId("a-role")
+                .build();
+        MembershipEntity member2 = aGroupMembershipForApi().toBuilder()
+                .id("m2")
+                .memberId("group1")
+                .referenceId(SOURCE_API_ID)
+                .roleId("role2")
+                .build();
+        when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID))
+                .thenReturn(Set.of(member1, sourcePrimaryOwner, newPO, member2));
 
-        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any())).thenAnswer(invocation ->
-            MemberEntity.builder()
-                .id(invocation.getArgument(4))
-                .type(invocation.getArgument(3))
-                .referenceType(invocation.getArgument(1))
-                .referenceId(invocation.getArgument(2))
-                .roles(List.of(RoleEntity.builder().id(invocation.getArgument(5)).build()))
-                .build()
-        );
+        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> MemberEntity.builder()
+                        .id(invocation.getArgument(4))
+                        .type(invocation.getArgument(3))
+                        .referenceType(invocation.getArgument(1))
+                        .referenceId(invocation.getArgument(2))
+                        .roles(List.of(RoleEntity.builder()
+                                .id(invocation.getArgument(5))
+                                .build()))
+                        .build());
 
         var duplicated = membershipDuplicateService.duplicateMemberships(
-            GraviteeContext.getExecutionContext(),
-            SOURCE_API_ID,
-            DUPLICATED_API_ID,
-            USER_ID
-        );
+                GraviteeContext.getExecutionContext(), SOURCE_API_ID, DUPLICATED_API_ID, USER_ID);
 
         Assertions.assertThat(duplicated)
-            .hasSize(3)
-            .extracting(MemberEntity::getReferenceId, MemberEntity::getId)
-            .doesNotContain(tuple(DUPLICATED_API_ID, newPO.getMemberId()));
+                .hasSize(3)
+                .extracting(MemberEntity::getReferenceId, MemberEntity::getId)
+                .doesNotContain(tuple(DUPLICATED_API_ID, newPO.getMemberId()));
     }
 
     @ParameterizedTest
     @NullAndEmptySource
     void should_throw_when_default_role_defined_for_API_scope(List<RoleEntity> roles) {
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION_ID, RoleScope.API)).thenReturn(roles);
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION_ID, RoleScope.API))
+                .thenReturn(roles);
 
-        assertThatThrownBy(() ->
-            membershipDuplicateService.duplicateMemberships(
-                GraviteeContext.getExecutionContext(),
-                SOURCE_API_ID,
-                DUPLICATED_API_ID,
-                USER_ID
-            )
-        ).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> membershipDuplicateService.duplicateMemberships(
+                        GraviteeContext.getExecutionContext(), SOURCE_API_ID, DUPLICATED_API_ID, USER_ID))
+                .isInstanceOf(IllegalStateException.class);
     }
 }

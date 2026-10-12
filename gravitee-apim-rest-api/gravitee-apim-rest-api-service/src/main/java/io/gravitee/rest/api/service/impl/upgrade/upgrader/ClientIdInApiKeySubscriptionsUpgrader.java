@@ -68,7 +68,8 @@ public class ClientIdInApiKeySubscriptionsUpgrader implements Upgrader {
                 subscriptionRepository.update(subscription);
             }
         } catch (TechnicalException e) {
-            throw new TechnicalException("Failed to remove clientID from API Key subscriptions for API Key [" + subscription + "]", e);
+            throw new TechnicalException(
+                    "Failed to remove clientID from API Key subscriptions for API Key [" + subscription + "]", e);
         }
     }
 }

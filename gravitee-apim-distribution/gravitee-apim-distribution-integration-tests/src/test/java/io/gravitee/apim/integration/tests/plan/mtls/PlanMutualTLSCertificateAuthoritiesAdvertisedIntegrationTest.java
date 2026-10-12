@@ -48,7 +48,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @GatewayTest
-class PlanMutualTLSCertificateAuthoritiesAdvertisedIntegrationTest extends AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest {
+class PlanMutualTLSCertificateAuthoritiesAdvertisedIntegrationTest
+        extends AbstractPlanMutualTLSCertificateAuthoritiesIntegrationTest {
 
     @Override
     protected Boolean sendClientCertificateAuthorities() {
@@ -57,8 +58,9 @@ class PlanMutualTLSCertificateAuthoritiesAdvertisedIntegrationTest extends Abstr
 
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
     @ParameterizedTest
-    @ValueSource(strings = { "TLSv1.2", "TLSv1.3" })
-    void should_advertise_only_the_configured_trust_store(String protocol, GatewayDynamicConfig.Config gatewayConfig) throws Exception {
+    @ValueSource(strings = {"TLSv1.2", "TLSv1.3"})
+    void should_advertise_only_the_configured_trust_store(String protocol, GatewayDynamicConfig.Config gatewayConfig)
+            throws Exception {
         Subscription subscription = registerSubscription();
         try {
             List<String> advertised = advertisedCertificateAuthorities(gatewayConfig.httpPort(), protocol);
@@ -82,24 +84,24 @@ class PlanMutualTLSCertificateAuthoritiesAdvertisedIntegrationTest extends Abstr
      */
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
     @Test
-    void should_cut_off_a_subscription_whose_certificate_is_not_issued_by_an_advertised_authority(@WithCert HttpClient client) {
+    void should_cut_off_a_subscription_whose_certificate_is_not_issued_by_an_advertised_authority(
+            @WithCert HttpClient client) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         Subscription subscription = registerSubscription();
         try {
-            client
-                .rxRequest(GET, PlanHelper.getApiPath("v4-proxy-api"))
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(UNAUTHORIZED_401);
-                    return response.rxBody();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(body -> {
-                    assertThat(body.toString()).contains(MtlsPolicy.FAILURE_MESSAGE);
-                    return true;
-                });
+            client.rxRequest(GET, PlanHelper.getApiPath("v4-proxy-api"))
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(UNAUTHORIZED_401);
+                        return response.rxBody();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(body -> {
+                        assertThat(body.toString()).contains(MtlsPolicy.FAILURE_MESSAGE);
+                        return true;
+                    });
             wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
         } finally {
             subscriptionTrustStoreLoaderManager.unregisterSubscription(subscription);

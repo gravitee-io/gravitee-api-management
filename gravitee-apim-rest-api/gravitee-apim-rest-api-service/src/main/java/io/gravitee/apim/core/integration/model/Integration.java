@@ -29,25 +29,32 @@ public sealed interface Integration {
     String id();
 
     String name();
+
     String description();
+
     String provider();
+
     String environmentId();
+
     ZonedDateTime createdAt();
+
     ZonedDateTime updatedAt();
+
     Set<String> groups();
 
     record ApiIntegration(
-        String id,
-        String name,
-        String description,
-        String provider,
-        String environmentId,
-        ZonedDateTime createdAt,
-        ZonedDateTime updatedAt,
-        Set<String> groups
-    ) implements Integration {
+            String id,
+            String name,
+            String description,
+            String provider,
+            String environmentId,
+            ZonedDateTime createdAt,
+            ZonedDateTime updatedAt,
+            Set<String> groups)
+            implements Integration {
         public ApiIntegration update(String name, String description, Set<String> groups) {
-            return new ApiIntegration(id, name, description, provider, environmentId, createdAt, TimeProvider.now(), groups);
+            return new ApiIntegration(
+                    id, name, description, provider, environmentId, createdAt, TimeProvider.now(), groups);
         }
 
         public ApiIntegration withId(String id) {
@@ -60,53 +67,62 @@ public sealed interface Integration {
     }
 
     record A2aIntegration(
-        String id,
-        String name,
-        String description,
-        String provider,
-        String environmentId,
-        ZonedDateTime createdAt,
-        ZonedDateTime updatedAt,
-        Set<String> groups,
-        Collection<WellKnownUrl> wellKnownUrls
-    ) implements Integration {
+            String id,
+            String name,
+            String description,
+            String provider,
+            String environmentId,
+            ZonedDateTime createdAt,
+            ZonedDateTime updatedAt,
+            Set<String> groups,
+            Collection<WellKnownUrl> wellKnownUrls)
+            implements Integration {
         public record WellKnownUrl(String url) {}
 
-        public A2aIntegration update(String name, String description, Set<String> groups, Collection<WellKnownUrl> wellKnownUrls) {
-            return new A2aIntegration(id, name, description, provider, environmentId, createdAt, TimeProvider.now(), groups, wellKnownUrls);
+        public A2aIntegration update(
+                String name, String description, Set<String> groups, Collection<WellKnownUrl> wellKnownUrls) {
+            return new A2aIntegration(
+                    id,
+                    name,
+                    description,
+                    provider,
+                    environmentId,
+                    createdAt,
+                    TimeProvider.now(),
+                    groups,
+                    wellKnownUrls);
         }
 
         public A2aIntegration withEnvironmentId(String environmentId) {
-            return new A2aIntegration(id, name, description, provider, environmentId, createdAt, updatedAt, groups, wellKnownUrls);
+            return new A2aIntegration(
+                    id, name, description, provider, environmentId, createdAt, updatedAt, groups, wellKnownUrls);
         }
     }
 
     static ApiIntegration create(ApiIntegration integration) {
         var now = TimeProvider.now();
         return new ApiIntegration(
-            UuidString.generateRandom(),
-            integration.name(),
-            integration.description(),
-            integration.provider(),
-            integration.environmentId(),
-            now,
-            now,
-            Set.of()
-        );
+                UuidString.generateRandom(),
+                integration.name(),
+                integration.description(),
+                integration.provider(),
+                integration.environmentId(),
+                now,
+                now,
+                Set.of());
     }
 
     static A2aIntegration create(A2aIntegration integration) {
         var now = TimeProvider.now();
         return new A2aIntegration(
-            UuidString.generateRandom(),
-            integration.name(),
-            integration.description(),
-            integration.provider(),
-            integration.environmentId(),
-            now,
-            now,
-            Set.of(),
-            integration.wellKnownUrls()
-        );
+                UuidString.generateRandom(),
+                integration.name(),
+                integration.description(),
+                integration.provider(),
+                integration.environmentId(),
+                now,
+                now,
+                Set.of(),
+                integration.wellKnownUrls());
     }
 }

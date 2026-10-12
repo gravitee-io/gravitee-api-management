@@ -68,35 +68,58 @@ public class DocumentationSystemFolderInitializer extends EnvironmentInitializer
 
             // Create link to existing documentation in footer
             List<PageEntity> pagesToLink = pageService
-                .search(executionContext.getEnvironmentId(), new PageQuery.Builder().homepage(false).rootParent(true).build())
-                .stream()
-                .filter(p -> PageType.SWAGGER.name().equals(p.getType()) || PageType.MARKDOWN.name().equals(p.getType()))
-                .collect(Collectors.toList());
+                    .search(
+                            executionContext.getEnvironmentId(),
+                            new PageQuery.Builder()
+                                    .homepage(false)
+                                    .rootParent(true)
+                                    .build())
+                    .stream()
+                    .filter(p -> PageType.SWAGGER.name().equals(p.getType())
+                            || PageType.MARKDOWN.name().equals(p.getType()))
+                    .collect(Collectors.toList());
 
             if (!pagesToLink.isEmpty()) {
                 PageEntity docFolder = createFolder(executionContext, topFooterSystemFolderId, "Documentation");
-                pagesToLink.forEach(page ->
-                    createLink(executionContext, docFolder.getId(), page.getName(), page.getId(), "page", Boolean.FALSE, Boolean.TRUE)
-                );
+                pagesToLink.forEach(page -> createLink(
+                        executionContext,
+                        docFolder.getId(),
+                        page.getName(),
+                        page.getId(),
+                        "page",
+                        Boolean.FALSE,
+                        Boolean.TRUE));
             }
 
             // Create link to root documentation folder in header
-            createLink(executionContext, headerSystemFolderId, "Documentation", "root", "page", Boolean.TRUE, Boolean.FALSE);
+            createLink(
+                    executionContext,
+                    headerSystemFolderId,
+                    "Documentation",
+                    "root",
+                    "page",
+                    Boolean.TRUE,
+                    Boolean.FALSE);
 
             // Apis documentation
             int page = 0;
             int size = 100;
-            List<ApiCriteria> apiCriteriaList = List.of(
-                new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build()
-            );
-            Pageable pageable = new PageableBuilder().pageNumber(page).pageSize(size).build();
+            List<ApiCriteria> apiCriteriaList = List.of(new ApiCriteria.Builder()
+                    .environmentId(executionContext.getEnvironmentId())
+                    .build());
+            Pageable pageable =
+                    new PageableBuilder().pageNumber(page).pageSize(size).build();
 
-            List<String> apiIds = apiRepository.searchIds(apiCriteriaList, pageable, null).getContent();
+            List<String> apiIds =
+                    apiRepository.searchIds(apiCriteriaList, pageable, null).getContent();
 
             while (!apiIds.isEmpty()) {
-                apiIds.forEach(apiId -> pageService.createSystemFolder(executionContext, apiId, SystemFolderType.ASIDE, 0));
-                pageable = new PageableBuilder().pageNumber(page++).pageSize(size).build();
-                apiIds = apiRepository.searchIds(apiCriteriaList, pageable, null).getContent();
+                apiIds.forEach(
+                        apiId -> pageService.createSystemFolder(executionContext, apiId, SystemFolderType.ASIDE, 0));
+                pageable =
+                        new PageableBuilder().pageNumber(page++).pageSize(size).build();
+                apiIds =
+                        apiRepository.searchIds(apiCriteriaList, pageable, null).getContent();
             }
         }
     }
@@ -113,14 +136,13 @@ public class DocumentationSystemFolderInitializer extends EnvironmentInitializer
     }
 
     private void createLink(
-        ExecutionContext executionContext,
-        String parentId,
-        String name,
-        String resourceRef,
-        String resourceType,
-        Boolean isFolder,
-        Boolean inherit
-    ) {
+            ExecutionContext executionContext,
+            String parentId,
+            String name,
+            String resourceRef,
+            String resourceType,
+            Boolean isFolder,
+            Boolean inherit) {
         NewPageEntity newLink = new NewPageEntity();
         newLink.setContent(resourceRef);
         newLink.setName(name);

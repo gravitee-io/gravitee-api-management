@@ -73,7 +73,8 @@ public class PolicyTest {
 
     @BeforeEach
     public void setUp() {
-        policyFactory = spy(new PolicyFactoryImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator()));
+        policyFactory =
+                spy(new PolicyFactoryImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator()));
 
         when(context.request()).thenReturn(request);
         when(context.response()).thenReturn(response);
@@ -90,8 +91,7 @@ public class PolicyTest {
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
         io.gravitee.gateway.policy.Policy policy = Mockito.spy(
-            policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, new PolicyMetadata("", ""))
-        );
+                policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, new PolicyMetadata("", "")));
 
         policy.execute(policyChain, context);
 
@@ -115,8 +115,7 @@ public class PolicyTest {
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
         io.gravitee.gateway.policy.Policy policy = Mockito.spy(
-            policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, new PolicyMetadata("", ""))
-        );
+                policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, new PolicyMetadata("", "")));
 
         policy.execute(policyChain, context);
 
@@ -140,8 +139,7 @@ public class PolicyTest {
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
         io.gravitee.gateway.policy.Policy policy = Mockito.spy(
-            policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, new PolicyMetadata("", ""))
-        );
+                policyFactory.create(StreamType.ON_REQUEST, policyManifest, null, new PolicyMetadata("", "")));
 
         policy.stream(policyChain, context);
 
@@ -165,8 +163,7 @@ public class PolicyTest {
         when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
         io.gravitee.gateway.policy.Policy policy = Mockito.spy(
-            policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, new PolicyMetadata("", ""))
-        );
+                policyFactory.create(StreamType.ON_RESPONSE, policyManifest, null, new PolicyMetadata("", "")));
 
         policy.stream(policyChain, context);
 
@@ -180,7 +177,8 @@ public class PolicyTest {
     }
 
     private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {
-        Set<Method> methods = ReflectionUtils.getMethods(clazz, withModifier(Modifier.PUBLIC), withAnnotation(annotationClass));
+        Set<Method> methods =
+                ReflectionUtils.getMethods(clazz, withModifier(Modifier.PUBLIC), withAnnotation(annotationClass));
 
         if (methods.isEmpty()) {
             return null;

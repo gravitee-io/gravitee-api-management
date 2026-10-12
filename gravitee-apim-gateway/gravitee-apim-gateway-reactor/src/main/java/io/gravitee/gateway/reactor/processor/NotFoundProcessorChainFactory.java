@@ -39,12 +39,9 @@ public class NotFoundProcessorChainFactory {
     private boolean logEnabled;
 
     public Processor<ExecutionContext> create() {
-        return new DefaultProcessorChain<>(
-            Arrays.asList(
+        return new DefaultProcessorChain<>(Arrays.asList(
                 new NotFoundProcessor(environment),
                 new ResponseTimeProcessor(),
-                new NotFoundReporter(reporterService, logEnabled)
-            )
-        );
+                new NotFoundReporter(reporterService, logEnabled)));
     }
 }

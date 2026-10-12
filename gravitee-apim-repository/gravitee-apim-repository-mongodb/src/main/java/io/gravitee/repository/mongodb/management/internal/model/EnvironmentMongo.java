@@ -16,7 +16,6 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.List;
-import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

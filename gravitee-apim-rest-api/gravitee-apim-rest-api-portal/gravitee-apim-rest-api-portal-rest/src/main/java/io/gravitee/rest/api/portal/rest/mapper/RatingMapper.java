@@ -50,9 +50,8 @@ public class RatingMapper {
         final Rating rating = new Rating();
         UserEntity authorEntity = userService.findById(executionContext, ratingEntity.getUser());
         User author = userMapper.convert(authorEntity);
-        author.setLinks(
-            userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), authorEntity.getId()), authorEntity.getUpdatedAt())
-        );
+        author.setLinks(userMapper.computeUserLinks(
+                usersURL(uriInfo.getBaseUriBuilder(), authorEntity.getId()), authorEntity.getUpdatedAt()));
         rating.setAuthor(author);
         rating.setTitle(ratingEntity.getTitle());
         rating.setComment(ratingEntity.getComment());
@@ -63,26 +62,21 @@ public class RatingMapper {
         rating.setValue(Integer.valueOf(ratingEntity.getRate()));
 
         if (ratingEntity.getAnswers() != null) {
-            List<RatingAnswer> ratingsAnswer = ratingEntity
-                .getAnswers()
-                .stream()
-                .sorted(Comparator.comparing(RatingAnswerEntity::getCreatedAt))
-                .map(rae -> {
-                    UserEntity answerAuthorEntity = userService.findById(executionContext, rae.getUser());
-                    User answerAuthor = userMapper.convert(answerAuthorEntity);
-                    answerAuthor.setLinks(
-                        userMapper.computeUserLinks(
-                            usersURL(uriInfo.getBaseUriBuilder(), answerAuthorEntity.getId()),
-                            answerAuthorEntity.getUpdatedAt()
-                        )
-                    );
-                    return new RatingAnswer()
-                        .id(rae.getId())
-                        .author(answerAuthor)
-                        .comment(rae.getComment())
-                        .date(rae.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
-                })
-                .collect(Collectors.toList());
+            List<RatingAnswer> ratingsAnswer = ratingEntity.getAnswers().stream()
+                    .sorted(Comparator.comparing(RatingAnswerEntity::getCreatedAt))
+                    .map(rae -> {
+                        UserEntity answerAuthorEntity = userService.findById(executionContext, rae.getUser());
+                        User answerAuthor = userMapper.convert(answerAuthorEntity);
+                        answerAuthor.setLinks(userMapper.computeUserLinks(
+                                usersURL(uriInfo.getBaseUriBuilder(), answerAuthorEntity.getId()),
+                                answerAuthorEntity.getUpdatedAt()));
+                        return new RatingAnswer()
+                                .id(rae.getId())
+                                .author(answerAuthor)
+                                .comment(rae.getComment())
+                                .date(rae.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
+                    })
+                    .collect(Collectors.toList());
             rating.setAnswers(ratingsAnswer);
         }
 

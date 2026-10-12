@@ -31,7 +31,7 @@ class EntrypointScopeProviderAdapterTest {
     @Test
     void should_leave_out_of_logs_the_dedicated_families_and_the_excluded_entrypoints_only() {
         assertThat(adapter.excludedFromLogs())
-            .isEqualTo(ObservabilityEntrypoints.LOGS_EXCLUDED_IDS)
-            .containsExactly("edge", "authzen", "tcp-proxy");
+                .isEqualTo(ObservabilityEntrypoints.LOGS_EXCLUDED_IDS)
+                .containsExactly("edge", "authzen", "tcp-proxy");
     }
 }

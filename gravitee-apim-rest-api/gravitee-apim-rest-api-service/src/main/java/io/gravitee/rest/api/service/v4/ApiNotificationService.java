@@ -25,6 +25,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  */
 public interface ApiNotificationService {
     void triggerUpdateNotification(ExecutionContext executionContext, Api api);
+
     void triggerUpdateNotification(ExecutionContext executionContext, GenericApiEntity api);
 
     void triggerDeprecatedNotification(ExecutionContext executionContext, GenericApiEntity indexableApi);

@@ -49,8 +49,8 @@ class PolicyFactoryManagerTest {
     @Test
     void should_throw_if_no_default_policy_factory() {
         assertThatThrownBy(() -> new PolicyFactoryManager(new HashSet<>()))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Unable to find an instance of DefaultPolicyFactory");
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Unable to find an instance of DefaultPolicyFactory");
     }
 
     @Test
@@ -63,38 +63,28 @@ class PolicyFactoryManagerTest {
     void should_select_custom_policy_factory() {
         final MyDefaultPolicyFactory customDefaultPolicyFactory = new MyDefaultPolicyFactory();
         cut = new PolicyFactoryManager(
-            MyDefaultPolicyFactory.class,
-            new HashSet<>(Set.of(fakePolicyFactory(manifest -> false), customDefaultPolicyFactory))
-        );
+                MyDefaultPolicyFactory.class,
+                new HashSet<>(Set.of(fakePolicyFactory(manifest -> false), customDefaultPolicyFactory)));
         assertThat(cut.get(fakePolicyManifest("unknown"))).isEqualTo(customDefaultPolicyFactory);
     }
 
     @Test
     void should_select_default_policy_factory_if_no_appropriate_custom_factory() {
-        cut = new PolicyFactoryManager(
-            new HashSet<>(
-                Set.of(
-                    DEFAULT_POLICY_FACTORY,
-                    fakePolicyFactory(manifest -> manifest.id().equals("shared-policy-group-policy")),
-                    fakePolicyFactory(manifest -> manifest.id().equals("other-internal-policy"))
-                )
-            )
-        );
+        cut = new PolicyFactoryManager(new HashSet<>(Set.of(
+                DEFAULT_POLICY_FACTORY,
+                fakePolicyFactory(manifest -> manifest.id().equals("shared-policy-group-policy")),
+                fakePolicyFactory(manifest -> manifest.id().equals("other-internal-policy")))));
         assertThat(cut.get(fakePolicyManifest("unknown"))).isEqualTo(DEFAULT_POLICY_FACTORY);
     }
 
     @Test
     void should_select_appropriate_policy_factory() {
-        final PolicyFactory expectedPolicyFactory = fakePolicyFactory(manifest -> manifest.id().equals("other-internal-policy"));
-        cut = new PolicyFactoryManager(
-            new HashSet<>(
-                Set.of(
-                    DEFAULT_POLICY_FACTORY,
-                    fakePolicyFactory(manifest -> manifest.id().equals("shared-policy-group-policy")),
-                    expectedPolicyFactory
-                )
-            )
-        );
+        final PolicyFactory expectedPolicyFactory =
+                fakePolicyFactory(manifest -> manifest.id().equals("other-internal-policy"));
+        cut = new PolicyFactoryManager(new HashSet<>(Set.of(
+                DEFAULT_POLICY_FACTORY,
+                fakePolicyFactory(manifest -> manifest.id().equals("shared-policy-group-policy")),
+                expectedPolicyFactory)));
         assertThat(cut.get(fakePolicyManifest("other-internal-policy"))).isEqualTo(expectedPolicyFactory);
     }
 
@@ -118,11 +108,10 @@ class PolicyFactoryManagerTest {
 
             @Override
             public Policy create(
-                ExecutionPhase phase,
-                PolicyManifest policyManifest,
-                PolicyConfiguration policyConfiguration,
-                PolicyMetadata policyMetadata
-            ) {
+                    ExecutionPhase phase,
+                    PolicyManifest policyManifest,
+                    PolicyConfiguration policyConfiguration,
+                    PolicyMetadata policyMetadata) {
                 return null;
             }
 
@@ -146,11 +135,10 @@ class PolicyFactoryManagerTest {
 
         @Override
         public Policy create(
-            ExecutionPhase phase,
-            PolicyManifest policyManifest,
-            PolicyConfiguration policyConfiguration,
-            PolicyMetadata policyMetadata
-        ) {
+                ExecutionPhase phase,
+                PolicyManifest policyManifest,
+                PolicyConfiguration policyConfiguration,
+                PolicyMetadata policyMetadata) {
             return null;
         }
 

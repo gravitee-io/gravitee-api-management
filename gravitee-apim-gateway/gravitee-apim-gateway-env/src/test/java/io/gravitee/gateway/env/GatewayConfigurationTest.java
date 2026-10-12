@@ -49,8 +49,10 @@ public class GatewayConfigurationTest {
         System.clearProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY);
         System.clearProperty(GatewayConfiguration.MULTI_TENANT_SYSTEM_PROPERTY);
         System.clearProperty("vertx.disableWebsockets");
-        when(configuration.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(false);
-        when(configuration.getProperty("services.healthcheck.jitterInMs", Integer.class, 900)).thenReturn(900);
+        when(configuration.getProperty("http.websocket.enabled", Boolean.class, false))
+                .thenReturn(false);
+        when(configuration.getProperty("services.healthcheck.jitterInMs", Integer.class, 900))
+                .thenReturn(900);
     }
 
     @Test
@@ -62,7 +64,8 @@ public class GatewayConfigurationTest {
 
     @Test
     public void shouldDisableWebSockets() {
-        when(configuration.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(true);
+        when(configuration.getProperty("http.websocket.enabled", Boolean.class, false))
+                .thenReturn(true);
         gatewayConfiguration.afterPropertiesSet();
 
         Assertions.assertFalse(Boolean.parseBoolean(System.getProperty("vertx.disableWebsockets")));
@@ -130,7 +133,8 @@ public class GatewayConfigurationTest {
 
     @Test
     public void shouldReturnShardingTagsFromConfiguration() {
-        when(configuration.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY)).thenReturn("public,private");
+        when(configuration.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY))
+                .thenReturn("public,private");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTagsOpt = gatewayConfiguration.shardingTags();
@@ -144,7 +148,8 @@ public class GatewayConfigurationTest {
 
     @Test
     public void shouldReturnTenantFromConfiguration() {
-        when(configuration.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION)).thenReturn("europe");
+        when(configuration.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION))
+                .thenReturn("europe");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenantOpt = gatewayConfiguration.tenant();
@@ -156,7 +161,8 @@ public class GatewayConfigurationTest {
     @Test
     public void shouldReturnShardingTagsWithPrecedence() {
         System.setProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY, "public,private");
-        when(configuration.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY)).thenReturn("intern,extern");
+        when(configuration.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY))
+                .thenReturn("intern,extern");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTagsOpt = gatewayConfiguration.shardingTags();
@@ -171,7 +177,8 @@ public class GatewayConfigurationTest {
     @Test
     public void shouldReturnTenantWithPrecedence() {
         System.setProperty(GatewayConfiguration.MULTI_TENANT_SYSTEM_PROPERTY, "asia");
-        when(configuration.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION)).thenReturn("europe");
+        when(configuration.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION))
+                .thenReturn("europe");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenantOpt = gatewayConfiguration.tenant();

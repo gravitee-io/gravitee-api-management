@@ -122,9 +122,8 @@ public class ApiService_FindByUserTest {
 
     private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
-    private ApiConverter apiConverter = Mockito.spy(
-        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, workflowService)
-    );
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter(
+            objectMapper, planService, flowService, categoryMapper, parameterService, workflowService));
 
     @Mock
     private PrimaryOwnerService primaryOwnerService;
@@ -133,29 +132,32 @@ public class ApiService_FindByUserTest {
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
+                new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         GraviteeContext.cleanContext();
     }
 
     @Test
     public void shouldFindByUser() {
         when(api.getId()).thenReturn("api-1");
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build(),
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(1).build(),
-                ApiFieldFilter.allFields()
-            )
-        ).thenReturn(new Page<>(singletonList(api), 0, 1, 1));
-        when(apiAuthorizationService.findIdsByUser(any(), any(), any(), any(), anyBoolean())).thenReturn(Set.of("api-1"));
+        when(apiRepository.search(
+                        new ApiCriteria.Builder()
+                                .environmentId("DEFAULT")
+                                .ids(api.getId())
+                                .build(),
+                        null,
+                        new PageableBuilder().pageNumber(0).pageSize(1).build(),
+                        ApiFieldFilter.allFields()))
+                .thenReturn(new Page<>(singletonList(api), 0, 1, 1));
+        when(apiAuthorizationService.findIdsByUser(any(), any(), any(), any(), anyBoolean()))
+                .thenReturn(Set.of("api-1"));
 
         UserEntity admin = new UserEntity();
         admin.setId("admin");
-        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of("api-1", new PrimaryOwnerEntity(admin)));
+        when(primaryOwnerService.getPrimaryOwners(any(), any()))
+                .thenReturn(Map.of("api-1", new PrimaryOwnerEntity(admin)));
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, true);
+        final Set<ApiEntity> apiEntities =
+                apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, true);
 
         assertNotNull(apiEntities);
         assertEquals(1, apiEntities.size());
@@ -173,28 +175,30 @@ public class ApiService_FindByUserTest {
         Set<String> sets = new LinkedHashSet<>();
         sets.add(api2.getId());
         sets.add(api1.getId());
-        when(apiAuthorizationService.findIdsByUser(any(), any(), any(), any(), anyBoolean())).thenReturn(sets);
+        when(apiAuthorizationService.findIdsByUser(any(), any(), any(), any(), anyBoolean()))
+                .thenReturn(sets);
 
         UserEntity admin = new UserEntity();
         admin.setId("admin");
-        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(api1.getId(), new PrimaryOwnerEntity(admin)));
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId()).build(),
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(1).build(),
-                ApiFieldFilter.allFields()
-            )
-        ).thenReturn(new Page<>(singletonList(api1), 0, 1, 1));
+        when(primaryOwnerService.getPrimaryOwners(any(), any()))
+                .thenReturn(Map.of(api1.getId(), new PrimaryOwnerEntity(admin)));
+        when(apiRepository.search(
+                        new ApiCriteria.Builder()
+                                .environmentId("DEFAULT")
+                                .ids(api1.getId())
+                                .build(),
+                        null,
+                        new PageableBuilder().pageNumber(0).pageSize(1).build(),
+                        ApiFieldFilter.allFields()))
+                .thenReturn(new Page<>(singletonList(api1), 0, 1, 1));
 
         final Page<ApiEntity> apiPage = apiService.findByUser(
-            GraviteeContext.getExecutionContext(),
-            USER_NAME,
-            null,
-            new SortableImpl("name", false),
-            new PageableImpl(2, 1),
-            true
-        );
+                GraviteeContext.getExecutionContext(),
+                USER_NAME,
+                null,
+                new SortableImpl("name", false),
+                new PageableImpl(2, 1),
+                true);
 
         assertNotNull(apiPage);
         assertEquals(1, apiPage.getContent().size());
@@ -206,7 +210,8 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
-        when(apiAuthorizationService.findIdsByUser(any(), eq(USER_NAME), any(), any(), anyBoolean())).thenReturn(Set.of());
+        when(apiAuthorizationService.findIdsByUser(any(), eq(USER_NAME), any(), any(), anyBoolean()))
+                .thenReturn(Set.of());
         final String poRoleId = "API_PRIMARY_OWNER";
 
         RoleEntity poRole = new RoleEntity();
@@ -214,7 +219,8 @@ public class ApiService_FindByUserTest {
         poRole.setScope(RoleScope.API);
         poRole.setName(SystemRole.PRIMARY_OWNER.name());
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, true);
+        final Set<ApiEntity> apiEntities =
+                apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, true);
 
         assertNotNull(apiEntities);
         assertTrue(apiEntities.isEmpty());
@@ -222,22 +228,18 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldFindPublicApisOnlyWithAnonymousUser() throws TechnicalException {
-        when(apiAuthorizationService.findIdsByUser(any(), eq(null), any(), any(), anyBoolean())).thenReturn(Set.of());
-        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), null, null, true);
+        when(apiAuthorizationService.findIdsByUser(any(), eq(null), any(), any(), anyBoolean()))
+                .thenReturn(Set.of());
+        final Set<ApiEntity> apiEntities =
+                apiService.findByUser(GraviteeContext.getExecutionContext(), null, null, true);
 
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());
 
-        verify(membershipService, times(0)).getMembershipsByMemberAndReference(
-            MembershipMemberType.USER,
-            null,
-            MembershipReferenceType.API
-        );
-        verify(membershipService, times(0)).getMembershipsByMemberAndReference(
-            MembershipMemberType.USER,
-            null,
-            MembershipReferenceType.GROUP
-        );
+        verify(membershipService, times(0))
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.API);
+        verify(membershipService, times(0))
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
         verify(applicationService, times(0)).findByUser(GraviteeContext.getExecutionContext(), null);
     }
 }

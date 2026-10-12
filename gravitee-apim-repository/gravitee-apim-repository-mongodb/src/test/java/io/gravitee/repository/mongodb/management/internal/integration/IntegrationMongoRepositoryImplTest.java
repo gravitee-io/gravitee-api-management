@@ -64,7 +64,8 @@ class IntegrationMongoRepositoryImplTest {
         String environmentId = "env-1";
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(5).build();
         Collection<String> groups = Set.of("grp-1");
-        given(mongoQueries.countOrTimeout(eq(mongoTemplate), query.capture(), eq(IntegrationMongo.class))).willReturn(0L);
+        given(mongoQueries.countOrTimeout(eq(mongoTemplate), query.capture(), eq(IntegrationMongo.class)))
+                .willReturn(0L);
         given(mongoTemplate.find(query.capture(), eq(IntegrationMongo.class))).willReturn(List.of());
         // When
         Page<IntegrationMongo> result = sut.findAllByEnvironmentIdAndGroups(environmentId, pageable, Set.of(), groups);
@@ -73,9 +74,7 @@ class IntegrationMongoRepositoryImplTest {
         assertThat(result.getContent()).isEmpty();
 
         JsonNode jsonQuery = MAPPER.readTree(query.getValue().getQueryObject().toJson());
-        assertThat(jsonQuery).isEqualTo(
-            MAPPER.readTree(
-                """
+        assertThat(jsonQuery).isEqualTo(MAPPER.readTree("""
                 {
                   "$and": [
                     { "environmentId": "env-1" },
@@ -84,9 +83,7 @@ class IntegrationMongoRepositoryImplTest {
                     ]}
                   ]
                 }
-                """
-            )
-        );
+                """));
     }
 
     @Test
@@ -96,18 +93,18 @@ class IntegrationMongoRepositoryImplTest {
         String environmentId = "env-1";
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(5).build();
         Collection<String> groups = Set.of("grp-1");
-        given(mongoQueries.countOrTimeout(eq(mongoTemplate), query.capture(), eq(IntegrationMongo.class))).willReturn(0L);
+        given(mongoQueries.countOrTimeout(eq(mongoTemplate), query.capture(), eq(IntegrationMongo.class)))
+                .willReturn(0L);
         given(mongoTemplate.find(query.capture(), eq(IntegrationMongo.class))).willReturn(List.of());
         // When
-        Page<IntegrationMongo> result = sut.findAllByEnvironmentIdAndGroups(environmentId, pageable, Set.of("id1"), groups);
+        Page<IntegrationMongo> result =
+                sut.findAllByEnvironmentIdAndGroups(environmentId, pageable, Set.of("id1"), groups);
 
         // Then
         assertThat(result.getContent()).isEmpty();
 
         JsonNode jsonQuery = MAPPER.readTree(query.getValue().getQueryObject().toJson());
-        assertThat(jsonQuery).isEqualTo(
-            MAPPER.readTree(
-                """
+        assertThat(jsonQuery).isEqualTo(MAPPER.readTree("""
                 {
                   "$and": [
                     { "environmentId": "env-1" },
@@ -117,8 +114,6 @@ class IntegrationMongoRepositoryImplTest {
                     ]}
                   ]
                 }
-                """
-            )
-        );
+                """));
     }
 }

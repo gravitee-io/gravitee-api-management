@@ -57,10 +57,15 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(
-    uses = {
-        ApiMapper.class, DateMapper.class, MemberMapper.class, MetadataMapper.class, PageMapper.class, PlanMapper.class, FlowMapper.class,
-    }
-)
+        uses = {
+            ApiMapper.class,
+            DateMapper.class,
+            MemberMapper.class,
+            MetadataMapper.class,
+            PageMapper.class,
+            PlanMapper.class,
+            FlowMapper.class,
+        })
 public interface ImportExportApiMapper {
     ImportExportApiMapper INSTANCE = Mappers.getMapper(ImportExportApiMapper.class);
     GraviteeMapper JSON_MAPPER = new GraviteeMapper();
@@ -102,9 +107,8 @@ public interface ImportExportApiMapper {
         return switch (src) {
             case null -> null;
             case HttpListener http -> new io.gravitee.rest.api.management.v2.rest.model.Listener(mapHttpListener(http));
-            case SubscriptionListener subscription -> new io.gravitee.rest.api.management.v2.rest.model.Listener(
-                mapSubscriptionListener(subscription)
-            );
+            case SubscriptionListener subscription ->
+                new io.gravitee.rest.api.management.v2.rest.model.Listener(mapSubscriptionListener(subscription));
             case TcpListener tcp -> new io.gravitee.rest.api.management.v2.rest.model.Listener(mapTcpListener(tcp));
             default -> throw new IllegalStateException("Unexpected value: " + src);
         };
@@ -113,30 +117,34 @@ public interface ImportExportApiMapper {
     default BaseOriginContext map(OriginContext src) {
         return switch (src) {
             case null -> null;
-            case OriginContext.Management management -> new io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext().origin(
-                BaseOriginContext.OriginEnum.MANAGEMENT
-            );
-            case OriginContext.Kubernetes k8s -> new io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext().origin(
-                BaseOriginContext.OriginEnum.KUBERNETES
-            );
-            case OriginContext.Integration integration -> new io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext()
-                .integrationId(integration.integrationId())
-                .integrationName(integration.integrationName())
-                .provider(integration.provider())
-                .origin(BaseOriginContext.OriginEnum.INTEGRATION);
+            case OriginContext.Management management ->
+                new io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext()
+                        .origin(BaseOriginContext.OriginEnum.MANAGEMENT);
+            case OriginContext.Kubernetes k8s ->
+                new io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext()
+                        .origin(BaseOriginContext.OriginEnum.KUBERNETES);
+            case OriginContext.Integration integration ->
+                new io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext()
+                        .integrationId(integration.integrationId())
+                        .integrationName(integration.integrationName())
+                        .provider(integration.provider())
+                        .origin(BaseOriginContext.OriginEnum.INTEGRATION);
         };
     }
 
     @Mapping(target = "cors", expression = "java(CorsMapper.INSTANCE.map(http.getCors()))")
     io.gravitee.rest.api.management.v2.rest.model.HttpListener mapHttpListener(HttpListener http);
 
-    io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener mapSubscriptionListener(SubscriptionListener subscription);
+    io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener mapSubscriptionListener(
+            SubscriptionListener subscription);
+
     io.gravitee.rest.api.management.v2.rest.model.TcpListener mapTcpListener(TcpListener tcp);
 
     default io.gravitee.rest.api.management.v2.rest.model.Listener map(NativeListener src) {
         return switch (src) {
             case null -> null;
-            case KafkaListener kafka -> new io.gravitee.rest.api.management.v2.rest.model.Listener(mapKafkaListener(kafka));
+            case KafkaListener kafka ->
+                new io.gravitee.rest.api.management.v2.rest.model.Listener(mapKafkaListener(kafka));
             default -> throw new IllegalStateException("Unexpected value: " + src);
         };
     }
@@ -172,16 +180,16 @@ public interface ImportExportApiMapper {
     }
 
     default Map<String, Map<String, io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate>> map(
-        @Nullable Map<String, Map<String, ResponseTemplate>> value
-    ) {
+            @Nullable Map<String, Map<String, ResponseTemplate>> value) {
         if (value == null) {
             return Map.of();
         }
         return stream(value.entrySet())
-            .map(e ->
-                Map.entry(e.getKey(), stream(e.getValue().entrySet()).collect(Collectors.toMap(Map.Entry::getKey, o -> map(o.getValue()))))
-            )
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .map(e -> Map.entry(
+                        e.getKey(),
+                        stream(e.getValue().entrySet())
+                                .collect(Collectors.toMap(Map.Entry::getKey, o -> map(o.getValue())))))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate map(ResponseTemplate value);
@@ -200,21 +208,21 @@ public interface ImportExportApiMapper {
         apiExport.setPicture(exportApiV4.getApiPicture());
         apiExport.setBackground(exportApiV4.getApiBackground());
         Optional.ofNullable(exportApiV4)
-            .map(ExportApiV4::getApi)
-            .map(ApiV4::getPrimaryOwner)
-            .ifPresent(po -> {
-                var type = Optional.ofNullable(po.getType())
-                    .map(t -> PrimaryOwnerEntity.Type.valueOf(t.getValue()))
-                    .orElse(PrimaryOwnerEntity.Type.USER);
+                .map(ExportApiV4::getApi)
+                .map(ApiV4::getPrimaryOwner)
+                .ifPresent(po -> {
+                    var type = Optional.ofNullable(po.getType())
+                            .map(t -> PrimaryOwnerEntity.Type.valueOf(t.getValue()))
+                            .orElse(PrimaryOwnerEntity.Type.USER);
 
-                PrimaryOwnerEntity primaryOwnerEntity = PrimaryOwnerEntity.builder()
-                    .id(po.getId())
-                    .email(po.getEmail())
-                    .displayName(po.getDisplayName())
-                    .type(type)
-                    .build();
-                apiExport.setPrimaryOwner(primaryOwnerEntity);
-            });
+                    PrimaryOwnerEntity primaryOwnerEntity = PrimaryOwnerEntity.builder()
+                            .id(po.getId())
+                            .email(po.getEmail())
+                            .displayName(po.getDisplayName())
+                            .type(type)
+                            .build();
+                    apiExport.setPrimaryOwner(primaryOwnerEntity);
+                });
         return apiExport;
     }
 
@@ -223,7 +231,8 @@ public interface ImportExportApiMapper {
             return null;
         }
 
-        return PlanMapper.INSTANCE.map(exportApiV4.getPlans(), exportApiV4.getApi().getType());
+        return PlanMapper.INSTANCE.map(
+                exportApiV4.getPlans(), exportApiV4.getApi().getType());
     }
 
     @Named("definitionToExportApiV4")
@@ -231,7 +240,8 @@ public interface ImportExportApiMapper {
         try {
             return JSON_MAPPER.readValue(exportApiV4, ExportApiV4.class);
         } catch (JsonProcessingException e) {
-            throw new TechnicalManagementException("An error occurred while trying to parse exported api during promotion" + e);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to parse exported api during promotion" + e);
         }
     }
 

@@ -65,35 +65,36 @@ import org.springframework.scheduling.annotation.EnableAsync;
  */
 @Configuration
 @ComponentScan(
-    basePackages = "io.gravitee.rest.api.portal.rest.mapper", // please prefer using Mapstruct mappers and not declare new manual mappers here
-    includeFilters = @ComponentScan.Filter(
-        type = FilterType.ASSIGNABLE_TYPE,
-        classes = {
-            AlertMapper.class,
-            AnalyticsMapper.class,
-            ApiMapper.class,
-            ApplicationMapper.class,
-            CategoryMapper.class,
-            ConfigurationMapper.class,
-            ConnectorMapper.class,
-            DashboardMapper.class,
-            IdentityProviderMapper.class,
-            KeyMapper.class,
-            LogMapper.class,
-            MemberMapper.class,
-            PageMapper.class,
-            PlanMapper.class,
-            PortalMenuLinkMapper.class,
-            PortalNotificationMapper.class,
-            RatingMapper.class,
-            ReferenceMetadataMapper.class,
-            ThemeMapper.class,
-            TicketMapper.class,
-            UserMapper.class,
-        }
-    )
-)
-@Import({ ServiceConfiguration.class, SecurityPortalConfiguration.class, AnalyticsEngineRoutingConfiguration.class })
+        basePackages =
+                "io.gravitee.rest.api.portal.rest.mapper", // please prefer using Mapstruct mappers and not declare new
+        // manual mappers here
+        includeFilters =
+                @ComponentScan.Filter(
+                        type = FilterType.ASSIGNABLE_TYPE,
+                        classes = {
+                            AlertMapper.class,
+                            AnalyticsMapper.class,
+                            ApiMapper.class,
+                            ApplicationMapper.class,
+                            CategoryMapper.class,
+                            ConfigurationMapper.class,
+                            ConnectorMapper.class,
+                            DashboardMapper.class,
+                            IdentityProviderMapper.class,
+                            KeyMapper.class,
+                            LogMapper.class,
+                            MemberMapper.class,
+                            PageMapper.class,
+                            PlanMapper.class,
+                            PortalMenuLinkMapper.class,
+                            PortalNotificationMapper.class,
+                            RatingMapper.class,
+                            ReferenceMetadataMapper.class,
+                            ThemeMapper.class,
+                            TicketMapper.class,
+                            UserMapper.class,
+                        }))
+@Import({ServiceConfiguration.class, SecurityPortalConfiguration.class, AnalyticsEngineRoutingConfiguration.class})
 @EnableAsync
 public class RestPortalConfiguration {
 
@@ -105,46 +106,39 @@ public class RestPortalConfiguration {
     // NoUniqueBeanDefinitionException, and the component-scanned beans will satisfy the dependencies instead.
     @Bean
     public ApiPortalMembershipDomainService apiPortalMembershipDomainService(
-        MembershipQueryService membershipQueryService,
-        SubscriptionQueryService subscriptionQueryService,
-        ApiQueryService apiQueryService
-    ) {
+            MembershipQueryService membershipQueryService,
+            SubscriptionQueryService subscriptionQueryService,
+            ApiQueryService apiQueryService) {
         return new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService, apiQueryService);
     }
 
     @Bean
     public PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        ApiPortalMembershipDomainService apiPortalMembershipDomainService
-    ) {
-        return new PortalNavigationApiVisibilityDomainService(portalNavigationItemsQueryService, apiPortalMembershipDomainService);
+            PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+            ApiPortalMembershipDomainService apiPortalMembershipDomainService) {
+        return new PortalNavigationApiVisibilityDomainService(
+                portalNavigationItemsQueryService, apiPortalMembershipDomainService);
     }
 
     @Bean
     public ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService(
-        ApiProductQueryService apiProductQueryService,
-        MembershipQueryService membershipQueryService
-    ) {
+            ApiProductQueryService apiProductQueryService, MembershipQueryService membershipQueryService) {
         return new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService);
     }
 
     @Bean
     public PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService
-    ) {
+            PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+            ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService) {
         return new PortalNavigationApiProductVisibilityDomainService(
-            portalNavigationItemsQueryService,
-            apiProductAccessibleIdsDomainService
-        );
+                portalNavigationItemsQueryService, apiProductAccessibleIdsDomainService);
     }
 
     @Bean
     public PortalContextLoader portalContextLoader(
-        PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
-        @Lazy ApiRepository apiRepository,
-        ApplicationService applicationService
-    ) {
+            PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
+            @Lazy ApiRepository apiRepository,
+            ApplicationService applicationService) {
         return new PortalContextLoader(portalNavigationApiVisibilityDomainService, apiRepository, applicationService);
     }
 }

@@ -25,7 +25,7 @@ import io.gravitee.gateway.handlers.api.definition.Api;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@TemplateVariable(scopes = { TemplateVariableScope.API })
+@TemplateVariable(scopes = {TemplateVariableScope.API})
 public class ApiTemplateVariableProvider implements TemplateVariableProvider {
 
     private final Api api;
@@ -37,7 +37,8 @@ public class ApiTemplateVariableProvider implements TemplateVariableProvider {
     @Override
     public void provide(TemplateContext templateContext) {
         if (api.getDefinition().getProperties() != null) {
-            templateContext.setVariable("properties", api.getDefinition().getProperties().getValues());
+            templateContext.setVariable(
+                    "properties", api.getDefinition().getProperties().getValues());
         }
     }
 }

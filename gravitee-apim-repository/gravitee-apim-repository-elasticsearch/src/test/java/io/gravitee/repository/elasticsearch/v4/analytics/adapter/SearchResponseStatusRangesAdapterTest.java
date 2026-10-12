@@ -50,7 +50,9 @@ class SearchResponseStatusRangesAdapterTest {
 
         @Test
         void should_build_query_searching_for_ids() {
-            var queryParams = ResponseStatusQueryCriteria.builder().apiIds(List.of("api-id")).build();
+            var queryParams = ResponseStatusQueryCriteria.builder()
+                    .apiIds(List.of("api-id"))
+                    .build();
             var isEntrypointIdKeyword = true;
 
             var result = sut.adaptQuery(queryParams, isEntrypointIdKeyword);
@@ -61,10 +63,10 @@ class SearchResponseStatusRangesAdapterTest {
         @Test
         void should_build_query_searching_for_ids_and_time_ranges() {
             var queryParams = ResponseStatusQueryCriteria.builder()
-                .apiIds(List.of("api-id"))
-                .from(1728992401566L)
-                .to(1729078801566L)
-                .build();
+                    .apiIds(List.of("api-id"))
+                    .from(1728992401566L)
+                    .to(1729078801566L)
+                    .build();
             var isEntrypointIdKeyword = true;
 
             var result = sut.adaptQuery(queryParams, isEntrypointIdKeyword);
@@ -84,7 +86,8 @@ class SearchResponseStatusRangesAdapterTest {
 
         @Test
         void should_build_query_with_empty_id_filter_array_for_empty_api_ids_query_params() {
-            var queryParams = ResponseStatusQueryCriteria.builder().apiIds(List.of()).build();
+            var queryParams =
+                    ResponseStatusQueryCriteria.builder().apiIds(List.of()).build();
             var isEntrypointIdKeyword = true;
             var result = sut.adaptQuery(queryParams, isEntrypointIdKeyword);
 
@@ -394,35 +397,34 @@ class SearchResponseStatusRangesAdapterTest {
         void should_build_search_requests_count_response(String[] entrypoints) {
             final SearchResponse searchResponse = new SearchResponse();
             final Aggregation aggregation = new Aggregation();
-            searchResponse.setAggregations(
-                Map.of(BY_ENTRYPOINT_ID_AGG, aggregation, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation())
-            );
+            searchResponse.setAggregations(Map.of(
+                    BY_ENTRYPOINT_ID_AGG, aggregation, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation()));
 
-            aggregation.setBuckets(Arrays.stream(entrypoints).map(this::provideBucket).toList());
+            aggregation.setBuckets(
+                    Arrays.stream(entrypoints).map(this::provideBucket).toList());
 
-            assertThat(sut.adaptResponse(searchResponse)).hasValueSatisfying(topHits ->
-                assertThat(topHits.getStatusRangesCountByEntrypoint().keySet()).containsExactlyInAnyOrder(entrypoints)
-            );
+            assertThat(sut.adaptResponse(searchResponse))
+                    .hasValueSatisfying(topHits -> assertThat(
+                                    topHits.getStatusRangesCountByEntrypoint().keySet())
+                            .containsExactlyInAnyOrder(entrypoints));
         }
 
         private JsonNode provideBucket(String entrypoint) {
             var result = objectMapper.createObjectNode();
-            result
-                .put("key", entrypoint)
-                .putObject("status_ranges")
-                .putArray("buckets")
-                .addObject()
-                .put("key", "100.0-200.0")
-                .put("doc_count", 1);
+            result.put("key", entrypoint)
+                    .putObject("status_ranges")
+                    .putArray("buckets")
+                    .addObject()
+                    .put("key", "100.0-200.0")
+                    .put("doc_count", 1);
             return result;
         }
 
         private static Stream<Arguments> provideSearchData() {
             return Stream.of(
-                Arguments.of((Object) new String[] {}),
-                Arguments.of((Object) new String[] { "http-get" }),
-                Arguments.of((Object) new String[] { "http-get", "http-post" })
-            );
+                    Arguments.of((Object) new String[] {}),
+                    Arguments.of((Object) new String[] {"http-get"}),
+                    Arguments.of((Object) new String[] {"http-get", "http-post"}));
         }
 
         @Test
@@ -431,15 +433,15 @@ class SearchResponseStatusRangesAdapterTest {
             final Aggregation byEntrypoint = new Aggregation();
             // 7 requests on http-post, but only 3 carry a status inside [100, 600)
             byEntrypoint.setBuckets(List.of(provideBucketWithDocCount("http-post", 3, 7)));
-            searchResponse.setAggregations(
-                Map.of(BY_ENTRYPOINT_ID_AGG, byEntrypoint, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation())
-            );
+            searchResponse.setAggregations(Map.of(
+                    BY_ENTRYPOINT_ID_AGG, byEntrypoint, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation()));
             // the four global range buckets hold 1 + 2 + 3 + 4 = 10 of the 25 matched requests
             searchResponse.setSearchHits(searchHits(25));
 
             assertThat(sut.adaptResponse(searchResponse)).hasValueSatisfying(aggregate -> {
                 assertThat(aggregate.getRanges()).containsEntry(UNKNOWN_RANGE, 15L);
-                assertThat(aggregate.getStatusRangesCountByEntrypoint().get("http-post")).containsEntry(UNKNOWN_RANGE, 4L);
+                assertThat(aggregate.getStatusRangesCountByEntrypoint().get("http-post"))
+                        .containsEntry(UNKNOWN_RANGE, 4L);
             });
         }
 
@@ -448,14 +450,14 @@ class SearchResponseStatusRangesAdapterTest {
             final SearchResponse searchResponse = new SearchResponse();
             final Aggregation byEntrypoint = new Aggregation();
             byEntrypoint.setBuckets(List.of(provideBucketWithDocCount("http-post", 3, 3)));
-            searchResponse.setAggregations(
-                Map.of(BY_ENTRYPOINT_ID_AGG, byEntrypoint, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation())
-            );
+            searchResponse.setAggregations(Map.of(
+                    BY_ENTRYPOINT_ID_AGG, byEntrypoint, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation()));
             searchResponse.setSearchHits(searchHits(10));
 
             assertThat(sut.adaptResponse(searchResponse)).hasValueSatisfying(aggregate -> {
                 assertThat(aggregate.getRanges()).containsEntry(UNKNOWN_RANGE, 0L);
-                assertThat(aggregate.getStatusRangesCountByEntrypoint().get("http-post")).containsEntry(UNKNOWN_RANGE, 0L);
+                assertThat(aggregate.getStatusRangesCountByEntrypoint().get("http-post"))
+                        .containsEntry(UNKNOWN_RANGE, 0L);
             });
         }
 
@@ -464,13 +466,12 @@ class SearchResponseStatusRangesAdapterTest {
             final SearchResponse searchResponse = new SearchResponse();
             final Aggregation byEntrypoint = new Aggregation();
             byEntrypoint.setBuckets(List.of(provideBucketWithDocCount("http-post", 3, 7)));
-            searchResponse.setAggregations(
-                Map.of(BY_ENTRYPOINT_ID_AGG, byEntrypoint, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation())
-            );
+            searchResponse.setAggregations(Map.of(
+                    BY_ENTRYPOINT_ID_AGG, byEntrypoint, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation()));
 
-            assertThat(sut.adaptResponse(searchResponse)).hasValueSatisfying(aggregate ->
-                assertThat(aggregate.getRanges()).doesNotContainKey(UNKNOWN_RANGE)
-            );
+            assertThat(sut.adaptResponse(searchResponse))
+                    .hasValueSatisfying(
+                            aggregate -> assertThat(aggregate.getRanges()).doesNotContainKey(UNKNOWN_RANGE));
         }
 
         private SearchHits searchHits(long total) {
@@ -482,17 +483,20 @@ class SearchResponseStatusRangesAdapterTest {
         private JsonNode provideBucketWithDocCount(String entrypoint, int classified, int docCount) {
             var result = objectMapper.createObjectNode();
             result.put("key", entrypoint).put("doc_count", docCount);
-            result.putObject("status_ranges").putArray("buckets").addObject().put("key", "200.0-300.0").put("doc_count", classified);
+            result.putObject("status_ranges")
+                    .putArray("buckets")
+                    .addObject()
+                    .put("key", "200.0-300.0")
+                    .put("doc_count", classified);
             return result;
         }
 
         private Aggregation provideAllApiStatusAggregation() {
             var result = List.<JsonNode>of(
-                objectMapper.createObjectNode().put("key", "100.0-200.0").put("doc_count", 1),
-                objectMapper.createObjectNode().put("key", "200.0-300.0").put("doc_count", 2),
-                objectMapper.createObjectNode().put("key", "300.0-400.0").put("doc_count", 3),
-                objectMapper.createObjectNode().put("key", "400.0-500.0").put("doc_count", 4)
-            );
+                    objectMapper.createObjectNode().put("key", "100.0-200.0").put("doc_count", 1),
+                    objectMapper.createObjectNode().put("key", "200.0-300.0").put("doc_count", 2),
+                    objectMapper.createObjectNode().put("key", "300.0-400.0").put("doc_count", 3),
+                    objectMapper.createObjectNode().put("key", "400.0-500.0").put("doc_count", 4));
 
             var aggregation = new Aggregation();
             aggregation.setBuckets(result);

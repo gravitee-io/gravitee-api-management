@@ -41,7 +41,9 @@ public class ServicesSerializerTest extends AbstractTest {
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
+        assertThatJson(generatedJsonDefinition)
+                .when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS)
+                .isEqualTo(expected);
     }
 
     @Test
@@ -54,7 +56,9 @@ public class ServicesSerializerTest extends AbstractTest {
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
+        assertThatJson(generatedJsonDefinition)
+                .when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS)
+                .isEqualTo(expected);
     }
 
     @Test
@@ -67,6 +71,8 @@ public class ServicesSerializerTest extends AbstractTest {
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
+        assertThatJson(generatedJsonDefinition)
+                .when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS)
+                .isEqualTo(expected);
     }
 }

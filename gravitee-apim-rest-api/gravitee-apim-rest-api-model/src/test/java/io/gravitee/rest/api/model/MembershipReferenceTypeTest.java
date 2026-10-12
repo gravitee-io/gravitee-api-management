@@ -34,16 +34,19 @@ class MembershipReferenceTypeTest {
 
     @Test
     void group_allowedRoleScope_shouldIncludeApiProduct() {
-        assertThat(MembershipReferenceType.GROUP.allowedRoleScope(RoleScope.API_PRODUCT)).isTrue();
+        assertThat(MembershipReferenceType.GROUP.allowedRoleScope(RoleScope.API_PRODUCT))
+                .isTrue();
     }
 
     @Test
     void group_allowedRoleScope_shouldIncludeApi() {
-        assertThat(MembershipReferenceType.GROUP.allowedRoleScope(RoleScope.API)).isTrue();
+        assertThat(MembershipReferenceType.GROUP.allowedRoleScope(RoleScope.API))
+                .isTrue();
     }
 
     @Test
     void group_allowedRoleScope_shouldIncludeApplication() {
-        assertThat(MembershipReferenceType.GROUP.allowedRoleScope(RoleScope.APPLICATION)).isTrue();
+        assertThat(MembershipReferenceType.GROUP.allowedRoleScope(RoleScope.APPLICATION))
+                .isTrue();
     }
 }

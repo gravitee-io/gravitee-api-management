@@ -21,9 +21,5 @@ import java.util.Optional;
 
 public interface CreateUserDomainService {
     BaseUserEntity createGraviteeUser(
-        ExecutionContext executionContext,
-        String email,
-        Optional<String> firstname,
-        Optional<String> lastname
-    );
+            ExecutionContext executionContext, String email, Optional<String> firstname, Optional<String> lastname);
 }

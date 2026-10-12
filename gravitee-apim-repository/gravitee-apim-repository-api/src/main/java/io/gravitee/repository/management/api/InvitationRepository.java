@@ -30,9 +30,11 @@ import java.util.List;
 public interface InvitationRepository extends CrudRepository<Invitation, String> {
     List<Invitation> findByEmail(String email) throws TechnicalException;
 
-    List<Invitation> findByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType) throws TechnicalException;
+    List<Invitation> findByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
+            throws TechnicalException;
 
-    Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;
+    Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException;
 
     record InvitationCriteria(String referenceId, InvitationReferenceType referenceType, String email) {}
 
@@ -43,5 +45,6 @@ public interface InvitationRepository extends CrudRepository<Invitation, String>
      * @return List of IDs for deleted invitations
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType)
+            throws TechnicalException;
 }

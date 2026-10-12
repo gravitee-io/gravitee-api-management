@@ -56,8 +56,8 @@ class SourcedPageDescendantsFinderTest {
         aPage("Inline", root.getId(), null);
 
         assertThat(cut.findSourcedPageDescendants(ENV_ID, root.getId()))
-            .extracting(PortalNavigationPage::getId)
-            .containsExactlyInAnyOrder(sourced.getId(), nestedSourced.getId());
+                .extracting(PortalNavigationPage::getId)
+                .containsExactlyInAnyOrder(sourced.getId(), nestedSourced.getId());
     }
 
     @Test
@@ -88,44 +88,45 @@ class SourcedPageDescendantsFinderTest {
 
     private PortalNavigationFolder aFolder(PortalNavigationItemId id, String title, PortalNavigationItemId parentId) {
         var folder = PortalNavigationFolder.builder()
-            .id(id)
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .build();
+                .id(id)
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .build();
         storage.add(folder);
         return folder;
     }
 
-    private PortalNavigationPage aPage(String title, PortalNavigationItemId parentId, PortalNavigationItemSource source) {
+    private PortalNavigationPage aPage(
+            String title, PortalNavigationItemId parentId, PortalNavigationItemSource source) {
         var page = PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(PortalPageContentId.random())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .parentId(parentId)
-            .source(source)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .parentId(parentId)
+                .source(source)
+                .build();
         storage.add(page);
         return page;
     }
 
     private PortalNavigationItemSource aSource() {
         return PortalNavigationItemSource.builder()
-            .sourceType("http-fetcher")
-            .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
-            .build();
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
+                .build();
     }
 }

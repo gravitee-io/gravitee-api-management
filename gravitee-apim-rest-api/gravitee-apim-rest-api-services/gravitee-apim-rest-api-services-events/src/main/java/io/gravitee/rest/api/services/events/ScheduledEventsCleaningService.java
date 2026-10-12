@@ -46,16 +46,15 @@ public class ScheduledEventsCleaningService extends AbstractService implements R
 
     @Autowired
     public ScheduledEventsCleaningService(
-        CleanupEventsUseCase cleanupEventsUseCase,
-        OrganizationService organizationService,
-        EnvironmentService environmentService,
-        @Qualifier("eventsCleaningTaskScheduler") TaskScheduler scheduler,
-        ClusterManager clusterManager,
-        @Value("${services.events.cron:@daily}") String cronTrigger,
-        @Value("${services.events.keep:5}") int eventsKeep,
-        @Value("${services.events.enabled:false}") boolean enabled,
-        @Value("${services.events.timeToLive:30}") long timeToLive
-    ) {
+            CleanupEventsUseCase cleanupEventsUseCase,
+            OrganizationService organizationService,
+            EnvironmentService environmentService,
+            @Qualifier("eventsCleaningTaskScheduler") TaskScheduler scheduler,
+            ClusterManager clusterManager,
+            @Value("${services.events.cron:@daily}") String cronTrigger,
+            @Value("${services.events.keep:5}") int eventsKeep,
+            @Value("${services.events.enabled:false}") boolean enabled,
+            @Value("${services.events.timeToLive:30}") long timeToLive) {
         this.cleanupEventsUseCase = cleanupEventsUseCase;
         this.organizationService = organizationService;
         this.environmentService = environmentService;
@@ -85,15 +84,14 @@ public class ScheduledEventsCleaningService extends AbstractService implements R
             return;
         }
         var environments = stream(organizationService.findAll())
-            .flatMap(o -> stream(environmentService.findByOrganization(o.getId())))
-            .toList();
+                .flatMap(o -> stream(environmentService.findByOrganization(o.getId())))
+                .toList();
         for (var environment : environments) {
             log.info(
-                "Start cleanup environment: {} ({}) from organisation {}",
-                environment.getName(),
-                environment.getId(),
-                environment.getOrganizationId()
-            );
+                    "Start cleanup environment: {} ({}) from organisation {}",
+                    environment.getName(),
+                    environment.getId(),
+                    environment.getOrganizationId());
             cleanupEventsUseCase.execute(new CleanupEventsUseCase.Input(environment.getId(), eventsKeep, timeToLive));
         }
     }

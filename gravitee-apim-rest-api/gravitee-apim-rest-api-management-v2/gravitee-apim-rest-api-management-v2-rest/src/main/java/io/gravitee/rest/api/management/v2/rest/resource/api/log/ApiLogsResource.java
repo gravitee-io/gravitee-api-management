@@ -72,96 +72,114 @@ public class ApiLogsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
-    public ApiLogsResponse getApiLogs(@BeanParam @Valid PaginationParam paginationParam, @BeanParam @Valid SearchLogsParam logsParam) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_LOG,
+                acls = {RolePermissionAction.READ})
+    })
+    public ApiLogsResponse getApiLogs(
+            @BeanParam @Valid PaginationParam paginationParam, @BeanParam @Valid SearchLogsParam logsParam) {
         var request = new SearchApiV4ConnectionLogsUseCase.Input(
-            apiId,
-            ApiLogsMapper.INSTANCE.toSearchLogsFilters(logsParam),
-            new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
-        );
+                apiId,
+                ApiLogsMapper.INSTANCE.toSearchLogsFilters(logsParam),
+                new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()));
 
         var response = searchConnectionLogsUsecase.execute(GraviteeContext.getExecutionContext(), request);
 
         return new ApiLogsResponse()
-            .data(ApiLogsMapper.INSTANCE.mapToList(response.data()))
-            .pagination(computePaginationInfo(response.total(), response.data().size(), paginationParam))
-            .links(computePaginationLinks(response.total(), paginationParam));
+                .data(ApiLogsMapper.INSTANCE.mapToList(response.data()))
+                .pagination(
+                        computePaginationInfo(response.total(), response.data().size(), paginationParam))
+                .links(computePaginationLinks(response.total(), paginationParam));
     }
 
     @Path("/error-keys")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_LOG,
+                acls = {RolePermissionAction.READ})
+    })
     public List<String> getApiLogErrorKeys(@BeanParam @Valid SearchLogsParam searchLogsParam) {
         var output = searchErrorKeysUseCase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchApiConnectionLogErrorKeysUseCase.Input(apiId, searchLogsParam.getFrom(), searchLogsParam.getTo())
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchApiConnectionLogErrorKeysUseCase.Input(
+                        apiId, searchLogsParam.getFrom(), searchLogsParam.getTo()));
         return output.errorKeys();
     }
 
     @Path("/{requestId}/messages")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_LOG,
+                acls = {RolePermissionAction.READ})
+    })
     public ApiAggregatedMessageLogsResponse getApiMessageLogs(
-        @BeanParam @Valid PaginationParam paginationParam,
-        @PathParam("requestId") String requestId
-    ) {
+            @BeanParam @Valid PaginationParam paginationParam, @PathParam("requestId") String requestId) {
         var request = new SearchApiAggregatedMessageLogsUseCase.Input(
-            apiId,
-            requestId,
-            new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
-        );
+                apiId, requestId, new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()));
 
         var response = searchApiAggregatedMessageLogsUseCase.execute(GraviteeContext.getExecutionContext(), request);
 
         return new ApiAggregatedMessageLogsResponse()
-            .data(ApiAggregatedMessageLogsMapper.INSTANCE.mapToList(response.data()))
-            .pagination(computePaginationInfo(response.total(), response.data().size(), paginationParam))
-            .links(computePaginationLinks(response.total(), paginationParam));
+                .data(ApiAggregatedMessageLogsMapper.INSTANCE.mapToList(response.data()))
+                .pagination(
+                        computePaginationInfo(response.total(), response.data().size(), paginationParam))
+                .links(computePaginationLinks(response.total(), paginationParam));
     }
 
     @Path("/{requestId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_LOG,
+                acls = {RolePermissionAction.READ})
+    })
     public ApiLogResponse getApiLog(@PathParam("requestId") String requestId) {
         var request = new SearchApiConnectionLogDetailUseCase.Input(apiId, requestId);
 
-        var logDetail = searchConnectionLogUsecase.execute(GraviteeContext.getExecutionContext(), request).connectionLogDetail();
+        var logDetail = searchConnectionLogUsecase
+                .execute(GraviteeContext.getExecutionContext(), request)
+                .connectionLogDetail();
 
         if (logDetail.isPresent()) {
             return ApiLogsMapper.INSTANCE.map(logDetail.get());
         }
 
         return findApiMetricsDetailUseCase
-            .execute(GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(apiId, requestId))
-            .apiMetricsDetail()
-            .map(ApiLogsMapper.INSTANCE::mapFromMetricsDetail)
-            .orElseThrow(() -> new NotFoundException("No log found for api: " + apiId + " and requestId: " + requestId));
+                .execute(GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(apiId, requestId))
+                .apiMetricsDetail()
+                .map(ApiLogsMapper.INSTANCE::mapFromMetricsDetail)
+                .orElseThrow(
+                        () -> new NotFoundException("No log found for api: " + apiId + " and requestId: " + requestId));
     }
 
     @Path("/messages")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_LOG,
+                acls = {RolePermissionAction.READ})
+    })
     public ApiMessageLogsResponse getApiMessageLogs(
-        @BeanParam @Valid PaginationParam paginationParam,
-        @BeanParam @Valid SearchMessageLogsParam searchMessageMetricsParam
-    ) {
+            @BeanParam @Valid PaginationParam paginationParam,
+            @BeanParam @Valid SearchMessageLogsParam searchMessageMetricsParam) {
         var input = new SearchApiMessageLogsUseCase.Input(
-            apiId,
-            ApiMessageLogsMapper.INSTANCE.map(searchMessageMetricsParam),
-            new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
-        );
+                apiId,
+                ApiMessageLogsMapper.INSTANCE.map(searchMessageMetricsParam),
+                new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()));
 
         var output = searchApiMessageLogsUseCase.execute(GraviteeContext.getExecutionContext(), input);
 
         return new ApiMessageLogsResponse()
-            .data(ApiMessageLogsMapper.INSTANCE.map(output.data()))
-            .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
-            .links(computePaginationLinks(output.total(), paginationParam));
+                .data(ApiMessageLogsMapper.INSTANCE.map(output.data()))
+                .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
+                .links(computePaginationLinks(output.total(), paginationParam));
     }
 
     @Path("/native")

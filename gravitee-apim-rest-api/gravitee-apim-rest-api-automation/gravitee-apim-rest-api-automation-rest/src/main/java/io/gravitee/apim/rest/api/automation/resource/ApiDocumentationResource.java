@@ -47,25 +47,36 @@ public class ApiDocumentationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ) })
-    public Response getApiDocumentationByHRID(@PathParam("apiHrid") String apiHrid, @PathParam("docHrid") String docHrid) {
+    @Permissions({@Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ)})
+    public Response getApiDocumentationByHRID(
+            @PathParam("apiHrid") String apiHrid, @PathParam("docHrid") String docHrid) {
         var auditInfo = getAuditInfo();
-        var documentationId = PortalPageContentId.of(HRIDToUUID.apiDocumentation().context(auditInfo).api(apiHrid).hrid(docHrid).id());
+        var documentationId = PortalPageContentId.of(HRIDToUUID.apiDocumentation()
+                .context(auditInfo)
+                .api(apiHrid)
+                .hrid(docHrid)
+                .id());
         try {
-            var output = getApiDocumentationUseCase.execute(new GetApiDocumentationUseCase.Input(auditInfo, documentationId));
-            return Response.ok(
-                ApiDocumentationMapper.INSTANCE.toDocumentationState(output.pageContent(), output.visibility(), docHrid, apiHrid)
-            ).build();
+            var output = getApiDocumentationUseCase.execute(
+                    new GetApiDocumentationUseCase.Input(auditInfo, documentationId));
+            return Response.ok(ApiDocumentationMapper.INSTANCE.toDocumentationState(
+                            output.pageContent(), output.visibility(), docHrid, apiHrid))
+                    .build();
         } catch (PageContentNotFoundException e) {
             throw new HRIDNotFoundException(docHrid);
         }
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApiDocumentationByHrid(@PathParam("apiHrid") String apiHrid, @PathParam("docHrid") String docHrid) {
+    @Permissions({@Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE)})
+    public Response deleteApiDocumentationByHrid(
+            @PathParam("apiHrid") String apiHrid, @PathParam("docHrid") String docHrid) {
         var auditInfo = getAuditInfo();
-        var documentationId = PortalPageContentId.of(HRIDToUUID.apiDocumentation().context(auditInfo).api(apiHrid).hrid(docHrid).id());
+        var documentationId = PortalPageContentId.of(HRIDToUUID.apiDocumentation()
+                .context(auditInfo)
+                .api(apiHrid)
+                .hrid(docHrid)
+                .id());
         try {
             deleteApiDocumentationUseCase.execute(new DeleteApiDocumentationUseCase.Input(auditInfo, documentationId));
         } catch (PageContentNotFoundException e) {

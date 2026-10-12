@@ -41,9 +41,8 @@ public class CreatePortalMenuLinkUseCaseTest {
     private final String ENV_ID = PortalMenuLinkFixtures.aPortalMenuLink().getEnvironmentId();
 
     private final PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudService = new PortalMenuLinkCrudServiceInMemory();
-    private final PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService = new PortalMenuLinkQueryServiceInMemory(
-        portalMenuLinkCrudService
-    );
+    private final PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService =
+            new PortalMenuLinkQueryServiceInMemory(portalMenuLinkCrudService);
     private CreatePortalMenuLinkUseCase createPortalMenuLinkUseCase;
 
     @BeforeAll
@@ -58,7 +57,8 @@ public class CreatePortalMenuLinkUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        createPortalMenuLinkUseCase = new CreatePortalMenuLinkUseCase(portalMenuLinkCrudService, portalMenuLinkQueryService);
+        createPortalMenuLinkUseCase =
+                new CreatePortalMenuLinkUseCase(portalMenuLinkCrudService, portalMenuLinkQueryService);
     }
 
     @AfterEach
@@ -73,18 +73,19 @@ public class CreatePortalMenuLinkUseCaseTest {
         var toCreate = PortalMenuLinkFixtures.aCreatePortalMenuLink();
 
         // When
-        var createdPortalMenuLink = createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input(ENV_ID, toCreate));
+        var createdPortalMenuLink =
+                createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input(ENV_ID, toCreate));
 
         // Then
         var expected = PortalMenuLink.builder()
-            .id("generated-id")
-            .environmentId(ENV_ID)
-            .name("portalMenuLinkNameToCreate")
-            .target("portalMenuLinkTargetToCreate")
-            .type(PortalMenuLinkType.EXTERNAL)
-            .visibility(PortalMenuLinkVisibility.PUBLIC)
-            .order(1)
-            .build();
+                .id("generated-id")
+                .environmentId(ENV_ID)
+                .name("portalMenuLinkNameToCreate")
+                .target("portalMenuLinkTargetToCreate")
+                .type(PortalMenuLinkType.EXTERNAL)
+                .visibility(PortalMenuLinkVisibility.PUBLIC)
+                .order(1)
+                .build();
         assertThat(createdPortalMenuLink.portalMenuLink()).isNotNull();
         assertThat(createdPortalMenuLink.portalMenuLink()).isEqualTo(expected);
     }
@@ -97,18 +98,19 @@ public class CreatePortalMenuLinkUseCaseTest {
         portalMenuLinkQueryService.initWith(List.of(existingPortalMenuLink));
 
         // When
-        var createdPortalMenuLink = createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input(ENV_ID, toCreate));
+        var createdPortalMenuLink =
+                createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input(ENV_ID, toCreate));
 
         // Then
         var expected = PortalMenuLink.builder()
-            .id("generated-id")
-            .environmentId(ENV_ID)
-            .name("portalMenuLinkNameToCreate")
-            .target("portalMenuLinkTargetToCreate")
-            .type(PortalMenuLinkType.EXTERNAL)
-            .visibility(PortalMenuLinkVisibility.PUBLIC)
-            .order(2)
-            .build();
+                .id("generated-id")
+                .environmentId(ENV_ID)
+                .name("portalMenuLinkNameToCreate")
+                .target("portalMenuLinkTargetToCreate")
+                .type(PortalMenuLinkType.EXTERNAL)
+                .visibility(PortalMenuLinkVisibility.PUBLIC)
+                .order(2)
+                .build();
         assertThat(createdPortalMenuLink.portalMenuLink()).isNotNull();
         assertThat(createdPortalMenuLink.portalMenuLink()).isEqualTo(expected);
     }
@@ -121,18 +123,19 @@ public class CreatePortalMenuLinkUseCaseTest {
         portalMenuLinkQueryService.initWith(List.of(existingPortalMenuLink));
 
         // When
-        var createdPortalMenuLink = createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input("anotherEnv", toCreate));
+        var createdPortalMenuLink =
+                createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input("anotherEnv", toCreate));
 
         // Then
         var expected = PortalMenuLink.builder()
-            .id("generated-id")
-            .environmentId("anotherEnv")
-            .name("portalMenuLinkNameToCreate")
-            .target("portalMenuLinkTargetToCreate")
-            .type(PortalMenuLinkType.EXTERNAL)
-            .visibility(PortalMenuLinkVisibility.PUBLIC)
-            .order(1)
-            .build();
+                .id("generated-id")
+                .environmentId("anotherEnv")
+                .name("portalMenuLinkNameToCreate")
+                .target("portalMenuLinkTargetToCreate")
+                .type(PortalMenuLinkType.EXTERNAL)
+                .visibility(PortalMenuLinkVisibility.PUBLIC)
+                .order(1)
+                .build();
         assertThat(createdPortalMenuLink.portalMenuLink()).isNotNull();
         assertThat(createdPortalMenuLink.portalMenuLink()).isEqualTo(expected);
     }
@@ -140,14 +143,17 @@ public class CreatePortalMenuLinkUseCaseTest {
     @Test
     void should_throw_exception_when_name_is_null() {
         // Given
-        var toCreate = PortalMenuLinkFixtures.aCreatePortalMenuLink().toBuilder().name(null).build();
+        var toCreate = PortalMenuLinkFixtures.aCreatePortalMenuLink().toBuilder()
+                .name(null)
+                .build();
 
         // When
-        var throwable = Assertions.catchThrowable(() ->
-            createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input(ENV_ID, toCreate))
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input(ENV_ID, toCreate)));
 
         // Then
-        Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessage("Name is required.");
+        Assertions.assertThat(throwable)
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Name is required.");
     }
 }

@@ -28,7 +28,9 @@ public class XForwardedPrefixProcessor extends AbstractProcessor<ExecutionContex
     @Override
     public void handle(ExecutionContext context) {
         // Override the X-Forwarded-Prefix with context path
-        context.request().headers().set(HttpHeaders.X_FORWARDED_PREFIX, context.request().contextPath());
+        context.request()
+                .headers()
+                .set(HttpHeaders.X_FORWARDED_PREFIX, context.request().contextPath());
 
         next.handle(context);
     }

@@ -30,13 +30,14 @@ import io.gravitee.gateway.security.core.SecurityPolicyResolver;
  */
 public class DebugSecurityPolicyResolver extends SecurityPolicyResolver {
 
-    public DebugSecurityPolicyResolver(PolicyManager policyManager, AuthenticationHandlerSelector authenticationHandlerSelector) {
+    public DebugSecurityPolicyResolver(
+            PolicyManager policyManager, AuthenticationHandlerSelector authenticationHandlerSelector) {
         super(policyManager, authenticationHandlerSelector);
     }
 
     @Override
     protected Policy createHookAuthenticationPolicy(HookAuthenticationPolicy securityPolicy)
-        throws InstantiationException, IllegalAccessException {
+            throws InstantiationException, IllegalAccessException {
         final Policy hookAuthenticationPolicy = super.createHookAuthenticationPolicy(securityPolicy);
         final PolicyMetadata policyMetadata = new PolicyMetadata(hookAuthenticationPolicy.id(), null);
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.STAGE, SECURITY_POLICY_STAGE);

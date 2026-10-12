@@ -21,10 +21,9 @@ import java.util.List;
 
 public interface ApplicationInvitationNotificationDomainService {
     void dispatchAsync(
-        String organizationId,
-        String environmentId,
-        String applicationId,
-        List<ApplicationInvitation> invitations,
-        URI confirmationPageUrl
-    );
+            String organizationId,
+            String environmentId,
+            String applicationId,
+            List<ApplicationInvitation> invitations,
+            URI confirmationPageUrl);
 }

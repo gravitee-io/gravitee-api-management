@@ -70,8 +70,6 @@ import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
@@ -145,72 +143,65 @@ class CreateNativeApiUseCaseTest {
         var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var apiPrimaryOwnerFactory = new ApiPrimaryOwnerFactory(
-            groupQueryService,
-            membershipQueryService,
-            parametersQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                groupQueryService, membershipQueryService, parametersQueryService, roleQueryService, userCrudService);
         var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
-            auditService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                auditService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService);
         var createApiDomainService = new CreateApiDomainService(
-            apiCrudService,
-            auditService,
-            new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                apiCrudService,
+                auditService,
+                new ApiIndexerDomainService(
+                        new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                        apiPrimaryOwnerDomainService,
+                        new ApiCategoryQueryServiceInMemory(),
+                        indexer),
+                new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditService),
                 apiPrimaryOwnerDomainService,
-                new ApiCategoryQueryServiceInMemory(),
-                indexer
-            ),
-            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditService),
-            apiPrimaryOwnerDomainService,
-            flowCrudService,
-            notificationConfigCrudService,
-            parametersQueryService,
-            workflowCrudService,
-            createCategoryApiDomainService
-        );
+                flowCrudService,
+                notificationConfigCrudService,
+                parametersQueryService,
+                workflowCrudService,
+                createCategoryApiDomainService);
         useCase = new CreateNativeApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService);
 
-        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(0)
-        );
+        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        givenExistingUsers(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        givenExistingUsers(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiCrudService,
-            auditCrudService,
-            flowCrudService,
-            groupQueryService,
-            membershipCrudService,
-            metadataCrudService,
-            notificationConfigCrudService,
-            parametersQueryService,
-            userCrudService,
-            workflowCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        apiCrudService,
+                        auditCrudService,
+                        flowCrudService,
+                        groupQueryService,
+                        membershipCrudService,
+                        metadataCrudService,
+                        notificationConfigCrudService,
+                        parametersQueryService,
+                        userCrudService,
+                        workflowCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_throw_when_api_is_invalid() {
         // Given
-        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenThrow(
-            new ValidationDomainException("Definition version is unsupported, should be V4 or higher")
-        );
+        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                .thenThrow(new ValidationDomainException("Definition version is unsupported, should be V4 or higher"));
         var newApi = NewApiFixtures.aNativeApiV4();
 
         // When
@@ -223,13 +214,13 @@ class CreateNativeApiUseCaseTest {
     @Test
     void should_throw_when_multiple_api_flows() {
         // Given
-        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenThrow(
-            new NativeApiWithMultipleFlowsException()
-        );
-        var newApi = NewApiFixtures.aNativeApiV4()
-            .toBuilder()
-            .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-2").build()))
-            .build();
+        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                .thenThrow(new NativeApiWithMultipleFlowsException());
+        var newApi = NewApiFixtures.aNativeApiV4().toBuilder()
+                .flows(List.of(
+                        NativeFlow.builder().id("flow-1").build(),
+                        NativeFlow.builder().id("flow-2").build()))
+                .build();
 
         // When
         var throwable = catchThrowable(() -> useCase.execute(new Input(newApi, AUDIT_INFO)));
@@ -247,30 +238,27 @@ class CreateNativeApiUseCaseTest {
         var output = useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        var expectedApi = newApi
-            .toApiBuilder()
-            .id("generated-id")
-            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .environmentId(ENVIRONMENT_ID)
-            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
-            .lifecycleState(Api.LifecycleState.STOPPED)
-            .visibility(Api.Visibility.PRIVATE)
-            .apiDefinitionNativeV4(newApi.toNativeApiDefinitionBuilder().id("generated-id").build())
-            .build();
+        var expectedApi = newApi.toApiBuilder()
+                .id("generated-id")
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .environmentId(ENVIRONMENT_ID)
+                .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .visibility(Api.Visibility.PRIVATE)
+                .apiDefinitionNativeV4(
+                        newApi.toNativeApiDefinitionBuilder().id("generated-id").build())
+                .build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));
             soft.assertThat(apiCrudService.storage()).contains(expectedApi);
-            soft
-                .assertThat(indexer.storage())
-                .containsExactly(
-                    new IndexableApi(
-                        expectedApi,
-                        new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                        Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
-                        Collections.emptySet()
-                    )
-                );
+            soft.assertThat(indexer.storage())
+                    .containsExactly(new IndexableApi(
+                            expectedApi,
+                            new PrimaryOwnerEntity(
+                                    USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                            Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
+                            Collections.emptySet()));
         });
     }
 
@@ -284,49 +272,51 @@ class CreateNativeApiUseCaseTest {
 
         // Then
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                // API Audit
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId("generated-id")
-                    .user(USER_ID)
-                    .properties(Collections.emptyMap())
-                    .event(ApiAuditEvent.API_CREATED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build(),
-                // Membership Audit
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId("generated-id")
-                    .user(USER_ID)
-                    .properties(Map.of("USER", USER_ID))
-                    .event(MembershipAuditEvent.MEMBERSHIP_CREATED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build(),
-                // Metadata Audit
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId("generated-id")
-                    .user(USER_ID)
-                    .properties(Map.of("METADATA", "email-support"))
-                    .event(ApiAuditEvent.METADATA_CREATED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(
+                        // API Audit
+                        AuditEntity.builder()
+                                .id("generated-id")
+                                .organizationId(ORGANIZATION_ID)
+                                .environmentId(ENVIRONMENT_ID)
+                                .referenceType(AuditEntity.AuditReferenceType.API)
+                                .referenceId("generated-id")
+                                .user(USER_ID)
+                                .properties(Collections.emptyMap())
+                                .event(ApiAuditEvent.API_CREATED.name())
+                                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                                .build(),
+                        // Membership Audit
+                        AuditEntity.builder()
+                                .id("generated-id")
+                                .organizationId(ORGANIZATION_ID)
+                                .environmentId(ENVIRONMENT_ID)
+                                .referenceType(AuditEntity.AuditReferenceType.API)
+                                .referenceId("generated-id")
+                                .user(USER_ID)
+                                .properties(Map.of("USER", USER_ID))
+                                .event(MembershipAuditEvent.MEMBERSHIP_CREATED.name())
+                                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                                .build(),
+                        // Metadata Audit
+                        AuditEntity.builder()
+                                .id("generated-id")
+                                .organizationId(ORGANIZATION_ID)
+                                .environmentId(ENVIRONMENT_ID)
+                                .referenceType(AuditEntity.AuditReferenceType.API)
+                                .referenceId("generated-id")
+                                .user(USER_ID)
+                                .properties(Map.of("METADATA", "email-support"))
+                                .event(ApiAuditEvent.METADATA_CREATED.name())
+                                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                                .build());
     }
 
     @ParameterizedTest
-    @EnumSource(value = ApiPrimaryOwnerMode.class, mode = EnumSource.Mode.INCLUDE, names = { "USER", "HYBRID" })
+    @EnumSource(
+            value = ApiPrimaryOwnerMode.class,
+            mode = EnumSource.Mode.INCLUDE,
+            names = {"USER", "HYBRID"})
     void should_create_primary_owner_membership_when_user_or_hybrid_mode_is_enabled(ApiPrimaryOwnerMode mode) {
         // Given
         enableApiPrimaryOwnerMode(mode);
@@ -336,56 +326,54 @@ class CreateNativeApiUseCaseTest {
         useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(membershipCrudService.storage()).contains(
-            Membership.builder()
-                .id("generated-id")
-                .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
-                .memberId(USER_ID)
-                .memberType(Membership.Type.USER)
-                .referenceId("generated-id")
-                .referenceType(Membership.ReferenceType.API)
-                .source("system")
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .build()
-        );
+        assertThat(membershipCrudService.storage())
+                .contains(Membership.builder()
+                        .id("generated-id")
+                        .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceId("generated-id")
+                        .referenceType(Membership.ReferenceType.API)
+                        .source("system")
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_create_primary_owner_membership_when_group_mode_is_enabled() {
         // Given
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.GROUP);
-        givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("Group name").apiPrimaryOwner(USER_ID).build()));
-        givenExistingMemberships(
-            List.of(
-                Membership.builder()
-                    .referenceType(Membership.ReferenceType.GROUP)
-                    .referenceId(GROUP_ID)
-                    .memberType(Membership.Type.USER)
-                    .memberId(USER_ID)
-                    .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
-                    .build()
-            )
-        );
+        givenExistingGroup(List.of(Group.builder()
+                .id(GROUP_ID)
+                .name("Group name")
+                .apiPrimaryOwner(USER_ID)
+                .build()));
+        givenExistingMemberships(List.of(Membership.builder()
+                .referenceType(Membership.ReferenceType.GROUP)
+                .referenceId(GROUP_ID)
+                .memberType(Membership.Type.USER)
+                .memberId(USER_ID)
+                .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                .build()));
         var newApi = NewApiFixtures.aNativeApiV4();
 
         // When
         useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(membershipCrudService.storage()).contains(
-            Membership.builder()
-                .id("generated-id")
-                .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
-                .memberId(GROUP_ID)
-                .memberType(Membership.Type.GROUP)
-                .referenceId("generated-id")
-                .referenceType(Membership.ReferenceType.API)
-                .source("system")
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .build()
-        );
+        assertThat(membershipCrudService.storage())
+                .contains(Membership.builder()
+                        .id("generated-id")
+                        .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .memberId(GROUP_ID)
+                        .memberType(Membership.Type.GROUP)
+                        .referenceId("generated-id")
+                        .referenceType(Membership.ReferenceType.API)
+                        .source("system")
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
@@ -397,47 +385,43 @@ class CreateNativeApiUseCaseTest {
         useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(notificationConfigCrudService.storage()).containsExactly(
-            NotificationConfig.builder()
-                .id("generated-id")
-                .type(NotificationConfig.Type.GENERIC)
-                .name("Default Mail Notifications")
-                .referenceType("API")
-                .referenceId("generated-id")
-                .hooks(
-                    List.of(
-                        "APIKEY_EXPIRED",
-                        "APIKEY_RENEWED",
-                        "APIKEY_REVOKED",
-                        "API_DEPLOYED",
-                        "API_DEPRECATED",
-                        "API_STARTED",
-                        "API_STOPPED",
-                        "API_UPDATED",
-                        "ASK_FOR_REVIEW",
-                        "MESSAGE",
-                        "NEW_RATING",
-                        "NEW_RATING_ANSWER",
-                        "NEW_SPEC_GENERATED",
-                        "NEW_SUPPORT_TICKET",
-                        "REQUEST_FOR_CHANGES",
-                        "REVIEW_OK",
-                        "SUBSCRIPTION_ACCEPTED",
-                        "SUBSCRIPTION_CLOSED",
-                        "SUBSCRIPTION_FAILED",
-                        "SUBSCRIPTION_NEW",
-                        "SUBSCRIPTION_PAUSED",
-                        "SUBSCRIPTION_REJECTED",
-                        "SUBSCRIPTION_RESUMED",
-                        "SUBSCRIPTION_TRANSFERRED"
-                    )
-                )
-                .notifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)
-                .config("${(api.primaryOwner.email)!''}")
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .build()
-        );
+        assertThat(notificationConfigCrudService.storage())
+                .containsExactly(NotificationConfig.builder()
+                        .id("generated-id")
+                        .type(NotificationConfig.Type.GENERIC)
+                        .name("Default Mail Notifications")
+                        .referenceType("API")
+                        .referenceId("generated-id")
+                        .hooks(List.of(
+                                "APIKEY_EXPIRED",
+                                "APIKEY_RENEWED",
+                                "APIKEY_REVOKED",
+                                "API_DEPLOYED",
+                                "API_DEPRECATED",
+                                "API_STARTED",
+                                "API_STOPPED",
+                                "API_UPDATED",
+                                "ASK_FOR_REVIEW",
+                                "MESSAGE",
+                                "NEW_RATING",
+                                "NEW_RATING_ANSWER",
+                                "NEW_SPEC_GENERATED",
+                                "NEW_SUPPORT_TICKET",
+                                "REQUEST_FOR_CHANGES",
+                                "REVIEW_OK",
+                                "SUBSCRIPTION_ACCEPTED",
+                                "SUBSCRIPTION_CLOSED",
+                                "SUBSCRIPTION_FAILED",
+                                "SUBSCRIPTION_NEW",
+                                "SUBSCRIPTION_PAUSED",
+                                "SUBSCRIPTION_REJECTED",
+                                "SUBSCRIPTION_RESUMED",
+                                "SUBSCRIPTION_TRANSFERRED"))
+                        .notifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)
+                        .config("${(api.primaryOwner.email)!''}")
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
@@ -449,18 +433,17 @@ class CreateNativeApiUseCaseTest {
         useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(metadataCrudService.storage()).containsExactly(
-            Metadata.builder()
-                .key("email-support")
-                .format(Metadata.MetadataFormat.MAIL)
-                .name(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
-                .value("${(api.primaryOwner.email)!''}")
-                .referenceType(Metadata.ReferenceType.API)
-                .referenceId("generated-id")
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .build()
-        );
+        assertThat(metadataCrudService.storage())
+                .containsExactly(Metadata.builder()
+                        .key("email-support")
+                        .format(Metadata.MetadataFormat.MAIL)
+                        .name(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
+                        .value("${(api.primaryOwner.email)!''}")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId("generated-id")
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
@@ -486,30 +469,27 @@ class CreateNativeApiUseCaseTest {
         useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(workflowCrudService.storage()).contains(
-            Workflow.builder()
-                .id("generated-id")
-                .referenceType(Workflow.ReferenceType.API)
-                .referenceId("generated-id")
-                .type(Workflow.Type.REVIEW)
-                .state(Workflow.State.DRAFT)
-                .user(USER_ID)
-                .comment("")
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .build()
-        );
+        assertThat(workflowCrudService.storage())
+                .contains(Workflow.builder()
+                        .id("generated-id")
+                        .referenceType(Workflow.ReferenceType.API)
+                        .referenceId("generated-id")
+                        .type(Workflow.Type.REVIEW)
+                        .state(Workflow.State.DRAFT)
+                        .user(USER_ID)
+                        .comment("")
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     private void enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode mode) {
-        parametersQueryService.initWith(
-            List.of(new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, mode.name()))
-        );
+        parametersQueryService.initWith(List.of(new Parameter(
+                Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, mode.name())));
     }
 
     private void enableApiReview() {
-        parametersQueryService.define(
-            new Parameter(Key.API_REVIEW_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-        );
+        parametersQueryService.define(new Parameter(
+                Key.API_REVIEW_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"));
     }
 
     private void givenExistingUsers(List<BaseUserEntity> users) {

@@ -44,5 +44,6 @@ public interface ConnectorPluginService extends PluginService<ConnectorPluginEnt
      * @param configuration is the configuration to validate
      * @return the validated configuration
      */
-    String validateConnectorConfiguration(final ConnectorPluginEntity connectorPluginEntity, final String configuration);
+    String validateConnectorConfiguration(
+            final ConnectorPluginEntity connectorPluginEntity, final String configuration);
 }

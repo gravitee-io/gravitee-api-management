@@ -36,22 +36,20 @@ public class ApiPolicyManager extends AbstractPolicyManager {
     private final ReactableApi<?> reactableApi;
 
     public ApiPolicyManager(
-        DefaultClassLoader classLoader,
-        ReactableApi<?> reactableApi,
-        PolicyFactoryManager policyFactoryManager,
-        PolicyConfigurationFactory policyConfigurationFactory,
-        ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider
-    ) {
+            DefaultClassLoader classLoader,
+            ReactableApi<?> reactableApi,
+            PolicyFactoryManager policyFactoryManager,
+            PolicyConfigurationFactory policyConfigurationFactory,
+            ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+            PolicyClassLoaderFactory policyClassLoaderFactory,
+            ComponentProvider componentProvider) {
         super(
-            classLoader,
-            policyFactoryManager,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            componentProvider
-        );
+                classLoader,
+                policyFactoryManager,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                componentProvider);
         this.reactableApi = reactableApi;
     }
 

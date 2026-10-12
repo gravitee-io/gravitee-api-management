@@ -43,13 +43,7 @@ import org.jspecify.annotations.NonNull;
 public class CreateHttpApiUseCase {
 
     private static final List<ApiType> SUPPORTED_API_TYPES = List.of(
-        ApiType.PROXY,
-        ApiType.MESSAGE,
-        ApiType.MCP_PROXY,
-        ApiType.LLM_PROXY,
-        ApiType.A2A_PROXY,
-        ApiType.AUTHZ
-    );
+            ApiType.PROXY, ApiType.MESSAGE, ApiType.MCP_PROXY, ApiType.LLM_PROXY, ApiType.A2A_PROXY, ApiType.AUTHZ);
 
     private final ValidateApiDomainService validateApiDomainService;
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
@@ -57,11 +51,10 @@ public class CreateHttpApiUseCase {
     private final ApiCrudService apiCrudService;
 
     public CreateHttpApiUseCase(
-        ValidateApiDomainService validateApiDomainService,
-        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
-        CreateApiDomainService createApiDomainService,
-        ApiCrudService apiCrudService
-    ) {
+            ValidateApiDomainService validateApiDomainService,
+            ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+            CreateApiDomainService createApiDomainService,
+            ApiCrudService apiCrudService) {
         this.validateApiDomainService = validateApiDomainService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
         this.createApiDomainService = createApiDomainService;
@@ -83,29 +76,23 @@ public class CreateHttpApiUseCase {
         ensureSuppliedIdIsFree(input.newHttpApi.getId());
 
         var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            auditInfo.actor().userId()
-        );
+                auditInfo.organizationId(),
+                auditInfo.environmentId(),
+                auditInfo.actor().userId());
 
         Api newApi = ApiModelFactory.fromNewHttpApi(input.newHttpApi, auditInfo.environmentId());
-        if (newApi.getType() == ApiType.LLM_PROXY && newApi.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4Api) {
+        if (newApi.getType() == ApiType.LLM_PROXY
+                && newApi.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4Api) {
             v4Api.setFlows(defaultFlowsLlmProxy());
         }
 
         var created = createApiDomainService.create(
-            newApi,
-            primaryOwner,
-            auditInfo,
-            api ->
-                validateApiDomainService.validateAndSanitizeForCreation(
-                    api,
-                    primaryOwner,
-                    auditInfo.environmentId(),
-                    auditInfo.organizationId()
-                ),
-            oneShotIndexation(auditInfo)
-        );
+                newApi,
+                primaryOwner,
+                auditInfo,
+                api -> validateApiDomainService.validateAndSanitizeForCreation(
+                        api, primaryOwner, auditInfo.environmentId(), auditInfo.organizationId()),
+                oneShotIndexation(auditInfo));
 
         return new Output(created);
     }
@@ -119,34 +106,26 @@ public class CreateHttpApiUseCase {
 
     private static @NonNull List<Flow> defaultFlowsLlmProxy() {
         return List.of(
-            Flow.builder()
-                .name("Prompt")
-                .selectors(
-                    List.of(
-                        ConditionSelector.builder()
-                            .condition(
-                                "{#context.attributes['gravitee.attribute.llm.kind'] == 'PROMPT' || #context.attributes['gravitee.attribute.llm.kind'] == 'TOOL_CALL'}"
-                            )
-                            .build()
-                    )
-                )
-                .build(),
-            Flow.builder()
-                .name("Embeddings")
-                .selectors(
-                    List.of(
-                        ConditionSelector.builder()
-                            .condition("{#context.attributes['gravitee.attribute.llm.kind'] == 'EMBEDDINGS'}")
-                            .build()
-                    )
-                )
-                .build(),
-            Flow.builder()
-                .name("Models")
-                .selectors(
-                    List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/models").methods(Set.of(HttpMethod.GET)).build())
-                )
-                .build()
-        );
+                Flow.builder()
+                        .name("Prompt")
+                        .selectors(List.of(ConditionSelector.builder()
+                                .condition(
+                                        "{#context.attributes['gravitee.attribute.llm.kind'] == 'PROMPT' || #context.attributes['gravitee.attribute.llm.kind'] == 'TOOL_CALL'}")
+                                .build()))
+                        .build(),
+                Flow.builder()
+                        .name("Embeddings")
+                        .selectors(List.of(ConditionSelector.builder()
+                                .condition("{#context.attributes['gravitee.attribute.llm.kind'] == 'EMBEDDINGS'}")
+                                .build()))
+                        .build(),
+                Flow.builder()
+                        .name("Models")
+                        .selectors(List.of(HttpSelector.builder()
+                                .pathOperator(Operator.EQUALS)
+                                .path("/models")
+                                .methods(Set.of(HttpMethod.GET))
+                                .build()))
+                        .build());
     }
 }

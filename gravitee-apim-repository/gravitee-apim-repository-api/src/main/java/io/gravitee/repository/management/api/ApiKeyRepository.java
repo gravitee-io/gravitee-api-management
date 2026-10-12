@@ -126,7 +126,8 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      *
      * @throws TechnicalException if {@code sortable.field()} is not one of the documented values.
      */
-    List<ApiKey> searchAfter(ApiKeyCriteria criteria, Sortable sortable, ApiKeyCursor after, int pageSize) throws TechnicalException;
+    List<ApiKey> searchAfter(ApiKeyCriteria criteria, Sortable sortable, ApiKeyCursor after, int pageSize)
+            throws TechnicalException;
 
     /**
      *
@@ -156,5 +157,5 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * @throws TechnicalException
      */
     Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
-        throws TechnicalException;
+            throws TechnicalException;
 }

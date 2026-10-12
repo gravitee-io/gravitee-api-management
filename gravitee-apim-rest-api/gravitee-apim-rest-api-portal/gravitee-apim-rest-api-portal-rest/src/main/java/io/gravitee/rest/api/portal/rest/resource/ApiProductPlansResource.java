@@ -41,11 +41,11 @@ public class ApiProductPlansResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
-    public Response getApiProductPlans(@PathParam("apiProductId") UUID apiProductId, @BeanParam PaginationParam paginationParam) {
+    public Response getApiProductPlans(
+            @PathParam("apiProductId") UUID apiProductId, @BeanParam PaginationParam paginationParam) {
         var executionContext = getExecutionContext();
-        var output = getPortalApiProductPlansUseCase.execute(
-            new GetPortalApiProductPlansUseCase.Input(executionContext.getEnvironmentId(), apiProductId.toString(), viewerContext())
-        );
+        var output = getPortalApiProductPlansUseCase.execute(new GetPortalApiProductPlansUseCase.Input(
+                executionContext.getEnvironmentId(), apiProductId.toString(), viewerContext()));
         var plans = output.plans().stream().map(apiProductPlanMapper::map).toList();
 
         return createListResponse(executionContext, plans, paginationParam);

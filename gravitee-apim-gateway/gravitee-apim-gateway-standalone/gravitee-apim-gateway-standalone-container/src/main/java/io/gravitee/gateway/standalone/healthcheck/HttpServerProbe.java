@@ -53,16 +53,14 @@ public class HttpServerProbe implements Probe {
     public CompletionStage<Result> check() {
         Promise<Result> promise = Promise.promise();
 
-        netClient()
-            .connect(port, host)
-            .onComplete(res -> {
-                if (res.succeeded()) {
-                    promise.complete(Result.healthy());
-                    res.result().close();
-                } else {
-                    promise.complete(Result.unhealthy(res.cause()));
-                }
-            });
+        netClient().connect(port, host).onComplete(res -> {
+            if (res.succeeded()) {
+                promise.complete(Result.healthy());
+                res.result().close();
+            } else {
+                promise.complete(Result.unhealthy(res.cause()));
+            }
+        });
 
         return promise.future().toCompletionStage();
     }

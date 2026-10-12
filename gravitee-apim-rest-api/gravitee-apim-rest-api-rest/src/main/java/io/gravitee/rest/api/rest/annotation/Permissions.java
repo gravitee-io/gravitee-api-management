@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * @author GraviteeSource Team
  */
 @NameBinding
-@Target({ ElementType.METHOD })
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Permissions {
     Permission[] value();

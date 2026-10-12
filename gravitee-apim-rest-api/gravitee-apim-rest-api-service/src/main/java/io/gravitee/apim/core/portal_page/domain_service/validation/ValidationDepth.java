@@ -35,7 +35,11 @@ public final class ValidationDepth {
         if (depth < MAX_TREE_DEPTH) {
             return false;
         }
-        log.warn("Stopped walking the navigation tree at [id={}] after {} levels: {}", itemId.json(), MAX_TREE_DEPTH, restriction);
+        log.warn(
+                "Stopped walking the navigation tree at [id={}] after {} levels: {}",
+                itemId.json(),
+                MAX_TREE_DEPTH,
+                restriction);
         return true;
     }
 }

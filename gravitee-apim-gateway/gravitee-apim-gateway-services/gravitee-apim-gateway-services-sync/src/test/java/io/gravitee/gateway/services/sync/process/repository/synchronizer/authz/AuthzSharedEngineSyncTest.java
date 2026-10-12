@@ -95,17 +95,15 @@ class AuthzSharedEngineSyncTest {
         hostedScopes = new AuthzHostedScopes();
         revisions = new AuthzAppliedRevisions();
         engine = registerFakeEngine();
-        provisionConsumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                if (provisionRelayFails) {
-                    message.fail(500, "pdp unreachable");
-                    return;
-                }
-                JsonObject body = message.body();
-                provisionOps.add(body.getString("op") + ":" + body.getString("targetPdpId"));
-                message.reply(new JsonObject().put("ok", true));
-            });
+        provisionConsumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            if (provisionRelayFails) {
+                message.fail(500, "pdp unreachable");
+                return;
+            }
+            JsonObject body = message.body();
+            provisionOps.add(body.getString("op") + ":" + body.getString("targetPdpId"));
+            message.reply(new JsonObject().put("ok", true));
+        });
         wireSynchronizers();
     }
 
@@ -169,7 +167,8 @@ class AuthzSharedEngineSyncTest {
     }
 
     @Test
-    void a_suppressed_evict_whose_provision_relay_fails_still_lets_the_cascade_clear_the_reused_engine() throws InterruptedException {
+    void a_suppressed_evict_whose_provision_relay_fails_still_lets_the_cascade_clear_the_reused_engine()
+            throws InterruptedException {
         stubPolicyFetch(policyPublish("pol-1", 100L, "stock@us"));
 
         // 1. This node hosts stock@us alone, and the shared engine holds its policy.
@@ -180,7 +179,9 @@ class AuthzSharedEngineSyncTest {
         // 2. A re-tag arrives as one batch: the delete of stock@us next to the create of stock@eu. The create
         //    reuses the engine, so the evict is suppressed and the engine stays up. The create's relay fails.
         provisionRelayFails = true;
-        stubPdpFetch(pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "us"), pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "eu"));
+        stubPdpFetch(
+                pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "us"),
+                pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "eu"));
         runPdpCycle(1L);
 
         // 3. Same cycle, the cascade moves the policy off stock@us. The engine is alive and still holds the
@@ -203,13 +204,16 @@ class AuthzSharedEngineSyncTest {
     }
 
     @Test
-    void an_abandoned_provision_that_absorbed_an_evict_does_not_leave_the_deleted_replica_hosted() throws InterruptedException {
+    void an_abandoned_provision_that_absorbed_an_evict_does_not_leave_the_deleted_replica_hosted()
+            throws InterruptedException {
         stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "us"));
         runPdpCycle(-1L);
 
         // The same re-tag batch, but this time the relay never recovers.
         provisionRelayFails = true;
-        stubPdpFetch(pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "us"), pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "eu"));
+        stubPdpFetch(
+                pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "us"),
+                pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "eu"));
         runPdpCycle(1L);
 
         // Re-drive past the attempt cap. The provision that absorbed the evict is the only thing that can
@@ -231,50 +235,50 @@ class AuthzSharedEngineSyncTest {
         EventBusAuthzEnginePort port = new EventBusAuthzEnginePort(vertx, hostedScopes, revisions);
         DeployerFactory deployerFactory = mock(DeployerFactory.class);
         NoopDistributedSyncService distributedSyncService = new NoopDistributedSyncService();
-        lenient().when(deployerFactory.createAuthzPolicyDeployer()).thenReturn(new AuthzPolicyDeployer(port, distributedSyncService));
-        lenient().when(deployerFactory.createAuthzEntityDeployer()).thenReturn(new AuthzEntityDeployer(port, distributedSyncService));
+        lenient()
+                .when(deployerFactory.createAuthzPolicyDeployer())
+                .thenReturn(new AuthzPolicyDeployer(port, distributedSyncService));
+        lenient()
+                .when(deployerFactory.createAuthzEntityDeployer())
+                .thenReturn(new AuthzEntityDeployer(port, distributedSyncService));
 
         policySynchronizer = new AuthzPolicySynchronizer(
-            fetcher,
-            new AuthzPolicyMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzPolicyMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
         AuthzSchemaSynchronizer schemaSynchronizer = new AuthzSchemaSynchronizer(
-            fetcher,
-            new AuthzSchemaMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzSchemaMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
         AuthzEntitySynchronizer entitySynchronizer = new AuthzEntitySynchronizer(
-            fetcher,
-            new AuthzEntityMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzEntityMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
         pdpSynchronizer = new AuthzPdpSynchronizer(
-            fetcher,
-            new AuthzPdpMapper(objectMapper),
-            schemaSynchronizer,
-            policySynchronizer,
-            entitySynchronizer,
-            mock(Node.class),
-            untaggedGateway(),
-            vertx,
-            hostedScopes,
-            executor(),
-            executor(),
-            revisions
-        );
+                fetcher,
+                new AuthzPdpMapper(objectMapper),
+                schemaSynchronizer,
+                policySynchronizer,
+                entitySynchronizer,
+                mock(Node.class),
+                untaggedGateway(),
+                vertx,
+                hostedScopes,
+                executor(),
+                executor(),
+                revisions);
     }
 
     /** An untagged gateway is a catch-all, so this one node hosts both regional replicas. */
@@ -299,24 +303,22 @@ class AuthzSharedEngineSyncTest {
         Set<String> staged = ConcurrentHashMap.newKeySet();
         Set<String> served = ConcurrentHashMap.newKeySet();
         List<String> ops = Collections.synchronizedList(new ArrayList<>());
-        engineConsumer = vertx
-            .eventBus()
-            .consumer(ENGINE_ADDRESS, msg -> {
-                JsonObject body = msg.body();
-                String op = body.getString("op");
-                String docId = body.getString("docId", body.getString("uid"));
-                ops.add(docId == null ? op : op + ":" + docId);
-                switch (op) {
-                    case "addOrUpdatePolicy", "addOrUpdateEntity", "addOrUpdateSchema" -> staged.add(docId);
-                    case "removePolicy", "removeEntity", "removeSchema" -> staged.remove(docId);
-                    case "commit" -> {
-                        served.clear();
-                        served.addAll(staged);
-                    }
-                    default -> {}
+        engineConsumer = vertx.eventBus().consumer(ENGINE_ADDRESS, msg -> {
+            JsonObject body = msg.body();
+            String op = body.getString("op");
+            String docId = body.getString("docId", body.getString("uid"));
+            ops.add(docId == null ? op : op + ":" + docId);
+            switch (op) {
+                case "addOrUpdatePolicy", "addOrUpdateEntity", "addOrUpdateSchema" -> staged.add(docId);
+                case "removePolicy", "removeEntity", "removeSchema" -> staged.remove(docId);
+                case "commit" -> {
+                    served.clear();
+                    served.addAll(staged);
                 }
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+                default -> {}
+            }
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
         return new FakeEngine(served, ops);
     }
 
@@ -325,30 +327,40 @@ class AuthzSharedEngineSyncTest {
     // ---------------------------------------------------------------------
 
     private void runPdpCycle(long from) throws InterruptedException {
-        pdpSynchronizer.synchronize(from, Instant.now().toEpochMilli(), Set.of(ENV)).test().await().assertComplete();
+        pdpSynchronizer
+                .synchronize(from, Instant.now().toEpochMilli(), Set.of(ENV))
+                .test()
+                .await()
+                .assertComplete();
     }
 
     private void runPolicyCycle(long from) throws InterruptedException {
-        policySynchronizer.synchronize(from, Instant.now().toEpochMilli(), Set.of(ENV)).test().await().assertComplete();
+        policySynchronizer
+                .synchronize(from, Instant.now().toEpochMilli(), Set.of(ENV))
+                .test()
+                .await()
+                .assertComplete();
     }
 
     private void stubPdpFetch(Event... events) {
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(events))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(events)));
     }
 
     private void stubPolicyFetch(Event... events) {
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(events))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(events)));
     }
 
     private static Event pdpEvent(String id, EventType type, String tag) {
         Event event = new Event();
         event.setId(id);
         event.setType(type);
-        event.setPayload(new JsonObject().put("targetPdpId", "stock").put("environmentId", ENV).put("tag", tag).encode());
+        event.setPayload(new JsonObject()
+                .put("targetPdpId", "stock")
+                .put("environmentId", ENV)
+                .put("tag", tag)
+                .encode());
         event.setProperties(Map.of(Event.EventProperties.AUTHZ_PDP_ID.getValue(), id));
         return event;
     }
@@ -367,16 +379,14 @@ class AuthzSharedEngineSyncTest {
         Event event = new Event();
         event.setId(docId);
         event.setType(type);
-        event.setPayload(
-            new JsonObject()
+        event.setPayload(new JsonObject()
                 .put("id", docId)
                 .put("name", docId)
                 .put("kind", "GLOBAL")
                 .put("policyText", "permit(principal, action, resource);")
                 .put("environmentId", ENV)
                 .put("targetPdpIds", List.of(targetPdpIds))
-                .encode()
-        );
+                .encode());
         event.setProperties(Map.of(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), docId));
         return event;
     }

@@ -26,9 +26,8 @@ import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import lombok.CustomLog;
 
 @CustomLog
-public class DefaultSharedPolicyGroupReactor
-    extends AbstractLifecycleComponent<SharedPolicyGroupReactor>
-    implements SharedPolicyGroupReactor {
+public class DefaultSharedPolicyGroupReactor extends AbstractLifecycleComponent<SharedPolicyGroupReactor>
+        implements SharedPolicyGroupReactor {
 
     private final ReactableSharedPolicyGroup reactableSharedPolicyGroup;
     private final SharedPolicyGroupPolicyChainFactory policyChainFactory;
@@ -36,10 +35,9 @@ public class DefaultSharedPolicyGroupReactor
     private HttpPolicyChain policyChain;
 
     public DefaultSharedPolicyGroupReactor(
-        ReactableSharedPolicyGroup reactableSharedPolicyGroup,
-        SharedPolicyGroupPolicyChainFactory policyChainFactory,
-        SharedPolicyGroupPolicyManager sharedPolicyGroupPolicyManager
-    ) {
+            ReactableSharedPolicyGroup reactableSharedPolicyGroup,
+            SharedPolicyGroupPolicyChainFactory policyChainFactory,
+            SharedPolicyGroupPolicyManager sharedPolicyGroupPolicyManager) {
         this.reactableSharedPolicyGroup = reactableSharedPolicyGroup;
         this.policyChainFactory = policyChainFactory;
         this.sharedPolicyGroupPolicyManager = sharedPolicyGroupPolicyManager;
@@ -65,11 +63,10 @@ public class DefaultSharedPolicyGroupReactor
         log.debug("Organization '{}' reactor  is now starting...", id());
         sharedPolicyGroupPolicyManager.start();
         policyChain = policyChainFactory.create(
-            reactableSharedPolicyGroup.getId(),
-            reactableSharedPolicyGroup.getEnvironmentId(),
-            reactableSharedPolicyGroup.getDefinition().getPolicies(),
-            toExecutionPhase(reactableSharedPolicyGroup.getDefinition().getPhase())
-        );
+                reactableSharedPolicyGroup.getId(),
+                reactableSharedPolicyGroup.getEnvironmentId(),
+                reactableSharedPolicyGroup.getDefinition().getPolicies(),
+                toExecutionPhase(reactableSharedPolicyGroup.getDefinition().getPhase()));
     }
 
     static ExecutionPhase toExecutionPhase(SharedPolicyGroup.Phase phase) {

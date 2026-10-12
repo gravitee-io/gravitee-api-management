@@ -27,32 +27,32 @@ import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
  * about to leave the slot free (recorded so a same-batch sibling can safely take it over).
  */
 public record PendingSegmentClaim(
-    PortalNavigationItemId id,
-    PortalNavigationItemId parentId,
-    String segment,
-    NavigationItemReference reference,
-    Intent intent
-) {
+        PortalNavigationItemId id,
+        PortalNavigationItemId parentId,
+        String segment,
+        NavigationItemReference reference,
+        Intent intent) {
     public enum Intent {
         CLAIM,
         RELEASE,
     }
 
     public static PendingSegmentClaim forCreate(CreatePortalNavigationItem create) {
-        return new PendingSegmentClaim(create.getId(), create.getParentId(), create.getSegment(), create.getReference(), Intent.CLAIM);
+        return new PendingSegmentClaim(
+                create.getId(), create.getParentId(), create.getSegment(), create.getReference(), Intent.CLAIM);
     }
 
     public static PendingSegmentClaim forUpdate(PortalNavigationItem existing, UpdatePortalNavigationItem update) {
-        return new PendingSegmentClaim(existing.getId(), update.getParentId(), update.getSegment(), existing.getReference(), Intent.CLAIM);
+        return new PendingSegmentClaim(
+                existing.getId(), update.getParentId(), update.getSegment(), existing.getReference(), Intent.CLAIM);
     }
 
     public static PendingSegmentClaim forRelease(PortalNavigationItem existing) {
         return new PendingSegmentClaim(
-            existing.getId(),
-            existing.getParentId(),
-            existing.getSegment(),
-            existing.getReference(),
-            Intent.RELEASE
-        );
+                existing.getId(),
+                existing.getParentId(),
+                existing.getSegment(),
+                existing.getReference(),
+                Intent.RELEASE);
     }
 }

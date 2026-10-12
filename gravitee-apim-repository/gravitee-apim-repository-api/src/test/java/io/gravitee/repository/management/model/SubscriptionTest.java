@@ -35,7 +35,9 @@ class SubscriptionTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = Subscription.ConsumerStatus.class, names = { "STARTED", "FAILURE" })
+    @EnumSource(
+            value = Subscription.ConsumerStatus.class,
+            names = {"STARTED", "FAILURE"})
     void shouldBeStoppableByConsumer(Subscription.ConsumerStatus consumerStatus) {
         final Subscription cut = this.cut;
         cut.setConsumerStatus(consumerStatus);
@@ -43,7 +45,10 @@ class SubscriptionTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = Subscription.ConsumerStatus.class, names = { "STARTED", "FAILURE" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(
+            value = Subscription.ConsumerStatus.class,
+            names = {"STARTED", "FAILURE"},
+            mode = EnumSource.Mode.EXCLUDE)
     void shouldNotBeStoppableByConsumer(Subscription.ConsumerStatus consumerStatus) {
         final Subscription cut = this.cut;
         cut.setConsumerStatus(consumerStatus);
@@ -51,7 +56,9 @@ class SubscriptionTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = Subscription.ConsumerStatus.class, names = { "STOPPED", "FAILURE" })
+    @EnumSource(
+            value = Subscription.ConsumerStatus.class,
+            names = {"STOPPED", "FAILURE"})
     void shouldBeStartableByConsumer(Subscription.ConsumerStatus consumerStatus) {
         final Subscription cut = this.cut;
         cut.setConsumerStatus(consumerStatus);
@@ -59,7 +66,10 @@ class SubscriptionTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = Subscription.ConsumerStatus.class, names = { "STOPPED", "FAILURE" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(
+            value = Subscription.ConsumerStatus.class,
+            names = {"STOPPED", "FAILURE"},
+            mode = EnumSource.Mode.EXCLUDE)
     void shouldNotBeStartableByConsumer(Subscription.ConsumerStatus consumerStatus) {
         final Subscription cut = this.cut;
         cut.setConsumerStatus(consumerStatus);

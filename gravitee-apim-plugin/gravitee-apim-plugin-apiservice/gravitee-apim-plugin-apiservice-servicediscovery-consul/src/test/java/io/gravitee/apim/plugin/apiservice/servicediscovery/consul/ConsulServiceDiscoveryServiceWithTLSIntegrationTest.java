@@ -69,7 +69,7 @@ import org.springframework.core.env.Environment;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
-@ExtendWith(value = { MockitoExtension.class, VertxExtension.class })
+@ExtendWith(value = {MockitoExtension.class, VertxExtension.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
 
@@ -80,18 +80,19 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
     private static final String HTTP_PROXY = "http-proxy";
     private static final String SERVICE_NAME = "my-service";
 
-    static ComposeContainer consulEnvironment = new ComposeContainer(new File("src/test/resources/docker/consul_with_tls.yml"))
-        .withExposedService(CONSUL_SERVICE, CONSUL_SERVICE_PORT, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(30)))
-        .withExposedService(
-            CONSUL_SERVICE,
-            CONSUL_SERVICE_SECURED_PORT,
-            Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(30))
-        );
+    static ComposeContainer consulEnvironment = new ComposeContainer(
+                    new File("src/test/resources/docker/consul_with_tls.yml"))
+            .withExposedService(
+                    CONSUL_SERVICE,
+                    CONSUL_SERVICE_PORT,
+                    Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(30)))
+            .withExposedService(
+                    CONSUL_SERVICE,
+                    CONSUL_SERVICE_SECURED_PORT,
+                    Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(30)));
     private final Vertx vertx = Vertx.vertx();
-    private final PluginConfigurationHelper pluginConfigurationHelper = new PluginConfigurationHelper(
-        mock(Configuration.class),
-        new GraviteeMapper()
-    );
+    private final PluginConfigurationHelper pluginConfigurationHelper =
+            new PluginConfigurationHelper(mock(Configuration.class), new GraviteeMapper());
 
     @Mock
     private DeploymentContext deploymentContext;
@@ -107,7 +108,8 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
     @BeforeAll
     void beforeAll() {
         consulEnvironment.start();
-        client = ConsulClient.create(vertx, new ConsulClientOptions().setHost(consulHost()).setPort(consulPort()));
+        client = ConsulClient.create(
+                vertx, new ConsulClientOptions().setHost(consulHost()).setPort(consulPort()));
     }
 
     @AfterAll
@@ -126,15 +128,17 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
         when(deploymentContext.getComponent(Api.class)).thenReturn(api);
 
         endpointManager = new DefaultEndpointManager(
-            api.getDefinition(),
-            endpointConnectorPluginManager(EndpointBuilder.build(HTTP_PROXY, HttpProxyEndpointConnectorFactory.class)),
-            deploymentContext,
-            gatewayConfiguration
-        ).start();
+                        api.getDefinition(),
+                        endpointConnectorPluginManager(
+                                EndpointBuilder.build(HTTP_PROXY, HttpProxyEndpointConnectorFactory.class)),
+                        deploymentContext,
+                        gatewayConfiguration)
+                .start();
         when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
 
         Environment environment = mock(Environment.class);
-        when(environment.getProperty(eq("api.pending_requests_timeout"), eq(Long.class), anyLong())).thenReturn(10000L);
+        when(environment.getProperty(eq("api.pending_requests_timeout"), eq(Long.class), anyLong()))
+                .thenReturn(10000L);
         when(deploymentContext.getComponent(Environment.class)).thenReturn(environment);
     }
 
@@ -145,9 +149,14 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("generator")
-    void should_get_updates_from_a_secured_consul_server(String name, JsonObject config, VertxTestContext testContext) throws Exception {
+    void should_get_updates_from_a_secured_consul_server(String name, JsonObject config, VertxTestContext testContext)
+            throws Exception {
         var endpointAdded = testContext.checkpoint();
-        var newService = new ServiceOptions().setName(SERVICE_NAME).setId("id1").setAddress("10.0.0.1").setPort(8048);
+        var newService = new ServiceOptions()
+                .setName(SERVICE_NAME)
+                .setId("id1")
+                .setAddress("10.0.0.1")
+                .setPort(8048);
 
         configureDiscoveryInGroup(config);
         client.registerService(newService).blockingAwait();
@@ -164,187 +173,119 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
         // assert
         var endpoints = endpointManager.all();
         assertThat(endpoints)
-            .extracting(ManagedEndpoint::getDefinition)
-            .hasSize(1)
-            .contains(
-                Endpoint.builder()
-                    .name("consul#id1")
-                    .type(HTTP_PROXY)
-                    .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048")).toString())
-                    .build()
-            );
+                .extracting(ManagedEndpoint::getDefinition)
+                .hasSize(1)
+                .contains(Endpoint.builder()
+                        .name("consul#id1")
+                        .type(HTTP_PROXY)
+                        .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048")).toString())
+                        .build());
     }
 
     private static Stream<Arguments> generator() throws IOException {
         return Stream.of(
-            Arguments.of(
-                "using a jks file",
-                new JsonObject(
-                    Map.ofEntries(
-                        Map.entry("url", consulUrl()),
-                        Map.entry("service", SERVICE_NAME),
-                        Map.entry(
-                            "ssl",
-                            new JsonObject(
+                Arguments.of(
+                        "using a jks file",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("url", consulUrl()),
+                                Map.entry("service", SERVICE_NAME),
+                                Map.entry(
+                                        "ssl",
+                                        new JsonObject(Map.ofEntries(Map.entry(
+                                                "trustStore",
+                                                new JsonObject(Map.ofEntries(
+                                                        Map.entry("type", "JKS"),
+                                                        Map.entry(
+                                                                "path",
+                                                                "src/test/resources/docker/config/ssl/client-truststore.jks"),
+                                                        Map.entry("password", "gravitee")))))))))),
+                Arguments.of(
+                        "using a jks content",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("url", consulUrl()),
+                                Map.entry("service", SERVICE_NAME),
+                                Map.entry(
+                                        "ssl",
+                                        new JsonObject(Map.ofEntries(Map.entry(
+                                                "trustStore",
+                                                new JsonObject(Map.ofEntries(
+                                                        Map.entry("type", "JKS"),
+                                                        Map.entry(
+                                                                "content",
+                                                                encodeFileToBase64(
+                                                                        Path.of(
+                                                                                "src/test/resources/docker/config/ssl/client-truststore.jks"))),
+                                                        Map.entry("password", "gravitee")))))))))),
+                Arguments.of(
+                        "using a pkcs12 file",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("url", consulUrl()),
+                                Map.entry("service", SERVICE_NAME),
+                                Map.entry(
+                                        "ssl",
+                                        new JsonObject(Map.ofEntries(Map.entry(
+                                                "trustStore",
+                                                new JsonObject(Map.ofEntries(
+                                                        Map.entry("type", "PKCS12"),
+                                                        Map.entry(
+                                                                "path",
+                                                                "src/test/resources/docker/config/ssl/client-truststore.p12"),
+                                                        Map.entry("password", "gravitee")))))))))),
+                Arguments.of(
+                        "using a pkcs12 content",
+                        new JsonObject(Map.ofEntries(
+                                Map.entry("url", consulUrl()),
+                                Map.entry("service", SERVICE_NAME),
+                                Map.entry(
+                                        "ssl",
+                                        new JsonObject(Map.ofEntries(Map.entry(
+                                                "trustStore",
+                                                new JsonObject(Map.ofEntries(
+                                                        Map.entry("type", "PKCS12"),
+                                                        Map.entry(
+                                                                "content",
+                                                                encodeFileToBase64(
+                                                                        Path.of(
+                                                                                "src/test/resources/docker/config/ssl/client-truststore.p12"))),
+                                                        Map.entry("password", "gravitee")))))))))),
+                Arguments.of(
+                        "using a pem file",
+                        new JsonObject(
                                 Map.ofEntries(
-                                    Map.entry(
-                                        "trustStore",
-                                        new JsonObject(
-                                            Map.ofEntries(
-                                                Map.entry("type", "JKS"),
-                                                Map.entry("path", "src/test/resources/docker/config/ssl/client-truststore.jks"),
-                                                Map.entry("password", "gravitee")
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-            Arguments.of(
-                "using a jks content",
-                new JsonObject(
-                    Map.ofEntries(
-                        Map.entry("url", consulUrl()),
-                        Map.entry("service", SERVICE_NAME),
-                        Map.entry(
-                            "ssl",
-                            new JsonObject(
+                                        Map.entry("url", consulUrl()),
+                                        Map.entry("service", SERVICE_NAME),
+                                        Map.entry(
+                                                "ssl",
+                                                new JsonObject(
+                                                        Map.ofEntries(
+                                                                Map.entry(
+                                                                        "trustStore",
+                                                                        new JsonObject(
+                                                                                Map.ofEntries(
+                                                                                        Map.entry("type", "PEM"),
+                                                                                        Map.entry(
+                                                                                                "path",
+                                                                                                "src/test/resources/docker/config/ssl/client-truststore.pem")))))))))),
+                Arguments.of(
+                        "using a pem content",
+                        new JsonObject(
                                 Map.ofEntries(
-                                    Map.entry(
-                                        "trustStore",
-                                        new JsonObject(
-                                            Map.ofEntries(
-                                                Map.entry("type", "JKS"),
-                                                Map.entry(
-                                                    "content",
-                                                    encodeFileToBase64(
-                                                        Path.of("src/test/resources/docker/config/ssl/client-truststore.jks")
-                                                    )
-                                                ),
-                                                Map.entry("password", "gravitee")
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-            Arguments.of(
-                "using a pkcs12 file",
-                new JsonObject(
-                    Map.ofEntries(
-                        Map.entry("url", consulUrl()),
-                        Map.entry("service", SERVICE_NAME),
-                        Map.entry(
-                            "ssl",
-                            new JsonObject(
-                                Map.ofEntries(
-                                    Map.entry(
-                                        "trustStore",
-                                        new JsonObject(
-                                            Map.ofEntries(
-                                                Map.entry("type", "PKCS12"),
-                                                Map.entry("path", "src/test/resources/docker/config/ssl/client-truststore.p12"),
-                                                Map.entry("password", "gravitee")
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-            Arguments.of(
-                "using a pkcs12 content",
-                new JsonObject(
-                    Map.ofEntries(
-                        Map.entry("url", consulUrl()),
-                        Map.entry("service", SERVICE_NAME),
-                        Map.entry(
-                            "ssl",
-                            new JsonObject(
-                                Map.ofEntries(
-                                    Map.entry(
-                                        "trustStore",
-                                        new JsonObject(
-                                            Map.ofEntries(
-                                                Map.entry("type", "PKCS12"),
-                                                Map.entry(
-                                                    "content",
-                                                    encodeFileToBase64(
-                                                        Path.of("src/test/resources/docker/config/ssl/client-truststore.p12")
-                                                    )
-                                                ),
-                                                Map.entry("password", "gravitee")
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-            Arguments.of(
-                "using a pem file",
-                new JsonObject(
-                    Map.ofEntries(
-                        Map.entry("url", consulUrl()),
-                        Map.entry("service", SERVICE_NAME),
-                        Map.entry(
-                            "ssl",
-                            new JsonObject(
-                                Map.ofEntries(
-                                    Map.entry(
-                                        "trustStore",
-                                        new JsonObject(
-                                            Map.ofEntries(
-                                                Map.entry("type", "PEM"),
-                                                Map.entry("path", "src/test/resources/docker/config/ssl/client-truststore.pem")
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-            Arguments.of(
-                "using a pem content",
-                new JsonObject(
-                    Map.ofEntries(
-                        Map.entry("url", consulUrl()),
-                        Map.entry("service", SERVICE_NAME),
-                        Map.entry(
-                            "ssl",
-                            new JsonObject(
-                                Map.ofEntries(
-                                    Map.entry(
-                                        "trustStore",
-                                        new JsonObject(
-                                            Map.ofEntries(
-                                                Map.entry("type", "PEM"),
-                                                Map.entry(
-                                                    "content",
-                                                    Files.readString(Path.of("src/test/resources/docker/config/ssl/client-truststore.pem"))
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        );
+                                        Map.entry("url", consulUrl()),
+                                        Map.entry("service", SERVICE_NAME),
+                                        Map.entry(
+                                                "ssl",
+                                                new JsonObject(
+                                                        Map.ofEntries(
+                                                                Map.entry(
+                                                                        "trustStore",
+                                                                        new JsonObject(
+                                                                                Map.ofEntries(
+                                                                                        Map.entry("type", "PEM"),
+                                                                                        Map.entry(
+                                                                                                "content",
+                                                                                                Files.readString(
+                                                                                                        Path.of(
+                                                                                                                "src/test/resources/docker/config/ssl/client-truststore.pem")))))))))))));
     }
 
     private static String consulUrl() {
@@ -367,37 +308,34 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
     }
 
     private void configureDiscoveryInGroup(JsonObject configuration) {
-        api
-            .getDefinition()
-            .getEndpointGroups()
-            .get(0)
-            .getServices()
-            .setDiscovery(
-                Service.builder().enabled(true).type(CONSUL_SERVICE_DISCOVERY_ID).configuration(configuration.toString()).build()
-            );
+        api.getDefinition()
+                .getEndpointGroups()
+                .get(0)
+                .getServices()
+                .setDiscovery(Service.builder()
+                        .enabled(true)
+                        .type(CONSUL_SERVICE_DISCOVERY_ID)
+                        .configuration(configuration.toString())
+                        .build());
     }
 
-    private DefaultEndpointConnectorPluginManager endpointConnectorPluginManager(EndpointConnectorPlugin<?, ?> endpointConnectorPlugin) {
+    private DefaultEndpointConnectorPluginManager endpointConnectorPluginManager(
+            EndpointConnectorPlugin<?, ?> endpointConnectorPlugin) {
         var pluginManager = new DefaultEndpointConnectorPluginManager(
-            new DefaultEndpointConnectorClassLoaderFactory(),
-            pluginConfigurationHelper
-        );
+                new DefaultEndpointConnectorClassLoaderFactory(), pluginConfigurationHelper);
         pluginManager.register(endpointConnectorPlugin);
         return pluginManager;
     }
 
     private void startConsulServiceDiscovery(VertxTestContext testContext) throws InterruptedException {
         cut = new ConsulServiceDiscoveryServiceFactory().createService(deploymentContext);
-        cut
-            .start()
-            .andThen(
-                Completable.create(emitter -> {
+        cut.start()
+                .andThen(Completable.create(emitter -> {
                     testContext.awaitCompletion(5, TimeUnit.SECONDS);
                     emitter.onComplete();
-                })
-            )
-            .test()
-            .await()
-            .assertComplete();
+                }))
+                .test()
+                .await()
+                .assertComplete();
     }
 }

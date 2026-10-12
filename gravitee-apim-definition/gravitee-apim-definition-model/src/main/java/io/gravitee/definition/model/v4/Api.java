@@ -24,11 +24,8 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
-import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -37,7 +34,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
@@ -95,7 +91,15 @@ public class Api extends AbstractApi {
     private Boolean allowedInApiProducts;
 
     public Api(Api other) {
-        super(other.id, other.name, other.type, other.apiVersion, other.definitionVersion, other.tags, other.properties, other.resources);
+        super(
+                other.id,
+                other.name,
+                other.type,
+                other.apiVersion,
+                other.definitionVersion,
+                other.tags,
+                other.properties,
+                other.resources);
         this.listeners = other.listeners;
         this.endpointGroups = other.endpointGroups;
         this.analytics = other.analytics;
@@ -141,25 +145,43 @@ public class Api extends AbstractApi {
     @JsonIgnore
     public List<Plugin> getPlugins() {
         return Stream.of(
-            Optional.ofNullable(this.getResources())
-                .map(r -> r.stream().filter(Resource::isEnabled).map(Resource::getPlugins).flatMap(List::stream).toList())
-                .orElse(List.of()),
-            Optional.ofNullable(this.getFlows())
-                .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
-                .orElse(List.of()),
-            Optional.ofNullable(this.getPlans())
-                .map(p -> p.stream().map(Plan::getPlugins).flatMap(List::stream).toList())
-                .orElse(List.of()),
-            Optional.ofNullable(this.getListeners())
-                .map(l -> l.stream().map(Listener::getPlugins).flatMap(List::stream).toList())
-                .orElse(List.of()),
-            Optional.ofNullable(this.getEndpointGroups())
-                .map(r -> r.stream().map(EndpointGroup::getPlugins).flatMap(List::stream).toList())
-                .orElse(List.of()),
-            Optional.ofNullable(this.getServices()).map(ApiServices::getPlugins).orElse(List.of())
-        )
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
+                        Optional.ofNullable(this.getResources())
+                                .map(r -> r.stream()
+                                        .filter(Resource::isEnabled)
+                                        .map(Resource::getPlugins)
+                                        .flatMap(List::stream)
+                                        .toList())
+                                .orElse(List.of()),
+                        Optional.ofNullable(this.getFlows())
+                                .map(f -> f.stream()
+                                        .filter(Flow::isEnabled)
+                                        .map(Flow::getPlugins)
+                                        .flatMap(List::stream)
+                                        .toList())
+                                .orElse(List.of()),
+                        Optional.ofNullable(this.getPlans())
+                                .map(p -> p.stream()
+                                        .map(Plan::getPlugins)
+                                        .flatMap(List::stream)
+                                        .toList())
+                                .orElse(List.of()),
+                        Optional.ofNullable(this.getListeners())
+                                .map(l -> l.stream()
+                                        .map(Listener::getPlugins)
+                                        .flatMap(List::stream)
+                                        .toList())
+                                .orElse(List.of()),
+                        Optional.ofNullable(this.getEndpointGroups())
+                                .map(r -> r.stream()
+                                        .map(EndpointGroup::getPlugins)
+                                        .flatMap(List::stream)
+                                        .toList())
+                                .orElse(List.of()),
+                        Optional.ofNullable(this.getServices())
+                                .map(ApiServices::getPlugins)
+                                .orElse(List.of()))
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
     @Override

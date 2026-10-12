@@ -44,11 +44,10 @@ public class JettyServerFactory implements FactoryBean<Server> {
     public Server getObject() throws Exception {
         // Setup ThreadPool
         QueuedThreadPool threadPool = new JettyQueuedThreadPool(
-            jettyConfiguration.getPoolMaxThreads(),
-            jettyConfiguration.getPoolMinThreads(),
-            jettyConfiguration.getPoolIdleTimeout(),
-            new ArrayBlockingQueue<>(jettyConfiguration.getPoolQueueSize())
-        );
+                jettyConfiguration.getPoolMaxThreads(),
+                jettyConfiguration.getPoolMinThreads(),
+                jettyConfiguration.getPoolIdleTimeout(),
+                new ArrayBlockingQueue<>(jettyConfiguration.getPoolQueueSize()));
         threadPool.setName("gravitee-listener");
 
         Server server = new Server(threadPool);
@@ -83,7 +82,8 @@ public class JettyServerFactory implements FactoryBean<Server> {
             if (jettyConfiguration.getKeyStorePath() != null) {
                 sslContextFactory.setKeyStorePath(jettyConfiguration.getKeyStorePath());
                 sslContextFactory.setKeyStorePassword(jettyConfiguration.getKeyStorePassword());
-                // Force default keystore type to jks for backward compatibility (since jetty moved to pkcs12 by default https://github.com/jetty/jetty.project/pull/4489).
+                // Force default keystore type to jks for backward compatibility (since jetty moved to pkcs12 by default
+                // https://github.com/jetty/jetty.project/pull/4489).
                 sslContextFactory.setKeyStoreType(KEYSTORE_TYPE_JKS);
 
                 if (KEYSTORE_TYPE_PKCS12.equalsIgnoreCase(jettyConfiguration.getKeyStoreType())) {
@@ -94,7 +94,8 @@ public class JettyServerFactory implements FactoryBean<Server> {
             if (jettyConfiguration.getTrustStorePath() != null) {
                 sslContextFactory.setTrustStorePath(jettyConfiguration.getTrustStorePath());
                 sslContextFactory.setTrustStorePassword(jettyConfiguration.getTrustStorePassword());
-                // Force default truststore type to jks for backward compatibility (since jetty moved to pkcs12 by default https://github.com/jetty/jetty.project/pull/4489).
+                // Force default truststore type to jks for backward compatibility (since jetty moved to pkcs12 by
+                // default https://github.com/jetty/jetty.project/pull/4489).
                 sslContextFactory.setTrustStoreType(KEYSTORE_TYPE_JKS);
 
                 if (KEYSTORE_TYPE_PKCS12.equalsIgnoreCase(jettyConfiguration.getTrustStoreType())) {
@@ -106,20 +107,18 @@ public class JettyServerFactory implements FactoryBean<Server> {
             httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
             ServerConnector https = new ServerConnector(
-                server,
-                new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-                new HttpConnectionFactory(httpsConfig)
-            );
+                    server,
+                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                    new HttpConnectionFactory(httpsConfig));
             https.setHost(jettyConfiguration.getHttpHost());
             https.setPort(jettyConfiguration.getHttpPort());
             server.addConnector(https);
         } else {
             ServerConnector http = new ServerConnector(
-                server,
-                jettyConfiguration.getAcceptors(),
-                jettyConfiguration.getSelectors(),
-                new HttpConnectionFactory(httpConfig)
-            );
+                    server,
+                    jettyConfiguration.getAcceptors(),
+                    jettyConfiguration.getSelectors(),
+                    new HttpConnectionFactory(httpConfig));
             http.setHost(jettyConfiguration.getHttpHost());
             http.setPort(jettyConfiguration.getHttpPort());
             http.setIdleTimeout(jettyConfiguration.getIdleTimeout());
@@ -136,9 +135,8 @@ public class JettyServerFactory implements FactoryBean<Server> {
 
         if (jettyConfiguration.isAccessLogEnabled()) {
             CustomRequestLog requestLog = new CustomRequestLog(
-                new AsyncRequestLogWriter(jettyConfiguration.getAccessLogPath()),
-                CustomRequestLog.EXTENDED_NCSA_FORMAT
-            );
+                    new AsyncRequestLogWriter(jettyConfiguration.getAccessLogPath()),
+                    CustomRequestLog.EXTENDED_NCSA_FORMAT);
 
             server.setRequestLog(requestLog);
         }

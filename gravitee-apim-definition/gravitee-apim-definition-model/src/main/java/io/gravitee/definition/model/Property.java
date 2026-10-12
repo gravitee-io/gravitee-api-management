@@ -16,7 +16,6 @@
 package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import java.io.Serializable;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -91,12 +90,10 @@ public class Property implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Property property = (Property) o;
-        return (
-            dynamic == property.dynamic &&
-            encrypted == property.encrypted &&
-            Objects.equals(key, property.key) &&
-            Objects.equals(value, property.value)
-        );
+        return (dynamic == property.dynamic
+                && encrypted == property.encrypted
+                && Objects.equals(key, property.key)
+                && Objects.equals(value, property.value));
     }
 
     @Override

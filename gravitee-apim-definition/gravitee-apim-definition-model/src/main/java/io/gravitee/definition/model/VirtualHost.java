@@ -84,7 +84,9 @@ public class VirtualHost implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VirtualHost that = (VirtualHost) o;
-        return overrideEntrypoint == that.overrideEntrypoint && Objects.equals(host, that.host) && Objects.equals(path, that.path);
+        return overrideEntrypoint == that.overrideEntrypoint
+                && Objects.equals(host, that.host)
+                && Objects.equals(path, that.path);
     }
 
     @Override

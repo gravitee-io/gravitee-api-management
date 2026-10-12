@@ -34,35 +34,40 @@ public interface ApiService {
 
     ApiEntity createWithImport(final ExecutionContext executionContext, final ApiEntity api, final String userId);
 
-    ApiEntity update(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api, final String userId);
+    ApiEntity update(
+            final ExecutionContext executionContext,
+            final String apiId,
+            final UpdateApiEntity api,
+            final String userId);
 
     ApiEntity update(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final UpdateApiEntity api,
-        final boolean checkPlans,
-        final String userId
-    );
+            final ExecutionContext executionContext,
+            final String apiId,
+            final UpdateApiEntity api,
+            final boolean checkPlans,
+            final String userId);
 
-    void validate(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api, final String userId);
+    void validate(
+            final ExecutionContext executionContext,
+            final String apiId,
+            final UpdateApiEntity api,
+            final String userId);
 
     void delete(final ExecutionContext executionContext, final String apiId, boolean closePlans);
 
     Page<GenericApiEntity> findAll(
-        final ExecutionContext executionContext,
-        final String userId,
-        final boolean isAdmin,
-        final Set<String> expands,
-        final Sortable sortable,
-        final Pageable pageable
-    );
+            final ExecutionContext executionContext,
+            final String userId,
+            final boolean isAdmin,
+            final Set<String> expands,
+            final Sortable sortable,
+            final Pageable pageable);
 
     Page<GenericApiEntity> findAll(
-        final ExecutionContext executionContext,
-        final String userId,
-        final boolean isAdmin,
-        final Pageable pageable
-    );
+            final ExecutionContext executionContext,
+            final String userId,
+            final boolean isAdmin,
+            final Pageable pageable);
 
     Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId);
 }

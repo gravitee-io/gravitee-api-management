@@ -41,12 +41,10 @@ public class ElasticsearchRepositoryProviderTest {
     @Test
     public void shouldReturnElasticSearchConfigurationClass() {
         assertThat(provider.configuration(Scope.ANALYTICS)).isEqualTo(ElasticsearchRepositoryConfiguration.class);
-        assertThat(provider.configuration(Scope.OTEL_TRACES)).isEqualTo(
-            io.gravitee.repository.elasticsearch.tracing.spring.TracingConfiguration.class
-        );
-        assertThat(provider.configuration(Scope.OTEL_LOGS)).isEqualTo(
-            io.gravitee.repository.elasticsearch.otel.log.spring.OtelLogConfiguration.class
-        );
+        assertThat(provider.configuration(Scope.OTEL_TRACES))
+                .isEqualTo(io.gravitee.repository.elasticsearch.tracing.spring.TracingConfiguration.class);
+        assertThat(provider.configuration(Scope.OTEL_LOGS))
+                .isEqualTo(io.gravitee.repository.elasticsearch.otel.log.spring.OtelLogConfiguration.class);
     }
 
     @Test

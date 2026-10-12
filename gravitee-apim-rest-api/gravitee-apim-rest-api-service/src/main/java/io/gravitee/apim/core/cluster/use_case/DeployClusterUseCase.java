@@ -55,20 +55,23 @@ public class DeployClusterUseCase {
     public record Output(Cluster cluster) {}
 
     public Output execute(Input input) {
-        Cluster cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.auditInfo().environmentId());
+        Cluster cluster = clusterCrudService.findByIdAndEnvironmentId(
+                input.clusterId(), input.auditInfo().environmentId());
 
         if (cluster.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER) {
             var configuration = cluster.getKafkaVirtualClusterConfiguration(objectMapper);
-            if (configuration == null || configuration.backends() == null || configuration.backends().isEmpty()) {
+            if (configuration == null
+                    || configuration.backends() == null
+                    || configuration.backends().isEmpty()) {
                 throw new InvalidDataException("A virtual cluster cannot be deployed without at least one backend.");
             }
         }
 
         Cluster beforeDeploy = Cluster.builder()
-            .id(cluster.getId())
-            .lifecycleState(cluster.getLifecycleState())
-            .version(cluster.getVersion())
-            .build();
+                .id(cluster.getId())
+                .lifecycleState(cluster.getLifecycleState())
+                .version(cluster.getVersion())
+                .build();
 
         requireNonNull(cluster.getCrossId(), "Cluster crossId must not be null to deploy");
 
@@ -80,34 +83,28 @@ public class DeployClusterUseCase {
 
         createAuditLog(beforeDeploy, updatedCluster, input.auditInfo());
 
-        return new Output(
-            clusterConfigurationAccessDomainService.visibleTo(
+        return new Output(clusterConfigurationAccessDomainService.visibleTo(
                 updatedCluster,
                 input.auditInfo().organizationId(),
-                input.auditInfo().actor().userId()
-            )
-        );
+                input.auditInfo().actor().userId()));
     }
 
     private void publishEvent(AuditInfo auditInfo, Cluster cluster) {
         Event event = eventCrudService.createEvent(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            Set.of(auditInfo.environmentId()),
-            EventType.DEPLOY_CLUSTER,
-            cluster,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.CLUSTER_ID, cluster.getCrossId())
-            )
-        );
+                auditInfo.organizationId(),
+                auditInfo.environmentId(),
+                Set.of(auditInfo.environmentId()),
+                EventType.DEPLOY_CLUSTER,
+                cluster,
+                Map.ofEntries(
+                        entry(Event.EventProperties.USER, auditInfo.actor().userId()),
+                        entry(Event.EventProperties.CLUSTER_ID, cluster.getCrossId())));
 
         eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), cluster.getId(), event);
     }
 
     private void createAuditLog(Cluster oldCluster, Cluster newCluster, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_DEPLOYED)
@@ -116,7 +113,6 @@ public class DeployClusterUseCase {
                 .newValue(newCluster)
                 .createdAt(newCluster.getUpdatedAt().atZone(TimeProvider.clock().getZone()))
                 .properties(Map.of(AuditProperties.CLUSTER, newCluster.getId()))
-                .build()
-        );
+                .build());
     }
 }

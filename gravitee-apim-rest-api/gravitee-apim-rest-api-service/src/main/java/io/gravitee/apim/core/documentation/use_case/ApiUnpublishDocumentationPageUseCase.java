@@ -35,11 +35,10 @@ public class ApiUnpublishDocumentationPageUseCase {
     private final PageCrudService pageCrudService;
 
     public ApiUnpublishDocumentationPageUseCase(
-        ApiDocumentationDomainService apiDocumentationDomainService,
-        UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
-        ApiCrudService apiCrudService,
-        PageCrudService pageCrudService
-    ) {
+            ApiDocumentationDomainService apiDocumentationDomainService,
+            UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
+            ApiCrudService apiCrudService,
+            PageCrudService pageCrudService) {
         this.apiDocumentationDomainService = apiDocumentationDomainService;
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
         this.apiCrudService = apiCrudService;
@@ -59,7 +58,8 @@ public class ApiUnpublishDocumentationPageUseCase {
         var isPageUsedAsGeneralConditions = this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api);
 
         if (Boolean.TRUE.equals(isPageUsedAsGeneralConditions)) {
-            throw new ValidationDomainException("Page is used as Plan general conditions", Map.of("pageId", page.getId()));
+            throw new ValidationDomainException(
+                    "Page is used as Plan general conditions", Map.of("pageId", page.getId()));
         }
 
         var newPage = page.toBuilder().published(false).updatedAt(new Date()).build();
@@ -68,8 +68,8 @@ public class ApiUnpublishDocumentationPageUseCase {
         // TODO: Remove from Lucene index if MARKDOWN is unpublished
 
         updatedPage = updatedPage
-            .withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage))
-            .withGeneralConditions(isPageUsedAsGeneralConditions);
+                .withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage))
+                .withGeneralConditions(isPageUsedAsGeneralConditions);
 
         return new Output(updatedPage);
     }

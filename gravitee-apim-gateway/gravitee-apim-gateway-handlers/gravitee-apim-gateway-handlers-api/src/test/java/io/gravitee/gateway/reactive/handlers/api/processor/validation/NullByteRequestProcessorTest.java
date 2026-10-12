@@ -135,7 +135,8 @@ public class NullByteRequestProcessorTest extends AbstractProcessorTest {
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("%2F%3F")).isFalse();
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("%0")).isFalse();
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("%00")).isTrue();
-        assertThat(NullByteRequestProcessor.containsEncodedNullByte("prefix%00suffix")).isTrue();
+        assertThat(NullByteRequestProcessor.containsEncodedNullByte("prefix%00suffix"))
+                .isTrue();
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("%%00")).isTrue();
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("%01%00")).isTrue();
     }
@@ -144,14 +145,18 @@ public class NullByteRequestProcessorTest extends AbstractProcessorTest {
     public void contains_encoded_null_byte_helper_should_not_throw_on_truncated_percent_at_tail() {
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("a%0")).isFalse();
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("ab%0")).isFalse();
-        assertThat(NullByteRequestProcessor.containsEncodedNullByte("/api/test?p=%0")).isFalse();
+        assertThat(NullByteRequestProcessor.containsEncodedNullByte("/api/test?p=%0"))
+                .isFalse();
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("a%")).isFalse();
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("ab%")).isFalse();
-        assertThat(NullByteRequestProcessor.containsEncodedNullByte("/api/test?p=%")).isFalse();
-        assertThat(NullByteRequestProcessor.containsEncodedNullByte("/api/test?p=%2")).isFalse();
+        assertThat(NullByteRequestProcessor.containsEncodedNullByte("/api/test?p=%"))
+                .isFalse();
+        assertThat(NullByteRequestProcessor.containsEncodedNullByte("/api/test?p=%2"))
+                .isFalse();
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("%%%")).isFalse();
         assertThat(NullByteRequestProcessor.containsEncodedNullByte("a%00")).isTrue();
-        assertThat(NullByteRequestProcessor.containsEncodedNullByte("/api/test?p=%00")).isTrue();
+        assertThat(NullByteRequestProcessor.containsEncodedNullByte("/api/test?p=%00"))
+                .isTrue();
     }
 
     @Test

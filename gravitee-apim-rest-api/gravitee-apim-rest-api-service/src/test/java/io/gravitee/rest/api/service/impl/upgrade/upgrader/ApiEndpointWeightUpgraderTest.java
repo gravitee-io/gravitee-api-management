@@ -125,8 +125,7 @@ class ApiEndpointWeightUpgraderTest {
         api.setId("api-v4-native");
         api.setDefinitionVersion(DefinitionVersion.V4);
         api.setDefinition(
-            "{\"type\":\"native\",\"endpointGroups\":[{\"type\":\"native-kafka\",\"endpoints\":[{\"name\":\"ep\",\"type\":\"native-kafka\",\"weight\":0}]}]}"
-        );
+                "{\"type\":\"native\",\"endpointGroups\":[{\"type\":\"native-kafka\",\"endpoints\":[{\"name\":\"ep\",\"type\":\"native-kafka\",\"weight\":0}]}]}");
 
         when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(api));
 
@@ -136,7 +135,10 @@ class ApiEndpointWeightUpgraderTest {
         verify(apiRepository).update(captor.capture());
 
         JsonNode rootNode = objectMapper.readTree(captor.getValue().getDefinition());
-        assertEquals(1, rootNode.at("/endpointGroups/0/endpoints/0/weight").intValue(), "Native endpoint weight should be updated to 1");
+        assertEquals(
+                1,
+                rootNode.at("/endpointGroups/0/endpoints/0/weight").intValue(),
+                "Native endpoint weight should be updated to 1");
     }
 
     @Test

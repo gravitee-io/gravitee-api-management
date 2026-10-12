@@ -77,42 +77,46 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
 
         var domainService = new PortalNavigationItemDomainService(
-            crudService,
-            queryService,
-            pageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
-            new ApiCrudServiceInMemory(),
-            sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService, crudService)
-        );
+                crudService,
+                queryService,
+                pageContentCrudService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+                new ApiCrudServiceInMemory(),
+                sourceDomainService,
+                new ApiOwnedNavigationDomainService(queryService, crudService));
         var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
-            sourceDomainService,
-            new PortalNavigationManifestParserInMemory(),
-            domainService,
-            queryService,
-            crudService,
-            pageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage())
-        );
-        useCase = new AutoFetchPortalNavigationItemsUseCase(queryService, sourceDomainService, domainService, bulkImportDomainService);
+                sourceDomainService,
+                new PortalNavigationManifestParserInMemory(),
+                domainService,
+                queryService,
+                crudService,
+                pageContentCrudService,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()));
+        useCase = new AutoFetchPortalNavigationItemsUseCase(
+                queryService, sourceDomainService, domainService, bulkImportDomainService);
     }
 
     @Test
     void should_fetch_pages_with_auto_fetch_enabled_across_environments() {
         var page = aPage("Sourced Page", ENV_ID, autoFetchSource().build());
-        var pageInOtherEnvironment = aPage("Other Sourced Page", OTHER_ENV_ID, autoFetchSource().build());
+        var pageInOtherEnvironment =
+                aPage("Other Sourced Page", OTHER_ENV_ID, autoFetchSource().build());
 
         var output = useCase.execute();
 
         assertThat(output.succeeded()).isEqualTo(2);
         assertThat(output.failed()).isZero();
         assertThat(fetchedContentOf(page)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
-        assertThat(fetchedContentOf(pageInOtherEnvironment)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
+        assertThat(fetchedContentOf(pageInOtherEnvironment))
+                .isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
     }
 
     @Test
     void should_update_last_fetched_at_after_a_successful_fetch() {
-        var page = aPage("Sourced Page", ENV_ID, autoFetchSource().lastFetchError("previous error").build());
+        var page = aPage(
+                "Sourced Page",
+                ENV_ID,
+                autoFetchSource().lastFetchError("previous error").build());
 
         useCase.execute();
 
@@ -152,7 +156,8 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
 
     @Test
     void should_reimport_folders_bound_to_a_file_listing_source() {
-        var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
+        var folder =
+                aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
         sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
 
         var output = useCase.execute();
@@ -161,8 +166,8 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
         assertThat(output.failed()).isZero();
         assertThat(folder.getSource().getLastFetchedAt()).isNotNull();
         assertThat(queryService.findByParentIdAndEnvironmentId(folder.getEnvironmentId(), folder.getId()))
-            .singleElement()
-            .satisfies(item -> assertThat(item.getTitle()).isEqualTo("docs"));
+                .singleElement()
+                .satisfies(item -> assertThat(item.getTitle()).isEqualTo("docs"));
     }
 
     @Test
@@ -177,7 +182,8 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
         assertThat(output.succeeded()).isZero();
         assertThat(output.failed()).isZero();
         assertThat(folder.getSource().getLastFetchAttemptAt()).isNull();
-        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId())).isEmpty();
+        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId()))
+                .isEmpty();
     }
 
     @Test
@@ -190,7 +196,8 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
 
         assertThat(output.succeeded()).isEqualTo(1);
         assertThat(output.failed()).isEqualTo(1);
-        assertThat(failing.getSource().getLastFetchError()).isEqualTo("Unable to fetch content from source type http-fetcher.");
+        assertThat(failing.getSource().getLastFetchError())
+                .isEqualTo("Unable to fetch content from source type http-fetcher.");
         assertThat(failing.getSource().getLastFetchError()).doesNotContain("example.com");
         assertThat(failing.getSource().getLastFetchedAt()).isNull();
         // The failed attempt is still stamped, so the next run waits for the cron instead of retrying at once
@@ -228,23 +235,23 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
 
     private PortalNavigationItemSource.PortalNavigationItemSourceBuilder manualSource() {
         return PortalNavigationItemSource.builder()
-            .sourceType("http-fetcher")
-            .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}");
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}");
     }
 
     private PortalNavigationFolder aFolder(String title, PortalNavigationItemSource source) {
         var folder = PortalNavigationFolder.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .source(source)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .source(source)
+                .build();
         crudService.create(folder);
         return folder;
     }
@@ -254,29 +261,28 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
         pageContentCrudService.create(content);
 
         var page = PortalNavigationPage.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(environmentId)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .portalPageContentId(content.getId())
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .source(source)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(environmentId)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(content.getId())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .source(source)
+                .build();
         crudService.create(page);
         return page;
     }
 
     private String fetchedContentOf(PortalNavigationPage page) {
-        return pageContentCrudService
-            .storage()
-            .stream()
-            .filter(content -> content.getId().equals(page.getPortalPageContentId()))
-            .findFirst()
-            .map(content -> ((GraviteeMarkdownPageContent) content).getContent().value())
-            .orElseThrow();
+        return pageContentCrudService.storage().stream()
+                .filter(content -> content.getId().equals(page.getPortalPageContentId()))
+                .findFirst()
+                .map(content ->
+                        ((GraviteeMarkdownPageContent) content).getContent().value())
+                .orElseThrow();
     }
 }

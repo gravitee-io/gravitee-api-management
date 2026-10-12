@@ -31,128 +31,112 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
 
     public static UnsupportedObservabilityFilterException unknownName(String name) {
         return new UnsupportedObservabilityFilterException(
-            "Filter '" + name + "' is not supported by this backend",
-            "observability.filter.unknown_name"
-        );
+                "Filter '" + name + "' is not supported by this backend", "observability.filter.unknown_name");
     }
 
     public static UnsupportedObservabilityFilterException unsupportedOperator(String filterName, String operator) {
         return new UnsupportedObservabilityFilterException(
-            "Operator '" + operator + "' is not supported yet for filter '" + filterName + "'",
-            "observability.filter.unsupported_operator"
-        );
+                "Operator '" + operator + "' is not supported yet for filter '" + filterName + "'",
+                "observability.filter.unsupported_operator");
     }
 
     public static UnsupportedObservabilityFilterException signalMismatch(String filterName, Signal requiredSignal) {
         return new UnsupportedObservabilityFilterException(
-            "Filter '" + filterName + "' does not apply to signal " + requiredSignal,
-            "observability.filter.signal_mismatch"
-        );
+                "Filter '" + filterName + "' does not apply to signal " + requiredSignal,
+                "observability.filter.signal_mismatch");
     }
 
     public static UnsupportedObservabilityFilterException unknownEnumValue(String filterName, String value) {
         return new UnsupportedObservabilityFilterException(
-            "Value '" + value + "' is not a valid value for filter '" + filterName + "'",
-            "observability.filter.unknown_enum_value"
-        );
+                "Value '" + value + "' is not a valid value for filter '" + filterName + "'",
+                "observability.filter.unknown_enum_value");
     }
 
     public static UnsupportedObservabilityFilterException blankValue(String filterName) {
         return new UnsupportedObservabilityFilterException(
-            "Filter '" + filterName + "' requires a non-blank value",
-            "observability.filter.blank_value"
-        );
+                "Filter '" + filterName + "' requires a non-blank value", "observability.filter.blank_value");
     }
 
     public static UnsupportedObservabilityFilterException invalidValueShape(String filterName) {
         return new UnsupportedObservabilityFilterException(
-            "Filter '" + filterName + "' takes a scalar or an array of scalars as value, with no null element",
-            "observability.filter.invalid_value_shape"
-        );
+                "Filter '" + filterName + "' takes a scalar or an array of scalars as value, with no null element",
+                "observability.filter.invalid_value_shape");
     }
 
-    public static UnsupportedObservabilityFilterException invalidArity(String filterName, String operator, List<String> values) {
+    public static UnsupportedObservabilityFilterException invalidArity(
+            String filterName, String operator, List<String> values) {
         return new UnsupportedObservabilityFilterException(
-            "Operator '" +
-                operator +
-                "' on filter '" +
-                filterName +
-                "' takes exactly one value, got " +
-                values.size() +
-                " values " +
-                values +
-                ". Use IN to match several values.",
-            "observability.filter.invalid_arity"
-        );
+                "Operator '" + operator
+                        + "' on filter '"
+                        + filterName
+                        + "' takes exactly one value, got "
+                        + values.size()
+                        + " values "
+                        + values
+                        + ". Use IN to match several values.",
+                "observability.filter.invalid_arity");
     }
 
     public static UnsupportedObservabilityFilterException invalidNumber(String filterName, String value) {
         return new UnsupportedObservabilityFilterException(
-            "Value '" + value + "' is not a whole number, as filter '" + filterName + "' requires",
-            "observability.filter.invalid_number"
-        );
+                "Value '" + value + "' is not a whole number, as filter '" + filterName + "' requires",
+                "observability.filter.invalid_number");
     }
 
-    public static UnsupportedObservabilityFilterException valueOutOfRange(String filterName, String value, Number min, Number max) {
+    public static UnsupportedObservabilityFilterException valueOutOfRange(
+            String filterName, String value, Number min, Number max) {
         return new UnsupportedObservabilityFilterException(
-            "Value '" + value + "' is outside the range [" + min + ", " + max + "] of filter '" + filterName + "'",
-            "observability.filter.value_out_of_range"
-        );
+                "Value '" + value + "' is outside the range [" + min + ", " + max + "] of filter '" + filterName + "'",
+                "observability.filter.value_out_of_range");
     }
 
     public static UnsupportedObservabilityFilterException invertedRange(String filterName, long lower, long upper) {
         return new UnsupportedObservabilityFilterException(
-            "Filter '" + filterName + "' asks for values >= " + lower + " and <= " + upper + ", which nothing matches",
-            "observability.filter.inverted_range"
-        );
+                "Filter '" + filterName + "' asks for values >= " + lower + " and <= " + upper
+                        + ", which nothing matches",
+                "observability.filter.inverted_range");
     }
 
     public static UnsupportedObservabilityFilterException repeated(String filterName, List<String> operators) {
         return new UnsupportedObservabilityFilterException(
-            "Filter '" +
-                filterName +
-                "' appears " +
-                operators.size() +
-                " times " +
-                operators +
-                ". Send one condition per filter, or one GTE and one LTE for a numeric range.",
-            "observability.filter.repeated"
-        );
+                "Filter '" + filterName
+                        + "' appears "
+                        + operators.size()
+                        + " times "
+                        + operators
+                        + ". Send one condition per filter, or one GTE and one LTE for a numeric range.",
+                "observability.filter.repeated");
     }
 
     public static UnsupportedObservabilityFilterException repeatedOnDashboard(String filterName, long count) {
         return new UnsupportedObservabilityFilterException(
-            "Dashboard filter '" + filterName + "' appears " + count + " times. A dashboard holds one filter per field.",
-            "observability.filter.repeated_on_dashboard"
-        );
+                "Dashboard filter '" + filterName + "' appears " + count
+                        + " times. A dashboard holds one filter per field.",
+                "observability.filter.repeated_on_dashboard");
     }
 
     public static UnsupportedObservabilityFilterException requiresDecisionRecordType(String filterName) {
         return new UnsupportedObservabilityFilterException(
-            "Filter '" + filterName + "' applies to authorization decision records only: add the condition RECORD_TYPE = AUTHZ_DECISION",
-            "observability.filter.requires_decision_record_type"
-        );
+                "Filter '" + filterName
+                        + "' applies to authorization decision records only: add the condition RECORD_TYPE = AUTHZ_DECISION",
+                "observability.filter.requires_decision_record_type");
     }
 
     public static UnsupportedObservabilityFilterException valueListingNotSupported(String filterName, String type) {
         return new UnsupportedObservabilityFilterException(
-            "Filter '" + filterName + "' of type " + type + " does not support value listing",
-            "observability.filter.value_listing_not_supported"
-        );
+                "Filter '" + filterName + "' of type " + type + " does not support value listing",
+                "observability.filter.value_listing_not_supported");
     }
 
     public static UnsupportedObservabilityFilterException valuesPageOutOfRange(int page, int max) {
         return new UnsupportedObservabilityFilterException(
-            "page must be between 1 and " + max + ", got " + page,
-            "observability.filter.values_page_out_of_range"
-        );
+                "page must be between 1 and " + max + ", got " + page, "observability.filter.values_page_out_of_range");
     }
 
     public static UnsupportedObservabilityFilterException searchTranslationNotSupported(String filterName) {
         return new UnsupportedObservabilityFilterException(
-            "Filter '" + filterName + "' is not yet supported for log search",
-            "observability.filter.search_translation_not_supported"
-        );
+                "Filter '" + filterName + "' is not yet supported for log search",
+                "observability.filter.search_translation_not_supported");
     }
 
     private UnsupportedObservabilityFilterException(String message, String technicalCode) {

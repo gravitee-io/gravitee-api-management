@@ -34,18 +34,24 @@ class TypeConsistencyRuleTest {
     @Test
     void should_accept_api_product_update_type() {
         var existing = PortalNavigationItemFixtures.anApiProduct();
-        var update = UpdatePortalNavigationItem.builder().type(PortalNavigationItemType.API_PRODUCT).build();
+        var update = UpdatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .build();
 
-        assertThatCode(() -> rule.validate(update, existing, UpdateValidationContext.empty())).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(update, existing, UpdateValidationContext.empty()))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_reject_api_product_type_change() {
         var existing = PortalNavigationItemFixtures.anApiProduct();
-        var update = UpdatePortalNavigationItem.builder().type(PortalNavigationItemType.FOLDER).build();
+        var update = UpdatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .build();
 
         assertThatThrownBy(() -> rule.validate(update, existing, UpdateValidationContext.empty()))
-            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-            .hasMessage("Navigation item type cannot be changed or is mismatched (expected API_PRODUCT, got FOLDER).");
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessage(
+                        "Navigation item type cannot be changed or is mismatched (expected API_PRODUCT, got FOLDER).");
     }
 }

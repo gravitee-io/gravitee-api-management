@@ -43,18 +43,18 @@ public class ImportApplicationCRDDomainServiceLegacyWrapper implements ImportApp
     @Override
     public BaseApplicationEntity create(NewApplicationEntity newApplicationEntity, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
-        return applicationService.create(executionContext, newApplicationEntity, auditInfo.actor().userId());
+        return applicationService.create(
+                executionContext, newApplicationEntity, auditInfo.actor().userId());
     }
 
     @Override
-    public BaseApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity, AuditInfo auditInfo) {
+    public BaseApplicationEntity update(
+            String applicationId, UpdateApplicationEntity updateApplicationEntity, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         ApplicationEntity existing = applicationService.findById(executionContext, applicationId);
         boolean restored = false;
-        if (
-            ApplicationStatus.ARCHIVED.name().equals(existing.getStatus()) &&
-            ApplicationStatus.ACTIVE.name().equals(updateApplicationEntity.getStatus())
-        ) {
+        if (ApplicationStatus.ARCHIVED.name().equals(existing.getStatus())
+                && ApplicationStatus.ACTIVE.name().equals(updateApplicationEntity.getStatus())) {
             applicationService.restore(executionContext, applicationId);
             restored = true;
         }

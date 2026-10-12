@@ -28,10 +28,10 @@ public class EnvironmentIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("portalMenuLinks")
-            .name("e1o1")
-            .key("environmentId", ascending())
-            .key("order", ascending())
-            .build();
+                .collection("portalMenuLinks")
+                .name("e1o1")
+                .key("environmentId", ascending())
+                .key("order", ascending())
+                .build();
     }
 }

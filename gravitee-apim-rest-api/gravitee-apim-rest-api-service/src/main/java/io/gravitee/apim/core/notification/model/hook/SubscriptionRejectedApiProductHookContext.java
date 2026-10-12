@@ -32,12 +32,11 @@ public class SubscriptionRejectedApiProductHookContext extends ApiProductHookCon
     private final String applicationPrimaryOwner;
 
     public SubscriptionRejectedApiProductHookContext(
-        String apiProductId,
-        String applicationId,
-        String planId,
-        String subscriptionId,
-        String applicationPrimaryOwner
-    ) {
+            String apiProductId,
+            String applicationId,
+            String planId,
+            String subscriptionId,
+            String applicationPrimaryOwner) {
         super(ApiProductHook.SUBSCRIPTION_REJECTED, apiProductId);
         this.applicationId = applicationId;
         this.planId = planId;
@@ -48,14 +47,13 @@ public class SubscriptionRejectedApiProductHookContext extends ApiProductHookCon
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
         return Map.of(
-            HookContextEntry.APPLICATION_ID,
-            applicationId,
-            HookContextEntry.PLAN_ID,
-            planId,
-            HookContextEntry.SUBSCRIPTION_ID,
-            subscriptionId,
-            HookContextEntry.OWNER,
-            applicationPrimaryOwner
-        );
+                HookContextEntry.APPLICATION_ID,
+                applicationId,
+                HookContextEntry.PLAN_ID,
+                planId,
+                HookContextEntry.SUBSCRIPTION_ID,
+                subscriptionId,
+                HookContextEntry.OWNER,
+                applicationPrimaryOwner);
     }
 }

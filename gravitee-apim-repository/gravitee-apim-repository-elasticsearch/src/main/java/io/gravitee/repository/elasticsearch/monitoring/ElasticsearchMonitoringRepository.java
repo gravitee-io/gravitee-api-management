@@ -68,10 +68,9 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
 
         try {
             final Single<SearchResponse> result = this.client.search(
-                this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), Type.MONITOR, clusters),
-                !info.getVersion().canUseTypeRequests() ? null : Type.MONITOR.getType(),
-                sQuery
-            );
+                    this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), Type.MONITOR, clusters),
+                    !info.getVersion().canUseTypeRequests() ? null : Type.MONITOR.getType(),
+                    sQuery);
 
             final SearchHits hits = result.blockingGet().getSearchHits();
             if (hits != null && hits.getHits().size() > 0) {
@@ -81,7 +80,7 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
             log.error("Impossible to make query for monitoring", eex);
             return null;
         }
-        //TODO return null?
+        // TODO return null?
         return null;
     }
 
@@ -106,7 +105,8 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
     private MonitoringResponse convert(final JsonNode source) {
         final MonitoringResponse monitoringResponse = new MonitoringResponse();
         monitoringResponse.setGatewayId(source.get(FIELD_GATEWAY_NAME).asText());
-        monitoringResponse.setTimestamp(ZonedDateTime.parse(source.get(FIELD_TIMESTAMP).asText()));
+        monitoringResponse.setTimestamp(
+                ZonedDateTime.parse(source.get(FIELD_TIMESTAMP).asText()));
         monitoringResponse.setHostname(source.get(FIELD_HOSTNAME).asText());
 
         // OS
@@ -128,8 +128,10 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
         final JsonNode process = source.get(FIELD_PROCESS);
         final JsonNode processCpu = process.get("cpu");
         monitoringResponse.setProcessCPUPercent(processCpu.get("percent").asInt());
-        monitoringResponse.setProcessOpenFileDescriptors(process.get("open_file_descriptors").asInt());
-        monitoringResponse.setProcessMaxFileDescriptors(process.get("max_file_descriptors").asInt());
+        monitoringResponse.setProcessOpenFileDescriptors(
+                process.get("open_file_descriptors").asInt());
+        monitoringResponse.setProcessMaxFileDescriptors(
+                process.get("max_file_descriptors").asInt());
 
         // JVM
 
@@ -139,35 +141,51 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
         monitoringResponse.setJvmTimestamp(jvm.get("timestamp").asLong());
 
         final JsonNode jvmMem = jvm.get("mem");
-        monitoringResponse.setJvmHeapCommittedInBytes(jvmMem.get("heap_committed_in_bytes").asLong());
+        monitoringResponse.setJvmHeapCommittedInBytes(
+                jvmMem.get("heap_committed_in_bytes").asLong());
         monitoringResponse.setJvmHeapUsedPercent(jvmMem.get("heap_used_percent").asInt());
         monitoringResponse.setJvmHeapMaxInBytes(jvmMem.get("heap_max_in_bytes").asLong());
-        monitoringResponse.setJvmNonHeapCommittedInBytes(jvmMem.get("non_heap_committed_in_bytes").asLong());
-        monitoringResponse.setJvmHeapUsedInBytes(jvmMem.get("heap_used_in_bytes").asLong());
-        monitoringResponse.setJvmNonHeapUsedInBytes(jvmMem.get("non_heap_used_in_bytes").asLong());
+        monitoringResponse.setJvmNonHeapCommittedInBytes(
+                jvmMem.get("non_heap_committed_in_bytes").asLong());
+        monitoringResponse.setJvmHeapUsedInBytes(
+                jvmMem.get("heap_used_in_bytes").asLong());
+        monitoringResponse.setJvmNonHeapUsedInBytes(
+                jvmMem.get("non_heap_used_in_bytes").asLong());
 
         final JsonNode jvmMemPools = jvmMem.get("pools");
 
         final JsonNode jvmMemPoolsYoung = jvmMemPools.get("young");
 
-        monitoringResponse.setJvmMemPoolYoungUsedInBytes(jvmMemPoolsYoung.get("used_in_bytes").asLong());
-        monitoringResponse.setJvmMemPoolYoungPeakUsedInBytes(jvmMemPoolsYoung.get("peak_used_in_bytes").asLong());
-        monitoringResponse.setJvmMemPoolYoungMaxInBytes(jvmMemPoolsYoung.get("max_in_bytes").asLong());
-        monitoringResponse.setJvmMemPoolYoungPeakMaxInBytes(jvmMemPoolsYoung.get("peak_max_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolYoungUsedInBytes(
+                jvmMemPoolsYoung.get("used_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolYoungPeakUsedInBytes(
+                jvmMemPoolsYoung.get("peak_used_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolYoungMaxInBytes(
+                jvmMemPoolsYoung.get("max_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolYoungPeakMaxInBytes(
+                jvmMemPoolsYoung.get("peak_max_in_bytes").asLong());
 
         final JsonNode jvmMemPoolsOld = jvmMemPools.get("old");
 
-        monitoringResponse.setJvmMemPoolOldUsedInBytes(jvmMemPoolsOld.get("used_in_bytes").asLong());
-        monitoringResponse.setJvmMemPoolOldPeakUsedInBytes(jvmMemPoolsOld.get("peak_used_in_bytes").asLong());
-        monitoringResponse.setJvmMemPoolOldMaxInBytes(jvmMemPoolsOld.get("max_in_bytes").asLong());
-        monitoringResponse.setJvmMemPoolOldPeakMaxInBytes(jvmMemPoolsOld.get("peak_max_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolOldUsedInBytes(
+                jvmMemPoolsOld.get("used_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolOldPeakUsedInBytes(
+                jvmMemPoolsOld.get("peak_used_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolOldMaxInBytes(
+                jvmMemPoolsOld.get("max_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolOldPeakMaxInBytes(
+                jvmMemPoolsOld.get("peak_max_in_bytes").asLong());
 
         final JsonNode jvmMemPoolsSurvivor = jvmMemPools.get("survivor");
 
-        monitoringResponse.setJvmMemPoolSurvivorUsedInBytes(jvmMemPoolsSurvivor.get("used_in_bytes").asLong());
-        monitoringResponse.setJvmMemPoolSurvivorPeakUsedInBytes(jvmMemPoolsSurvivor.get("peak_used_in_bytes").asLong());
-        monitoringResponse.setJvmMemPoolSurvivorMaxInBytes(jvmMemPoolsSurvivor.get("max_in_bytes").asLong());
-        monitoringResponse.setJvmMemPoolSurvivorPeakMaxInBytes(jvmMemPoolsSurvivor.get("peak_max_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolSurvivorUsedInBytes(
+                jvmMemPoolsSurvivor.get("used_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolSurvivorPeakUsedInBytes(
+                jvmMemPoolsSurvivor.get("peak_used_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolSurvivorMaxInBytes(
+                jvmMemPoolsSurvivor.get("max_in_bytes").asLong());
+        monitoringResponse.setJvmMemPoolSurvivorPeakMaxInBytes(
+                jvmMemPoolsSurvivor.get("peak_max_in_bytes").asLong());
 
         final JsonNode jvmThreads = jvm.get("threads");
 
@@ -180,13 +198,17 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
 
         final JsonNode jvmGCCollectorsYoung = jvmGCCollectors.get("young");
 
-        monitoringResponse.setJvmGCCollectorsYoungCollectionCount(jvmGCCollectorsYoung.get("collection_count").asInt());
-        monitoringResponse.setJvmGCCollectorsYoungCollectionTimeInMillis(jvmGCCollectorsYoung.get("collection_time_in_millis").asLong());
+        monitoringResponse.setJvmGCCollectorsYoungCollectionCount(
+                jvmGCCollectorsYoung.get("collection_count").asInt());
+        monitoringResponse.setJvmGCCollectorsYoungCollectionTimeInMillis(
+                jvmGCCollectorsYoung.get("collection_time_in_millis").asLong());
 
         final JsonNode jvmGCCollectorsOld = jvmGCCollectors.get("old");
 
-        monitoringResponse.setJvmGCCollectorsOldCollectionCount(jvmGCCollectorsOld.get("collection_count").asInt());
-        monitoringResponse.setJvmGCCollectorsOldCollectionTimeInMillis(jvmGCCollectorsOld.get("collection_time_in_millis").asLong());
+        monitoringResponse.setJvmGCCollectorsOldCollectionCount(
+                jvmGCCollectorsOld.get("collection_count").asInt());
+        monitoringResponse.setJvmGCCollectorsOldCollectionTimeInMillis(
+                jvmGCCollectorsOld.get("collection_time_in_millis").asLong());
 
         return monitoringResponse;
     }

@@ -49,7 +49,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.WARN)
@@ -100,18 +99,15 @@ public class AuditService_SearchTest {
 
         Page<Audit> pageFound = new Page<>(Arrays.asList(auditFound), 2, 1, 2);
 
-        when(
-            auditRepository.search(
-                eq(
-                    new AuditCriteria.Builder()
-                        .organizationId(executionContext.getOrganizationId())
-                        .environmentIds(singletonList(executionContext.getEnvironmentId()))
-                        .build()
-                ),
-                any()
-            )
-        ).thenReturn(pageFound);
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+        when(auditRepository.search(
+                        eq(new AuditCriteria.Builder()
+                                .organizationId(executionContext.getOrganizationId())
+                                .environmentIds(singletonList(executionContext.getEnvironmentId()))
+                                .build()),
+                        any()))
+                .thenReturn(pageFound);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(new UserEntity());
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
         AuditQuery query = new AuditQuery();
@@ -141,19 +137,16 @@ public class AuditService_SearchTest {
 
         Page<Audit> auditPage = new Page<>(Arrays.asList(audit), 2, 1, 2);
 
-        when(
-            auditRepository.search(
-                eq(
-                    new AuditCriteria.Builder()
-                        .organizationId(executionContext.getOrganizationId())
-                        .environmentIds(singletonList(executionContext.getEnvironmentId()))
-                        .references(Audit.AuditReferenceType.APPLICATION, singletonList(APPLICATION_ID))
-                        .build()
-                ),
-                any()
-            )
-        ).thenReturn(auditPage);
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+        when(auditRepository.search(
+                        eq(new AuditCriteria.Builder()
+                                .organizationId(executionContext.getOrganizationId())
+                                .environmentIds(singletonList(executionContext.getEnvironmentId()))
+                                .references(Audit.AuditReferenceType.APPLICATION, singletonList(APPLICATION_ID))
+                                .build()),
+                        any()))
+                .thenReturn(auditPage);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(new UserEntity());
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(new Application()));
 
         AuditQuery query = new AuditQuery();
@@ -179,27 +172,22 @@ public class AuditService_SearchTest {
 
         Page<Audit> auditPage = new Page<>(Arrays.asList(audit), 2, 1, 2);
 
-        when(
-            auditRepository.search(
-                eq(
-                    new AuditCriteria.Builder()
-                        .organizationId(executionContext.getOrganizationId())
-                        .environmentIds(singletonList(executionContext.getEnvironmentId()))
-                        .references(Audit.AuditReferenceType.ORGANIZATION, null)
-                        .build()
-                ),
-                any()
-            )
-        ).thenReturn(auditPage);
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
-        when(
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ORGANIZATION_AUDIT,
-                executionContext.getOrganizationId(),
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(auditRepository.search(
+                        eq(new AuditCriteria.Builder()
+                                .organizationId(executionContext.getOrganizationId())
+                                .environmentIds(singletonList(executionContext.getEnvironmentId()))
+                                .references(Audit.AuditReferenceType.ORGANIZATION, null)
+                                .build()),
+                        any()))
+                .thenReturn(auditPage);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(new UserEntity());
+        when(permissionService.hasPermission(
+                        executionContext,
+                        RolePermission.ORGANIZATION_AUDIT,
+                        executionContext.getOrganizationId(),
+                        RolePermissionAction.READ))
+                .thenReturn(true);
         when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
 
         AuditQuery query = new AuditQuery();
@@ -224,19 +212,16 @@ public class AuditService_SearchTest {
 
         Page<Audit> auditPage = new Page<>(Arrays.asList(audit), 2, 1, 2);
 
-        when(
-            auditRepository.search(
-                eq(
-                    new AuditCriteria.Builder()
-                        .organizationId(executionContext.getOrganizationId())
-                        .environmentIds(singletonList(executionContext.getEnvironmentId()))
-                        .references(Audit.AuditReferenceType.ENVIRONMENT, singletonList(ENV_ID))
-                        .build()
-                ),
-                any()
-            )
-        ).thenReturn(auditPage);
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+        when(auditRepository.search(
+                        eq(new AuditCriteria.Builder()
+                                .organizationId(executionContext.getOrganizationId())
+                                .environmentIds(singletonList(executionContext.getEnvironmentId()))
+                                .references(Audit.AuditReferenceType.ENVIRONMENT, singletonList(ENV_ID))
+                                .build()),
+                        any()))
+                .thenReturn(auditPage);
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME))
+                .thenReturn(new UserEntity());
         when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.of(new Environment()));
 
         AuditQuery query = new AuditQuery();

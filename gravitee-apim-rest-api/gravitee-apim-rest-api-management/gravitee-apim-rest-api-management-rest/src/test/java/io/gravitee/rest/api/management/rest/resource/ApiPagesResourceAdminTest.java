@@ -52,7 +52,9 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PUBLIC);
         when(apiMock.getName()).thenReturn(API_NAME);
-        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
+        doReturn(apiMock)
+                .when(apiSearchServiceV4)
+                .findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
 
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
@@ -73,7 +75,9 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PUBLIC);
         when(apiMock.getName()).thenReturn(API_NAME);
-        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
+        doReturn(apiMock)
+                .when(apiSearchServiceV4)
+                .findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setVisibility(Visibility.PUBLIC);
@@ -90,7 +94,8 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
-        verify(apiSearchServiceV4, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
+        verify(apiSearchServiceV4, times(1))
+                .findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
     }
 
@@ -100,7 +105,9 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(apiMock.getName()).thenReturn(API_NAME);
-        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
+        doReturn(apiMock)
+                .when(apiSearchServiceV4)
+                .findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
@@ -115,7 +122,8 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
-        verify(apiSearchServiceV4, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
+        verify(apiSearchServiceV4, times(1))
+                .findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
     }
 
@@ -125,7 +133,9 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(apiMock.getName()).thenReturn(API_NAME);
-        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
+        doReturn(apiMock)
+                .when(apiSearchServiceV4)
+                .findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(false);
         pageMock.setName(PAGE_NAME);
@@ -141,7 +151,8 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
-        verify(apiSearchServiceV4, times(1)).findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
+        verify(apiSearchServiceV4, times(1))
+                .findGenericById(GraviteeContext.getExecutionContext(), API_NAME, false, false, false);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
     }
 
@@ -239,8 +250,8 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = envTarget(PAGE_NAME)
-            .request()
-            .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
+                .request()
+                .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
     }
@@ -257,8 +268,8 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = envTarget(PAGE_NAME)
-            .request()
-            .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
+                .request()
+                .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
 
         assertEquals(NOT_FOUND_404, response.getStatus());
     }
@@ -273,12 +284,16 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
 
         PageEntity returnedPage = new PageEntity();
         returnedPage.setId("my-beautiful-page");
-        doReturn(returnedPage).when(pageService).createPage(eq(GraviteeContext.getExecutionContext()), eq(API_NAME), any());
+        doReturn(returnedPage)
+                .when(pageService)
+                .createPage(eq(GraviteeContext.getExecutionContext()), eq(API_NAME), any());
         doReturn(0).when(pageService).findMaxPortalPageOrder(eq(GraviteeContext.getCurrentEnvironment()));
 
         final Response response = envTarget().request().post(Entity.json(newPageEntity));
 
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(envTarget().path("my-beautiful-page").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+                envTarget().path("my-beautiful-page").getUri().toString(),
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 }

@@ -39,16 +39,14 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
     }
 
     @Override
-    public List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId) {
-        return storage
-            .stream()
-            .filter(
-                plan ->
-                    Objects.equals(apiId, plan.getReferenceId()) &&
-                    Objects.equals(pageId, plan.getGeneralConditions()) &&
-                    !(PlanStatus.STAGING.equals(plan.getPlanStatus()) || PlanStatus.CLOSED.equals(plan.getPlanStatus()))
-            )
-            .toList();
+    public List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(
+            String apiId, DefinitionVersion definitionVersion, String pageId) {
+        return storage.stream()
+                .filter(plan -> Objects.equals(apiId, plan.getReferenceId())
+                        && Objects.equals(pageId, plan.getGeneralConditions())
+                        && !(PlanStatus.STAGING.equals(plan.getPlanStatus())
+                                || PlanStatus.CLOSED.equals(plan.getPlanStatus())))
+                .toList();
     }
 
     @Override
@@ -62,36 +60,30 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
     }
 
     @Override
-    public List<Plan> findAllByReferenceIdAndReferenceType(String referenceId, GenericPlanEntity.ReferenceType referenceType) {
+    public List<Plan> findAllByReferenceIdAndReferenceType(
+            String referenceId, GenericPlanEntity.ReferenceType referenceType) {
         Objects.requireNonNull(referenceId, "referenceId must not be null");
         Objects.requireNonNull(referenceType, "referenceType must not be null");
-        return storage
-            .stream()
-            .filter(plan -> referenceId.equals(plan.getReferenceId()) && referenceType.equals(plan.getReferenceType()))
-            .map(p -> (Plan) p)
-            .toList();
+        return storage.stream()
+                .filter(plan ->
+                        referenceId.equals(plan.getReferenceId()) && referenceType.equals(plan.getReferenceType()))
+                .map(p -> (Plan) p)
+                .toList();
     }
 
     @Override
     public List<Plan> findAllByReferenceIdsAndEnvironments(
-        Set<String> referenceIds,
-        Set<String> environmentIds,
-        GenericPlanEntity.ReferenceType referenceType
-    ) {
+            Set<String> referenceIds, Set<String> environmentIds, GenericPlanEntity.ReferenceType referenceType) {
         Objects.requireNonNull(referenceType, "referenceType must not be null");
         if (referenceIds == null || referenceIds.isEmpty() || environmentIds == null || environmentIds.isEmpty()) {
             return List.of();
         }
-        return storage
-            .stream()
-            .filter(
-                plan ->
-                    referenceIds.contains(plan.getReferenceId()) &&
-                    referenceType.equals(plan.getReferenceType()) &&
-                    (plan.getEnvironmentId() == null || environmentIds.contains(plan.getEnvironmentId()))
-            )
-            .map(p -> (Plan) p)
-            .toList();
+        return storage.stream()
+                .filter(plan -> referenceIds.contains(plan.getReferenceId())
+                        && referenceType.equals(plan.getReferenceType())
+                        && (plan.getEnvironmentId() == null || environmentIds.contains(plan.getEnvironmentId())))
+                .map(p -> (Plan) p)
+                .toList();
     }
 
     @Override

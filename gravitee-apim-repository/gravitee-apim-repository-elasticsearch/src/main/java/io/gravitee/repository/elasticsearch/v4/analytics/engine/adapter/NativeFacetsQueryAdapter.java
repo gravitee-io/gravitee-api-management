@@ -40,9 +40,9 @@ public class NativeFacetsQueryAdapter {
 
     private JsonObject json(FacetsQuery query) {
         return new JsonObject()
-            .put("size", 0)
-            .put("query", boolAdapter.adaptForNative(query))
-            .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit()));
+                .put("size", 0)
+                .put("query", boolAdapter.adaptForNative(query))
+                .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit()));
     }
 
     public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> queryFacets, Integer limit) {
@@ -80,7 +80,9 @@ public class NativeFacetsQueryAdapter {
         if (metric.sorts() != null && !metric.sorts().isEmpty()) {
             var order = new JsonObject();
             for (var sort : metric.sorts()) {
-                order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+                order.put(
+                        AggregationAdapter.adaptName(metric.metric(), sort.measure()),
+                        sort.order().name().toLowerCase());
             }
             terms.put("order", order);
         }

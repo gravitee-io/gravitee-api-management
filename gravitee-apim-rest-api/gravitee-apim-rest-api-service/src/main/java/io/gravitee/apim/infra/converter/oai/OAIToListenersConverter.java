@@ -36,26 +36,25 @@ public class OAIToListenersConverter {
     private static final String DEFAULT_ENTRYPOINT_TYPE = "http-proxy";
 
     List<Listener> convert(XGraviteeIODefinition xGraviteeIODefinition, String apiName, String defaultEndpoint) {
-        var listener = HttpListener.builder().entrypoints(singletonList(Entrypoint.builder().type(DEFAULT_ENTRYPOINT_TYPE).build()));
+        var listener = HttpListener.builder()
+                .entrypoints(singletonList(
+                        Entrypoint.builder().type(DEFAULT_ENTRYPOINT_TYPE).build()));
         var paths = Optional.ofNullable(xGraviteeIODefinition)
-            .map(XGraviteeIODefinition::getVirtualHosts)
-            .map(this::createPathsFromVirtualHosts)
-            .orElseGet(() -> singletonList(createDefaultPath(apiName, defaultEndpoint)));
+                .map(XGraviteeIODefinition::getVirtualHosts)
+                .map(this::createPathsFromVirtualHosts)
+                .orElseGet(() -> singletonList(createDefaultPath(apiName, defaultEndpoint)));
 
         return singletonList(listener.paths(paths).build());
     }
 
     private List<Path> createPathsFromVirtualHosts(List<VirtualHost> virtualHosts) {
-        return virtualHosts
-            .stream()
-            .map(vHost ->
-                Path.builder()
-                    .host(vHost.getHost())
-                    .path(vHost.getPath())
-                    .overrideAccess(vHost.getOverrideEntrypoint() != null ? vHost.getOverrideEntrypoint() : false)
-                    .build()
-            )
-            .collect(Collectors.toList());
+        return virtualHosts.stream()
+                .map(vHost -> Path.builder()
+                        .host(vHost.getHost())
+                        .path(vHost.getPath())
+                        .overrideAccess(vHost.getOverrideEntrypoint() != null ? vHost.getOverrideEntrypoint() : false)
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private Path createDefaultPath(String apiName, String defaultEndpoint) {

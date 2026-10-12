@@ -67,7 +67,8 @@ public class GenericPlanMapperTest {
 
     @BeforeEach
     public void before() {
-        genericPlanMapper = new GenericPlanMapper(planMapper, flowServiceV4, planConverter, flowService, flowCrudService);
+        genericPlanMapper =
+                new GenericPlanMapper(planMapper, flowServiceV4, planConverter, flowService, flowCrudService);
     }
 
     @Test

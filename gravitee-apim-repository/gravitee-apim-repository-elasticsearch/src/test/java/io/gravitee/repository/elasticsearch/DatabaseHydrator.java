@@ -37,11 +37,10 @@ public class DatabaseHydrator {
     private final TimeProvider timeProvider;
 
     public DatabaseHydrator(
-        Client client,
-        FreeMarkerComponent freeMarkerComponent,
-        AnatlyticsDatabase anatlyticsDatabase,
-        TimeProvider timeProvider
-    ) {
+            Client client,
+            FreeMarkerComponent freeMarkerComponent,
+            AnatlyticsDatabase anatlyticsDatabase,
+            TimeProvider timeProvider) {
         this.client = client;
         this.freeMarkerComponent = freeMarkerComponent;
         this.anatlyticsDatabase = anatlyticsDatabase;
@@ -51,90 +50,100 @@ public class DatabaseHydrator {
     @PostConstruct
     public void indexSampleData() {
         List<String> indexTypes = List.of(
-            "health",
-            "request",
-            "monitor",
-            "log",
-            "v4-log",
-            "v4-metrics",
-            "v4-message-log",
-            "v4-message-metrics",
-            "event-metrics",
-            "decisions"
-        );
-        createTemplate(indexTypes).andThen(Single.defer(() -> client.bulk(prepareData(indexTypes), true))).ignoreElement().blockingAwait();
+                "health",
+                "request",
+                "monitor",
+                "log",
+                "v4-log",
+                "v4-metrics",
+                "v4-message-log",
+                "v4-message-metrics",
+                "event-metrics",
+                "decisions");
+        createTemplate(indexTypes)
+                .andThen(Single.defer(() -> client.bulk(prepareData(indexTypes), true)))
+                .ignoreElement()
+                .blockingAwait();
     }
 
     private Completable createTemplate(List<String> types) {
         return Flowable.fromIterable(types)
-            .map(type -> {
-                String indexName = "gravitee-" + type;
-                Map<String, Object> data = Map.ofEntries(
-                    Map.entry("numberOfShards", 5),
-                    Map.entry("numberOfReplicas", 1),
-                    Map.entry("refreshInterval", "1s"),
-                    Map.entry("indexName", indexName),
-                    Map.entry("indexBody", true)
-                );
-                String filename;
-                if (this.anatlyticsDatabase.getDatabaseType() == AnatlyticsDatabase.DatabaseType.ELASTICSEARCH) {
-                    filename = "es" + this.anatlyticsDatabase.getDatabaseMajorVersion() + "x";
-                } else {
-                    filename = "opensearch";
-                }
-                filename += "/mapping/index-template-" + type + ".ftl";
-                return Map.entry(indexName, freeMarkerComponent.generateFromTemplate(filename, data));
-            })
-            .flatMapCompletable(entry -> {
-                if (this.anatlyticsDatabase.getDatabaseType() == AnatlyticsDatabase.DatabaseType.ELASTICSEARCH) {
-                    if (this.anatlyticsDatabase.getDatabaseMajorVersion().equals("7") && !isDataStream(entry.getKey())) {
-                        return client.putTemplate(entry.getKey(), entry.getValue());
+                .map(type -> {
+                    String indexName = "gravitee-" + type;
+                    Map<String, Object> data = Map.ofEntries(
+                            Map.entry("numberOfShards", 5),
+                            Map.entry("numberOfReplicas", 1),
+                            Map.entry("refreshInterval", "1s"),
+                            Map.entry("indexName", indexName),
+                            Map.entry("indexBody", true));
+                    String filename;
+                    if (this.anatlyticsDatabase.getDatabaseType() == AnatlyticsDatabase.DatabaseType.ELASTICSEARCH) {
+                        filename = "es" + this.anatlyticsDatabase.getDatabaseMajorVersion() + "x";
+                    } else {
+                        filename = "opensearch";
                     }
-                    return client.putIndexTemplate(entry.getKey(), entry.getValue());
-                } else {
-                    //OpenSearch
-                    return client.putIndexTemplate(entry.getKey(), entry.getValue());
-                }
-            });
+                    filename += "/mapping/index-template-" + type + ".ftl";
+                    return Map.entry(indexName, freeMarkerComponent.generateFromTemplate(filename, data));
+                })
+                .flatMapCompletable(entry -> {
+                    if (this.anatlyticsDatabase.getDatabaseType() == AnatlyticsDatabase.DatabaseType.ELASTICSEARCH) {
+                        if (this.anatlyticsDatabase.getDatabaseMajorVersion().equals("7")
+                                && !isDataStream(entry.getKey())) {
+                            return client.putTemplate(entry.getKey(), entry.getValue());
+                        }
+                        return client.putIndexTemplate(entry.getKey(), entry.getValue());
+                    } else {
+                        // OpenSearch
+                        return client.putIndexTemplate(entry.getKey(), entry.getValue());
+                    }
+                });
     }
 
     private List<Buffer> prepareData(List<String> types) {
-        return types
-            .stream()
-            .map(type -> {
-                Map<String, Object> data = new HashMap<>();
+        return types.stream()
+                .map(type -> {
+                    Map<String, Object> data = new HashMap<>();
 
-                if (isDataStream(type)) {
-                    data.putIfAbsent("index", indexTemplate(type, this.timeProvider.getTodayWithDot()));
-                    this.timeProvider.setTimestamps(data);
-                } else {
-                    data = Map.ofEntries(
-                        Map.entry("dateToday", this.timeProvider.getDateToday()),
-                        Map.entry("dateYesterday", this.timeProvider.getDateYesterday()),
-                        Map.entry("dateTimeToday", this.timeProvider.getDateTimeToday()),
-                        Map.entry("dateTimeYesterday", this.timeProvider.getDateTimeYesterday()),
-                        Map.entry("trafficDateTimeToday", this.timeProvider.getTrafficDateTimeToday()),
-                        Map.entry("trafficDateTimeYesterday", this.timeProvider.getTrafficDateTimeYesterday()),
-                        Map.entry("indexNameToday", indexTemplate(type, this.timeProvider.getTodayWithDot())),
-                        Map.entry("indexNameTodayEntrypoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "entrypoint")),
-                        Map.entry("indexNameTodayEndpoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "endpoint")),
-                        Map.entry("indexNameYesterday", indexTemplate(type, this.timeProvider.getYesterdayWithDot())),
-                        Map.entry(
-                            "indexNameYesterdayEntrypoint",
-                            indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "entrypoint")
-                        ),
-                        Map.entry("indexNameYesterdayEndpoint", indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "endpoint"))
-                    );
-                }
-                var filename = type + ".ftl";
-                return freeMarkerComponent.generateFromTemplate(filename, data);
-            })
-            .map(Buffer::buffer)
-            .toList();
+                    if (isDataStream(type)) {
+                        data.putIfAbsent("index", indexTemplate(type, this.timeProvider.getTodayWithDot()));
+                        this.timeProvider.setTimestamps(data);
+                    } else {
+                        data = Map.ofEntries(
+                                Map.entry("dateToday", this.timeProvider.getDateToday()),
+                                Map.entry("dateYesterday", this.timeProvider.getDateYesterday()),
+                                Map.entry("dateTimeToday", this.timeProvider.getDateTimeToday()),
+                                Map.entry("dateTimeYesterday", this.timeProvider.getDateTimeYesterday()),
+                                Map.entry("trafficDateTimeToday", this.timeProvider.getTrafficDateTimeToday()),
+                                Map.entry("trafficDateTimeYesterday", this.timeProvider.getTrafficDateTimeYesterday()),
+                                Map.entry("indexNameToday", indexTemplate(type, this.timeProvider.getTodayWithDot())),
+                                Map.entry(
+                                        "indexNameTodayEntrypoint",
+                                        indexTemplate(type, this.timeProvider.getTodayWithDot(), "entrypoint")),
+                                Map.entry(
+                                        "indexNameTodayEndpoint",
+                                        indexTemplate(type, this.timeProvider.getTodayWithDot(), "endpoint")),
+                                Map.entry(
+                                        "indexNameYesterday",
+                                        indexTemplate(type, this.timeProvider.getYesterdayWithDot())),
+                                Map.entry(
+                                        "indexNameYesterdayEntrypoint",
+                                        indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "entrypoint")),
+                                Map.entry(
+                                        "indexNameYesterdayEndpoint",
+                                        indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "endpoint")));
+                    }
+                    var filename = type + ".ftl";
+                    return freeMarkerComponent.generateFromTemplate(filename, data);
+                })
+                .map(Buffer::buffer)
+                .toList();
     }
 
     private static boolean isDataStream(String typeOrIndexName) {
-        return Arrays.stream(Type.TYPES).filter(Type::isDataStream).map(Type::getType).anyMatch(typeOrIndexName::contains);
+        return Arrays.stream(Type.TYPES)
+                .filter(Type::isDataStream)
+                .map(Type::getType)
+                .anyMatch(typeOrIndexName::contains);
     }
 
     private String indexTemplate(String type, String date) {

@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.NewPreRegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,11 +69,8 @@ public class UsersResourceTest extends AbstractResourceTest {
 
         final Response response = orgTarget().request().post(Entity.json(newPreRegisterUserEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        assertTrue(
-            response
-                .readEntity(String.class)
-                .contains("a service account requires a sourceId, lastname or email to derive a unique identifier")
-        );
+        assertTrue(response.readEntity(String.class)
+                .contains("a service account requires a sourceId, lastname or email to derive a unique identifier"));
     }
 
     @Test

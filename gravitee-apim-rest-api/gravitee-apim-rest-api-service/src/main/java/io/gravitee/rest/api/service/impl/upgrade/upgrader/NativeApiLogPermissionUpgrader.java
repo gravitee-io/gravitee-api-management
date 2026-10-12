@@ -57,16 +57,17 @@ public class NativeApiLogPermissionUpgrader implements Upgrader {
 
     private static final String NATIVE_LOG_PERMISSION = ApiPermission.NATIVE_LOG.getName();
     private static final String NATIVE_ANALYTICS_PERMISSION = ApiPermission.NATIVE_ANALYTICS.getName();
-    private static final char[] READ_ONLY = { READ.getId() };
+    private static final char[] READ_ONLY = {READ.getId()};
     private static final Permission[] PRIMARY_OWNER_PERMISSIONS = Arrays.stream(ApiPermission.values())
-        .filter(permission -> permission != REVIEWS)
-        .toArray(Permission[]::new);
+            .filter(permission -> permission != REVIEWS)
+            .toArray(Permission[]::new);
 
     private final RoleService roleService;
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public NativeApiLogPermissionUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
+    public NativeApiLogPermissionUpgrader(
+            RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
@@ -81,18 +82,21 @@ public class NativeApiLogPermissionUpgrader implements Upgrader {
                 var executionContext = new ExecutionContext(organization);
                 String organizationId = executionContext.getOrganizationId();
                 int n = processed.incrementAndGet();
-                log.info("Applying Native API connection log permissions for organization {} ({}/{})", organizationId, n, total);
+                log.info(
+                        "Applying Native API connection log permissions for organization {} ({}/{})",
+                        organizationId,
+                        n,
+                        total);
                 try {
                     permitOwner(executionContext);
                     syncPrimaryOwner(executionContext);
                 } catch (RuntimeException e) {
                     log.error(
-                        "Failed to apply Native API connection log permissions for organization {} after {} of {} processed",
-                        organizationId,
-                        n - 1,
-                        total,
-                        e
-                    );
+                            "Failed to apply Native API connection log permissions for organization {} after {} of {} processed",
+                            organizationId,
+                            n - 1,
+                            total,
+                            e);
                     throw e;
                 }
             });
@@ -102,21 +106,21 @@ public class NativeApiLogPermissionUpgrader implements Upgrader {
 
     private void permitOwner(ExecutionContext executionContext) {
         roleService
-            .findByScopeAndName(API, ROLE_API_OWNER.getName(), executionContext.getOrganizationId())
-            .ifPresent(role -> permit(executionContext, role));
+                .findByScopeAndName(API, ROLE_API_OWNER.getName(), executionContext.getOrganizationId())
+                .ifPresent(role -> permit(executionContext, role));
     }
 
     private void permit(ExecutionContext executionContext, RoleEntity role) {
         Map<String, char[]> actualPermission = role.getPermissions();
-        boolean hasExpected =
-            actualPermission != null &&
-            actualPermission.containsKey(NATIVE_LOG_PERMISSION) &&
-            actualPermission.containsKey(NATIVE_ANALYTICS_PERMISSION);
+        boolean hasExpected = actualPermission != null
+                && actualPermission.containsKey(NATIVE_LOG_PERMISSION)
+                && actualPermission.containsKey(NATIVE_ANALYTICS_PERMISSION);
         if (hasExpected) {
             return;
         }
 
-        Map<String, char[]> expectedPermission = actualPermission == null ? new HashMap<>() : new HashMap<>(actualPermission);
+        Map<String, char[]> expectedPermission =
+                actualPermission == null ? new HashMap<>() : new HashMap<>(actualPermission);
         expectedPermission.putIfAbsent(NATIVE_LOG_PERMISSION, READ_ONLY);
         expectedPermission.putIfAbsent(NATIVE_ANALYTICS_PERMISSION, READ_ONLY);
 
@@ -129,12 +133,7 @@ public class NativeApiLogPermissionUpgrader implements Upgrader {
 
     private void syncPrimaryOwner(ExecutionContext executionContext) {
         roleService.createOrUpdateSystemRole(
-            executionContext,
-            PRIMARY_OWNER,
-            API,
-            PRIMARY_OWNER_PERMISSIONS,
-            executionContext.getOrganizationId()
-        );
+                executionContext, PRIMARY_OWNER, API, PRIMARY_OWNER_PERMISSIONS, executionContext.getOrganizationId());
     }
 
     @Override

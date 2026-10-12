@@ -68,9 +68,9 @@ class DeprecatePlanDomainServiceTest {
     @BeforeEach
     void setUp() {
         service = new DeprecatePlanDomainService(
-            planCrudService,
-            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
-        );
+                planCrudService,
+                new AuditDomainService(
+                        auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor()));
     }
 
     @AfterEach
@@ -88,16 +88,14 @@ class DeprecatePlanDomainServiceTest {
 
         // Then
         assertThat(planCrudService.storage().get(0))
-            .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
-            .isEqualTo(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
-                    .planDefinitionHttpV4(
-                        PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.DEPRECATED).build()
-                    )
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveComparison(
+                        RecursiveComparisonConfiguration.builder().build())
+                .isEqualTo(PlanFixtures.HttpV4.anApiKey().toBuilder()
+                        .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
+                                .status(PlanStatus.DEPRECATED)
+                                .build())
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
@@ -110,116 +108,99 @@ class DeprecatePlanDomainServiceTest {
 
         // Then
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId(plan.getReferenceId())
-                    .user(USER_ID)
-                    .properties(Map.of("PLAN", plan.getId()))
-                    .event(PlanAuditEvent.PLAN_DEPRECATED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(AuditEntity.builder()
+                        .id("generated-id")
+                        .organizationId(ORGANIZATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.API)
+                        .referenceId(plan.getReferenceId())
+                        .user(USER_ID)
+                        .properties(Map.of("PLAN", plan.getId()))
+                        .event(PlanAuditEvent.PLAN_DEPRECATED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_throw_when_plan_already_closed() {
         // Given
-        var plan = givenExistingPlan(
-            PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .planDefinitionHttpV4(
-                    PlanFixtures.HttpV4.anApiKey()
-                        .getPlanDefinitionHttpV4()
-                        .toBuilder()
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
                         .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
-                        .build()
-                )
-                .build()
-        );
+                        .build())
+                .build());
 
         // When
-        var throwable = org.assertj.core.api.Assertions.catchThrowable(() -> service.deprecate(plan.getId(), AUDIT_INFO, true));
+        var throwable =
+                org.assertj.core.api.Assertions.catchThrowable(() -> service.deprecate(plan.getId(), AUDIT_INFO, true));
 
         // Then
         assertThat(throwable)
-            .isInstanceOf(InvalidPlanStatusForDeprecationException.class)
-            .hasMessage("Cannot deprecate plan [ apikey ] with current status [ closed ]");
+                .isInstanceOf(InvalidPlanStatusForDeprecationException.class)
+                .hasMessage("Cannot deprecate plan [ apikey ] with current status [ closed ]");
     }
 
     @Test
     void should_throw_when_plan_already_deprecated() {
         // Given
-        var plan = givenExistingPlan(
-            PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .planDefinitionHttpV4(
-                    PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.DEPRECATED).build()
-                )
-                .build()
-        );
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.DEPRECATED)
+                        .build())
+                .build());
 
         // When
-        var throwable = org.assertj.core.api.Assertions.catchThrowable(() -> service.deprecate(plan.getId(), AUDIT_INFO, true));
+        var throwable =
+                org.assertj.core.api.Assertions.catchThrowable(() -> service.deprecate(plan.getId(), AUDIT_INFO, true));
 
         // Then
         assertThat(throwable)
-            .isInstanceOf(InvalidPlanStatusForDeprecationException.class)
-            .hasMessage("Cannot deprecate plan [ apikey ] with current status [ deprecated ]");
+                .isInstanceOf(InvalidPlanStatusForDeprecationException.class)
+                .hasMessage("Cannot deprecate plan [ apikey ] with current status [ deprecated ]");
     }
 
     @Test
     void should_throw_when_plan_in_staging_and_staging_not_allowed() {
         // Given
-        var plan = givenExistingPlan(
-            PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .planDefinitionHttpV4(
-                    PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.STAGING).build()
-                )
-                .build()
-        );
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.STAGING)
+                        .build())
+                .build());
 
         // When
-        var throwable = org.assertj.core.api.Assertions.catchThrowable(() -> service.deprecate(plan.getId(), AUDIT_INFO, false));
+        var throwable = org.assertj.core.api.Assertions.catchThrowable(
+                () -> service.deprecate(plan.getId(), AUDIT_INFO, false));
 
         // Then
         assertThat(throwable)
-            .isInstanceOf(InvalidPlanStatusForDeprecationException.class)
-            .hasMessage("Cannot deprecate plan [ apikey ] with current status [ staging ]");
+                .isInstanceOf(InvalidPlanStatusForDeprecationException.class)
+                .hasMessage("Cannot deprecate plan [ apikey ] with current status [ staging ]");
     }
 
     @Test
     void should_deprecate_a_plan_in_staging_with_staging_allowed() {
         // Given
-        var plan = givenExistingPlan(
-            PlanFixtures.HttpV4.anApiKey()
-                .toBuilder()
-                .planDefinitionHttpV4(
-                    PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.STAGING).build()
-                )
-                .build()
-        );
+        var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.STAGING)
+                        .build())
+                .build());
 
         // When
         service.deprecate(plan.getId(), AUDIT_INFO, true);
 
         // Then
         assertThat(planCrudService.storage().get(0))
-            .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
-            .isEqualTo(
-                PlanFixtures.HttpV4.anApiKey()
-                    .toBuilder()
-                    .planDefinitionHttpV4(
-                        PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.DEPRECATED).build()
-                    )
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveComparison(
+                        RecursiveComparisonConfiguration.builder().build())
+                .isEqualTo(PlanFixtures.HttpV4.anApiKey().toBuilder()
+                        .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
+                                .status(PlanStatus.DEPRECATED)
+                                .build())
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     Plan givenExistingPlan(Plan plan) {

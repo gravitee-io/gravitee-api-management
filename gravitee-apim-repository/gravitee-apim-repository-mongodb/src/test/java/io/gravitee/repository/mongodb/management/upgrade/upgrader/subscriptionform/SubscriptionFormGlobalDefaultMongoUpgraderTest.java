@@ -77,27 +77,32 @@ public class SubscriptionFormGlobalDefaultMongoUpgraderTest extends AbstractMana
 
     private void givenAForm(String formId, String environmentId, String name, boolean enabled, List<String> apiIds) {
         mongoTemplate
-            .getCollection(formsCollection)
-            .insertOne(
-                new Document("_id", formId)
-                    .append("environmentId", environmentId)
-                    .append("name", name)
-                    .append("normalizedName", name.toLowerCase())
-                    .append("enabled", enabled)
-                    .append("apiIds", apiIds)
-            );
+                .getCollection(formsCollection)
+                .insertOne(new Document("_id", formId)
+                        .append("environmentId", environmentId)
+                        .append("name", name)
+                        .append("normalizedName", name.toLowerCase())
+                        .append("enabled", enabled)
+                        .append("apiIds", apiIds));
     }
 
     private void givenAnApi(String apiId, String environmentId) {
-        mongoTemplate.getCollection(apisCollection).insertOne(new Document("_id", apiId).append("environmentId", environmentId));
+        mongoTemplate
+                .getCollection(apisCollection)
+                .insertOne(new Document("_id", apiId).append("environmentId", environmentId));
     }
 
     private List<String> apiIdsOf(String formId) {
-        return mongoTemplate.getCollection(formsCollection).find(new Document("_id", formId)).first().getList("apiIds", String.class);
+        return mongoTemplate
+                .getCollection(formsCollection)
+                .find(new Document("_id", formId))
+                .first()
+                .getList("apiIds", String.class);
     }
 
     @Test
-    public void upgrade_should_dedicate_an_enabled_global_default_form_to_every_api_of_its_environment() throws Exception {
+    public void upgrade_should_dedicate_an_enabled_global_default_form_to_every_api_of_its_environment()
+            throws Exception {
         givenAForm("form-global", "env-1", GLOBAL_DEFAULT_FORM_NAME, true, List.of());
         givenAnApi("api-1", "env-1");
         givenAnApi("api-2", "env-1");

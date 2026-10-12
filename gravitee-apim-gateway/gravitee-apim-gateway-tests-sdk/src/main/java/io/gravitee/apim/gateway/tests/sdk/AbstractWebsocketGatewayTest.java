@@ -21,9 +21,7 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.vertx.core.Handler;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.http.PoolOptions;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpServer;
@@ -47,32 +45,29 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
         final HttpServerOptions httpServerOptions = new HttpServerOptions();
         final int serverPort = getAvailablePort();
         httpServerOptions.setPort(serverPort);
-        serverDispose = vertx
-            .createHttpServer(httpServerOptions)
-            .webSocketHandshakeHandler(handshake -> {
-                if (null != websocketHandshakeHandler) {
-                    websocketHandshakeHandler.handle(handshake);
-                } else {
-                    handshake
-                        .rxAccept()
-                        .subscribe(
-                            serverWebSocket -> {
-                                if (null != websocketServerHandler) {
-                                    websocketServerHandler.handle(serverWebSocket);
-                                }
-                            },
-                            context::failNow
-                        );
-                }
-            })
-            .listen(serverPort)
-            .subscribe(
-                server -> {
-                    httpServer = server;
-                    context.completeNow();
-                },
-                context::failNow
-            );
+        serverDispose = vertx.createHttpServer(httpServerOptions)
+                .webSocketHandshakeHandler(handshake -> {
+                    if (null != websocketHandshakeHandler) {
+                        websocketHandshakeHandler.handle(handshake);
+                    } else {
+                        handshake
+                                .rxAccept()
+                                .subscribe(
+                                        serverWebSocket -> {
+                                            if (null != websocketServerHandler) {
+                                                websocketServerHandler.handle(serverWebSocket);
+                                            }
+                                        },
+                                        context::failNow);
+                    }
+                })
+                .listen(serverPort)
+                .subscribe(
+                        server -> {
+                            httpServer = server;
+                            context.completeNow();
+                        },
+                        context::failNow);
     }
 
     @AfterAll
@@ -103,10 +98,9 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
 
     @Override
     protected void configureWebSocketClient(
-        io.vertx.core.http.WebSocketClientOptions options,
-        GatewayDynamicConfig.Config gatewayConfig,
-        ParameterContext parameterContext
-    ) {
+            io.vertx.core.http.WebSocketClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext) {
         options.setDefaultPort(gatewayConfig.httpPort()).setDefaultHost("localhost");
     }
 

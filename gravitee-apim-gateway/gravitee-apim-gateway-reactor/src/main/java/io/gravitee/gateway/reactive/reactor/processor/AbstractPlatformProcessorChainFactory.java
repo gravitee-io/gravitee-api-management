@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.reactor.processor;
 import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
-import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.reactor.processor.alert.AlertProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeProcessor;
@@ -47,12 +46,11 @@ public abstract class AbstractPlatformProcessorChainFactory {
     protected abstract List<Processor> buildPreProcessorList();
 
     public AbstractPlatformProcessorChainFactory(
-        TransactionPreProcessorFactory transactionHandlerFactory,
-        ReporterService reporterService,
-        AlertEventProducer eventProducer,
-        Node node,
-        String port
-    ) {
+            TransactionPreProcessorFactory transactionHandlerFactory,
+            ReporterService reporterService,
+            AlertEventProducer eventProducer,
+            Node node,
+            String port) {
         this.transactionHandlerFactory = transactionHandlerFactory;
         this.reporterService = reporterService;
         this.eventProducer = eventProducer;

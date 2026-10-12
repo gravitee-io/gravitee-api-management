@@ -33,20 +33,17 @@ public class OAIToMetadataConverter {
             return null;
         }
 
-        return metadatumList
-            .stream()
-            .map(metadatum ->
-                NewApiMetadata.builder()
-                    .key(IdGenerator.generate(metadatum.getName()))
-                    .name(metadatum.getName())
-                    .value(metadatum.getValue())
-                    .format(
-                        metadatum.getFormat() != null
-                            ? Metadata.MetadataFormat.valueOf(metadatum.getFormat().name())
-                            : Metadata.MetadataFormat.STRING
-                    )
-                    .build()
-            )
-            .collect(Collectors.toSet());
+        return metadatumList.stream()
+                .map(metadatum -> NewApiMetadata.builder()
+                        .key(IdGenerator.generate(metadatum.getName()))
+                        .name(metadatum.getName())
+                        .value(metadatum.getValue())
+                        .format(
+                                metadatum.getFormat() != null
+                                        ? Metadata.MetadataFormat.valueOf(
+                                                metadatum.getFormat().name())
+                                        : Metadata.MetadataFormat.STRING)
+                        .build())
+                .collect(Collectors.toSet());
     }
 }

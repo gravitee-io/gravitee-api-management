@@ -37,30 +37,32 @@ class GetAnalyticsFilterDefinitionsUseCaseTest {
 
     @Test
     void should_return_the_whole_catalog_when_no_signal_is_requested() {
-        var specs = useCase.execute(GetAnalyticsFilterDefinitionsUseCase.Input.ALL).specs();
+        var specs =
+                useCase.execute(GetAnalyticsFilterDefinitionsUseCase.Input.ALL).specs();
 
         assertThat(specs).isEqualTo(catalog.getAllFilters());
     }
 
     @Test
     void should_narrow_to_the_requested_signal() {
-        var specs = useCase.execute(new GetAnalyticsFilterDefinitionsUseCase.Input(Set.of(Signal.LOGS))).specs();
+        var specs = useCase.execute(new GetAnalyticsFilterDefinitionsUseCase.Input(Set.of(Signal.LOGS)))
+                .specs();
 
         assertThat(specs)
-            .isNotEmpty()
-            .allSatisfy(spec -> assertThat(spec.appliesTo(Signal.LOGS)).isTrue());
+                .isNotEmpty()
+                .allSatisfy(spec -> assertThat(spec.appliesTo(Signal.LOGS)).isTrue());
         assertThat(specs).hasSizeLessThan(catalog.getAllFilters().size());
     }
 
     @Test
     void should_advertise_authz_reason_as_applicable_to_authz() {
-        var specs = useCase.execute(GetAnalyticsFilterDefinitionsUseCase.Input.ALL).specs();
+        var specs =
+                useCase.execute(GetAnalyticsFilterDefinitionsUseCase.Input.ALL).specs();
 
-        var authzReason = specs
-            .stream()
-            .filter(spec -> spec.name() == FilterSpec.Name.AUTHZ_REASON)
-            .findFirst()
-            .orElseThrow();
+        var authzReason = specs.stream()
+                .filter(spec -> spec.name() == FilterSpec.Name.AUTHZ_REASON)
+                .findFirst()
+                .orElseThrow();
 
         assertThat(authzReason.apis()).isNotEmpty();
     }
@@ -78,21 +80,17 @@ class GetAnalyticsFilterDefinitionsUseCaseTest {
     void should_not_declare_a_filter_on_a_metric_that_the_catalog_withholds_from_analytics() {
         for (var api : catalog.getApis()) {
             for (var metric : catalog.getMetrics(api.name())) {
-                var withheld = catalog
-                    .getFilters(metric.name())
-                    .stream()
-                    .filter(spec -> !spec.appliesTo(Signal.ANALYTICS))
-                    .map(FilterSpec::name)
-                    .toList();
+                var withheld = catalog.getFilters(metric.name()).stream()
+                        .filter(spec -> !spec.appliesTo(Signal.ANALYTICS))
+                        .map(FilterSpec::name)
+                        .toList();
 
                 assertThat(withheld)
-                    .withFailMessage(
-                        "Metric %s declares filters the analytics engine will reject: %s. Either drop them from its " +
-                            "filters list in analytics-definition.yaml, or give them the ANALYTICS signal.",
-                        metric.name(),
-                        withheld
-                    )
-                    .isEmpty();
+                        .withFailMessage(
+                                "Metric %s declares filters the analytics engine will reject: %s. Either drop them from its "
+                                        + "filters list in analytics-definition.yaml, or give them the ANALYTICS signal.",
+                                metric.name(), withheld)
+                        .isEmpty();
             }
         }
     }

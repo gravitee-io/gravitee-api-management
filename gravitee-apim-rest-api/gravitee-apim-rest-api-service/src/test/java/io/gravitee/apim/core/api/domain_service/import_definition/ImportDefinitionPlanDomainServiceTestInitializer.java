@@ -54,19 +54,22 @@ public class ImportDefinitionPlanDomainServiceTestInitializer {
     // Mocks
     public final ApiService apiService = mock(ApiService.class);
     public final PlanSynchronizationService planSynchronizationService = mock(PlanSynchronizationService.class);
-    public final PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
+    public final PolicyValidationDomainService policyValidationDomainService =
+            mock(PolicyValidationDomainService.class);
     public final EventCrudService eventCrudService = mock(EventCrudService.class);
     public final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
 
     // In Memory
     public final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
-    public final EntrypointPluginQueryServiceInMemory entrypointPluginQueryServiceInMemory = new EntrypointPluginQueryServiceInMemory();
+    public final EntrypointPluginQueryServiceInMemory entrypointPluginQueryServiceInMemory =
+            new EntrypointPluginQueryServiceInMemory();
     public final FlowCrudServiceInMemory flowCrudServiceInMemory = new FlowCrudServiceInMemory();
     public final ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     public final PageCrudServiceInMemory pageCrudServiceInMemory = new PageCrudServiceInMemory();
     public final PlanQueryServiceInMemory planQueryServiceInMemory = new PlanQueryServiceInMemory();
     public final PlanCrudServiceInMemory planCrudServiceInMemory = new PlanCrudServiceInMemory();
-    public final SubscriptionQueryServiceInMemory subscriptionQueryServiceInMemory = new SubscriptionQueryServiceInMemory();
+    public final SubscriptionQueryServiceInMemory subscriptionQueryServiceInMemory =
+            new SubscriptionQueryServiceInMemory();
     public final UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
 
     // Domain Services
@@ -75,81 +78,72 @@ public class ImportDefinitionPlanDomainServiceTestInitializer {
     private final UpdatePlanDomainService updatePlanDomainService;
 
     ImportDefinitionPlanDomainServiceTestInitializer() {
-        var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
+        var auditDomainService = new AuditDomainService(
+                auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor());
         var planValidatorDomainService = new PlanValidatorDomainService(
-            parametersQueryService,
-            policyValidationDomainService,
-            pageCrudServiceInMemory
-        );
-        var flowValidationDomainService = new FlowValidationDomainService(
-            policyValidationDomainService,
-            entrypointPluginQueryServiceInMemory
-        );
+                parametersQueryService, policyValidationDomainService, pageCrudServiceInMemory);
+        var flowValidationDomainService =
+                new FlowValidationDomainService(policyValidationDomainService, entrypointPluginQueryServiceInMemory);
         var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
-        var verifyPlanPortRanges = new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges);
+        var verifyPlanPortRanges =
+                new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges);
         createPlanDomainService = new CreatePlanDomainService(
-            planValidatorDomainService,
-            flowValidationDomainService,
-            planCrudServiceInMemory,
-            flowCrudServiceInMemory,
-            auditDomainService,
-            verifyPlanPortRanges,
-            kafkaPortRanges
-        );
+                planValidatorDomainService,
+                flowValidationDomainService,
+                planCrudServiceInMemory,
+                flowCrudServiceInMemory,
+                auditDomainService,
+                verifyPlanPortRanges,
+                kafkaPortRanges);
 
         var reorderPlanDomainService = new ReorderPlanDomainService(planQueryServiceInMemory, planCrudServiceInMemory);
         updatePlanDomainService = new UpdatePlanDomainService(
-            planQueryServiceInMemory,
-            planCrudServiceInMemory,
-            planValidatorDomainService,
-            flowValidationDomainService,
-            flowCrudServiceInMemory,
-            auditDomainService,
-            planSynchronizationService,
-            reorderPlanDomainService,
-            verifyPlanPortRanges,
-            kafkaPortRanges
-        );
+                planQueryServiceInMemory,
+                planCrudServiceInMemory,
+                planValidatorDomainService,
+                flowValidationDomainService,
+                flowCrudServiceInMemory,
+                auditDomainService,
+                planSynchronizationService,
+                reorderPlanDomainService,
+                verifyPlanPortRanges,
+                kafkaPortRanges);
 
         deletePlanDomainService = new DeletePlanDomainService(
-            planCrudServiceInMemory,
-            subscriptionQueryServiceInMemory,
-            auditDomainService,
-            kafkaPortRanges
-        );
+                planCrudServiceInMemory, subscriptionQueryServiceInMemory, auditDomainService, kafkaPortRanges);
     }
 
     ImportDefinitionPlanDomainService initialize(String environmentId) {
-        parametersQueryService.initWith(
-            List.of(
-                new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), environmentId, ParameterReferenceType.ENVIRONMENT, "true"),
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), environmentId, ParameterReferenceType.ENVIRONMENT, "true")
-            )
-        );
-        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(1)
-        );
+        parametersQueryService.initWith(List.of(
+                new Parameter(
+                        Key.PLAN_SECURITY_APIKEY_ENABLED.key(),
+                        environmentId,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true"),
+                new Parameter(
+                        Key.PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                        environmentId,
+                        ParameterReferenceType.ENVIRONMENT,
+                        "true")));
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
 
         return new ImportDefinitionPlanDomainService(
-            createPlanDomainService,
-            updatePlanDomainService,
-            deletePlanDomainService,
-            planCrudServiceInMemory
-        );
+                createPlanDomainService, updatePlanDomainService, deletePlanDomainService, planCrudServiceInMemory);
     }
 
     void tearDown() {
         Stream.of(
-            auditCrudServiceInMemory,
-            entrypointPluginQueryServiceInMemory,
-            flowCrudServiceInMemory,
-            parametersQueryService,
-            pageCrudServiceInMemory,
-            planQueryServiceInMemory,
-            planCrudServiceInMemory,
-            subscriptionQueryServiceInMemory,
-            userCrudServiceInMemory
-        ).forEach(InMemoryAlternative::reset);
+                        auditCrudServiceInMemory,
+                        entrypointPluginQueryServiceInMemory,
+                        flowCrudServiceInMemory,
+                        parametersQueryService,
+                        pageCrudServiceInMemory,
+                        planQueryServiceInMemory,
+                        planCrudServiceInMemory,
+                        subscriptionQueryServiceInMemory,
+                        userCrudServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
 
         reset(planSynchronizationService);
         reset(policyValidationDomainService);

@@ -22,7 +22,6 @@ import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.policy.OrganizationPolicyManager;
-import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganizationReactor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,11 +50,7 @@ class V3OrganizationReactorTest {
         organization.setId("id");
         ReactableOrganization reactableOrganization = new ReactableOrganization(organization);
         V3OrganizationReactor cut = new V3OrganizationReactor(
-            reactableOrganization,
-            policyChainFactory,
-            resourceLifecycleManager,
-            organizationPolicyManager
-        );
+                reactableOrganization, policyChainFactory, resourceLifecycleManager, organizationPolicyManager);
 
         assertThat(cut.id()).isEqualTo(organization.getId());
         assertThat(cut.reactableOrganization()).isEqualTo(reactableOrganization);
@@ -68,11 +63,7 @@ class V3OrganizationReactorTest {
         organization.setId("id");
         ReactableOrganization reactableOrganization = new ReactableOrganization(organization);
         V3OrganizationReactor cut = new V3OrganizationReactor(
-            reactableOrganization,
-            policyChainFactory,
-            resourceLifecycleManager,
-            organizationPolicyManager
-        );
+                reactableOrganization, policyChainFactory, resourceLifecycleManager, organizationPolicyManager);
 
         cut.start();
         verify(organizationPolicyManager).start();
@@ -84,11 +75,7 @@ class V3OrganizationReactorTest {
         organization.setId("id");
         ReactableOrganization reactableOrganization = new ReactableOrganization(organization);
         V3OrganizationReactor cut = new V3OrganizationReactor(
-            reactableOrganization,
-            policyChainFactory,
-            resourceLifecycleManager,
-            organizationPolicyManager
-        );
+                reactableOrganization, policyChainFactory, resourceLifecycleManager, organizationPolicyManager);
 
         cut.stop();
         verify(organizationPolicyManager).stop();

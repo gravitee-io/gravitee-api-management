@@ -35,7 +35,8 @@ public class PluginNotFoundGatewayTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void shouldReturnNotFound_unknownPolicy() throws Exception {
-        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         // The gateway returns a NOT_FOUND (404) because the API can't be deployed correctly.
         // The API is not correctly deployed because a required policy cannot be found

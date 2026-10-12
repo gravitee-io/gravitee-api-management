@@ -89,65 +89,63 @@ class AuthzPdpSynchronizerTest {
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of("eu")));
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
         lenient().when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                received.add(message.body());
-                message.reply(new JsonObject().put("ok", true));
-            });
+        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            received.add(message.body());
+            message.reply(new JsonObject().put("ok", true));
+        });
         synchronizer = newSynchronizer();
     }
 
     private AuthzPdpSynchronizer newSynchronizer() {
         NoopDistributedSyncService distributedSyncService = new NoopDistributedSyncService();
         DeployerFactory deployerFactory = org.mockito.Mockito.mock(DeployerFactory.class);
-        lenient().when(deployerFactory.createAuthzPolicyDeployer()).thenReturn(new AuthzPolicyDeployer(enginePort, distributedSyncService));
-        lenient().when(deployerFactory.createAuthzEntityDeployer()).thenReturn(new AuthzEntityDeployer(enginePort, distributedSyncService));
+        lenient()
+                .when(deployerFactory.createAuthzPolicyDeployer())
+                .thenReturn(new AuthzPolicyDeployer(enginePort, distributedSyncService));
+        lenient()
+                .when(deployerFactory.createAuthzEntityDeployer())
+                .thenReturn(new AuthzEntityDeployer(enginePort, distributedSyncService));
 
         AuthzPolicySynchronizer policySynchronizer = new AuthzPolicySynchronizer(
-            fetcher,
-            new AuthzPolicyMapper(new ObjectMapper()),
-            deployerFactory,
-            enginePort,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzPolicyMapper(new ObjectMapper()),
+                deployerFactory,
+                enginePort,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
 
         AuthzSchemaSynchronizer schemaSynchronizer = new AuthzSchemaSynchronizer(
-            fetcher,
-            new AuthzSchemaMapper(new ObjectMapper()),
-            deployerFactory,
-            enginePort,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzSchemaMapper(new ObjectMapper()),
+                deployerFactory,
+                enginePort,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
         AuthzEntitySynchronizer entitySynchronizer = new AuthzEntitySynchronizer(
-            fetcher,
-            new AuthzEntityMapper(new ObjectMapper()),
-            deployerFactory,
-            enginePort,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzEntityMapper(new ObjectMapper()),
+                deployerFactory,
+                enginePort,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
         hostedScopes = new AuthzHostedScopes();
         revisions = new AuthzAppliedRevisions();
         return new AuthzPdpSynchronizer(
-            fetcher,
-            new AuthzPdpMapper(new ObjectMapper()),
-            schemaSynchronizer,
-            policySynchronizer,
-            entitySynchronizer,
-            node,
-            gatewayConfiguration,
-            vertx,
-            hostedScopes,
-            executor(),
-            executor(),
-            revisions
-        );
+                fetcher,
+                new AuthzPdpMapper(new ObjectMapper()),
+                schemaSynchronizer,
+                policySynchronizer,
+                entitySynchronizer,
+                node,
+                gatewayConfiguration,
+                vertx,
+                hostedScopes,
+                executor(),
+                executor(),
+                revisions);
     }
 
     private static ThreadPoolExecutor executor() {
@@ -173,7 +171,11 @@ class AuthzPdpSynchronizerTest {
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-1", "eu");
         stubPdpFetch(publish);
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).hasSize(1);
         JsonObject msg = received.peek();
@@ -186,7 +188,11 @@ class AuthzPdpSynchronizerTest {
         Event unpublish = pdpEvent("evt-u", EventType.UNPUBLISH_AUTHZ_PDP, "scope-2", "eu");
         stubPdpFetch(unpublish);
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).hasSize(1);
         assertThat(received.peek().getString("op")).isEqualTo("evict");
@@ -195,7 +201,11 @@ class AuthzPdpSynchronizerTest {
 
     @Test
     void no_events_sends_nothing() throws InterruptedException {
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of())
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).isEmpty();
     }
@@ -207,7 +217,11 @@ class AuthzPdpSynchronizerTest {
         Event us = pdpEvent("evt-us", EventType.PUBLISH_AUTHZ_PDP, "scope-us", "us");
         stubPdpFetch(eu, us);
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).hasSize(1);
         assertThat(received.peek().getString("targetPdpId")).isEqualTo("scope-eu");
@@ -223,7 +237,11 @@ class AuthzPdpSynchronizerTest {
         Event publish = pdpEvent("evt-retag", EventType.PUBLISH_AUTHZ_PDP, "scope-x", "us");
         stubPdpFetch(publish);
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).isEmpty();
     }
@@ -236,7 +254,11 @@ class AuthzPdpSynchronizerTest {
         Event publish = pdpEvent("evt-us", EventType.PUBLISH_AUTHZ_PDP, "scope-us", "us");
         stubPdpFetch(publish);
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).isEmpty();
     }
@@ -247,7 +269,11 @@ class AuthzPdpSynchronizerTest {
         Event livePdp = pdpEvent("pdp-new", EventType.PUBLISH_AUTHZ_PDP, "scope-shared", "eu");
         stubPdpFetch(deletedPdp, livePdp);
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).hasSize(1);
         JsonObject msg = received.peek();
@@ -262,21 +288,21 @@ class AuthzPdpSynchronizerTest {
         Event publishEnvB = pdpEvent("pdp-b", EventType.PUBLISH_AUTHZ_PDP, "scope-x", "eu", "env-B");
         stubPdpFetch(evictEnvA, publishEnvB);
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-A", "env-B")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-A", "env-B"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).hasSize(2);
-        assertThat(received).anyMatch(
-            m ->
-                "evict".equals(m.getString("op")) &&
-                "env-A".equals(m.getString("environmentId")) &&
-                "scope-x".equals(m.getString("targetPdpId"))
-        );
-        assertThat(received).anyMatch(
-            m ->
-                "provision".equals(m.getString("op")) &&
-                "env-B".equals(m.getString("environmentId")) &&
-                "scope-x".equals(m.getString("targetPdpId"))
-        );
+        assertThat(received)
+                .anyMatch(m -> "evict".equals(m.getString("op"))
+                        && "env-A".equals(m.getString("environmentId"))
+                        && "scope-x".equals(m.getString("targetPdpId")));
+        assertThat(received)
+                .anyMatch(m -> "provision".equals(m.getString("op"))
+                        && "env-B".equals(m.getString("environmentId"))
+                        && "scope-x".equals(m.getString("targetPdpId")));
     }
 
     @Test
@@ -287,7 +313,11 @@ class AuthzPdpSynchronizerTest {
         Event blankTag = pdpEvent("evt-y", EventType.PUBLISH_AUTHZ_PDP, "scope-y", "   ");
         stubPdpFetch(noTag, blankTag);
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).hasSize(2);
         assertThat(received).allMatch(m -> "provision".equals(m.getString("op")));
@@ -301,7 +331,11 @@ class AuthzPdpSynchronizerTest {
         Event noTag = pdpEvent("evt-x", EventType.PUBLISH_AUTHZ_PDP, "scope-x", null);
         stubPdpFetch(noTag);
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).isEmpty();
     }
@@ -313,7 +347,11 @@ class AuthzPdpSynchronizerTest {
         Event def = pdpEvent("evt-def", EventType.PUBLISH_AUTHZ_PDP, "default", "eu");
         stubPdpFetch(def);
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(received).isEmpty();
     }
@@ -325,11 +363,14 @@ class AuthzPdpSynchronizerTest {
 
         // A re-fetch of the same PUBLISH_AUTHZ_PDP event arrives (e.g. the event window overlaps).
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-1", "eu");
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(publish))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(publish)));
 
-        synchronizer.synchronize(100L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(100L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // The relay message is still sent (provision idempotency), but hydration (stageScope) must be
         // skipped because wasHosted was true at the start of relayProvisionOrEvict.
@@ -342,9 +383,8 @@ class AuthzPdpSynchronizerTest {
     }
 
     private void stubPdpFetch(Event... events) {
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(events))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(events)));
     }
 
     private static Event pdpEvent(String id, EventType type, String targetPdpId, String tag) {

@@ -33,5 +33,6 @@ public interface TokenRepository extends CrudRepository<Token, String> {
      * @return List of IDs for deleted tokens
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType)
+            throws TechnicalException;
 }

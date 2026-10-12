@@ -44,13 +44,13 @@ public class PayloadInputBodyReader implements MessageBodyReader<PayloadInput> {
 
     @Override
     public PayloadInput readFrom(
-        Class<PayloadInput> aClass,
-        Type type,
-        Annotation[] annotations,
-        MediaType mediaType,
-        MultivaluedMap<String, String> multivaluedMap,
-        InputStream inputStream
-    ) throws IOException, WebApplicationException {
+            Class<PayloadInput> aClass,
+            Type type,
+            Annotation[] annotations,
+            MediaType mediaType,
+            MultivaluedMap<String, String> multivaluedMap,
+            InputStream inputStream)
+            throws IOException, WebApplicationException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             final String line = br.readLine();
             final PayloadInput payloadInput = new PayloadInput();
@@ -67,10 +67,9 @@ public class PayloadInputBodyReader implements MessageBodyReader<PayloadInput> {
     }
 
     private String getParam(final List<NameValuePair> params, final String paramName) {
-        final Optional<NameValuePair> optionalParam = params
-            .stream()
-            .filter(param -> paramName.equals(param.getName()))
-            .findAny();
+        final Optional<NameValuePair> optionalParam = params.stream()
+                .filter(param -> paramName.equals(param.getName()))
+                .findAny();
         return optionalParam.map(NameValuePair::getValue).orElse(null);
     }
 }

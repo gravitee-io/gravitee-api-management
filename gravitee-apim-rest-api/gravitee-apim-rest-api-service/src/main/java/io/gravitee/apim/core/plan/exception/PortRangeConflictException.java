@@ -25,28 +25,22 @@ import java.util.Map;
  */
 public class PortRangeConflictException extends ValidationDomainException {
 
-    public PortRangeConflictException(String conflictingPlanId, String conflictingApiId, int rangeStart, int rangeEnd, int bootstrapPort) {
+    public PortRangeConflictException(
+            String conflictingPlanId, String conflictingApiId, int rangeStart, int rangeEnd, int bootstrapPort) {
         super(
-            String.format(
-                "Port range [%d-%d] (bootstrap %d) conflicts with plan '%s' on API '%s'",
-                rangeStart,
-                rangeEnd,
-                bootstrapPort,
-                conflictingPlanId,
-                conflictingApiId
-            ),
-            Map.of(
-                "conflictingPlanId",
-                conflictingPlanId,
-                "conflictingApiId",
-                conflictingApiId,
-                "rangeStart",
-                String.valueOf(rangeStart),
-                "rangeEnd",
-                String.valueOf(rangeEnd),
-                "bootstrapPort",
-                String.valueOf(bootstrapPort)
-            )
-        );
+                String.format(
+                        "Port range [%d-%d] (bootstrap %d) conflicts with plan '%s' on API '%s'",
+                        rangeStart, rangeEnd, bootstrapPort, conflictingPlanId, conflictingApiId),
+                Map.of(
+                        "conflictingPlanId",
+                        conflictingPlanId,
+                        "conflictingApiId",
+                        conflictingApiId,
+                        "rangeStart",
+                        String.valueOf(rangeStart),
+                        "rangeEnd",
+                        String.valueOf(rangeEnd),
+                        "bootstrapPort",
+                        String.valueOf(bootstrapPort)));
     }
 }

@@ -56,11 +56,14 @@ public class ApiSubscriptionsResource_ListTest extends AbstractApiSubscriptionsR
 
     @Test
     public void should_return_empty_page_if_no_subscriptions() {
-        var subscriptionQuery = SubscriptionQuery.builder().apis(List.of(API)).statuses(Set.of(SubscriptionStatus.ACCEPTED)).build();
+        var subscriptionQuery = SubscriptionQuery.builder()
+                .apis(List.of(API))
+                .statuses(Set.of(SubscriptionStatus.ACCEPTED))
+                .build();
 
-        when(
-            subscriptionService.search(eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false))
-        ).thenReturn(new Page<>(List.of(), 0, 0, 0));
+        when(subscriptionService.search(
+                        eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false)))
+                .thenReturn(new Page<>(List.of(), 0, 0, 0));
 
         final Response response = rootTarget().request().get();
 
@@ -73,27 +76,26 @@ public class ApiSubscriptionsResource_ListTest extends AbstractApiSubscriptionsR
 
         // Check pagination
         Assertions.assertThat(subscriptionsResponse.getPagination())
-            .hasFieldOrPropertyWithValue("page", 1)
-            .hasFieldOrPropertyWithValue("perPage", 10)
-            .hasFieldOrPropertyWithValue("pageCount", 0)
-            .hasFieldOrPropertyWithValue("pageItemsCount", 0)
-            .hasFieldOrPropertyWithValue("totalCount", 0L);
+                .hasFieldOrPropertyWithValue("page", 1)
+                .hasFieldOrPropertyWithValue("perPage", 10)
+                .hasFieldOrPropertyWithValue("pageCount", 0)
+                .hasFieldOrPropertyWithValue("pageItemsCount", 0)
+                .hasFieldOrPropertyWithValue("totalCount", 0L);
 
         // Check links
         Links links = subscriptionsResponse.getLinks();
-        MAPIAssertions.assertThat(links).isEqualTo(new Links().self(rootTarget().getUri().toString()));
+        MAPIAssertions.assertThat(links)
+                .isEqualTo(new Links().self(rootTarget().getUri().toString()));
     }
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -105,21 +107,24 @@ public class ApiSubscriptionsResource_ListTest extends AbstractApiSubscriptionsR
 
     @Test
     public void should_return_list_of_subscriptions() {
-        var subscriptionQuery = SubscriptionQuery.builder().apis(List.of(API)).statuses(Set.of(SubscriptionStatus.ACCEPTED)).build();
+        var subscriptionQuery = SubscriptionQuery.builder()
+                .apis(List.of(API))
+                .statuses(Set.of(SubscriptionStatus.ACCEPTED))
+                .build();
 
-        when(
-            subscriptionService.search(eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false))
-        ).thenReturn(
-            new Page<>(
-                List.of(
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("subscription-1").build(),
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("subscription-2").build()
-                ),
-                1,
-                10,
-                2
-            )
-        );
+        when(subscriptionService.search(
+                        eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false)))
+                .thenReturn(new Page<>(
+                        List.of(
+                                SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                                        .id("subscription-1")
+                                        .build(),
+                                SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                                        .id("subscription-2")
+                                        .build()),
+                        1,
+                        10,
+                        2));
 
         final Response response = rootTarget().request().get();
 
@@ -154,26 +159,31 @@ public class ApiSubscriptionsResource_ListTest extends AbstractApiSubscriptionsR
     @Test
     public void should_return_search_multi_criteria() {
         var subscriptionQuery = SubscriptionQuery.builder()
-            .apis(List.of(API))
-            .apiKey("apiKey")
-            .plans(Set.of("plan-1", "plan-2"))
-            .applications(Set.of("application-1", "application-2"))
-            .statuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.CLOSED))
-            .build();
+                .apis(List.of(API))
+                .apiKey("apiKey")
+                .plans(Set.of("plan-1", "plan-2"))
+                .applications(Set.of("application-1", "application-2"))
+                .statuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.CLOSED))
+                .build();
 
-        when(subscriptionService.search(any(), any(), any(), eq(false), eq(false))).thenReturn(
-            new Page<>(List.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("subscription-1").build()), 1, 10, 1)
-        );
+        when(subscriptionService.search(any(), any(), any(), eq(false), eq(false)))
+                .thenReturn(new Page<>(
+                        List.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                                .id("subscription-1")
+                                .build()),
+                        1,
+                        10,
+                        1));
 
         final Response response = rootTarget()
-            .queryParam("applicationIds", "application-1, application-2")
-            .queryParam("planIds", "plan-1, plan-2")
-            .queryParam("statuses", "ACCEPTED, CLOSED")
-            .queryParam("apiKey", "apiKey")
-            .queryParam("page", 2)
-            .queryParam("perPage", 20)
-            .request()
-            .get();
+                .queryParam("applicationIds", "application-1, application-2")
+                .queryParam("planIds", "plan-1, plan-2")
+                .queryParam("statuses", "ACCEPTED, CLOSED")
+                .queryParam("apiKey", "apiKey")
+                .queryParam("page", 2)
+                .queryParam("perPage", 20)
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -182,50 +192,67 @@ public class ApiSubscriptionsResource_ListTest extends AbstractApiSubscriptionsR
         // Check data
         assertEquals(1, subscriptionsResponse.getData().size());
 
-        verify(subscriptionService).search(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(subscriptionQuery),
-            eq(new PageableImpl(2, 20)),
-            eq(false),
-            eq(false)
-        );
+        verify(subscriptionService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(subscriptionQuery),
+                        eq(new PageableImpl(2, 20)),
+                        eq(false),
+                        eq(false));
     }
 
     @Test
     public void should_return_list_of_subscriptions_with_expands() {
-        var subscriptionQuery = SubscriptionQuery.builder().apis(List.of(API)).statuses(Set.of(SubscriptionStatus.ACCEPTED)).build();
+        var subscriptionQuery = SubscriptionQuery.builder()
+                .apis(List.of(API))
+                .statuses(Set.of(SubscriptionStatus.ACCEPTED))
+                .build();
 
         final List<SubscriptionEntity> subscriptionsEntities = List.of(
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("subscription-1").plan("plan-1").application("application-1").build(),
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("subscription-2").plan("plan-2").application("application-2").build(),
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("subscription-3").plan("plan-3").application("application-1").build(),
-            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("subscription-4").plan("plan-2").application("application-1").build()
-        );
+                SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id("subscription-1")
+                        .plan("plan-1")
+                        .application("application-1")
+                        .build(),
+                SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id("subscription-2")
+                        .plan("plan-2")
+                        .application("application-2")
+                        .build(),
+                SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id("subscription-3")
+                        .plan("plan-3")
+                        .application("application-1")
+                        .build(),
+                SubscriptionFixtures.aSubscriptionEntity().toBuilder()
+                        .id("subscription-4")
+                        .plan("plan-2")
+                        .application("application-1")
+                        .build());
 
-        when(
-            subscriptionService.search(eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false))
-        ).thenReturn(new Page<>(subscriptionsEntities, 1, 10, 2));
+        when(subscriptionService.search(
+                        eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false)))
+                .thenReturn(new Page<>(subscriptionsEntities, 1, 10, 2));
 
-        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of("plan-1", "plan-2", "plan-3"))).thenReturn(
-            Set.of(
-                PlanFixtures.aPlanEntityV4().toBuilder().id("plan-1").build(),
-                PlanFixtures.aPlanEntityV4().toBuilder().id("plan-2").build(),
-                PlanFixtures.aPlanEntityV4().toBuilder().id("plan-3").build()
-            )
-        );
-        when(
-            applicationService.findByIds(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(argument -> List.of("application-1", "application-2").containsAll(argument))
-            )
-        ).thenReturn(
-            Set.of(
-                ApplicationFixtures.anApplicationListItem().toBuilder().id("application-1").build(),
-                ApplicationFixtures.anApplicationListItem().toBuilder().id("application-2").build()
-            )
-        );
+        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of("plan-1", "plan-2", "plan-3")))
+                .thenReturn(Set.of(
+                        PlanFixtures.aPlanEntityV4().toBuilder().id("plan-1").build(),
+                        PlanFixtures.aPlanEntityV4().toBuilder().id("plan-2").build(),
+                        PlanFixtures.aPlanEntityV4().toBuilder().id("plan-3").build()));
+        when(applicationService.findByIds(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(argument ->
+                                List.of("application-1", "application-2").containsAll(argument))))
+                .thenReturn(Set.of(
+                        ApplicationFixtures.anApplicationListItem().toBuilder()
+                                .id("application-1")
+                                .build(),
+                        ApplicationFixtures.anApplicationListItem().toBuilder()
+                                .id("application-2")
+                                .build()));
 
-        final Response response = rootTarget().queryParam("expands", "plan,application").request().get();
+        final Response response =
+                rootTarget().queryParam("expands", "plan,application").request().get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -242,7 +269,9 @@ public class ApiSubscriptionsResource_ListTest extends AbstractApiSubscriptionsR
             assertEquals(subscriptionEntity.getPlan(), subscription.getPlan().getId());
             assertNotNull(subscription.getPlan().getName());
             assertNotNull(subscription.getPlan().getDescription());
-            assertEquals(subscriptionEntity.getApplication(), subscription.getApplication().getId());
+            assertEquals(
+                    subscriptionEntity.getApplication(),
+                    subscription.getApplication().getId());
             assertNotNull(subscription.getApplication().getName());
             assertNotNull(subscription.getApplication().getDescription());
         }

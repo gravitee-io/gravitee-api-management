@@ -42,45 +42,45 @@ class FilterAdapterFieldResolverParityTest {
 
     // TODO(GMA-932): MESSAGE_SIZE / MESSAGE_COUNT / MESSAGE_ERROR_COUNT are allow-listed but not
     // resolvable by MessageFieldResolver — remove this exclusion once GMA-932 adds their cases.
-    private static final Set<Filter.Name> KNOWN_UNRESOLVABLE_MESSAGE_NAMES = Set.of(
-        Filter.Name.MESSAGE_SIZE,
-        Filter.Name.MESSAGE_COUNT,
-        Filter.Name.MESSAGE_ERROR_COUNT
-    );
+    private static final Set<Filter.Name> KNOWN_UNRESOLVABLE_MESSAGE_NAMES =
+            Set.of(Filter.Name.MESSAGE_SIZE, Filter.Name.MESSAGE_COUNT, Filter.Name.MESSAGE_ERROR_COUNT);
 
     @Test
     void should_resolve_every_filter_name_allow_listed_for_http() {
         assertThat(unresolvable(FilterAdapter.HTTP_FILTER_NAMES, HTTP_RESOLVER))
-            .as("HTTP_FILTER_NAMES entries not resolvable by HTTPFieldResolver (query would fail at ES adaptation)")
-            .isEmpty();
+                .as("HTTP_FILTER_NAMES entries not resolvable by HTTPFieldResolver (query would fail at ES adaptation)")
+                .isEmpty();
     }
 
     @Test
     void should_resolve_every_filter_name_allow_listed_for_edge() {
         assertThat(unresolvable(FilterAdapter.EDGE_FILTER_NAMES, HTTP_RESOLVER))
-            .as("EDGE_FILTER_NAMES entries not resolvable by HTTPFieldResolver (query would fail at ES adaptation)")
-            .isEmpty();
+                .as("EDGE_FILTER_NAMES entries not resolvable by HTTPFieldResolver (query would fail at ES adaptation)")
+                .isEmpty();
     }
 
     @Test
     void should_resolve_every_filter_name_allow_listed_for_message() {
         assertThat(unresolvable(FilterAdapter.ENRICHED_MESSAGE_FILTER_NAMES, MESSAGE_RESOLVER))
-            .as("ENRICHED_MESSAGE_FILTER_NAMES entries not resolvable by MessageFieldResolver (query would fail at ES adaptation)")
-            .isEqualTo(KNOWN_UNRESOLVABLE_MESSAGE_NAMES);
+                .as(
+                        "ENRICHED_MESSAGE_FILTER_NAMES entries not resolvable by MessageFieldResolver (query would fail at ES adaptation)")
+                .isEqualTo(KNOWN_UNRESOLVABLE_MESSAGE_NAMES);
     }
 
     @Test
     void should_resolve_every_filter_name_allow_listed_for_native() {
         assertThat(unresolvable(FilterAdapter.NATIVE_FILTER_NAMES, NATIVE_RESOLVER))
-            .as("NATIVE_FILTER_NAMES entries not resolvable by NativeApiFieldResolver (query would fail at ES adaptation)")
-            .isEmpty();
+                .as(
+                        "NATIVE_FILTER_NAMES entries not resolvable by NativeApiFieldResolver (query would fail at ES adaptation)")
+                .isEmpty();
     }
 
     @Test
     void should_resolve_every_filter_name_allow_listed_for_authz() {
         assertThat(unresolvable(FilterAdapter.AUTHZ_FILTER_NAMES, AUTHZ_RESOLVER))
-            .as("AUTHZ_FILTER_NAMES entries not resolvable by AuthzFieldResolver (query would fail at ES adaptation)")
-            .isEmpty();
+                .as(
+                        "AUTHZ_FILTER_NAMES entries not resolvable by AuthzFieldResolver (query would fail at ES adaptation)")
+                .isEmpty();
     }
 
     @Test
@@ -90,46 +90,41 @@ class FilterAdapterFieldResolverParityTest {
         allowListed.addAll(FilterAdapter.EDGE_FILTER_NAMES);
 
         var resolvableButNotAllowListed = Arrays.stream(Filter.Name.values())
-            .filter(name -> resolves(HTTP_RESOLVER, name))
-            .filter(name -> !allowListed.contains(name))
-            .toList();
+                .filter(name -> resolves(HTTP_RESOLVER, name))
+                .filter(name -> !allowListed.contains(name))
+                .toList();
 
         assertThat(resolvableButNotAllowListed)
-            .as(
-                "Filter names resolvable by HTTPFieldResolver but absent from HTTP_FILTER_NAMES and EDGE_FILTER_NAMES: " +
-                    "these filters are accepted by the API yet silently dropped from the ES query"
-            )
-            .isEmpty();
+                .as(
+                        "Filter names resolvable by HTTPFieldResolver but absent from HTTP_FILTER_NAMES and EDGE_FILTER_NAMES: "
+                                + "these filters are accepted by the API yet silently dropped from the ES query")
+                .isEmpty();
     }
 
     @Test
     void should_allow_list_every_filter_name_resolvable_by_native_field_resolver() {
         var resolvableButNotAllowListed = Arrays.stream(Filter.Name.values())
-            .filter(name -> resolves(NATIVE_RESOLVER, name))
-            .filter(name -> !FilterAdapter.NATIVE_FILTER_NAMES.contains(name))
-            .toList();
+                .filter(name -> resolves(NATIVE_RESOLVER, name))
+                .filter(name -> !FilterAdapter.NATIVE_FILTER_NAMES.contains(name))
+                .toList();
 
         assertThat(resolvableButNotAllowListed)
-            .as(
-                "Filter names resolvable by NativeApiFieldResolver but absent from NATIVE_FILTER_NAMES: " +
-                    "these filters are accepted by the API yet silently dropped from the ES query"
-            )
-            .isEmpty();
+                .as("Filter names resolvable by NativeApiFieldResolver but absent from NATIVE_FILTER_NAMES: "
+                        + "these filters are accepted by the API yet silently dropped from the ES query")
+                .isEmpty();
     }
 
     @Test
     void should_allow_list_every_filter_name_resolvable_by_authz_field_resolver() {
         var resolvableButNotAllowListed = Arrays.stream(Filter.Name.values())
-            .filter(name -> resolves(AUTHZ_RESOLVER, name))
-            .filter(name -> !FilterAdapter.AUTHZ_FILTER_NAMES.contains(name))
-            .toList();
+                .filter(name -> resolves(AUTHZ_RESOLVER, name))
+                .filter(name -> !FilterAdapter.AUTHZ_FILTER_NAMES.contains(name))
+                .toList();
 
         assertThat(resolvableButNotAllowListed)
-            .as(
-                "Filter names resolvable by AuthzFieldResolver but absent from AUTHZ_FILTER_NAMES: " +
-                    "these filters are accepted by the API yet silently dropped from the ES query"
-            )
-            .isEmpty();
+                .as("Filter names resolvable by AuthzFieldResolver but absent from AUTHZ_FILTER_NAMES: "
+                        + "these filters are accepted by the API yet silently dropped from the ES query")
+                .isEmpty();
     }
 
     private static Set<Filter.Name> unresolvable(List<Filter.Name> allowList, FieldResolver resolver) {
@@ -153,13 +148,12 @@ class FilterAdapterFieldResolverParityTest {
             // Any other exception means the resolver is broken for this name rather than cleanly
             // rejecting it — surface which resolver/name so the parity failure stays actionable.
             throw new AssertionError(
-                "%s threw %s for filter '%s' — resolvers must map a name or reject it with UnsupportedOperationException".formatted(
-                    resolver.getClass().getSimpleName(),
-                    e.getClass().getSimpleName(),
-                    name
-                ),
-                e
-            );
+                    "%s threw %s for filter '%s' — resolvers must map a name or reject it with UnsupportedOperationException"
+                            .formatted(
+                                    resolver.getClass().getSimpleName(),
+                                    e.getClass().getSimpleName(),
+                                    name),
+                    e);
         }
     }
 }

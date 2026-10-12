@@ -50,22 +50,31 @@ class SearchApplicationConnectionLogsUseCaseTest {
     private static final String APPLICATION_ID = "app1";
     private static final String ORG_ID = "my-org";
     private static final String ENV_ID = "my-env";
-    private static final Plan PLAN_1 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan1").name("1st plan").build();
-    private static final Plan PLAN_2 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan2").name("2nd plan").build();
+    private static final Plan PLAN_1 =
+            PlanFixtures.aPlanHttpV4().toBuilder().id("plan1").name("1st plan").build();
+    private static final Plan PLAN_2 =
+            PlanFixtures.aPlanHttpV4().toBuilder().id("plan2").name("2nd plan").build();
     private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity.builder()
-        .id(APPLICATION_ID)
-        .name("an application name")
-        .build();
+            .id(APPLICATION_ID)
+            .name("an application name")
+            .build();
 
-    private static final Api API_1 = Api.builder().id("api-1").name("api-name").version("1.1").build();
-    private static final Api API_2 = Api.builder().id("api-2").name("api-name-2").version("2.2").build();
+    private static final Api API_1 =
+            Api.builder().id("api-1").name("api-name").version("1.1").build();
+    private static final Api API_2 =
+            Api.builder().id("api-2").name("api-name-2").version("2.2").build();
 
-    private static final Long FIRST_FEBRUARY_2020 = Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli();
-    private static final Long SECOND_FEBRUARY_2020 = Instant.parse("2020-02-02T23:59:59.00Z").toEpochMilli();
-    private static final Long FOURTH_FEBRUARY_2020 = Instant.parse("2020-02-04T00:01:00.00Z").toEpochMilli();
-    private static final Long FIFTH_FEBRUARY_2020 = Instant.parse("2020-02-05T00:01:00.00Z").toEpochMilli();
+    private static final Long FIRST_FEBRUARY_2020 =
+            Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli();
+    private static final Long SECOND_FEBRUARY_2020 =
+            Instant.parse("2020-02-02T23:59:59.00Z").toEpochMilli();
+    private static final Long FOURTH_FEBRUARY_2020 =
+            Instant.parse("2020-02-04T00:01:00.00Z").toEpochMilli();
+    private static final Long FIFTH_FEBRUARY_2020 =
+            Instant.parse("2020-02-05T00:01:00.00Z").toEpochMilli();
 
-    ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API_1.getId(), APPLICATION_ID, PLAN_1.getId());
+    ConnectionLogFixtures connectionLogFixtures =
+            new ConnectionLogFixtures(API_1.getId(), APPLICATION_ID, PLAN_1.getId());
 
     ConnectionLogsCrudServiceInMemory logStorageService = new ConnectionLogsCrudServiceInMemory();
     PlanCrudServiceInMemory planStorageService = new PlanCrudServiceInMemory();
@@ -77,11 +86,7 @@ class SearchApplicationConnectionLogsUseCaseTest {
     @BeforeEach
     void setUp() {
         cut = new SearchApplicationConnectionLogsUseCase(
-            logStorageService,
-            applicationStorageService,
-            planStorageService,
-            apiCrudServiceInMemory
-        );
+                logStorageService, applicationStorageService, planStorageService, apiCrudServiceInMemory);
 
         planStorageService.initWith(List.of(PLAN_1, PLAN_2));
         applicationStorageService.initWith(List.of(APPLICATION_1));
@@ -90,43 +95,36 @@ class SearchApplicationConnectionLogsUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(logStorageService, planStorageService, applicationStorageService).forEach(InMemoryAlternative::reset);
+        Stream.of(logStorageService, planStorageService, applicationStorageService)
+                .forEach(InMemoryAlternative::reset);
 
         GraviteeContext.cleanContext();
     }
 
     @Test
     void should_return_connection_logs_of_an_application() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
+        logStorageService.initWithConnectionLogs(List.of(
                 connectionLogFixtures.aConnectionLog("req1"),
-                connectionLogFixtures
-                    .aConnectionLog()
-                    .toBuilder()
-                    .apiId("other-api")
-                    .planId("other-plan")
-                    .applicationId("other-application")
-                    .build()
-            )
-        );
+                connectionLogFixtures.aConnectionLog().toBuilder()
+                        .apiId("other-api")
+                        .planId("other-plan")
+                        .applicationId("other-application")
+                        .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
-                SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build(),
-                Optional.empty()
-            )
-        );
+                SearchLogsFilters.builder()
+                        .from(FIRST_FEBRUARY_2020)
+                        .to(SECOND_FEBRUARY_2020)
+                        .build(),
+                Optional.empty()));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
-            soft
-                .assertThat(result.data())
-                .isEqualTo(
-                    List.of(
-                        ConnectionLog.builder()
+            soft.assertThat(result.data())
+                    .isEqualTo(List.of(ConnectionLog.builder()
                             .requestId("req1")
                             .apiId(API_ID)
                             .api(API_1)
@@ -139,41 +137,40 @@ class SearchApplicationConnectionLogsUseCaseTest {
                             .clientIdentifier("client-identifier")
                             .transactionId("transaction-id")
                             .status(200)
-                            .build()
-                    )
-                );
+                            .build()));
         });
     }
 
     @Test
     void should_return_application_connection_logs_sorted_by_desc_timestamp() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
-            )
-        );
+        logStorageService.initWithConnectionLogs(List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                        .timestamp("2020-02-01T20:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                        .timestamp("2020-02-02T20:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                        .timestamp("2020-02-04T20:00:00.00Z")
+                        .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
-                SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(FIFTH_FEBRUARY_2020).build()
-            )
-        );
+                SearchLogsFilters.builder()
+                        .from(FIRST_FEBRUARY_2020)
+                        .to(FIFTH_FEBRUARY_2020)
+                        .build()));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
-            soft
-                .assertThat(result.data())
-                .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
-                .containsExactly(
-                    tuple("req3", "2020-02-04T20:00:00.00Z"),
-                    tuple("req2", "2020-02-02T20:00:00.00Z"),
-                    tuple("req1", "2020-02-01T20:00:00.00Z")
-                );
+            soft.assertThat(result.data())
+                    .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
+                    .containsExactly(
+                            tuple("req3", "2020-02-04T20:00:00.00Z"),
+                            tuple("req2", "2020-02-02T20:00:00.00Z"),
+                            tuple("req1", "2020-02-01T20:00:00.00Z"));
         });
     }
 
@@ -182,25 +179,25 @@ class SearchApplicationConnectionLogsUseCaseTest {
         var expectedTotal = 15;
         var pageNumber = 2;
         var pageSize = 5;
-        logStorageService.initWithConnectionLogs(
-            IntStream.range(0, expectedTotal)
+        logStorageService.initWithConnectionLogs(IntStream.range(0, expectedTotal)
                 .mapToObj(i -> connectionLogFixtures.aConnectionLog(String.valueOf(i)))
-                .toList()
-        );
+                .toList());
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
-                SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build(),
-                new PageableImpl(pageNumber, pageSize)
-            )
-        );
+                SearchLogsFilters.builder()
+                        .from(FIRST_FEBRUARY_2020)
+                        .to(SECOND_FEBRUARY_2020)
+                        .build(),
+                new PageableImpl(pageNumber, pageSize)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);
-            soft.assertThat(result.data()).extracting(ConnectionLog::getRequestId).containsExactly("5", "6", "7", "8", "9");
+            soft.assertThat(result.data())
+                    .extracting(ConnectionLog::getRequestId)
+                    .containsExactly("5", "6", "7", "8", "9");
         });
     }
 
@@ -208,247 +205,288 @@ class SearchApplicationConnectionLogsUseCaseTest {
     void should_return_application_connection_logs_with_only_plan_id_if_plan_cannot_be_found() {
         var unknownPlan = "unknown";
 
-        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(unknownPlan).build()));
+        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog().toBuilder()
+                .planId(unknownPlan)
+                .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
-                SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build()
-            )
-        );
-        assertThat(result.data()).extracting(ConnectionLog::getPlan).isEqualTo(List.of(Plan.builder().id("1").build()));
+                SearchLogsFilters.builder()
+                        .from(FIRST_FEBRUARY_2020)
+                        .to(SECOND_FEBRUARY_2020)
+                        .build()));
+        assertThat(result.data())
+                .extracting(ConnectionLog::getPlan)
+                .isEqualTo(List.of(Plan.builder().id("1").build()));
     }
 
     @Test
     void should_return_application_connection_logs_with_only_available_info() {
-        logStorageService.initWithConnectionLogs(
-            List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(null).clientIdentifier(null).build())
-        );
+        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog().toBuilder()
+                .planId(null)
+                .clientIdentifier(null)
+                .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
-                SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build()
-            )
-        );
-        assertThat(result.data()).extracting(ConnectionLog::getPlan).isEqualTo(List.of(Plan.builder().id("1").build()));
+                SearchLogsFilters.builder()
+                        .from(FIRST_FEBRUARY_2020)
+                        .to(SECOND_FEBRUARY_2020)
+                        .build()));
+        assertThat(result.data())
+                .extracting(ConnectionLog::getPlan)
+                .isEqualTo(List.of(Plan.builder().id("1").build()));
     }
 
     @Test
     void should_return_application_connection_logs_with_only_api_id_if_application_cannot_be_found() {
         var unknownApi = "unknown";
 
-        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog().toBuilder().apiId(unknownApi).build()));
+        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog().toBuilder()
+                .apiId(unknownApi)
+                .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
-                SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build()
-            )
-        );
-        assertThat(result.data()).extracting(ConnectionLog::getApi).isEqualTo(List.of(Api.builder().id("1").build()));
+                SearchLogsFilters.builder()
+                        .from(FIRST_FEBRUARY_2020)
+                        .to(SECOND_FEBRUARY_2020)
+                        .build()));
+        assertThat(result.data())
+                .extracting(ConnectionLog::getApi)
+                .isEqualTo(List.of(Api.builder().id("1").build()));
     }
 
     @Test
     void should_return_application_connection_logs_for_apis() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req1").apiId("api-1").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req2").apiId("api-1").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req3").apiId("api-2").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req4").apiId("already-deleted").build()
-            )
-        );
+        logStorageService.initWithConnectionLogs(List.of(
+                connectionLogFixtures.aConnectionLog().toBuilder()
+                        .requestId("req1")
+                        .apiId("api-1")
+                        .build(),
+                connectionLogFixtures.aConnectionLog().toBuilder()
+                        .requestId("req2")
+                        .apiId("api-1")
+                        .build(),
+                connectionLogFixtures.aConnectionLog().toBuilder()
+                        .requestId("req3")
+                        .apiId("api-2")
+                        .build(),
+                connectionLogFixtures.aConnectionLog().toBuilder()
+                        .requestId("req4")
+                        .apiId("already-deleted")
+                        .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
-                SearchLogsFilters.builder().apiIds(Set.of("api-1", "api-2")).build()
-            )
-        );
+                SearchLogsFilters.builder().apiIds(Set.of("api-1", "api-2")).build()));
         assertThat(result.data())
-            .extracting(ConnectionLog::getRequestId, ConnectionLog::getApi)
-            .containsExactlyInAnyOrder(tuple("req1", API_1), tuple("req2", API_1), tuple("req3", API_2));
+                .extracting(ConnectionLog::getRequestId, ConnectionLog::getApi)
+                .containsExactlyInAnyOrder(tuple("req1", API_1), tuple("req2", API_1), tuple("req3", API_2));
     }
 
     @Test
     void should_return_application_connection_logs_for_plans() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req1").planId("plan1").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req2").planId("plan1").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req3").planId("plan2").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req4").planId("plan3").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req5").planId("plan3").build()
-            )
-        );
+        logStorageService.initWithConnectionLogs(List.of(
+                connectionLogFixtures.aConnectionLog().toBuilder()
+                        .requestId("req1")
+                        .planId("plan1")
+                        .build(),
+                connectionLogFixtures.aConnectionLog().toBuilder()
+                        .requestId("req2")
+                        .planId("plan1")
+                        .build(),
+                connectionLogFixtures.aConnectionLog().toBuilder()
+                        .requestId("req3")
+                        .planId("plan2")
+                        .build(),
+                connectionLogFixtures.aConnectionLog().toBuilder()
+                        .requestId("req4")
+                        .planId("plan3")
+                        .build(),
+                connectionLogFixtures.aConnectionLog().toBuilder()
+                        .requestId("req5")
+                        .planId("plan3")
+                        .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
-                SearchLogsFilters.builder().planIds(Set.of("plan1", "plan2")).build()
-            )
-        );
+                SearchLogsFilters.builder().planIds(Set.of("plan1", "plan2")).build()));
         assertThat(result.data())
-            .extracting(ConnectionLog::getRequestId, ConnectionLog::getPlan)
-            .containsExactlyInAnyOrder(tuple("req1", PLAN_1), tuple("req2", PLAN_1), tuple("req3", PLAN_2));
+                .extracting(ConnectionLog::getRequestId, ConnectionLog::getPlan)
+                .containsExactlyInAnyOrder(tuple("req1", PLAN_1), tuple("req2", PLAN_1), tuple("req3", PLAN_2));
     }
 
     @Test
     void should_return_application_connection_logs_filtered_by_timestamp_date_range() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
-            )
-        );
+        logStorageService.initWithConnectionLogs(List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                        .timestamp("2020-02-01T20:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                        .timestamp("2020-02-02T20:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                        .timestamp("2020-02-04T20:00:00.00Z")
+                        .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
-                SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(FOURTH_FEBRUARY_2020).build(),
-                Optional.empty()
-            )
-        );
+                SearchLogsFilters.builder()
+                        .from(FIRST_FEBRUARY_2020)
+                        .to(FOURTH_FEBRUARY_2020)
+                        .build(),
+                Optional.empty()));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(2);
-            soft
-                .assertThat(result.data())
-                .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
-                .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
+            soft.assertThat(result.data())
+                    .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
+                    .containsExactly(
+                            tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
         });
     }
 
     @Test
     void should_return_application_connection_logs_from_timestamp() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
-            )
-        );
+        logStorageService.initWithConnectionLogs(List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                        .timestamp("2020-02-01T20:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                        .timestamp("2020-02-02T20:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                        .timestamp("2020-02-04T20:00:00.00Z")
+                        .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
                 SearchLogsFilters.builder().from(FOURTH_FEBRUARY_2020).build(),
-                Optional.empty()
-            )
-        );
+                Optional.empty()));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
-            soft
-                .assertThat(result.data())
-                .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
-                .containsExactly(tuple("req3", "2020-02-04T20:00:00.00Z"));
+            soft.assertThat(result.data())
+                    .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
+                    .containsExactly(tuple("req3", "2020-02-04T20:00:00.00Z"));
         });
     }
 
     @Test
     void should_return_application_connection_logs_to_timestamp() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
-            )
-        );
+        logStorageService.initWithConnectionLogs(List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                        .timestamp("2020-02-01T20:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                        .timestamp("2020-02-02T20:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                        .timestamp("2020-02-04T20:00:00.00Z")
+                        .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
                 SearchLogsFilters.builder().to(FOURTH_FEBRUARY_2020).build(),
-                Optional.empty()
-            )
-        );
+                Optional.empty()));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(2);
-            soft
-                .assertThat(result.data())
-                .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
-                .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
+            soft.assertThat(result.data())
+                    .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
+                    .containsExactly(
+                            tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
         });
     }
 
     @Test
     void should_return_application_connection_logs_for_entrypoint() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().entrypointId("http-get").build(),
-                connectionLogFixtures.aConnectionLog("req2").toBuilder().entrypointId("http-post").build()
-            )
-        );
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        logStorageService.initWithConnectionLogs(List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                        .entrypointId("http-get")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                        .entrypointId("http-post")
+                        .build()));
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
                 SearchLogsFilters.builder().entrypointIds(Set.of("http-get")).build(),
-                Optional.empty()
-            )
-        );
+                Optional.empty()));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(1);
-            soft.assertThat(result.data()).extracting(ConnectionLog::getRequestId).containsExactly("req1");
+            soft.assertThat(result.data())
+                    .extracting(ConnectionLog::getRequestId)
+                    .containsExactly("req1");
         });
     }
 
     @Test
     void should_return_logs_with_metadata_with_api_and_plan_found() {
-        logStorageService.initWithConnectionLogs(
-            List.of(connectionLogFixtures.aConnectionLog().toBuilder().requestId("req1").apiId("api-1").planId("plan1").build())
-        );
+        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog().toBuilder()
+                .requestId("req1")
+                .apiId("api-1")
+                .planId("plan1")
+                .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
                 APPLICATION_ID,
                 ORG_ID,
                 ENV_ID,
-                SearchLogsFilters.builder().apiIds(Set.of("api-1")).planIds(Set.of("plan1")).build()
-            )
-        );
+                SearchLogsFilters.builder()
+                        .apiIds(Set.of("api-1"))
+                        .planIds(Set.of("plan1"))
+                        .build()));
         assertThat(result.data())
-            .extracting(ConnectionLog::getRequestId, ConnectionLog::getApi, ConnectionLog::getPlan, ConnectionLog::getApplication)
-            .containsExactlyInAnyOrder(tuple("req1", API_1, PLAN_1, APPLICATION_1));
+                .extracting(
+                        ConnectionLog::getRequestId,
+                        ConnectionLog::getApi,
+                        ConnectionLog::getPlan,
+                        ConnectionLog::getApplication)
+                .containsExactlyInAnyOrder(tuple("req1", API_1, PLAN_1, APPLICATION_1));
     }
 
     @Test
     void should_return_logs_with_metadata_with_api_and_plan_not_found() {
         String apiNotFoundId = "not-found";
         String planNotFoundId = "missing";
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req1").apiId(apiNotFoundId).planId(planNotFoundId).build()
-            )
-        );
+        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog().toBuilder()
+                .requestId("req1")
+                .apiId(apiNotFoundId)
+                .planId(planNotFoundId)
+                .build()));
 
-        var result = cut.execute(
-            new SearchApplicationConnectionLogsUseCase.Input(APPLICATION_ID, ORG_ID, ENV_ID, SearchLogsFilters.builder().build())
-        );
+        var result = cut.execute(new SearchApplicationConnectionLogsUseCase.Input(
+                APPLICATION_ID, ORG_ID, ENV_ID, SearchLogsFilters.builder().build()));
         assertThat(result.data())
-            .extracting(ConnectionLog::getRequestId, ConnectionLog::getApi, ConnectionLog::getPlan, ConnectionLog::getApplication)
-            .containsExactlyInAnyOrder(tuple("req1", Api.builder().id("1").build(), Plan.builder().id("1").build(), APPLICATION_1));
+                .extracting(
+                        ConnectionLog::getRequestId,
+                        ConnectionLog::getApi,
+                        ConnectionLog::getPlan,
+                        ConnectionLog::getApplication)
+                .containsExactlyInAnyOrder(tuple(
+                        "req1",
+                        Api.builder().id("1").build(),
+                        Plan.builder().id("1").build(),
+                        APPLICATION_1));
     }
 }

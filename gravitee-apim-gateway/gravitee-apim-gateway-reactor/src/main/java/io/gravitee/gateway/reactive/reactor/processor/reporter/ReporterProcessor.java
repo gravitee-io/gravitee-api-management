@@ -68,57 +68,58 @@ public class ReporterProcessor implements Processor {
     @Override
     public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
-            Metrics metrics = ctx.metrics();
-            if (metrics != null && metrics.isEnabled()) {
-                metrics.setRequestEnded(true);
-                setEntrypointId(ctx, metrics);
-                setQuota(ctx, metrics);
+                    Metrics metrics = ctx.metrics();
+                    if (metrics != null && metrics.isEnabled()) {
+                        metrics.setRequestEnded(true);
+                        setEntrypointId(ctx, metrics);
+                        setQuota(ctx, metrics);
 
-                executeReportActions(metrics);
+                        executeReportActions(metrics);
 
-                // Translate error key and error message to Diagnostic failure if needed
-                translateErrorToDiagnosticFailure(metrics);
+                        // Translate error key and error message to Diagnostic failure if needed
+                        translateErrorToDiagnosticFailure(metrics);
 
-                ReactableApi<?> reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
-                if (reactableApi != null) {
-                    DefinitionVersion definitionVersion = reactableApi.getDefinitionVersion();
-                    if (definitionVersion == DefinitionVersion.V2) {
-                        // We are executing a v2 api with v4 emulation engine
-                        io.gravitee.reporter.api.http.Metrics metricsV2 = metrics.toV2();
-                        reporterService.report(metricsV2);
-                        if (metricsV2.getLog() != null) {
-                            metricsV2.getLog().setApi(metricsV2.getApi());
-                            metricsV2.getLog().setApiName(metricsV2.getApiName());
-                            reporterService.report(metricsV2.getLog());
+                        ReactableApi<?> reactableApi =
+                                ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
+                        if (reactableApi != null) {
+                            DefinitionVersion definitionVersion = reactableApi.getDefinitionVersion();
+                            if (definitionVersion == DefinitionVersion.V2) {
+                                // We are executing a v2 api with v4 emulation engine
+                                io.gravitee.reporter.api.http.Metrics metricsV2 = metrics.toV2();
+                                reporterService.report(metricsV2);
+                                if (metricsV2.getLog() != null) {
+                                    metricsV2.getLog().setApi(metricsV2.getApi());
+                                    metricsV2.getLog().setApiName(metricsV2.getApiName());
+                                    reporterService.report(metricsV2.getLog());
+                                }
+                            } else if (definitionVersion == DefinitionVersion.V4) {
+                                reporterService.report(metrics);
+                                Log log = metrics.getLog();
+                                if (log != null) {
+                                    log.setApiId(metrics.getApiId());
+                                    log.setApiName(metrics.getApiName());
+                                    log.setApiProductId(metrics.getApiProductId());
+                                    log.setRequestEnded(metrics.isRequestEnded());
+                                    log.setApplicationId(metrics.getApplicationId());
+                                    log.setApplicationName(metrics.getApplicationName());
+                                    log.setPlanId(metrics.getPlanId());
+                                    log.setSubscriptionId(metrics.getSubscriptionId());
+                                    log.setErrorKey(metrics.getErrorKey());
+                                    log.setErrorMessage(metrics.getErrorMessage());
+                                    reporterService.report(log);
+                                }
+                            } else {
+                                // Version unsupported only report metrics
+                                reporterService.report(metrics);
+                            }
+                        } else {
+                            // No api found report only metrics
+                            reporterService.report(metrics);
                         }
-                    } else if (definitionVersion == DefinitionVersion.V4) {
-                        reporterService.report(metrics);
-                        Log log = metrics.getLog();
-                        if (log != null) {
-                            log.setApiId(metrics.getApiId());
-                            log.setApiName(metrics.getApiName());
-                            log.setApiProductId(metrics.getApiProductId());
-                            log.setRequestEnded(metrics.isRequestEnded());
-                            log.setApplicationId(metrics.getApplicationId());
-                            log.setApplicationName(metrics.getApplicationName());
-                            log.setPlanId(metrics.getPlanId());
-                            log.setSubscriptionId(metrics.getSubscriptionId());
-                            log.setErrorKey(metrics.getErrorKey());
-                            log.setErrorMessage(metrics.getErrorMessage());
-                            reporterService.report(log);
-                        }
-                    } else {
-                        // Version unsupported only report metrics
-                        reporterService.report(metrics);
                     }
-                } else {
-                    // No api found report only metrics
-                    reporterService.report(metrics);
-                }
-            }
-        })
-            .doOnError(throwable -> ctx.withLogger(log).error("An error occurs while reporting metrics", throwable))
-            .onErrorComplete();
+                })
+                .doOnError(throwable -> ctx.withLogger(log).error("An error occurs while reporting metrics", throwable))
+                .onErrorComplete();
     }
 
     /**
@@ -129,12 +130,14 @@ public class ReporterProcessor implements Processor {
      * that (endpoint resolution, the connector's own response handling).
      */
     private static void setEntrypointId(HttpExecutionContextInternal ctx, Metrics metrics) {
-        final Connector connector = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+        final Connector connector =
+                ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
         if (connector != null) {
             metrics.setEntrypointId(connector.id());
             return;
         }
-        final DefaultEntrypointConnectorResolver resolver = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER);
+        final DefaultEntrypointConnectorResolver resolver =
+                ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER);
         if (resolver == null) {
             return;
         }
@@ -145,9 +148,12 @@ public class ReporterProcessor implements Processor {
             }
         } catch (Exception e) {
             // Connector matching is plugin code; a failure here must not cost the whole report.
-            ctx
-                .withLogger(log)
-                .warn("Unable to attribute request [{}] of api [{}] to an entrypoint", metrics.getRequestId(), metrics.getApiId(), e);
+            ctx.withLogger(log)
+                    .warn(
+                            "Unable to attribute request [{}] of api [{}] to an entrypoint",
+                            metrics.getRequestId(),
+                            metrics.getApiId(),
+                            e);
         }
     }
 
@@ -202,17 +208,15 @@ public class ReporterProcessor implements Processor {
                 // metrics.endpoint is set as soon as the connector attempts the request, so its presence alone does
                 // not mean the backend caused the failure (e.g. a client abort mid-response).
                 String endpoint = metrics.getEndpoint();
-                boolean endpointFailure =
-                    errorKey != null && errorKey.startsWith(GATEWAY_CLIENT_ERROR_KEY_PREFIX) && endpoint != null && !endpoint.isBlank();
+                boolean endpointFailure = errorKey != null
+                        && errorKey.startsWith(GATEWAY_CLIENT_ERROR_KEY_PREFIX)
+                        && endpoint != null
+                        && !endpoint.isBlank();
                 String componentType = endpointFailure ? ComponentType.ENDPOINT.name() : UNKNOWN_COMPONENT;
                 String componentName = endpointFailure ? endpoint : UNKNOWN_COMPONENT;
 
                 Diagnostic failure = new Diagnostic(
-                    errorKey != null ? errorKey : "internal_error",
-                    errorMessage,
-                    componentType,
-                    componentName
-                );
+                        errorKey != null ? errorKey : "internal_error", errorMessage, componentType, componentName);
 
                 metrics.setFailure(failure);
             }

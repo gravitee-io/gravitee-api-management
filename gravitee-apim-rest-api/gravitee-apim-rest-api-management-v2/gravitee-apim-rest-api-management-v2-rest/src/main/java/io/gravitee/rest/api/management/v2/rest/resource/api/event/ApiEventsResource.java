@@ -55,49 +55,56 @@ public class ApiEventsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = { RolePermissionAction.READ }) })
-    public EventsResponse getApiEvents(@BeanParam @Valid PaginationParam paginationParam, @BeanParam @Valid SearchApiEventsParam params) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_EVENT,
+                acls = {RolePermissionAction.READ})
+    })
+    public EventsResponse getApiEvents(
+            @BeanParam @Valid PaginationParam paginationParam, @BeanParam @Valid SearchApiEventsParam params) {
         var input = buildInput(paginationParam, params);
 
         var output = searchEventsUseCase.execute(input);
 
         return new EventsResponse()
-            .data(ApiEventMapper.INSTANCE.map(output.data()))
-            .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
-            .links(computePaginationLinks(output.total(), paginationParam));
+                .data(ApiEventMapper.INSTANCE.map(output.data()))
+                .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
+                .links(computePaginationLinks(output.total(), paginationParam));
     }
 
     private SearchEventsUseCase.Input buildInput(PaginationParam paginationParam, SearchApiEventsParam params) {
         var executionContext = GraviteeContext.getExecutionContext();
         var query = new EventQueryService.SearchQuery(
-            executionContext.getEnvironmentId(),
-            Optional.empty(),
-            Optional.of(apiId),
-            params.getTypes() != null
-                ? params
-                    .getTypes()
-                    .stream()
-                    .map(s -> EventType.valueOf(s.toUpperCase()))
-                    .toList()
-                : List.of(),
-            Map.of(),
-            Optional.ofNullable(params.getFrom()),
-            Optional.ofNullable(params.getTo())
-        );
-        return new SearchEventsUseCase.Input(query, new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()));
+                executionContext.getEnvironmentId(),
+                Optional.empty(),
+                Optional.of(apiId),
+                params.getTypes() != null
+                        ? params.getTypes().stream()
+                                .map(s -> EventType.valueOf(s.toUpperCase()))
+                                .toList()
+                        : List.of(),
+                Map.of(),
+                Optional.ofNullable(params.getFrom()),
+                Optional.ofNullable(params.getTo()));
+        return new SearchEventsUseCase.Input(
+                query, new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()));
     }
 
     @Path("/{eventId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_EVENT,
+                acls = {RolePermissionAction.READ})
+    })
     public Event getApiEvent(@PathParam("eventId") @NotBlank String eventId) {
         var input = new SearchApiEventUseCase.Input(eventId, GraviteeContext.getCurrentEnvironment(), apiId);
 
         return searchApiEventUseCase
-            .execute(input)
-            .apiEvent()
-            .map(ApiEventMapper.INSTANCE::map)
-            .orElseThrow(() -> new NotFoundException("Not API event with id: " + eventId + " found"));
+                .execute(input)
+                .apiEvent()
+                .map(ApiEventMapper.INSTANCE::map)
+                .orElseThrow(() -> new NotFoundException("Not API event with id: " + eventId + " found"));
     }
 }

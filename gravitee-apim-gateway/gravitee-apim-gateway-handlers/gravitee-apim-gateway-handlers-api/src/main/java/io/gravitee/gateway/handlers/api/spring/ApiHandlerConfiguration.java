@@ -94,13 +94,13 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public ApiManager apiManager(
-        EventManager eventManager,
-        GatewayConfiguration gatewayConfiguration,
-        LicenseManager licenseManager,
-        DataEncryptor dataEncryptor,
-        @Autowired(required = false) ApiProductRegistry apiProductRegistry
-    ) {
-        return new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, apiProductRegistry);
+            EventManager eventManager,
+            GatewayConfiguration gatewayConfiguration,
+            LicenseManager licenseManager,
+            DataEncryptor dataEncryptor,
+            @Autowired(required = false) ApiProductRegistry apiProductRegistry) {
+        return new ApiManagerImpl(
+                eventManager, gatewayConfiguration, licenseManager, dataEncryptor, apiProductRegistry);
     }
 
     @Bean
@@ -130,27 +130,23 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator(
-        final PolicyPluginFactory policyPluginFactory,
-        final OpenTelemetryConfiguration openTelemetryConfiguration
-    ) {
+            final PolicyPluginFactory policyPluginFactory,
+            final OpenTelemetryConfiguration openTelemetryConfiguration) {
         return new PolicyFactoryCreatorImpl(
-            policyPluginFactory,
-            new ExpressionLanguageStringConditionEvaluator(),
-            openTelemetryConfiguration.isTracesEnabled()
-        );
+                policyPluginFactory,
+                new ExpressionLanguageStringConditionEvaluator(),
+                openTelemetryConfiguration.isTracesEnabled());
     }
 
     @Bean
     public PolicyFactory policyFactory(
-        final PolicyPluginFactory policyPluginFactory,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration
-    ) {
+            final PolicyPluginFactory policyPluginFactory,
+            final RequestTimeoutConfiguration requestTimeoutConfiguration) {
         return new HttpPolicyFactory(
-            configuration,
-            policyPluginFactory,
-            new ExpressionLanguageConditionFilter<>(),
-            requestTimeoutConfiguration.getPolicyTimeoutMs()
-        );
+                configuration,
+                policyPluginFactory,
+                new ExpressionLanguageConditionFilter<>(),
+                requestTimeoutConfiguration.getPolicyTimeoutMs());
     }
 
     @Bean
@@ -176,55 +172,51 @@ public class ApiHandlerConfiguration {
     @Bean
     public io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory() {
         return new io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory(
-            new CompositeConditionFilter(
-                new HttpMethodConditionFilter(),
-                new PathBasedConditionFilter(),
-                new ExpressionLanguageConditionFilter<>()
-            ),
-            new BestMatchFlowSelector()
-        );
+                new CompositeConditionFilter(
+                        new HttpMethodConditionFilter(),
+                        new PathBasedConditionFilter(),
+                        new ExpressionLanguageConditionFilter<>()),
+                new BestMatchFlowSelector());
     }
 
     @Bean
     public ReactorFactory<Api> apiReactorFactory(
-        io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
-        PolicyFactoryManager policyFactoryManager,
-        OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
-        OrganizationManager organizationManager,
-        PolicyChainProviderLoader policyChainProviderLoader,
-        ApiProcessorChainFactory apiProcessorChainFactory,
-        io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        AccessPointManager accessPointManager,
-        EventManager eventManager,
-        HttpAcceptorFactory httpAcceptorFactory,
-        OpenTelemetryConfiguration openTelemetryConfiguration,
-        OpenTelemetryFactory openTelemetryFactory,
-        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
-        DictionaryManager dictionaryManager,
-        LogGuardService logGuardService
-    ) {
+            io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
+            PolicyFactoryManager policyFactoryManager,
+            OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
+            OrganizationManager organizationManager,
+            PolicyChainProviderLoader policyChainProviderLoader,
+            ApiProcessorChainFactory apiProcessorChainFactory,
+            io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            AccessPointManager accessPointManager,
+            EventManager eventManager,
+            HttpAcceptorFactory httpAcceptorFactory,
+            OpenTelemetryConfiguration openTelemetryConfiguration,
+            OpenTelemetryFactory openTelemetryFactory,
+            @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
+            DictionaryManager dictionaryManager,
+            LogGuardService logGuardService) {
         return new ApiReactorHandlerFactory(
-            applicationContext,
-            configuration,
-            node,
-            v3PolicyFactoryCreator,
-            policyFactoryManager,
-            organizationPolicyChainFactoryManager,
-            organizationManager,
-            policyChainProviderLoader,
-            apiProcessorChainFactory,
-            flowResolverFactory,
-            requestTimeoutConfiguration,
-            accessPointManager,
-            eventManager,
-            httpAcceptorFactory,
-            openTelemetryConfiguration,
-            openTelemetryFactory,
-            instrumenterTracerFactories,
-            dictionaryManager,
-            logGuardService
-        );
+                applicationContext,
+                configuration,
+                node,
+                v3PolicyFactoryCreator,
+                policyFactoryManager,
+                organizationPolicyChainFactoryManager,
+                organizationManager,
+                policyChainProviderLoader,
+                apiProcessorChainFactory,
+                flowResolverFactory,
+                requestTimeoutConfiguration,
+                accessPointManager,
+                eventManager,
+                httpAcceptorFactory,
+                openTelemetryConfiguration,
+                openTelemetryFactory,
+                instrumenterTracerFactories,
+                dictionaryManager,
+                logGuardService);
     }
 
     @Bean
@@ -239,19 +231,19 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public SubscriptionCacheService subscriptionService(
-        ApiKeyCacheService apiKeyService,
-        SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager,
-        ApiManager apiManager,
-        ApiProductRegistry apiProductRegistry
-    ) {
-        return new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager, apiProductRegistry);
+            ApiKeyCacheService apiKeyService,
+            SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager,
+            ApiManager apiManager,
+            ApiProductRegistry apiProductRegistry) {
+        return new SubscriptionCacheService(
+                apiKeyService, subscriptionTrustStoreLoaderManager, apiManager, apiProductRegistry);
     }
 
     @Bean
     public io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory(
-        final ReporterService reporterService
-    ) {
-        return new io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory(configuration, node, reporterService);
+            final ReporterService reporterService) {
+        return new io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory(
+                configuration, node, reporterService);
     }
 
     @Bean
@@ -261,72 +253,68 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public ReactorFactory<io.gravitee.gateway.reactive.handlers.api.v4.Api> defaultApiReactorFactory(
-        PolicyFactoryManager policyFactoryManager,
-        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        EndpointConnectorPluginManager endpointConnectorPluginManager,
-        ApiServicePluginManager apiServicePluginManager,
-        OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
-        OrganizationManager organizationManager,
-        io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        ReporterService reporterService,
-        AccessPointManager accessPointManager,
-        EventManager eventManager,
-        HttpAcceptorFactory httpAcceptorFactory,
-        OpenTelemetryConfiguration openTelemetryConfiguration,
-        OpenTelemetryFactory openTelemetryFactory,
-        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
-        GatewayConfiguration gatewayConfiguration,
-        DictionaryManager dictionaryManager,
-        LogGuardService logGuardService,
-        ConnectionDrainManager connectionDrainManager
-    ) {
+            PolicyFactoryManager policyFactoryManager,
+            EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+            EndpointConnectorPluginManager endpointConnectorPluginManager,
+            ApiServicePluginManager apiServicePluginManager,
+            OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
+            OrganizationManager organizationManager,
+            io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            ReporterService reporterService,
+            AccessPointManager accessPointManager,
+            EventManager eventManager,
+            HttpAcceptorFactory httpAcceptorFactory,
+            OpenTelemetryConfiguration openTelemetryConfiguration,
+            OpenTelemetryFactory openTelemetryFactory,
+            @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
+            GatewayConfiguration gatewayConfiguration,
+            DictionaryManager dictionaryManager,
+            LogGuardService logGuardService,
+            ConnectionDrainManager connectionDrainManager) {
         return new DefaultApiReactorFactory(
-            applicationContext,
-            configuration,
-            node,
-            policyFactoryManager,
-            entrypointConnectorPluginManager,
-            endpointConnectorPluginManager,
-            apiServicePluginManager,
-            organizationPolicyChainFactoryManager,
-            organizationManager,
-            flowResolverFactory,
-            requestTimeoutConfiguration,
-            reporterService,
-            accessPointManager,
-            eventManager,
-            httpAcceptorFactory,
-            openTelemetryConfiguration,
-            openTelemetryFactory,
-            instrumenterTracerFactories,
-            gatewayConfiguration,
-            dictionaryManager,
-            logGuardService,
-            connectionDrainManager
-        );
+                applicationContext,
+                configuration,
+                node,
+                policyFactoryManager,
+                entrypointConnectorPluginManager,
+                endpointConnectorPluginManager,
+                apiServicePluginManager,
+                organizationPolicyChainFactoryManager,
+                organizationManager,
+                flowResolverFactory,
+                requestTimeoutConfiguration,
+                reporterService,
+                accessPointManager,
+                eventManager,
+                httpAcceptorFactory,
+                openTelemetryConfiguration,
+                openTelemetryFactory,
+                instrumenterTracerFactories,
+                gatewayConfiguration,
+                dictionaryManager,
+                logGuardService,
+                connectionDrainManager);
     }
 
     @Bean
     ReactorFactory<io.gravitee.gateway.reactive.handlers.api.v4.Api> tcpApiReactorFactory(
-        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        EndpointConnectorPluginManager endpointConnectorPluginManager,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        OpenTelemetryConfiguration openTelemetryConfiguration,
-        OpenTelemetryFactory openTelemetryFactory,
-        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
-        GatewayConfiguration gatewayConfiguration
-    ) {
+            EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+            EndpointConnectorPluginManager endpointConnectorPluginManager,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            OpenTelemetryConfiguration openTelemetryConfiguration,
+            OpenTelemetryFactory openTelemetryFactory,
+            @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
+            GatewayConfiguration gatewayConfiguration) {
         return new TcpApiReactorFactory(
-            configuration,
-            node,
-            entrypointConnectorPluginManager,
-            endpointConnectorPluginManager,
-            requestTimeoutConfiguration,
-            openTelemetryConfiguration,
-            openTelemetryFactory,
-            instrumenterTracerFactories,
-            gatewayConfiguration
-        );
+                configuration,
+                node,
+                entrypointConnectorPluginManager,
+                endpointConnectorPluginManager,
+                requestTimeoutConfiguration,
+                openTelemetryConfiguration,
+                openTelemetryFactory,
+                instrumenterTracerFactories,
+                gatewayConfiguration);
     }
 }

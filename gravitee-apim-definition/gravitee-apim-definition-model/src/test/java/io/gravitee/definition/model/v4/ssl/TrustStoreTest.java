@@ -40,7 +40,12 @@ class TrustStoreTest {
 
     @Test
     void builder_should_init_jks_truststore() {
-        var trustStore = JKSTrustStore.builder().alias("alias").content("content").password("password").path("path").build();
+        var trustStore = JKSTrustStore.builder()
+                .alias("alias")
+                .content("content")
+                .password("password")
+                .path("path")
+                .build();
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(trustStore.getType()).isEqualTo(JKS);
@@ -53,7 +58,12 @@ class TrustStoreTest {
 
     @Test
     void builder_should_init_pkcs12_truststore() {
-        var trustStore = PKCS12TrustStore.builder().alias("alias").content("content").password("password").path("path").build();
+        var trustStore = PKCS12TrustStore.builder()
+                .alias("alias")
+                .content("content")
+                .password("password")
+                .path("path")
+                .build();
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(trustStore.getType()).isEqualTo(PKCS12);

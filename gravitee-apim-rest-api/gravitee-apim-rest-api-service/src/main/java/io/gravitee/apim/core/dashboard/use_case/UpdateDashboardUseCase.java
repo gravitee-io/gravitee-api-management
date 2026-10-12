@@ -47,16 +47,15 @@ public class UpdateDashboardUseCase {
 
     public Output execute(Input input) {
         var existing = dashboardDomainService
-            .findById(input.dashboardId())
-            .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
+                .findById(input.dashboardId())
+                .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
 
-        var updated = existing
-            .toBuilder()
-            .name(input.dashboard().getName())
-            .labels(input.dashboard().getLabels())
-            .widgets(input.dashboard().getWidgets())
-            .lastModified(ZonedDateTime.now(TimeProvider.clock()))
-            .build();
+        var updated = existing.toBuilder()
+                .name(input.dashboard().getName())
+                .labels(input.dashboard().getLabels())
+                .widgets(input.dashboard().getWidgets())
+                .lastModified(ZonedDateTime.now(TimeProvider.clock()))
+                .build();
 
         var saved = dashboardDomainService.update(updated);
 
@@ -66,8 +65,7 @@ public class UpdateDashboardUseCase {
     }
 
     private void createAuditLog(Dashboard oldDashboard, Dashboard newDashboard, AuditInfo auditInfo) {
-        auditService.createDashboardAuditLog(
-            DashboardAuditLogEntity.builder()
+        auditService.createDashboardAuditLog(DashboardAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(DashboardAuditEvent.DASHBOARD_UPDATED)
@@ -77,7 +75,6 @@ public class UpdateDashboardUseCase {
                 .newValue(newDashboard)
                 .createdAt(newDashboard.getLastModified())
                 .properties(Map.of(AuditProperties.DASHBOARD, newDashboard.getId()))
-                .build()
-        );
+                .build());
     }
 }

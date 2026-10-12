@@ -52,7 +52,12 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
     @Test
     public void shouldFindById() throws Exception {
         final Optional<ApiCategoryOrder> optionalCategory = apiCategoryOrderRepository.findById("api-2", "category-2");
-        assertThat(optionalCategory).contains(ApiCategoryOrder.builder().apiId("api-2").categoryId("category-2").order(0).build());
+        assertThat(optionalCategory)
+                .contains(ApiCategoryOrder.builder()
+                        .apiId("api-2")
+                        .categoryId("category-2")
+                        .order(0)
+                        .build());
     }
 
     @Test
@@ -63,22 +68,23 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
 
     @Test
     public void shouldCreate() throws Exception {
-        var apiCategoryOrder = ApiCategoryOrder.builder().apiId("api-3").categoryId("category-3").order(0).build();
+        var apiCategoryOrder = ApiCategoryOrder.builder()
+                .apiId("api-3")
+                .categoryId("category-3")
+                .order(0)
+                .build();
 
-        int nbApiCategoryOrdersBeforeCreation = apiCategoryOrderRepository.findAll().size();
+        int nbApiCategoryOrdersBeforeCreation =
+                apiCategoryOrderRepository.findAll().size();
         apiCategoryOrderRepository.create(apiCategoryOrder);
 
         var savedEntities = apiCategoryOrderRepository.findAll();
         Assertions.assertEquals(nbApiCategoryOrdersBeforeCreation + 1, savedEntities.size());
 
-        var optional = savedEntities
-            .stream()
-            .filter(
-                apiCategoryOrder1 ->
-                    Objects.equals(apiCategoryOrder.getApiId(), apiCategoryOrder1.getApiId()) &&
-                    Objects.equals(apiCategoryOrder.getCategoryId(), apiCategoryOrder1.getCategoryId())
-            )
-            .findFirst();
+        var optional = savedEntities.stream()
+                .filter(apiCategoryOrder1 -> Objects.equals(apiCategoryOrder.getApiId(), apiCategoryOrder1.getApiId())
+                        && Objects.equals(apiCategoryOrder.getCategoryId(), apiCategoryOrder1.getCategoryId()))
+                .findFirst();
         assertThat(optional).contains(apiCategoryOrder);
     }
 
@@ -86,13 +92,10 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
     public void shouldUpdate() throws Exception {
         var savedEntities = apiCategoryOrderRepository.findAll();
 
-        var optional = savedEntities
-            .stream()
-            .filter(
-                apiCategoryOrder1 ->
-                    Objects.equals("api-1", apiCategoryOrder1.getApiId()) && Objects.equals("category-1", apiCategoryOrder1.getCategoryId())
-            )
-            .findFirst();
+        var optional = savedEntities.stream()
+                .filter(apiCategoryOrder1 -> Objects.equals("api-1", apiCategoryOrder1.getApiId())
+                        && Objects.equals("category-1", apiCategoryOrder1.getCategoryId()))
+                .findFirst();
         assertThat(optional).isPresent();
 
         var apiCategoryOrder = optional.get();
@@ -104,19 +107,20 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
 
         Assertions.assertEquals(savedEntities.size(), updatedSavedEntities.size());
 
-        var savedOptional = savedEntities
-            .stream()
-            .filter(
-                apiCategoryOrder1 ->
-                    Objects.equals("api-1", apiCategoryOrder1.getApiId()) && Objects.equals("category-1", apiCategoryOrder1.getCategoryId())
-            )
-            .findFirst();
+        var savedOptional = savedEntities.stream()
+                .filter(apiCategoryOrder1 -> Objects.equals("api-1", apiCategoryOrder1.getApiId())
+                        && Objects.equals("category-1", apiCategoryOrder1.getCategoryId()))
+                .findFirst();
         assertThat(savedOptional).contains(apiCategoryOrder);
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        var apiCategoryOrder = ApiCategoryOrder.builder().apiId("api-4").categoryId("category-4").order(0).build();
+        var apiCategoryOrder = ApiCategoryOrder.builder()
+                .apiId("api-4")
+                .categoryId("category-4")
+                .order(0)
+                .build();
         apiCategoryOrderRepository.create(apiCategoryOrder);
         int nbBeforeDeletion = apiCategoryOrderRepository.findAll().size();
         apiCategoryOrderRepository.delete("api-4", List.of("category-4"));
@@ -126,14 +130,22 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
 
     @Test
     public void shouldDeleteWithEmptyCategoryList() throws Exception {
-        var apiCategoryOrder = ApiCategoryOrder.builder().apiId("api-4").categoryId("category-4").order(0).build();
+        var apiCategoryOrder = ApiCategoryOrder.builder()
+                .apiId("api-4")
+                .categoryId("category-4")
+                .order(0)
+                .build();
         apiCategoryOrderRepository.create(apiCategoryOrder);
         apiCategoryOrderRepository.delete("api-4", List.of());
     }
 
     @Test
     public void shouldNotUpdateUnknownApiCategoryOrder() {
-        var unknownCategory = ApiCategoryOrder.builder().categoryId("unknown").apiId("unknown").order(0).build();
+        var unknownCategory = ApiCategoryOrder.builder()
+                .categoryId("unknown")
+                .apiId("unknown")
+                .order(0)
+                .build();
         Exception exception = catchException(() -> apiCategoryOrderRepository.update(unknownCategory));
         assertThat(exception).isInstanceOf(IllegalStateException.class);
     }
@@ -146,7 +158,8 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
 
     @Test
     public void should_delete_by_api_id() throws Exception {
-        var nbBeforeDeletion = apiCategoryOrderRepository.findAllByApiId("api-2").size();
+        var nbBeforeDeletion =
+                apiCategoryOrderRepository.findAllByApiId("api-2").size();
         assertThat(nbBeforeDeletion).isEqualTo(2);
 
         List<String> deletedCategoryIds = apiCategoryOrderRepository.deleteByApiId("api-2");

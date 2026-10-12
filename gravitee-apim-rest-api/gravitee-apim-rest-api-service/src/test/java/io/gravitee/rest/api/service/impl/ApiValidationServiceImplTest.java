@@ -87,20 +87,22 @@ public class ApiValidationServiceImplTest {
 
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
 
-    private final InstallationAccessQueryService installationAccessQueryService = mock(InstallationAccessQueryService.class);
+    private final InstallationAccessQueryService installationAccessQueryService =
+            mock(InstallationAccessQueryService.class);
 
-    private final ApiHostValidatorDomainService apiHostValidatorDomainService = mock(ApiHostValidatorDomainService.class);
+    private final ApiHostValidatorDomainService apiHostValidatorDomainService =
+            mock(ApiHostValidatorDomainService.class);
 
     @Spy
     private VerifyApiPathDomainService pathValidator = new VerifyApiPathDomainService(
-        apiQueryService,
-        installationAccessQueryService,
-        apiHostValidatorDomainService,
-        new io.gravitee.apim.core.api.domain_service.ApiPathIndex()
-    );
+            apiQueryService,
+            installationAccessQueryService,
+            apiHostValidatorDomainService,
+            new io.gravitee.apim.core.api.domain_service.ApiPathIndex());
 
     @Spy
-    private ValidateCategoryIdsDomainService validateCategoryIdsDomainService = new ValidateCategoryIdsDomainService(categoryQueryService);
+    private ValidateCategoryIdsDomainService validateCategoryIdsDomainService =
+            new ValidateCategoryIdsDomainService(categoryQueryService);
 
     private final UserDomainServiceInMemory userDomainService = new UserDomainServiceInMemory();
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
@@ -109,10 +111,8 @@ public class ApiValidationServiceImplTest {
     private ValidatePagesDomainService pagesValidator;
 
     @Spy
-    private ValidateCRDMembersDomainService validateCRDMembersDomainService = new ValidateCRDMembersDomainService(
-        userDomainService,
-        roleQueryService
-    );
+    private ValidateCRDMembersDomainService validateCRDMembersDomainService =
+            new ValidateCRDMembersDomainService(userDomainService, roleQueryService);
 
     private GroupQueryService groupQueryService = mock(GroupQueryService.class);
 
@@ -120,7 +120,8 @@ public class ApiValidationServiceImplTest {
     private ValidatePortalNotificationDomainService validatePortalNotificationDomainService;
 
     @Spy
-    private ValidateGroupsDomainService validateGroupsDomainService = new ValidateGroupsDomainService(groupQueryService);
+    private ValidateGroupsDomainService validateGroupsDomainService =
+            new ValidateGroupsDomainService(groupQueryService);
 
     @InjectMocks
     private ApiValidationServiceImpl cut;
@@ -139,45 +140,41 @@ public class ApiValidationServiceImplTest {
     @BeforeEach
     public void init() {
         userDomainService.reset();
-        userDomainService.initWith(
-            List.of(
+        userDomainService.initWith(List.of(
                 BaseUserEntity.builder()
-                    .id(USER_NAME)
-                    .source(IdpSource.of(USER_SOURCE))
-                    .sourceId(USER_NAME)
-                    .organizationId(DEFAULT_ORGANIZATION_ID)
-                    .build(),
+                        .id(USER_NAME)
+                        .source(IdpSource.of(USER_SOURCE))
+                        .sourceId(USER_NAME)
+                        .organizationId(DEFAULT_ORGANIZATION_ID)
+                        .build(),
                 BaseUserEntity.builder()
-                    .id(ACTOR_USER_NAME)
-                    .source(IdpSource.of(USER_SOURCE))
-                    .sourceId(ACTOR_USER_NAME)
-                    .organizationId(DEFAULT_ORGANIZATION_ID)
-                    .build()
-            )
-        );
+                        .id(ACTOR_USER_NAME)
+                        .source(IdpSource.of(USER_SOURCE))
+                        .sourceId(ACTOR_USER_NAME)
+                        .organizationId(DEFAULT_ORGANIZATION_ID)
+                        .build()));
         roleQueryService.reset();
-        roleQueryService.initWith(
-            List.of(
+        roleQueryService.initWith(List.of(
                 Role.builder()
-                    .name(PRIMARY_OWNER.name())
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(DEFAULT_ORGANIZATION_ID)
-                    .id("primary_owner_id")
-                    .scope(Role.Scope.API)
-                    .build(),
+                        .name(PRIMARY_OWNER.name())
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(DEFAULT_ORGANIZATION_ID)
+                        .id("primary_owner_id")
+                        .scope(Role.Scope.API)
+                        .build(),
                 Role.builder()
-                    .name("USER")
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(DEFAULT_ORGANIZATION_ID)
-                    .id("user_role_id")
-                    .scope(Role.Scope.API)
-                    .build()
-            )
-        );
+                        .name("USER")
+                        .referenceType(Role.ReferenceType.ORGANIZATION)
+                        .referenceId(DEFAULT_ORGANIZATION_ID)
+                        .id("user_role_id")
+                        .scope(Role.Scope.API)
+                        .build()));
         categoryQueryService.reset();
-        categoryQueryService.initWith(
-            List.of(Category.builder().key(CATEGORY_KEY).name(CATEGORY_KEY).id(UuidString.generateRandom()).build())
-        );
+        categoryQueryService.initWith(List.of(Category.builder()
+                .key(CATEGORY_KEY)
+                .name(CATEGORY_KEY)
+                .id(UuidString.generateRandom())
+                .build()));
         apiQueryService.reset();
         when(pagesValidator.validateAndSanitize(any())).thenReturn(Validator.Result.ofBoth(null, null));
 
@@ -188,17 +185,13 @@ public class ApiValidationServiceImplTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
 
-        when(validatePortalNotificationDomainService.validateAndSanitize(any())).thenReturn(
-            Validator.Result.ofValue(
-                new ValidatePortalNotificationDomainService.Input(
-                    new PortalNotificationConfigEntity(),
-                    "2.0.0",
-                    null,
-                    Set.of(),
-                    new AuditInfo("mock", "mock", null)
-                )
-            )
-        );
+        when(validatePortalNotificationDomainService.validateAndSanitize(any()))
+                .thenReturn(Validator.Result.ofValue(new ValidatePortalNotificationDomainService.Input(
+                        new PortalNotificationConfigEntity(),
+                        "2.0.0",
+                        null,
+                        Set.of(),
+                        new AuditInfo("mock", "mock", null))));
     }
 
     @Test
@@ -206,11 +199,14 @@ public class ApiValidationServiceImplTest {
         ApiCRDEntity apiCRD = anApiCRDEntity();
         apiCRD.setCategories(Set.of("Unknown"));
 
-        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+        ApiValidationResult<ApiCRDEntity> validationResult =
+                cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
         assertEquals(0, validationResult.getSevere().size());
         assertEquals(1, validationResult.getWarning().size());
-        assertEquals("category [Unknown] is not defined in environment [DEFAULT]", validationResult.getWarning().get(0));
+        assertEquals(
+                "category [Unknown] is not defined in environment [DEFAULT]",
+                validationResult.getWarning().get(0));
     }
 
     @Test
@@ -218,7 +214,8 @@ public class ApiValidationServiceImplTest {
         ApiCRDEntity apiCRD = anApiCRDEntity();
         apiCRD.setCategories(Set.of(CATEGORY_KEY));
 
-        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+        ApiValidationResult<ApiCRDEntity> validationResult =
+                cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
         assertEquals(0, validationResult.getSevere().size());
         assertEquals(0, validationResult.getWarning().size());
@@ -229,7 +226,8 @@ public class ApiValidationServiceImplTest {
         ApiCRDEntity apiCRD = anApiCRDEntity();
         apiCRD.setMembers(List.of(new ApiCRDEntity.Member("memory", "user-id", "USER")));
 
-        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+        ApiValidationResult<ApiCRDEntity> validationResult =
+                cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
         assertEquals(0, validationResult.getSevere().size());
         assertEquals(0, validationResult.getWarning().size());
@@ -238,18 +236,18 @@ public class ApiValidationServiceImplTest {
     @Test
     public void should_return_warning_with_unknown_member() {
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        apiCRD.setMembers(
-            List.of(new ApiCRDEntity.Member("memory", "user-id", "USER"), new ApiCRDEntity.Member("memory", "unknown-user-id", "USER"))
-        );
+        apiCRD.setMembers(List.of(
+                new ApiCRDEntity.Member("memory", "user-id", "USER"),
+                new ApiCRDEntity.Member("memory", "unknown-user-id", "USER")));
 
-        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+        ApiValidationResult<ApiCRDEntity> validationResult =
+                cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
         assertEquals(0, validationResult.getSevere().size());
         assertEquals(1, validationResult.getWarning().size());
         assertEquals(
-            "member [unknown-user-id] of source [memory] could not be found in organization [DEFAULT]",
-            validationResult.getWarning().get(0)
-        );
+                "member [unknown-user-id] of source [memory] could not be found in organization [DEFAULT]",
+                validationResult.getWarning().get(0));
     }
 
     @Test
@@ -257,11 +255,14 @@ public class ApiValidationServiceImplTest {
         ApiCRDEntity apiCRD = anApiCRDEntity();
         apiCRD.setMembers(List.of(new ApiCRDEntity.Member("memory", "user-id", "UNKNOWN")));
 
-        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+        ApiValidationResult<ApiCRDEntity> validationResult =
+                cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
         assertEquals(0, validationResult.getSevere().size());
         assertEquals(1, validationResult.getWarning().size());
-        assertEquals("member role [UNKNOWN] doesn't exist", validationResult.getWarning().get(0));
+        assertEquals(
+                "member role [UNKNOWN] doesn't exist",
+                validationResult.getWarning().get(0));
     }
 
     @Test
@@ -269,11 +270,14 @@ public class ApiValidationServiceImplTest {
         ApiCRDEntity apiCRD = anApiCRDEntity();
         apiCRD.setMembers(List.of(new ApiCRDEntity.Member("memory", "user-id", "PRIMARY_OWNER")));
 
-        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+        ApiValidationResult<ApiCRDEntity> validationResult =
+                cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
         assertEquals(1, validationResult.getSevere().size());
         assertEquals(0, validationResult.getWarning().size());
-        assertEquals("setting a member with the primary owner role is not allowed", validationResult.getSevere().get(0));
+        assertEquals(
+                "setting a member with the primary owner role is not allowed",
+                validationResult.getSevere().get(0));
     }
 
     @Test
@@ -281,47 +285,48 @@ public class ApiValidationServiceImplTest {
         ApiCRDEntity apiCRD = anApiCRDEntity();
         apiCRD.setMembers(List.of(new ApiCRDEntity.Member(USER_SOURCE, ACTOR_USER_NAME, "USER")));
 
-        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+        ApiValidationResult<ApiCRDEntity> validationResult =
+                cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
         assertEquals(1, validationResult.getSevere().size());
         assertEquals(0, validationResult.getWarning().size());
-        assertEquals("can not change the role of primary owner [actor-id]", validationResult.getSevere().get(0));
+        assertEquals(
+                "can not change the role of primary owner [actor-id]",
+                validationResult.getSevere().get(0));
     }
 
     @Test
     public void should_return_error_with_conflicting_path() {
-        apiQueryService.initWith(
-            List.of(
-                Api.builder()
-                    .id("conflicting-api-id")
-                    .environmentId(executionContext.getEnvironmentId())
-                    .apiDefinition(
-                        io.gravitee.definition.model.Api.builder()
-                            .id("conflicting-api-id")
-                            .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/echo"))).build())
-                            .definitionVersion(DefinitionVersion.V2)
-                            .build()
-                    )
-                    .build()
-            )
-        );
+        apiQueryService.initWith(List.of(Api.builder()
+                .id("conflicting-api-id")
+                .environmentId(executionContext.getEnvironmentId())
+                .apiDefinition(io.gravitee.definition.model.Api.builder()
+                        .id("conflicting-api-id")
+                        .proxy(Proxy.builder()
+                                .virtualHosts(List.of(new VirtualHost("/echo")))
+                                .build())
+                        .definitionVersion(DefinitionVersion.V2)
+                        .build())
+                .build()));
 
         var crd = anApiCRDEntity();
         var validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, crd);
 
         assertEquals(1, validationResult.getSevere().size());
         assertEquals(0, validationResult.getWarning().size());
-        assertEquals("Path [/echo/] already exists", validationResult.getSevere().get(0));
+        assertEquals(
+                "Path [/echo/] already exists", validationResult.getSevere().get(0));
     }
 
     @Test
     public void should_return_error_validating_wrong_cron_expression() {
-        when(pagesValidator.validateAndSanitize(any())).thenReturn(
-            Validator.Result.ofBoth(null, List.of(Validator.Error.severe("cron expression is invalid")))
-        );
+        when(pagesValidator.validateAndSanitize(any()))
+                .thenReturn(
+                        Validator.Result.ofBoth(null, List.of(Validator.Error.severe("cron expression is invalid"))));
 
         ApiCRDEntity apiCRD = anApiCRDEntity();
-        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+        ApiValidationResult<ApiCRDEntity> validationResult =
+                cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
         verify(pagesValidator, times(1)).validateAndSanitize(any());
         assertEquals(1, validationResult.getSevere().size());
@@ -336,12 +341,15 @@ public class ApiValidationServiceImplTest {
 
         ApiCRDEntity apiCRD = anApiCRDEntity();
         apiCRD.setGroups(Set.of("unknown"));
-        ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
+        ApiValidationResult<ApiCRDEntity> validationResult =
+                cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);
 
         verify(groupQueryService, times(1)).findByIds(anySet());
         assertEquals(0, validationResult.getSevere().size());
         assertEquals(1, validationResult.getWarning().size());
-        assertEquals("Group [unknown] could not be found in environment [DEFAULT]", validationResult.getWarning().get(0));
+        assertEquals(
+                "Group [unknown] could not be found in environment [DEFAULT]",
+                validationResult.getWarning().get(0));
     }
 
     public ApiCRDEntity anApiCRDEntity() {
@@ -352,7 +360,8 @@ public class ApiValidationServiceImplTest {
         crd.setDescription(API_NAME);
         crd.setDefinitionContext(new DefinitionContext(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, ORIGIN_KUBERNETES));
         crd.setState(STARTED);
-        crd.setProxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/echo"))).build());
+        crd.setProxy(
+                Proxy.builder().virtualHosts(List.of(new VirtualHost("/echo"))).build());
 
         return crd;
     }

@@ -479,7 +479,7 @@ public class LoggablePreparedStatement implements PreparedStatement {
     @Override
     public int[] executeBatch() throws SQLException {
         log.warn("{}", preparedStatement);
-        return new int[] { -1 };
+        return new int[] {-1};
     }
 
     @Override
@@ -581,7 +581,7 @@ public class LoggablePreparedStatement implements PreparedStatement {
     @Override
     public long[] executeLargeBatch() throws SQLException {
         log.warn("{}", preparedStatement);
-        return new long[] { -1L };
+        return new long[] {-1L};
     }
 
     @Override

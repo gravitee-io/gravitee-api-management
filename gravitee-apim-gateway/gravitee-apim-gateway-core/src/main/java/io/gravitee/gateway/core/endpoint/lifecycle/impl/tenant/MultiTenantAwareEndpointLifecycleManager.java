@@ -37,15 +37,14 @@ public class MultiTenantAwareEndpointLifecycleManager extends EndpointGroupLifec
     private final String tenant;
 
     public MultiTenantAwareEndpointLifecycleManager(
-        Api api,
-        EndpointGroup group,
-        EndpointFactory endpointFactory,
-        ReferenceRegister referenceRegister,
-        ConnectorRegistry connectorRegistry,
-        Configuration configuration,
-        ObjectMapper mapper,
-        String tenant
-    ) {
+            Api api,
+            EndpointGroup group,
+            EndpointFactory endpointFactory,
+            ReferenceRegister referenceRegister,
+            ConnectorRegistry connectorRegistry,
+            Configuration configuration,
+            ObjectMapper mapper,
+            String tenant) {
         super(api, group, endpointFactory, referenceRegister, connectorRegistry, configuration, mapper);
         this.tenant = tenant;
     }
@@ -59,12 +58,10 @@ public class MultiTenantAwareEndpointLifecycleManager extends EndpointGroupLifec
 
     @Override
     protected Predicate<Endpoint> filter() {
-        return super
-            .filter()
-            .and(
-                endpoint ->
-                    (endpoint.getTenants() == null || endpoint.getTenants().isEmpty()) ||
-                    (endpoint.getTenants() != null && endpoint.getTenants().contains(tenant))
-            );
+        return super.filter()
+                .and(endpoint ->
+                        (endpoint.getTenants() == null || endpoint.getTenants().isEmpty())
+                                || (endpoint.getTenants() != null
+                                        && endpoint.getTenants().contains(tenant)));
     }
 }

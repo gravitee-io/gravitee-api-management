@@ -39,7 +39,7 @@ class UserPortalNotificationServiceImplTest {
     class TriggerUserRegistered {
 
         @Test
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes"})
         void should_trigger_user_registered_portal_hook() {
             var executionContext = new ExecutionContext("org-id", "env-id");
             var user = aBaseUserEntity();
@@ -47,7 +47,8 @@ class UserPortalNotificationServiceImplTest {
             service.triggerUserRegistered(executionContext, user);
 
             ArgumentCaptor<Map> paramsCaptor = ArgumentCaptor.forClass(Map.class);
-            verify(notifierService).trigger(eq(executionContext), eq(PortalHook.USER_REGISTERED), paramsCaptor.capture());
+            verify(notifierService)
+                    .trigger(eq(executionContext), eq(PortalHook.USER_REGISTERED), paramsCaptor.capture());
             var capturedUser = (UserEntity) paramsCaptor.getValue().get("user");
             assertThat(capturedUser.getEmail()).isEqualTo("jane.doe@gravitee.io");
         }

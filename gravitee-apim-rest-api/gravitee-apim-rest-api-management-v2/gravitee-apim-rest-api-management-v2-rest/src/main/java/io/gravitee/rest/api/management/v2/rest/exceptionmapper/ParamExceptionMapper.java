@@ -30,18 +30,25 @@ public class ParamExceptionMapper extends AbstractExceptionMapper<ParamException
 
     @Override
     public Response toResponse(ParamException e) {
-        return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE).entity(paramError(e)).build();
+        return Response.status(Response.Status.BAD_REQUEST)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(paramError(e))
+                .build();
     }
 
     private static Error paramError(ParamException e) {
-        return new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).details(details(e)).message(errorMessage(e));
+        return new Error()
+                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                .details(details(e))
+                .message(errorMessage(e));
     }
 
     private static List<ErrorDetailsInner> details(ParamException e) {
         if (e.getCause() == null) {
             return List.of();
         }
-        return List.of(new ErrorDetailsInner().message(e.getCause().getMessage()).location(e.getParameterName()));
+        return List.of(
+                new ErrorDetailsInner().message(e.getCause().getMessage()).location(e.getParameterName()));
     }
 
     private static String errorMessage(ParamException e) {

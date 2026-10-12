@@ -68,7 +68,8 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
         when(categoryService.findAll(GraviteeContext.getCurrentEnvironment())).thenReturn(mockCategories);
 
         Map<String, Long> countByCat = Map.of(category1.getId(), 1L, category2.getId(), 1L, category3.getId(), 1L);
-        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any())).thenReturn(cat -> countByCat.getOrDefault(cat, 0L));
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any()))
+                .thenReturn(cat -> countByCat.getOrDefault(cat, 0L));
 
         when(ratingService.isEnabled(GraviteeContext.getExecutionContext())).thenReturn(false);
 

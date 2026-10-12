@@ -65,37 +65,49 @@ public class SubscriptionFormsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_METADATA,
+                acls = {RolePermissionAction.READ})
+    })
     public Response listSubscriptionForms() {
-        var output = listSubscriptionFormsUseCase.execute(new ListSubscriptionFormsUseCase.Input(GraviteeContext.getCurrentEnvironment()));
+        var output = listSubscriptionFormsUseCase.execute(
+                new ListSubscriptionFormsUseCase.Input(GraviteeContext.getCurrentEnvironment()));
         return Response.ok(mapper.toResponse(output.subscriptionForms())).build();
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_METADATA,
+                acls = {RolePermissionAction.CREATE})
+    })
     public Response createSubscriptionForm(@Valid @NotNull final CreateSubscriptionForm request) {
-        var output = createSubscriptionFormUseCase.execute(
-            new CreateSubscriptionFormUseCase.Input(
+        var output = createSubscriptionFormUseCase.execute(new CreateSubscriptionFormUseCase.Input(
                 GraviteeContext.getCurrentEnvironment(),
                 request.getName(),
                 request.getGmdContent(),
-                request.getApiIds()
-            )
-        );
-        return Response.created(this.getLocationHeader(output.subscriptionForm().getId().toString()))
-            .entity(mapper.toResponse(output.subscriptionForm()))
-            .build();
+                request.getApiIds()));
+        return Response.created(
+                        this.getLocationHeader(output.subscriptionForm().getId().toString()))
+                .entity(mapper.toResponse(output.subscriptionForm()))
+                .build();
     }
 
     @GET
     @Path("/_template")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_METADATA,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getSubscriptionFormTemplate() {
         var output = getSubscriptionFormTemplateUseCase.execute();
-        return Response.ok(new SubscriptionFormTemplate().gmdContent(output.gmdContent())).build();
+        return Response.ok(new SubscriptionFormTemplate().gmdContent(output.gmdContent()))
+                .build();
     }
 
     @Path("{subscriptionFormId}")

@@ -31,7 +31,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public class SubscriptionQueryServiceInMemory implements SubscriptionQueryService, InMemoryAlternative<SubscriptionEntity> {
+public class SubscriptionQueryServiceInMemory
+        implements SubscriptionQueryService, InMemoryAlternative<SubscriptionEntity> {
 
     private final ArrayList<SubscriptionEntity> storage;
     private PlanCrudService planCrudService;
@@ -45,9 +46,7 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
     }
 
     public SubscriptionQueryServiceInMemory(
-        SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory,
-        PlanCrudService planCrudService
-    ) {
+            SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory, PlanCrudService planCrudService) {
         storage = subscriptionCrudServiceInMemory.storage;
         this.planCrudService = planCrudService;
     }
@@ -58,48 +57,35 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
 
     @Override
     public List<ExpiringSubscription> findExpiringSubscriptions(
-        Instant now,
-        List<Integer> daysBuckets,
-        long windowMs,
-        List<SubscriptionStatus> statuses
-    ) {
+            Instant now, List<Integer> daysBuckets, long windowMs, List<SubscriptionStatus> statuses) {
         return List.of();
     }
 
     @Override
     public List<SubscriptionEntity> findExpiredSubscriptions() {
-        return storage
-            .stream()
-            .filter(
-                subscription ->
-                    subscription.getStatus().equals(SubscriptionEntity.Status.ACCEPTED) &&
-                    subscription.getEndingAt().isBefore(ZonedDateTime.now())
-            )
-            .toList();
+        return storage.stream()
+                .filter(subscription -> subscription.getStatus().equals(SubscriptionEntity.Status.ACCEPTED)
+                        && subscription.getEndingAt().isBefore(ZonedDateTime.now()))
+                .toList();
     }
 
     @Override
     public List<SubscriptionEntity> findSubscriptionsByPlan(String planId) {
-        return storage
-            .stream()
-            .filter(subscription -> subscription.getPlanId().equals(planId))
-            .toList();
+        return storage.stream()
+                .filter(subscription -> subscription.getPlanId().equals(planId))
+                .toList();
     }
 
     @Override
     public List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId) {
-        return storage
-            .stream()
-            .filter(
-                subscription ->
-                    List.of(
-                        SubscriptionEntity.Status.ACCEPTED,
-                        SubscriptionEntity.Status.PENDING,
-                        SubscriptionEntity.Status.PAUSED
-                    ).contains(subscription.getStatus()) &&
-                    subscription.getPlanId().equals(planId)
-            )
-            .toList();
+        return storage.stream()
+                .filter(subscription -> List.of(
+                                        SubscriptionEntity.Status.ACCEPTED,
+                                        SubscriptionEntity.Status.PENDING,
+                                        SubscriptionEntity.Status.PAUSED)
+                                .contains(subscription.getStatus())
+                        && subscription.getPlanId().equals(planId))
+                .toList();
     }
 
     @Override
@@ -108,101 +94,78 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
     }
 
     @Override
-    public List<SubscriptionEntity> findActiveByApplicationIdsAndApiIds(Set<String> applicationIds, Set<String> apiIds) {
-        return storage
-            .stream()
-            .filter(s -> applicationIds.contains(s.getApplicationId()))
-            .filter(s -> apiIds.contains(s.getApiId()))
-            .filter(
-                s ->
-                    s.getStatus() == SubscriptionEntity.Status.ACCEPTED ||
-                    s.getStatus() == SubscriptionEntity.Status.PENDING ||
-                    s.getStatus() == SubscriptionEntity.Status.PAUSED
-            )
-            .toList();
+    public List<SubscriptionEntity> findActiveByApplicationIdsAndApiIds(
+            Set<String> applicationIds, Set<String> apiIds) {
+        return storage.stream()
+                .filter(s -> applicationIds.contains(s.getApplicationId()))
+                .filter(s -> apiIds.contains(s.getApiId()))
+                .filter(s -> s.getStatus() == SubscriptionEntity.Status.ACCEPTED
+                        || s.getStatus() == SubscriptionEntity.Status.PENDING
+                        || s.getStatus() == SubscriptionEntity.Status.PAUSED)
+                .toList();
     }
 
     @Override
     public List<SubscriptionEntity> findActiveByApplicationIdAndPlanSecurityTypes(
-        String applicationId,
-        Collection<String> planSecurityTypes
-    ) {
+            String applicationId, Collection<String> planSecurityTypes) {
         if (planCrudService == null) {
-            throw new IllegalStateException("PlanCrudService must be set to use findActiveByApplicationIdAndPlanSecurityTypes");
+            throw new IllegalStateException(
+                    "PlanCrudService must be set to use findActiveByApplicationIdAndPlanSecurityTypes");
         }
 
         Set<String> securityTypesSet = Set.copyOf(planSecurityTypes);
 
-        return storage
-            .stream()
-            .filter(
-                subscription ->
-                    List.of(
-                        SubscriptionEntity.Status.ACCEPTED,
-                        SubscriptionEntity.Status.PENDING,
-                        SubscriptionEntity.Status.PAUSED
-                    ).contains(subscription.getStatus()) &&
-                    applicationId.equals(subscription.getApplicationId())
-            )
-            .filter(subscription -> {
-                try {
-                    Plan plan = planCrudService.getById(subscription.getPlanId());
-                    var planSecurity = plan.getPlanSecurity();
-                    return planSecurity != null && securityTypesSet.contains(planSecurity.getType());
-                } catch (Exception e) {
-                    return false;
-                }
-            })
-            .toList();
+        return storage.stream()
+                .filter(subscription -> List.of(
+                                        SubscriptionEntity.Status.ACCEPTED,
+                                        SubscriptionEntity.Status.PENDING,
+                                        SubscriptionEntity.Status.PAUSED)
+                                .contains(subscription.getStatus())
+                        && applicationId.equals(subscription.getApplicationId()))
+                .filter(subscription -> {
+                    try {
+                        Plan plan = planCrudService.getById(subscription.getPlanId());
+                        var planSecurity = plan.getPlanSecurity();
+                        return planSecurity != null && securityTypesSet.contains(planSecurity.getType());
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .toList();
     }
 
     @Override
     public List<SubscriptionEntity> findActiveByApplicationIdAndReferenceIdAndReferenceType(
-        String applicationId,
-        String referenceId,
-        SubscriptionReferenceType referenceType
-    ) {
-        return storage
-            .stream()
-            .filter(
-                subscription ->
-                    List.of(
-                        SubscriptionEntity.Status.ACCEPTED,
-                        SubscriptionEntity.Status.PENDING,
-                        SubscriptionEntity.Status.PAUSED
-                    ).contains(subscription.getStatus()) &&
-                    referenceId.equals(subscription.getReferenceId()) &&
-                    referenceType.equals(subscription.getReferenceType()) &&
-                    applicationId.equals(subscription.getApplicationId())
-            )
-            .toList();
+            String applicationId, String referenceId, SubscriptionReferenceType referenceType) {
+        return storage.stream()
+                .filter(subscription -> List.of(
+                                        SubscriptionEntity.Status.ACCEPTED,
+                                        SubscriptionEntity.Status.PENDING,
+                                        SubscriptionEntity.Status.PAUSED)
+                                .contains(subscription.getStatus())
+                        && referenceId.equals(subscription.getReferenceId())
+                        && referenceType.equals(subscription.getReferenceType())
+                        && applicationId.equals(subscription.getApplicationId()))
+                .toList();
     }
 
     @Override
-    public List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType) {
-        return storage
-            .stream()
-            .filter(
-                subscription -> referenceId.equals(subscription.getReferenceId()) && referenceType.equals(subscription.getReferenceType())
-            )
-            .toList();
+    public List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(
+            String referenceId, SubscriptionReferenceType referenceType) {
+        return storage.stream()
+                .filter(subscription -> referenceId.equals(subscription.getReferenceId())
+                        && referenceType.equals(subscription.getReferenceType()))
+                .toList();
     }
 
     @Override
     public Optional<SubscriptionEntity> findByIdAndReferenceIdAndReferenceType(
-        String subscriptionId,
-        String referenceId,
-        SubscriptionReferenceType referenceType
-    ) {
-        return storage
-            .stream()
-            .filter(
-                sub ->
-                    sub.getId().equals(subscriptionId) &&
-                    referenceId.equals(sub.getReferenceId()) &&
-                    referenceType.equals(sub.getReferenceType())
-            )
-            .findFirst();
+            String subscriptionId, String referenceId, SubscriptionReferenceType referenceType) {
+        return storage.stream()
+                .filter(sub -> sub.getId().equals(subscriptionId)
+                        && referenceId.equals(sub.getReferenceId())
+                        && referenceType.equals(sub.getReferenceType()))
+                .findFirst();
     }
 
     @Override

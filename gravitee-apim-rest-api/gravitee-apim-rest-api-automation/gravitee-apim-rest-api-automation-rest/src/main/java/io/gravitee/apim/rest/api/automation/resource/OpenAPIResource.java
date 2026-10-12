@@ -21,7 +21,6 @@ import io.gravitee.apim.rest.api.automation.spring.GammaAutomationPorts;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
@@ -56,7 +55,8 @@ public class OpenAPIResource {
         try (var base = document()) {
             return Response.ok(OpenApiFragmentMerger.merge(base, fragments)).build();
         } catch (IOException e) {
-            throw new UncheckedIOException("Cannot merge Gamma module fragments into the automation OpenAPI document", e);
+            throw new UncheckedIOException(
+                    "Cannot merge Gamma module fragments into the automation OpenAPI document", e);
         }
     }
 

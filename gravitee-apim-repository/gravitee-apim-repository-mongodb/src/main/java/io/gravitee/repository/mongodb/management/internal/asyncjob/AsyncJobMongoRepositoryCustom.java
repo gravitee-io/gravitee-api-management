@@ -23,5 +23,6 @@ import java.util.Date;
 
 public interface AsyncJobMongoRepositoryCustom {
     Page<AsyncJobMongo> search(AsyncJobRepository.SearchCriteria criteria, Pageable pageable);
+
     void delay(String id, Date newDeadLine);
 }

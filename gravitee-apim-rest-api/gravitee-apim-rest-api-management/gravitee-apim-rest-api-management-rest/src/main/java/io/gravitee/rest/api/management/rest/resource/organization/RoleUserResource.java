@@ -49,24 +49,24 @@ public class RoleUserResource extends AbstractResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Delete the role for a given user",
-        description = "User must have the MANAGEMENT_ROLE[DELETE] permission to use this service"
-    )
+            summary = "Delete the role for a given user",
+            description = "User must have the MANAGEMENT_ROLE[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Role successfully removed")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.DELETE) })
-    public void deleteRoleForUser(@PathParam("scope") RoleScope scope, @PathParam("role") String role, @PathParam("userId") String userId) {
-        final Optional<RoleEntity> roleToRemove = roleService.findByScopeAndName(scope, role, GraviteeContext.getCurrentOrganization());
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.DELETE)})
+    public void deleteRoleForUser(
+            @PathParam("scope") RoleScope scope, @PathParam("role") String role, @PathParam("userId") String userId) {
+        final Optional<RoleEntity> roleToRemove =
+                roleService.findByScopeAndName(scope, role, GraviteeContext.getCurrentOrganization());
         if (roleToRemove.isPresent()) {
             String roleId = roleToRemove.get().getId();
             if (RoleScope.ORGANIZATION.equals(scope)) {
                 membershipService.removeRole(
-                    MembershipReferenceType.ORGANIZATION,
-                    GraviteeContext.getCurrentOrganization(),
-                    MembershipMemberType.USER,
-                    userId,
-                    roleId
-                );
+                        MembershipReferenceType.ORGANIZATION,
+                        GraviteeContext.getCurrentOrganization(),
+                        MembershipMemberType.USER,
+                        userId,
+                        roleId);
             }
         }
     }

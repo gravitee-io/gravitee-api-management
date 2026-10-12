@@ -38,12 +38,12 @@ public interface PortalAdapter {
             return null;
         }
         return Portal.of(
-            PortalId.of(portal.getId()),
-            portal.getEnvironmentId(),
-            portal.getOrganizationId(),
-            portal.getName(),
-            deserializePortalNavigation(portal.getPortalNavigation())
-        ).withActiveThemeId(portal.getActiveThemeId());
+                        PortalId.of(portal.getId()),
+                        portal.getEnvironmentId(),
+                        portal.getOrganizationId(),
+                        portal.getName(),
+                        deserializePortalNavigation(portal.getPortalNavigation()))
+                .withActiveThemeId(portal.getActiveThemeId());
     }
 
     default io.gravitee.repository.management.model.Portal toRepository(Portal portal) {
@@ -51,13 +51,13 @@ public interface PortalAdapter {
             return null;
         }
         return io.gravitee.repository.management.model.Portal.builder()
-            .id(portal.getId().toString())
-            .environmentId(portal.getEnvironmentId())
-            .organizationId(portal.getOrganizationId())
-            .name(portal.getName())
-            .portalNavigation(serializePortalNavigation(portal.getNavigationStructure()))
-            .activeThemeId(portal.getActiveThemeId())
-            .build();
+                .id(portal.getId().toString())
+                .environmentId(portal.getEnvironmentId())
+                .organizationId(portal.getOrganizationId())
+                .name(portal.getName())
+                .portalNavigation(serializePortalNavigation(portal.getNavigationStructure()))
+                .activeThemeId(portal.getActiveThemeId())
+                .build();
     }
 
     TypeReference<Map<PortalArea, List<NavigationPath>>> NAVIGATION_STRUCTURE_MAP = new TypeReference<>() {};
@@ -85,8 +85,11 @@ public interface PortalAdapter {
                 var legacy = GraviteeJacksonMapper.getInstance().treeToValue(root, NAVIGATION_PATH_LIST);
                 return PortalNavigationStructure.ofTopNavbar(legacy);
             }
-            Map<PortalArea, List<NavigationPath>> areas = GraviteeJacksonMapper.getInstance().treeToValue(root, NAVIGATION_STRUCTURE_MAP);
-            return areas.isEmpty() ? PortalNavigationStructure.empty() : new PortalNavigationStructure(new EnumMap<>(areas));
+            Map<PortalArea, List<NavigationPath>> areas =
+                    GraviteeJacksonMapper.getInstance().treeToValue(root, NAVIGATION_STRUCTURE_MAP);
+            return areas.isEmpty()
+                    ? PortalNavigationStructure.empty()
+                    : new PortalNavigationStructure(new EnumMap<>(areas));
         } catch (IOException ioe) {
             throw new IllegalArgumentException("Invalid portal navigation JSON: " + json, ioe);
         }

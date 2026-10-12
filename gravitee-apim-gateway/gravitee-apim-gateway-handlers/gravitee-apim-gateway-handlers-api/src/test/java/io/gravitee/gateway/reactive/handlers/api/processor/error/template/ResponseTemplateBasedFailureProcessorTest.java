@@ -86,7 +86,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
@@ -108,7 +109,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
@@ -134,8 +136,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         // Fine-grained key with no dedicated template, but it declares its umbrella parent.
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502)
-            .key("GATEWAY_CLIENT_CONNECTION_REFUSED")
-            .parameters(Map.of("parentErrorKey", "GATEWAY_CLIENT_CONNECTION_ERROR"));
+                .key("GATEWAY_CLIENT_CONNECTION_REFUSED")
+                .parameters(Map.of("parentErrorKey", "GATEWAY_CLIENT_CONNECTION_ERROR"));
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
@@ -162,8 +164,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502)
-            .key("GATEWAY_CLIENT_CONNECTION_REFUSED")
-            .parameters(Map.of("parentErrorKey", "GATEWAY_CLIENT_CONNECTION_ERROR"));
+                .key("GATEWAY_CLIENT_CONNECTION_REFUSED")
+                .parameters(Map.of("parentErrorKey", "GATEWAY_CLIENT_CONNECTION_ERROR"));
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
@@ -184,7 +186,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
@@ -212,7 +215,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_XML));
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
@@ -236,7 +240,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, Collections.singletonList(MediaType.APPLICATION_JSON));
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
@@ -260,7 +265,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500).key("POLICY_ERROR_KEY");
 
         spyRequestHeaders.add(ACCEPT, List.of("text/html", " application/json", "*/*;q=0.8", "application/xml;q=0.9"));
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
@@ -285,14 +291,16 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // The gateway already stored the cleaned-up detail on the metrics (the value indexed in analytics).
-        spyCtx
-            .metrics()
-            .setFailure(
-                new Diagnostic("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR", "Received fatal alert: handshake_failure", "ENDPOINT", "default")
-            );
+        spyCtx.metrics()
+                .setFailure(new Diagnostic(
+                        "GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR",
+                        "Received fatal alert: handshake_failure",
+                        "ENDPOINT",
+                        "default"));
 
         // Connection failures carry only a key + cause, no message.
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR");
         spyRequestHeaders.add(ACCEPT, MediaType.APPLICATION_JSON);
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
@@ -300,7 +308,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         ArgumentCaptor<Buffer> bodyCaptor = ArgumentCaptor.forClass(Buffer.class);
         verify(mockResponse).body(bodyCaptor.capture());
-        assertThat(bodyCaptor.getValue().toString()).isEqualTo("{\"detail\": \"Received fatal alert: handshake_failure\"}");
+        assertThat(bodyCaptor.getValue().toString())
+                .isEqualTo("{\"detail\": \"Received fatal alert: handshake_failure\"}");
     }
 
     @Test
@@ -318,8 +327,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         // No diagnostic message on the metrics: {#error.cause} must fall back to the ExecutionFailure message.
         ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
-            .key("POLICY_ERROR_KEY")
-            .message("Policy failed");
+                .key("POLICY_ERROR_KEY")
+                .message("Policy failed");
         spyRequestHeaders.add(ACCEPT, MediaType.APPLICATION_JSON);
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
@@ -344,7 +353,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
@@ -369,7 +379,8 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
         api.setResponseTemplates(templates);
 
         // Set failure
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key("POLICY_ERROR_KEY");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         templateBasedFailureProcessor.execute(spyCtx).test().assertResult();

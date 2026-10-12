@@ -78,7 +78,8 @@ class CreateIntegrationUseCaseTest {
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
     MembershipCrudServiceInMemory membershipCrudServiceInMemory = new MembershipCrudServiceInMemory();
-    MembershipQueryServiceInMemory membershipQueryServiceInMemory = new MembershipQueryServiceInMemory(membershipCrudServiceInMemory);
+    MembershipQueryServiceInMemory membershipQueryServiceInMemory =
+            new MembershipQueryServiceInMemory(membershipCrudServiceInMemory);
     ParametersQueryServiceInMemory parametersQueryServiceInMemory = new ParametersQueryServiceInMemory();
     RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudServiceInMemory = new UserCrudServiceInMemory();
@@ -104,123 +105,122 @@ class CreateIntegrationUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        parametersQueryServiceInMemory.initWith(
-            List.of(
-                new Parameter(
-                    Key.API_PRIMARY_OWNER_MODE.key(),
-                    ENVIRONMENT_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                )
-            )
-        );
+        parametersQueryServiceInMemory.initWith(List.of(new Parameter(
+                Key.API_PRIMARY_OWNER_MODE.key(),
+                ENVIRONMENT_ID,
+                ParameterReferenceType.ENVIRONMENT,
+                ApiPrimaryOwnerMode.USER.name())));
 
         IntegrationPrimaryOwnerFactory integrationPrimaryOwnerFactory = new IntegrationPrimaryOwnerFactory(
-            membershipQueryServiceInMemory,
-            parametersQueryServiceInMemory,
-            roleQueryServiceInMemory,
-            userCrudServiceInMemory,
-            groupQueryServiceInMemory
-        );
-        IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService = new IntegrationPrimaryOwnerDomainService(
-            membershipCrudServiceInMemory,
-            roleQueryServiceInMemory,
-            membershipQueryService,
-            userCrudService
-        );
+                membershipQueryServiceInMemory,
+                parametersQueryServiceInMemory,
+                roleQueryServiceInMemory,
+                userCrudServiceInMemory,
+                groupQueryServiceInMemory);
+        IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService =
+                new IntegrationPrimaryOwnerDomainService(
+                        membershipCrudServiceInMemory,
+                        roleQueryServiceInMemory,
+                        membershipQueryService,
+                        userCrudService);
 
         IntegrationCrudService integrationCrudService = integrationCrudServiceInMemory;
         usecase = new CreateIntegrationUseCase(
-            integrationCrudService,
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-            integrationPrimaryOwnerFactory,
-            integrationPrimaryOwnerDomainService
-        );
+                integrationCrudService,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+                integrationPrimaryOwnerFactory,
+                integrationPrimaryOwnerDomainService);
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            integrationCrudServiceInMemory,
-            membershipCrudServiceInMemory,
-            membershipQueryServiceInMemory,
-            parametersQueryServiceInMemory,
-            roleQueryServiceInMemory,
-            userCrudServiceInMemory,
-            groupQueryServiceInMemory
-        ).forEach(InMemoryAlternative::reset);
+                        integrationCrudServiceInMemory,
+                        membershipCrudServiceInMemory,
+                        membershipQueryServiceInMemory,
+                        parametersQueryServiceInMemory,
+                        roleQueryServiceInMemory,
+                        userCrudServiceInMemory,
+                        groupQueryServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
         reset(licenseManager);
     }
 
     @Test
     void should_create_new_integration() {
-        //Given
-        givenExistingUsers(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        // Given
+        givenExistingUsers(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
         var input = new Input(IntegrationFixture.anApiIntegration(), AUDIT_INFO);
 
-        //When
+        // When
         CreateIntegrationUseCase.Output output = usecase.execute(input);
 
-        //Then
+        // Then
         assertThat(output).isNotNull();
         assertThat(output.createdIntegration().id()).isEqualTo(INTEGRATION_ID);
         assertThat(output.createdIntegration())
-            .extracting(
-                Integration::name,
-                Integration::description,
-                Integration::provider,
-                Integration::environmentId,
-                Integration::createdAt,
-                Integration::updatedAt
-            )
-            .containsExactly(
-                NAME,
-                DESCRIPTION,
-                PROVIDER,
-                ENV_ID,
-                ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()),
-                ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault())
-            );
+                .extracting(
+                        Integration::name,
+                        Integration::description,
+                        Integration::provider,
+                        Integration::environmentId,
+                        Integration::createdAt,
+                        Integration::updatedAt)
+                .containsExactly(
+                        NAME,
+                        DESCRIPTION,
+                        PROVIDER,
+                        ENV_ID,
+                        ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()),
+                        ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()));
     }
 
     @Test
     void should_create_new_primary_owner_membership() {
-        //Given
-        givenExistingUsers(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        // Given
+        givenExistingUsers(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
         roleQueryServiceInMemory.resetSystemRoles(ORGANIZATION_ID);
         var input = new Input(IntegrationFixture.anApiIntegration(), AUDIT_INFO);
 
-        //When
+        // When
         usecase.execute(input);
 
-        //Then
-        assertThat(membershipCrudServiceInMemory.storage()).containsExactly(
-            Membership.builder()
-                .id(INTEGRATION_ID)
-                .memberId(USER_ID)
-                .memberType(Membership.Type.USER)
-                .referenceType(Membership.ReferenceType.INTEGRATION)
-                .referenceId(INTEGRATION_ID)
-                .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
-                .createdAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
-                .updatedAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
-                .build()
-        );
+        // Then
+        assertThat(membershipCrudServiceInMemory.storage())
+                .containsExactly(Membership.builder()
+                        .id(INTEGRATION_ID)
+                        .memberId(USER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.INTEGRATION)
+                        .referenceId(INTEGRATION_ID)
+                        .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .createdAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
+                        .updatedAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_throw_when_no_enterprise_license_found() {
         // Given
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anOssLicense());
 
         // When
-        var throwable = Assertions.catchThrowable(() -> usecase.execute(new Input(IntegrationFixture.anApiIntegration(), AUDIT_INFO)));
+        var throwable = Assertions.catchThrowable(
+                () -> usecase.execute(new Input(IntegrationFixture.anApiIntegration(), AUDIT_INFO)));
 
         // Then
         assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);

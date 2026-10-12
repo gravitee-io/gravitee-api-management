@@ -98,9 +98,15 @@ public class ScoringFunctionRepositoryTest extends AbstractManagementRepositoryT
     // deleteByReferenceId
     @Test
     public void should_delete_by_reference_id() throws TechnicalException {
-        int nbBeforeDeletion = scoringFunctionRepository.findAllByReferenceId("ToBeDeleted", "ENVIRONMENT").size();
-        int deleted = scoringFunctionRepository.deleteByReferenceId("ToBeDeleted", "ENVIRONMENT").size();
-        int nbAfterDeletion = scoringFunctionRepository.findAllByReferenceId("ToBeDeleted", "ENVIRONMENT").size();
+        int nbBeforeDeletion = scoringFunctionRepository
+                .findAllByReferenceId("ToBeDeleted", "ENVIRONMENT")
+                .size();
+        int deleted = scoringFunctionRepository
+                .deleteByReferenceId("ToBeDeleted", "ENVIRONMENT")
+                .size();
+        int nbAfterDeletion = scoringFunctionRepository
+                .findAllByReferenceId("ToBeDeleted", "ENVIRONMENT")
+                .size();
 
         assertThat(nbBeforeDeletion).isEqualTo(2);
         assertThat(deleted).isEqualTo(2);
@@ -109,13 +115,13 @@ public class ScoringFunctionRepositoryTest extends AbstractManagementRepositoryT
 
     private static ScoringFunction aFunction(String uuid, Date date) {
         return ScoringFunction.builder()
-            .id(uuid)
-            .name("function-name")
-            .referenceType("ENVIRONMENT")
-            .referenceId("my-env")
-            .createdAt(date)
-            .payload("function-payload")
-            .build();
+                .id(uuid)
+                .name("function-name")
+                .referenceType("ENVIRONMENT")
+                .referenceId("my-env")
+                .createdAt(date)
+                .payload("function-payload")
+                .build();
     }
 
     Condition<ScoringFunction> haveId(String id) {

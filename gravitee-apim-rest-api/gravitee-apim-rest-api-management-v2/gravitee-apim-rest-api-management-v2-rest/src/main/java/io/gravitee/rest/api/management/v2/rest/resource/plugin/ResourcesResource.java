@@ -41,22 +41,19 @@ public class ResourcesResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ResourcePlugin> getResources() {
-        return ResourcePluginMapper.INSTANCE.mapFromCore(
-            getResourcePluginsUseCase
-                .getResourcesByOrganization(new GetResourcePluginsUseCase.Input(GraviteeContext.getCurrentOrganization()))
-                .plugins()
-        );
+        return ResourcePluginMapper.INSTANCE.mapFromCore(getResourcePluginsUseCase
+                .getResourcesByOrganization(
+                        new GetResourcePluginsUseCase.Input(GraviteeContext.getCurrentOrganization()))
+                .plugins());
     }
 
     @Path("/{resourceId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ResourcePlugin getResource(@PathParam("resourceId") String resourceId) {
-        return ResourcePluginMapper.INSTANCE.mapFromCore(
-            getResourcePluginUseCase
+        return ResourcePluginMapper.INSTANCE.mapFromCore(getResourcePluginUseCase
                 .execute(new GetResourcePluginUseCase.Input(GraviteeContext.getCurrentOrganization(), resourceId))
-                .plugin()
-        );
+                .plugin());
     }
 
     @GET
@@ -64,7 +61,7 @@ public class ResourcesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public String getResourceSchema(@PathParam("resourceId") String resourceId) {
         return getResourcePluginUseCase
-            .execute(new GetResourcePluginUseCase.Input(GraviteeContext.getCurrentOrganization(), resourceId, true))
-            .schema();
+                .execute(new GetResourcePluginUseCase.Input(GraviteeContext.getCurrentOrganization(), resourceId, true))
+                .schema();
     }
 }

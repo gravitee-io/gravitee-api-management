@@ -51,8 +51,10 @@ class FailoverV4SolaceEndpointIntegrationTest extends AbstractSolaceEndpointInte
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
-        entrypoints.putIfAbsent("http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
     }
 
     @Test
@@ -62,68 +64,73 @@ class FailoverV4SolaceEndpointIntegrationTest extends AbstractSolaceEndpointInte
         requestBody.put("field", "value");
 
         subscribeToSolace(topic)
-            .zipWith(postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value")).isEmpty().toFlowable(), (c, o) -> c)
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(message -> {
-                assertThat(message.getDestinationName()).hasToString(topic);
-                assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
+                .zipWith(
+                        postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value"))
+                                .isEmpty()
+                                .toFlowable(),
+                        (c, o) -> c)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(message -> {
+                    assertThat(message.getDestinationName()).hasToString(topic);
+                    assertThat(message.getPayloadAsBytes())
+                            .isEqualTo(requestBody.toBuffer().getBytes());
 
-                assertThat(message.getProperty("content-length")).isEqualTo(String.valueOf(requestBody.toString().length()));
-                assertThat(message.getProperty("host")).isNotNull();
-                assertThat(message.getProperty("X-Test-Header")).isEqualTo("header-value");
-                assertThat(message.getProperty("X-Gravitee-Transaction-Id")).isNotNull();
-                assertThat(message.getProperty("X-Gravitee-Request-Id")).isNotNull();
-                return true;
-            });
+                    assertThat(message.getProperty("content-length"))
+                            .isEqualTo(String.valueOf(requestBody.toString().length()));
+                    assertThat(message.getProperty("host")).isNotNull();
+                    assertThat(message.getProperty("X-Test-Header")).isEqualTo("header-value");
+                    assertThat(message.getProperty("X-Gravitee-Transaction-Id")).isNotNull();
+                    assertThat(message.getProperty("X-Gravitee-Request-Id")).isNotNull();
+                    return true;
+                });
     }
 
     @Test
     @DeployApi("/apis/v4/http/failover/solace-two-endpoints.json")
     void should_subscribe_on_first_retry(HttpClient client) {
-        client
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                return request.send();
-            })
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMap(response -> {
-                final DirectMessagePublisher publisher = messagingService.createDirectMessagePublisherBuilder().build();
-                return Completable.fromCompletionStage(publisher.startAsync())
-                    .andThen(
-                        Completable.fromRunnable(() -> {
-                            Topic topic1 = Topic.of(topic);
-                            OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
-                            messageBuilder.withProperty("key", "value");
-                            OutboundMessage outboundMessage = messageBuilder.build("message".getBytes());
-                            publisher.publish(outboundMessage, topic1);
-                        })
-                    )
-                    .andThen(response.body());
-            })
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                final JsonObject jsonResponse = new JsonObject(body.toString());
-                final JsonArray items = jsonResponse.getJsonArray("items");
-                assertThat(items).hasSize(1);
-                final JsonObject message = items.getJsonObject(0);
-                assertThat(message.getString("content")).isEqualTo("message");
-                return true;
-            });
+        client.rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> {
+                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                    return request.send();
+                })
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMap(response -> {
+                    final DirectMessagePublisher publisher = messagingService
+                            .createDirectMessagePublisherBuilder()
+                            .build();
+                    return Completable.fromCompletionStage(publisher.startAsync())
+                            .andThen(Completable.fromRunnable(() -> {
+                                Topic topic1 = Topic.of(topic);
+                                OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
+                                messageBuilder.withProperty("key", "value");
+                                OutboundMessage outboundMessage = messageBuilder.build("message".getBytes());
+                                publisher.publish(outboundMessage, topic1);
+                            }))
+                            .andThen(response.body());
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    final JsonObject jsonResponse = new JsonObject(body.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("message");
+                    return true;
+                });
     }
 
-    private Flowable<Buffer> postMessage(HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
-        return client
-            .rxRequest(HttpMethod.POST, requestURI)
-            .flatMap(request -> {
-                headers.forEach(request::putHeader);
-                return request.rxSend(requestBody.toString());
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(202);
-                return response.toFlowable();
-            });
+    private Flowable<Buffer> postMessage(
+            HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
+        return client.rxRequest(HttpMethod.POST, requestURI)
+                .flatMap(request -> {
+                    headers.forEach(request::putHeader);
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(202);
+                    return response.toFlowable();
+                });
     }
 }

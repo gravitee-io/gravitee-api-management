@@ -49,16 +49,17 @@ public class NewNativeApi extends AbstractNewApi {
      * @return An instance of {@link NativeApi.NativeApiBuilder} based on the current state of this NewNativeApi.
      */
     public NativeApi.NativeApiBuilder<?, ?> toNativeApiDefinitionBuilder() {
-        // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
+        // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to
+        // allow MapStruct in core.
         return NativeApi.builder()
-            .name(name)
-            .type(type)
-            .apiVersion(apiVersion)
-            .definitionVersion(definitionVersion)
-            .tags(tags)
-            .listeners(listeners)
-            .endpointGroups(endpointGroups)
-            .flows(flows)
-            .analytics(nativeAnalytics);
+                .name(name)
+                .type(type)
+                .apiVersion(apiVersion)
+                .definitionVersion(definitionVersion)
+                .tags(tags)
+                .listeners(listeners)
+                .endpointGroups(endpointGroups)
+                .flows(flows)
+                .analytics(nativeAnalytics);
     }
 }

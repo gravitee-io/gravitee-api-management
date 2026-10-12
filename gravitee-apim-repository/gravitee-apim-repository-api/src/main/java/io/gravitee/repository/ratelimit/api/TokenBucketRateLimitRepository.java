@@ -47,12 +47,11 @@ public interface TokenBucketRateLimitRepository<T extends TokenBucket> {
      * @throws IllegalArgumentException if {@code refillPeriodMillis <= 0}, {@code tokensRequested < 0} or {@code capacity < 0}
      */
     Single<TokenBucketConsumeResult> refillAndTryConsume(
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        Supplier<T> supplier
-    );
+            String key,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            Supplier<T> supplier);
 }

@@ -18,7 +18,6 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,59 +71,67 @@ class AuthzEventToEngineIntegrationTest {
         port = new RecordingPort();
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient()
-            .when(deployerFactory.createAuthzEntityDeployer())
-            .thenReturn(new AuthzEntityDeployer(port, new NoopDistributedSyncService()));
+                .when(deployerFactory.createAuthzEntityDeployer())
+                .thenReturn(new AuthzEntityDeployer(port, new NoopDistributedSyncService()));
         lenient()
-            .when(deployerFactory.createAuthzPolicyDeployer())
-            .thenReturn(new AuthzPolicyDeployer(port, new NoopDistributedSyncService()));
+                .when(deployerFactory.createAuthzPolicyDeployer())
+                .thenReturn(new AuthzPolicyDeployer(port, new NoopDistributedSyncService()));
     }
 
     @Test
     void api_resource_entity_from_DB_event_reaches_engine_and_commits() throws InterruptedException {
         AuthzEntitySynchronizer synchronizer = new AuthzEntitySynchronizer(
-            fetcher,
-            new AuthzEntityMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzEntityMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
         Event publish = event(
-            "evt-e",
-            EventType.PUBLISH_AUTHZ_ENTITY,
-            "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
-        );
+                "evt-e",
+                EventType.PUBLISH_AUTHZ_ENTITY,
+                "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(port.ops).containsExactly("addOrUpdateEntity:Resource::\"api.bookings\"", "commit");
-        assertThat(port.schemaOps).as("an entity event must not reach the schema route").isEmpty();
+        assertThat(port.schemaOps)
+                .as("an entity event must not reach the schema route")
+                .isEmpty();
     }
 
     @Test
     void api_resource_policy_from_DB_event_reaches_engine_and_commits() throws InterruptedException {
         AuthzPolicySynchronizer synchronizer = new AuthzPolicySynchronizer(
-            fetcher,
-            new AuthzPolicyMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzPolicyMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
         Event publish = event(
-            "evt-p",
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\": \"doc-1\", \"name\": \"Bookings\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(p,a,r);\"}"
-        );
+                "evt-p",
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\": \"doc-1\", \"name\": \"Bookings\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(p,a,r);\"}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
 
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(port.ops).containsExactly("addOrUpdatePolicy:doc-1", "commit");
-        assertThat(port.schemaOps).as("a policy event must not reach the schema route").isEmpty();
+        assertThat(port.schemaOps)
+                .as("a policy event must not reach the schema route")
+                .isEmpty();
     }
 
     private static ThreadPoolExecutor executor() {
@@ -143,7 +150,8 @@ class AuthzEventToEngineIntegrationTest {
     void the_schema_recorder_is_live_so_an_absence_of_schema_ops_is_a_real_assertion() {
         assertThat(port.schemaOps).isEmpty();
 
-        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("scope-1"), 1L).blockingAwait();
+        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("scope-1"), 1L)
+                .blockingAwait();
 
         assertThat(port.schemaOps).containsExactly("addOrUpdateSchema:probe");
     }
@@ -154,13 +162,12 @@ class AuthzEventToEngineIntegrationTest {
 
         @Override
         public Completable addOrUpdateEntity(
-            String environmentId,
-            String uid,
-            Map<String, Object> attributes,
-            List<String> parents,
-            Set<String> targetPdpIds,
-            long updatedAt
-        ) {
+                String environmentId,
+                String uid,
+                Map<String, Object> attributes,
+                List<String> parents,
+                Set<String> targetPdpIds,
+                long updatedAt) {
             ops.add("addOrUpdateEntity:" + uid);
             return Completable.complete();
         }
@@ -173,14 +180,13 @@ class AuthzEventToEngineIntegrationTest {
 
         @Override
         public Completable addOrUpdatePolicy(
-            String environmentId,
-            String docId,
-            String name,
-            String policyText,
-            Set<String> targetPdpIds,
-            long updatedAt,
-            String revision
-        ) {
+                String environmentId,
+                String docId,
+                String name,
+                String policyText,
+                Set<String> targetPdpIds,
+                long updatedAt,
+                String revision) {
             ops.add("addOrUpdatePolicy:" + docId);
             return Completable.complete();
         }
@@ -195,13 +201,12 @@ class AuthzEventToEngineIntegrationTest {
 
         @Override
         public Completable addOrUpdateSchema(
-            String environmentId,
-            String docId,
-            String name,
-            String schemaText,
-            Set<String> targetPdpIds,
-            long updatedAt
-        ) {
+                String environmentId,
+                String docId,
+                String name,
+                String schemaText,
+                Set<String> targetPdpIds,
+                long updatedAt) {
             schemaOps.add("addOrUpdateSchema:" + docId);
             return Completable.complete();
         }

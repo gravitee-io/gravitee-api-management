@@ -20,7 +20,6 @@ import io.gravitee.gateway.reactor.accesspoint.AccessPointEvent;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;

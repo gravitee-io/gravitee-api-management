@@ -63,9 +63,8 @@ public interface AnalyticsDefinitionQueryService {
             return ApiSpec.Name.valueOf(apiName);
         } catch (IllegalArgumentException e) {
             throw new ValidationDomainException(
-                "Invalid api name",
-                Map.of("invalidName", apiName, "validNames", Arrays.toString(ApiSpec.Name.values()))
-            );
+                    "Invalid api name",
+                    Map.of("invalidName", apiName, "validNames", Arrays.toString(ApiSpec.Name.values())));
         }
     }
 
@@ -74,9 +73,8 @@ public interface AnalyticsDefinitionQueryService {
             return MetricSpec.Name.valueOf(metricName);
         } catch (IllegalArgumentException e) {
             throw new ValidationDomainException(
-                "Invalid metric name",
-                Map.of("invalidName", metricName, "validNames", Arrays.toString(MetricSpec.Name.values()))
-            );
+                    "Invalid metric name",
+                    Map.of("invalidName", metricName, "validNames", Arrays.toString(MetricSpec.Name.values())));
         }
     }
 }

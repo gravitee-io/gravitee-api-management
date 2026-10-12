@@ -24,9 +24,8 @@ import java.util.List;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpCustomDashboardRepository
-    extends AbstractNoOpManagementRepository<CustomDashboard, String>
-    implements CustomDashboardRepository {
+public class NoOpCustomDashboardRepository extends AbstractNoOpManagementRepository<CustomDashboard, String>
+        implements CustomDashboardRepository {
 
     @Override
     public List<CustomDashboard> findByEnvironmentId(String environmentId) throws TechnicalException {

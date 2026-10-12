@@ -49,19 +49,15 @@ public class TcpProxyEndpointConnectorFactory implements BaseEndpointConnectorFa
 
     @Override
     public TcpProxyEndpointConnector createConnector(
-        DeploymentContext deploymentContext,
-        String configuration,
-        String sharedConfiguration
-    ) {
+            DeploymentContext deploymentContext, String configuration, String sharedConfiguration) {
         try {
             TcpProxyEndpointConnectorSharedConfigurationEvaluator configurationEvaluator =
-                new TcpProxyEndpointConnectorSharedConfigurationEvaluator(
-                    connectorFactoryHelper.readConfiguration(TcpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration)
-                );
+                    new TcpProxyEndpointConnectorSharedConfigurationEvaluator(connectorFactoryHelper.readConfiguration(
+                            TcpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration));
             return new TcpProxyEndpointConnector(
-                connectorFactoryHelper.readConfiguration(TcpProxyEndpointConnectorConfiguration.class, configuration),
-                configurationEvaluator.evalNow(deploymentContext)
-            );
+                    connectorFactoryHelper.readConfiguration(
+                            TcpProxyEndpointConnectorConfiguration.class, configuration),
+                    configurationEvaluator.evalNow(deploymentContext));
         } catch (Exception e) {
             log.error("Can't create TCP endpoint connector because no valid configuration", e);
             return null;

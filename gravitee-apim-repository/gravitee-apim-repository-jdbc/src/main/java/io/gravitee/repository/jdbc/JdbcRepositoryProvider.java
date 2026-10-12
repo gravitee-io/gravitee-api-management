@@ -37,7 +37,7 @@ public class JdbcRepositoryProvider implements RepositoryProvider {
     @Override
     public Scope[] scopes() {
         log.debug("JdbcRepository.scopes()");
-        return new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT };
+        return new Scope[] {Scope.MANAGEMENT, Scope.RATE_LIMIT};
     }
 
     @Override

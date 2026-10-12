@@ -27,15 +27,26 @@ import java.util.List;
  */
 public interface AlertService {
     AlertTriggerEntity create(ExecutionContext executionContext, NewAlertTriggerEntity alert);
+
     AlertTriggerEntity update(ExecutionContext executionContext, UpdateAlertTriggerEntity alert);
+
     AlertTriggerEntity findById(String alertId);
+
     List<AlertTriggerEntity> findAll();
+
     List<AlertTriggerEntity> findByReference(AlertReferenceType referenceType, String referenceId);
+
     List<AlertTriggerEntity> findByReferences(AlertReferenceType referenceType, List<String> referenceIds);
+
     List<AlertTriggerEntity> findByReferenceWithEventCounts(AlertReferenceType referenceType, String referenceId);
+
     void delete(String alertId, String referenceId);
+
     AlertStatusEntity getStatus(ExecutionContext executionContext);
+
     Page<AlertEventEntity> findEvents(String alertId, AlertEventQuery eventQuery);
+
     void createDefaults(ExecutionContext executionContext, AlertReferenceType referenceType, String referenceId);
+
     void applyDefaults(ExecutionContext executionContext, String alertId, AlertReferenceType referenceType);
 }

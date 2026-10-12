@@ -32,7 +32,13 @@ public final class AuthzScopedFacetAggregation {
 
     private AuthzScopedFacetAggregation() {}
 
-    static JsonObject facet(MetricMeasuresQuery metric, Facet facet, String field, Integer limit, JsonObject measures, JsonObject scope) {
+    static JsonObject facet(
+            MetricMeasuresQuery metric,
+            Facet facet,
+            String field,
+            Integer limit,
+            JsonObject measures,
+            JsonObject scope) {
         var terms = new JsonObject().put("field", field);
         if (limit != null) {
             terms.put("size", limit);
@@ -41,7 +47,8 @@ public final class AuthzScopedFacetAggregation {
             terms.put("order", order(metric));
         }
         var facetAggName = AggregationAdapter.adaptName(metric.metric(), facet);
-        var facetAgg = new JsonObject().put(facetAggName, new JsonObject().put("terms", terms).put("aggs", measures));
+        var facetAgg = new JsonObject()
+                .put(facetAggName, new JsonObject().put("terms", terms).put("aggs", measures));
         if (scope == null) {
             return facetAgg;
         }
@@ -52,7 +59,9 @@ public final class AuthzScopedFacetAggregation {
     private static JsonObject order(MetricMeasuresQuery metric) {
         var order = new JsonObject();
         for (var sort : metric.sorts()) {
-            order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+            order.put(
+                    AggregationAdapter.adaptName(metric.metric(), sort.measure()),
+                    sort.order().name().toLowerCase());
         }
         return order;
     }
@@ -81,7 +90,8 @@ public final class AuthzScopedFacetAggregation {
         }
         var facet = query.facets().getFirst();
         for (var metric : metrics(query.metrics())) {
-            var histogram = response.getAggregations().get(AggregationAdapter.adaptName(metric, AggregationAdapter.TIME_SERIES_AGG_NAME));
+            var histogram = response.getAggregations()
+                    .get(AggregationAdapter.adaptName(metric, AggregationAdapter.TIME_SERIES_AGG_NAME));
             if (histogram != null && histogram.getBuckets() != null) {
                 histogram.getBuckets().forEach(timeBucket -> unwrapTimeBucket(timeBucket, metric, facet));
             }
@@ -92,11 +102,9 @@ public final class AuthzScopedFacetAggregation {
     private static void unwrapTimeBucket(JsonNode timeBucket, Metric metric, Facet facet) {
         var scopeAggName = AuthzMeasuresQueryAdapter.scopeAggName(metric);
         var facetAggName = AggregationAdapter.adaptName(metric, facet);
-        if (
-            timeBucket instanceof ObjectNode bucket &&
-            bucket.get(scopeAggName) instanceof ObjectNode scopeAgg &&
-            scopeAgg.get(facetAggName) instanceof ObjectNode facetAgg
-        ) {
+        if (timeBucket instanceof ObjectNode bucket
+                && bucket.get(scopeAggName) instanceof ObjectNode scopeAgg
+                && scopeAgg.get(facetAggName) instanceof ObjectNode facetAgg) {
             bucket.remove(scopeAggName);
             bucket.set(facetAggName, facetAgg);
         }

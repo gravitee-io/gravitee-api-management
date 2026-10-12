@@ -32,18 +32,17 @@ public interface TenantService {
     TenantEntity findByKeyAndReference(String tenant, String referenceId, TenantReferenceType referenceType);
 
     List<TenantEntity> create(
-        ExecutionContext executionContext,
-        List<NewTenantEntity> tenants,
-        String referenceId,
-        TenantReferenceType referenceType
-    );
+            ExecutionContext executionContext,
+            List<NewTenantEntity> tenants,
+            String referenceId,
+            TenantReferenceType referenceType);
 
     List<TenantEntity> update(
-        ExecutionContext executionContext,
-        List<UpdateTenantEntity> tenants,
-        String referenceId,
-        TenantReferenceType referenceType
-    );
+            ExecutionContext executionContext,
+            List<UpdateTenantEntity> tenants,
+            String referenceId,
+            TenantReferenceType referenceType);
 
-    void delete(ExecutionContext executionContext, String tenantId, String referenceId, TenantReferenceType referenceType);
+    void delete(
+            ExecutionContext executionContext, String tenantId, String referenceId, TenantReferenceType referenceType);
 }

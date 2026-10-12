@@ -45,8 +45,7 @@ public class ApplicationTypeServiceTest {
     @Test
     public void shouldGetAllApplicationTypes() throws TechnicalException, IOException {
         JsonNode jsonTypes = objectMapper.readTree(
-            "{ \"simple\": { \"enabled\": true }, \"web\": { \"enabled\": true }, \"browser\": { \"enabled\": true }, \"backend_to_backend\": { \"enabled\": true }, \"native\": { \"enabled\": true } }"
-        );
+                "{ \"simple\": { \"enabled\": true }, \"web\": { \"enabled\": true }, \"browser\": { \"enabled\": true }, \"backend_to_backend\": { \"enabled\": true }, \"native\": { \"enabled\": true } }");
         ApplicationTypesEntity enabledApplicationsTypes = applicationTypeService.getFilteredApplicationTypes(jsonTypes);
         assertNotNull(enabledApplicationsTypes);
         assertEquals(5, enabledApplicationsTypes.getData().size());
@@ -55,8 +54,7 @@ public class ApplicationTypeServiceTest {
     @Test
     public void shouldGetEnabledApplicationTypes() throws TechnicalException, IOException {
         JsonNode jsonTypes = objectMapper.readTree(
-            "{ \"simple\": { \"enabled\": false }, \"web\": { \"enabled\": true }, \"browser\": { \"enabled\": true }, \"backend_to_backend\": { \"enabled\": false }, \"native\": { \"enabled\": true } }"
-        );
+                "{ \"simple\": { \"enabled\": false }, \"web\": { \"enabled\": true }, \"browser\": { \"enabled\": true }, \"backend_to_backend\": { \"enabled\": false }, \"native\": { \"enabled\": true } }");
         ApplicationTypesEntity enabledApplicationsTypes = applicationTypeService.getFilteredApplicationTypes(jsonTypes);
         assertNotNull(enabledApplicationsTypes);
         assertEquals(3, enabledApplicationsTypes.getData().size());

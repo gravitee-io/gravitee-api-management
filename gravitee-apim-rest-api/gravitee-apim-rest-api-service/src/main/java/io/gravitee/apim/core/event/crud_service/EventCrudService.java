@@ -23,13 +23,12 @@ import java.util.Set;
 
 public interface EventCrudService {
     Event createEvent(
-        String organizationId,
-        String environmentId,
-        Set<String> environmentIds,
-        EventType eventType,
-        Object content,
-        Map<Event.EventProperties, String> properties
-    );
+            String organizationId,
+            String environmentId,
+            Set<String> environmentIds,
+            EventType eventType,
+            Object content,
+            Map<Event.EventProperties, String> properties);
 
     Event get(String organizationId, String environmentId, String eventId);
 

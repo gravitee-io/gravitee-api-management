@@ -29,10 +29,7 @@ public class DeleteEnvironmentFunctionUseCase {
 
     public void execute(Input input) {
         scoringFunctionCrudService.deleteByReferenceAndName(
-            input.auditInfo().environmentId(),
-            ScoringFunction.ReferenceType.ENVIRONMENT,
-            input.functionName
-        );
+                input.auditInfo().environmentId(), ScoringFunction.ReferenceType.ENVIRONMENT, input.functionName);
     }
 
     public record Input(String functionName, AuditInfo auditInfo) {}

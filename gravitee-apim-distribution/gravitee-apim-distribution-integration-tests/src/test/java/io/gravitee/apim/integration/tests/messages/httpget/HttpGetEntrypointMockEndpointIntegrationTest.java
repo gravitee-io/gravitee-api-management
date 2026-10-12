@@ -80,13 +80,16 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         super.configurePolicies(policies);
-        policies.put("latency", PolicyBuilder.build("latency", LatencyPolicy.class, LatencyPolicy.LatencyConfiguration.class));
+        policies.put(
+                "latency",
+                PolicyBuilder.build("latency", LatencyPolicy.class, LatencyPolicy.LatencyConfiguration.class));
     }
 
     @Override
@@ -97,11 +100,10 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Override
     protected void configureHttpClient(
-        HttpClientOptions options,
-        PoolOptions poolOptions,
-        GatewayDynamicConfig.Config gatewayConfig,
-        ParameterContext parameterContext
-    ) {
+            HttpClientOptions options,
+            PoolOptions poolOptions,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext) {
         super.configureHttpClient(options, poolOptions, gatewayConfig, parameterContext);
         // Force pool to 1 connection. This allows to ease the connection drain test.
         poolOptions.setHttp1MaxSize(1);
@@ -113,12 +115,12 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         final int messageCount = 12;
 
         final TestSubscriber<JsonObject> obs = createGetRequest("/test", MediaType.APPLICATION_JSON, httpClient)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount)
-            .assertComplete();
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount)
+                .assertComplete();
 
         verifyMessagesAreOrdered(messageCount, obs);
     }
@@ -129,12 +131,12 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         final int messageCount = 5;
 
         final TestSubscriber<JsonObject> obs = createGetRequest("/test?limit=5", MediaType.APPLICATION_JSON, httpClient)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount)
-            .assertComplete();
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount)
+                .assertComplete();
 
         verifyMessagesAreOrdered(messageCount, obs);
     }
@@ -145,12 +147,12 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         final int messageCount = 5;
 
         final TestSubscriber<JsonObject> obs = createGetRequest("/test", MediaType.APPLICATION_JSON, httpClient)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount)
-            .assertComplete();
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount)
+                .assertComplete();
 
         verifyMessagesAreOrdered(messageCount, obs);
     }
@@ -161,12 +163,12 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         final int messageCount = 0;
 
         final TestSubscriber<JsonObject> obs = createGetRequest("/test", MediaType.APPLICATION_JSON, httpClient)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount)
-            .assertComplete();
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount)
+                .assertComplete();
 
         verifyMessagesAreOrdered(messageCount, obs);
     }
@@ -177,12 +179,12 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         final int messageCount = 12;
 
         final TestSubscriber<JsonObject> obs = createGetRequest("/test", MediaType.APPLICATION_JSON, httpClient)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount)
-            .assertComplete();
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractMessages))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount)
+                .assertComplete();
 
         verifyMessagesAreOrdered(messageCount, obs);
         verifyMessageHeadersAndMetadata(messageCount, obs);
@@ -194,12 +196,12 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         final int messageCount = 12;
 
         final TestSubscriber<JsonObject> obs = createGetRequest("/test", MediaType.APPLICATION_XML, httpClient)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractXmlMessages))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount)
-            .assertComplete();
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractXmlMessages))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount)
+                .assertComplete();
 
         verifyMessagesAreOrdered(messageCount, obs);
     }
@@ -210,12 +212,12 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         final int messageCount = 12;
 
         final TestSubscriber<JsonObject> obs = createGetRequest("/test", MediaType.TEXT_PLAIN, httpClient)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractPlainTextMessages))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueCount(messageCount)
-            .assertComplete();
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                .flatMapPublisher(response -> response.rxBody().flatMapPublisher(this::extractPlainTextMessages))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueCount(messageCount)
+                .assertComplete();
 
         verifyMessagesAreOrdered(messageCount, obs);
     }
@@ -226,16 +228,16 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         final int messageCount = 0;
 
         final TestObserver<JsonObject> obs = createGetRequest("/test", MediaType.APPLICATION_JSON, httpClient)
-            .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(504))
-            .flatMap(response -> response.rxBody().map(body -> new JsonObject(body.toString())))
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                assertThat(body.getString("message")).isEqualTo("Request timeout");
-                assertThat(body.getInteger("http_status_code")).isEqualTo(504);
-                return true;
-            })
-            .assertComplete();
+                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(504))
+                .flatMap(response -> response.rxBody().map(body -> new JsonObject(body.toString())))
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    assertThat(body.getString("message")).isEqualTo("Request timeout");
+                    assertThat(body.getInteger("http_status_code")).isEqualTo(504);
+                    return true;
+                })
+                .assertComplete();
     }
 
     @Test
@@ -243,20 +245,19 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     void should_return_connection_close_header_when_connection_is_drained(HttpClient client) {
         final ConnectionDrainManager connectionDrainManager = applicationContext.getBean(ConnectionDrainManager.class);
 
-        client
-            .rxRequest(HttpMethod.GET, "/test")
-            .concatMap(HttpClientRequest::rxSend)
-            .concatMap(response -> response.end().andThen(Single.just(response.headers())))
-            // Request connection drain after first request. The second request should be asked to close connection.
-            .doOnSuccess(headers -> connectionDrainManager.requestDrain())
-            .repeat(2)
-            // Keep the last response only.
-            .lastElement()
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            // Last response should contain a Connection: close header.
-            .assertValue(headers -> headers.get(HttpHeaders.CONNECTION).equals("close"));
+        client.rxRequest(HttpMethod.GET, "/test")
+                .concatMap(HttpClientRequest::rxSend)
+                .concatMap(response -> response.end().andThen(Single.just(response.headers())))
+                // Request connection drain after first request. The second request should be asked to close connection.
+                .doOnSuccess(headers -> connectionDrainManager.requestDrain())
+                .repeat(2)
+                // Keep the last response only.
+                .lastElement()
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                // Last response should contain a Connection: close header.
+                .assertValue(headers -> headers.get(HttpHeaders.CONNECTION).equals("close"));
     }
 
     @NonNull
@@ -313,12 +314,10 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @NonNull
     private Single<HttpClientResponse> createGetRequest(String path, String accept, HttpClient httpClient) {
-        return httpClient
-            .rxRequest(HttpMethod.GET, path)
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), accept);
-                return request.rxSend();
-            });
+        return httpClient.rxRequest(HttpMethod.GET, path).flatMap(request -> {
+            request.putHeader(HttpHeaderNames.ACCEPT.toString(), accept);
+            return request.rxSend();
+        });
     }
 
     private void verifyMessagesAreOrdered(int messageCount, TestSubscriber<JsonObject> obs) {

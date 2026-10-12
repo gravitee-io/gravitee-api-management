@@ -58,7 +58,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ResolvableType;
 
 @CustomLog
-public abstract class AbstractReactorFactory<T extends ReactableApi<? extends AbstractApi>> implements ReactorFactory<T> {
+public abstract class AbstractReactorFactory<T extends ReactableApi<? extends AbstractApi>>
+        implements ReactorFactory<T> {
 
     protected final ApplicationContext applicationContext;
     protected final PolicyFactoryManager policyFactoryManager;
@@ -66,11 +67,10 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
     protected final DictionaryManager dictionaryManager;
 
     protected AbstractReactorFactory(
-        ApplicationContext applicationContext,
-        PolicyFactoryManager policyFactoryManager,
-        Configuration configuration,
-        DictionaryManager dictionaryManager
-    ) {
+            ApplicationContext applicationContext,
+            PolicyFactoryManager policyFactoryManager,
+            Configuration configuration,
+            DictionaryManager dictionaryManager) {
         this.applicationContext = applicationContext;
         this.policyFactoryManager = policyFactoryManager;
         this.configuration = configuration;
@@ -78,28 +78,23 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
     }
 
     protected abstract void addExtraComponents(
-        CustomComponentProvider componentProvider,
-        T reactableApi,
-        DefaultDeploymentContext deploymentContext
-    );
+            CustomComponentProvider componentProvider, T reactableApi, DefaultDeploymentContext deploymentContext);
 
     protected abstract PolicyManager getPolicyManager(
-        DefaultClassLoader classLoader,
-        T reactableApi,
-        PolicyFactoryManager factoryManager,
-        PolicyConfigurationFactory policyConfigurationFactory,
-        ConfigurablePluginManager<PolicyPlugin<?>> ppm,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider
-    );
+            DefaultClassLoader classLoader,
+            T reactableApi,
+            PolicyFactoryManager factoryManager,
+            PolicyConfigurationFactory policyConfigurationFactory,
+            ConfigurablePluginManager<PolicyPlugin<?>> ppm,
+            PolicyClassLoaderFactory policyClassLoaderFactory,
+            ComponentProvider componentProvider);
 
     protected abstract ApiReactor<T> buildApiReactor(
-        T reactableApi,
-        CompositeComponentProvider componentProvider,
-        PolicyManager policyManager,
-        DefaultDeploymentContext deploymentContext,
-        ResourceLifecycleManager resourceLifecycleManager
-    );
+            T reactableApi,
+            CompositeComponentProvider componentProvider,
+            PolicyManager policyManager,
+            DefaultDeploymentContext deploymentContext,
+            ResourceLifecycleManager resourceLifecycleManager);
 
     @Override
     public ApiReactor<T> create(final T reactableApi) {
@@ -111,45 +106,40 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
                 final CustomComponentProvider customComponentProvider = new CustomComponentProvider();
                 customComponentProvider.add(ReactableApi.class, reactableApi);
 
-                final CompositeComponentProvider componentProvider = new CompositeComponentProvider(
-                    customComponentProvider,
-                    globalComponentProvider
-                );
+                final CompositeComponentProvider componentProvider =
+                        new CompositeComponentProvider(customComponentProvider, globalComponentProvider);
 
                 final DefaultDeploymentContext deploymentContext = new DefaultDeploymentContext();
                 deploymentContext.componentProvider(componentProvider);
                 deploymentContext.templateVariableProviders(commonTemplateVariableProviders(reactableApi));
 
                 final ResourceLifecycleManager resourceLifecycleManager = resourceLifecycleManager(
-                    reactableApi,
-                    applicationContext.getBean(ResourceClassLoaderFactory.class),
-                    new ResourceConfigurationFactoryImpl(),
-                    applicationContext,
-                    deploymentContext
-                );
+                        reactableApi,
+                        applicationContext.getBean(ResourceClassLoaderFactory.class),
+                        new ResourceConfigurationFactoryImpl(),
+                        applicationContext,
+                        deploymentContext);
                 customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
 
                 String[] beanNamesForType = getBeanNamesForType(
-                    ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
-                );
+                        ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
 
-                ConfigurablePluginManager<PolicyPlugin<?>> ppm = (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(
-                    beanNamesForType[0]
-                );
+                ConfigurablePluginManager<PolicyPlugin<?>> ppm =
+                        (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(beanNamesForType[0]);
 
                 final PolicyManager policyManager = getPolicyManager(
-                    applicationContext.getBean(DefaultClassLoader.class),
-                    reactableApi,
-                    policyFactoryManager,
-                    new CachedPolicyConfigurationFactory(),
-                    ppm,
-                    applicationContext.getBean(PolicyClassLoaderFactory.class),
-                    componentProvider
-                );
+                        applicationContext.getBean(DefaultClassLoader.class),
+                        reactableApi,
+                        policyFactoryManager,
+                        new CachedPolicyConfigurationFactory(),
+                        ppm,
+                        applicationContext.getBean(PolicyClassLoaderFactory.class),
+                        componentProvider);
 
                 addExtraComponents(customComponentProvider, reactableApi, deploymentContext);
 
-                return buildApiReactor(reactableApi, componentProvider, policyManager, deploymentContext, resourceLifecycleManager);
+                return buildApiReactor(
+                        reactableApi, componentProvider, policyManager, deploymentContext, resourceLifecycleManager);
             }
         } catch (Exception ex) {
             log.error("Unexpected error while creating AsyncApiReactor", ex);
@@ -159,23 +149,20 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
 
     protected List<TemplateVariableProvider> commonTemplateVariableProviders(T reactableApi) {
         final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
-        templateVariableProviders.add(dictionaryManager.createTemplateVariableProvider(reactableApi.getEnvironmentId()));
+        templateVariableProviders.add(
+                dictionaryManager.createTemplateVariableProvider(reactableApi.getEnvironmentId()));
         templateVariableProviders.add(new ApiTemplateVariableProvider(reactableApi));
         Stream.of(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, CredentialResolver.class))
-            .findFirst()
-            .map(name -> applicationContext.getBean(name, CredentialResolver.class))
-            .ifPresent(credentialResolver ->
-                templateVariableProviders.add(
-                    new CredentialsTemplateVariableProvider(reactableApi.getEnvironmentId(), reactableApi.getId(), credentialResolver)
-                )
-            );
-        List<TemplateVariableProvider> list = Stream.of(
-            BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, TemplateVariableProviderFactory.class)
-        )
-            .map(name -> (TemplateVariableProviderFactory) applicationContext.getBean(name))
-            .filter(factory -> factory.getTemplateVariableScope() == TemplateVariableScope.API)
-            .flatMap(factory -> factory.getTemplateVariableProviders().stream())
-            .toList();
+                .findFirst()
+                .map(name -> applicationContext.getBean(name, CredentialResolver.class))
+                .ifPresent(credentialResolver -> templateVariableProviders.add(new CredentialsTemplateVariableProvider(
+                        reactableApi.getEnvironmentId(), reactableApi.getId(), credentialResolver)));
+        List<TemplateVariableProvider> list = Stream.of(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
+                        applicationContext, TemplateVariableProviderFactory.class))
+                .map(name -> (TemplateVariableProviderFactory) applicationContext.getBean(name))
+                .filter(factory -> factory.getTemplateVariableScope() == TemplateVariableScope.API)
+                .flatMap(factory -> factory.getTemplateVariableProviders().stream())
+                .toList();
         templateVariableProviders.addAll(list);
 
         return templateVariableProviders;
@@ -183,29 +170,25 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
 
     @SuppressWarnings("unchecked")
     private ResourceLifecycleManager resourceLifecycleManager(
-        Reactable reactable,
-        ResourceClassLoaderFactory resourceClassLoaderFactory,
-        ResourceConfigurationFactory resourceConfigurationFactory,
-        ApplicationContext applicationContext,
-        DeploymentContext deploymentContext
-    ) {
+            Reactable reactable,
+            ResourceClassLoaderFactory resourceClassLoaderFactory,
+            ResourceConfigurationFactory resourceConfigurationFactory,
+            ApplicationContext applicationContext,
+            DeploymentContext deploymentContext) {
         String[] beanNamesForType = getBeanNamesForType(
-            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
-        );
+                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
 
-        ConfigurablePluginManager<ResourcePlugin<?>> cpm = (ConfigurablePluginManager<ResourcePlugin<?>>) applicationContext.getBean(
-            beanNamesForType[0]
-        );
+        ConfigurablePluginManager<ResourcePlugin<?>> cpm =
+                (ConfigurablePluginManager<ResourcePlugin<?>>) applicationContext.getBean(beanNamesForType[0]);
 
         return new DefaultResourceManager(
-            applicationContext.getBean(DefaultClassLoader.class),
-            reactable,
-            cpm,
-            resourceClassLoaderFactory,
-            resourceConfigurationFactory,
-            applicationContext,
-            deploymentContext
-        );
+                applicationContext.getBean(DefaultClassLoader.class),
+                reactable,
+                cpm,
+                resourceClassLoaderFactory,
+                resourceConfigurationFactory,
+                applicationContext,
+                deploymentContext);
     }
 
     /**
@@ -215,8 +198,6 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
      */
     protected String[] getBeanNamesForType(ResolvableType resolvableType) {
         return BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
-            ((ConfigurableApplicationContext) applicationContext).getBeanFactory(),
-            resolvableType
-        );
+                ((ConfigurableApplicationContext) applicationContext).getBeanFactory(), resolvableType);
     }
 }

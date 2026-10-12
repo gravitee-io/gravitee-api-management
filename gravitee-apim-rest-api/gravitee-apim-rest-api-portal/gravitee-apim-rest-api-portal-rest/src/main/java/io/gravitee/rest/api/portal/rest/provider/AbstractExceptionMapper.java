@@ -32,7 +32,8 @@ public abstract class AbstractExceptionMapper<T extends Throwable> implements Ex
         return convert(status, detail, "unexpected", null);
     }
 
-    protected ErrorResponse convert(final int status, final String message, final String code, final Map<String, String> parameters) {
+    protected ErrorResponse convert(
+            final int status, final String message, final String code, final Map<String, String> parameters) {
         final Error error = new Error();
         error.setStatus(String.valueOf(status));
         error.message(message);

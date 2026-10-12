@@ -28,11 +28,11 @@ public class PropertiesApiIdUpdatedAtEnvsIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("events")
-            .name("pa1u1e1")
-            .key("properties.api_id", ascending())
-            .key("updatedAt", ascending())
-            .key("environments", ascending())
-            .build();
+                .collection("events")
+                .name("pa1u1e1")
+                .key("properties.api_id", ascending())
+                .key("updatedAt", ascending())
+                .key("environments", ascending())
+                .build();
     }
 }

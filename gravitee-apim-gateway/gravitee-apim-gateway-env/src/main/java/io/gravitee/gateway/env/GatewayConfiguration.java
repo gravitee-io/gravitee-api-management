@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -75,15 +73,19 @@ public class GatewayConfiguration implements InitializingBean {
     }
 
     private void initVertxWebsocket() {
-        // disable the websockets at vertx level here otherwise a static variable will be defined by the creation of HttpServer
-        // into the io.gravitee.node.management.http.vertx.spring.HttpServerSpringConfiguration object during the container bootstrap
+        // disable the websockets at vertx level here otherwise a static variable will be defined by the creation of
+        // HttpServer
+        // into the io.gravitee.node.management.http.vertx.spring.HttpServerSpringConfiguration object during the
+        // container bootstrap
         Boolean websocketEnabled = configuration.getProperty("http.websocket.enabled", Boolean.class, false);
         System.setProperty("vertx.disableWebsockets", Boolean.toString(!websocketEnabled));
     }
 
     private void initShardingTags() {
         String systemPropertyTags = System.getProperty(SHARDING_TAGS_SYSTEM_PROPERTY);
-        String tags = systemPropertyTags == null ? configuration.getProperty(SHARDING_TAGS_SYSTEM_PROPERTY) : systemPropertyTags;
+        String tags = systemPropertyTags == null
+                ? configuration.getProperty(SHARDING_TAGS_SYSTEM_PROPERTY)
+                : systemPropertyTags;
         if (tags != null && !tags.isEmpty()) {
             shardingTags = Optional.of(Arrays.asList(tags.split(SHARDING_TAGS_SEPARATOR)));
         } else {
@@ -138,8 +140,8 @@ public class GatewayConfiguration implements InitializingBean {
     private void initOrganizations() {
         String systemPropertyOrganizations = System.getProperty(ORGANIZATION_SYSTEM_PROPERTY);
         String orgs = systemPropertyOrganizations == null
-            ? configuration.getProperty(ORGANIZATION_SYSTEM_PROPERTY)
-            : systemPropertyOrganizations;
+                ? configuration.getProperty(ORGANIZATION_SYSTEM_PROPERTY)
+                : systemPropertyOrganizations;
         if (orgs != null && !orgs.isEmpty()) {
             organizations = Optional.of(Arrays.asList(orgs.split(ORGANIZATIONS_SEPARATOR)));
         } else {
@@ -154,8 +156,8 @@ public class GatewayConfiguration implements InitializingBean {
     private void initEnvironments() {
         String systemPropertyEnvironments = System.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY);
         String envs = systemPropertyEnvironments == null
-            ? configuration.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY)
-            : systemPropertyEnvironments;
+                ? configuration.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY)
+                : systemPropertyEnvironments;
         if (envs != null && !envs.isEmpty()) {
             environments = Optional.of(Arrays.asList(envs.split(ENVIRONMENTS_SEPARATOR)));
         } else {
@@ -168,15 +170,15 @@ public class GatewayConfiguration implements InitializingBean {
     }
 
     private void initHealthCheckJitter() {
-        int value = configuration.getProperty(HEALTHCHECK_JITTER_PROPERTY, Integer.class, DEFAULT_HEALTHCHECK_JITTER_MS);
+        int value =
+                configuration.getProperty(HEALTHCHECK_JITTER_PROPERTY, Integer.class, DEFAULT_HEALTHCHECK_JITTER_MS);
         if (value < 0 || value > MAX_HEALTHCHECK_JITTER_MS) {
             log.warn(
-                "Invalid {} value: {}. Must be between 0 and {}. Falling back to default: {}.",
-                HEALTHCHECK_JITTER_PROPERTY,
-                value,
-                MAX_HEALTHCHECK_JITTER_MS,
-                DEFAULT_HEALTHCHECK_JITTER_MS
-            );
+                    "Invalid {} value: {}. Must be between 0 and {}. Falling back to default: {}.",
+                    HEALTHCHECK_JITTER_PROPERTY,
+                    value,
+                    MAX_HEALTHCHECK_JITTER_MS,
+                    DEFAULT_HEALTHCHECK_JITTER_MS);
             value = DEFAULT_HEALTHCHECK_JITTER_MS;
         }
         healthCheckJitterMs = value;

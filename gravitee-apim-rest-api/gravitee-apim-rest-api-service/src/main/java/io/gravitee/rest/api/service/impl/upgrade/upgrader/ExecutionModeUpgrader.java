@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -66,9 +65,16 @@ public class ExecutionModeUpgrader implements Upgrader {
     private boolean migrateApiEvents() throws UpgraderException {
         log.info("Starting migrating execution mode for APIs");
         modelCounter = 0;
-        ApiCriteria onlyV2ApiCriteria = new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build();
+        ApiCriteria onlyV2ApiCriteria = new ApiCriteria.Builder()
+                .definitionVersion(List.of(DefinitionVersion.V2))
+                .build();
 
-        var apis = apiRepository.search(onlyV2ApiCriteria, null, new ApiFieldFilter.Builder().excludePicture().build()).toList();
+        var apis = apiRepository
+                .search(
+                        onlyV2ApiCriteria,
+                        null,
+                        new ApiFieldFilter.Builder().excludePicture().build())
+                .toList();
 
         for (var api : apis) {
             try {

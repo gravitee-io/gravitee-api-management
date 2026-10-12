@@ -64,14 +64,15 @@ public class DeleteApiProductUseCase {
 
     public void execute(Input input) {
         ApiProduct apiProduct = apiProductQueryService
-            .findById(input.apiProductId())
-            .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
+                .findById(input.apiProductId())
+                .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
         if (!input.auditInfo().environmentId().equals(apiProduct.getEnvironmentId())) {
             throw new ApiProductNotFoundException(input.apiProductId());
         }
 
         if (apiProduct.getApiIds() != null && !apiProduct.getApiIds().isEmpty()) {
-            for (var api : validateApiProductService.getApisToUndeployOnRemoval(apiProduct.getApiIds(), apiProduct.getId())) {
+            for (var api :
+                    validateApiProductService.getApisToUndeployOnRemoval(apiProduct.getApiIds(), apiProduct.getId())) {
                 apiStateDomainService.stop(api, input.auditInfo());
             }
         }
@@ -87,34 +88,31 @@ public class DeleteApiProductUseCase {
 
     private void closeAndDeleteSubscriptions(String apiProductId, AuditInfo auditInfo) {
         subscriptionQueryService
-            .findAllByReferenceIdAndReferenceType(apiProductId, SubscriptionReferenceType.API_PRODUCT)
-            .forEach(subscription -> {
-                try {
-                    closeSubscriptionDomainService.closeSubscription(subscription, auditInfo);
-                    deleteSubscriptionDomainService.delete(subscription, auditInfo);
-                } catch (Exception e) {
-                    log.error(
-                        "Failed to close/delete subscription [{}] for API Product [{}] — subscription may remain authorized on the gateway",
-                        subscription.getId(),
-                        apiProductId,
-                        e
-                    );
-                }
-            });
+                .findAllByReferenceIdAndReferenceType(apiProductId, SubscriptionReferenceType.API_PRODUCT)
+                .forEach(subscription -> {
+                    try {
+                        closeSubscriptionDomainService.closeSubscription(subscription, auditInfo);
+                        deleteSubscriptionDomainService.delete(subscription, auditInfo);
+                    } catch (Exception e) {
+                        log.error(
+                                "Failed to close/delete subscription [{}] for API Product [{}] — subscription may remain authorized on the gateway",
+                                subscription.getId(),
+                                apiProductId,
+                                e);
+                    }
+                });
     }
 
     private void publishUndeployEvent(AuditInfo auditInfo, ApiProduct apiProduct) {
         final Event event = eventCrudService.createEvent(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            Set.of(auditInfo.environmentId()),
-            EventType.UNDEPLOY_API_PRODUCT,
-            apiProduct,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())
-            )
-        );
+                auditInfo.organizationId(),
+                auditInfo.environmentId(),
+                Set.of(auditInfo.environmentId()),
+                EventType.UNDEPLOY_API_PRODUCT,
+                apiProduct,
+                Map.ofEntries(
+                        entry(Event.EventProperties.USER, auditInfo.actor().userId()),
+                        entry(Event.EventProperties.API_PRODUCT_ID, apiProduct.getId())));
 
         eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProduct.getId(), event);
     }
@@ -126,8 +124,7 @@ public class DeleteApiProductUseCase {
     }
 
     private void createAuditLog(String apiProductId, AuditInfo auditInfo) {
-        auditService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
+        auditService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ApiProductAuditEvent.API_PRODUCT_DELETED)
@@ -136,7 +133,6 @@ public class DeleteApiProductUseCase {
                 .newValue(null)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.API_PRODUCT, apiProductId))
-                .build()
-        );
+                .build());
     }
 }

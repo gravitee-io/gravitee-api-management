@@ -43,38 +43,32 @@ public class SearchApplicationMembersUseCase {
     private final UserCrudService userCrudService;
 
     public SearchApplicationMembersUseCase(
-        SearchApplicationMembersDomainService searchApplicationMembersDomainService,
-        UserCrudService userCrudService
-    ) {
+            SearchApplicationMembersDomainService searchApplicationMembersDomainService,
+            UserCrudService userCrudService) {
         this.searchApplicationMembersDomainService = searchApplicationMembersDomainService;
         this.userCrudService = userCrudService;
     }
 
     public Output execute(Input input) {
         var memberships = searchApplicationMembersDomainService.searchApplicationMembers(
-            input.executionContext().getEnvironmentId(),
-            input.applicationId()
-        );
+                input.executionContext().getEnvironmentId(), input.applicationId());
 
-        var userIds = memberships
-            .stream()
-            .filter(membership -> membership.getMemberType() == Membership.Type.USER)
-            .map(Membership::getMemberId)
-            .distinct()
-            .toList();
+        var userIds = memberships.stream()
+                .filter(membership -> membership.getMemberType() == Membership.Type.USER)
+                .map(Membership::getMemberId)
+                .distinct()
+                .toList();
         var usersById = findUsersById(userIds);
 
         var sortedAndFilteredMemberships = sortAndFilterMemberships(memberships, usersById, input.criteria());
         var page = paginate(sortedAndFilteredMemberships, input.pageable());
-        var usersInPage = page
-            .getContent()
-            .stream()
-            .filter(membership -> membership.getMemberType() == Membership.Type.USER)
-            .map(Membership::getMemberId)
-            .map(usersById::get)
-            .filter(Objects::nonNull)
-            .distinct()
-            .toList();
+        var usersInPage = page.getContent().stream()
+                .filter(membership -> membership.getMemberType() == Membership.Type.USER)
+                .map(Membership::getMemberId)
+                .map(usersById::get)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
 
         return new Output(page, usersInPage);
     }
@@ -84,24 +78,24 @@ public class SearchApplicationMembersUseCase {
             return Map.of();
         }
 
-        return userCrudService.findBaseUsersByIds(userIds).stream().collect(Collectors.toMap(BaseUserEntity::getId, Function.identity()));
+        return userCrudService.findBaseUsersByIds(userIds).stream()
+                .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity()));
     }
 
     private List<Membership> sortAndFilterMemberships(
-        Collection<Membership> memberships,
-        Map<String, BaseUserEntity> usersById,
-        SearchApplicationMembersCriteria criteria
-    ) {
+            Collection<Membership> memberships,
+            Map<String, BaseUserEntity> usersById,
+            SearchApplicationMembersCriteria criteria) {
         var searchedDisplayName = criteria != null ? criteria.displayName() : null;
 
-        return memberships
-            .stream()
-            .filter(membership -> displayNameMatches(membership, searchedDisplayName, usersById))
-            .sorted(Comparator.comparing(membership -> normalizedDisplayName(membership, usersById)))
-            .toList();
+        return memberships.stream()
+                .filter(membership -> displayNameMatches(membership, searchedDisplayName, usersById))
+                .sorted(Comparator.comparing(membership -> normalizedDisplayName(membership, usersById)))
+                .toList();
     }
 
-    private boolean displayNameMatches(Membership membership, String searchedDisplayName, Map<String, BaseUserEntity> usersById) {
+    private boolean displayNameMatches(
+            Membership membership, String searchedDisplayName, Map<String, BaseUserEntity> usersById) {
         if (searchedDisplayName == null || searchedDisplayName.isBlank()) {
             return true;
         }
@@ -146,16 +140,18 @@ public class SearchApplicationMembersUseCase {
             throw new PaginationInvalidException();
         }
 
-        var pageContent = memberships.stream().skip(startIndex).limit(resolvedPageable.getPageSize()).toList();
+        var pageContent = memberships.stream()
+                .skip(startIndex)
+                .limit(resolvedPageable.getPageSize())
+                .toList();
         return new Page<>(pageContent, resolvedPageable.getPageNumber(), resolvedPageable.getPageSize(), totalCount);
     }
 
     public record Input(
-        ExecutionContext executionContext,
-        String applicationId,
-        SearchApplicationMembersCriteria criteria,
-        Pageable pageable
-    ) {}
+            ExecutionContext executionContext,
+            String applicationId,
+            SearchApplicationMembersCriteria criteria,
+            Pageable pageable) {}
 
     public record Output(Page<Membership> memberships, List<BaseUserEntity> users) {}
 }

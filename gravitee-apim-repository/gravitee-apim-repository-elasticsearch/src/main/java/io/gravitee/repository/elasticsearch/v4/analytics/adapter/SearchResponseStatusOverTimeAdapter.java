@@ -36,7 +36,8 @@ import java.util.TreeSet;
 
 public class SearchResponseStatusOverTimeAdapter {
 
-    private static final List<String> FILTERED_ENTRYPOINT_TYPES = List.of("http-post", "http-get", "http-proxy", "llm-proxy");
+    private static final List<String> FILTERED_ENTRYPOINT_TYPES =
+            List.of("http-post", "http-get", "http-proxy", "llm-proxy");
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static final String AGGREGATION_BY_DATE = "by_date";
@@ -44,7 +45,10 @@ public class SearchResponseStatusOverTimeAdapter {
     private static final String TIME_FIELD = "@timestamp";
 
     public String adaptQuery(ResponseStatusOverTimeQuery query, ElasticsearchInfo esInfo) {
-        return json().put("size", 0).<ObjectNode>set("query", query(query)).set("aggregations", aggregations(query, esInfo)).toString();
+        return json().put("size", 0)
+                .<ObjectNode>set("query", query(query))
+                .set("aggregations", aggregations(query, esInfo))
+                .toString();
     }
 
     public ResponseStatusOverTimeAggregate adaptResponse(SearchResponse response) {
@@ -65,7 +69,9 @@ public class SearchResponseStatusOverTimeAdapter {
             var keyAsDate = dateBucket.get("key").asLong();
             var statusCount = new HashMap<String, Long>();
 
-            for (var statusBucket : dateBucket.get(SearchResponseStatusOverTimeAdapter.AGGREGATION_BY_STATUS).get("buckets")) {
+            for (var statusBucket : dateBucket
+                    .get(SearchResponseStatusOverTimeAdapter.AGGREGATION_BY_STATUS)
+                    .get("buckets")) {
                 var status = statusBucket.get("key").asText();
                 var count = statusBucket.get("doc_count").asLong();
                 statusCount.put(status, count);
@@ -96,7 +102,8 @@ public class SearchResponseStatusOverTimeAdapter {
 
         if (query.versions().contains(DefinitionVersion.V4)) {
             var idsV4 = json().set("terms", json().set("api-id", toArray(query.apiIds())));
-            var filterV4 = json().set("bool", json().set("must", array().add(idsV4).add(entrypointFilterForQuery())));
+            var filterV4 =
+                    json().set("bool", json().set("must", array().add(idsV4).add(entrypointFilterForQuery())));
             apiFilter.add(filterV4);
         }
         if (query.versions().contains(DefinitionVersion.V2)) {
@@ -126,22 +133,23 @@ public class SearchResponseStatusOverTimeAdapter {
     }
 
     private ObjectNode aggregations(ResponseStatusOverTimeQuery query, ElasticsearchInfo esInfo) {
-        String intervalFieldName = esInfo.getVersion().canUseDateHistogramFixedInterval() ? "fixed_interval" : "interval";
-        ObjectNode histogram = json()
-            .put("field", TIME_FIELD)
-            .put(intervalFieldName, query.interval().toMillis() + "ms")
-            .put("offset", HistogramGrid.offsetMillis(query.from(), query.interval()) + "ms")
-            .put("min_doc_count", 0)
-            .set(
-                "extended_bounds",
-                json()
-                    // we don't need to align it on interval ES make it for us
-                    .put("min", query.from().toEpochMilli())
-                    .put("max", query.to().toEpochMilli())
-            );
+        String intervalFieldName =
+                esInfo.getVersion().canUseDateHistogramFixedInterval() ? "fixed_interval" : "interval";
+        ObjectNode histogram = json().put("field", TIME_FIELD)
+                .put(intervalFieldName, query.interval().toMillis() + "ms")
+                .put("offset", HistogramGrid.offsetMillis(query.from(), query.interval()) + "ms")
+                .put("min_doc_count", 0)
+                .set(
+                        "extended_bounds",
+                        json()
+                                // we don't need to align it on interval ES make it for us
+                                .put("min", query.from().toEpochMilli())
+                                .put("max", query.to().toEpochMilli()));
         ObjectNode agg = json().set(AGGREGATION_BY_STATUS, json().set("terms", json().put("field", "status")));
 
-        return json().set(AGGREGATION_BY_DATE, json().<ObjectNode>set("date_histogram", histogram).set("aggregations", agg));
+        return json().set(
+                        AGGREGATION_BY_DATE,
+                        json().<ObjectNode>set("date_histogram", histogram).set("aggregations", agg));
     }
 
     private ObjectNode json() {

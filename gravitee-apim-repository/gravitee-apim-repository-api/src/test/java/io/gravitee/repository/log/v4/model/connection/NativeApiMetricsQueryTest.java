@@ -26,7 +26,13 @@ class NativeApiMetricsQueryTest {
 
     @Test
     void validate_when_from_and_to_values_correct() {
-        var query = NativeApiMetricsQuery.builder().apiId("api-1").from(1L).to(2L).page(1).size(20).build();
+        var query = NativeApiMetricsQuery.builder()
+                .apiId("api-1")
+                .from(1L)
+                .to(2L)
+                .page(1)
+                .size(20)
+                .build();
 
         assertThatCode(query::validate).doesNotThrowAnyException();
     }
@@ -42,21 +48,28 @@ class NativeApiMetricsQueryTest {
     void validate_throws_IllegalArgumentException_when_page_below_one() {
         var query = NativeApiMetricsQuery.builder().apiId("api-1").page(0).build();
 
-        assertThatThrownBy(query::validate).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("page must be >= 1");
+        assertThatThrownBy(query::validate)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("page must be >= 1");
     }
 
     @Test
     void validate_throws_IllegalArgumentException_when_size_below_one() {
         var query = NativeApiMetricsQuery.builder().apiId("api-1").size(0).build();
 
-        assertThatThrownBy(query::validate).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("size must be >= 1");
+        assertThatThrownBy(query::validate)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("size must be >= 1");
     }
 
     @Test
     void validate_throws_IllegalArgumentException_when_from_greater_than_to() {
-        var query = NativeApiMetricsQuery.builder().apiId("api-1").from(2L).to(1L).build();
+        var query =
+                NativeApiMetricsQuery.builder().apiId("api-1").from(2L).to(1L).build();
 
-        assertThatThrownBy(query::validate).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("from must be <= to");
+        assertThatThrownBy(query::validate)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("from must be <= to");
     }
 
     @Test

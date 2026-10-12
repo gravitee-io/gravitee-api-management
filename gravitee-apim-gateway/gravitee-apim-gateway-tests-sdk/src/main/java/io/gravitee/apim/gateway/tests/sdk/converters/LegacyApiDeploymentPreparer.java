@@ -29,7 +29,8 @@ public class LegacyApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
 
     @Override
     public ReactableApi<Api> toReactable(Api definition, String environmentId) {
-        final io.gravitee.gateway.handlers.api.definition.Api api = new io.gravitee.gateway.handlers.api.definition.Api(definition);
+        final io.gravitee.gateway.handlers.api.definition.Api api =
+                new io.gravitee.gateway.handlers.api.definition.Api(definition);
         api.setEnvironmentId(environmentId);
         return api;
     }
@@ -55,11 +56,9 @@ public class LegacyApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
 
             api.setPlans(Collections.singletonList(plan));
         } else {
-            api
-                .getPlans()
-                .stream()
-                .filter(plan -> plan.getStatus() == null || plan.getStatus().isEmpty())
-                .forEach(plan -> plan.setStatus("published"));
+            api.getPlans().stream()
+                    .filter(plan -> plan.getStatus() == null || plan.getStatus().isEmpty())
+                    .forEach(plan -> plan.setStatus("published"));
         }
     }
 

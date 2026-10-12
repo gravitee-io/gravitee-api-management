@@ -63,27 +63,28 @@ public class ApplicationAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get application analytics",
-        description = "User must have the APPLICATION_ANALYTICS[READ] permission to use this service"
-    )
+            summary = "Get application analytics",
+            description = "User must have the APPLICATION_ANALYTICS[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Application analytics",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Analytics.class))
-    )
+            responseCode = "200",
+            description = "Application analytics",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = Analytics.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ANALYTICS, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_ANALYTICS, acls = RolePermissionAction.READ)})
     public Response getApplicationAnalyticsHits(@BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();
 
         return Response.ok(
-            switch (analyticsParam.getType()) {
-                case DATE_HISTO -> executeDateHisto(application, analyticsParam);
-                case GROUP_BY -> executeGroupBy(application, analyticsParam);
-                case COUNT -> executeCount(application, analyticsParam);
-                case STATS -> executeStats(application, analyticsParam);
-            }
-        ).build();
+                        switch (analyticsParam.getType()) {
+                            case DATE_HISTO -> executeDateHisto(application, analyticsParam);
+                            case GROUP_BY -> executeGroupBy(application, analyticsParam);
+                            case COUNT -> executeCount(application, analyticsParam);
+                            case STATS -> executeStats(application, analyticsParam);
+                        })
+                .build();
     }
 
     private Analytics executeStats(String application, AnalyticsParam analyticsParam) {
@@ -119,23 +120,21 @@ public class ApplicationAnalyticsResource extends AbstractResource {
         query.setRootIdentifier(application);
         List<Aggregation> aggregations = analyticsParam.getAggregations();
         if (aggregations != null) {
-            List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations
-                .stream()
-                .map(
-                    (Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation ->
-                        new io.gravitee.rest.api.model.analytics.query.Aggregation() {
-                            @Override
-                            public AggregationType type() {
-                                return AggregationType.valueOf(aggregation.getType().name().toUpperCase());
-                            }
+            List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations.stream()
+                    .map((Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>)
+                            aggregation -> new io.gravitee.rest.api.model.analytics.query.Aggregation() {
+                                @Override
+                                public AggregationType type() {
+                                    return AggregationType.valueOf(
+                                            aggregation.getType().name().toUpperCase());
+                                }
 
-                            @Override
-                            public String field() {
-                                return aggregation.getField();
-                            }
-                        }
-                )
-                .collect(Collectors.toList());
+                                @Override
+                                public String field() {
+                                    return aggregation.getField();
+                                }
+                            })
+                    .collect(Collectors.toList());
 
             query.setAggregations(aggregationList);
         }

@@ -33,16 +33,14 @@ import java.util.function.Function;
  * to re-query the navigation items service.
  */
 public record NavigationOwnership(
-    Set<String> managedFolderPaths,
-    Function<String, PortalNavigationItemId> folderIdByPath,
-    Set<PortalNavigationItemId> automationManagedPageIds,
-    Set<PortalNavigationItemId> automationManagedNavApiIds,
-    Set<PortalNavigationItemId> automationManagedLinkIds
-) {
+        Set<String> managedFolderPaths,
+        Function<String, PortalNavigationItemId> folderIdByPath,
+        Set<PortalNavigationItemId> automationManagedPageIds,
+        Set<PortalNavigationItemId> automationManagedNavApiIds,
+        Set<PortalNavigationItemId> automationManagedLinkIds) {
     public Set<PortalNavigationItemId> automationManagedLeafIds() {
         var union = new java.util.HashSet<PortalNavigationItemId>(
-            automationManagedPageIds.size() + automationManagedNavApiIds.size() + automationManagedLinkIds.size()
-        );
+                automationManagedPageIds.size() + automationManagedNavApiIds.size() + automationManagedLinkIds.size());
         union.addAll(automationManagedPageIds);
         union.addAll(automationManagedNavApiIds);
         union.addAll(automationManagedLinkIds);

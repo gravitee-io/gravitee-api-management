@@ -73,31 +73,28 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("{#message.headers != null}", flow.getSubscribe().get(0).getMessageCondition());
 
         assertEquals(4, flow.getSelectors().size());
-        flow
-            .getSelectors()
-            .forEach(flowSelector -> {
-                if (flowSelector instanceof FlowHttpSelector) {
-                    FlowHttpSelector httpSelector = (FlowHttpSelector) flowSelector;
-                    assertEquals(2, httpSelector.getMethods().size());
-                    assertEquals("/", httpSelector.getPath());
-                    assertEquals(FlowOperator.STARTS_WITH, httpSelector.getPathOperator());
-                } else if (flowSelector instanceof FlowConditionSelector) {
-                    FlowConditionSelector conditionSelector = (FlowConditionSelector) flowSelector;
-                    assertEquals("my-condition", conditionSelector.getCondition());
-                } else if (flowSelector instanceof FlowChannelSelector) {
-                    FlowChannelSelector channelSelector = (FlowChannelSelector) flowSelector;
-                    assertEquals("/", channelSelector.getChannel());
-                    assertEquals(FlowOperator.STARTS_WITH, channelSelector.getChannelOperator());
-                    assertTrue(
-                        channelSelector
-                            .getOperations()
-                            .containsAll(Set.of(FlowChannelSelector.Operation.SUBSCRIBE, FlowChannelSelector.Operation.PUBLISH))
-                    );
-                    assertTrue(channelSelector.getEntrypoints().contains("entrypoint"));
-                } else if (flowSelector instanceof FlowMcpSelector mcpSelector) {
-                    assertEquals(Set.of("tools/call"), mcpSelector.getMethods());
-                }
-            });
+        flow.getSelectors().forEach(flowSelector -> {
+            if (flowSelector instanceof FlowHttpSelector) {
+                FlowHttpSelector httpSelector = (FlowHttpSelector) flowSelector;
+                assertEquals(2, httpSelector.getMethods().size());
+                assertEquals("/", httpSelector.getPath());
+                assertEquals(FlowOperator.STARTS_WITH, httpSelector.getPathOperator());
+            } else if (flowSelector instanceof FlowConditionSelector) {
+                FlowConditionSelector conditionSelector = (FlowConditionSelector) flowSelector;
+                assertEquals("my-condition", conditionSelector.getCondition());
+            } else if (flowSelector instanceof FlowChannelSelector) {
+                FlowChannelSelector channelSelector = (FlowChannelSelector) flowSelector;
+                assertEquals("/", channelSelector.getChannel());
+                assertEquals(FlowOperator.STARTS_WITH, channelSelector.getChannelOperator());
+                assertTrue(channelSelector
+                        .getOperations()
+                        .containsAll(Set.of(
+                                FlowChannelSelector.Operation.SUBSCRIBE, FlowChannelSelector.Operation.PUBLISH)));
+                assertTrue(channelSelector.getEntrypoints().contains("entrypoint"));
+            } else if (flowSelector instanceof FlowMcpSelector mcpSelector) {
+                assertEquals(Set.of("tools/call"), mcpSelector.getMethods());
+            }
+        });
     }
 
     @Test
@@ -151,17 +148,9 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
 
         assertEquals(flowCreated.getId(), flow.getId());
         assertEquals(flowCreated.getName(), flow.getName());
-        assertTrue(
-            flow
-                .getSelectors()
-                .stream()
-                .allMatch(flowSelector ->
-                    flowCreated
-                        .getSelectors()
-                        .stream()
-                        .anyMatch(flowSelectorCreated -> flowSelectorCreated.equals(flowSelector))
-                )
-        );
+        assertTrue(flow.getSelectors().stream()
+                .allMatch(flowSelector -> flowCreated.getSelectors().stream()
+                        .anyMatch(flowSelectorCreated -> flowSelectorCreated.equals(flowSelector))));
 
         assertEquals(flow.getCreatedAt(), flowCreated.getCreatedAt());
         assertEquals(flow.isEnabled(), flowCreated.isEnabled());
@@ -170,12 +159,24 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(flow.getTags().size(), flowCreated.getTags().size());
         assertEquals(flow.getTags(), flowCreated.getTags());
         assertEquals(flow.getOrder(), flowCreated.getOrder());
-        assertEquals(flow.getRequest().get(0).getOrder(), flowCreated.getRequest().get(0).getOrder());
-        assertEquals(flow.getRequest().get(0).getCondition(), flowCreated.getRequest().get(0).getCondition());
-        assertEquals(flow.getPublish().get(0).getCondition(), flowCreated.getPublish().get(0).getCondition());
-        assertEquals(flow.getPublish().get(0).getCondition(), flowCreated.getPublish().get(0).getCondition());
-        assertEquals(flow.getSubscribe().get(0).getCondition(), flowCreated.getSubscribe().get(0).getCondition());
-        assertEquals(flow.getSubscribe().get(0).getCondition(), flowCreated.getSubscribe().get(0).getCondition());
+        assertEquals(
+                flow.getRequest().get(0).getOrder(),
+                flowCreated.getRequest().get(0).getOrder());
+        assertEquals(
+                flow.getRequest().get(0).getCondition(),
+                flowCreated.getRequest().get(0).getCondition());
+        assertEquals(
+                flow.getPublish().get(0).getCondition(),
+                flowCreated.getPublish().get(0).getCondition());
+        assertEquals(
+                flow.getPublish().get(0).getCondition(),
+                flowCreated.getPublish().get(0).getCondition());
+        assertEquals(
+                flow.getSubscribe().get(0).getCondition(),
+                flowCreated.getSubscribe().get(0).getCondition());
+        assertEquals(
+                flow.getSubscribe().get(0).getCondition(),
+                flowCreated.getSubscribe().get(0).getCondition());
     }
 
     @Test
@@ -216,17 +217,9 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(flowUpdated.getId(), flow.getId());
         assertEquals(flowUpdated.getName(), flow.getName());
 
-        assertTrue(
-            flowUpdated
-                .getSelectors()
-                .stream()
-                .allMatch(flowSelectorUpdated ->
-                    flow
-                        .getSelectors()
-                        .stream()
-                        .anyMatch(flowSelector -> flowSelector.equals(flowSelectorUpdated))
-                )
-        );
+        assertTrue(flowUpdated.getSelectors().stream()
+                .allMatch(flowSelectorUpdated -> flow.getSelectors().stream()
+                        .anyMatch(flowSelector -> flowSelector.equals(flowSelectorUpdated))));
 
         assertEquals(flowUpdated.getCreatedAt(), flow.getCreatedAt());
         assertEquals(flowUpdated.isEnabled(), flow.isEnabled());
@@ -250,11 +243,19 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDeleteByReference() throws TechnicalException {
-        assertEquals(2, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
+        assertEquals(
+                2,
+                flowRepository
+                        .findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted")
+                        .size());
 
         flowRepository.deleteByReferenceIdAndReferenceType("orga-v4-deleted", FlowReferenceType.ORGANIZATION);
 
-        assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
+        assertEquals(
+                0,
+                flowRepository
+                        .findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted")
+                        .size());
     }
 
     @Test
@@ -265,6 +266,10 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
 
         flowRepository.deleteAllById(ids);
 
-        assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
+        assertEquals(
+                0,
+                flowRepository
+                        .findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted")
+                        .size());
     }
 }

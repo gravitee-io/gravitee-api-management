@@ -66,14 +66,13 @@ class AuthzPolicySynchronizerRetryTest {
     @BeforeEach
     void setUp() {
         synchronizer = new AuthzPolicySynchronizer(
-            fetcher,
-            new AuthzPolicyMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                fetcher,
+                new AuthzPolicyMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
 
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(deployerFactory.createAuthzPolicyDeployer()).thenReturn(deployer);
@@ -92,7 +91,11 @@ class AuthzPolicySynchronizerRetryTest {
         when(deployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("PDP busy")));
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // commit() is now always called; with nothing armed this cycle it short-circuits internally.
         verify(port).commit();
@@ -101,7 +104,11 @@ class AuthzPolicySynchronizerRetryTest {
         when(deployer.deploy(any())).thenReturn(Completable.complete());
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(2)).deploy(any());
         verify(port, times(2)).commit();
@@ -114,7 +121,11 @@ class AuthzPolicySynchronizerRetryTest {
         when(deployer.undeploy(any())).thenReturn(Completable.error(new RuntimeException("engine not ready")));
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(unpublish)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // commit() is now always called; with nothing armed this cycle it short-circuits internally.
         verify(port).commit();
@@ -122,7 +133,11 @@ class AuthzPolicySynchronizerRetryTest {
         when(deployer.undeploy(any())).thenReturn(Completable.complete());
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(2)).undeploy(any());
         verify(port, times(2)).commit();
@@ -134,19 +149,31 @@ class AuthzPolicySynchronizerRetryTest {
         when(deployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("PDP busy")));
         Event publish = policyEvent("evt-p", EventType.PUBLISH_AUTHZ_POLICY, "doc-x");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Cycle 2: doc-x is UNPUBLISHED. The undeploy also fails, but the pending deploy must be cleared.
         when(deployer.undeploy(any())).thenReturn(Completable.error(new RuntimeException("engine not ready")));
         Event unpublish = unpublishEvent("evt-u", "doc-x");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(unpublish)));
-        synchronizer.synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Cycle 3: empty window, engine healthy. Only the undeploy must be re-driven, never the stale deploy.
         when(deployer.deploy(any())).thenReturn(Completable.complete());
         when(deployer.undeploy(any())).thenReturn(Completable.complete());
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-        synchronizer.synchronize(125L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(125L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // The deploy was only ever attempted once (cycle 1) and never re-driven after the unpublish.
         verify(deployer, times(1)).deploy(any());
@@ -157,17 +184,29 @@ class AuthzPolicySynchronizerRetryTest {
         when(deployer.undeploy(any())).thenReturn(Completable.error(new RuntimeException("engine not ready")));
         Event unpublish = unpublishEvent("evt-u", "doc-y");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(unpublish)));
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         when(deployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("PDP busy")));
         Event publish = policyEvent("evt-p", EventType.PUBLISH_AUTHZ_POLICY, "doc-y");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
-        synchronizer.synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         when(deployer.deploy(any())).thenReturn(Completable.complete());
         when(deployer.undeploy(any())).thenReturn(Completable.complete());
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-        synchronizer.synchronize(125L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(125L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // The undeploy was only ever attempted once (cycle 1) and never re-driven after the publish.
         verify(deployer, times(1)).undeploy(any());
@@ -180,21 +219,34 @@ class AuthzPolicySynchronizerRetryTest {
 
         // Cycle 1: initial stage fails -> pending (first attempt).
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // Subsequent cycles only ever re-drive from the pending set (window empty).
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
         for (int i = 0; i < AuthzPolicySynchronizer.MAX_PENDING_ATTEMPTS + 2; i++) {
-            synchronizer.synchronize((long) (i + 2), Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+            synchronizer
+                    .synchronize((long) (i + 2), Instant.now().toEpochMilli(), Set.of("env-1"))
+                    .test()
+                    .await()
+                    .assertComplete();
         }
 
         // After exhaustion the pending entry is abandoned: one more healthy cycle re-drives nothing.
         when(deployer.deploy(any())).thenReturn(Completable.complete());
-        synchronizer.synchronize(999L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(999L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // The bounded retries are exhausted, so deploy is never attempted on the final healthy cycle.
         // One initial stage + MAX_PENDING_ATTEMPTS re-drives, then abandoned.
-        verify(deployer, times(AuthzPolicySynchronizer.MAX_PENDING_ATTEMPTS + 1)).deploy(any());
+        verify(deployer, times(AuthzPolicySynchronizer.MAX_PENDING_ATTEMPTS + 1))
+                .deploy(any());
     }
 
     private static Event policyEvent(String id, EventType type, String docId) {
@@ -202,10 +254,8 @@ class AuthzPolicySynchronizerRetryTest {
         event.setId(id);
         event.setType(type);
         event.setPayload(
-            "{\"id\": \"" +
-                docId +
-                "\", \"name\": \"P\", \"kind\": \"GLOBAL\", \"environmentId\": \"env-1\", \"policyText\": \"permit(p,a,r);\"}"
-        );
+                "{\"id\": \"" + docId
+                        + "\", \"name\": \"P\", \"kind\": \"GLOBAL\", \"environmentId\": \"env-1\", \"policyText\": \"permit(p,a,r);\"}");
         return event;
     }
 

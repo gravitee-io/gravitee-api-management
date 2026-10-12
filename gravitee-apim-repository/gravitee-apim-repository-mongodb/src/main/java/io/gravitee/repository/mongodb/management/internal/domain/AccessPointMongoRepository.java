@@ -27,7 +27,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface AccessPointMongoRepository extends MongoRepository<AccessPointMongo, String>, AccessPointMongoRepositoryCustom {
+public interface AccessPointMongoRepository
+        extends MongoRepository<AccessPointMongo, String>, AccessPointMongoRepositoryCustom {
     @Query(value = "{ 'host': ?0, 'status': ?1 }")
     AccessPointMongo findByHostAndStatus(String host, AccessPointStatus status);
 
@@ -36,11 +37,7 @@ public interface AccessPointMongoRepository extends MongoRepository<AccessPointM
 
     @Query(value = "{ 'referenceType': ?0, 'referenceId': ?1 , 'target': ?2, 'status': ?3 }")
     List<AccessPointMongo> findAllByReferenceAndTargetAndStatus(
-        final String referenceType,
-        final String referenceIds,
-        final String target,
-        AccessPointStatus status
-    );
+            final String referenceType, final String referenceIds, final String target, AccessPointStatus status);
 
     @Query(value = "{ 'referenceType': ?0, 'referenceId': ?1}", fields = "{ _id: 1 }", delete = true)
     List<AccessPointMongo> deleteAllByReference(final String referenceType, final String referenceId);

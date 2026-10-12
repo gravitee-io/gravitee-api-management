@@ -43,29 +43,31 @@ class ValidateDictionaryDomainServiceTest {
         @Test
         void should_reject_when_both_provider_trigger_and_properties_are_set() {
             var dictionary = Dictionary.builder()
-                .type(DictionaryType.DYNAMIC)
-                .provider(new DictionaryProvider())
-                .trigger(aTrigger())
-                .properties(List.of(new DictionaryProperty("key1", "v1", null, null), new DictionaryProperty("key2", "v2", null, null)))
-                .build();
+                    .type(DictionaryType.DYNAMIC)
+                    .provider(new DictionaryProvider())
+                    .trigger(aTrigger())
+                    .properties(List.of(
+                            new DictionaryProperty("key1", "v1", null, null),
+                            new DictionaryProperty("key2", "v2", null, null)))
+                    .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("must not have 'manual' properties");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("must not have 'manual' properties");
         }
 
         @Test
         void should_reject_when_both_properties_and_provider_trigger_are_set() {
             var dictionary = Dictionary.builder()
-                .type(DictionaryType.MANUAL)
-                .properties(List.of(new DictionaryProperty("key", "value", null, null)))
-                .provider(new DictionaryProvider())
-                .trigger(aTrigger())
-                .build();
+                    .type(DictionaryType.MANUAL)
+                    .properties(List.of(new DictionaryProperty("key", "value", null, null)))
+                    .provider(new DictionaryProvider())
+                    .trigger(aTrigger())
+                    .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("must not have 'dynamic' properties");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("must not have 'dynamic' properties");
         }
     }
 
@@ -75,11 +77,11 @@ class ValidateDictionaryDomainServiceTest {
         @Test
         void should_accept_mixed_encrypted_and_plain_properties() {
             var dictionary = Dictionary.builder()
-                .type(DictionaryType.MANUAL)
-                .properties(
-                    List.of(new DictionaryProperty("plain", "value", null, null), new DictionaryProperty("secret", "cipher", null, null))
-                )
-                .build();
+                    .type(DictionaryType.MANUAL)
+                    .properties(List.of(
+                            new DictionaryProperty("plain", "value", null, null),
+                            new DictionaryProperty("secret", "cipher", null, null)))
+                    .build();
 
             assertThatNoException().isThrownBy(() -> service.validate(dictionary));
         }
@@ -89,63 +91,66 @@ class ValidateDictionaryDomainServiceTest {
             var dictionary = Dictionary.builder().type(DictionaryType.MANUAL).build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("at least one property");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("at least one property");
         }
 
         @Test
         void should_reject_with_empty_properties() {
-            var dictionary = Dictionary.builder().type(DictionaryType.MANUAL).properties(List.of()).build();
+            var dictionary = Dictionary.builder()
+                    .type(DictionaryType.MANUAL)
+                    .properties(List.of())
+                    .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("at least one property");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("at least one property");
         }
 
         @Test
         void should_reject_when_provider_is_set() {
             var dictionary = Dictionary.builder()
-                .type(DictionaryType.MANUAL)
-                .properties(List.of(new DictionaryProperty("key", "value", null, null)))
-                .provider(new DictionaryProvider())
-                .build();
+                    .type(DictionaryType.MANUAL)
+                    .properties(List.of(new DictionaryProperty("key", "value", null, null)))
+                    .provider(new DictionaryProvider())
+                    .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("must not have 'dynamic' properties");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("must not have 'dynamic' properties");
         }
 
         @Test
         void should_reject_when_trigger_is_set() {
             var dictionary = Dictionary.builder()
-                .type(DictionaryType.MANUAL)
-                .properties(List.of(new DictionaryProperty("key", "value", null, null)))
-                .trigger(new DictionaryTrigger())
-                .build();
+                    .type(DictionaryType.MANUAL)
+                    .properties(List.of(new DictionaryProperty("key", "value", null, null)))
+                    .trigger(new DictionaryTrigger())
+                    .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("must not have 'dynamic' properties");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("must not have 'dynamic' properties");
         }
 
         @Test
         void should_reject_when_a_property_value_is_null() {
             var dictionary = Dictionary.builder()
-                .type(DictionaryType.MANUAL)
-                .properties(List.of(new DictionaryProperty("hostname", null, null, null)))
-                .build();
+                    .type(DictionaryType.MANUAL)
+                    .properties(List.of(new DictionaryProperty("hostname", null, null, null)))
+                    .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("hostname");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("hostname");
         }
 
         @Test
         void should_accept_with_properties_only() {
             var dictionary = Dictionary.builder()
-                .type(DictionaryType.MANUAL)
-                .properties(List.of(new DictionaryProperty("key", "value", null, null)))
-                .build();
+                    .type(DictionaryType.MANUAL)
+                    .properties(List.of(new DictionaryProperty("key", "value", null, null)))
+                    .build();
 
             assertThatNoException().isThrownBy(() -> service.validate(dictionary));
         }
@@ -156,43 +161,49 @@ class ValidateDictionaryDomainServiceTest {
 
         @Test
         void should_reject_without_provider() {
-            var dictionary = Dictionary.builder().type(DictionaryType.DYNAMIC).trigger(aTrigger()).build();
+            var dictionary = Dictionary.builder()
+                    .type(DictionaryType.DYNAMIC)
+                    .trigger(aTrigger())
+                    .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("must have a provider and a trigger");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("must have a provider and a trigger");
         }
 
         @Test
         void should_reject_without_trigger() {
-            var dictionary = Dictionary.builder().type(DictionaryType.DYNAMIC).provider(new DictionaryProvider()).build();
+            var dictionary = Dictionary.builder()
+                    .type(DictionaryType.DYNAMIC)
+                    .provider(new DictionaryProvider())
+                    .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("must have a provider and a trigger");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("must have a provider and a trigger");
         }
 
         @Test
         void should_reject_when_properties_are_set() {
             var dictionary = Dictionary.builder()
-                .type(DictionaryType.DYNAMIC)
-                .provider(new DictionaryProvider())
-                .trigger(aTrigger())
-                .properties(List.of(new DictionaryProperty("key", "value", null, null)))
-                .build();
+                    .type(DictionaryType.DYNAMIC)
+                    .provider(new DictionaryProvider())
+                    .trigger(aTrigger())
+                    .properties(List.of(new DictionaryProperty("key", "value", null, null)))
+                    .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("must not have 'manual' properties");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("must not have 'manual' properties");
         }
 
         @Test
         void should_accept_with_provider_and_trigger() {
             var dictionary = Dictionary.builder()
-                .type(DictionaryType.DYNAMIC)
-                .provider(new DictionaryProvider())
-                .trigger(aTrigger())
-                .build();
+                    .type(DictionaryType.DYNAMIC)
+                    .provider(new DictionaryProvider())
+                    .trigger(aTrigger())
+                    .build();
 
             assertThatNoException().isThrownBy(() -> service.validate(dictionary));
         }

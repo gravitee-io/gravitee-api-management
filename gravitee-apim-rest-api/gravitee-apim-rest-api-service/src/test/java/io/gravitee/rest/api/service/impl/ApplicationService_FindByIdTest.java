@@ -98,20 +98,20 @@ public class ApplicationService_FindByIdTest {
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
-        when(clientCertificateCrudService.findByApplicationIdAndStatuses(any(), any(), any())).thenReturn(
-            List.of(
-                clientCertificate("old", Date.from(Instant.now().minus(1, ChronoUnit.DAYS))),
-                clientCertificate("most_recent", Date.from(Instant.now().plus(1, ChronoUnit.DAYS))),
-                clientCertificate("now", Date.from(Instant.now()))
-            )
-        );
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(any(), any(), any()))
+                .thenReturn(List.of(
+                        clientCertificate("old", Date.from(Instant.now().minus(1, ChronoUnit.DAYS))),
+                        clientCertificate("most_recent", Date.from(Instant.now().plus(1, ChronoUnit.DAYS))),
+                        clientCertificate("now", Date.from(Instant.now()))));
 
-        final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+        final ApplicationEntity applicationEntity =
+                applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         assertNotNull(applicationEntity);
         assertThat(applicationEntity.getSettings().getTls().getClientCertificates())
-            .extracting("certificate")
-            .containsExactly("old", "now", "most_recent");
-        assertThat(applicationEntity.getSettings().getTls().getClientCertificate()).isNull();
+                .extracting("certificate")
+                .containsExactly("old", "now", "most_recent");
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificate())
+                .isNull();
     }
 
     @Test
@@ -124,32 +124,35 @@ public class ApplicationService_FindByIdTest {
 
         // same name as app, only one certificate => legacy/migrated cert
         ClientCertificate clientCertificate = new ClientCertificate("app-1", "certificate", null, null);
-        when(clientCertificateCrudService.findByApplicationIdAndStatuses(any(), any(), any())).thenReturn(List.of(clientCertificate));
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(any(), any(), any()))
+                .thenReturn(List.of(clientCertificate));
 
-        final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+        final ApplicationEntity applicationEntity =
+                applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         assertNotNull(applicationEntity);
-        assertThat(applicationEntity.getSettings().getTls().getClientCertificate()).isEqualTo("certificate");
-        assertThat(applicationEntity.getSettings().getTls().getClientCertificates()).isNull();
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificate())
+                .isEqualTo("certificate");
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificates())
+                .isNull();
     }
 
     private static ClientCertificate clientCertificate(String cert, Date createdAt) {
         return new ClientCertificate(
-            "id",
-            "crossId",
-            APPLICATION_ID,
-            "test",
-            null,
-            null,
-            createdAt,
-            null,
-            cert,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+                "id",
+                "crossId",
+                APPLICATION_ID,
+                "test",
+                null,
+                null,
+                createdAt,
+                null,
+                cert,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 
     @Test
@@ -161,28 +164,31 @@ public class ApplicationService_FindByIdTest {
         when(application.getName()).thenReturn("app-1");
 
         ClientCertificate clientCertificate = new ClientCertificate(
-            "id",
-            "crossId",
-            APPLICATION_ID,
-            null,
-            null,
-            null,
-            Date.from(Instant.now()),
-            null,
-            "certificate",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
-        when(clientCertificateCrudService.findByApplicationIdAndStatuses(any(), any(), any())).thenReturn(List.of(clientCertificate));
+                "id",
+                "crossId",
+                APPLICATION_ID,
+                null,
+                null,
+                null,
+                Date.from(Instant.now()),
+                null,
+                "certificate",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(any(), any(), any()))
+                .thenReturn(List.of(clientCertificate));
 
-        final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+        final ApplicationEntity applicationEntity =
+                applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         assertNotNull(applicationEntity);
-        assertThat(applicationEntity.getSettings().getTls().getClientCertificates()).hasSize(1);
-        assertThat(applicationEntity.getSettings().getTls().getClientCertificate()).isNull();
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificates())
+                .hasSize(1);
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificate())
+                .isNull();
     }
 
     @Test

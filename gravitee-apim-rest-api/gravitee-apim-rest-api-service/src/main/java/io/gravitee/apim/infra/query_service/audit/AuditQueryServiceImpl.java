@@ -42,10 +42,10 @@ public class AuditQueryServiceImpl implements AuditQueryService {
     @Override
     public SearchResponse searchApiProductAudit(ApiProductAuditQueryFilters query, Pageable pageable) {
         AuditCriteria.Builder criteria = new AuditCriteria.Builder()
-            .organizationId(query.organizationId())
-            .environmentIds(List.of(query.environmentId()))
-            .references(Audit.AuditReferenceType.API_PRODUCT, List.of(query.apiProductId()))
-            .events(query.events() != null ? new ArrayList<>(query.events()) : null);
+                .organizationId(query.organizationId())
+                .environmentIds(List.of(query.environmentId()))
+                .references(Audit.AuditReferenceType.API_PRODUCT, List.of(query.apiProductId()))
+                .events(query.events() != null ? new ArrayList<>(query.events()) : null);
         query.from().ifPresent(criteria::from);
         query.to().ifPresent(criteria::to);
 
@@ -55,10 +55,10 @@ public class AuditQueryServiceImpl implements AuditQueryService {
     @Override
     public SearchResponse searchApiAudit(ApiAuditQueryFilters query, Pageable pageable) {
         AuditCriteria.Builder criteria = new AuditCriteria.Builder()
-            .organizationId(query.organizationId())
-            .environmentIds(List.of(query.environmentId()))
-            .references(Audit.AuditReferenceType.API, List.of(query.apiId()))
-            .events(query.events() != null ? new ArrayList<>(query.events()) : null);
+                .organizationId(query.organizationId())
+                .environmentIds(List.of(query.environmentId()))
+                .references(Audit.AuditReferenceType.API, List.of(query.apiId()))
+                .events(query.events() != null ? new ArrayList<>(query.events()) : null);
 
         query.from().ifPresent(criteria::from);
         query.to().ifPresent(criteria::to);
@@ -71,10 +71,16 @@ public class AuditQueryServiceImpl implements AuditQueryService {
 
     private SearchResponse search(AuditCriteria.Builder criteria, Pageable pageable) {
         Page<Audit> result = auditRepository.search(
-            criteria.build(),
-            new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
-        );
+                criteria.build(),
+                new PageableBuilder()
+                        .pageNumber(pageable.getPageNumber() - 1)
+                        .pageSize(pageable.getPageSize())
+                        .build());
 
-        return new SearchResponse(result.getTotalElements(), result.getContent().stream().map(AuditAdapter.INSTANCE::toEntity).toList());
+        return new SearchResponse(
+                result.getTotalElements(),
+                result.getContent().stream()
+                        .map(AuditAdapter.INSTANCE::toEntity)
+                        .toList());
     }
 }

@@ -37,7 +37,8 @@ import org.mapstruct.factory.Mappers;
 public interface PortalPageContentMapper {
     PortalPageContentMapper INSTANCE = Mappers.getMapper(PortalPageContentMapper.class);
 
-    default io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(PortalPageContent<?> portalPageContent) {
+    default io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(
+            PortalPageContent<?> portalPageContent) {
         return switch (portalPageContent) {
             case GraviteeMarkdownPageContent markdownContent -> map(markdownContent);
             case OpenApiPageContent openApiContent -> map(openApiContent);
@@ -65,7 +66,8 @@ public interface PortalPageContentMapper {
     io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(AsyncApiPageContent asyncApiContent);
 
     @Mapping(target = "configuration", expression = "java(mapToConfiguration(portalPageContent.getConfiguration()))")
-    UpdatePortalPageContent map(io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent portalPageContent);
+    UpdatePortalPageContent map(
+            io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent portalPageContent);
 
     default PortalPageOpenApiConfiguration configurationToDto(OpenApiConfiguration configuration) {
         if (configuration == null) {
@@ -82,23 +84,24 @@ public interface PortalPageContentMapper {
             return null;
         }
         return switch (configuration.getActualInstance()) {
-            case PortalPageRedocConfiguration redoc -> new RedocConfiguration(Objects.requireNonNullElse(redoc.getTryItURL(), ""));
-            case PortalPageSwaggerConfiguration swagger -> new SwaggerUiConfiguration(
-                Objects.requireNonNullElse(swagger.getDisplayOperationId(), false),
-                mapDocExpansion(swagger.getDocExpansion()),
-                Objects.requireNonNullElse(swagger.getEnableFiltering(), false),
-                Objects.requireNonNullElse(swagger.getMaxDisplayedTags(), -1),
-                Objects.requireNonNullElse(swagger.getShowCommonExtensions(), false),
-                Objects.requireNonNullElse(swagger.getShowExtensions(), false),
-                Objects.requireNonNullElse(swagger.getShowURL(), false),
-                Objects.requireNonNullElse(swagger.getTryIt(), false),
-                Objects.requireNonNullElse(swagger.getDisableSyntaxHighlight(), false),
-                Objects.requireNonNullElse(swagger.getTryItAnonymous(), false),
-                Objects.requireNonNullElse(swagger.getTryItURL(), ""),
-                Objects.requireNonNullElse(swagger.getUsePkce(), false),
-                Objects.requireNonNullElse(swagger.getEntrypointsAsServers(), false),
-                Objects.requireNonNullElse(swagger.getContextPathAsServerPath(), false)
-            );
+            case PortalPageRedocConfiguration redoc ->
+                new RedocConfiguration(Objects.requireNonNullElse(redoc.getTryItURL(), ""));
+            case PortalPageSwaggerConfiguration swagger ->
+                new SwaggerUiConfiguration(
+                        Objects.requireNonNullElse(swagger.getDisplayOperationId(), false),
+                        mapDocExpansion(swagger.getDocExpansion()),
+                        Objects.requireNonNullElse(swagger.getEnableFiltering(), false),
+                        Objects.requireNonNullElse(swagger.getMaxDisplayedTags(), -1),
+                        Objects.requireNonNullElse(swagger.getShowCommonExtensions(), false),
+                        Objects.requireNonNullElse(swagger.getShowExtensions(), false),
+                        Objects.requireNonNullElse(swagger.getShowURL(), false),
+                        Objects.requireNonNullElse(swagger.getTryIt(), false),
+                        Objects.requireNonNullElse(swagger.getDisableSyntaxHighlight(), false),
+                        Objects.requireNonNullElse(swagger.getTryItAnonymous(), false),
+                        Objects.requireNonNullElse(swagger.getTryItURL(), ""),
+                        Objects.requireNonNullElse(swagger.getUsePkce(), false),
+                        Objects.requireNonNullElse(swagger.getEntrypointsAsServers(), false),
+                        Objects.requireNonNullElse(swagger.getContextPathAsServerPath(), false));
             default -> throw new IllegalStateException("Cannot map configuration to OpenApi configuration");
         };
     }
@@ -113,20 +116,20 @@ public interface PortalPageContentMapper {
 
     private static PortalPageSwaggerConfiguration mapToDto(SwaggerUiConfiguration cfg) {
         var configuration = new PortalPageSwaggerConfiguration()
-            .displayOperationId(cfg.displayOperationId())
-            .docExpansion(mapDocExpansion(cfg.docExpansion()))
-            .enableFiltering(cfg.enableFiltering())
-            .maxDisplayedTags(cfg.maxDisplayedTags())
-            .showCommonExtensions(cfg.showCommonExtensions())
-            .showExtensions(cfg.showExtensions())
-            .showURL(cfg.showUrl())
-            .tryIt(cfg.tryIt())
-            .disableSyntaxHighlight(cfg.disableSyntaxHighlight())
-            .tryItAnonymous(cfg.tryItAnonymous())
-            .tryItURL(cfg.tryItUrl())
-            .usePkce(cfg.usePkce())
-            .entrypointsAsServers(cfg.entrypointsAsServers())
-            .contextPathAsServerPath(cfg.contextPathAsServerPath());
+                .displayOperationId(cfg.displayOperationId())
+                .docExpansion(mapDocExpansion(cfg.docExpansion()))
+                .enableFiltering(cfg.enableFiltering())
+                .maxDisplayedTags(cfg.maxDisplayedTags())
+                .showCommonExtensions(cfg.showCommonExtensions())
+                .showExtensions(cfg.showExtensions())
+                .showURL(cfg.showUrl())
+                .tryIt(cfg.tryIt())
+                .disableSyntaxHighlight(cfg.disableSyntaxHighlight())
+                .tryItAnonymous(cfg.tryItAnonymous())
+                .tryItURL(cfg.tryItUrl())
+                .usePkce(cfg.usePkce())
+                .entrypointsAsServers(cfg.entrypointsAsServers())
+                .contextPathAsServerPath(cfg.contextPathAsServerPath());
         configuration.setViewer(BasePortalPageOpenApiConfiguration.ViewerEnum.SWAGGER);
         return configuration;
     }

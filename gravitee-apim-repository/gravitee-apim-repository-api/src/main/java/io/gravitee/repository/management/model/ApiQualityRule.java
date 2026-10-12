@@ -91,21 +91,18 @@ public class ApiQualityRule {
 
     @Override
     public String toString() {
-        return (
-            "ApiQualityRule{" +
-            "api='" +
-            api +
-            '\'' +
-            ", qualityRule='" +
-            qualityRule +
-            '\'' +
-            ", checked=" +
-            checked +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
+        return ("ApiQualityRule{" + "api='"
+                + api
+                + '\''
+                + ", qualityRule='"
+                + qualityRule
+                + '\''
+                + ", checked="
+                + checked
+                + ", createdAt="
+                + createdAt
+                + ", updatedAt="
+                + updatedAt
+                + '}');
     }
 }

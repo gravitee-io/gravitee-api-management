@@ -35,11 +35,7 @@ public interface SubscriptionQueryService {
      * perform bucket-inference in memory.
      */
     List<ExpiringSubscription> findExpiringSubscriptions(
-        Instant now,
-        List<Integer> daysBuckets,
-        long windowMs,
-        List<SubscriptionStatus> statuses
-    );
+            Instant now, List<Integer> daysBuckets, long windowMs, List<SubscriptionStatus> statuses);
 
     List<SubscriptionEntity> findSubscriptionsByPlan(String planId);
 
@@ -50,18 +46,14 @@ public interface SubscriptionQueryService {
     List<SubscriptionEntity> findActiveByApplicationIdsAndApiIds(Set<String> applicationIds, Set<String> apiIds);
 
     List<SubscriptionEntity> findActiveByApplicationIdAndReferenceIdAndReferenceType(
-        String applicationId,
-        String referenceId,
-        SubscriptionReferenceType referenceType
-    );
+            String applicationId, String referenceId, SubscriptionReferenceType referenceType);
 
-    List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType);
+    List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(
+            String referenceId, SubscriptionReferenceType referenceType);
 
     Optional<SubscriptionEntity> findByIdAndReferenceIdAndReferenceType(
-        String subscriptionId,
-        String referenceId,
-        SubscriptionReferenceType referenceType
-    );
+            String subscriptionId, String referenceId, SubscriptionReferenceType referenceType);
 
-    List<SubscriptionEntity> findActiveByApplicationIdAndPlanSecurityTypes(String applicationId, Collection<String> planSecurityTypes);
+    List<SubscriptionEntity> findActiveByApplicationIdAndPlanSecurityTypes(
+            String applicationId, Collection<String> planSecurityTypes);
 }

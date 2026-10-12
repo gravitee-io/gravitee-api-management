@@ -26,13 +26,13 @@ class AuthzPdpTest {
     void round_trips_through_json_preserving_scope_id() throws Exception {
         ObjectMapper om = new ObjectMapper();
         AuthzPdp pdp = AuthzPdp.builder()
-            .id("pdp-1")
-            .name("default")
-            .targetPdpId("api-a")
-            .environmentId("env-1")
-            .tag("eu")
-            .updatedAt("2024-01-01T00:00:00Z")
-            .build();
+                .id("pdp-1")
+                .name("default")
+                .targetPdpId("api-a")
+                .environmentId("env-1")
+                .tag("eu")
+                .updatedAt("2024-01-01T00:00:00Z")
+                .build();
         String json = om.writeValueAsString(pdp);
         AuthzPdp back = om.readValue(json, AuthzPdp.class);
         assertThat(back.getId()).isEqualTo("pdp-1");
@@ -46,7 +46,12 @@ class AuthzPdpTest {
     @Test
     void tag_is_serialized_as_tag_and_nullable() throws Exception {
         ObjectMapper om = new ObjectMapper();
-        AuthzPdp tagged = AuthzPdp.builder().id("pdp-1").name("n").targetPdpId("api-a").tag("eu").build();
+        AuthzPdp tagged = AuthzPdp.builder()
+                .id("pdp-1")
+                .name("n")
+                .targetPdpId("api-a")
+                .tag("eu")
+                .build();
         assertThat(om.writeValueAsString(tagged)).contains("\"tag\":\"eu\"");
 
         AuthzPdp back = om.readValue("{\"id\":\"pdp-1\",\"name\":\"n\",\"targetPdpId\":\"api-a\"}", AuthzPdp.class);
@@ -56,7 +61,8 @@ class AuthzPdpTest {
     @Test
     void scope_id_is_serialized_as_targetPdpId() throws Exception {
         ObjectMapper om = new ObjectMapper();
-        AuthzPdp pdp = AuthzPdp.builder().id("pdp-1").name("n").targetPdpId("api-a").build();
+        AuthzPdp pdp =
+                AuthzPdp.builder().id("pdp-1").name("n").targetPdpId("api-a").build();
         String json = om.writeValueAsString(pdp);
         assertThat(json).contains("\"targetPdpId\":\"api-a\"");
         assertThat(json).doesNotContain("tenantId");
@@ -64,11 +70,10 @@ class AuthzPdpTest {
 
     @Test
     void unknown_legacy_fields_are_ignored_when_mapper_configured() throws Exception {
-        ObjectMapper om = new ObjectMapper().configure(
-            com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-            false
-        );
-        AuthzPdp back = om.readValue("{\"id\":\"pdp-1\",\"name\":\"n\",\"targetPdpId\":\"api-a\",\"legacy\":\"x\"}", AuthzPdp.class);
+        ObjectMapper om = new ObjectMapper()
+                .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        AuthzPdp back = om.readValue(
+                "{\"id\":\"pdp-1\",\"name\":\"n\",\"targetPdpId\":\"api-a\",\"legacy\":\"x\"}", AuthzPdp.class);
         assertThat(back.getTargetPdpId()).isEqualTo("api-a");
     }
 }

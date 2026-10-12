@@ -49,59 +49,49 @@ class SaveScoringResponseUseCaseTest {
     private static final String API_ID = "api-id";
     private static final String USER_ID = "user-id";
     private static final ScoringReport.Asset ANALYZED_ASSET_1 = new ScoringReport.Asset(
-        "page-id",
-        ScoringAssetType.SWAGGER,
-        List.of(
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.WARN,
-                new ScoringReport.Range(new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
-                "operation-operationId",
-                "Operation must have \"operationId\".",
-                "paths./echo.options"
-            ),
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.HINT,
-                new ScoringReport.Range(new ScoringReport.Position(12, 4), new ScoringReport.Position(12, 10)),
-                "hint-rule",
-                "Hint rule message",
-                "paths./hint"
-            )
-        ),
-        List.of()
-    );
+            "page-id",
+            ScoringAssetType.SWAGGER,
+            List.of(
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.WARN,
+                            new ScoringReport.Range(
+                                    new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
+                            "operation-operationId",
+                            "Operation must have \"operationId\".",
+                            "paths./echo.options"),
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.HINT,
+                            new ScoringReport.Range(
+                                    new ScoringReport.Position(12, 4), new ScoringReport.Position(12, 10)),
+                            "hint-rule",
+                            "Hint rule message",
+                            "paths./hint")),
+            List.of());
     private static final ScoringReport.Asset ANALYZED_ASSET_2 = new ScoringReport.Asset(
-        "asyncpage-id",
-        ScoringAssetType.ASYNCAPI,
-        List.of(
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.ERROR,
-                new ScoringReport.Range(new ScoringReport.Position(0, 0), new ScoringReport.Position(0, 0)),
-                "error-rule-1",
-                "error-message",
-                "info"
-            ),
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.ERROR,
-                new ScoringReport.Range(new ScoringReport.Position(0, 0), new ScoringReport.Position(0, 0)),
-                "error-rule-2",
-                "error-message",
-                "info"
-            )
-        ),
-        List.of()
-    );
-    private static final ScoringReport.Asset ANALYZED_ASSET_3 = new ScoringReport.Asset(
-        null,
-        ScoringAssetType.GRAVITEE_DEFINITION,
-        List.of(),
-        List.of()
-    );
+            "asyncpage-id",
+            ScoringAssetType.ASYNCAPI,
+            List.of(
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.ERROR,
+                            new ScoringReport.Range(new ScoringReport.Position(0, 0), new ScoringReport.Position(0, 0)),
+                            "error-rule-1",
+                            "error-message",
+                            "info"),
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.ERROR,
+                            new ScoringReport.Range(new ScoringReport.Position(0, 0), new ScoringReport.Position(0, 0)),
+                            "error-rule-2",
+                            "error-message",
+                            "info")),
+            List.of());
+    private static final ScoringReport.Asset ANALYZED_ASSET_3 =
+            new ScoringReport.Asset(null, ScoringAssetType.GRAVITEE_DEFINITION, List.of(), List.of());
     private static final ScoringReport.Asset ANALYZED_ASSET_4 = new ScoringReport.Asset(
-        null,
-        ScoringAssetType.GRAVITEE_DEFINITION,
-        List.of(),
-        List.of(new ScoringReport.ScoringError("ruleset-validation-error", List.of("path", "to", "invalid", "element")))
-    );
+            null,
+            ScoringAssetType.GRAVITEE_DEFINITION,
+            List.of(),
+            List.of(new ScoringReport.ScoringError(
+                    "ruleset-validation-error", List.of("path", "to", "invalid", "element"))));
 
     ScoringReportCrudServiceInMemory scoringReportCrudService = new ScoringReportCrudServiceInMemory();
     AsyncJobCrudServiceInMemory asyncJobCrudService = new AsyncJobCrudServiceInMemory();
@@ -122,7 +112,8 @@ class SaveScoringResponseUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new SaveScoringResponseUseCase(asyncJobCrudService, scoringReportCrudService, new ScoreComputingDomainService());
+        useCase = new SaveScoringResponseUseCase(
+                asyncJobCrudService, scoringReportCrudService, new ScoreComputingDomainService());
     }
 
     @AfterEach
@@ -133,58 +124,81 @@ class SaveScoringResponseUseCaseTest {
     @Test
     void should_store_scoring_result() {
         // Given
-        givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        givenAnAsyncJob(aPendingScoringRequestJob().toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build());
 
         // When
-        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1)))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
-        assertThat(scoringReportCrudService.storage()).contains(
-            ScoringReport.builder()
-                .id(JOB_ID)
-                .apiId(API_ID)
-                .environmentId(ENVIRONMENT_ID)
-                .summary(new ScoringReport.Summary(0.94D, 0L, 1L, 0L, 1L))
-                .assets(List.of(ANALYZED_ASSET_1))
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .build()
-        );
+        assertThat(scoringReportCrudService.storage())
+                .contains(ScoringReport.builder()
+                        .id(JOB_ID)
+                        .apiId(API_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .summary(new ScoringReport.Summary(0.94D, 0L, 1L, 0L, 1L))
+                        .assets(List.of(ANALYZED_ASSET_1))
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_complete_scoring_job_when_succeed() {
         // Given
-        var job = givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        var job = givenAnAsyncJob(aPendingScoringRequestJob().toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build());
 
         // When
-        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1)))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
-        assertThat(asyncJobCrudService.storage()).contains(
-            job.toBuilder().status(AsyncJob.Status.SUCCESS).updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build()
-        );
+        assertThat(asyncJobCrudService.storage())
+                .contains(job.toBuilder()
+                        .status(AsyncJob.Status.SUCCESS)
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_flag_job_in_error_and_keep_previous_report_when_scoring_failed() {
         // Given a previously scored API and a failed scoring response
-        var previousReport = ScoringReportFixture.aScoringReport().toBuilder().apiId(API_ID).build();
+        var previousReport =
+                ScoringReportFixture.aScoringReport().toBuilder().apiId(API_ID).build();
         givenExistingScoringReports(previousReport);
-        var job = givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        var job = givenAnAsyncJob(aPendingScoringRequestJob().toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build());
 
         // When
-        useCase.execute(Input.failure(JOB_ID, "boom")).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.failure(JOB_ID, "boom"))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then the failure is surfaced on the job...
-        assertThat(asyncJobCrudService.storage()).contains(
-            job.toBuilder().status(AsyncJob.Status.ERROR).errorMessage("boom").updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build()
-        );
+        assertThat(asyncJobCrudService.storage())
+                .contains(job.toBuilder()
+                        .status(AsyncJob.Status.ERROR)
+                        .errorMessage("boom")
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
         // ...and the previous report is left untouched instead of being replaced by an empty one
         assertThat(scoringReportCrudService.storage()).containsExactly(previousReport);
     }
@@ -192,106 +206,124 @@ class SaveScoringResponseUseCaseTest {
     @Test
     void should_fall_back_on_a_generic_message_when_the_failure_carries_none() {
         // Given a provider failure without any message, as Cockpit forwards throwable.getMessage() as-is
-        givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        givenAnAsyncJob(aPendingScoringRequestJob().toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build());
 
         // When
-        useCase.execute(Input.failure(JOB_ID, null)).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.failure(JOB_ID, null))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then the user is not shown an empty error
         assertThat(asyncJobCrudService.storage())
-            .singleElement()
-            .extracting(AsyncJob::getErrorMessage)
-            .isEqualTo("Scoring failed without any reported reason");
+                .singleElement()
+                .extracting(AsyncJob::getErrorMessage)
+                .isEqualTo("Scoring failed without any reported reason");
     }
 
     @Test
     void should_override_the_timeout_verdict_when_the_response_finally_arrives() {
         // Given a job already marked TIMEOUT, as AsyncJobCrudServiceImpl#findById does when the deadline has passed
-        givenAnAsyncJob(
-            aPendingScoringRequestJob()
-                .toBuilder()
+        givenAnAsyncJob(aPendingScoringRequestJob().toBuilder()
                 .id(JOB_ID)
                 .sourceId(API_ID)
                 .initiatorId(USER_ID)
                 .environmentId(ENVIRONMENT_ID)
                 .status(AsyncJob.Status.TIMEOUT)
-                .build()
-        );
+                .build());
 
         // When a late response eventually arrives
-        useCase.execute(Input.failure(JOB_ID, "boom")).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.failure(JOB_ID, "boom"))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then the real outcome wins over the deadline guess: the response did arrive, so it is what the user is told
-        assertThat(asyncJobCrudService.storage())
-            .singleElement()
-            .satisfies(job -> {
-                assertThat(job.getStatus()).isEqualTo(AsyncJob.Status.ERROR);
-                assertThat(job.getErrorMessage()).isEqualTo("boom");
-            });
+        assertThat(asyncJobCrudService.storage()).singleElement().satisfies(job -> {
+            assertThat(job.getStatus()).isEqualTo(AsyncJob.Status.ERROR);
+            assertThat(job.getErrorMessage()).isEqualTo("boom");
+        });
     }
 
     @Test
     void should_remove_previous_report_if_exists() {
         // Given
-        givenExistingScoringReports(ScoringReportFixture.aScoringReport().toBuilder().apiId(API_ID).build());
-        var job = givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        givenExistingScoringReports(
+                ScoringReportFixture.aScoringReport().toBuilder().apiId(API_ID).build());
+        var job = givenAnAsyncJob(aPendingScoringRequestJob().toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build());
 
         // When
-        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1)))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage())
-            .hasSize(1)
-            .containsExactly(
-                ScoringReport.builder()
-                    .id(JOB_ID)
-                    .apiId(API_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .summary(new ScoringReport.Summary(0.94D, 0L, 1L, 0L, 1L))
-                    .assets(List.of(ANALYZED_ASSET_1))
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .hasSize(1)
+                .containsExactly(ScoringReport.builder()
+                        .id(JOB_ID)
+                        .apiId(API_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .summary(new ScoringReport.Summary(0.94D, 0L, 1L, 0L, 1L))
+                        .assets(List.of(ANALYZED_ASSET_1))
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_compute_average_score_of_all_assets() {
         // Given
-        givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        givenAnAsyncJob(aPendingScoringRequestJob().toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build());
 
         // When
-        useCase
-            .execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1, ANALYZED_ASSET_2, ANALYZED_ASSET_3, ANALYZED_ASSET_4)))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+        useCase.execute(Input.success(
+                        JOB_ID, List.of(ANALYZED_ASSET_1, ANALYZED_ASSET_2, ANALYZED_ASSET_3, ANALYZED_ASSET_4)))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage())
-            .extracting(ScoringReport::summary)
-            .contains((new ScoringReport.Summary(0.92D, 2L, 1L, 0L, 1L)));
+                .extracting(ScoringReport::summary)
+                .contains((new ScoringReport.Summary(0.92D, 2L, 1L, 0L, 1L)));
     }
 
     @Test
     void should_ignore_assets_with_validation_errors_for_computing_average_score() {
         // Given
-        givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        givenAnAsyncJob(aPendingScoringRequestJob().toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build());
 
         // When
-        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_4))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_4)))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage())
-            .extracting(ScoringReport::summary)
-            .contains((new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L)));
+                .extracting(ScoringReport::summary)
+                .contains((new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L)));
     }
 
     @Test
@@ -299,7 +331,10 @@ class SaveScoringResponseUseCaseTest {
         // Given
 
         // When
-        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1)))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage()).isEmpty();

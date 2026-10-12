@@ -43,7 +43,8 @@ public class GetVisiblePortalNavigationApisUseCase {
         String categoryId = input.categoryId().orElse(null);
         List<PortalNavigationApi> visible;
         if (input.userId().isPresent()) {
-            visible = visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId().get(), categoryId);
+            visible = visibilityDomainService.resolveVisibleItems(
+                    input.environmentId(), input.userId().get(), categoryId);
         } else {
             visible = visibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryId);
         }
@@ -55,19 +56,18 @@ public class GetVisiblePortalNavigationApisUseCase {
         if (queryText.isEmpty()) {
             filtered = visible;
         } else {
-            Set<String> allowedApiIds = visible.stream().map(PortalNavigationApi::getApiId).collect(toSet());
+            Set<String> allowedApiIds =
+                    visible.stream().map(PortalNavigationApi::getApiId).collect(toSet());
             searchedApis = apiPortalSearchQueryService.search(
-                input.environmentId(),
-                input.organizationId(),
-                queryText.get(),
-                allowedApiIds,
-                checkTypoToleranceDomainService.isEnabled(input.environmentId(), input.organizationId())
-            );
+                    input.environmentId(),
+                    input.organizationId(),
+                    queryText.get(),
+                    allowedApiIds,
+                    checkTypoToleranceDomainService.isEnabled(input.environmentId(), input.organizationId()));
             Set<String> matchingIds = searchedApis.stream().map(Api::getId).collect(toSet());
-            filtered = visible
-                .stream()
-                .filter(i -> matchingIds.contains(i.getApiId()))
-                .toList();
+            filtered = visible.stream()
+                    .filter(i -> matchingIds.contains(i.getApiId()))
+                    .toList();
         }
 
         List<PortalNavigationApi> pageItems;
@@ -75,9 +75,13 @@ public class GetVisiblePortalNavigationApisUseCase {
             pageItems = filtered;
         } else {
             int skip = (input.pageable().getPageNumber() - 1) * input.pageable().getPageSize();
-            pageItems = filtered.stream().skip(skip).limit(input.pageable().getPageSize()).toList();
+            pageItems = filtered.stream()
+                    .skip(skip)
+                    .limit(input.pageable().getPageSize())
+                    .toList();
         }
-        Page<PortalNavigationApi> page = new Page<>(pageItems, input.pageable().getPageNumber(), pageItems.size(), filtered.size());
+        Page<PortalNavigationApi> page =
+                new Page<>(pageItems, input.pageable().getPageNumber(), pageItems.size(), filtered.size());
 
         List<Api> includedApis = resolveIncludedApis(input, searchedApis, pageItems);
 
@@ -88,28 +92,27 @@ public class GetVisiblePortalNavigationApisUseCase {
         if (!input.includes().contains(PortalNavigationSearchInclude.API)) {
             return List.of();
         }
-        Set<String> pageApiIds = pageItems.stream().map(PortalNavigationApi::getApiId).collect(toSet());
+        Set<String> pageApiIds =
+                pageItems.stream().map(PortalNavigationApi::getApiId).collect(toSet());
         if (pageApiIds.isEmpty()) {
             return List.of();
         }
         if (!searchedApis.isEmpty()) {
-            return searchedApis
-                .stream()
-                .filter(a -> pageApiIds.contains(a.getId()))
-                .toList();
+            return searchedApis.stream()
+                    .filter(a -> pageApiIds.contains(a.getId()))
+                    .toList();
         }
         return apiPortalSearchQueryService.search(input.environmentId(), input.organizationId(), pageApiIds);
     }
 
     public record Input(
-        String environmentId,
-        String organizationId,
-        Optional<String> userId,
-        Pageable pageable,
-        Optional<String> query,
-        Set<PortalNavigationSearchInclude> includes,
-        Optional<String> categoryId
-    ) {}
+            String environmentId,
+            String organizationId,
+            Optional<String> userId,
+            Pageable pageable,
+            Optional<String> query,
+            Set<PortalNavigationSearchInclude> includes,
+            Optional<String> categoryId) {}
 
     public record Output(Page<PortalNavigationApi> apis, List<Api> includedApis) {}
 }

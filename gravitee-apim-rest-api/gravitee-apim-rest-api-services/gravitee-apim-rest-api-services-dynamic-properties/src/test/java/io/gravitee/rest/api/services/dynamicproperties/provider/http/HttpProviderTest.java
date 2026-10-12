@@ -35,7 +35,6 @@ import io.vertx.junit5.VertxExtension;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.IOUtils;
@@ -53,13 +52,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@ExtendWith({ MockitoExtension.class, VertxExtension.class })
+@ExtendWith({MockitoExtension.class, VertxExtension.class})
 public class HttpProviderTest {
 
     @RegisterExtension
     private final WireMockExtension wiremock = WireMockExtension.newInstance()
-        .options(WireMockConfiguration.wireMockConfig().dynamicPort())
-        .build();
+            .options(WireMockConfiguration.wireMockConfig().dynamicPort())
+            .build();
 
     private HttpDynamicPropertyProviderConfiguration providerConfiguration;
     private HttpProvider provider;
@@ -80,15 +79,15 @@ public class HttpProviderTest {
         providerConfiguration.setMethod(HttpMethod.GET);
         setUpProvider();
 
-        provider
-            .get()
-            .subscribeOn(Schedulers.io())
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertValue(dynamicProperties -> {
-                assertThat(dynamicProperties).contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
-                return true;
-            });
+        provider.get()
+                .subscribeOn(Schedulers.io())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertValue(dynamicProperties -> {
+                    assertThat(dynamicProperties)
+                            .contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
+                    return true;
+                });
     }
 
     @Test
@@ -97,20 +96,19 @@ public class HttpProviderTest {
         providerConfiguration.setSpecification(getSimpleJoltSpecification());
         providerConfiguration.setMethod(HttpMethod.POST);
         providerConfiguration.setBody("{}");
-        providerConfiguration.setHeaders(
-            List.of(new HttpHeader("Content-Type", "application/json"), new HttpHeader("X-Gravitee-Header", "value"))
-        );
+        providerConfiguration.setHeaders(List.of(
+                new HttpHeader("Content-Type", "application/json"), new HttpHeader("X-Gravitee-Header", "value")));
         setUpProvider();
 
-        provider
-            .get()
-            .subscribeOn(Schedulers.io())
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertValue(dynamicProperties -> {
-                assertThat(dynamicProperties).contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
-                return true;
-            });
+        provider.get()
+                .subscribeOn(Schedulers.io())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertValue(dynamicProperties -> {
+                    assertThat(dynamicProperties)
+                            .contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
+                    return true;
+                });
     }
 
     @Test
@@ -120,7 +118,11 @@ public class HttpProviderTest {
         providerConfiguration.setMethod(HttpMethod.GET);
         setUpProvider();
 
-        provider.get().subscribeOn(Schedulers.io()).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        provider.get()
+                .subscribeOn(Schedulers.io())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
     }
 
     @Test
@@ -130,11 +132,17 @@ public class HttpProviderTest {
         providerConfiguration.setMethod(HttpMethod.GET);
         setUpProvider();
 
-        provider.get().subscribeOn(Schedulers.io()).test().awaitDone(5, TimeUnit.SECONDS).assertError(UnknownHostException.class);
+        provider.get()
+                .subscribeOn(Schedulers.io())
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertError(UnknownHostException.class);
     }
 
     private String getSimpleJoltSpecification() throws IOException {
-        return IOUtils.toString(this.getClass().getResourceAsStream("/jolt/specification-key-value-simple.json"), Charset.defaultCharset());
+        return IOUtils.toString(
+                this.getClass().getResourceAsStream("/jolt/specification-key-value-simple.json"),
+                Charset.defaultCharset());
     }
 
     private void setUpProvider() {

@@ -19,8 +19,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.datatype.api.deser.AbstractStdScalarDeserializer;
-import io.gravitee.definition.model.ssl.TrustStore;
-import io.gravitee.definition.model.ssl.TrustStoreType;
 import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import java.io.IOException;
 

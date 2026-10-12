@@ -27,7 +27,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface GenericNotificationConfigMongoRepository extends MongoRepository<GenericNotificationConfigMongo, String> {
+public interface GenericNotificationConfigMongoRepository
+        extends MongoRepository<GenericNotificationConfigMongo, String> {
     @Query("{ 'hooks': ?0, 'organizationId': ?1 }")
     Set<GenericNotificationConfigMongo> findByHookAndOrganizationId(String hook, String orgId);
 

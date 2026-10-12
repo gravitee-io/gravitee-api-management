@@ -79,9 +79,7 @@ public class EnvironmentConfigurationResource {
     @Operation(summary = "Get the list of available hooks")
     @Produces(MediaType.APPLICATION_JSON)
     public Hook[] getConfigurationHooks() {
-        return Arrays.stream(PortalHook.values())
-            .filter(h -> !h.isHidden())
-            .toArray(Hook[]::new);
+        return Arrays.stream(PortalHook.values()).filter(h -> !h.isHidden()).toArray(Hook[]::new);
     }
 
     @GET
@@ -89,15 +87,14 @@ public class EnvironmentConfigurationResource {
     @Path("notifiers")
     @Operation(summary = "List of available notifiers")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of notifiers",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = NotifierEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of notifiers",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = NotifierEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_NOTIFICATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_NOTIFICATION, acls = RolePermissionAction.READ)})
     public List<NotifierEntity> getPortalNotifiers() {
         return notifierService.list();
     }
@@ -176,9 +173,8 @@ public class EnvironmentConfigurationResource {
     @Operation(summary = "Get the list of enabled application types")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getEnabledApplicationTypes() {
-        ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes(
-            GraviteeContext.getExecutionContext()
-        );
+        ApplicationTypesEntity enabledApplicationTypes =
+                applicationTypeService.getEnabledApplicationTypes(GraviteeContext.getExecutionContext());
         return Response.ok(enabledApplicationTypes.getData()).build();
     }
 

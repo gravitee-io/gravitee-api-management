@@ -61,60 +61,65 @@ class SubscriptionFormConstraintsUpgraderTest {
     @Test
     void should_generate_constraints_for_forms_with_empty_sentinel() throws Exception {
         var form1 = SubscriptionForm.builder()
-            .id("form-1")
-            .environmentId("env-1")
-            .gmdContent("<gmd-input name=\"email\" fieldKey=\"email\" required />")
-            .validationConstraints("{}")
-            .build();
+                .id("form-1")
+                .environmentId("env-1")
+                .gmdContent("<gmd-input name=\"email\" fieldKey=\"email\" required />")
+                .validationConstraints("{}")
+                .build();
         var form2 = SubscriptionForm.builder()
-            .id("form-2")
-            .environmentId("env-2")
-            .gmdContent("<gmd-select name=\"plan\" fieldKey=\"plan\" options=\"basic,pro\" />")
-            .validationConstraints("{}")
-            .build();
+                .id("form-2")
+                .environmentId("env-2")
+                .gmdContent("<gmd-select name=\"plan\" fieldKey=\"plan\" options=\"basic,pro\" />")
+                .validationConstraints("{}")
+                .build();
 
         when(subscriptionFormRepository.findAll()).thenReturn(Set.of(form1, form2));
-        when(schemaGenerator.generate(any(GraviteeMarkdown.class))).thenReturn(
-            new SubscriptionFormSchema(List.of(new SubscriptionFormSchema.InputField("email", true, null, null, null, null)))
-        );
+        when(schemaGenerator.generate(any(GraviteeMarkdown.class)))
+                .thenReturn(new SubscriptionFormSchema(
+                        List.of(new SubscriptionFormSchema.InputField("email", true, null, null, null, null))));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         ArgumentCaptor<SubscriptionForm> captor = ArgumentCaptor.forClass(SubscriptionForm.class);
         verify(subscriptionFormRepository, times(2)).update(captor.capture());
 
-        captor.getAllValues().forEach(updated -> assertThat(updated.getValidationConstraints()).isNotNull().contains("email"));
+        captor.getAllValues()
+                .forEach(updated -> assertThat(updated.getValidationConstraints())
+                        .isNotNull()
+                        .contains("email"));
     }
 
     @Test
     void should_process_forms_that_have_empty_json_sentinel() throws Exception {
         var formWithSentinel = SubscriptionForm.builder()
-            .id("form-1")
-            .environmentId("env-1")
-            .gmdContent("<gmd-input name=\"email\" fieldKey=\"email\" required />")
-            .validationConstraints("{}")
-            .build();
+                .id("form-1")
+                .environmentId("env-1")
+                .gmdContent("<gmd-input name=\"email\" fieldKey=\"email\" required />")
+                .validationConstraints("{}")
+                .build();
 
         when(subscriptionFormRepository.findAll()).thenReturn(Set.of(formWithSentinel));
-        when(schemaGenerator.generate(any(GraviteeMarkdown.class))).thenReturn(
-            new SubscriptionFormSchema(List.of(new SubscriptionFormSchema.InputField("email", true, null, null, null, null)))
-        );
+        when(schemaGenerator.generate(any(GraviteeMarkdown.class)))
+                .thenReturn(new SubscriptionFormSchema(
+                        List.of(new SubscriptionFormSchema.InputField("email", true, null, null, null, null))));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         ArgumentCaptor<SubscriptionForm> captor = ArgumentCaptor.forClass(SubscriptionForm.class);
         verify(subscriptionFormRepository, times(1)).update(captor.capture());
-        assertThat(captor.getValue().getValidationConstraints()).isNotEqualTo("{}").contains("email");
+        assertThat(captor.getValue().getValidationConstraints())
+                .isNotEqualTo("{}")
+                .contains("email");
     }
 
     @Test
     void should_skip_forms_that_already_have_constraints() throws Exception {
         var formWithConstraints = SubscriptionForm.builder()
-            .id("form-1")
-            .environmentId("env-1")
-            .gmdContent("<gmd-input name=\"email\" fieldKey=\"email\" />")
-            .validationConstraints("{\"email\":[{\"type\":\"required\"}]}")
-            .build();
+                .id("form-1")
+                .environmentId("env-1")
+                .gmdContent("<gmd-input name=\"email\" fieldKey=\"email\" />")
+                .validationConstraints("{\"email\":[{\"type\":\"required\"}]}")
+                .build();
 
         when(subscriptionFormRepository.findAll()).thenReturn(Set.of(formWithConstraints));
 
@@ -127,11 +132,11 @@ class SubscriptionFormConstraintsUpgraderTest {
     @Test
     void should_update_with_empty_json_when_gmd_yields_no_constraints() throws Exception {
         var formWithNoFields = SubscriptionForm.builder()
-            .id("form-1")
-            .environmentId("env-1")
-            .gmdContent("This is plain markdown with no form components.")
-            .validationConstraints("{}")
-            .build();
+                .id("form-1")
+                .environmentId("env-1")
+                .gmdContent("This is plain markdown with no form components.")
+                .validationConstraints("{}")
+                .build();
 
         when(subscriptionFormRepository.findAll()).thenReturn(Set.of(formWithNoFields));
         when(schemaGenerator.generate(any(GraviteeMarkdown.class))).thenReturn(new SubscriptionFormSchema(List.of()));
@@ -146,23 +151,24 @@ class SubscriptionFormConstraintsUpgraderTest {
     @Test
     void should_continue_processing_remaining_forms_when_one_fails() throws Exception {
         var failingForm = SubscriptionForm.builder()
-            .id("form-fail")
-            .environmentId("env-fail")
-            .gmdContent("bad content")
-            .validationConstraints("{}")
-            .build();
+                .id("form-fail")
+                .environmentId("env-fail")
+                .gmdContent("bad content")
+                .validationConstraints("{}")
+                .build();
         var successForm = SubscriptionForm.builder()
-            .id("form-ok")
-            .environmentId("env-ok")
-            .gmdContent("<gmd-input name=\"x\" fieldKey=\"x\" />")
-            .validationConstraints("{}")
-            .build();
+                .id("form-ok")
+                .environmentId("env-ok")
+                .gmdContent("<gmd-input name=\"x\" fieldKey=\"x\" />")
+                .validationConstraints("{}")
+                .build();
 
         when(subscriptionFormRepository.findAll()).thenReturn(Set.of(failingForm, successForm));
-        when(schemaGenerator.generate(GraviteeMarkdown.of("bad content"))).thenThrow(new RuntimeException("parse failed"));
-        when(schemaGenerator.generate(GraviteeMarkdown.of("<gmd-input name=\"x\" fieldKey=\"x\" />"))).thenReturn(
-            new SubscriptionFormSchema(List.of(new SubscriptionFormSchema.InputField("x", false, null, null, null, null)))
-        );
+        when(schemaGenerator.generate(GraviteeMarkdown.of("bad content")))
+                .thenThrow(new RuntimeException("parse failed"));
+        when(schemaGenerator.generate(GraviteeMarkdown.of("<gmd-input name=\"x\" fieldKey=\"x\" />")))
+                .thenReturn(new SubscriptionFormSchema(
+                        List.of(new SubscriptionFormSchema.InputField("x", false, null, null, null, null))));
 
         assertThat(upgrader.upgrade()).isTrue();
 

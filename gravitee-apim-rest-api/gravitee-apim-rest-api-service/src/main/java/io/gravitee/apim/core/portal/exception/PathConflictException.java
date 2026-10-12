@@ -37,8 +37,8 @@ public class PathConflictException extends ValidationDomainException {
 
     public static PathConflictException folderPath(String path) {
         return new PathConflictException(
-            "Navigation path [%s] is already occupied by content not managed by the Automation API".formatted(path)
-        );
+                "Navigation path [%s] is already occupied by content not managed by the Automation API"
+                        .formatted(path));
     }
 
     /**
@@ -47,11 +47,8 @@ public class PathConflictException extends ValidationDomainException {
      */
     public static PathConflictException segmentTaken(EntryKind kind, String location) {
         return new PathConflictException(
-            "%s entry at [%s] cannot be materialized: another item under the same parent already uses this path segment".formatted(
-                kind.label,
-                location
-            )
-        );
+                "%s entry at [%s] cannot be materialized: another item under the same parent already uses this path segment"
+                        .formatted(kind.label, location));
     }
 
     /**
@@ -60,7 +57,7 @@ public class PathConflictException extends ValidationDomainException {
      */
     public static PathConflictException navigationIdTaken(EntryKind kind, String location) {
         return new PathConflictException(
-            "%s entry at [%s] cannot be materialized: another item already holds this nav id".formatted(kind.label, location)
-        );
+                "%s entry at [%s] cannot be materialized: another item already holds this nav id"
+                        .formatted(kind.label, location));
     }
 }

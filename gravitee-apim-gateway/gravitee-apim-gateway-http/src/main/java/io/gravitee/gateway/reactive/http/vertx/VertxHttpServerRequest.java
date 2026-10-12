@@ -76,7 +76,8 @@ public class VertxHttpServerRequest extends AbstractRequest {
         this(nativeRequest, idGenerator, new VertxHttpServerRequestOptions());
     }
 
-    public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
+    public VertxHttpServerRequest(
+            final HttpServerRequest nativeRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         this.nativeRequest = nativeRequest;
         this.originalHost = hostWithPort(this.nativeRequest.authority());
         this.timestamp = options.timestamp() != null ? options.timestamp() : System.currentTimeMillis();
@@ -90,19 +91,20 @@ public class VertxHttpServerRequest extends AbstractRequest {
         this.announcedBodyLength = announcedBodyLength(headers);
         this.expectsContinue = CONTINUE.contentEqualsIgnoreCase(headers.get(EXPECT));
         this.bufferFlow = new BufferFlow(
-            nativeRequest
-                .toFlowable()
-                .doOnSubscribe(subscription -> bodySubscribed = true)
-                .map(Buffer::buffer),
-            this::isStreaming
-        );
+                nativeRequest
+                        .toFlowable()
+                        .doOnSubscribe(subscription -> bodySubscribed = true)
+                        .map(Buffer::buffer),
+                this::isStreaming);
         this.messageFlow = null;
         this.options = options;
         // In Vert.x 5, channel() was removed; use channelHandlerContext().channel() instead
-        this.connectionTimestamp = (Long) ((HttpServerConnection) nativeRequest.connection().getDelegate()).channelHandlerContext()
-            .channel()
-            .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
-            .get();
+        this.connectionTimestamp =
+                (Long) ((HttpServerConnection) nativeRequest.connection().getDelegate())
+                        .channelHandlerContext()
+                        .channel()
+                        .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
+                        .get();
     }
 
     public VertxHttpServerResponse response() {
@@ -243,7 +245,9 @@ public class VertxHttpServerRequest extends AbstractRequest {
         if (!http1 || !hasUnconsumedBody()) {
             return UnconsumedBody.NONE;
         }
-        if (expectsContinue || announcedBodyLength == UNKNOWN_LENGTH || announcedBodyLength > MAX_DISCARDED_BODY_BYTES) {
+        if (expectsContinue
+                || announcedBodyLength == UNKNOWN_LENGTH
+                || announcedBodyLength > MAX_DISCARDED_BODY_BYTES) {
             return UnconsumedBody.DISCARD_THEN_CLOSE;
         }
         return UnconsumedBody.DISCARD;
@@ -314,10 +318,8 @@ public class VertxHttpServerRequest extends AbstractRequest {
                 return UNKNOWN_LENGTH;
             }
         }
-        final boolean chunked = headers
-            .getAll(TRANSFER_ENCODING)
-            .stream()
-            .anyMatch(value -> value.toLowerCase(Locale.ROOT).contains(CHUNKED));
+        final boolean chunked = headers.getAll(TRANSFER_ENCODING).stream()
+                .anyMatch(value -> value.toLowerCase(Locale.ROOT).contains(CHUNKED));
         return chunked ? UNKNOWN_LENGTH : 0;
     }
 
@@ -403,7 +405,8 @@ public class VertxHttpServerRequest extends AbstractRequest {
     public void messages(final Flowable<Message> messages) {
         super.messages(messages);
 
-        // If message flow is set up, make sure any access to chunk buffers will not be possible anymore and returns empty.
+        // If message flow is set up, make sure any access to chunk buffers will not be possible anymore and returns
+        // empty.
         chunks(Flowable.empty());
     }
 
@@ -429,7 +432,8 @@ public class VertxHttpServerRequest extends AbstractRequest {
      *     with the same blind spot as above.
      */
     @Builder
-    public record VertxHttpServerRequestOptions(String clientAuthHeaderName, String path, Long timestamp, Long timestampNs) {
+    public record VertxHttpServerRequestOptions(
+            String clientAuthHeaderName, String path, Long timestamp, Long timestampNs) {
         public VertxHttpServerRequestOptions() {
             this(null, null, null, null);
         }

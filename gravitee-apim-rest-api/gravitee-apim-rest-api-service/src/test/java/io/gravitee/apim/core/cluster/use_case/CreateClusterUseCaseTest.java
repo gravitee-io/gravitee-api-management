@@ -33,7 +33,6 @@ import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.model.CreateCluster;
-import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
@@ -69,20 +68,15 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         var jsonSchemaChecker = new JsonSchemaCheckerImpl(new JsonSchemaServiceImpl(new JsonSchemaValidatorImpl()));
         var clusterConfigurationSchemaService = new ClusterConfigurationSchemaService();
         var validateClusterService = new ValidateClusterService(
-            jsonSchemaChecker,
-            clusterConfigurationSchemaService,
-            objectMapper,
-            clusterQueryService
-        );
+                jsonSchemaChecker, clusterConfigurationSchemaService, objectMapper, clusterQueryService);
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         createClusterUseCase = new CreateClusterUseCase(
-            clusterCrudService,
-            validateClusterService,
-            auditService,
-            membershipCrudService,
-            roleQueryService,
-            objectMapper
-        );
+                clusterCrudService,
+                validateClusterService,
+                auditService,
+                membershipCrudService,
+                roleQueryService,
+                objectMapper);
         clusterQueryService.reset();
         initRoles();
     }
@@ -90,26 +84,31 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_create() {
         String name = "Cluster 1";
-        Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
+        Object configuration =
+                Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name(name).configuration(configuration).build();
+        var toCreate = CreateCluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name(name)
+                .configuration(configuration)
+                .build();
 
         // When
         var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
 
         // Then
         var expected = Cluster.builder()
-            .id(GENERATED_UUID)
-            .crossId("cluster-1")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name(name)
-            .createdAt(INSTANT_NOW)
-            .updatedAt(INSTANT_NOW)
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(configuration)
-            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
-            .build();
+                .id(GENERATED_UUID)
+                .crossId("cluster-1")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name(name)
+                .createdAt(INSTANT_NOW)
+                .updatedAt(INSTANT_NOW)
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(configuration)
+                .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+                .build();
 
         assertThat(output.cluster()).usingRecursiveComparison().isEqualTo(expected);
     }
@@ -117,90 +116,122 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_create_an_audit() {
         String name = "Cluster 1";
-        Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
+        Object configuration =
+                Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name(name).configuration(configuration).build();
+        var toCreate = CreateCluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name(name)
+                .configuration(configuration)
+                .build();
 
         // When
         createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
 
         // Then
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                AuditEntity.builder()
-                    .id(GENERATED_UUID)
-                    .organizationId(ORG_ID)
-                    .environmentId(ENV_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
-                    .referenceId(ENV_ID)
-                    .user(USER_ID)
-                    .properties(Map.of(AuditProperties.CLUSTER.name(), GENERATED_UUID))
-                    .event(ClusterAuditEvent.CLUSTER_CREATED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(AuditEntity.builder()
+                        .id(GENERATED_UUID)
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.ENVIRONMENT)
+                        .referenceId(ENV_ID)
+                        .user(USER_ID)
+                        .properties(Map.of(AuditProperties.CLUSTER.name(), GENERATED_UUID))
+                        .event(ClusterAuditEvent.CLUSTER_CREATED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_create_a_primary_owner_membership() {
         String name = "Cluster 1";
-        Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
+        Object configuration =
+                Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name(name).configuration(configuration).build();
+        var toCreate = CreateCluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name(name)
+                .configuration(configuration)
+                .build();
 
         // When
         createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
 
         // Then
-        Membership membership = ((MembershipCrudServiceInMemory) membershipCrudService).storage().get(0);
+        Membership membership = ((MembershipCrudServiceInMemory) membershipCrudService)
+                .storage()
+                .get(0);
         assertAll(
-            () -> assertThat(membership.getId()).isEqualTo(GENERATED_UUID),
-            () -> assertThat(membership.getMemberId()).isEqualTo(USER_ID),
-            () -> assertThat(membership.getMemberType()).isEqualTo(Membership.Type.USER),
-            () -> assertThat(membership.getReferenceType()).isEqualTo(Membership.ReferenceType.CLUSTER),
-            () -> assertThat(membership.getReferenceId()).isEqualTo(GENERATED_UUID),
-            () -> assertThat(membership.getRoleId()).isEqualTo(ROLE_ID),
-            () -> assertThat(membership.getCreatedAt()).isEqualTo(INSTANT_NOW.atZone(TimeProvider.clock().getZone())),
-            () -> assertThat(membership.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(TimeProvider.clock().getZone()))
-        );
+                () -> assertThat(membership.getId()).isEqualTo(GENERATED_UUID),
+                () -> assertThat(membership.getMemberId()).isEqualTo(USER_ID),
+                () -> assertThat(membership.getMemberType()).isEqualTo(Membership.Type.USER),
+                () -> assertThat(membership.getReferenceType()).isEqualTo(Membership.ReferenceType.CLUSTER),
+                () -> assertThat(membership.getReferenceId()).isEqualTo(GENERATED_UUID),
+                () -> assertThat(membership.getRoleId()).isEqualTo(ROLE_ID),
+                () -> assertThat(membership.getCreatedAt())
+                        .isEqualTo(INSTANT_NOW.atZone(TimeProvider.clock().getZone())),
+                () -> assertThat(membership.getUpdatedAt())
+                        .isEqualTo(INSTANT_NOW.atZone(TimeProvider.clock().getZone())));
     }
 
     @Test
     void should_throw_exception_when_name_is_null() {
         Object configuration = Map.of("protocol", "PLAINTEXT");
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).configuration(configuration).build();
+        var toCreate = CreateCluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .configuration(configuration)
+                .build();
 
         // When
-        var throwable = Assertions.catchThrowable(() -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)));
+        var throwable = Assertions.catchThrowable(
+                () -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)));
 
         // Then
-        Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessage("Name is required.");
+        Assertions.assertThat(throwable)
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Name is required.");
     }
 
     @Test
     void should_throw_exception_when_configuration_is_null() {
         String name = "Cluster 1";
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name(name).build();
+        var toCreate = CreateCluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name(name)
+                .build();
 
         // When
-        var throwable = Assertions.catchThrowable(() -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)));
+        var throwable = Assertions.catchThrowable(
+                () -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)));
 
         // Then
-        Assertions.assertThat(throwable).isInstanceOf(InvalidDataException.class).hasMessage("Configuration is required.");
+        Assertions.assertThat(throwable)
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Configuration is required.");
     }
 
     @Test
     void should_create_kafka_cluster() {
         String name = "Kafka Cluster";
         Object configuration = Map.of(
-            "connections",
-            List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")))
-        );
+                "connections",
+                List.of(Map.of(
+                        "name",
+                        "conn-1",
+                        "bootstrapServers",
+                        "kafka1:9092",
+                        "security",
+                        Map.of("protocol", "PLAINTEXT"))));
         // Given
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER).name(name).configuration(configuration).build();
+        var toCreate = CreateCluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name(name)
+                .configuration(configuration)
+                .build();
 
         // When
         var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
@@ -219,13 +250,14 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_create_with_explicit_crossId() {
         String name = "Cluster 1";
-        Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
+        Object configuration =
+                Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
         var toCreate = CreateCluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .crossId("custom-cross-id")
-            .name(name)
-            .configuration(configuration)
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .crossId("custom-cross-id")
+                .name(name)
+                .configuration(configuration)
+                .build();
 
         var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
 
@@ -234,12 +266,13 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
 
     @Test
     void should_generate_crossId_from_name_when_not_provided() {
-        Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
+        Object configuration =
+                Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
         var toCreate = CreateCluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Super Cluster!!")
-            .configuration(configuration)
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Super Cluster!!")
+                .configuration(configuration)
+                .build();
 
         var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
 
@@ -249,35 +282,47 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_throw_when_crossId_already_exists_in_environment() {
         Cluster existingCluster = Cluster.builder()
-            .id("existing-id")
-            .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")))
-            .build();
+                .id("existing-id")
+                .crossId("my-cluster")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(
+                        Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")))
+                .build();
         clusterQueryService.initWith(List.of(existingCluster));
 
         var toCreate = CreateCluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .crossId("my-cluster")
-            .name("Another Cluster")
-            .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")))
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .crossId("my-cluster")
+                .name("Another Cluster")
+                .configuration(
+                        Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")))
+                .build();
 
-        Assertions.assertThatThrownBy(() -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("A cluster with crossId 'my-cluster' already exists");
+        Assertions.assertThatThrownBy(
+                        () -> createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO)))
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("A cluster with crossId 'my-cluster' already exists");
     }
 
     @Test
     void should_generate_connection_crossIds_for_kafka_cluster() {
         Object configuration = Map.of(
-            "connections",
-            List.of(Map.of("name", "Primary Connection", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")))
-        );
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_CLUSTER).name("Kafka Cluster").configuration(configuration).build();
+                "connections",
+                List.of(Map.of(
+                        "name",
+                        "Primary Connection",
+                        "bootstrapServers",
+                        "kafka1:9092",
+                        "security",
+                        Map.of("protocol", "PLAINTEXT"))));
+        var toCreate = CreateCluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("Kafka Cluster")
+                .configuration(configuration)
+                .build();
 
         var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
 
@@ -289,8 +334,13 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_create_kafka_virtual_cluster() {
         String name = "Virtual Cluster";
-        Object configuration = Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1")));
-        var toCreate = CreateCluster.builder().type(ClusterType.KAFKA_VIRTUAL_CLUSTER).name(name).configuration(configuration).build();
+        Object configuration =
+                Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1")));
+        var toCreate = CreateCluster.builder()
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name(name)
+                .configuration(configuration)
+                .build();
 
         var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
 
@@ -305,15 +355,13 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     }
 
     private void initRoles() {
-        List<Role> roles = List.of(
-            Role.builder()
+        List<Role> roles = List.of(Role.builder()
                 .id(ROLE_ID)
                 .scope(Role.Scope.CLUSTER)
                 .name("PRIMARY_OWNER")
                 .referenceType(Role.ReferenceType.ORGANIZATION)
                 .referenceId(GraviteeContext.getExecutionContext().getOrganizationId())
-                .build()
-        );
+                .build());
         roleQueryService.initWith(roles);
     }
 }

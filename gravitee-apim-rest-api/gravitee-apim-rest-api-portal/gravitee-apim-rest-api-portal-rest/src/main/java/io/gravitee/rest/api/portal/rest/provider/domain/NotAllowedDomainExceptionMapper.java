@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.portal.rest.provider.domain;
 
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
@@ -28,8 +26,8 @@ public class NotAllowedDomainExceptionMapper extends AbstractDomainExceptionMapp
     @Override
     public Response toResponse(NotAllowedDomainException notAllowedException) {
         return Response.status(Response.Status.FORBIDDEN)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(convert(notAllowedException, Response.Status.FORBIDDEN.getStatusCode(), "notAllowed", null))
-            .build();
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(notAllowedException, Response.Status.FORBIDDEN.getStatusCode(), "notAllowed", null))
+                .build();
     }
 }

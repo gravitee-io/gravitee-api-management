@@ -52,8 +52,8 @@ public class NoOpApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
-    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
-        throws TechnicalException {
+    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(
+            String key, String referenceId, String referenceType) throws TechnicalException {
         return Optional.empty();
     }
 
@@ -99,7 +99,7 @@ public class NoOpApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public List<ApiKey> searchAfter(ApiKeyCriteria criteria, Sortable sortable, ApiKeyCursor after, int pageSize)
-        throws TechnicalException {
+            throws TechnicalException {
         return List.of();
     }
 

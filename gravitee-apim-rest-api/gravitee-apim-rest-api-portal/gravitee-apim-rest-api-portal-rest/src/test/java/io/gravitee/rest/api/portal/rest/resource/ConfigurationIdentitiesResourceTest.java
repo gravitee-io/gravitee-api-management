@@ -70,18 +70,17 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         IdentityProviderActivationEntity activatedIdp = new IdentityProviderActivationEntity();
         activatedIdp.setIdentityProvider(IDP_ID);
 
-        doReturn(Sets.newSet(activatedIdp)).when(identityProviderActivationService).findAllByTarget(any());
+        doReturn(Sets.newSet(activatedIdp))
+                .when(identityProviderActivationService)
+                .findAllByTarget(any());
 
-        doReturn(
-            Sets.newSet(
-                mockAMIdentityProviderEntity(),
-                mockGoogleIdentityProviderEntity(),
-                mockGitHubIdentityProviderEntity(),
-                mockOIDCIdentityProviderEntity()
-            )
-        )
-            .when(socialIdentityProviderService)
-            .findAll(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Sets.newSet(
+                        mockAMIdentityProviderEntity(),
+                        mockGoogleIdentityProviderEntity(),
+                        mockGitHubIdentityProviderEntity(),
+                        mockOIDCIdentityProviderEntity()))
+                .when(socialIdentityProviderService)
+                .findAll(eq(GraviteeContext.getExecutionContext()), any());
 
         PortalSettingsEntity configEntity = new PortalSettingsEntity();
         doReturn(configEntity).when(configService).getPortalSettings(GraviteeContext.getExecutionContext());
@@ -92,7 +91,8 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         verify(identityProviderMapper, times(4)).convert(any());
         verify(socialIdentityProviderService).findAll(eq(GraviteeContext.getExecutionContext()), any());
 
-        ConfigurationIdentitiesResponse configurationIdentitiesResponse = response.readEntity(ConfigurationIdentitiesResponse.class);
+        ConfigurationIdentitiesResponse configurationIdentitiesResponse =
+                response.readEntity(ConfigurationIdentitiesResponse.class);
         assertEquals(4, configurationIdentitiesResponse.getData().size());
     }
 

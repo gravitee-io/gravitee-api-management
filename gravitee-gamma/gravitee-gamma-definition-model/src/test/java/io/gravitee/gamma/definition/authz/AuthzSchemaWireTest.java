@@ -28,13 +28,13 @@ class AuthzSchemaWireTest {
     @Test
     void a_schema_document_round_trips_through_json() throws Exception {
         AuthzSchema s = AuthzSchema.builder()
-            .id("s1")
-            .name("fleet schema")
-            .schemaText("entity User;")
-            .environmentId("env-1")
-            .updatedAt("2026-08-24T00:00:00Z")
-            .targetPdpIds(Set.of("api-a", "stock@eu"))
-            .build();
+                .id("s1")
+                .name("fleet schema")
+                .schemaText("entity User;")
+                .environmentId("env-1")
+                .updatedAt("2026-08-24T00:00:00Z")
+                .targetPdpIds(Set.of("api-a", "stock@eu"))
+                .build();
 
         AuthzSchema back = om.readValue(om.writeValueAsString(s), AuthzSchema.class);
 
@@ -44,14 +44,19 @@ class AuthzSchemaWireTest {
 
     @Test
     void targetPdpIds_absent_in_json_deserializes_to_null() throws Exception {
-        AuthzSchema back = om.readValue("{\"id\":\"s1\",\"name\":\"n\",\"schemaText\":\"entity User;\"}", AuthzSchema.class);
+        AuthzSchema back =
+                om.readValue("{\"id\":\"s1\",\"name\":\"n\",\"schemaText\":\"entity User;\"}", AuthzSchema.class);
 
         assertThat(back.getTargetPdpIds()).isNull();
     }
 
     @Test
     void the_schema_source_is_serialised_as_schemaText() throws Exception {
-        AuthzSchema s = AuthzSchema.builder().id("s1").name("n").schemaText("entity User;").build();
+        AuthzSchema s = AuthzSchema.builder()
+                .id("s1")
+                .name("n")
+                .schemaText("entity User;")
+                .build();
 
         assertThat(om.writeValueAsString(s)).contains("\"schemaText\"");
     }

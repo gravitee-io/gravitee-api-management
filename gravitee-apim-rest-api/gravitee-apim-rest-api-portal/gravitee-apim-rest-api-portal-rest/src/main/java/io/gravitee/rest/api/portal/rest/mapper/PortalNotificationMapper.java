@@ -30,7 +30,8 @@ public class PortalNotificationMapper {
     public PortalNotification convert(PortalNotificationEntity portalNotificationEntity) {
         final PortalNotification portalNotification = new PortalNotification();
 
-        portalNotification.setCreatedAt(portalNotificationEntity.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
+        portalNotification.setCreatedAt(
+                portalNotificationEntity.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         portalNotification.setId(portalNotificationEntity.getId());
         portalNotification.setMessage(portalNotificationEntity.getMessage());
         portalNotification.setTitle(portalNotificationEntity.getTitle());

@@ -48,68 +48,69 @@ class ReferencedApiExistsRuleTest {
 
     @BeforeEach
     void setUp() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).environmentId(ENV_ID).build()));
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API_ID)
+                .environmentId(ENV_ID)
+                .build()));
     }
 
     @ParameterizedTest
-    @EnumSource(value = PortalNavigationItemType.class, names = { "PAGE", "FOLDER", "LINK" })
+    @EnumSource(
+            value = PortalNavigationItemType.class,
+            names = {"PAGE", "FOLDER", "LINK"})
     void applies_to_an_item_owned_by_an_api(PortalNavigationItemType type) {
         assertThat(rule.appliesTo(anItem(type, ownedBy(API_ID)))).isTrue();
     }
 
     @Test
     void does_not_apply_to_an_item_owned_by_the_portal() {
-        assertThat(rule.appliesTo(anItem(PortalNavigationItemType.PAGE, NavigationItemReference.defaultReference()))).isFalse();
+        assertThat(rule.appliesTo(anItem(PortalNavigationItemType.PAGE, NavigationItemReference.defaultReference())))
+                .isFalse();
     }
 
     @Test
     void does_not_apply_to_an_item_managed_by_automation() {
-        var managed = anItem(PortalNavigationItemType.PAGE, ownedBy("api-not-created-yet"))
-            .toBuilder()
-            .automationMetadata(
-                new AutomationMetadata(
-                    AutomationMetadata.ReferenceType.API,
-                    "api-not-created-yet",
-                    "doc",
-                    Optional.empty(),
-                    Optional.empty()
-                )
-            )
-            .build();
+        var managed = anItem(PortalNavigationItemType.PAGE, ownedBy("api-not-created-yet")).toBuilder()
+                .automationMetadata(new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.API,
+                        "api-not-created-yet",
+                        "doc",
+                        Optional.empty(),
+                        Optional.empty()))
+                .build();
 
         assertThat(rule.appliesTo(managed)).isFalse();
     }
 
     @Test
     void accepts_an_api_of_the_environment() {
-        assertThatCode(() ->
-            rule.validate(anItem(PortalNavigationItemType.PAGE, ownedBy(API_ID)), ENV_ID, null)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> rule.validate(anItem(PortalNavigationItemType.PAGE, ownedBy(API_ID)), ENV_ID, null))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void rejects_an_api_that_does_not_exist() {
-        assertThatThrownBy(() -> rule.validate(anItem(PortalNavigationItemType.PAGE, ownedBy("unknown-api")), ENV_ID, null)).isInstanceOf(
-            ApiNotFoundException.class
-        );
+        assertThatThrownBy(() ->
+                        rule.validate(anItem(PortalNavigationItemType.PAGE, ownedBy("unknown-api")), ENV_ID, null))
+                .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void rejects_an_api_of_another_environment() {
-        assertThatThrownBy(() -> rule.validate(anItem(PortalNavigationItemType.PAGE, ownedBy(API_ID)), "other-env", null)).isInstanceOf(
-            ApiNotFoundException.class
-        );
+        assertThatThrownBy(
+                        () -> rule.validate(anItem(PortalNavigationItemType.PAGE, ownedBy(API_ID)), "other-env", null))
+                .isInstanceOf(ApiNotFoundException.class);
     }
 
     private static CreatePortalNavigationItem anItem(PortalNavigationItemType type, NavigationItemReference reference) {
         return CreatePortalNavigationItem.builder()
-            .type(type)
-            .title("Doc")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .reference(reference)
-            .build();
+                .type(type)
+                .title("Doc")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .reference(reference)
+                .build();
     }
 
     private static NavigationItemReference ownedBy(String apiId) {

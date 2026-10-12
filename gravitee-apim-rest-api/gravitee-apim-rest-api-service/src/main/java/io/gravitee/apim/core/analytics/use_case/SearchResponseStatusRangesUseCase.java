@@ -45,18 +45,23 @@ public class SearchResponseStatusRangesUseCase {
 
     public Output execute(ExecutionContext executionContext, Input input) {
         long end = input.to() != null ? input.to() : TimeProvider.instantNow().toEpochMilli();
-        long start = input.from() != null ? input.from() : Instant.ofEpochMilli(end).minus(Duration.ofDays(1)).toEpochMilli();
+        long start = input.from() != null
+                ? input.from()
+                : Instant.ofEpochMilli(end).minus(Duration.ofDays(1)).toEpochMilli();
 
         validateDates(start, end);
         Api api = validateApiRequirements(input);
         var queryParameters = AnalyticsQueryParameters.builder()
-            .apiIds(List.of(input.apiId()))
-            .from(start)
-            .to(end)
-            .definitionVersions(Set.of(api.getDefinitionVersion()))
-            .build();
+                .apiIds(List.of(input.apiId()))
+                .from(start)
+                .to(end)
+                .definitionVersions(Set.of(api.getDefinitionVersion()))
+                .build();
 
-        return analyticsQueryService.searchResponseStatusRanges(executionContext, queryParameters).map(Output::new).orElse(new Output());
+        return analyticsQueryService
+                .searchResponseStatusRanges(executionContext, queryParameters)
+                .map(Output::new)
+                .orElse(new Output());
     }
 
     private Api validateApiRequirements(Input input) {

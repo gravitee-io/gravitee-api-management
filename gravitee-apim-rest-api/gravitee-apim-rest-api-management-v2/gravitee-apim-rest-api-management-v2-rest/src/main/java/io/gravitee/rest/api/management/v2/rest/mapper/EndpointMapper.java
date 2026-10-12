@@ -30,7 +30,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class, KeyStoreMapper.class, ServiceMapper.class, TrustStoreMapper.class })
+@Mapper(
+        uses = {
+            ConfigurationSerializationMapper.class,
+            KeyStoreMapper.class,
+            ServiceMapper.class,
+            TrustStoreMapper.class
+        })
 public interface EndpointMapper {
     EndpointMapper INSTANCE = Mappers.getMapper(EndpointMapper.class);
 
@@ -53,25 +59,31 @@ public interface EndpointMapper {
     @Mapping(target = "sharedConfigurationOverride", qualifiedByName = "deserializeConfiguration")
     EndpointV4 mapFromNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeEndpoint endpoint);
 
-    List<io.gravitee.definition.model.v4.endpointgroup.EndpointGroup> mapEndpointGroupsHttpV4(List<EndpointGroupV4> endpointGroup);
+    List<io.gravitee.definition.model.v4.endpointgroup.EndpointGroup> mapEndpointGroupsHttpV4(
+            List<EndpointGroupV4> endpointGroup);
 
     @Mapping(target = "sharedConfiguration", qualifiedByName = "serializeConfiguration")
     io.gravitee.definition.model.v4.endpointgroup.EndpointGroup mapEndpointGroupHttpV4(EndpointGroupV4 endpointGroup);
 
-    List<EndpointGroupV4> mapEndpointGroupHttpV4(List<io.gravitee.definition.model.v4.endpointgroup.EndpointGroup> endpointGroup);
+    List<EndpointGroupV4> mapEndpointGroupHttpV4(
+            List<io.gravitee.definition.model.v4.endpointgroup.EndpointGroup> endpointGroup);
 
     @Mapping(target = "sharedConfiguration", qualifiedByName = "deserializeConfiguration")
     EndpointGroupV4 mapEndpointGroupHttpV4(io.gravitee.definition.model.v4.endpointgroup.EndpointGroup endpointGroup);
 
-    List<io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup> mapEndpointGroupsNativeV4(List<EndpointGroupV4> endpointGroup);
+    List<io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup> mapEndpointGroupsNativeV4(
+            List<EndpointGroupV4> endpointGroup);
 
     @Mapping(target = "sharedConfiguration", qualifiedByName = "serializeConfiguration")
-    io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup mapEndpointGroupNativeV4(EndpointGroupV4 endpointGroup);
+    io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup mapEndpointGroupNativeV4(
+            EndpointGroupV4 endpointGroup);
 
-    List<EndpointGroupV4> mapEndpointGroupNativeV4(List<io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup> endpointGroups);
+    List<EndpointGroupV4> mapEndpointGroupNativeV4(
+            List<io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup> endpointGroups);
 
     @Mapping(target = "sharedConfiguration", qualifiedByName = "deserializeConfiguration")
-    EndpointGroupV4 mapEndpointGroupNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup endpointGroup);
+    EndpointGroupV4 mapEndpointGroupNativeV4(
+            io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup endpointGroup);
 
     // V2
     io.gravitee.definition.model.Endpoint mapEndpoint(HttpEndpointV2 endpoint);
@@ -114,7 +126,8 @@ public interface EndpointMapper {
 
                 configuration = mapper.writeValueAsString(configurationNode);
             } catch (JsonProcessingException e) {
-                throw new TechnicalManagementException("An error occurred while trying to serialize endpoint configuration " + e);
+                throw new TechnicalManagementException(
+                        "An error occurred while trying to serialize endpoint configuration " + e);
             }
 
             return mapHttpEndpoint(endpoint.getHttpEndpointV2(), configuration);
@@ -133,16 +146,16 @@ public interface EndpointMapper {
         }
 
         // If endpoint is a http or grpc endpoint, we need to parse the configuration and use it as the actual instance
-        if (
-            (endpoint.getType().equalsIgnoreCase("http") || endpoint.getType().equalsIgnoreCase("grpc")) &&
-            endpoint.getConfiguration() != null
-        ) {
+        if ((endpoint.getType().equalsIgnoreCase("http") || endpoint.getType().equalsIgnoreCase("grpc"))
+                && endpoint.getConfiguration() != null) {
             ObjectMapper mapper = new GraviteeMapper();
             io.gravitee.definition.model.endpoint.HttpEndpoint config;
             try {
-                config = mapper.readValue(endpoint.getConfiguration(), io.gravitee.definition.model.endpoint.HttpEndpoint.class);
+                config = mapper.readValue(
+                        endpoint.getConfiguration(), io.gravitee.definition.model.endpoint.HttpEndpoint.class);
             } catch (JsonProcessingException e) {
-                throw new TechnicalManagementException("An error occurred while trying to parse endpoint configuration " + e);
+                throw new TechnicalManagementException(
+                        "An error occurred while trying to parse endpoint configuration " + e);
             }
 
             return new EndpointV2(mapHttpEndpoint(config));
@@ -151,5 +164,6 @@ public interface EndpointMapper {
     }
 
     EndpointGroupV2 mapEndpointGroup(io.gravitee.definition.model.EndpointGroup endpointGroup);
+
     io.gravitee.definition.model.EndpointGroup mapEndpointGroup(EndpointGroupV2 endpointGroup);
 }

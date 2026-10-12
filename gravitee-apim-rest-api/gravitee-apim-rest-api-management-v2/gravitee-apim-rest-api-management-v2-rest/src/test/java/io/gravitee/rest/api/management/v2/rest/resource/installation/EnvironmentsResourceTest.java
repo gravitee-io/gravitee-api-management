@@ -84,7 +84,8 @@ public class EnvironmentsResourceTest extends AbstractResourceTest {
         env.setId("my-env-id");
         env.setHrids(List.of(env.getId()));
 
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, "my-env-id")).thenThrow(new EnvironmentNotFoundException(env.getId()));
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, "my-env-id"))
+                .thenThrow(new EnvironmentNotFoundException(env.getId()));
 
         final Response response = rootTarget("my-env-id").request().get();
         assertEquals(404, response.getStatus());

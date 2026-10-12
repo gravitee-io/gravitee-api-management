@@ -37,40 +37,41 @@ class PlanValidatorDomainServiceTest {
     @BeforeEach
     void setUp() {
         cut = new PlanValidatorDomainService(
-            new ParametersQueryServiceInMemory(),
-            mock(PolicyValidationDomainService.class),
-            new PageCrudServiceInMemory()
-        );
+                new ParametersQueryServiceInMemory(),
+                mock(PolicyValidationDomainService.class),
+                new PageCrudServiceInMemory());
     }
 
     @Test
     void should_accept_empty_plan_tags_for_tagless_api_product() {
-        assertThatCode(() -> cut.validatePlanTagsAgainstApiProductTags(Set.of(), null)).doesNotThrowAnyException();
-        assertThatCode(() -> cut.validatePlanTagsAgainstApiProductTags(Set.of(), Set.of())).doesNotThrowAnyException();
+        assertThatCode(() -> cut.validatePlanTagsAgainstApiProductTags(Set.of(), null))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> cut.validatePlanTagsAgainstApiProductTags(Set.of(), Set.of()))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_accept_plan_tags_that_are_subset_of_api_product_tags() {
         assertThatCode(() ->
-            cut.validatePlanTagsAgainstApiProductTags(Set.of("internal"), Set.of("internal", "external"))
-        ).doesNotThrowAnyException();
+                        cut.validatePlanTagsAgainstApiProductTags(Set.of("internal"), Set.of("internal", "external")))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_reject_plan_tags_when_api_product_has_no_tags() {
         assertThatThrownBy(() -> cut.validatePlanTagsAgainstApiProductTags(Set.of("internal"), null))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessage("Plan tags mismatch the tags defined by the API Product");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Plan tags mismatch the tags defined by the API Product");
 
         assertThatThrownBy(() -> cut.validatePlanTagsAgainstApiProductTags(Set.of("internal"), Set.of()))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessage("Plan tags mismatch the tags defined by the API Product");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Plan tags mismatch the tags defined by the API Product");
     }
 
     @Test
     void should_reject_plan_tags_not_defined_on_api_product() {
         assertThatThrownBy(() -> cut.validatePlanTagsAgainstApiProductTags(Set.of("internal"), Set.of("external")))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessage("Plan tags mismatch the tags defined by the API Product");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Plan tags mismatch the tags defined by the API Product");
     }
 }

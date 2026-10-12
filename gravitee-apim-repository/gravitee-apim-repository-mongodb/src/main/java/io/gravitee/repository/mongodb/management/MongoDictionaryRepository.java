@@ -103,7 +103,8 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             throw new IllegalStateException("Dictionary must not be null");
         }
 
-        DictionaryMongo dictionaryMongo = internalDictionaryRepo.findById(dictionary.getId()).orElse(null);
+        DictionaryMongo dictionaryMongo =
+                internalDictionaryRepo.findById(dictionary.getId()).orElse(null);
         if (dictionaryMongo == null) {
             throw new IllegalStateException(String.format("No dictionary found with id [%s]", dictionary.getId()));
         }
@@ -211,7 +212,8 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         Map<String, DictionaryPropertyMongo> mongoProperties = new HashMap<>(properties.size());
         properties.forEach((key, value) -> {
             if (value != null) {
-                mongoProperties.put(computeMongoDBCompliantKey(key), new DictionaryPropertyMongo(value.value(), value.encrypted()));
+                mongoProperties.put(
+                        computeMongoDBCompliantKey(key), new DictionaryPropertyMongo(value.value(), value.encrypted()));
             }
         });
         return mongoProperties;
@@ -256,11 +258,9 @@ public class MongoDictionaryRepository implements DictionaryRepository {
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete dictionaries by environmentId: {}", environmentId);
         try {
-            final var dictionaries = internalDictionaryRepo
-                .deleteByEnvironmentId(environmentId)
-                .stream()
-                .map(DictionaryMongo::getId)
-                .toList();
+            final var dictionaries = internalDictionaryRepo.deleteByEnvironmentId(environmentId).stream()
+                    .map(DictionaryMongo::getId)
+                    .toList();
             log.debug("Delete dictionaries by environmentId: {} - Done", environmentId);
             return dictionaries;
         } catch (Exception ex) {

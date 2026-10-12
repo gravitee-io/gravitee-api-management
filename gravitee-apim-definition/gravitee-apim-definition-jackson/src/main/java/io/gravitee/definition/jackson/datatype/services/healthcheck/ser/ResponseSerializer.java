@@ -32,20 +32,19 @@ public class ResponseSerializer extends StdScalarSerializer<HealthCheckResponse>
     }
 
     @Override
-    public void serialize(HealthCheckResponse response, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(HealthCheckResponse response, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException {
         jgen.writeStartObject();
 
         jgen.writeArrayFieldStart("assertions");
         if (response.getAssertions() != null && !response.getAssertions().isEmpty()) {
-            response
-                .getAssertions()
-                .forEach(assertion -> {
-                    try {
-                        jgen.writeString(assertion);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            response.getAssertions().forEach(assertion -> {
+                try {
+                    jgen.writeString(assertion);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         } else {
             jgen.writeString(HealthCheckResponse.DEFAULT_ASSERTION);
         }

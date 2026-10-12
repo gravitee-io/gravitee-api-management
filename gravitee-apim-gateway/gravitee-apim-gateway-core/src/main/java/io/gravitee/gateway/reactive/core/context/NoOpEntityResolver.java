@@ -27,7 +27,11 @@ public class NoOpEntityResolver implements EntityResolver {
 
     @Override
     public void register(String kind, String name, String entityId) {
-        log.debug("Entity registration ignored (no resolver configured): kind={}, name={}, entityId={}", kind, name, entityId);
+        log.debug(
+                "Entity registration ignored (no resolver configured): kind={}, name={}, entityId={}",
+                kind,
+                name,
+                entityId);
     }
 
     @Override

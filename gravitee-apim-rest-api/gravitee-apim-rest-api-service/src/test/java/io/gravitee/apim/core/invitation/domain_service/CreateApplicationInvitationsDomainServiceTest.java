@@ -95,45 +95,50 @@ class CreateApplicationInvitationsDomainServiceTest {
     @BeforeEach
     void setUp() {
         cut = new CreateApplicationInvitationsDomainService(
-            invitationQueryService,
-            invitationCrudService,
-            new ValidateApplicationInvitationRoleDomainService(roleQueryService),
-            applicationInvitationNotificationDomainService,
-            userCrudService,
-            membershipQueryService,
-            membershipDomainService
-        );
+                invitationQueryService,
+                invitationCrudService,
+                new ValidateApplicationInvitationRoleDomainService(roleQueryService),
+                applicationInvitationNotificationDomainService,
+                userCrudService,
+                membershipQueryService,
+                membershipDomainService);
     }
 
     @Test
     void should_create_invitations_with_normalized_input_when_notify_is_false() {
         givenExistingRole();
-        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(List.of());
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID)))
+                .thenReturn(List.of());
         givenNoExistingUsers("alice@example.com", "bob@example.com");
-        when(invitationCrudService.create(any(ApplicationInvitation.class))).thenReturn(
-            anApplicationInvitation(INVITATION_ID_1, "alice@example.com"),
-            anApplicationInvitation(INVITATION_ID_2, "bob@example.com")
-        );
+        when(invitationCrudService.create(any(ApplicationInvitation.class)))
+                .thenReturn(
+                        anApplicationInvitation(INVITATION_ID_1, "alice@example.com"),
+                        anApplicationInvitation(INVITATION_ID_2, "bob@example.com"));
 
         var result = cut.create(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            recipients("alice@example.com", "bob@example.com"),
-            ROLE_NAME,
-            false,
-            null
-        );
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                recipients("alice@example.com", "bob@example.com"),
+                ROLE_NAME,
+                false,
+                null);
 
-        assertThat(result).extracting(ApplicationInvitation::email).containsExactly("alice@example.com", "bob@example.com");
+        assertThat(result)
+                .extracting(ApplicationInvitation::email)
+                .containsExactly("alice@example.com", "bob@example.com");
 
         var invitationCaptor = ArgumentCaptor.forClass(ApplicationInvitation.class);
         verify(invitationCrudService, times(2)).create(invitationCaptor.capture());
-        assertThat(invitationCaptor.getAllValues()).extracting(ApplicationInvitation::applicationId).containsOnly(APPLICATION_ID);
         assertThat(invitationCaptor.getAllValues())
-            .extracting(ApplicationInvitation::email)
-            .containsExactly("alice@example.com", "bob@example.com");
-        assertThat(invitationCaptor.getAllValues()).extracting(ApplicationInvitation::roleName).containsOnly(ROLE_NAME);
+                .extracting(ApplicationInvitation::applicationId)
+                .containsOnly(APPLICATION_ID);
+        assertThat(invitationCaptor.getAllValues())
+                .extracting(ApplicationInvitation::email)
+                .containsExactly("alice@example.com", "bob@example.com");
+        assertThat(invitationCaptor.getAllValues())
+                .extracting(ApplicationInvitation::roleName)
+                .containsOnly(ROLE_NAME);
         verifyNoInteractions(applicationInvitationNotificationDomainService);
     }
 
@@ -141,9 +146,8 @@ class CreateApplicationInvitationsDomainServiceTest {
     void should_reject_invalid_email_before_creating_any_invitation() {
         givenExistingRole();
 
-        var throwable = catchThrowable(() ->
-            cut.create(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, Set.of("not-an-email"), ROLE_NAME, false, null)
-        );
+        var throwable = catchThrowable(() -> cut.create(
+                ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, Set.of("not-an-email"), ROLE_NAME, false, null));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("email is invalid");
         verifyNoInteractions(invitationCrudService);
@@ -153,134 +157,131 @@ class CreateApplicationInvitationsDomainServiceTest {
     @Test
     void should_create_invitations_and_dispatch_notification_when_notify_is_true() {
         givenExistingRole();
-        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(List.of());
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID)))
+                .thenReturn(List.of());
         givenNoExistingUsers("alice@example.com");
-        when(invitationCrudService.create(any(ApplicationInvitation.class))).thenReturn(
-            anApplicationInvitation(INVITATION_ID_1, "alice@example.com")
-        );
+        when(invitationCrudService.create(any(ApplicationInvitation.class)))
+                .thenReturn(anApplicationInvitation(INVITATION_ID_1, "alice@example.com"));
 
         var result = cut.create(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            Set.of("alice@example.com"),
-            ROLE_NAME,
-            true,
-            CONFIRMATION_PAGE_URL
-        );
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                Set.of("alice@example.com"),
+                ROLE_NAME,
+                true,
+                CONFIRMATION_PAGE_URL);
 
         assertThat(result).extracting(ApplicationInvitation::email).containsExactly("alice@example.com");
-        verify(applicationInvitationNotificationDomainService).dispatchAsync(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            result,
-            CONFIRMATION_PAGE_URL
-        );
+        verify(applicationInvitationNotificationDomainService)
+                .dispatchAsync(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, result, CONFIRMATION_PAGE_URL);
     }
 
     @Test
     void should_add_existing_user_as_application_member_without_creating_invitation() {
         givenExistingRole();
-        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(List.of());
-        when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com")).thenReturn(
-            List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com"))
-        );
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID)))
+                .thenReturn(List.of());
+        when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com"))
+                .thenReturn(List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com")));
         givenNoExistingApplicationMembers("user-id");
 
         var result = cut.create(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            Set.of("Alice@Example.com"),
-            ROLE_NAME,
-            true,
-            CONFIRMATION_PAGE_URL
-        );
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                Set.of("Alice@Example.com"),
+                ROLE_NAME,
+                true,
+                CONFIRMATION_PAGE_URL);
 
         assertThat(result).isEmpty();
-        verify(membershipDomainService).createNewMembership(
-            new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-            MembershipReferenceType.APPLICATION,
-            APPLICATION_ID,
-            "user-id",
-            null,
-            ROLE_NAME
-        );
+        verify(membershipDomainService)
+                .createNewMembership(
+                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+                        MembershipReferenceType.APPLICATION,
+                        APPLICATION_ID,
+                        "user-id",
+                        null,
+                        ROLE_NAME);
         verifyNoInteractions(invitationCrudService, applicationInvitationNotificationDomainService);
     }
 
     @Test
     void should_create_invitation_for_unknown_email_and_add_member_for_existing_user_in_same_request() {
         givenExistingRole();
-        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(List.of());
-        when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com")).thenReturn(
-            List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com"))
-        );
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID)))
+                .thenReturn(List.of());
+        when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com"))
+                .thenReturn(List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com")));
         givenNoExistingApplicationMembers("user-id");
         givenNoExistingUsers("bob@example.com");
-        when(invitationCrudService.create(any(ApplicationInvitation.class))).thenReturn(
-            anApplicationInvitation(INVITATION_ID_1, "bob@example.com")
-        );
+        when(invitationCrudService.create(any(ApplicationInvitation.class)))
+                .thenReturn(anApplicationInvitation(INVITATION_ID_1, "bob@example.com"));
 
         var result = cut.create(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            recipients("alice@example.com", "bob@example.com"),
-            ROLE_NAME,
-            true,
-            CONFIRMATION_PAGE_URL
-        );
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                recipients("alice@example.com", "bob@example.com"),
+                ROLE_NAME,
+                true,
+                CONFIRMATION_PAGE_URL);
 
         assertThat(result).extracting(ApplicationInvitation::email).containsExactly("bob@example.com");
         var inOrder = inOrder(membershipDomainService, invitationCrudService);
-        inOrder
-            .verify(membershipDomainService)
-            .createNewMembership(
-                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                "user-id",
-                null,
-                ROLE_NAME
-            );
+        inOrder.verify(membershipDomainService)
+                .createNewMembership(
+                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+                        MembershipReferenceType.APPLICATION,
+                        APPLICATION_ID,
+                        "user-id",
+                        null,
+                        ROLE_NAME);
         inOrder.verify(invitationCrudService).create(any(ApplicationInvitation.class));
-        verify(applicationInvitationNotificationDomainService).dispatchAsync(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            result,
-            CONFIRMATION_PAGE_URL
-        );
+        verify(applicationInvitationNotificationDomainService)
+                .dispatchAsync(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, result, CONFIRMATION_PAGE_URL);
     }
 
     @Test
     void should_reject_primary_owner_role_when_existing_user_would_be_added_as_member() {
         givenExistingRole("PRIMARY_OWNER");
-        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(List.of());
-        when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com")).thenReturn(
-            List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com"))
-        );
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID)))
+                .thenReturn(List.of());
+        when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com"))
+                .thenReturn(List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com")));
 
-        var throwable = catchThrowable(() ->
-            cut.create(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, Set.of("alice@example.com"), "PRIMARY_OWNER", false, null)
-        );
+        var throwable = catchThrowable(() -> cut.create(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                Set.of("alice@example.com"),
+                "PRIMARY_OWNER",
+                false,
+                null));
 
         assertThat(throwable).isInstanceOf(SinglePrimaryOwnerException.class);
-        verifyNoInteractions(membershipDomainService, invitationCrudService, applicationInvitationNotificationDomainService);
+        verifyNoInteractions(
+                membershipDomainService, invitationCrudService, applicationInvitationNotificationDomainService);
     }
 
     @Test
     void should_keep_current_primary_owner_pending_invitation_behavior_when_all_recipients_are_unknown() {
         givenExistingRole("PRIMARY_OWNER");
-        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(List.of());
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID)))
+                .thenReturn(List.of());
         givenNoExistingUsers("alice@example.com");
-        when(invitationCrudService.create(any(ApplicationInvitation.class))).thenReturn(
-            anApplicationInvitation(INVITATION_ID_1, "alice@example.com")
-        );
+        when(invitationCrudService.create(any(ApplicationInvitation.class)))
+                .thenReturn(anApplicationInvitation(INVITATION_ID_1, "alice@example.com"));
 
-        var result = cut.create(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, Set.of("alice@example.com"), "PRIMARY_OWNER", false, null);
+        var result = cut.create(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                Set.of("alice@example.com"),
+                "PRIMARY_OWNER",
+                false,
+                null);
 
         assertThat(result).extracting(ApplicationInvitation::email).containsExactly("alice@example.com");
         verifyNoInteractions(membershipDomainService, applicationInvitationNotificationDomainService);
@@ -289,86 +290,78 @@ class CreateApplicationInvitationsDomainServiceTest {
     @Test
     void should_skip_existing_application_member_and_create_invitation_for_unknown_email() {
         givenExistingRole();
-        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(List.of());
-        when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com")).thenReturn(
-            List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com"))
-        );
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID)))
+                .thenReturn(List.of());
+        when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com"))
+                .thenReturn(List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com")));
         givenNoExistingUsers("bob@example.com");
-        givenExistingApplicationMembers(
-            Membership.builder()
+        givenExistingApplicationMembers(Membership.builder()
                 .memberId("user-id")
                 .memberType(Membership.Type.USER)
                 .referenceType(Membership.ReferenceType.APPLICATION)
                 .referenceId(APPLICATION_ID)
-                .build()
-        );
-        when(invitationCrudService.create(any(ApplicationInvitation.class))).thenReturn(
-            anApplicationInvitation(INVITATION_ID_1, "bob@example.com")
-        );
+                .build());
+        when(invitationCrudService.create(any(ApplicationInvitation.class)))
+                .thenReturn(anApplicationInvitation(INVITATION_ID_1, "bob@example.com"));
 
         var result = cut.create(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            recipients("alice@example.com", "bob@example.com"),
-            ROLE_NAME,
-            true,
-            CONFIRMATION_PAGE_URL
-        );
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                recipients("alice@example.com", "bob@example.com"),
+                ROLE_NAME,
+                true,
+                CONFIRMATION_PAGE_URL);
 
         assertThat(result).extracting(ApplicationInvitation::email).containsExactly("bob@example.com");
         verify(membershipDomainService, never()).createNewMembership(any(), any(), any(), any(), any(), any());
-        verify(applicationInvitationNotificationDomainService).dispatchAsync(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            APPLICATION_ID,
-            result,
-            CONFIRMATION_PAGE_URL
-        );
+        verify(applicationInvitationNotificationDomainService)
+                .dispatchAsync(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, result, CONFIRMATION_PAGE_URL);
     }
 
     @Test
     void should_reject_existing_user_email_when_email_matches_multiple_users_before_any_write() {
         givenExistingRole();
-        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(List.of());
-        when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com")).thenReturn(
-            List.of(
-                aBaseUserEntity("user-id-1", ORGANIZATION_ID, "alice@example.com"),
-                aBaseUserEntity("user-id-2", ORGANIZATION_ID, "alice@example.com")
-            )
-        );
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID)))
+                .thenReturn(List.of());
+        when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com"))
+                .thenReturn(List.of(
+                        aBaseUserEntity("user-id-1", ORGANIZATION_ID, "alice@example.com"),
+                        aBaseUserEntity("user-id-2", ORGANIZATION_ID, "alice@example.com")));
 
-        var throwable = catchThrowable(() ->
-            cut.create(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE_NAME, false, null)
-        );
+        var throwable = catchThrowable(() -> cut.create(
+                ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE_NAME, false, null));
 
-        assertThat(throwable).isInstanceOf(ConflictDomainException.class).hasMessageContaining("matches multiple users");
-        verifyNoInteractions(membershipDomainService, invitationCrudService, applicationInvitationNotificationDomainService);
+        assertThat(throwable)
+                .isInstanceOf(ConflictDomainException.class)
+                .hasMessageContaining("matches multiple users");
+        verifyNoInteractions(
+                membershipDomainService, invitationCrudService, applicationInvitationNotificationDomainService);
     }
 
     @Test
     void should_reject_pending_invitation_conflict_before_creating_any_invitation() {
         givenExistingRole();
-        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(
-            List.of(anApplicationInvitation(EXISTING_INVITATION_ID, "alice@example.com"))
-        );
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID)))
+                .thenReturn(List.of(anApplicationInvitation(EXISTING_INVITATION_ID, "alice@example.com")));
 
-        var throwable = catchThrowable(() ->
-            cut.create(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE_NAME, false, null)
-        );
+        var throwable = catchThrowable(() -> cut.create(
+                ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE_NAME, false, null));
 
-        assertThat(throwable).isInstanceOf(ConflictDomainException.class).hasMessageContaining("pending application invitation");
+        assertThat(throwable)
+                .isInstanceOf(ConflictDomainException.class)
+                .hasMessageContaining("pending application invitation");
         verifyNoInteractions(invitationCrudService);
         verifyNoInteractions(userCrudService, membershipDomainService);
     }
 
     @Test
     void should_reject_unknown_application_role() {
-        when(roleQueryService.findApplicationRole(eq(ROLE_NAME), any(ReferenceContext.class))).thenReturn(Optional.empty());
+        when(roleQueryService.findApplicationRole(eq(ROLE_NAME), any(ReferenceContext.class)))
+                .thenReturn(Optional.empty());
 
-        var throwable = catchThrowable(() ->
-            cut.create(ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE_NAME, false, null)
-        );
+        var throwable = catchThrowable(() -> cut.create(
+                ORGANIZATION_ID, ENVIRONMENT_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE_NAME, false, null));
 
         assertThat(throwable).isInstanceOf(RoleNotFoundException.class);
         verifyNoInteractions(invitationQueryService, invitationCrudService);
@@ -379,9 +372,8 @@ class CreateApplicationInvitationsDomainServiceTest {
     }
 
     private void givenExistingRole(String roleName) {
-        when(roleQueryService.findApplicationRole(eq(roleName), any(ReferenceContext.class))).thenReturn(
-            Optional.of(anApplicationRole("role-id", roleName))
-        );
+        when(roleQueryService.findApplicationRole(eq(roleName), any(ReferenceContext.class)))
+                .thenReturn(Optional.of(anApplicationRole("role-id", roleName)));
     }
 
     private void givenNoExistingUsers(String... emails) {
@@ -391,13 +383,9 @@ class CreateApplicationInvitationsDomainServiceTest {
     }
 
     private void givenNoExistingApplicationMembers(String... userIds) {
-        when(
-            membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
-                Set.of(userIds),
-                Membership.Type.USER,
-                Membership.ReferenceType.APPLICATION
-            )
-        ).thenReturn(List.of());
+        when(membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
+                        Set.of(userIds), Membership.Type.USER, Membership.ReferenceType.APPLICATION))
+                .thenReturn(List.of());
     }
 
     private void givenExistingApplicationMembers(Membership... memberships) {
@@ -405,13 +393,9 @@ class CreateApplicationInvitationsDomainServiceTest {
         for (var membership : memberships) {
             userIds.add(membership.getMemberId());
         }
-        when(
-            membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
-                userIds,
-                Membership.Type.USER,
-                Membership.ReferenceType.APPLICATION
-            )
-        ).thenReturn(List.of(memberships));
+        when(membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
+                        userIds, Membership.Type.USER, Membership.ReferenceType.APPLICATION))
+                .thenReturn(List.of(memberships));
     }
 
     private Set<String> recipients(String... emails) {

@@ -44,9 +44,7 @@ public class ApiCreateDocumentationPageUseCase {
         pageToCreate.setUpdatedAt(pageToCreate.getCreatedAt());
 
         Page validatedPage = this.documentationValidationDomainService.validateAndSanitizeForCreation(
-            pageToCreate,
-            input.auditInfo().organizationId()
-        );
+                pageToCreate, input.auditInfo().organizationId());
 
         this.calculateOrder(validatedPage);
 
@@ -69,10 +67,8 @@ public class ApiCreateDocumentationPageUseCase {
     public record Output(Page createdPage) {}
 
     private void calculateOrder(Page page) {
-        var lastPage = pageQueryService
-            .searchByApiIdAndParentId(page.getReferenceId(), page.getParentId())
-            .stream()
-            .max(Comparator.comparingInt(Page::getOrder));
+        var lastPage = pageQueryService.searchByApiIdAndParentId(page.getReferenceId(), page.getParentId()).stream()
+                .max(Comparator.comparingInt(Page::getOrder));
         var nextOrder = lastPage.map(value -> value.getOrder() + 1).orElse(0);
 
         page.setOrder(nextOrder);

@@ -82,28 +82,22 @@ public class UserRepositoryInMemory implements UserRepository {
     }
 
     @Override
-    public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
-        return storage
-            .values()
-            .stream()
-            .filter(
-                u ->
-                    Objects.equals(u.getSource(), source) &&
-                    Objects.equals(u.getSourceId(), sourceId) &&
-                    Objects.equals(u.getOrganizationId(), organizationId)
-            )
-            .findFirst();
+    public Optional<User> findBySource(String source, String sourceId, String organizationId)
+            throws TechnicalException {
+        return storage.values().stream()
+                .filter(u -> Objects.equals(u.getSource(), source)
+                        && Objects.equals(u.getSourceId(), sourceId)
+                        && Objects.equals(u.getOrganizationId(), organizationId))
+                .findFirst();
     }
 
     @Override
     public List<User> findByEmail(String email, String organizationId) throws TechnicalException {
         maybeThrow();
-        return storage
-            .values()
-            .stream()
-            .filter(u -> u.getEmail() != null && u.getEmail().equalsIgnoreCase(email))
-            .filter(u -> Objects.equals(u.getOrganizationId(), organizationId))
-            .toList();
+        return storage.values().stream()
+                .filter(u -> u.getEmail() != null && u.getEmail().equalsIgnoreCase(email))
+                .filter(u -> Objects.equals(u.getOrganizationId(), organizationId))
+                .toList();
     }
 
     @Override

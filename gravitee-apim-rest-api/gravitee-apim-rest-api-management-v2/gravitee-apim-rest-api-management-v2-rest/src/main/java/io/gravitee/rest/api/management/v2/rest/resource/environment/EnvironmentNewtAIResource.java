@@ -54,18 +54,14 @@ public class EnvironmentNewtAIResource extends AbstractResource {
         }
 
         return generateELUseCase
-            .execute(in)
-            .map(result ->
-                new GenerateExpressionLanguageResponse()
-                    .message(result.message())
-                    .feedbackRequestId(
-                        new FeedbackRequestId()
-                            .chatId(result.feedbackId().chatId())
-                            .agentMessageId(result.feedbackId().agentMessageId())
-                            .userMessageId(result.feedbackId().userMessageId())
-                    )
-            )
-            .blockingGet();
+                .execute(in)
+                .map(result -> new GenerateExpressionLanguageResponse()
+                        .message(result.message())
+                        .feedbackRequestId(new FeedbackRequestId()
+                                .chatId(result.feedbackId().chatId())
+                                .agentMessageId(result.feedbackId().agentMessageId())
+                                .userMessageId(result.feedbackId().userMessageId())))
+                .blockingGet();
     }
 
     @Path("el/feedback")
@@ -74,11 +70,10 @@ public class EnvironmentNewtAIResource extends AbstractResource {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Response feedback(@Valid ExpressionLanguageFeedback expressionLanguageFeedback) {
         var in = new SubmitFeedbackUseCase.Input(
-            expressionLanguageFeedback.getFeedbackRequestId().getChatId(),
-            expressionLanguageFeedback.getFeedbackRequestId().getUserMessageId(),
-            expressionLanguageFeedback.getFeedbackRequestId().getAgentMessageId(),
-            expressionLanguageFeedback.getAnswerHelpful()
-        );
+                expressionLanguageFeedback.getFeedbackRequestId().getChatId(),
+                expressionLanguageFeedback.getFeedbackRequestId().getUserMessageId(),
+                expressionLanguageFeedback.getFeedbackRequestId().getAgentMessageId(),
+                expressionLanguageFeedback.getAnswerHelpful());
         submitFeedbackUseCase.execute(in).blockingAwait();
         return Response.noContent().build();
     }

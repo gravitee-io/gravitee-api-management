@@ -50,7 +50,8 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
         });
     }
 
-    private void handleSimpleCrossOriginRequest(final Cors cors, final HttpBaseRequest request, final HttpBaseResponse response) {
+    private void handleSimpleCrossOriginRequest(
+            final Cors cors, final HttpBaseRequest request, final HttpBaseResponse response) {
         // 1. If the Origin header is not present terminate this set of steps. The request is outside the scope of
         // this specification.
         // 2. If the value of the Origin header is not a case-sensitive match for any of the values in list of origins,
@@ -67,13 +68,12 @@ public class CorsSimpleRequestProcessor extends AbstractCorsRequestProcessor {
 
             // 4. If the list of exposed headers is not empty add one or more Access-Control-Expose-Headers headers,
             // with as values the header field names given in the list of exposed headers.
-            if (cors.getAccessControlExposeHeaders() != null && !cors.getAccessControlExposeHeaders().isEmpty()) {
-                response
-                    .headers()
-                    .set(
-                        HttpHeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS,
-                        String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlExposeHeaders())
-                    );
+            if (cors.getAccessControlExposeHeaders() != null
+                    && !cors.getAccessControlExposeHeaders().isEmpty()) {
+                response.headers()
+                        .set(
+                                HttpHeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS,
+                                String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlExposeHeaders()));
             }
         } else {
             // Ensure that no CORS headers are defined by upstream

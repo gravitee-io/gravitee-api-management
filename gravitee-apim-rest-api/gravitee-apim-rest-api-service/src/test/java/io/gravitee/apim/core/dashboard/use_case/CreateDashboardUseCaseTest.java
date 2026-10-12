@@ -23,7 +23,6 @@ import inmemory.DashboardCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
-import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.dashboard.domain_service.DashboardDomainService;
@@ -49,53 +48,63 @@ class CreateDashboardUseCaseTest {
 
     private static AuditInfo auditInfo() {
         return AuditInfo.builder()
-            .organizationId("org-1")
-            .environmentId("env-1")
-            .actor(io.gravitee.apim.core.audit.model.AuditActor.builder().userId("user-1").build())
-            .build();
+                .organizationId("org-1")
+                .environmentId("env-1")
+                .actor(io.gravitee.apim.core.audit.model.AuditActor.builder()
+                        .userId("user-1")
+                        .build())
+                .build();
     }
 
     private static DashboardWidget widgetWithMeasuresRequest() {
         return DashboardWidget.builder()
-            .id("1")
-            .title("Requests")
-            .type("stats")
-            .layout(DashboardWidget.Layout.builder().cols(1).rows(1).x(0).y(0).build())
-            .request(
-                DashboardWidget.Request.builder()
-                    .type("measures")
-                    .timeRange(
-                        DashboardWidget.TimeRange.builder()
-                            .from(Instant.parse("2025-10-07T06:50:30Z"))
-                            .to(Instant.parse("2025-12-07T11:35:30Z"))
-                            .build()
-                    )
-                    .metrics(List.of(DashboardWidget.MetricRequest.builder().name("HTTP_REQUESTS").measures(List.of("COUNT")).build()))
-                    .build()
-            )
-            .build();
+                .id("1")
+                .title("Requests")
+                .type("stats")
+                .layout(DashboardWidget.Layout.builder()
+                        .cols(1)
+                        .rows(1)
+                        .x(0)
+                        .y(0)
+                        .build())
+                .request(DashboardWidget.Request.builder()
+                        .type("measures")
+                        .timeRange(DashboardWidget.TimeRange.builder()
+                                .from(Instant.parse("2025-10-07T06:50:30Z"))
+                                .to(Instant.parse("2025-12-07T11:35:30Z"))
+                                .build())
+                        .metrics(List.of(DashboardWidget.MetricRequest.builder()
+                                .name("HTTP_REQUESTS")
+                                .measures(List.of("COUNT"))
+                                .build()))
+                        .build())
+                .build();
     }
 
     private static DashboardWidget widgetWithFacetsRequestEmptyBy() {
         return DashboardWidget.builder()
-            .id("2")
-            .title("Facets")
-            .type("doughnut")
-            .layout(DashboardWidget.Layout.builder().cols(1).rows(1).x(0).y(0).build())
-            .request(
-                DashboardWidget.Request.builder()
-                    .type("facets")
-                    .timeRange(
-                        DashboardWidget.TimeRange.builder()
-                            .from(Instant.parse("2025-10-07T06:50:30Z"))
-                            .to(Instant.parse("2025-12-07T11:35:30Z"))
-                            .build()
-                    )
-                    .by(List.of())
-                    .metrics(List.of(DashboardWidget.MetricRequest.builder().name("HTTP_REQUESTS").measures(List.of("COUNT")).build()))
-                    .build()
-            )
-            .build();
+                .id("2")
+                .title("Facets")
+                .type("doughnut")
+                .layout(DashboardWidget.Layout.builder()
+                        .cols(1)
+                        .rows(1)
+                        .x(0)
+                        .y(0)
+                        .build())
+                .request(DashboardWidget.Request.builder()
+                        .type("facets")
+                        .timeRange(DashboardWidget.TimeRange.builder()
+                                .from(Instant.parse("2025-10-07T06:50:30Z"))
+                                .to(Instant.parse("2025-12-07T11:35:30Z"))
+                                .build())
+                        .by(List.of())
+                        .metrics(List.of(DashboardWidget.MetricRequest.builder()
+                                .name("HTTP_REQUESTS")
+                                .measures(List.of("COUNT"))
+                                .build()))
+                        .build())
+                .build();
     }
 
     @BeforeEach
@@ -103,10 +112,7 @@ class CreateDashboardUseCaseTest {
         dashboardCrudServiceInMemory = new DashboardCrudServiceInMemory();
         auditCrudServiceInMemory = new inmemory.AuditCrudServiceInMemory();
         var auditDomainService = new AuditDomainService(
-            auditCrudServiceInMemory,
-            new UserCrudServiceInMemory(),
-            new JacksonJsonDiffProcessor()
-        );
+                auditCrudServiceInMemory, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
         var definitionQueryService = new AnalyticsDefinitionYAMLQueryService();
         var analyticsQueryValidator = new AnalyticsQueryValidator(definitionQueryService);
         var dashboardDomainService = new DashboardDomainService(dashboardCrudServiceInMemory, analyticsQueryValidator);
@@ -123,7 +129,10 @@ class CreateDashboardUseCaseTest {
 
         @Test
         void should_create_dashboard_when_widgets_are_valid() {
-            var dashboard = Dashboard.builder().name("My Dashboard").widgets(List.of(widgetWithMeasuresRequest())).build();
+            var dashboard = Dashboard.builder()
+                    .name("My Dashboard")
+                    .widgets(List.of(widgetWithMeasuresRequest()))
+                    .build();
 
             var output = useCase.execute(new CreateDashboardUseCase.Input(dashboard, auditInfo()));
 
@@ -131,7 +140,8 @@ class CreateDashboardUseCaseTest {
             assertThat(output.dashboard().getName()).isEqualTo("My Dashboard");
             assertThat(output.dashboard().getId()).isNotBlank();
             assertThat(dashboardCrudServiceInMemory.storage()).hasSize(1);
-            assertThat(dashboardCrudServiceInMemory.storage().getFirst().getName()).isEqualTo("My Dashboard");
+            assertThat(dashboardCrudServiceInMemory.storage().getFirst().getName())
+                    .isEqualTo("My Dashboard");
             assertThat(auditCrudServiceInMemory.storage()).hasSize(1);
         }
 
@@ -162,11 +172,14 @@ class CreateDashboardUseCaseTest {
 
         @Test
         void should_throw_when_facets_request_has_empty_by() {
-            var dashboard = Dashboard.builder().name("Bad").widgets(List.of(widgetWithFacetsRequestEmptyBy())).build();
+            var dashboard = Dashboard.builder()
+                    .name("Bad")
+                    .widgets(List.of(widgetWithFacetsRequestEmptyBy()))
+                    .build();
 
             assertThatThrownBy(() -> useCase.execute(new CreateDashboardUseCase.Input(dashboard, auditInfo())))
-                .isInstanceOf(InvalidQueryException.class)
-                .hasMessageContaining("by clause");
+                    .isInstanceOf(InvalidQueryException.class)
+                    .hasMessageContaining("by clause");
             assertThat(dashboardCrudServiceInMemory.storage()).isEmpty();
         }
     }

@@ -44,7 +44,8 @@ public class DynamicRoutingGatewayTest extends AbstractWiremockGatewayTest {
     public void call_dynamic_api() throws Exception {
         wireMockRule.stubFor(get("/team").willReturn(ok()));
 
-        HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        HttpResponse response =
+                Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team")));
@@ -52,11 +53,26 @@ public class DynamicRoutingGatewayTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void call_dynamic_api_unavailable() throws Exception {
-        String initialTarget = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget();
+        String initialTarget = api.getProxy()
+                .getGroups()
+                .iterator()
+                .next()
+                .getEndpoints()
+                .iterator()
+                .next()
+                .getTarget();
 
-        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().updateStatus(Endpoint.Status.DOWN);
+        api.getProxy()
+                .getGroups()
+                .iterator()
+                .next()
+                .getEndpoints()
+                .iterator()
+                .next()
+                .updateStatus(Endpoint.Status.DOWN);
 
-        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, response.getStatusLine().getStatusCode());
         wireMockRule.verify(0, getRequestedFor(urlPathEqualTo("/team")));

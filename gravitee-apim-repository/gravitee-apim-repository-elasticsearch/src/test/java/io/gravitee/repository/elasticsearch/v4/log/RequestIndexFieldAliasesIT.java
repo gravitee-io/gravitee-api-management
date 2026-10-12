@@ -56,11 +56,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("api-id alias should resolve to 'api' field and find V2 document")
-                .isEqualTo(1);
+                    .as("api-id alias should resolve to 'api' field and find V2 document")
+                    .isEqualTo(1);
             assertThat(response.getSearchHits().getHits().getFirst().getId()).isEqualTo("AVsJ2NpUuDfGHrKOwwSX");
         }
 
@@ -74,11 +75,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("api-id alias should find all V2 docs for API e2c0ecd5")
-                .isEqualTo(4);
+                    .as("api-id alias should find all V2 docs for API e2c0ecd5")
+                    .isEqualTo(4);
         }
     }
 
@@ -95,11 +97,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("application-id alias should resolve to 'application' field")
-                .isGreaterThanOrEqualTo(2);
+                    .as("application-id alias should resolve to 'application' field")
+                    .isGreaterThanOrEqualTo(2);
         }
     }
 
@@ -116,11 +119,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("plan-id alias should resolve to 'plan' field")
-                .isGreaterThanOrEqualTo(2);
+                    .as("plan-id alias should resolve to 'plan' field")
+                    .isGreaterThanOrEqualTo(2);
         }
     }
 
@@ -137,11 +141,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("transaction-id alias should resolve to 'transaction' field")
-                .isEqualTo(1);
+                    .as("transaction-id alias should resolve to 'transaction' field")
+                    .isEqualTo(1);
             assertThat(response.getSearchHits().getHits().getFirst().getId()).isEqualTo("AVsJ2NpUuDfGHrKOwwSX");
         }
     }
@@ -159,11 +164,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("http-method alias should resolve to 'method' field; method=7 is POST in V2")
-                .isGreaterThanOrEqualTo(1);
+                    .as("http-method alias should resolve to 'method' field; method=7 is POST in V2")
+                    .isGreaterThanOrEqualTo(1);
         }
     }
 
@@ -180,11 +186,13 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("gateway-response-time-ms alias should resolve to 'response-time' and find docs in range [300,600]")
-                .isGreaterThanOrEqualTo(3);
+                    .as(
+                            "gateway-response-time-ms alias should resolve to 'response-time' and find docs in range [300,600]")
+                    .isGreaterThanOrEqualTo(3);
         }
 
         @Test
@@ -200,13 +208,14 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             Aggregation statsAgg = response.getAggregations().get("response_time_stats");
             assertThat(statsAgg).isNotNull();
             assertThat(statsAgg.getAvg())
-                .as("stats aggregation on gateway-response-time-ms should compute over V2 response-time values")
-                .isGreaterThan(0.0f);
+                    .as("stats aggregation on gateway-response-time-ms should compute over V2 response-time values")
+                    .isGreaterThan(0.0f);
         }
     }
 
@@ -223,11 +232,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("subscription-id alias should resolve to 'subscription' field and find the V2 document")
-                .isEqualTo(1);
+                    .as("subscription-id alias should resolve to 'subscription' field and find the V2 document")
+                    .isEqualTo(1);
             assertThat(response.getSearchHits().getHits().getFirst().getId()).isEqualTo("AVsJ2NpUuDfGHrKOwwSX");
         }
 
@@ -241,11 +251,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("subscription-id alias should resolve but find no match for unknown value")
-                .isZero();
+                    .as("subscription-id alias should resolve but find no match for unknown value")
+                    .isZero();
         }
     }
 
@@ -262,11 +273,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("gateway-latency-ms alias should resolve to 'proxy-latency' and find docs in range [10,60]")
-                .isGreaterThanOrEqualTo(5);
+                    .as("gateway-latency-ms alias should resolve to 'proxy-latency' and find docs in range [10,60]")
+                    .isGreaterThanOrEqualTo(5);
         }
 
         @Test
@@ -282,13 +294,14 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             Aggregation statsAgg = response.getAggregations().get("latency_stats");
             assertThat(statsAgg).isNotNull();
             assertThat(statsAgg.getAvg())
-                .as("stats aggregation on gateway-latency-ms should compute over V2 proxy-latency values")
-                .isGreaterThan(0.0f);
+                    .as("stats aggregation on gateway-latency-ms should compute over V2 proxy-latency values")
+                    .isGreaterThan(0.0f);
         }
     }
 
@@ -305,11 +318,13 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getTotal().getValue())
-                .as("endpoint-response-time-ms alias should resolve to 'api-response-time' and find docs in range [200,500]")
-                .isGreaterThanOrEqualTo(3);
+                    .as(
+                            "endpoint-response-time-ms alias should resolve to 'api-response-time' and find docs in range [200,500]")
+                    .isGreaterThanOrEqualTo(3);
         }
 
         @Test
@@ -325,13 +340,15 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
             Aggregation statsAgg = response.getAggregations().get("endpoint_time_stats");
             assertThat(statsAgg).isNotNull();
             assertThat(statsAgg.getAvg())
-                .as("stats aggregation on endpoint-response-time-ms should compute over V2 api-response-time values")
-                .isGreaterThan(0.0f);
+                    .as(
+                            "stats aggregation on endpoint-response-time-ms should compute over V2 api-response-time values")
+                    .isGreaterThan(0.0f);
         }
     }
 
@@ -354,11 +371,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_AND_V4_INDICES, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_AND_V4_INDICES, null, query).blockingGet();
 
             assertThat(response.getSearchHits().getHits())
-                .as("entrypoint-id exists only in V4 docs; no V2 hit should appear")
-                .allSatisfy(hit -> assertThat(hit.getIndex()).doesNotContain("request"));
+                    .as("entrypoint-id exists only in V4 docs; no V2 hit should appear")
+                    .allSatisfy(hit -> assertThat(hit.getIndex()).doesNotContain("request"));
         }
 
         @Test
@@ -374,14 +392,15 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
                 }
                 """;
 
-            SearchResponse response = client.search(V2_AND_V4_INDICES, null, query).blockingGet();
+            SearchResponse response =
+                    client.search(V2_AND_V4_INDICES, null, query).blockingGet();
 
             Aggregation perEntrypoint = response.getAggregations().get("per_entrypoint");
             assertThat(perEntrypoint).isNotNull();
             assertThat(perEntrypoint.getBuckets())
-                .as("terms agg on entrypoint-id should only contain V4 entrypoint values, not V2 data")
-                .isNotEmpty()
-                .allSatisfy(bucket -> assertThat(bucket.has("key")).isTrue());
+                    .as("terms agg on entrypoint-id should only contain V4 entrypoint values, not V2 data")
+                    .isNotEmpty()
+                    .allSatisfy(bucket -> assertThat(bucket.has("key")).isTrue());
         }
     }
 }

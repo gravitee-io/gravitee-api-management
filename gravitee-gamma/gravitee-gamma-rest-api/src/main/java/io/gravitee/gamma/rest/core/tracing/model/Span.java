@@ -27,15 +27,14 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public record Span(
-    String spanId,
-    String parentSpanId,
-    String operationName,
-    String serviceName,
-    Instant startTime,
-    long durationNanos,
-    SpanStatus status,
-    SpanKind kind,
-    Map<String, String> attributes,
-    List<SpanEvent> events,
-    List<PayloadLog> payloadLogs
-) {}
+        String spanId,
+        String parentSpanId,
+        String operationName,
+        String serviceName,
+        Instant startTime,
+        long durationNanos,
+        SpanStatus status,
+        SpanKind kind,
+        Map<String, String> attributes,
+        List<SpanEvent> events,
+        List<PayloadLog> payloadLogs) {}

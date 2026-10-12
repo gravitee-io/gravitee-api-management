@@ -162,7 +162,8 @@ class AuthzEntityRefClausesTest {
     void should_skip_an_unquoted_split_the_mapping_cannot_index() {
         var longType = clauses.matching(TYPE_FIELD, ID_FIELD, List.of("T".repeat(1025) + "::x"));
         var longId = clauses.matching(TYPE_FIELD, ID_FIELD, List.of("User::" + "x".repeat(1025)));
-        var longFirstId = clauses.matching(TYPE_FIELD, ID_FIELD, List.of("a::" + "T".repeat(1000) + "::" + "x".repeat(1000)));
+        var longFirstId =
+                clauses.matching(TYPE_FIELD, ID_FIELD, List.of("a::" + "T".repeat(1000) + "::" + "x".repeat(1000)));
 
         assertThat(typedAlternatives(longType)).isEmpty();
         assertThat(typedAlternatives(longId)).isEmpty();
@@ -212,7 +213,11 @@ class AuthzEntityRefClausesTest {
 
         var clause = clauses.matching(TYPE_FIELD, ID_FIELD, references);
 
-        var bareIds = clause.getJsonObject("bool").getJsonArray("should").getJsonObject(0).getJsonObject("terms").getJsonArray(ID_FIELD);
+        var bareIds = clause.getJsonObject("bool")
+                .getJsonArray("should")
+                .getJsonObject(0)
+                .getJsonObject("terms")
+                .getJsonArray(ID_FIELD);
         assertThat(bareIds.getList()).containsExactlyElementsOf(references);
     }
 
@@ -245,9 +250,7 @@ class AuthzEntityRefClausesTest {
     }
 
     private static List<String> threeSplitReferences(int count) {
-        return IntStream.range(0, count)
-            .mapToObj(i -> "T" + i + "::a::b::c")
-            .toList();
+        return IntStream.range(0, count).mapToObj(i -> "T" + i + "::a::b::c").toList();
     }
 
     private static JsonObject plainTerms(String field, String value) {
@@ -255,7 +258,8 @@ class AuthzEntityRefClausesTest {
     }
 
     private static List<String> typedAlternatives(JsonObject clause) {
-        var alternatives = clause.containsKey("bool") ? clause.getJsonObject("bool").getJsonArray("should") : JsonArray.of(clause);
+        var alternatives =
+                clause.containsKey("bool") ? clause.getJsonObject("bool").getJsonArray("should") : JsonArray.of(clause);
         var typed = new ArrayList<String>();
         for (var alternative : alternatives) {
             var json = (JsonObject) alternative;

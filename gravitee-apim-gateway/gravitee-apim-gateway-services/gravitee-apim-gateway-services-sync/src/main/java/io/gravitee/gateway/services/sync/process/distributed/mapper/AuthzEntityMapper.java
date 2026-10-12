@@ -42,16 +42,17 @@ public class AuthzEntityMapper {
                     log.warn("Skipping distributed authz entity event [{}] — missing entityId or kind", event.getId());
                     return null;
                 }
-                AuthzEntityReactorDeployable.Kind kind = AuthzEntityReactorDeployable.Kind.valueOf(wire.getKind().name());
+                AuthzEntityReactorDeployable.Kind kind =
+                        AuthzEntityReactorDeployable.Kind.valueOf(wire.getKind().name());
                 return AuthzEntityReactorDeployable.builder()
-                    .entityId(wire.getEntityId())
-                    .engineUid(AuthzEngineUid.of(kind, wire.getEntityType(), wire.getEntityId()))
-                    .kind(kind)
-                    .entityType(wire.getEntityType())
-                    .attributes(wire.getAttributes())
-                    .parents(wire.getParents())
-                    .syncAction(SyncActionMapper.to(event.getSyncAction()))
-                    .build();
+                        .entityId(wire.getEntityId())
+                        .engineUid(AuthzEngineUid.of(kind, wire.getEntityType(), wire.getEntityId()))
+                        .kind(kind)
+                        .entityType(wire.getEntityType())
+                        .attributes(wire.getAttributes())
+                        .parents(wire.getParents())
+                        .syncAction(SyncActionMapper.to(event.getSyncAction()))
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while reading authz entity from distributed event payload", e);
                 return null;
@@ -61,27 +62,29 @@ public class AuthzEntityMapper {
 
     public Flowable<DistributedEvent> to(final AuthzEntityReactorDeployable deployable) {
         return Flowable.fromCallable(() -> {
-            try {
-                AuthzEntity wire = AuthzEntity.builder()
-                    .entityId(deployable.entityId())
-                    .kind(io.gravitee.gamma.definition.authz.AuthzEntityKind.valueOf(deployable.kind().name()))
-                    .entityType(deployable.entityType())
-                    .attributes(deployable.attributes())
-                    .parents(deployable.parents())
-                    .build();
-                DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
-                    .id(deployable.entityId())
-                    .type(DistributedEventType.AUTHZ_ENTITY)
-                    .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                    .updatedAt(new Date());
-                if (deployable.syncAction() == SyncAction.DEPLOY) {
-                    builder.payload(objectMapper.writeValueAsString(wire));
-                }
-                return builder.build();
-            } catch (Exception e) {
-                log.warn("Error while building distributed event from authz entity deployable", e);
-                return null;
-            }
-        }).filter(java.util.Objects::nonNull);
+                    try {
+                        AuthzEntity wire = AuthzEntity.builder()
+                                .entityId(deployable.entityId())
+                                .kind(io.gravitee.gamma.definition.authz.AuthzEntityKind.valueOf(
+                                        deployable.kind().name()))
+                                .entityType(deployable.entityType())
+                                .attributes(deployable.attributes())
+                                .parents(deployable.parents())
+                                .build();
+                        DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
+                                .id(deployable.entityId())
+                                .type(DistributedEventType.AUTHZ_ENTITY)
+                                .syncAction(SyncActionMapper.to(deployable.syncAction()))
+                                .updatedAt(new Date());
+                        if (deployable.syncAction() == SyncAction.DEPLOY) {
+                            builder.payload(objectMapper.writeValueAsString(wire));
+                        }
+                        return builder.build();
+                    } catch (Exception e) {
+                        log.warn("Error while building distributed event from authz entity deployable", e);
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull);
     }
 }

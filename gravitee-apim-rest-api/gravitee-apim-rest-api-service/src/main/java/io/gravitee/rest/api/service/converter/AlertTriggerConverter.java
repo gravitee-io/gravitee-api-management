@@ -98,12 +98,10 @@ public class AlertTriggerConverter {
 
     private void buildAlertTriggerEventRulesFromEntities(AlertTrigger alert, List<AlertEventRuleEntity> eventRules) {
         if (eventRules != null && !eventRules.isEmpty()) {
-            alert.setEventRules(
-                eventRules
-                    .stream()
-                    .map(alertEventRuleEntity -> new AlertEventRule(AlertEventType.valueOf(alertEventRuleEntity.getEvent().toUpperCase())))
-                    .collect(toList())
-            );
+            alert.setEventRules(eventRules.stream()
+                    .map(alertEventRuleEntity -> new AlertEventRule(AlertEventType.valueOf(
+                            alertEventRuleEntity.getEvent().toUpperCase())))
+                    .collect(toList()));
         }
     }
 
@@ -147,13 +145,10 @@ public class AlertTriggerConverter {
             alertTriggerEntity.setEnvironmentId(alert.getEnvironmentId());
 
             if (alert.getEventRules() != null) {
-                alertTriggerEntity.setEventRules(
-                    alert
-                        .getEventRules()
-                        .stream()
-                        .map(alertEventRule -> new AlertEventRuleEntity(alertEventRule.getEvent().name()))
-                        .collect(Collectors.toList())
-                );
+                alertTriggerEntity.setEventRules(alert.getEventRules().stream()
+                        .map(alertEventRule -> new AlertEventRuleEntity(
+                                alertEventRule.getEvent().name()))
+                        .collect(Collectors.toList()));
             }
 
             return alertTriggerEntity;
@@ -165,13 +160,12 @@ public class AlertTriggerConverter {
     }
 
     public List<AlertTriggerEntity> toAlertTriggerEntities(final List<AlertTrigger> alerts) {
-        return alerts
-            .stream()
-            .map(this::toAlertTriggerEntity)
-            .sorted(
-                comparing(alertTriggerEntity -> alertTriggerEntity != null ? alertTriggerEntity.getName() : null, nullsLast(naturalOrder()))
-            )
-            .collect(toList());
+        return alerts.stream()
+                .map(this::toAlertTriggerEntity)
+                .sorted(comparing(
+                        alertTriggerEntity -> alertTriggerEntity != null ? alertTriggerEntity.getName() : null,
+                        nullsLast(naturalOrder())))
+                .collect(toList());
     }
 
     private void buildAlertTriggerDefinitionFromEntity(AlertTrigger alertTrigger, Object alertEntity) {

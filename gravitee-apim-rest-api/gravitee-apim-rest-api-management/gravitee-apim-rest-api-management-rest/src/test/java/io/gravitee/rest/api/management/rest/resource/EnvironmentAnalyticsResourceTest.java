@@ -71,15 +71,16 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyHistoAnalyticsWhenNotAdminAndNoApp() {
-        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.emptySet());
+        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-            .queryParam("type", "date_histo")
-            .queryParam("field", "application")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "date_histo")
+                .queryParam("field", "application")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -90,15 +91,16 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyTopHitsAnalyticsWhenNotAdminAndNoApp() {
-        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.emptySet());
+        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-            .queryParam("type", "group_by")
-            .queryParam("field", "application")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "group_by")
+                .queryParam("field", "application")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -109,15 +111,16 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyCountAnalyticsWhenNotAdminAndNoApp() {
-        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.emptySet());
+        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-            .queryParam("type", "count")
-            .queryParam("field", "application")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "count")
+                .queryParam("field", "application")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -127,15 +130,16 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyStatsAnalyticsWhenNotAdminAndNoApp() {
-        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(Collections.emptySet());
+        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-            .queryParam("type", "stats")
-            .queryParam("field", "application")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "stats")
+                .queryParam("field", "application")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -146,17 +150,17 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyHistoAnalyticsWhenNotAdminAndNoApi() {
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(true))).thenReturn(
-            Collections.emptySet()
-        );
+        when(apiAuthorizationService.findIdsByUser(
+                        eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(true)))
+                .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-            .queryParam("type", "date_histo")
-            .queryParam("field", "api")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "date_histo")
+                .queryParam("field", "api")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -167,17 +171,17 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyTopHitsAnalyticsWhenNotAdminAndNoApi() {
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(true))).thenReturn(
-            Collections.emptySet()
-        );
+        when(apiAuthorizationService.findIdsByUser(
+                        eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(true)))
+                .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-            .queryParam("type", "group_by")
-            .queryParam("field", "api")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "group_by")
+                .queryParam("field", "api")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -188,17 +192,16 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyCountAnalyticsWhenNotAdminAndNoApi() {
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), any(), eq(false), any(Pageable.class))).thenReturn(
-            new Page<>(Collections.emptyList(), 0, 0, 0)
-        );
+        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), any(), eq(false), any(Pageable.class)))
+                .thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
 
         Response response = envTarget()
-            .queryParam("type", "count")
-            .queryParam("field", "api")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "count")
+                .queryParam("field", "api")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -208,17 +211,17 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyStatsAnalyticsWhenNotAdminAndNoApi() {
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(true))).thenReturn(
-            Collections.emptySet()
-        );
+        when(apiAuthorizationService.findIdsByUser(
+                        eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(true)))
+                .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-            .queryParam("type", "stats")
-            .queryParam("field", "api")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "stats")
+                .queryParam("field", "api")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -232,37 +235,38 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApplicationListItem app = new ApplicationListItem();
         app.setId("appId");
 
-        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(
-            Collections.singleton(app.getId())
-        );
-        when(
-            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ANALYTICS), eq(app.getId()), eq(READ))
-        ).thenReturn(true);
-        when(analyticsService.execute(any(ExecutionContext.class), any(DateHistogramQuery.class))).thenReturn(new HistogramAnalytics());
+        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(Collections.singleton(app.getId()));
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(APPLICATION_ANALYTICS),
+                        eq(app.getId()),
+                        eq(READ)))
+                .thenReturn(true);
+        when(analyticsService.execute(any(ExecutionContext.class), any(DateHistogramQuery.class)))
+                .thenReturn(new HistogramAnalytics());
 
         Response response = envTarget()
-            .queryParam("type", "date_histo")
-            .queryParam("field", "application")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .queryParam("query", "foo:bar")
-            .request()
-            .get();
+                .queryParam("type", "date_histo")
+                .queryParam("field", "application")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .queryParam("query", "foo:bar")
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
 
         ArgumentCaptor<DateHistogramQuery> queryArgumentCaptor = ArgumentCaptor.forClass(DateHistogramQuery.class);
         verify(analyticsService).execute(any(ExecutionContext.class), queryArgumentCaptor.capture());
-        assertThat(queryArgumentCaptor.getValue()).matches(
-            query ->
-                Objects.equals(query.getQuery(), "foo:bar") &&
-                query.getTerms().size() == 1 &&
-                query.getTerms().containsKey("application") &&
-                query.getTerms().get("application").equals(Set.of("appId")) &&
-                query.getFrom() == 0 &&
-                query.getTo() == 1000
-        );
+        assertThat(queryArgumentCaptor.getValue())
+                .matches(query -> Objects.equals(query.getQuery(), "foo:bar")
+                        && query.getTerms().size() == 1
+                        && query.getTerms().containsKey("application")
+                        && query.getTerms().get("application").equals(Set.of("appId"))
+                        && query.getFrom() == 0
+                        && query.getTo() == 1000);
     }
 
     @Test
@@ -270,22 +274,21 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         GenericApiEntity api = new ApiEntity();
         api.setId("apiId");
 
-        when(apiAuthorizationServiceV4.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(true))).thenReturn(
-            Collections.singleton(api.getId())
-        );
-        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), any(), eq(false), any(Pageable.class))).thenReturn(
-            new Page<>(Collections.singletonList(api), 1, 1, 1)
-        );
+        when(apiAuthorizationServiceV4.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(true)))
+                .thenReturn(Collections.singleton(api.getId()));
+        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), any(), eq(false), any(Pageable.class)))
+                .thenReturn(new Page<>(Collections.singletonList(api), 1, 1, 1));
 
-        when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_ANALYTICS, api.getId(), READ)).thenReturn(true);
+        when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_ANALYTICS, api.getId(), READ))
+                .thenReturn(true);
 
         Response response = envTarget()
-            .queryParam("type", "count")
-            .queryParam("field", "api")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "count")
+                .queryParam("field", "api")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -299,20 +302,22 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApplicationListItem app = new ApplicationListItem();
         app.setId("appId");
 
-        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(
-            Collections.singleton(app.getId())
-        );
-        when(
-            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ANALYTICS), eq(app.getId()), eq(READ))
-        ).thenReturn(true);
+        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(Collections.singleton(app.getId()));
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(APPLICATION_ANALYTICS),
+                        eq(app.getId()),
+                        eq(READ)))
+                .thenReturn(true);
 
         Response response = envTarget()
-            .queryParam("type", "count")
-            .queryParam("field", "application")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "count")
+                .queryParam("field", "application")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -323,35 +328,35 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCountAnalyticsWhenNotAdminAndNotAppAndNotApi() {
-        when(apiAuthorizationService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), eq(true))).thenReturn(Set.of("api1"));
-        when(
-            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(API_ANALYTICS), eq("api1"), eq(READ))
-        ).thenReturn(true);
-        when(analyticsService.execute(any(ExecutionContext.class), any(CountQuery.class))).thenReturn(new HitsAnalytics());
+        when(apiAuthorizationService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), eq(true)))
+                .thenReturn(Set.of("api1"));
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()), eq(API_ANALYTICS), eq("api1"), eq(READ)))
+                .thenReturn(true);
+        when(analyticsService.execute(any(ExecutionContext.class), any(CountQuery.class)))
+                .thenReturn(new HitsAnalytics());
 
         Response response = envTarget()
-            .queryParam("query", "foo:bar")
-            .queryParam("field", "unknown")
-            .queryParam("type", "count")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("query", "foo:bar")
+                .queryParam("field", "unknown")
+                .queryParam("type", "count")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
 
         ArgumentCaptor<CountQuery> queryArgumentCaptor = ArgumentCaptor.forClass(CountQuery.class);
         verify(analyticsService).execute(any(ExecutionContext.class), queryArgumentCaptor.capture());
-        assertThat(queryArgumentCaptor.getValue()).matches(
-            query ->
-                Objects.equals(query.getQuery(), "foo:bar") &&
-                query.getTerms().size() == 1 &&
-                query.getTerms().containsKey("api") &&
-                query.getTerms().get("api").equals(Set.of("api1")) &&
-                query.getFrom() == 0 &&
-                query.getTo() == 1000
-        );
+        assertThat(queryArgumentCaptor.getValue())
+                .matches(query -> Objects.equals(query.getQuery(), "foo:bar")
+                        && query.getTerms().size() == 1
+                        && query.getTerms().containsKey("api")
+                        && query.getTerms().get("api").equals(Set.of("api1"))
+                        && query.getFrom() == 0
+                        && query.getTo() == 1000);
     }
 
     @Test
@@ -359,20 +364,22 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApplicationListItem app = new ApplicationListItem();
         app.setId("appId");
 
-        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(
-            Collections.singleton(app.getId())
-        );
-        when(
-            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ANALYTICS), eq(app.getId()), eq(READ))
-        ).thenReturn(true);
+        when(applicationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(Collections.singleton(app.getId()));
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(APPLICATION_ANALYTICS),
+                        eq(app.getId()),
+                        eq(READ)))
+                .thenReturn(true);
 
         Response response = envTarget()
-            .queryParam("type", "count")
-            .queryParam("field", "application")
-            .queryParam("interval", 1000)
-            .queryParam("to", 1000)
-            .request()
-            .get();
+                .queryParam("type", "count")
+                .queryParam("field", "application")
+                .queryParam("interval", 1000)
+                .queryParam("to", 1000)
+                .request()
+                .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);

@@ -27,7 +27,6 @@ import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -62,28 +61,29 @@ class GroupQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_groups_matching_the_ids_provided() {
-            when(groupRepository.findById(any())).thenAnswer(invocation -> Optional.of(aGroup(invocation.getArgument(0)).build()));
+            when(groupRepository.findById(any()))
+                    .thenAnswer(invocation ->
+                            Optional.of(aGroup(invocation.getArgument(0)).build()));
 
             var result = service.findById("1");
 
-            Assertions.assertThat(result).contains(
-                Group.builder()
-                    .id("1")
-                    .name("group-1")
-                    .environmentId("environment-id")
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .maxInvitation(12)
-                    .lockApiRole(true)
-                    .lockApplicationRole(true)
-                    .systemInvitation(true)
-                    .emailInvitation(true)
-                    .disableMembershipNotifications(true)
-                    .apiPrimaryOwner("api-po-id")
-                    .apiProductPrimaryOwner("api-product-po-id")
-                    .build()
-            );
+            Assertions.assertThat(result)
+                    .contains(Group.builder()
+                            .id("1")
+                            .name("group-1")
+                            .environmentId("environment-id")
+                            .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .maxInvitation(12)
+                            .lockApiRole(true)
+                            .lockApplicationRole(true)
+                            .systemInvitation(true)
+                            .emailInvitation(true)
+                            .disableMembershipNotifications(true)
+                            .apiPrimaryOwner("api-po-id")
+                            .apiProductPrimaryOwner("api-product-po-id")
+                            .build());
         }
 
         @Test
@@ -106,8 +106,8 @@ class GroupQueryServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to find group by id: 123");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to find group by id: 123");
         }
     }
 
@@ -117,13 +117,10 @@ class GroupQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_groups_matching_the_ids_provided() {
-            when(groupRepository.findByIds(anySet())).thenAnswer(invocation ->
-                invocation
-                    .getArgument(0, Set.class)
-                    .stream()
-                    .map(id -> aGroup((String) id).build())
-                    .collect(Collectors.toSet())
-            );
+            when(groupRepository.findByIds(anySet()))
+                    .thenAnswer(invocation -> invocation.getArgument(0, Set.class).stream()
+                            .map(id -> aGroup((String) id).build())
+                            .collect(Collectors.toSet()));
 
             var groups = service.findByIds(Set.of("1", "2", "3"));
 
@@ -133,30 +130,29 @@ class GroupQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_adapt_groups() {
-            when(groupRepository.findByIds(anySet())).thenReturn(Set.of(aGroup("1").build()));
+            when(groupRepository.findByIds(anySet()))
+                    .thenReturn(Set.of(aGroup("1").build()));
 
             var groups = service.findByIds(Set.of("1", "2", "3"));
 
             Assertions.assertThat(groups)
-                .hasSize(1)
-                .containsExactly(
-                    Group.builder()
-                        .id("1")
-                        .name("group-1")
-                        .environmentId("environment-id")
-                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .maxInvitation(12)
-                        .lockApiRole(true)
-                        .lockApplicationRole(true)
-                        .systemInvitation(true)
-                        .emailInvitation(true)
-                        .disableMembershipNotifications(true)
-                        .apiPrimaryOwner("api-po-id")
-                        .apiProductPrimaryOwner("api-product-po-id")
-                        .build()
-                );
+                    .hasSize(1)
+                    .containsExactly(Group.builder()
+                            .id("1")
+                            .name("group-1")
+                            .environmentId("environment-id")
+                            .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .maxInvitation(12)
+                            .lockApiRole(true)
+                            .lockApplicationRole(true)
+                            .systemInvitation(true)
+                            .emailInvitation(true)
+                            .disableMembershipNotifications(true)
+                            .apiPrimaryOwner("api-po-id")
+                            .apiProductPrimaryOwner("api-product-po-id")
+                            .build());
         }
     }
 
@@ -166,27 +162,26 @@ class GroupQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_groups_matching_the_event_provided() {
-            when(groupRepository.findAllByEnvironment(any(String.class))).thenAnswer(invocation ->
-                Set.of(
-                    aGroup("1")
-                        .environmentId(invocation.getArgument(0))
-                        .eventRules(List.of(new io.gravitee.repository.management.model.GroupEventRule(GroupEvent.API_CREATE)))
-                        .build(),
-                    aGroup("2")
-                        .environmentId(invocation.getArgument(0))
-                        .eventRules(
-                            List.of(
-                                new io.gravitee.repository.management.model.GroupEventRule(GroupEvent.API_CREATE),
-                                new io.gravitee.repository.management.model.GroupEventRule(GroupEvent.APPLICATION_CREATE)
-                            )
-                        )
-                        .build(),
-                    aGroup("3")
-                        .environmentId(invocation.getArgument(0))
-                        .eventRules(List.of(new io.gravitee.repository.management.model.GroupEventRule(GroupEvent.APPLICATION_CREATE)))
-                        .build()
-                )
-            );
+            when(groupRepository.findAllByEnvironment(any(String.class)))
+                    .thenAnswer(invocation -> Set.of(
+                            aGroup("1")
+                                    .environmentId(invocation.getArgument(0))
+                                    .eventRules(List.of(new io.gravitee.repository.management.model.GroupEventRule(
+                                            GroupEvent.API_CREATE)))
+                                    .build(),
+                            aGroup("2")
+                                    .environmentId(invocation.getArgument(0))
+                                    .eventRules(List.of(
+                                            new io.gravitee.repository.management.model.GroupEventRule(
+                                                    GroupEvent.API_CREATE),
+                                            new io.gravitee.repository.management.model.GroupEventRule(
+                                                    GroupEvent.APPLICATION_CREATE)))
+                                    .build(),
+                            aGroup("3")
+                                    .environmentId(invocation.getArgument(0))
+                                    .eventRules(List.of(new io.gravitee.repository.management.model.GroupEventRule(
+                                            GroupEvent.APPLICATION_CREATE)))
+                                    .build()));
 
             var groups = service.findByEvent("environment-id", Group.GroupEvent.API_CREATE);
 
@@ -196,37 +191,33 @@ class GroupQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_adapt_groups() {
-            when(groupRepository.findAllByEnvironment(any(String.class))).thenAnswer(invocation ->
-                Set.of(
-                    aGroup("1")
-                        .environmentId(invocation.getArgument(0))
-                        .eventRules(List.of(new io.gravitee.repository.management.model.GroupEventRule(GroupEvent.API_CREATE)))
-                        .build()
-                )
-            );
+            when(groupRepository.findAllByEnvironment(any(String.class)))
+                    .thenAnswer(invocation -> Set.of(aGroup("1")
+                            .environmentId(invocation.getArgument(0))
+                            .eventRules(List.of(
+                                    new io.gravitee.repository.management.model.GroupEventRule(GroupEvent.API_CREATE)))
+                            .build()));
 
             var groups = service.findByEvent("environment-id", Group.GroupEvent.API_CREATE);
 
             Assertions.assertThat(groups)
-                .hasSize(1)
-                .containsExactly(
-                    Group.builder()
-                        .id("1")
-                        .name("group-1")
-                        .environmentId("environment-id")
-                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .maxInvitation(12)
-                        .lockApiRole(true)
-                        .lockApplicationRole(true)
-                        .systemInvitation(true)
-                        .emailInvitation(true)
-                        .disableMembershipNotifications(true)
-                        .apiPrimaryOwner("api-po-id")
-                        .apiProductPrimaryOwner("api-product-po-id")
-                        .build()
-                );
+                    .hasSize(1)
+                    .containsExactly(Group.builder()
+                            .id("1")
+                            .name("group-1")
+                            .environmentId("environment-id")
+                            .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .maxInvitation(12)
+                            .lockApiRole(true)
+                            .lockApplicationRole(true)
+                            .systemInvitation(true)
+                            .emailInvitation(true)
+                            .disableMembershipNotifications(true)
+                            .apiPrimaryOwner("api-po-id")
+                            .apiProductPrimaryOwner("api-product-po-id")
+                            .build());
         }
     }
 
@@ -236,12 +227,16 @@ class GroupQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_groups_matching_the_event_provided() {
-            when(groupRepository.findAllByEnvironment(any(String.class))).thenAnswer(invocation ->
-                Set.of(
-                    aGroup("1").environmentId(invocation.getArgument(0)).name("group-1").build(),
-                    aGroup("2").environmentId(invocation.getArgument(0)).name("group-2").build()
-                )
-            );
+            when(groupRepository.findAllByEnvironment(any(String.class)))
+                    .thenAnswer(invocation -> Set.of(
+                            aGroup("1")
+                                    .environmentId(invocation.getArgument(0))
+                                    .name("group-1")
+                                    .build(),
+                            aGroup("2")
+                                    .environmentId(invocation.getArgument(0))
+                                    .name("group-2")
+                                    .build()));
 
             var groups = service.findByNames("environment-id", Set.of("group-2"));
 
@@ -251,33 +246,33 @@ class GroupQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_adapt_groups() {
-            when(groupRepository.findAllByEnvironment(any(String.class))).thenAnswer(invocation ->
-                Set.of(aGroup("1").environmentId(invocation.getArgument(0)).name("group-1").build())
-            );
+            when(groupRepository.findAllByEnvironment(any(String.class)))
+                    .thenAnswer(invocation -> Set.of(aGroup("1")
+                            .environmentId(invocation.getArgument(0))
+                            .name("group-1")
+                            .build()));
 
             var groups = service.findByNames("environment-id", Set.of("group-1"));
 
             Assertions.assertThat(groups)
-                .hasSize(1)
-                .containsExactly(
-                    Group.builder()
-                        .id("1")
-                        .name("group-1")
-                        .environmentId("environment-id")
-                        .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .maxInvitation(12)
-                        .lockApiRole(true)
-                        .lockApplicationRole(true)
-                        .systemInvitation(true)
-                        .emailInvitation(true)
-                        .disableMembershipNotifications(true)
-                        .apiPrimaryOwner("api-po-id")
-                        .apiProductPrimaryOwner("api-product-po-id")
-                        .origin("MANAGEMENT")
-                        .build()
-                );
+                    .hasSize(1)
+                    .containsExactly(Group.builder()
+                            .id("1")
+                            .name("group-1")
+                            .environmentId("environment-id")
+                            .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .maxInvitation(12)
+                            .lockApiRole(true)
+                            .lockApplicationRole(true)
+                            .systemInvitation(true)
+                            .emailInvitation(true)
+                            .disableMembershipNotifications(true)
+                            .apiPrimaryOwner("api-po-id")
+                            .apiProductPrimaryOwner("api-product-po-id")
+                            .origin("MANAGEMENT")
+                            .build());
         }
     }
 
@@ -287,9 +282,10 @@ class GroupQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_groups_matching_the_hrids_provided() {
-            when(groupRepository.findByHridsAndEnvironmentId(anySet(), any(String.class))).thenReturn(
-                List.of(aGroup("1").hrid("hrid-1").build(), aGroup("2").hrid("hrid-2").build())
-            );
+            when(groupRepository.findByHridsAndEnvironmentId(anySet(), any(String.class)))
+                    .thenReturn(List.of(
+                            aGroup("1").hrid("hrid-1").build(),
+                            aGroup("2").hrid("hrid-2").build()));
 
             var groups = service.findByHRIDs("environment-id", Set.of("hrid-1", "hrid-2"));
 
@@ -306,33 +302,34 @@ class GroupQueryServiceImplTest {
 
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
-            when(groupRepository.findByHridsAndEnvironmentId(anySet(), any(String.class))).thenThrow(TechnicalException.class);
+            when(groupRepository.findByHridsAndEnvironmentId(anySet(), any(String.class)))
+                    .thenThrow(TechnicalException.class);
 
             Throwable throwable = catchThrowable(() -> service.findByHRIDs("environment-id", Set.of("hrid-1")));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to find groups by hrids");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurs while trying to find groups by hrids");
         }
     }
 
     io.gravitee.repository.management.model.Group.GroupBuilder aGroup(String id) {
         return io.gravitee.repository.management.model.Group.builder()
-            .id(id)
-            .name("group-" + id)
-            .environmentId("environment-id")
-            .eventRules(List.of(new io.gravitee.repository.management.model.GroupEventRule(GroupEvent.API_CREATE)))
-            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-            .maxInvitation(12)
-            .lockApiRole(true)
-            .lockApplicationRole(true)
-            .systemInvitation(true)
-            .emailInvitation(true)
-            .disableMembershipNotifications(true)
-            .apiPrimaryOwner("api-po-id")
-            .apiProductPrimaryOwner("api-product-po-id")
-            .origin("MANAGEMENT");
+                .id(id)
+                .name("group-" + id)
+                .environmentId("environment-id")
+                .eventRules(List.of(new io.gravitee.repository.management.model.GroupEventRule(GroupEvent.API_CREATE)))
+                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                .maxInvitation(12)
+                .lockApiRole(true)
+                .lockApplicationRole(true)
+                .systemInvitation(true)
+                .emailInvitation(true)
+                .disableMembershipNotifications(true)
+                .apiPrimaryOwner("api-po-id")
+                .apiProductPrimaryOwner("api-product-po-id")
+                .origin("MANAGEMENT");
     }
 
     @Nested
@@ -341,7 +338,8 @@ class GroupQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_search_groups_by_ids_with_pagination() {
-            List<io.gravitee.repository.management.model.Group> groups = List.of(aGroup("1").build(), aGroup("2").build());
+            List<io.gravitee.repository.management.model.Group> groups =
+                    List.of(aGroup("1").build(), aGroup("2").build());
             Page<io.gravitee.repository.management.model.Group> page = new Page<>(groups, 0, groups.size(), 2);
             when(groupRepository.search(any(), any())).thenReturn(page);
 
@@ -383,7 +381,8 @@ class GroupQueryServiceImplTest {
             Set<String> groupIds = Set.of("1", "2", "3");
             io.gravitee.rest.api.model.common.Pageable pageable = new PageableImpl(1, 10);
 
-            List<io.gravitee.repository.management.model.Group> groups = List.of(aGroup("1").build(), aGroup("2").build());
+            List<io.gravitee.repository.management.model.Group> groups =
+                    List.of(aGroup("1").build(), aGroup("2").build());
 
             Page<io.gravitee.repository.management.model.Group> page = new Page<>(groups, 0, groups.size(), 2);
 

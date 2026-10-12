@@ -42,13 +42,16 @@ class KafkaExplorerResourceIntegrationTest_DescribeTopic extends AbstractKafkaEx
         var props = new Properties();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, plaintextBootstrapServers());
         try (var admin = AdminClient.create(props)) {
-            admin.createTopics(List.of(new NewTopic(DESCRIBE_TOPIC, 2, (short) 1))).all().get(10, TimeUnit.SECONDS);
+            admin.createTopics(List.of(new NewTopic(DESCRIBE_TOPIC, 2, (short) 1)))
+                    .all()
+                    .get(10, TimeUnit.SECONDS);
         }
     }
 
     @Test
     void should_return_200_with_topic_detail() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeTopicRequest().clusterId(CLUSTER_ID).topicName(DESCRIBE_TOPIC);
 
@@ -64,12 +67,14 @@ class KafkaExplorerResourceIntegrationTest_DescribeTopic extends AbstractKafkaEx
         assertThat(body.getPartitions().getFirst().getReplicas()).isNotEmpty();
         assertThat(body.getPartitions().getFirst().getIsr()).isNotEmpty();
         assertThat(body.getConfigs()).isNotEmpty();
-        assertThat(body.getConfigs()).anyMatch(c -> c.getName() != null && !c.getName().isBlank());
+        assertThat(body.getConfigs())
+                .anyMatch(c -> c.getName() != null && !c.getName().isBlank());
     }
 
     @Test
     void should_return_400_when_topic_name_missing() {
-        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeTopicRequest().clusterId(CLUSTER_ID);
 
@@ -82,7 +87,8 @@ class KafkaExplorerResourceIntegrationTest_DescribeTopic extends AbstractKafkaEx
 
     @Test
     void should_return_502_when_broker_unreachable() {
-        givenClusterWithConfig(Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
+        givenClusterWithConfig(
+                Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
 
         var request = new DescribeTopicRequest().clusterId(CLUSTER_ID).topicName(DESCRIBE_TOPIC);
 

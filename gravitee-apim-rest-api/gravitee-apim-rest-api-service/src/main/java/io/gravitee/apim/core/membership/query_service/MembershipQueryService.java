@@ -20,22 +20,21 @@ import java.util.Collection;
 import java.util.List;
 
 public interface MembershipQueryService {
-    Collection<Membership> findByReferenceAndRoleId(Membership.ReferenceType referenceType, String referenceId, String roleId);
-    Collection<Membership> findByReferencesAndRoleId(Membership.ReferenceType referenceType, List<String> referenceIds, String roleId);
+    Collection<Membership> findByReferenceAndRoleId(
+            Membership.ReferenceType referenceType, String referenceId, String roleId);
+
+    Collection<Membership> findByReferencesAndRoleId(
+            Membership.ReferenceType referenceType, List<String> referenceIds, String roleId);
+
     Collection<Membership> findByReference(Membership.ReferenceType referenceType, String referenceId);
 
     Collection<Membership> findByMemberIdAndMemberTypeAndReferenceType(
-        String memberId,
-        Membership.Type memberType,
-        Membership.ReferenceType referenceType
-    );
+            String memberId, Membership.Type memberType, Membership.ReferenceType referenceType);
 
     Collection<Membership> findGroupsThatUserBelongsTo(String userId);
+
     List<String> findClustersIdsThatUserBelongsTo(String userId);
 
     Collection<Membership> findByMemberIdsAndMemberTypeAndReferenceType(
-        Collection<String> memberIds,
-        Membership.Type memberType,
-        Membership.ReferenceType referenceType
-    );
+            Collection<String> memberIds, Membership.Type memberType, Membership.ReferenceType referenceType);
 }

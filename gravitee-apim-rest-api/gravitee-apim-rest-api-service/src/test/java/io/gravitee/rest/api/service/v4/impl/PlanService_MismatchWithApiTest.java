@@ -24,7 +24,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.service.v4.PlanService;
-import io.gravitee.rest.api.service.v4.impl.PlanServiceImpl;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;

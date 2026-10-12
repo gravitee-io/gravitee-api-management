@@ -48,16 +48,15 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
 
     @Override
     public void updateAccessPoints(
-        final AccessPoint.ReferenceType referenceType,
-        final String referenceId,
-        final List<AccessPoint> accessPoints
-    ) {
+            final AccessPoint.ReferenceType referenceType,
+            final String referenceId,
+            final List<AccessPoint> accessPoints) {
         try {
             AccessPointCriteria accessPointCriteria = AccessPointCriteria.builder()
-                .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
-                .referenceIds(Set.of(referenceId))
-                .status(AccessPointStatus.CREATED)
-                .build();
+                    .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
+                    .referenceIds(Set.of(referenceId))
+                    .status(AccessPointStatus.CREATED)
+                    .build();
             var existingAccessPoints = accessPointRepository.findByCriteria(accessPointCriteria, null, null);
 
             var apsToCreate = new ArrayList<io.gravitee.repository.management.model.AccessPoint>();
@@ -66,10 +65,10 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
             for (AccessPoint accessPoint : accessPoints) {
                 var newAccessPoint = AccessPointAdapter.INSTANCE.fromEntity(accessPoint);
 
-                var existingAPsForTarget = existingAccessPoints
-                    .stream()
-                    .filter(existingAccessPoint -> existingAccessPoint.getTarget().equals(newAccessPoint.getTarget()))
-                    .toList();
+                var existingAPsForTarget = existingAccessPoints.stream()
+                        .filter(existingAccessPoint ->
+                                existingAccessPoint.getTarget().equals(newAccessPoint.getTarget()))
+                        .toList();
 
                 // if there aren't access points for this target, it needs to be added for creation
                 if (existingAPsForTarget.isEmpty()) {
@@ -84,11 +83,9 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
                 //          the new AP doesn't exist and needs to be added for creation
                 var shouldCreateNewAP = true;
                 for (var existingAccessPoint : existingAPsForTarget) {
-                    if (
-                        existingAccessPoint.getHost().equalsIgnoreCase(newAccessPoint.getHost()) &&
-                        existingAccessPoint.isSecured() == newAccessPoint.isSecured() &&
-                        existingAccessPoint.isOverriding() == newAccessPoint.isOverriding()
-                    ) {
+                    if (existingAccessPoint.getHost().equalsIgnoreCase(newAccessPoint.getHost())
+                            && existingAccessPoint.isSecured() == newAccessPoint.isSecured()
+                            && existingAccessPoint.isOverriding() == newAccessPoint.isOverriding()) {
                         apsToDelete.remove(existingAccessPoint);
                         shouldCreateNewAP = false;
                         break;
@@ -115,10 +112,10 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
     public void deleteAccessPoints(final AccessPoint.ReferenceType referenceType, final String referenceId) {
         try {
             var accessPointCriteria = AccessPointCriteria.builder()
-                .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
-                .referenceIds(Set.of(referenceId))
-                .status(AccessPointStatus.CREATED)
-                .build();
+                    .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
+                    .referenceIds(Set.of(referenceId))
+                    .status(AccessPointStatus.CREATED)
+                    .build();
             var existingAccessPoints = accessPointRepository.findByCriteria(accessPointCriteria, null, null);
             for (var accessPoint : existingAccessPoints) {
                 deleteAccessPoint(accessPoint);
@@ -128,7 +125,8 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
         }
     }
 
-    private void createAccessPoint(io.gravitee.repository.management.model.AccessPoint newAccessPoint) throws TechnicalException {
+    private void createAccessPoint(io.gravitee.repository.management.model.AccessPoint newAccessPoint)
+            throws TechnicalException {
         if (newAccessPoint.getId() == null) {
             newAccessPoint.setId(UuidString.generateRandom());
         }
@@ -138,7 +136,8 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
         eventManager.publishEvent(AccessPointEvent.CREATED, AccessPointAdapter.INSTANCE.toEntity(createdAccessPoint));
     }
 
-    private void deleteAccessPoint(io.gravitee.repository.management.model.AccessPoint accessPointToDelete) throws TechnicalException {
+    private void deleteAccessPoint(io.gravitee.repository.management.model.AccessPoint accessPointToDelete)
+            throws TechnicalException {
         accessPointToDelete.setStatus(AccessPointStatus.DELETED);
         accessPointToDelete.setUpdatedAt(new Date());
         var updatedAccessPoint = accessPointRepository.update(accessPointToDelete);

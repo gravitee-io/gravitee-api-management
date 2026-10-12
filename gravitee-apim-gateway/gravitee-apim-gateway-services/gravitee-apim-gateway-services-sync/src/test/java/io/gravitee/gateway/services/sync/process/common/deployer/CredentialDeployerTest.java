@@ -61,9 +61,9 @@ class CredentialDeployerTest {
         void should_deploy_credential() {
             cut.deploy(deployable(SyncAction.DEPLOY)).test().assertComplete();
 
-            verify(credentialManager).deploy(
-                new DeployedCredential("credential-1", "env-1", "org-1", Set.of("api-1"), "ciphertext", 1234L)
-            );
+            verify(credentialManager)
+                    .deploy(new DeployedCredential(
+                            "credential-1", "env-1", "org-1", Set.of("api-1"), "ciphertext", 1234L));
         }
 
         @Test
@@ -114,13 +114,13 @@ class CredentialDeployerTest {
 
     private static CredentialDeployable deployable(SyncAction syncAction) {
         return CredentialDeployable.builder()
-            .credentialId("credential-1")
-            .environmentId("env-1")
-            .organizationId("org-1")
-            .allowedApiIds(Set.of("api-1"))
-            .encryptedSecret("ciphertext")
-            .updatedAt(1234L)
-            .syncAction(syncAction)
-            .build();
+                .credentialId("credential-1")
+                .environmentId("env-1")
+                .organizationId("org-1")
+                .allowedApiIds(Set.of("api-1"))
+                .encryptedSecret("ciphertext")
+                .updatedAt(1234L)
+                .syncAction(syncAction)
+                .build();
     }
 }

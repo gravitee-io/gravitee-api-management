@@ -46,7 +46,9 @@ import org.mapstruct.Named;
 import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class }, nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
+@Mapper(
+        uses = {ConfigurationSerializationMapper.class},
+        nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
 public interface FlowMapper {
     FlowMapper INSTANCE = Mappers.getMapper(FlowMapper.class);
     GraviteeMapper JSON_MAPPER = new GraviteeMapper();
@@ -69,6 +71,7 @@ public interface FlowMapper {
     List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> mapToNativeV4(List<FlowV4> flows);
 
     List<FlowV4> mapFromHttpV4(List<io.gravitee.definition.model.v4.flow.Flow> flow);
+
     List<FlowV4> mapFromNativeV4(List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> flow);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
@@ -79,50 +82,52 @@ public interface FlowMapper {
 
     // Selectors
     HttpSelector mapSelector(io.gravitee.definition.model.v4.flow.selector.HttpSelector selector);
+
     ConditionSelector mapSelector(io.gravitee.definition.model.v4.flow.selector.ConditionSelector selector);
+
     ChannelSelector mapSelector(io.gravitee.definition.model.v4.flow.selector.ChannelSelector selector);
+
     McpSelector mapSelector(io.gravitee.definition.model.v4.flow.selector.McpSelector selector);
 
     io.gravitee.definition.model.v4.flow.selector.HttpSelector mapSelector(HttpSelector selector);
+
     io.gravitee.definition.model.v4.flow.selector.ConditionSelector mapSelector(ConditionSelector selector);
+
     io.gravitee.definition.model.v4.flow.selector.ChannelSelector mapSelector(ChannelSelector selector);
+
     io.gravitee.definition.model.v4.flow.selector.McpSelector mapSelector(McpSelector selector);
 
     @Named("mapToSelectorEntityList")
-    default List<io.gravitee.definition.model.v4.flow.selector.Selector> mapToSelectorEntityList(List<Selector> selectors) {
+    default List<io.gravitee.definition.model.v4.flow.selector.Selector> mapToSelectorEntityList(
+            List<Selector> selectors) {
         return stream(selectors)
-            .filter(Objects::nonNull)
-            .flatMap(selector ->
-                switch (selector.getActualInstance()) {
+                .filter(Objects::nonNull)
+                .flatMap(selector -> switch (selector.getActualInstance()) {
                     case HttpSelector ignored -> Stream.ofNullable(mapSelector(selector.getHttpSelector()));
                     case ConditionSelector ignored -> Stream.ofNullable(mapSelector(selector.getConditionSelector()));
                     case ChannelSelector ignored -> Stream.ofNullable(mapSelector(selector.getChannelSelector()));
                     case McpSelector ignored -> Stream.ofNullable(mapSelector(selector.getMcpSelector()));
                     default -> Stream.empty();
-                }
-            )
-            .toList();
+                })
+                .toList();
     }
 
     @Named("mapToSelectorApiModelList")
-    default List<Selector> mapToSelectorApiModelList(List<io.gravitee.definition.model.v4.flow.selector.Selector> selectors) {
+    default List<Selector> mapToSelectorApiModelList(
+            List<io.gravitee.definition.model.v4.flow.selector.Selector> selectors) {
         return stream(selectors)
-            .flatMap(selector ->
-                switch (selector) {
-                    case io.gravitee.definition.model.v4.flow.selector.HttpSelector http -> Stream.ofNullable(
-                        new Selector(mapSelector(http))
-                    );
-                    case io.gravitee.definition.model.v4.flow.selector.ConditionSelector condition -> Stream.ofNullable(
-                        new Selector(mapSelector(condition))
-                    );
-                    case io.gravitee.definition.model.v4.flow.selector.ChannelSelector channel -> Stream.ofNullable(
-                        new Selector(mapSelector(channel))
-                    );
-                    case io.gravitee.definition.model.v4.flow.selector.McpSelector mcp -> Stream.ofNullable(new Selector(mapSelector(mcp)));
+                .flatMap(selector -> switch (selector) {
+                    case io.gravitee.definition.model.v4.flow.selector.HttpSelector http ->
+                        Stream.ofNullable(new Selector(mapSelector(http)));
+                    case io.gravitee.definition.model.v4.flow.selector.ConditionSelector condition ->
+                        Stream.ofNullable(new Selector(mapSelector(condition)));
+                    case io.gravitee.definition.model.v4.flow.selector.ChannelSelector channel ->
+                        Stream.ofNullable(new Selector(mapSelector(channel)));
+                    case io.gravitee.definition.model.v4.flow.selector.McpSelector mcp ->
+                        Stream.ofNullable(new Selector(mapSelector(mcp)));
                     case null, default -> Stream.empty();
-                }
-            )
-            .toList();
+                })
+                .toList();
     }
 
     // Flow V2
@@ -137,7 +142,8 @@ public interface FlowMapper {
     FlowV2 map(io.gravitee.definition.model.flow.Flow flowV2);
 
     default List<? extends AbstractFlow> map(@Valid List<FlowV4> flows, Api api) {
-        return ofNullable(api.isNative() ? mapToNativeV4(flows) : mapToHttpV4(flows)).orElseGet(List::of);
+        return ofNullable(api.isNative() ? mapToNativeV4(flows) : mapToHttpV4(flows))
+                .orElseGet(List::of);
     }
 
     default <T extends AbstractFlow> FlowV4 map(T src) {
@@ -164,7 +170,8 @@ public interface FlowMapper {
         return switch (src) {
             case null -> null;
             case io.gravitee.definition.model.v4.flow.selector.ChannelSelector channel -> new Selector(map(channel));
-            case io.gravitee.definition.model.v4.flow.selector.ConditionSelector condition -> new Selector(map(condition));
+            case io.gravitee.definition.model.v4.flow.selector.ConditionSelector condition ->
+                new Selector(map(condition));
             case io.gravitee.definition.model.v4.flow.selector.HttpSelector http -> new Selector(map(http));
             case io.gravitee.definition.model.v4.flow.selector.McpSelector mcp -> new Selector(map(mcp));
             default -> throw new IllegalStateException("Unexpected value: " + src);
@@ -172,12 +179,14 @@ public interface FlowMapper {
     }
 
     io.gravitee.rest.api.management.v2.rest.model.ChannelSelector map(
-        io.gravitee.definition.model.v4.flow.selector.ChannelSelector channel
-    );
-    io.gravitee.rest.api.management.v2.rest.model.ConditionSelector map(
-        io.gravitee.definition.model.v4.flow.selector.ConditionSelector condition
-    );
-    io.gravitee.rest.api.management.v2.rest.model.HttpSelector map(io.gravitee.definition.model.v4.flow.selector.HttpSelector http);
+            io.gravitee.definition.model.v4.flow.selector.ChannelSelector channel);
 
-    io.gravitee.rest.api.management.v2.rest.model.McpSelector map(io.gravitee.definition.model.v4.flow.selector.McpSelector mcp);
+    io.gravitee.rest.api.management.v2.rest.model.ConditionSelector map(
+            io.gravitee.definition.model.v4.flow.selector.ConditionSelector condition);
+
+    io.gravitee.rest.api.management.v2.rest.model.HttpSelector map(
+            io.gravitee.definition.model.v4.flow.selector.HttpSelector http);
+
+    io.gravitee.rest.api.management.v2.rest.model.McpSelector map(
+            io.gravitee.definition.model.v4.flow.selector.McpSelector mcp);
 }

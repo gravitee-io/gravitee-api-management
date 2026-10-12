@@ -64,12 +64,13 @@ public class XForwardedPrefixProcessorTest {
         when(request.contextPath()).thenReturn(CONTEXT_PATH);
 
         new XForwardedPrefixProcessor()
-            .handler(context -> {
-                List<String> xForwardedPrefixList = context.request().headers().getAll(HttpHeaderNames.X_FORWARDED_PREFIX);
-                assertEquals(xForwardedPrefixList.size(), 1);
-                assertEquals(xForwardedPrefixList.get(0), CONTEXT_PATH);
-            })
-            .handle(context);
+                .handler(context -> {
+                    List<String> xForwardedPrefixList =
+                            context.request().headers().getAll(HttpHeaderNames.X_FORWARDED_PREFIX);
+                    assertEquals(xForwardedPrefixList.size(), 1);
+                    assertEquals(xForwardedPrefixList.get(0), CONTEXT_PATH);
+                })
+                .handle(context);
     }
 
     @Test
@@ -81,11 +82,12 @@ public class XForwardedPrefixProcessorTest {
         when(request.headers()).thenReturn(headers);
 
         new XForwardedPrefixProcessor()
-            .handler(context -> {
-                List<String> xForwardedPrefixList = context.request().headers().getAll(HttpHeaderNames.X_FORWARDED_PREFIX);
-                assertEquals(xForwardedPrefixList.size(), 1);
-                assertEquals(xForwardedPrefixList.get(0), CONTEXT_PATH);
-            })
-            .handle(context);
+                .handler(context -> {
+                    List<String> xForwardedPrefixList =
+                            context.request().headers().getAll(HttpHeaderNames.X_FORWARDED_PREFIX);
+                    assertEquals(xForwardedPrefixList.size(), 1);
+                    assertEquals(xForwardedPrefixList.get(0), CONTEXT_PATH);
+                })
+                .handle(context);
     }
 }

@@ -22,12 +22,12 @@ import java.util.List;
 
 public interface PlanSearchQueryService {
     List<Plan> searchPlans(
-        String referenceId,
-        GenericPlanEntity.ReferenceType referenceType,
-        PlanQuery query,
-        String authenticatedUser,
-        boolean isAdmin
-    );
+            String referenceId,
+            GenericPlanEntity.ReferenceType referenceType,
+            PlanQuery query,
+            String authenticatedUser,
+            boolean isAdmin);
 
-    Plan findByPlanIdAndReferenceIdAndReferenceType(String planId, String referenceId, GenericPlanEntity.ReferenceType referenceType);
+    Plan findByPlanIdAndReferenceIdAndReferenceType(
+            String planId, String referenceId, GenericPlanEntity.ReferenceType referenceType);
 }

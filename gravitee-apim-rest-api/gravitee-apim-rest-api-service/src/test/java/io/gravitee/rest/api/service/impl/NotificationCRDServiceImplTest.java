@@ -54,9 +54,9 @@ class NotificationCRDServiceImplTest {
 
     @Test
     void should_not_save_notification() {
-        when(portalNotificationService.findById(USER_ID, NotificationReferenceType.API, API_ID)).thenReturn(
-            PortalNotificationConfigEntity.newDefaultEmpty(USER_ID, NotificationReferenceType.API.name(), API_ID, "org1")
-        );
+        when(portalNotificationService.findById(USER_ID, NotificationReferenceType.API, API_ID))
+                .thenReturn(PortalNotificationConfigEntity.newDefaultEmpty(
+                        USER_ID, NotificationReferenceType.API.name(), API_ID, "org1"));
         underTest.syncApiPortalNotifications(API_ID, USER_ID, null);
         verify(portalNotificationService, never()).save(any());
     }
@@ -64,11 +64,7 @@ class NotificationCRDServiceImplTest {
     @Test
     void should_save_notification() {
         PortalNotificationConfigEntity notification = PortalNotificationConfigEntity.newDefaultEmpty(
-            USER_ID,
-            NotificationReferenceType.API.name(),
-            API_ID,
-            "org1"
-        );
+                USER_ID, NotificationReferenceType.API.name(), API_ID, "org1");
         notification.setHooks(List.of("hook1", "hook2"));
 
         underTest.syncApiPortalNotifications(API_ID, USER_ID, notification);
@@ -78,18 +74,15 @@ class NotificationCRDServiceImplTest {
     @Test
     void should_delete_notification() {
         PortalNotificationConfigEntity notification = PortalNotificationConfigEntity.newDefaultEmpty(
-            USER_ID,
-            NotificationReferenceType.API.name(),
-            API_ID,
-            "org1"
-        );
+                USER_ID, NotificationReferenceType.API.name(), API_ID, "org1");
         notification.setHooks(List.of("hook1", "hook2"));
-        when(portalNotificationService.findById(USER_ID, NotificationReferenceType.API, API_ID)).thenReturn(notification);
+        when(portalNotificationService.findById(USER_ID, NotificationReferenceType.API, API_ID))
+                .thenReturn(notification);
         underTest.syncApiPortalNotifications(API_ID, USER_ID, null);
 
         // saving default/empty object triggers deletion
-        verify(portalNotificationService, atMostOnce()).save(
-            PortalNotificationConfigEntity.newDefaultEmpty(USER_ID, NotificationReferenceType.API.name(), API_ID, "org1")
-        );
+        verify(portalNotificationService, atMostOnce())
+                .save(PortalNotificationConfigEntity.newDefaultEmpty(
+                        USER_ID, NotificationReferenceType.API.name(), API_ID, "org1"));
     }
 }

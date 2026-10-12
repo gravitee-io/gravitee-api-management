@@ -26,29 +26,28 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class AggregatedMessageLogCrudServiceInMemory implements AggregatedMessageLogCrudService, InMemoryAlternative<AggregatedMessageLog> {
+public class AggregatedMessageLogCrudServiceInMemory
+        implements AggregatedMessageLogCrudService, InMemoryAlternative<AggregatedMessageLog> {
 
     private final List<AggregatedMessageLog> storage = new ArrayList<>();
 
     @Override
     public SearchLogsResponse<AggregatedMessageLog> searchApiAggregatedMessageLog(
-        ExecutionContext executionContext,
-        String apiId,
-        String requestId,
-        Pageable pageable
-    ) {
-        Predicate<AggregatedMessageLog> predicate = baseMessageLog ->
-            baseMessageLog.getApiId().equals(apiId) && baseMessageLog.getRequestId().equals(requestId);
+            ExecutionContext executionContext, String apiId, String requestId, Pageable pageable) {
+        Predicate<AggregatedMessageLog> predicate =
+                baseMessageLog -> baseMessageLog.getApiId().equals(apiId)
+                        && baseMessageLog.getRequestId().equals(requestId);
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var matches = storage()
-            .stream()
-            .filter(predicate)
-            .sorted(Comparator.comparing(AggregatedMessageLog::getTimestamp).reversed())
-            .toList();
+        var matches = storage().stream()
+                .filter(predicate)
+                .sorted(Comparator.comparing(AggregatedMessageLog::getTimestamp).reversed())
+                .toList();
 
-        var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
+        var page = matches.size() <= pageSize
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
         return new SearchLogsResponse<>(matches.size(), page);
     }

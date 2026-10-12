@@ -74,15 +74,14 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
-    public List<MetadataEntity> findByReferenceTypeAndReferenceId(final MetadataReferenceType referenceType, final String referenceId) {
+    public List<MetadataEntity> findByReferenceTypeAndReferenceId(
+            final MetadataReferenceType referenceType, final String referenceId) {
         try {
             log.debug("Find metadata by reference {}/{}", referenceType, referenceId);
-            return metadataRepository
-                .findByReferenceTypeAndReferenceId(referenceType, referenceId)
-                .stream()
-                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-                .map(this::convert)
-                .collect(Collectors.toList());
+            return metadataRepository.findByReferenceTypeAndReferenceId(referenceType, referenceId).stream()
+                    .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+                    .map(this::convert)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurred while trying to find metadata by reference", ex);
         }
@@ -90,16 +89,19 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
 
     @Override
     public MetadataEntity create(final ExecutionContext executionContext, final NewMetadataEntity metadataEntity) {
-        return create(executionContext, metadataEntity, MetadataReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
+        return create(
+                executionContext,
+                metadataEntity,
+                MetadataReferenceType.ENVIRONMENT,
+                executionContext.getEnvironmentId());
     }
 
     @Override
     public MetadataEntity create(
-        final ExecutionContext executionContext,
-        final NewMetadataEntity metadataEntity,
-        MetadataReferenceType referenceType,
-        String referenceId
-    ) {
+            final ExecutionContext executionContext,
+            final NewMetadataEntity metadataEntity,
+            MetadataReferenceType referenceType,
+            String referenceId) {
         if (metadataEntity.getFormat() == null) {
             metadataEntity.setFormat(MetadataFormat.STRING);
         }
@@ -116,18 +118,18 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             Metadata created = metadataRepository.create(metadata);
 
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(singletonMap(METADATA, created.getKey()))
-                    .event(METADATA_CREATED)
-                    .createdAt(created.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(created)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(singletonMap(METADATA, created.getKey()))
+                            .event(METADATA_CREATED)
+                            .createdAt(created.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(created)
+                            .build());
             return convert(created);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurred while trying to create metadata " + metadataEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to create metadata " + metadataEntity.getName(), ex);
         }
     }
 
@@ -136,13 +138,12 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         try {
             // First we prevent the duplicate metadata name
             final Optional<Metadata> optionalMetadata = metadataRepository
-                .findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, executionContext.getEnvironmentId())
-                .stream()
-                .filter(
-                    metadata ->
-                        !metadataEntity.getKey().equals(metadata.getKey()) && metadataEntity.getName().equalsIgnoreCase(metadata.getName())
-                )
-                .findAny();
+                    .findByReferenceTypeAndReferenceId(
+                            MetadataReferenceType.ENVIRONMENT, executionContext.getEnvironmentId())
+                    .stream()
+                    .filter(metadata -> !metadataEntity.getKey().equals(metadata.getKey())
+                            && metadataEntity.getName().equalsIgnoreCase(metadata.getName()))
+                    .findAny();
 
             if (optionalMetadata.isPresent()) {
                 throw new DuplicateMetadataNameException(optionalMetadata.get().getName());
@@ -158,18 +159,18 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             // Audit
             // FIXME: Use OrganizationAuditLog?
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(singletonMap(METADATA, metadata.getKey()))
-                    .event(METADATA_UPDATED)
-                    .createdAt(metadata.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(metadata)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(singletonMap(METADATA, metadata.getKey()))
+                            .event(METADATA_UPDATED)
+                            .createdAt(metadata.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(metadata)
+                            .build());
             return convert(metadata);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurred while trying to update metadata " + metadataEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to update metadata " + metadataEntity.getName(), ex);
         }
     }
 
@@ -183,41 +184,37 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     public void delete(final ExecutionContext executionContext, final String key) {
         try {
             final Optional<Metadata> optMetadata = metadataRepository.findById(
-                key,
-                executionContext.getEnvironmentId(),
-                MetadataReferenceType.ENVIRONMENT
-            );
+                    key, executionContext.getEnvironmentId(), MetadataReferenceType.ENVIRONMENT);
             if (optMetadata.isPresent()) {
                 metadataRepository.delete(key, executionContext.getEnvironmentId(), MetadataReferenceType.ENVIRONMENT);
                 // Audit
                 // FIXME: Use OrganizationAuditLog?
                 auditService.createAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(singletonMap(METADATA, key))
-                        .event(METADATA_DELETED)
-                        .createdAt(new Date())
-                        .oldValue(optMetadata.get())
-                        .newValue(null)
-                        .build()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(singletonMap(METADATA, key))
+                                .event(METADATA_DELETED)
+                                .createdAt(new Date())
+                                .oldValue(optMetadata.get())
+                                .newValue(null)
+                                .build());
                 // delete all overridden API metadata
-                final List<Metadata> apiMetadata = metadataRepository.findByKeyAndReferenceType(key, MetadataReferenceType.API);
+                final List<Metadata> apiMetadata =
+                        metadataRepository.findByKeyAndReferenceType(key, MetadataReferenceType.API);
 
                 for (final Metadata metadata : apiMetadata) {
                     metadataRepository.delete(key, metadata.getReferenceId(), metadata.getReferenceType());
                     // Audit
                     auditService.createApiAuditLog(
-                        executionContext,
-                        AuditService.AuditLogData.builder()
-                            .properties(singletonMap(METADATA, key))
-                            .event(METADATA_DELETED)
-                            .createdAt(new Date())
-                            .oldValue(metadata)
-                            .newValue(null)
-                            .build(),
-                        metadata.getReferenceId()
-                    );
+                            executionContext,
+                            AuditService.AuditLogData.builder()
+                                    .properties(singletonMap(METADATA, key))
+                                    .event(METADATA_DELETED)
+                                    .createdAt(new Date())
+                                    .oldValue(metadata)
+                                    .newValue(null)
+                                    .build(),
+                            metadata.getReferenceId());
                 }
             }
         } catch (TechnicalException ex) {
@@ -227,16 +224,14 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
 
     @Override
     public MetadataEntity findByKeyAndReferenceTypeAndReferenceId(
-        final String key,
-        final MetadataReferenceType referenceType,
-        final String referenceId
-    ) {
+            final String key, final MetadataReferenceType referenceType, final String referenceId) {
         try {
             log.debug("Find by key and reference {}/{}/{}", key, referenceType, referenceId);
             final Optional<Metadata> optMetadata = metadataRepository.findById(key, referenceId, referenceType);
             return optMetadata.map(this::convert).orElse(null);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurred while trying to find default metadata by key", ex);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to find default metadata by key", ex);
         }
     }
 
@@ -253,16 +248,14 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     public List<MetadataEntity> findByKeyAndReferenceType(final String key, final MetadataReferenceType referenceType) {
         try {
             log.debug("Find metadata by reference type ([{}]) and key [{}]", referenceType.name(), key);
-            return metadataRepository
-                .findByKeyAndReferenceType(key, referenceType)
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toList());
+            return metadataRepository.findByKeyAndReferenceType(key, referenceType).stream()
+                    .map(this::convert)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurred while trying to find metadata by reference ([" + referenceType.name() + "]) and key [" + key + "]",
-                ex
-            );
+                    "An error occurred while trying to find metadata by reference ([" + referenceType.name()
+                            + "]) and key [" + key + "]",
+                    ex);
         }
     }
 
@@ -273,21 +266,19 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
 
     @Override
     public void checkMetadataFormat(
-        ExecutionContext executionContext,
-        final MetadataFormat format,
-        final String value,
-        final MetadataReferenceType referenceType,
-        final Object entity
-    ) {
+            ExecutionContext executionContext,
+            final MetadataFormat format,
+            final String value,
+            final MetadataReferenceType referenceType,
+            final Object entity) {
         try {
             String decodedValue = value;
             if (entity != null && !isBlank(value) && value.startsWith("${")) {
                 decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
-                    executionContext.getOrganizationId(),
-                    value,
-                    new StringReader(value),
-                    singletonMap(referenceType.name().toLowerCase(), entity)
-                );
+                        executionContext.getOrganizationId(),
+                        value,
+                        new StringReader(value),
+                        singletonMap(referenceType.name().toLowerCase(), entity));
             }
 
             if (isBlank(decodedValue)) {
@@ -315,7 +306,8 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                     break;
             }
         } catch (final Exception e) {
-            throw new TechnicalManagementException("Error occurred while trying to validate format " + format + " of value " + value, e);
+            throw new TechnicalManagementException(
+                    "Error occurred while trying to validate format " + format + " of value " + value, e);
         }
     }
 
@@ -332,7 +324,8 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         final Metadata metadata = new Metadata();
         metadata.setKey(IdGenerator.generate(metadataEntity.getName()));
         metadata.setName(metadataEntity.getName());
-        metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
+        metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(
+                metadataEntity.getFormat().name()));
 
         if (metadataEntity.getValue() != null) {
             if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {
@@ -352,7 +345,8 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         final Metadata metadata = new Metadata();
         metadata.setKey(metadataEntity.getKey());
         metadata.setName(metadataEntity.getName());
-        metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
+        metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(
+                metadataEntity.getFormat().name()));
 
         if (metadataEntity.getValue() != null) {
             if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {

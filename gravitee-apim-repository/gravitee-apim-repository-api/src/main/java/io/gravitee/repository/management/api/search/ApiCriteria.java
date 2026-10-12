@@ -157,48 +157,45 @@ public class ApiCriteria {
         if (this == o) return true;
         if (!(o instanceof ApiCriteria)) return false;
         ApiCriteria that = (ApiCriteria) o;
-        return (
-            Objects.equals(ids, that.ids) &&
-            Objects.equals(groups, that.groups) &&
-            Objects.equals(category, that.category) &&
-            Objects.equals(label, that.label) &&
-            Objects.equals(state, that.state) &&
-            Objects.equals(visibility, that.visibility) &&
-            Objects.equals(version, that.version) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(lifecycleStates, that.lifecycleStates) &&
-            Objects.equals(environmentId, that.environmentId) &&
-            Objects.equals(environments, that.environments) &&
-            Objects.equals(crossId, that.crossId) &&
-            Objects.equals(definitionVersion, that.definitionVersion) &&
-            Objects.equals(integrationId, that.integrationId) &&
-            Objects.equals(apiTypes, that.apiTypes) &&
-            Objects.equals(notApiTypes, that.notApiTypes) &&
-            Objects.equals(updatedAtFrom, that.updatedAtFrom)
-        );
+        return (Objects.equals(ids, that.ids)
+                && Objects.equals(groups, that.groups)
+                && Objects.equals(category, that.category)
+                && Objects.equals(label, that.label)
+                && Objects.equals(state, that.state)
+                && Objects.equals(visibility, that.visibility)
+                && Objects.equals(version, that.version)
+                && Objects.equals(name, that.name)
+                && Objects.equals(lifecycleStates, that.lifecycleStates)
+                && Objects.equals(environmentId, that.environmentId)
+                && Objects.equals(environments, that.environments)
+                && Objects.equals(crossId, that.crossId)
+                && Objects.equals(definitionVersion, that.definitionVersion)
+                && Objects.equals(integrationId, that.integrationId)
+                && Objects.equals(apiTypes, that.apiTypes)
+                && Objects.equals(notApiTypes, that.notApiTypes)
+                && Objects.equals(updatedAtFrom, that.updatedAtFrom));
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-            ids,
-            groups,
-            category,
-            label,
-            state,
-            visibility,
-            version,
-            name,
-            lifecycleStates,
-            environmentId,
-            environments,
-            crossId,
-            definitionVersion,
-            integrationId,
-            apiTypes,
-            notApiTypes,
-            updatedAtFrom
-        );
+                ids,
+                groups,
+                category,
+                label,
+                state,
+                visibility,
+                version,
+                name,
+                lifecycleStates,
+                environmentId,
+                environments,
+                crossId,
+                definitionVersion,
+                integrationId,
+                apiTypes,
+                notApiTypes,
+                updatedAtFrom);
     }
 
     public static class Builder {

@@ -43,12 +43,11 @@ class NativeFacetsQueryAdapterTest {
     @Test
     void builds_terms_aggregation_on_native_connection_status_with_count_sub_agg() throws Exception {
         var query = new FacetsQuery(
-            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-            List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID))),
-            List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
-            List.of(Facet.NATIVE_CONNECTION_STATUS),
-            4
-        );
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID))),
+                List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
+                List.of(Facet.NATIVE_CONNECTION_STATUS),
+                4);
 
         var json = JSON.readTree(adapter.adapt(query));
 
@@ -58,37 +57,37 @@ class NativeFacetsQueryAdapterTest {
         assertThat(filters.at("/1/terms/api-id/0").asText()).isEqualTo(API_ID);
 
         var terms = json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS/terms");
-        assertThat(terms.get("field").asText()).isEqualTo("additional-metrics." + NativeApiMetricKeys.CONNECTION_STATUS);
+        assertThat(terms.get("field").asText())
+                .isEqualTo("additional-metrics." + NativeApiMetricKeys.CONNECTION_STATUS);
         assertThat(terms.get("size").asInt()).isEqualTo(4);
 
         var countSubAgg = json.at(
-            "/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS/aggs/NATIVE_CONNECTIONS_SUMMARY#COUNT/value_count"
-        );
+                "/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS/aggs/NATIVE_CONNECTIONS_SUMMARY#COUNT/value_count");
         assertThat(countSubAgg.get("field").asText()).isEqualTo("@timestamp");
     }
 
     @Test
     void omits_size_when_limit_is_null() throws Exception {
         var query = new FacetsQuery(
-            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
-            List.of(Facet.NATIVE_CONNECTION_STATUS)
-        );
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
+                List.of(Facet.NATIVE_CONNECTION_STATUS));
 
         var json = JSON.readTree(adapter.adapt(query));
 
-        assertThat(json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS/terms/size").isMissingNode()).isTrue();
+        assertThat(json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS/terms/size")
+                        .isMissingNode())
+                .isTrue();
     }
 
     @Test
     void throws_UnsupportedOperationException_for_non_count_measure() {
         var query = new FacetsQuery(
-            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.AVG))),
-            List.of(Facet.NATIVE_CONNECTION_STATUS)
-        );
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.AVG))),
+                List.of(Facet.NATIVE_CONNECTION_STATUS));
 
         assertThatThrownBy(() -> adapter.adapt(query)).isInstanceOf(UnsupportedOperationException.class);
     }

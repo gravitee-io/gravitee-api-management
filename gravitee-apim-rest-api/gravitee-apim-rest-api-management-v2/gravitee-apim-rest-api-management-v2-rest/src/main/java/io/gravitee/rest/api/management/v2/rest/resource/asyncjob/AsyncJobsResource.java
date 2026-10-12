@@ -37,8 +37,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
 import java.util.Optional;
 
 @Path("/environments/{envId}/async-jobs")
@@ -49,32 +47,32 @@ public class AsyncJobsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API,
+                acls = {RolePermissionAction.READ})
+    })
     public AsyncJobsResponse listAsyncJobs(
-        @PathParam("envId") String environmentId,
-        @BeanParam @Valid PaginationParam paginationParam,
-        @QueryParam("type") AsyncJob.TypeEnum type,
-        @QueryParam("status") AsyncJobStatus status,
-        @QueryParam("sourceId") String sourceId
-    ) {
+            @PathParam("envId") String environmentId,
+            @BeanParam @Valid PaginationParam paginationParam,
+            @QueryParam("type") AsyncJob.TypeEnum type,
+            @QueryParam("status") AsyncJobStatus status,
+            @QueryParam("sourceId") String sourceId) {
         var jobs = listUserAsyncJobsUseCase
-            .execute(
-                new ListUserAsyncJobsUseCase.Input(
-                    environmentId,
-                    getAuthenticatedUser(),
-                    Optional.ofNullable(type).map(AsyncJobMapper.INSTANCE::map),
-                    Optional.ofNullable(status).map(AsyncJobMapper.INSTANCE::map),
-                    Optional.ofNullable(sourceId),
-                    Optional.of(new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()))
-                )
-            )
-            .jobs();
+                .execute(new ListUserAsyncJobsUseCase.Input(
+                        environmentId,
+                        getAuthenticatedUser(),
+                        Optional.ofNullable(type).map(AsyncJobMapper.INSTANCE::map),
+                        Optional.ofNullable(status).map(AsyncJobMapper.INSTANCE::map),
+                        Optional.ofNullable(sourceId),
+                        Optional.of(new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()))))
+                .jobs();
 
         var totalCount = jobs.getTotalElements();
         var pageItemsCount = Math.toIntExact(jobs.getPageElements());
         return new AsyncJobsResponse()
-            .data(AsyncJobMapper.INSTANCE.map(jobs.getContent()))
-            .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
-            .links(computePaginationLinks(totalCount, paginationParam));
+                .data(AsyncJobMapper.INSTANCE.map(jobs.getContent()))
+                .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
+                .links(computePaginationLinks(totalCount, paginationParam));
     }
 }

@@ -45,9 +45,8 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
 
     private static final String MATCH_GROUP_ENDPOINT = "endpoint";
     private static final String MATCH_GROUP_PATH = "path";
-    private static final Pattern ENDPOINT_PATTERN = Pattern.compile(
-        "^(?<" + MATCH_GROUP_ENDPOINT + ">[^/:][^:]*):(?<" + MATCH_GROUP_PATH + ">.*)$"
-    );
+    private static final Pattern ENDPOINT_PATTERN =
+            Pattern.compile("^(?<" + MATCH_GROUP_ENDPOINT + ">[^/:][^:]*):(?<" + MATCH_GROUP_PATH + ">.*)$");
 
     static final Set<String> KNOWN_URL_SCHEMES = Set.of("http", "https", "ws", "wss");
 
@@ -78,16 +77,15 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
         if (endpointConnector == null) {
             final String endpointTarget = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
 
-            final StringBuilder errorMessage = new StringBuilder("Endpoint resolution failed - check endpoint configuration");
+            final StringBuilder errorMessage =
+                    new StringBuilder("Endpoint resolution failed - check endpoint configuration");
             if (endpointTarget != null) {
                 errorMessage.append(" for target: ").append(endpointTarget);
             }
 
-            return ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503)
+            return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503)
                     .key(NO_ENDPOINT_FOUND_KEY)
-                    .cause(new IllegalArgumentException(errorMessage.toString()))
-            );
+                    .cause(new IllegalArgumentException(errorMessage.toString())));
         }
 
         if (endpointConnector instanceof EndpointConnector legacyEndpointConnector) {
@@ -97,12 +95,11 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
     }
 
     private <T extends HttpEndpointConnector> T resolveConnector(final HttpExecutionContext ctx) {
-        final HttpEntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+        final HttpEntrypointConnector entrypointConnector =
+                ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
 
-        final EndpointCriteria endpointCriteria = new EndpointCriteria(
-            entrypointConnector.supportedApi(),
-            entrypointConnector.supportedModes()
-        );
+        final EndpointCriteria endpointCriteria =
+                new EndpointCriteria(entrypointConnector.supportedApi(), entrypointConnector.supportedModes());
 
         final String endpointTarget = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
 
@@ -135,7 +132,8 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
         return null;
     }
 
-    // Do not remove this method until all connectors are migrated to HttpEndpointConnectors#connect(HttpExecutionContext ctx)
+    // Do not remove this method until all connectors are migrated to
+    // HttpEndpointConnectors#connect(HttpExecutionContext ctx)
     protected Completable connect(final EndpointConnector endpointConnector, final ExecutionContext ctx) {
         return overrideMethodFromAttributes(ctx).andThen(endpointConnector.connect(ctx));
     }
@@ -145,15 +143,14 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
     }
 
     private Completable overrideMethodFromAttributes(final HttpExecutionContext ctx) {
-        final Object requestMethodAttribute = ctx.getAttribute(io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD);
+        final Object requestMethodAttribute =
+                ctx.getAttribute(io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD);
         if (requestMethodAttribute != null) {
             final HttpMethod httpMethod = computeHttpMethodFromAttribute(requestMethodAttribute);
             if (httpMethod == null) {
-                return ctx.interruptWith(
-                    new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+                return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
                         .key(INVALID_HTTP_METHOD)
-                        .message("Http method cannot be overridden because ATTR_REQUEST_METHOD attribute is invalid")
-                );
+                        .message("Http method cannot be overridden because ATTR_REQUEST_METHOD attribute is invalid"));
             } else {
                 ctx.request().method(httpMethod);
             }

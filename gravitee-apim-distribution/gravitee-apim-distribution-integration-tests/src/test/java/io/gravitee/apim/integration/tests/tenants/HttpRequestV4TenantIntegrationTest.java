@@ -54,16 +54,18 @@ class HttpRequestV4TenantIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/http/tenants/api-v4-with-tenants.json" })
+    @DeployApi({"/apis/v4/http/tenants/api-v4-with-tenants.json"})
     void should_get_200_from_echo_endpoint(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get("/echo").willReturn(ok("response from echo")));
         wiremock.stubFor(get("/whoami").willReturn(ok("response from whoami")));
@@ -77,15 +79,15 @@ class HttpRequestV4TenantIntegrationTest extends AbstractGatewayTest {
 
     private static void callApi(HttpClient httpClient) throws InterruptedException {
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertNoErrors();
     }
 }

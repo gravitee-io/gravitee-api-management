@@ -138,7 +138,9 @@ public class PageService_CreateTest {
     public void shouldCreatePage() throws TechnicalException, IOException {
         final String name = "MARKDOWN";
         final String contrib = "contrib";
-        final String content = getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent();
+        final String content = getPage(
+                        "io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON)
+                .getContent();
         final String type = "MARKDOWN";
 
         when(page1.getId()).thenReturn(PAGE_ID);
@@ -163,24 +165,21 @@ public class PageService_CreateTest {
         when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
         when(newPage.getAttachedMedia()).thenReturn(List.of(new PageMediaEntity()));
 
-        final PageEntity createdPage = pageService.createPage(new ExecutionContext("DEFAULT", "envId"), API_ID, newPage);
+        final PageEntity createdPage =
+                pageService.createPage(new ExecutionContext("DEFAULT", "envId"), API_ID, newPage);
 
-        verify(pageRepository).create(
-            argThat(
-                pageToCreate ->
-                    pageToCreate.getId().split("-").length == 5 &&
-                    API_ID.equals(pageToCreate.getReferenceId()) &&
-                    PageReferenceType.API.equals(pageToCreate.getReferenceType()) &&
-                    pageToCreate.getAttachedMedia().size() == 1 &&
-                    name.equals(pageToCreate.getName()) &&
-                    contrib.equals(pageToCreate.getLastContributor()) &&
-                    content.equals(pageToCreate.getContent()) &&
-                    PageType.SWAGGER.name().equals(pageToCreate.getType()) &&
-                    pageToCreate.getCreatedAt() != null &&
-                    pageToCreate.getUpdatedAt() != null &&
-                    pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt())
-            )
-        );
+        verify(pageRepository)
+                .create(argThat(pageToCreate -> pageToCreate.getId().split("-").length == 5
+                        && API_ID.equals(pageToCreate.getReferenceId())
+                        && PageReferenceType.API.equals(pageToCreate.getReferenceType())
+                        && pageToCreate.getAttachedMedia().size() == 1
+                        && name.equals(pageToCreate.getName())
+                        && contrib.equals(pageToCreate.getLastContributor())
+                        && content.equals(pageToCreate.getContent())
+                        && PageType.SWAGGER.name().equals(pageToCreate.getType())
+                        && pageToCreate.getCreatedAt() != null
+                        && pageToCreate.getUpdatedAt() != null
+                        && pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt())));
         assertNotNull(createdPage);
         assertEquals(5, createdPage.getId().split("-").length);
         assertEquals(1, createdPage.getOrder());
@@ -197,9 +196,11 @@ public class PageService_CreateTest {
             final String name = "PAGE_NAME";
             when(newPage.getName()).thenReturn(name);
             when(newPage.getType()).thenReturn(PageType.SWAGGER);
-            when(newPage.getContent()).thenReturn(
-                getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent()
-            );
+            when(newPage.getContent())
+                    .thenReturn(getPage(
+                                    "io/gravitee/rest/api/management/service/swagger-v1.json",
+                                    MediaType.APPLICATION_JSON)
+                            .getContent());
             when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
 
             when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
@@ -539,17 +540,12 @@ public class PageService_CreateTest {
             newTranslation.setVisibility(Visibility.PUBLIC);
             newTranslation.setContent("[Click me](javascript:alert(\"XSS\"))");
 
-            when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
+            when(htmlSanitizer.isSafe(anyString()))
+                    .thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
 
-            when(
-                this.notificationTemplateService.resolveInlineTemplateWithParam(
-                    anyString(),
-                    anyString(),
-                    eq(newTranslation.getContent()),
-                    any(),
-                    anyBoolean()
-                )
-            ).thenReturn(newTranslation.getContent());
+            when(this.notificationTemplateService.resolveInlineTemplateWithParam(
+                            anyString(), anyString(), eq(newTranslation.getContent()), any(), anyBoolean()))
+                    .thenReturn(newTranslation.getContent());
 
             pageService.createPage(new ExecutionContext("DEFAULT", "DEFAULT"), newTranslation);
             verify(pageRepository, never()).create(any());
@@ -592,10 +588,11 @@ public class PageService_CreateTest {
             when(newPage.getLastContributor()).thenReturn(contrib);
             when(newPage.getType()).thenReturn(PageType.MARKDOWN);
             when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
-            when(
-                this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
-            ).thenReturn(content);
-            when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
+            when(this.notificationTemplateService.resolveInlineTemplateWithParam(
+                            anyString(), anyString(), eq(content), any(), anyBoolean()))
+                    .thenReturn(content);
+            when(htmlSanitizer.isSafe(anyString()))
+                    .thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
 
             this.pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
 
@@ -630,9 +627,9 @@ public class PageService_CreateTest {
 
         when(pageRepository.create(any())).thenReturn(page1);
 
-        when(
-            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
-        ).thenThrow(new TemplateProcessingException(new TemplateException(null)));
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(
+                        anyString(), anyString(), eq(content), any(), anyBoolean()))
+                .thenThrow(new TemplateProcessingException(new TemplateException(null)));
         when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(true, null));
         this.pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
 
@@ -644,7 +641,10 @@ public class PageService_CreateTest {
         assertThrows(TechnicalManagementException.class, () -> {
             PageSourceEntity source = new PageSourceEntity();
             source.setType("github-fetcher");
-            source.setConfiguration(JsonNodeFactory.instance.objectNode().put("autoFetch", true).put("fetchCron", "15 8,13 * * MON-FRI")); // Invalid cron
+            source.setConfiguration(JsonNodeFactory.instance
+                    .objectNode()
+                    .put("autoFetch", true)
+                    .put("fetchCron", "15 8,13 * * MON-FRI")); // Invalid cron
             when(newPage.getSource()).thenReturn(source);
             when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
             pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
@@ -674,6 +674,8 @@ public class PageService_CreateTest {
         when(pageRepository.create(any())).thenReturn(repoPage);
         pageService.createPage(executionContext, API_ID, newPage);
 
-        verify(pageRepository).create(argThat(page -> "redoc".equals(page.getConfiguration().get(PageConfigurationKeys.SWAGGER_VIEWER))));
+        verify(pageRepository)
+                .create(argThat(
+                        page -> "redoc".equals(page.getConfiguration().get(PageConfigurationKeys.SWAGGER_VIEWER))));
     }
 }

@@ -68,18 +68,18 @@ public class UserDetails extends User implements org.springframework.security.co
         this.username = username;
     }
 
-    public UserDetails(String username, String password, String email, Collection<? extends GrantedAuthority> authorities) {
+    public UserDetails(
+            String username, String password, String email, Collection<? extends GrantedAuthority> authorities) {
         this(username, password, authorities);
         this.email = email;
     }
 
     public UserDetails(
-        String username,
-        String password,
-        String email,
-        Collection<? extends GrantedAuthority> authorities,
-        boolean isSystem
-    ) {
+            String username,
+            String password,
+            String email,
+            Collection<? extends GrantedAuthority> authorities,
+            boolean isSystem) {
         this(username, password, email, authorities);
         this.isSystem = isSystem;
     }
@@ -257,25 +257,22 @@ public class UserDetails extends User implements org.springframework.security.co
 
     @Override
     public String toString() {
-        return (
-            super.toString() +
-            ", email='" +
-            email +
-            '\'' +
-            ", firstname='" +
-            firstname +
-            '\'' +
-            ", lastname='" +
-            lastname +
-            '\'' +
-            ", source='" +
-            lastname +
-            '\'' +
-            ", external_reference='" +
-            lastname +
-            '\'' +
-            "}"
-        );
+        return (super.toString() + ", email='"
+                + email
+                + '\''
+                + ", firstname='"
+                + firstname
+                + '\''
+                + ", lastname='"
+                + lastname
+                + '\''
+                + ", source='"
+                + lastname
+                + '\''
+                + ", external_reference='"
+                + lastname
+                + '\''
+                + "}");
     }
 
     public byte[] getPicture() {

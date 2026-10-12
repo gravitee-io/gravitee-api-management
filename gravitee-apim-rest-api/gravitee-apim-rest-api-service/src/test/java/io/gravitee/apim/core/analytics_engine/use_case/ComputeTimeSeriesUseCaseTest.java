@@ -60,13 +60,12 @@ class ComputeTimeSeriesUseCaseTest {
     private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("org-id", "env-id");
 
     private static final AnalyticsQueryContext ANALYTICS_CONTEXT = new AnalyticsQueryContext(
-        AUDIT_INFO,
-        EXECUTION_CONTEXT,
-        Set.of("api-1", "api-2"),
-        Map.of("api-1", "My API 1", "api-2", "My API 2"),
-        Map.of(),
-        Map.of()
-    );
+            AUDIT_INFO,
+            EXECUTION_CONTEXT,
+            Set.of("api-1", "api-2"),
+            Map.of("api-1", "My API 1", "api-2", "My API 2"),
+            Map.of(),
+            Map.of());
 
     @Mock
     private AnalyticsQueryContextProvider queryContextProvider;
@@ -95,20 +94,21 @@ class ComputeTimeSeriesUseCaseTest {
     @BeforeEach
     void setUp() {
         when(contextLoader.load(any(), any())).thenReturn(ANALYTICS_CONTEXT);
-        when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(TimeSeriesResponse.class))).thenAnswer(inv -> inv.getArgument(2));
-        when(unitEnrichmentPostProcessor.enrichUnits(any(TimeSeriesResponse.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(TimeSeriesResponse.class)))
+                .thenAnswer(inv -> inv.getArgument(2));
+        when(unitEnrichmentPostProcessor.enrichUnits(any(TimeSeriesResponse.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
     }
 
     @Test
     void should_load_context_from_audit_info() {
         var useCase = new ComputeTimeSeriesUseCase(
-            queryContextProvider,
-            validator,
-            List.of(),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aTimeSeriesRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of());
@@ -124,13 +124,12 @@ class ComputeTimeSeriesUseCaseTest {
         when(transformer1.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(apiFilter));
 
         var useCase = new ComputeTimeSeriesUseCase(
-            queryContextProvider,
-            validator,
-            List.of(transformer1),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(transformer1),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aTimeSeriesRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -153,13 +152,12 @@ class ComputeTimeSeriesUseCaseTest {
         when(transformer2.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(filter1, filter2));
 
         var useCase = new ComputeTimeSeriesUseCase(
-            queryContextProvider,
-            validator,
-            List.of(transformer1, transformer2),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(transformer1, transformer2),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aTimeSeriesRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -176,13 +174,12 @@ class ComputeTimeSeriesUseCaseTest {
     @Test
     void should_call_post_processor_with_analytics_context() {
         var useCase = new ComputeTimeSeriesUseCase(
-            queryContextProvider,
-            validator,
-            List.of(),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aTimeSeriesRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -190,29 +187,28 @@ class ComputeTimeSeriesUseCaseTest {
 
         useCase.execute(new ComputeTimeSeriesUseCase.Input(AUDIT_INFO, request));
 
-        verify(bucketNamesPostProcessor).mapBucketNames(eq(ANALYTICS_CONTEXT), eq(request.facets()), any(TimeSeriesResponse.class));
+        verify(bucketNamesPostProcessor)
+                .mapBucketNames(eq(ANALYTICS_CONTEXT), eq(request.facets()), any(TimeSeriesResponse.class));
     }
 
     @Test
     void should_return_post_processed_response() {
         var rawResponse = new TimeSeriesResponse(
-            List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(), List.of()))
-        );
+                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(), List.of())));
 
         var mappedResponse = new TimeSeriesResponse(
-            List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(), List.of()))
-        );
+                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(), List.of())));
 
-        when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(TimeSeriesResponse.class))).thenReturn(mappedResponse);
+        when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(TimeSeriesResponse.class)))
+                .thenReturn(mappedResponse);
 
         var useCase = new ComputeTimeSeriesUseCase(
-            queryContextProvider,
-            validator,
-            List.of(),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aTimeSeriesRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -228,13 +224,12 @@ class ComputeTimeSeriesUseCaseTest {
         when(transformer1.transform(any(), any())).thenAnswer(inv -> inv.getArgument(1));
 
         var useCase = new ComputeTimeSeriesUseCase(
-            queryContextProvider,
-            validator,
-            List.of(transformer1),
-            bucketNamesPostProcessor,
-            unitEnrichmentPostProcessor,
-            contextLoader
-        );
+                queryContextProvider,
+                validator,
+                List.of(transformer1),
+                bucketNamesPostProcessor,
+                unitEnrichmentPostProcessor,
+                contextLoader);
         var request = aTimeSeriesRequest();
 
         when(queryContextProvider.resolve(request)).thenReturn(Map.of(queryService, request));
@@ -251,13 +246,13 @@ class ComputeTimeSeriesUseCaseTest {
 
     private static TimeSeriesRequest aTimeSeriesRequest() {
         return new TimeSeriesRequest(
-            new TimeRange(Instant.parse("2025-01-01T00:00:00Z"), Instant.parse("2025-01-02T00:00:00Z")),
-            Duration.ofHours(1).toMillis(),
-            List.of(),
-            List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
-            List.of(),
-            null,
-            List.of()
-        );
+                new TimeRange(Instant.parse("2025-01-01T00:00:00Z"), Instant.parse("2025-01-02T00:00:00Z")),
+                Duration.ofHours(1).toMillis(),
+                List.of(),
+                List.of(new FacetMetricMeasuresRequest(
+                        MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())),
+                List.of(),
+                null,
+                List.of());
     }
 }

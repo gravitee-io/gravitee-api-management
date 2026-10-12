@@ -73,11 +73,10 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
     @Test
     public void shouldBeBadRequestIfContentLengthGreaterThanMediaMaxSize() throws IOException {
         StreamDataBodyPart filePart = new StreamDataBodyPart(
-            "file",
-            this.getClass().getResource("/media/logo.svg").openStream(),
-            "logo.svg",
-            MediaType.valueOf("image/svg+xml")
-        );
+                "file",
+                this.getClass().getResource("/media/logo.svg").openStream(),
+                "logo.svg",
+                MediaType.valueOf("image/svg+xml"));
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final FormDataBodyPart fileNameBodyPart = new FormDataBodyPart("fileName", "logo.svg");
@@ -94,11 +93,11 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
         when(mediaService.getMediaMaxSize(any())).thenReturn(10L);
 
         final Response response = envTarget()
-            .path("pages")
-            .path(PAGE)
-            .path("media")
-            .request()
-            .post(Entity.entity(multiPart, multiPart.getMediaType()));
+                .path("pages")
+                .path(PAGE)
+                .path("media")
+                .request()
+                .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
         final UploadUnauthorized result = response.readEntity(UploadUnauthorized.class);
@@ -108,11 +107,10 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
     @Test
     public void shouldAttachMediaToPortalPage() throws IOException {
         StreamDataBodyPart filePart = new StreamDataBodyPart(
-            "file",
-            this.getClass().getResource("/media/logo.svg").openStream(),
-            "logo.svg",
-            MediaType.valueOf("image/svg+xml")
-        );
+                "file",
+                this.getClass().getResource("/media/logo.svg").openStream(),
+                "logo.svg",
+                MediaType.valueOf("image/svg+xml"));
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final FormDataBodyPart fileNameBodyPart = new FormDataBodyPart("fileName", "logo.svg");
@@ -129,7 +127,8 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
         when(mediaService.getMediaMaxSize(any())).thenReturn(10L);
 
         final String mediaHash = "#MEDIA_HASH";
-        when(mediaService.savePortalMedia(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mediaHash);
+        when(mediaService.savePortalMedia(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenReturn(mediaHash);
 
         final Date attachedAt = new Date();
         PageEntity pageEntity = new PageEntity();
@@ -140,16 +139,20 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
         when(pageService.attachMedia(eq(PAGE), eq(mediaHash), any())).thenReturn(Optional.of(pageEntity));
 
         final Response response = envTarget()
-            .path("pages")
-            .path(PAGE)
-            .path("media")
-            .request()
-            .post(Entity.entity(multiPart, multiPart.getMediaType()));
+                .path("pages")
+                .path(PAGE)
+                .path("media")
+                .request()
+                .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
         assertThat(response.getStatus()).isEqualTo(CREATED_201);
-        assertThat(response.getHeaders().getFirst(HttpHeaders.LOCATION)).isEqualTo(
-            envTarget().path("pages").path(PAGE).path("media").getUri().toString()
-        );
+        assertThat(response.getHeaders().getFirst(HttpHeaders.LOCATION))
+                .isEqualTo(envTarget()
+                        .path("pages")
+                        .path(PAGE)
+                        .path("media")
+                        .getUri()
+                        .toString());
 
         final MediaEntity result = response.readEntity(MediaEntity.class);
         assertThat(result.getHash()).isEqualTo(mediaHash);
@@ -163,11 +166,10 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotAttachMediaToApiPageBecausePageDoesNotBelongToApi() throws IOException {
         StreamDataBodyPart filePart = new StreamDataBodyPart(
-            "file",
-            this.getClass().getResource("/media/logo.svg").openStream(),
-            "logo.svg",
-            MediaType.valueOf("image/svg+xml")
-        );
+                "file",
+                this.getClass().getResource("/media/logo.svg").openStream(),
+                "logo.svg",
+                MediaType.valueOf("image/svg+xml"));
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final FormDataBodyPart fileNameBodyPart = new FormDataBodyPart("fileName", "logo.svg");
@@ -181,11 +183,11 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
         doReturn(pageMock).when(pageService).findById(PAGE);
 
         final Response response = envTarget()
-            .path("pages")
-            .path(PAGE)
-            .path("media")
-            .request()
-            .post(Entity.entity(multiPart, multiPart.getMediaType()));
+                .path("pages")
+                .path(PAGE)
+                .path("media")
+                .request()
+                .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
         assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
     }
@@ -200,7 +202,8 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
 
         doReturn(false).when(pageService).isMediaUsedInPages(GraviteeContext.getExecutionContext(), mediaHash);
 
-        final Response response = envTarget().path("media").path(mediaHash).request().delete();
+        final Response response =
+                envTarget().path("media").path(mediaHash).request().delete();
 
         assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
 
@@ -213,7 +216,8 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
 
         doReturn(null).when(mediaService).findByHash(GraviteeContext.getExecutionContext(), mediaHash);
 
-        final Response response = envTarget().path("media").path(mediaHash).request().delete();
+        final Response response =
+                envTarget().path("media").path(mediaHash).request().delete();
 
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
     }
@@ -228,12 +232,12 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
 
         doReturn(true).when(pageService).isMediaUsedInPages(GraviteeContext.getExecutionContext(), mediaHash);
 
-        final Response response = envTarget().path("media").path(mediaHash).request().delete();
+        final Response response =
+                envTarget().path("media").path(mediaHash).request().delete();
 
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
-        assertThat(response.readEntity(String.class)).isEqualTo(
-            "Media is attached to pages and cannot be deleted. Please detach it from all pages first."
-        );
+        assertThat(response.readEntity(String.class))
+                .isEqualTo("Media is attached to pages and cannot be deleted. Please detach it from all pages first.");
     }
 }

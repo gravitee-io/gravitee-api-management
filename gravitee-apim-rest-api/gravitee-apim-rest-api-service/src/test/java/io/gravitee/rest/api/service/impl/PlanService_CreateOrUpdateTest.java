@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
@@ -33,7 +32,6 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,9 +86,12 @@ public class PlanService_CreateOrUpdateTest {
         when(this.planEntity.getId()).thenReturn(PLAN_ID);
         when(planConverter.toUpdatePlanEntity(planEntity)).thenCallRealMethod();
         doReturn(true).when(planSearchService).exists(PLAN_ID);
-        doReturn(expected).when(planService).update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class));
+        doReturn(expected)
+                .when(planService)
+                .update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class));
 
-        final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), this.planEntity);
+        final PlanEntity actual =
+                planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), this.planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
         verify(planSearchService).exists(PLAN_ID);

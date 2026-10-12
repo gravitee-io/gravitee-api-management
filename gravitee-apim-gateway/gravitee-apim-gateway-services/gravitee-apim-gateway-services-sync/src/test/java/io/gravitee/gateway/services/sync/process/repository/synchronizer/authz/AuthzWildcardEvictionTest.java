@@ -84,40 +84,60 @@ class AuthzWildcardEvictionTest {
     }
 
     @Test
-    void a_schema_retargeted_from_default_to_wildcard_is_evicted_from_the_bootstrap_engine() throws InterruptedException {
+    void a_schema_retargeted_from_default_to_wildcard_is_evicted_from_the_bootstrap_engine()
+            throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.just(List.of(schemaEvent("s-1", "[\"default\"]"))))
-            .thenReturn(Flowable.just(List.of(schemaEvent("s-1", "[\"*\"]"))));
+                .thenReturn(Flowable.just(List.of(schemaEvent("s-1", "[\"default\"]"))))
+                .thenReturn(Flowable.just(List.of(schemaEvent("s-1", "[\"*\"]"))));
 
         AuthzSchemaSynchronizer synchronizer = schemaSynchronizer();
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzSchemaReactorDeployable> captor = ArgumentCaptor.forClass(AuthzSchemaReactorDeployable.class);
+        ArgumentCaptor<AuthzSchemaReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzSchemaReactorDeployable.class);
         verify(schemaDeployer, times(2)).deploy(captor.capture());
         assertThat(captor.getAllValues().get(1).removedTargetPdpIds())
-            .as("the wildcard does not cover the bootstrap engine, so the schema must be evicted from it")
-            .containsExactly("default");
+                .as("the wildcard does not cover the bootstrap engine, so the schema must be evicted from it")
+                .containsExactly("default");
     }
 
     @Test
-    void a_document_hydrated_into_a_tagged_scope_is_not_evicted_when_republished_at_its_base() throws InterruptedException {
+    void a_document_hydrated_into_a_tagged_scope_is_not_evicted_when_republished_at_its_base()
+            throws InterruptedException {
         // The two sides are recorded differently: hydration stores the routing scope it applied to
         // ("orders@eu"), while a publish carries the declared target ("orders"). addressFor strips the tag,
         // so both name one engine and the republish must not evict the document from it.
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.just(List.of(schemaEvent("s-4", "[\"orders@eu\"]"))))
-            .thenReturn(Flowable.just(List.of(schemaEvent("s-4", "[\"orders\"]"))));
+                .thenReturn(Flowable.just(List.of(schemaEvent("s-4", "[\"orders@eu\"]"))))
+                .thenReturn(Flowable.just(List.of(schemaEvent("s-4", "[\"orders\"]"))));
 
         AuthzSchemaSynchronizer synchronizer = schemaSynchronizer();
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzSchemaReactorDeployable> captor = ArgumentCaptor.forClass(AuthzSchemaReactorDeployable.class);
+        ArgumentCaptor<AuthzSchemaReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzSchemaReactorDeployable.class);
         verify(schemaDeployer, times(2)).deploy(captor.capture());
         assertThat(captor.getAllValues().get(1).removedTargetPdpIds())
-            .as("a tagged scope and its base name the same engine, so nothing is dropped")
-            .isEmpty();
+                .as("a tagged scope and its base name the same engine, so nothing is dropped")
+                .isEmpty();
     }
 
     @Test
@@ -127,72 +147,98 @@ class AuthzWildcardEvictionTest {
         // Matching the carve-out on the full string instead of the scope base would strand the document there
         // with nothing able to remove it.
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.just(List.of(schemaEvent("s-3", "[\"default@eu\"]"))))
-            .thenReturn(Flowable.just(List.of(schemaEvent("s-3", "[\"*\"]"))));
+                .thenReturn(Flowable.just(List.of(schemaEvent("s-3", "[\"default@eu\"]"))))
+                .thenReturn(Flowable.just(List.of(schemaEvent("s-3", "[\"*\"]"))));
 
         AuthzSchemaSynchronizer synchronizer = schemaSynchronizer();
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzSchemaReactorDeployable> captor = ArgumentCaptor.forClass(AuthzSchemaReactorDeployable.class);
+        ArgumentCaptor<AuthzSchemaReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzSchemaReactorDeployable.class);
         verify(schemaDeployer, times(2)).deploy(captor.capture());
         assertThat(captor.getAllValues().get(1).removedTargetPdpIds())
-            .as("a tagged default is still the bootstrap engine, which the wildcard does not reach")
-            .containsExactly("default@eu");
+                .as("a tagged default is still the bootstrap engine, which the wildcard does not reach")
+                .containsExactly("default@eu");
     }
 
     @Test
     void a_schema_targeted_at_both_wildcard_and_default_stays_on_the_bootstrap_engine() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.just(List.of(schemaEvent("s-2", "[\"default\"]"))))
-            .thenReturn(Flowable.just(List.of(schemaEvent("s-2", "[\"*\",\"default\"]"))));
+                .thenReturn(Flowable.just(List.of(schemaEvent("s-2", "[\"default\"]"))))
+                .thenReturn(Flowable.just(List.of(schemaEvent("s-2", "[\"*\",\"default\"]"))));
 
         AuthzSchemaSynchronizer synchronizer = schemaSynchronizer();
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzSchemaReactorDeployable> captor = ArgumentCaptor.forClass(AuthzSchemaReactorDeployable.class);
+        ArgumentCaptor<AuthzSchemaReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzSchemaReactorDeployable.class);
         verify(schemaDeployer, times(2)).deploy(captor.capture());
         assertThat(captor.getAllValues().get(1).removedTargetPdpIds())
-            .as("D7 removes the implicit fan-out only; an explicitly named default is still wanted")
-            .isEmpty();
+                .as("D7 removes the implicit fan-out only; an explicitly named default is still wanted")
+                .isEmpty();
     }
 
     @Test
     void a_policy_retargeted_from_default_to_wildcard_is_still_not_evicted() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.just(List.of(policyEvent("p-1", "[\"default\"]"))))
-            .thenReturn(Flowable.just(List.of(policyEvent("p-1", "[\"*\"]"))));
+                .thenReturn(Flowable.just(List.of(policyEvent("p-1", "[\"default\"]"))))
+                .thenReturn(Flowable.just(List.of(policyEvent("p-1", "[\"*\"]"))));
 
         AuthzPolicySynchronizer synchronizer = new AuthzPolicySynchronizer(
-            fetcher,
-            new AuthzPolicyMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
-        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+                fetcher,
+                new AuthzPolicyMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
+        synchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor =
+                ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
         verify(policyDeployer, times(2)).deploy(captor.capture());
         assertThat(captor.getAllValues().get(1).removedTargetPdpIds())
-            .as("a policy wildcard covers the bootstrap engine, so nothing is dropped: retainAll(Set.of()) == clear()")
-            .isEmpty();
+                .as(
+                        "a policy wildcard covers the bootstrap engine, so nothing is dropped: retainAll(Set.of()) == clear()")
+                .isEmpty();
     }
 
     private AuthzSchemaSynchronizer schemaSynchronizer() {
         return new AuthzSchemaSynchronizer(
-            fetcher,
-            new AuthzSchemaMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzSchemaMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
     }
 
     private static ThreadPoolExecutor executor() {
@@ -201,26 +247,22 @@ class AuthzWildcardEvictionTest {
 
     private static Event schemaEvent(String id, String targets) {
         return event(
-            "evt-" + id + "-" + targets.hashCode(),
-            EventType.PUBLISH_AUTHZ_SCHEMA,
-            "{\"id\":\"" +
-                id +
-                "\",\"name\":\"S\",\"environmentId\":\"env-1\",\"schemaText\":\"entity User;\",\"targetPdpIds\":" +
-                targets +
-                "}"
-        );
+                "evt-" + id + "-" + targets.hashCode(),
+                EventType.PUBLISH_AUTHZ_SCHEMA,
+                "{\"id\":\"" + id
+                        + "\",\"name\":\"S\",\"environmentId\":\"env-1\",\"schemaText\":\"entity User;\",\"targetPdpIds\":"
+                        + targets
+                        + "}");
     }
 
     private static Event policyEvent(String id, String targets) {
         return event(
-            "evt-" + id + "-" + targets.hashCode(),
-            EventType.PUBLISH_AUTHZ_POLICY,
-            "{\"id\":\"" +
-                id +
-                "\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(principal, action, resource);\",\"targetPdpIds\":" +
-                targets +
-                "}"
-        );
+                "evt-" + id + "-" + targets.hashCode(),
+                EventType.PUBLISH_AUTHZ_POLICY,
+                "{\"id\":\"" + id
+                        + "\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(principal, action, resource);\",\"targetPdpIds\":"
+                        + targets
+                        + "}");
     }
 
     private static Event event(String id, EventType type, String payload) {

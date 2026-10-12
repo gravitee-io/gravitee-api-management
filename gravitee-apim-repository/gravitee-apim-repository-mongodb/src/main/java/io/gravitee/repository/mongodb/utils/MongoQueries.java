@@ -37,26 +37,33 @@ public class MongoQueries {
     }
 
     public <T> long countOrTimeout(MongoTemplate mongoTemplate, Query query, Class<T> type) {
-        // Copy so the caller's Query stays clean — subsequent find() reuses the same instance and must not inherit countMaxTimeMs.
+        // Copy so the caller's Query stays clean — subsequent find() reuses the same instance and must not inherit
+        // countMaxTimeMs.
         Query countQuery = Query.of(query).maxTimeMsec(countMaxTimeMs);
         try {
             return mongoTemplate.count(countQuery, type);
         } catch (RuntimeException e) {
             if (isExecutionTimeout(e)) {
-                log.warn("Count timed out after {}ms on collection {}", countMaxTimeMs, mongoTemplate.getCollectionName(type));
+                log.warn(
+                        "Count timed out after {}ms on collection {}",
+                        countMaxTimeMs,
+                        mongoTemplate.getCollectionName(type));
                 return -1L;
             }
             throw e;
         }
     }
 
-    public long countAggregationOrTimeout(AggregateIterable<Document> aggregation, String fieldName, String collectionName) {
+    public long countAggregationOrTimeout(
+            AggregateIterable<Document> aggregation, String fieldName, String collectionName) {
         try {
-            Document first = aggregation.maxTime(countMaxTimeMs, TimeUnit.MILLISECONDS).first();
+            Document first =
+                    aggregation.maxTime(countMaxTimeMs, TimeUnit.MILLISECONDS).first();
             if (first == null) {
                 return 0L;
             }
-            // $count can return Integer or Long depending on collection size; treat as Number to avoid ClassCastException.
+            // $count can return Integer or Long depending on collection size; treat as Number to avoid
+            // ClassCastException.
             Number value = first.get(fieldName, Number.class);
             return value != null ? value.longValue() : 0L;
         } catch (RuntimeException e) {
@@ -74,9 +81,7 @@ public class MongoQueries {
      * the unwrapped exception. Check both to stay agnostic to which API surface raised it.
      */
     private static boolean isExecutionTimeout(Throwable t) {
-        return (
-            t instanceof MongoExecutionTimeoutException ||
-            (t instanceof DataAccessException && t.getCause() instanceof MongoExecutionTimeoutException)
-        );
+        return (t instanceof MongoExecutionTimeoutException
+                || (t instanceof DataAccessException && t.getCause() instanceof MongoExecutionTimeoutException));
     }
 }

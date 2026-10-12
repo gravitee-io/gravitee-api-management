@@ -50,7 +50,8 @@ public class AttributeHelperTest {
         attributes.put("gravitee.attribute.entrypoint", new DefaultHttpAcceptor(""));
         attributes.put("gravitee.attribute.path", "a value");
 
-        assertThat(AttributeHelper.filterAndSerializeAttributes(attributes)).isEqualTo(Map.of("gravitee.attribute.path", "a value"));
+        assertThat(AttributeHelper.filterAndSerializeAttributes(attributes))
+                .isEqualTo(Map.of("gravitee.attribute.path", "a value"));
     }
 
     @Test
@@ -59,7 +60,8 @@ public class AttributeHelperTest {
         attributes.put("gravitee.attribute.application", null);
         attributes.put("gravitee.attribute.path", "a value");
 
-        assertThat(AttributeHelper.filterAndSerializeAttributes(attributes)).isEqualTo(Map.of("gravitee.attribute.path", "a value"));
+        assertThat(AttributeHelper.filterAndSerializeAttributes(attributes))
+                .isEqualTo(Map.of("gravitee.attribute.path", "a value"));
     }
 
     @Test
@@ -68,9 +70,8 @@ public class AttributeHelperTest {
         attributes.put("gravitee.attribute.context-path", "a value");
         attributes.put("gravitee.attribute.path", "a value");
 
-        assertThat(AttributeHelper.filterAndSerializeAttributes(attributes)).isEqualTo(
-            Map.of("gravitee.attribute.context-path", "a value", "gravitee.attribute.path", "a value")
-        );
+        assertThat(AttributeHelper.filterAndSerializeAttributes(attributes))
+                .isEqualTo(Map.of("gravitee.attribute.context-path", "a value", "gravitee.attribute.path", "a value"));
     }
 
     @Test

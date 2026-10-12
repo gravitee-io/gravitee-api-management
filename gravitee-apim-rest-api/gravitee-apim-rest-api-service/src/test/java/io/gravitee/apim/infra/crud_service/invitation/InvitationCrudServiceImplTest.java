@@ -77,34 +77,38 @@ class InvitationCrudServiceImplTest {
     void should_throw_technical_domain_exception_when_repository_fails() {
         invitationRepository.failsWith(new TechnicalException("error"));
 
-        var throwable = catchThrowable(() ->
-            cut.create(anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", ROLE))
-        );
+        var throwable = catchThrowable(
+                () -> cut.create(anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", ROLE)));
 
-        assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("create application invitation");
+        assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessageContaining("create application invitation");
     }
 
     @Test
     void should_update_application_invitation() {
-        invitationRepository.initWith(List.of(aRepositoryApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com")));
+        invitationRepository.initWith(
+                List.of(aRepositoryApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com")));
         var invitationToUpdate = anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", "OWNER");
 
         var result = cut.update(invitationToUpdate);
 
         assertThat(result.id().toString()).isEqualTo(INVITATION_ID_1);
         assertThat(result.roleName()).isEqualTo("OWNER");
-        assertThat(invitationRepository.storage().get(INVITATION_ID_1).getApplicationRole()).isEqualTo("OWNER");
+        assertThat(invitationRepository.storage().get(INVITATION_ID_1).getApplicationRole())
+                .isEqualTo("OWNER");
     }
 
     @Test
     void should_throw_technical_domain_exception_when_update_fails() {
         invitationRepository.failsWith(new TechnicalException("error"));
 
-        var throwable = catchThrowable(() ->
-            cut.update(anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", ROLE))
-        );
+        var throwable = catchThrowable(
+                () -> cut.update(anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", ROLE)));
 
-        assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("update application invitation");
+        assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessageContaining("update application invitation");
     }
 
     @Nested
@@ -115,13 +119,10 @@ class InvitationCrudServiceImplTest {
 
         @Test
         void should_return_group_and_application_invitations_for_email() {
-            invitationRepository.initWith(
-                List.of(
+            invitationRepository.initWith(List.of(
                     aRepositoryGroupInvitation(INVITATION_ID_1, "group-1", "alice@example.com"),
                     aRepositoryApplicationInvitation(INVITATION_ID_2, APPLICATION_ID, "alice@example.com"),
-                    aRepositoryGroupInvitation(INVITATION_ID_3, "group-2", "bob@example.com")
-                )
-            );
+                    aRepositoryGroupInvitation(INVITATION_ID_3, "group-2", "bob@example.com")));
 
             var result = cut.findByEmail("alice@example.com");
 
@@ -132,7 +133,8 @@ class InvitationCrudServiceImplTest {
 
         @Test
         void should_return_empty_list_when_no_invitations_match_email() {
-            invitationRepository.initWith(List.of(aRepositoryGroupInvitation(INVITATION_ID_1, "group-1", "bob@example.com")));
+            invitationRepository.initWith(
+                    List.of(aRepositoryGroupInvitation(INVITATION_ID_1, "group-1", "bob@example.com")));
 
             var result = cut.findByEmail("alice@example.com");
 
@@ -145,7 +147,9 @@ class InvitationCrudServiceImplTest {
 
             var throwable = catchThrowable(() -> cut.findByEmail("alice@example.com"));
 
-            assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("find invitations by email");
+            assertThat(throwable)
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessageContaining("find invitations by email");
         }
     }
 
@@ -154,7 +158,8 @@ class InvitationCrudServiceImplTest {
 
         @Test
         void should_delete_invitation_by_id() {
-            invitationRepository.initWith(List.of(aRepositoryGroupInvitation(INVITATION_ID_1, "group-1", "alice@example.com")));
+            invitationRepository.initWith(
+                    List.of(aRepositoryGroupInvitation(INVITATION_ID_1, "group-1", "alice@example.com")));
 
             cut.delete(InvitationId.of(INVITATION_ID_1));
 
@@ -167,7 +172,9 @@ class InvitationCrudServiceImplTest {
 
             var throwable = catchThrowable(() -> cut.delete(InvitationId.of(INVITATION_ID_1)));
 
-            assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("delete invitation");
+            assertThat(throwable)
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessageContaining("delete invitation");
         }
     }
 }

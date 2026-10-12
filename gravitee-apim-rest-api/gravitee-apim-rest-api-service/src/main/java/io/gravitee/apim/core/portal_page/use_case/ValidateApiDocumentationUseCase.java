@@ -30,8 +30,7 @@ public class ValidateApiDocumentationUseCase {
     private final ApiDocumentationSyncDomainService syncDomainService;
 
     public CreateOrUpdateApiDocumentationUseCase.Output execute(CreateOrUpdateApiDocumentationUseCase.Input input) {
-        var result = validator.validateAndSanitize(
-            new ValidateApiDocumentationDomainService.Input(
+        var result = validator.validateAndSanitize(new ValidateApiDocumentationDomainService.Input(
                 input.auditInfo(),
                 input.portalPageContentId(),
                 input.apiId(),
@@ -39,9 +38,7 @@ public class ValidateApiDocumentationUseCase {
                 input.type(),
                 input.content(),
                 input.location(),
-                input.order()
-            )
-        );
+                input.order()));
         List<Validator.Error> errors = result.errors().orElseGet(List::of);
 
         if (result.severe().isEmpty()) {

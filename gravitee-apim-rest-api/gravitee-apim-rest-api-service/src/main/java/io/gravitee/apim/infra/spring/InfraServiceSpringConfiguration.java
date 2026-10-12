@@ -21,6 +21,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({ JacksonSpringConfiguration.class })
-@ComponentScan(basePackages = { "io.gravitee.apim.infra" })
+@Import({JacksonSpringConfiguration.class})
+@ComponentScan(basePackages = {"io.gravitee.apim.infra"})
 public class InfraServiceSpringConfiguration {}

@@ -68,7 +68,9 @@ public class ApiProductSortByParam {
         }
 
         public static String allowedValues() {
-            return Arrays.stream(values()).map(ApiProductSortByEnum::getParamValue).collect(Collectors.joining(", "));
+            return Arrays.stream(values())
+                    .map(ApiProductSortByEnum::getParamValue)
+                    .collect(Collectors.joining(", "));
         }
     }
 
@@ -77,13 +79,15 @@ public class ApiProductSortByParam {
 
     public void validate() {
         if (Objects.nonNull(sortBy) && Objects.isNull(ApiProductSortByEnum.getByValue(sortBy))) {
-            throw new BadRequestException("Invalid sortBy parameter: " + sortBy + ". Allowed: " + ApiProductSortByEnum.allowedValues());
+            throw new BadRequestException(
+                    "Invalid sortBy parameter: " + sortBy + ". Allowed: " + ApiProductSortByEnum.allowedValues());
         }
     }
 
     public Sortable toSortable() {
         if (Objects.isNull(sortBy)) {
-            return new SortableImpl(ApiProductSortByEnum.NAME_ASC.getFieldName(), ApiProductSortByEnum.NAME_ASC.isAscOrder());
+            return new SortableImpl(
+                    ApiProductSortByEnum.NAME_ASC.getFieldName(), ApiProductSortByEnum.NAME_ASC.isAscOrder());
         }
         ApiProductSortByEnum match = ApiProductSortByEnum.getByValue(sortBy);
         return new SortableImpl(match.getFieldName(), match.isAscOrder());

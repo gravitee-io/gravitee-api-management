@@ -48,18 +48,20 @@ public class ApiHeaderResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update an API header",
-        description = "User must have the PORTAL_API_HEADER[UPDATE] permission to use this service"
-    )
+            summary = "Update an API header",
+            description = "User must have the PORTAL_API_HEADER[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "API header successfully updated",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiHeaderEntity.class))
-    )
+            responseCode = "200",
+            description = "API header successfully updated",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiHeaderEntity.class)))
     @ApiResponse(responseCode = "404", description = "API header not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.UPDATE) })
-    public ApiHeaderEntity updateApiHeader(@PathParam("id") String id, @Valid @NotNull final UpdateApiHeaderEntity updateApiHeaderEntity) {
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.UPDATE)})
+    public ApiHeaderEntity updateApiHeader(
+            @PathParam("id") String id, @Valid @NotNull final UpdateApiHeaderEntity updateApiHeaderEntity) {
         updateApiHeaderEntity.setId(id);
         return apiHeaderService.update(GraviteeContext.getExecutionContext(), updateApiHeaderEntity);
     }
@@ -67,13 +69,12 @@ public class ApiHeaderResource extends AbstractResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Delete an API header",
-        description = "User must have the PORTAL_API_HEADER[DELETE] permission to use this service"
-    )
+            summary = "Delete an API header",
+            description = "User must have the PORTAL_API_HEADER[DELETE] permission to use this service")
     @ApiResponse(responseCode = "200", description = "API header successfully deleted")
     @ApiResponse(responseCode = "404", description = "API header not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.DELETE)})
     public void deleteApiHeader(@PathParam("id") String id) {
         apiHeaderService.delete(GraviteeContext.getExecutionContext(), id);
     }

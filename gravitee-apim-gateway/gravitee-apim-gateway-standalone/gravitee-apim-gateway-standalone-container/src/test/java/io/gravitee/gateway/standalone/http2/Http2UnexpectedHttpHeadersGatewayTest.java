@@ -41,41 +41,36 @@ public class Http2UnexpectedHttpHeadersGatewayTest extends Http2WiremockGatewayT
 
     @Test
     public void shouldNotReceiveConnectionHeader() throws Exception {
-        wireMockRule.stubFor(
-            get("/team/my_team").willReturn(ok().withHeader(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE))
-        );
+        wireMockRule.stubFor(get("/team/my_team")
+                .willReturn(ok().withHeader(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE)));
 
-        io.vertx.core.http.HttpClient httpClient = Vertx.vertx().createHttpClient(
-            new HttpClientOptions().setSsl(true).setTrustAll(true).setUseAlpn(true).setProtocolVersion(HttpVersion.HTTP_2)
-        );
+        io.vertx.core.http.HttpClient httpClient = Vertx.vertx()
+                .createHttpClient(new HttpClientOptions()
+                        .setSsl(true)
+                        .setTrustAll(true)
+                        .setUseAlpn(true)
+                        .setProtocolVersion(HttpVersion.HTTP_2));
 
         httpClient
-            .request(HttpMethod.GET, "https://localhost:8082/test/my_team")
-            .onComplete(
-                new Handler<AsyncResult<HttpClientRequest>>() {
+                .request(HttpMethod.GET, "https://localhost:8082/test/my_team")
+                .onComplete(new Handler<AsyncResult<HttpClientRequest>>() {
                     @Override
                     public void handle(AsyncResult<HttpClientRequest> event) {
                         Assertions.assertTrue(event.succeeded());
 
-                        event
-                            .result()
-                            .send()
-                            .onComplete(
-                                new Handler<AsyncResult<HttpClientResponse>>() {
-                                    @Override
-                                    public void handle(AsyncResult<HttpClientResponse> event) {
-                                        Assertions.assertTrue(event.succeeded());
+                        event.result().send().onComplete(new Handler<AsyncResult<HttpClientResponse>>() {
+                            @Override
+                            public void handle(AsyncResult<HttpClientResponse> event) {
+                                Assertions.assertTrue(event.succeeded());
 
-                                        HttpClientResponse httpClientResponse = event.result();
+                                HttpClientResponse httpClientResponse = event.result();
 
-                                        assertEquals(HttpStatusCode.OK_200, httpClientResponse.statusCode());
-                                        assertNull(httpClientResponse.getHeader(HttpHeaderNames.CONNECTION));
-                                        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
-                                    }
-                                }
-                            );
+                                assertEquals(HttpStatusCode.OK_200, httpClientResponse.statusCode());
+                                assertNull(httpClientResponse.getHeader(HttpHeaderNames.CONNECTION));
+                                wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
+                            }
+                        });
                     }
-                }
-            );
+                });
     }
 }

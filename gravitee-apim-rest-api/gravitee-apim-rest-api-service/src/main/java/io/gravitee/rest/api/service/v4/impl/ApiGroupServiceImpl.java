@@ -65,13 +65,12 @@ public class ApiGroupServiceImpl implements ApiGroupService {
     private final RoleService roleService;
 
     public ApiGroupServiceImpl(
-        @Lazy final ApiRepository apiRepository,
-        final ApiNotificationService apiNotificationService,
-        final GroupService groupService,
-        final MembershipService membershipService,
-        final PrimaryOwnerService primaryOwnerService,
-        final RoleService roleService
-    ) {
+            @Lazy final ApiRepository apiRepository,
+            final ApiNotificationService apiNotificationService,
+            final GroupService groupService,
+            final MembershipService membershipService,
+            final PrimaryOwnerService primaryOwnerService,
+            final RoleService roleService) {
         this.apiRepository = apiRepository;
         this.apiNotificationService = apiNotificationService;
         this.groupService = groupService;
@@ -104,7 +103,8 @@ public class ApiGroupServiceImpl implements ApiGroupService {
             apiNotificationService.triggerUpdateNotification(executionContext, api);
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to add group {} to API {}: {}", group, apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to add group " + group + " to API " + apiId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to add group " + group + " to API " + apiId, ex);
         }
     }
 
@@ -126,46 +126,46 @@ public class ApiGroupServiceImpl implements ApiGroupService {
             }
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to remove group {} from API {}: {}", group, apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to remove group " + group + " from API " + apiId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to remove group " + group + " from API " + apiId, ex);
         }
     }
 
     @Override
-    public Map<String, List<GroupMemberEntity>> getGroupsWithMembers(final ExecutionContext executionContext, final String apiId)
-        throws TechnicalManagementException {
+    public Map<String, List<GroupMemberEntity>> getGroupsWithMembers(
+            final ExecutionContext executionContext, final String apiId) throws TechnicalManagementException {
         try {
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
-            final List<String> apiGroups = api.getGroups() == null ? new ArrayList<>() : new ArrayList<>(api.getGroups());
+            final List<String> apiGroups =
+                    api.getGroups() == null ? new ArrayList<>() : new ArrayList<>(api.getGroups());
             Set<MemberEntity> members = membershipService.getMembersByReferencesAndRole(
-                executionContext,
-                MembershipReferenceType.GROUP,
-                apiGroups,
-                null
-            );
+                    executionContext, MembershipReferenceType.GROUP, apiGroups, null);
 
-            return members
-                .stream()
-                .peek(member -> member.setRoles(computeMemberRoles(executionContext, api, member)))
-                .collect(groupingBy(MemberEntity::getReferenceId, mapping(GroupMemberEntity::new, toList())));
+            return members.stream()
+                    .peek(member -> member.setRoles(computeMemberRoles(executionContext, api, member)))
+                    .collect(groupingBy(MemberEntity::getReferenceId, mapping(GroupMemberEntity::new, toList())));
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error has occurred while trying to retrieve groups for API " + apiId);
+            throw new TechnicalManagementException(
+                    "An error has occurred while trying to retrieve groups for API " + apiId);
         }
     }
 
     private List<RoleEntity> computeMemberRoles(ExecutionContext executionContext, Api api, MemberEntity member) {
-        return member
-            .getRoles()
-            .stream()
-            .map(role -> role.isApiPrimaryOwner() ? mapApiPrimaryOwnerRole(executionContext, api, member.getReferenceId()) : role)
-            .collect(toList());
+        return member.getRoles().stream()
+                .map(role -> role.isApiPrimaryOwner()
+                        ? mapApiPrimaryOwnerRole(executionContext, api, member.getReferenceId())
+                        : role)
+                .collect(toList());
     }
 
     private RoleEntity mapApiPrimaryOwnerRole(ExecutionContext executionContext, Api api, String groupId) {
         GroupEntity memberGroup = groupService.findById(executionContext, groupId);
-        String groupDefaultApiRoleName = memberGroup.getRoles() == null ? null : memberGroup.getRoles().get(RoleScope.API);
+        String groupDefaultApiRoleName =
+                memberGroup.getRoles() == null ? null : memberGroup.getRoles().get(RoleScope.API);
 
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
+        PrimaryOwnerEntity primaryOwner =
+                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
 
         /*
          * If the group is not primary owner and the API, return the default group role for the API scope
@@ -179,8 +179,8 @@ public class ApiGroupServiceImpl implements ApiGroupService {
             role.setName(SystemRole.PRIMARY_OWNER.name());
         } else if (groupDefaultApiRoleName != null) {
             roleService
-                .findByScopeAndName(RoleScope.API, groupDefaultApiRoleName, executionContext.getOrganizationId())
-                .ifPresent(groupRole -> role.setName(groupRole.getName()));
+                    .findByScopeAndName(RoleScope.API, groupDefaultApiRoleName, executionContext.getOrganizationId())
+                    .ifPresent(groupRole -> role.setName(groupRole.getName()));
         }
 
         return role;

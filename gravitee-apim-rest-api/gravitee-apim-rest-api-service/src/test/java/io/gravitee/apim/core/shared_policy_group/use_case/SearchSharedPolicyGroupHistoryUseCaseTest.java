@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import inmemory.SharedPolicyGroupHistoryQueryServiceInMemory;
-import inmemory.SharedPolicyGroupQueryServiceInMemory;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.List;
@@ -32,12 +31,13 @@ class SearchSharedPolicyGroupHistoryUseCaseTest {
     static final String ENV_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
 
     private final SharedPolicyGroupHistoryQueryServiceInMemory sharedPolicyGroupHistoryQueryService =
-        new SharedPolicyGroupHistoryQueryServiceInMemory();
+            new SharedPolicyGroupHistoryQueryServiceInMemory();
     private SearchSharedPolicyGroupHistoryUseCase searchSharedPolicyGroupHistoryUseCase;
 
     @BeforeEach
     void setUp() {
-        searchSharedPolicyGroupHistoryUseCase = new SearchSharedPolicyGroupHistoryUseCase(sharedPolicyGroupHistoryQueryService);
+        searchSharedPolicyGroupHistoryUseCase =
+                new SearchSharedPolicyGroupHistoryUseCase(sharedPolicyGroupHistoryQueryService);
     }
 
     @Test
@@ -50,12 +50,12 @@ class SearchSharedPolicyGroupHistoryUseCaseTest {
         SharedPolicyGroup wolfSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         wolfSharedPolicyGroup.setId("wolfSharedPolicyGroupId");
         wolfSharedPolicyGroup.setName("Wolf SPG");
-        sharedPolicyGroupHistoryQueryService.initWith(List.of(sharedPolicyGroupV1, sharedPolicyGroupV2, wolfSharedPolicyGroup));
+        sharedPolicyGroupHistoryQueryService.initWith(
+                List.of(sharedPolicyGroupV1, sharedPolicyGroupV2, wolfSharedPolicyGroup));
 
         // When
         var result = searchSharedPolicyGroupHistoryUseCase.execute(
-            new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, "sharedPolicyGroupId", null, null)
-        );
+                new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, "sharedPolicyGroupId", null, null));
         // Then
         assertEquals(2, result.result().getTotalElements());
         assertEquals(sharedPolicyGroupV2, result.result().getContent().get(0));
@@ -74,16 +74,16 @@ class SearchSharedPolicyGroupHistoryUseCaseTest {
         SharedPolicyGroup wolfSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         wolfSharedPolicyGroup.setId("wolfSharedPolicyGroupId");
         wolfSharedPolicyGroup.setName("Wolf SPG");
-        sharedPolicyGroupHistoryQueryService.initWith(List.of(sharedPolicyGroupV1, sharedPolicyGroupV2, wolfSharedPolicyGroup));
+        sharedPolicyGroupHistoryQueryService.initWith(
+                List.of(sharedPolicyGroupV1, sharedPolicyGroupV2, wolfSharedPolicyGroup));
 
         // When
-        var resultASC = searchSharedPolicyGroupHistoryUseCase.execute(
-            new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, "sharedPolicyGroupId", new PageableImpl(1, 1), "version")
-        );
+        var resultASC = searchSharedPolicyGroupHistoryUseCase.execute(new SearchSharedPolicyGroupHistoryUseCase.Input(
+                ENV_ID, "sharedPolicyGroupId", new PageableImpl(1, 1), "version"));
 
-        var resultPage2DSC = searchSharedPolicyGroupHistoryUseCase.execute(
-            new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, "sharedPolicyGroupId", new PageableImpl(2, 1), "-version")
-        );
+        var resultPage2DSC =
+                searchSharedPolicyGroupHistoryUseCase.execute(new SearchSharedPolicyGroupHistoryUseCase.Input(
+                        ENV_ID, "sharedPolicyGroupId", new PageableImpl(2, 1), "-version"));
 
         // Then
         assertEquals(2, resultASC.result().getTotalElements());
@@ -101,11 +101,10 @@ class SearchSharedPolicyGroupHistoryUseCaseTest {
         sharedPolicyGroupHistoryQueryService.initWith(List.of());
 
         // When
-        var throwable = assertThrows(IllegalArgumentException.class, () ->
-            searchSharedPolicyGroupHistoryUseCase.execute(
-                new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, "sharedPolicyGroupId", new PageableImpl(1, 2), "invalid")
-            )
-        );
+        var throwable = assertThrows(
+                IllegalArgumentException.class,
+                () -> searchSharedPolicyGroupHistoryUseCase.execute(new SearchSharedPolicyGroupHistoryUseCase.Input(
+                        ENV_ID, "sharedPolicyGroupId", new PageableImpl(1, 2), "invalid")));
 
         // Then
         assertEquals("Invalid sort by field: invalid", throwable.getMessage());
@@ -117,11 +116,10 @@ class SearchSharedPolicyGroupHistoryUseCaseTest {
         sharedPolicyGroupHistoryQueryService.initWith(List.of());
 
         // When
-        var throwable = assertThrows(IllegalArgumentException.class, () ->
-            searchSharedPolicyGroupHistoryUseCase.execute(
-                new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "version")
-            )
-        );
+        var throwable = assertThrows(
+                IllegalArgumentException.class,
+                () -> searchSharedPolicyGroupHistoryUseCase.execute(new SearchSharedPolicyGroupHistoryUseCase.Input(
+                        ENV_ID, null, new PageableImpl(1, 2), "version")));
 
         // Then
         assertEquals("SharedPolicyGroupId is required", throwable.getMessage());

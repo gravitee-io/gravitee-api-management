@@ -37,7 +37,8 @@ import org.springframework.context.ConfigurableApplicationContext;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPlugin<?>> implements ReactorPluginManager {
+public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPlugin<?>>
+        implements ReactorPluginManager {
 
     private final ApplicationContext applicationContext;
     private final PluginContextFactory pluginContextFactory;
@@ -45,11 +46,10 @@ public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPl
     private final ServiceManager serviceManager;
 
     public DefaultReactorPluginManager(
-        ApplicationContext applicationContext,
-        PluginContextFactory pluginContextFactory,
-        ReactorFactoryManager factoryManager,
-        ServiceManager serviceManager
-    ) {
+            ApplicationContext applicationContext,
+            PluginContextFactory pluginContextFactory,
+            ReactorFactoryManager factoryManager,
+            ServiceManager serviceManager) {
         this.applicationContext = applicationContext;
         this.pluginContextFactory = pluginContextFactory;
         this.factoryManager = factoryManager;
@@ -67,7 +67,7 @@ public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPl
         final ReactorFactory<?> reactorFactory = (ReactorFactory<?>) pluginContext.getBean(plugin.clazz());
 
         DefaultListableBeanFactory beanFactory =
-            (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
+                (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
         beanFactory.registerSingleton(plugin.clazz(), reactorFactory);
 
         factoryManager.register(reactorFactory);

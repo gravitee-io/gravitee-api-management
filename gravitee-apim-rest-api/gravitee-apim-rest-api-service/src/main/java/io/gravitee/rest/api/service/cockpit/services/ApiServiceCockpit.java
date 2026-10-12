@@ -26,22 +26,20 @@ import java.util.List;
  */
 public interface ApiServiceCockpit {
     ApiEntityResult createApi(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        String swaggerDefinition,
-        String environmentId,
-        DeploymentMode mode,
-        List<String> labels
-    );
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            String swaggerDefinition,
+            String environmentId,
+            DeploymentMode mode,
+            List<String> labels);
 
     ApiEntityResult updateApi(
-        ExecutionContext executionContext,
-        String apiId,
-        String userId,
-        String swaggerDefinition,
-        String environmentId,
-        DeploymentMode mode,
-        List<String> labels
-    );
+            ExecutionContext executionContext,
+            String apiId,
+            String userId,
+            String swaggerDefinition,
+            String environmentId,
+            DeploymentMode mode,
+            List<String> labels);
 }

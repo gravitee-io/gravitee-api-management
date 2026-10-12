@@ -66,14 +66,15 @@ class RedisClientConcurrencyTest {
         String propertyPrefix = Scope.RATE_LIMIT.getName() + ".redis.";
         MockEnvironment environment = new MockEnvironment();
         environment.setProperty(propertyPrefix + "host", redis.getHost());
-        environment.setProperty(propertyPrefix + "port", redis.getFirstMappedPort().toString());
+        environment.setProperty(
+                propertyPrefix + "port", redis.getFirstMappedPort().toString());
 
         RedisClient client = new RedisConnectionFactory(
-            environment,
-            vertx,
-            Scope.RATE_LIMIT.getName(),
-            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
-        ).createRedisClient();
+                        environment,
+                        vertx,
+                        Scope.RATE_LIMIT.getName(),
+                        Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA))
+                .createRedisClient();
 
         await_connected(client);
         repository = new RedisRateLimitRepository(client, 2000);
@@ -99,14 +100,14 @@ class RedisClientConcurrencyTest {
             pool.submit(() -> {
                 try {
                     RateLimit rateLimit = repository
-                        .incrementAndGet("concurrent-key", 1, () -> {
-                            RateLimit rate = new RateLimit("concurrent-key");
-                            rate.setLimit(100_000);
-                            rate.setResetTime(System.currentTimeMillis() + 60_000);
-                            rate.setSubscription("sub");
-                            return rate;
-                        })
-                        .blockingGet();
+                            .incrementAndGet("concurrent-key", 1, () -> {
+                                RateLimit rate = new RateLimit("concurrent-key");
+                                rate.setLimit(100_000);
+                                rate.setResetTime(System.currentTimeMillis() + 60_000);
+                                rate.setSubscription("sub");
+                                return rate;
+                            })
+                            .blockingGet();
                     assertThat(rateLimit.getCounter()).isPositive();
                     successes.incrementAndGet();
                 } catch (Throwable t) {

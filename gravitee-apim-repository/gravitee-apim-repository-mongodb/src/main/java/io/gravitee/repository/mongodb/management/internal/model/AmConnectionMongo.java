@@ -27,7 +27,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Getter
 @Setter
-@EqualsAndHashCode(of = { "organizationId" })
+@EqualsAndHashCode(of = {"organizationId"})
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}am_connections")
 public class AmConnectionMongo {
 

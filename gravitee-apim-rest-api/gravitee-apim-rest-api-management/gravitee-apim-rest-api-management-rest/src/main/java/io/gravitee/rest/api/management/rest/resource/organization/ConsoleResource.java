@@ -58,12 +58,16 @@ public class ConsoleResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get the console configuration needed for runtime", description = "Every users can use this service")
+    @Operation(
+            summary = "Get the console configuration needed for runtime",
+            description = "Every users can use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Console configuration",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ConsoleConfigEntity.class))
-    )
+            responseCode = "200",
+            description = "Console configuration",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ConsoleConfigEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public ConsoleConfigEntity getConsoleConfig() {
         return configService.getConsoleConfig(GraviteeContext.getExecutionContext());
@@ -75,13 +79,20 @@ public class ConsoleResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Save the console configuration")
     @ApiResponse(
-        responseCode = "200",
-        description = "Console configuration",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ConsoleSettingsEntity.class))
-    )
+            responseCode = "200",
+            description = "Console configuration",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ConsoleSettingsEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
-    public Response saveConsoleConfig(@Parameter(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.ORGANIZATION_SETTINGS,
+                acls = {CREATE, UPDATE, DELETE})
+    })
+    public Response saveConsoleConfig(
+            @Parameter(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
         configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
         return Response.ok().entity(consoleSettingsEntity).build();
     }

@@ -42,16 +42,15 @@ import org.junit.jupiter.api.Test;
 class CreateOrUpdateApiLinkUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String API_ID = "00000000-0000-0000-0000-0000000000a1";
 
     private final PortalNavigationItemsCrudServiceInMemory navItemCrud = new PortalNavigationItemsCrudServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navItemQuery = new PortalNavigationItemsQueryServiceInMemory(
-        navItemCrud.storage()
-    );
+    private final PortalNavigationItemsQueryServiceInMemory navItemQuery =
+            new PortalNavigationItemsQueryServiceInMemory(navItemCrud.storage());
 
     private CreateOrUpdateApiLinkUseCase useCase;
 
@@ -59,10 +58,9 @@ class CreateOrUpdateApiLinkUseCaseTest {
     void setUp() {
         navItemCrud.reset();
         useCase = new CreateOrUpdateApiLinkUseCase(
-            navItemQuery,
-            navigationItemValidatorService(),
-            new PortalLinkSyncDomainService(navItemCrud, navItemQuery)
-        );
+                navItemQuery,
+                navigationItemValidatorService(),
+                new PortalLinkSyncDomainService(navItemCrud, navItemQuery));
     }
 
     @Test
@@ -72,7 +70,8 @@ class CreateOrUpdateApiLinkUseCaseTest {
         var output = useCase.execute(input("/guides"));
 
         assertThat(output.errors()).isEmpty();
-        assertThat(output.link().getId()).isEqualTo(PortalNavigationItemId.forApiLink(AUDIT_INFO, API_ID, "external-docs"));
+        assertThat(output.link().getId())
+                .isEqualTo(PortalNavigationItemId.forApiLink(AUDIT_INFO, API_ID, "external-docs"));
         assertThat(navItemCrud.storage()).hasSize(1);
     }
 
@@ -89,24 +88,19 @@ class CreateOrUpdateApiLinkUseCaseTest {
     void reports_a_severe_error_when_public_link_is_placed_under_persisted_private_folder() {
         // Spec (open-api.yaml PortalVisibility): "A PUBLIC child under a PRIVATE parent is rejected."
         var parentFolderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/private-guides");
-        navItemCrud.initWith(
-            List.of(
-                PortalNavigationFolder.builder()
-                    .id(parentFolderId)
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("private-guides")
-                    .segment("private-guides")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .published(true)
-                    .visibility(PortalVisibility.PRIVATE)
-                    .build()
-            )
-        );
+        navItemCrud.initWith(List.of(PortalNavigationFolder.builder()
+                .id(parentFolderId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("private-guides")
+                .segment("private-guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build()));
 
-        var output = useCase.execute(
-            new CreateOrUpdateApiLinkUseCase.Input(
+        var output = useCase.execute(new CreateOrUpdateApiLinkUseCase.Input(
                 AUDIT_INFO,
                 API_ID,
                 "external-docs",
@@ -114,25 +108,20 @@ class CreateOrUpdateApiLinkUseCaseTest {
                 "https://docs.example.com",
                 "/private-guides",
                 0,
-                PortalVisibility.PUBLIC
-            )
-        );
+                PortalVisibility.PUBLIC));
 
         assertThat(output.link()).isNull();
         assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
-        assertThat(output.errors())
-            .extracting(Validator.Error::getMessage)
-            .anyMatch(m -> m.contains("PUBLIC"));
+        assertThat(output.errors()).extracting(Validator.Error::getMessage).anyMatch(m -> m.contains("PUBLIC"));
         assertThat(navItemCrud.storage()).hasSize(1);
     }
 
     @Test
     void dry_run_validates_without_persisting() {
         var validateUseCase = new ValidateApiLinkUseCase(
-            navItemQuery,
-            navigationItemValidatorService(),
-            new PortalLinkSyncDomainService(navItemCrud, navItemQuery)
-        );
+                navItemQuery,
+                navigationItemValidatorService(),
+                new PortalLinkSyncDomainService(navItemCrud, navItemQuery));
 
         var output = validateUseCase.execute(input("/guides"));
 
@@ -143,24 +132,15 @@ class CreateOrUpdateApiLinkUseCaseTest {
 
     private PortalNavigationItemValidatorService navigationItemValidatorService() {
         return new PortalNavigationItemValidatorService(
-            navItemQuery,
-            new PortalPageContentQueryServiceInMemory(),
-            new ApiProductQueryServiceInMemory(),
-            new PortalNavigationItemSourceDomainServiceInMemory(),
-            new ApiCrudServiceInMemory()
-        );
+                navItemQuery,
+                new PortalPageContentQueryServiceInMemory(),
+                new ApiProductQueryServiceInMemory(),
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiCrudServiceInMemory());
     }
 
     private CreateOrUpdateApiLinkUseCase.Input input(String location) {
         return new CreateOrUpdateApiLinkUseCase.Input(
-            AUDIT_INFO,
-            API_ID,
-            "external-docs",
-            "External Docs",
-            "https://docs.example.com",
-            location,
-            0,
-            null
-        );
+                AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://docs.example.com", location, 0, null);
     }
 }

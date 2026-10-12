@@ -23,7 +23,6 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
-import io.gravitee.apim.core.category.domain_service.UpdateCategoryApiDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
@@ -52,13 +51,12 @@ public class UpdateNativeApiDomainService {
     private final ApiIndexerDomainService apiIndexerDomainService;
 
     public Api update(
-        String apiId,
-        UnaryOperator<Api> updater,
-        BinaryOperator<Api> sanitizer,
-        AuditInfo auditInfo,
-        PrimaryOwnerEntity primaryOwnerEntity,
-        ApiIndexerDomainService.Context ctx
-    ) {
+            String apiId,
+            UnaryOperator<Api> updater,
+            BinaryOperator<Api> sanitizer,
+            AuditInfo auditInfo,
+            PrimaryOwnerEntity primaryOwnerEntity,
+            ApiIndexerDomainService.Context ctx) {
         var existingApi = apiCrudService.get(apiId);
 
         Api apiWithUpdatedFields = updater.apply(existingApi);
@@ -73,7 +71,8 @@ public class UpdateNativeApiDomainService {
         var updatedApi = apiCrudService.update(api);
 
         // update api flows
-        flowCrudService.saveNativeApiFlows(updatedApi.getId(), updatedApi.getApiDefinitionNativeV4().getFlows());
+        flowCrudService.saveNativeApiFlows(
+                updatedApi.getId(), updatedApi.getApiDefinitionNativeV4().getFlows());
 
         // update api categories
         categoryDomainService.updateOrderCategoriesOfApi(updatedApi.getId(), updatedApi.getCategories());
@@ -83,10 +82,7 @@ public class UpdateNativeApiDomainService {
 
         // Notification of update
         triggerNotificationDomainService.triggerApiNotification(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            new ApiUpdatedApiHookContext(api.getId())
-        );
+                auditInfo.organizationId(), auditInfo.environmentId(), new ApiUpdatedApiHookContext(api.getId()));
 
         updatedApi.setCategories(categoryDomainService.toCategoryKey(updatedApi, auditInfo.environmentId()));
 
@@ -97,22 +93,17 @@ public class UpdateNativeApiDomainService {
     }
 
     private void handleDeprecatedApi(Api api, AuditInfo auditInfo) {
-        planQueryService
-            .findAllByApiId(api.getId())
-            .stream()
-            .filter(plan -> PlanStatus.PUBLISHED == plan.getPlanStatus() || PlanStatus.STAGING == plan.getPlanStatus())
-            .forEach(plan -> deprecatePlanDomainService.deprecate(plan.getId(), auditInfo, true));
+        planQueryService.findAllByApiId(api.getId()).stream()
+                .filter(plan ->
+                        PlanStatus.PUBLISHED == plan.getPlanStatus() || PlanStatus.STAGING == plan.getPlanStatus())
+                .forEach(plan -> deprecatePlanDomainService.deprecate(plan.getId(), auditInfo, true));
 
         triggerNotificationDomainService.triggerApiNotification(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            new ApiDeprecatedApiHookContext(api.getId())
-        );
+                auditInfo.organizationId(), auditInfo.environmentId(), new ApiDeprecatedApiHookContext(api.getId()));
     }
 
     private void createAuditLog(AuditInfo auditInfo, Api updatedApi, Api currentApi) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(updatedApi.getId())
@@ -121,14 +112,8 @@ public class UpdateNativeApiDomainService {
                 .oldValue(currentApi)
                 .newValue(updatedApi)
                 .createdAt(updatedApi.getUpdatedAt())
-                .properties(
-                    EncryptedPropertyAuditMarker.mark(
-                        Collections.emptyMap(),
-                        currentApi.getApiDefinitionValue(),
-                        updatedApi.getApiDefinitionValue()
-                    )
-                )
-                .build()
-        );
+                .properties(EncryptedPropertyAuditMarker.mark(
+                        Collections.emptyMap(), currentApi.getApiDefinitionValue(), updatedApi.getApiDefinitionValue()))
+                .build());
     }
 }

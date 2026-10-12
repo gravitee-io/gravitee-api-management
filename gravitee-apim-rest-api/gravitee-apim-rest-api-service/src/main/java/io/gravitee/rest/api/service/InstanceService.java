@@ -28,7 +28,10 @@ import java.util.List;
  */
 public interface InstanceService {
     Page<InstanceListItem> search(ExecutionContext executionContext, InstanceQuery query);
+
     InstanceEntity findById(ExecutionContext executionContext, String instance);
+
     InstanceEntity findByEvent(ExecutionContext executionContext, String event);
+
     List<InstanceEntity> findAllStarted(ExecutionContext executionContext);
 }

@@ -57,44 +57,32 @@ public class CockpitApiPermissionCheckerImplTest {
     public void returns_error_message_when_not_allowed_to_create_api() {
         var expectedMessage = "You are not allowed to create APIs on this environment.";
 
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(USER_ID),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq(ENVIRONMENT_ID),
-                eq(RolePermissionAction.CREATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(USER_ID),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq(ENVIRONMENT_ID),
+                        eq(RolePermissionAction.CREATE)))
+                .thenReturn(false);
 
         var result = permissionChecker.checkCreatePermission(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            ENVIRONMENT_ID,
-            DeploymentMode.API_DOCUMENTED
-        );
+                GraviteeContext.getExecutionContext(), USER_ID, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED);
 
         assertThat(result).contains(expectedMessage);
     }
 
     @Test
     public void returns_empty_optional_when_allowed_to_create_api() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(USER_ID),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq(ENVIRONMENT_ID),
-                eq(RolePermissionAction.CREATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(USER_ID),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq(ENVIRONMENT_ID),
+                        eq(RolePermissionAction.CREATE)))
+                .thenReturn(true);
 
         var result = permissionChecker.checkCreatePermission(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            ENVIRONMENT_ID,
-            DeploymentMode.API_DOCUMENTED
-        );
+                GraviteeContext.getExecutionContext(), USER_ID, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED);
         assertThat(result).isEmpty();
     }
 
@@ -102,23 +90,16 @@ public class CockpitApiPermissionCheckerImplTest {
     public void returns_error_message_when_not_allowed_to_update_api() {
         var expectedMessage = "You are not allowed to update APIs on this environment.";
 
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(USER_ID),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq(ENVIRONMENT_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(USER_ID),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq(ENVIRONMENT_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         var result = permissionChecker.checkUpdatePermission(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            ENVIRONMENT_ID,
-            API_ID,
-            DeploymentMode.API_DOCUMENTED
-        );
+                GraviteeContext.getExecutionContext(), USER_ID, ENVIRONMENT_ID, API_ID, DeploymentMode.API_DOCUMENTED);
 
         assertThat(result).contains(expectedMessage);
     }
@@ -128,23 +109,16 @@ public class CockpitApiPermissionCheckerImplTest {
         var expectedMessage = "You are not allowed to update the documentation of this API.";
 
         allowApiUpdate();
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(USER_ID),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(USER_ID),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         var result = permissionChecker.checkUpdatePermission(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            ENVIRONMENT_ID,
-            API_ID,
-            DeploymentMode.API_DOCUMENTED
-        );
+                GraviteeContext.getExecutionContext(), USER_ID, ENVIRONMENT_ID, API_ID, DeploymentMode.API_DOCUMENTED);
 
         assertThat(result).contains(expectedMessage);
     }
@@ -155,23 +129,16 @@ public class CockpitApiPermissionCheckerImplTest {
 
         allowApiUpdate();
         allowApiDocumentationUpdate();
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(USER_ID),
-                eq(RolePermission.API_DEFINITION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(USER_ID),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         var result = permissionChecker.checkUpdatePermission(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            ENVIRONMENT_ID,
-            API_ID,
-            DeploymentMode.API_MOCKED
-        );
+                GraviteeContext.getExecutionContext(), USER_ID, ENVIRONMENT_ID, API_ID, DeploymentMode.API_MOCKED);
 
         assertThat(result).contains(expectedMessage);
     }
@@ -182,12 +149,7 @@ public class CockpitApiPermissionCheckerImplTest {
         allowApiDocumentationUpdate();
 
         var result = permissionChecker.checkUpdatePermission(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            ENVIRONMENT_ID,
-            API_ID,
-            DeploymentMode.API_DOCUMENTED
-        );
+                GraviteeContext.getExecutionContext(), USER_ID, ENVIRONMENT_ID, API_ID, DeploymentMode.API_DOCUMENTED);
         assertThat(result).isEmpty();
     }
 
@@ -198,12 +160,7 @@ public class CockpitApiPermissionCheckerImplTest {
         allowApiDefinitionUpdate();
 
         var result = permissionChecker.checkUpdatePermission(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            ENVIRONMENT_ID,
-            API_ID,
-            DeploymentMode.API_MOCKED
-        );
+                GraviteeContext.getExecutionContext(), USER_ID, ENVIRONMENT_ID, API_ID, DeploymentMode.API_MOCKED);
         assertThat(result).isEmpty();
     }
 
@@ -212,52 +169,42 @@ public class CockpitApiPermissionCheckerImplTest {
         makeUserAdmin();
 
         var result = permissionChecker.checkUpdatePermission(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            ENVIRONMENT_ID,
-            API_ID,
-            DeploymentMode.API_MOCKED
-        );
+                GraviteeContext.getExecutionContext(), USER_ID, ENVIRONMENT_ID, API_ID, DeploymentMode.API_MOCKED);
         assertThat(result).isEmpty();
     }
 
     private void allowApiUpdate() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(USER_ID),
-                eq(RolePermission.ENVIRONMENT_API),
-                eq(ENVIRONMENT_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(USER_ID),
+                        eq(RolePermission.ENVIRONMENT_API),
+                        eq(ENVIRONMENT_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(true);
     }
 
     private void allowApiDocumentationUpdate() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(USER_ID),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(USER_ID),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(true);
     }
 
     private void allowApiDefinitionUpdate() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(USER_ID),
-                eq(RolePermission.API_DEFINITION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(USER_ID),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(true);
     }
 
     private void makeUserAdmin() {
-        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_ID)).thenReturn(true);
+        when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_ID))
+                .thenReturn(true);
     }
 }

@@ -62,16 +62,24 @@ public class OrganizationInitializerTest {
 
     @Test
     public void upgrade_should_call_upgradeOrganization_for_each_organization() throws Exception {
-        when(organizationRepository.findAll()).thenReturn(
-            Set.of(buildTestOrganization("org1"), buildTestOrganization("org2"), buildTestOrganization("org3"))
-        );
+        when(organizationRepository.findAll())
+                .thenReturn(Set.of(
+                        buildTestOrganization("org1"), buildTestOrganization("org2"), buildTestOrganization("org3")));
 
         initializer.initialize();
 
-        verify(initializer, times(1)).initializeOrganization(argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")));
-        verify(initializer, times(1)).initializeOrganization(argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org2")));
-        verify(initializer, times(1)).initializeOrganization(argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")));
-        verify(initializer, times(1)).initializeOrganization(argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org3")));
+        verify(initializer, times(1))
+                .initializeOrganization(argThat(
+                        e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")));
+        verify(initializer, times(1))
+                .initializeOrganization(argThat(
+                        e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org2")));
+        verify(initializer, times(1))
+                .initializeOrganization(argThat(
+                        e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")));
+        verify(initializer, times(1))
+                .initializeOrganization(argThat(
+                        e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org3")));
     }
 
     @Test

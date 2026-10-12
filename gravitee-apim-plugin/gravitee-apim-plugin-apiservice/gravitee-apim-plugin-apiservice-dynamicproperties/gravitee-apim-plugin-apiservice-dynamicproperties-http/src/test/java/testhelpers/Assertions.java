@@ -44,16 +44,16 @@ public class Assertions {
 
         public static ObjectAssert<Disposable> assertScheduledJobIsRunning(AtomicReference<Disposable> scheduledJob) {
             return assertThat(scheduledJob.get())
-                .as("Background job is running")
-                .isNotNull()
-                .satisfies(disposable -> assertThat(disposable.isDisposed()).isFalse());
+                    .as("Background job is running")
+                    .isNotNull()
+                    .satisfies(disposable -> assertThat(disposable.isDisposed()).isFalse());
         }
 
         public static ObjectAssert<Disposable> assertScheduledJobIsDisposed(AtomicReference<Disposable> scheduledJob) {
             return assertThat(scheduledJob.get())
-                .as("Background job is disposed")
-                .isNotNull()
-                .satisfies(disposable -> assertThat(disposable.isDisposed()).isTrue());
+                    .as("Background job is disposed")
+                    .isNotNull()
+                    .satisfies(disposable -> assertThat(disposable.isDisposed()).isTrue());
         }
     }
 
@@ -62,7 +62,8 @@ public class Assertions {
 
         private Event<ManagementApiServiceEvent, DynamicPropertiesEvent> propertyEvent;
 
-        public static PropertyEventAssertions assertThatEvent(Event<ManagementApiServiceEvent, DynamicPropertiesEvent> event) {
+        public static PropertyEventAssertions assertThatEvent(
+                Event<ManagementApiServiceEvent, DynamicPropertiesEvent> event) {
             return new PropertyEventAssertions(event);
         }
 

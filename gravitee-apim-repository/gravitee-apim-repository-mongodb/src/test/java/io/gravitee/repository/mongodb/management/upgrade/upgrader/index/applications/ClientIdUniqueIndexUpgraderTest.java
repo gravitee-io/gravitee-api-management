@@ -33,10 +33,7 @@ import org.springframework.data.mongodb.core.MongoOperations;
 
 public class ClientIdUniqueIndexUpgraderTest extends AbstractManagementRepositoryTest {
 
-    private static final List<String> DUPLICATED_APPLICATION_IDS = List.of(
-        "duplicate-1",
-        "duplicate-2"
-    );
+    private static final List<String> DUPLICATED_APPLICATION_IDS = List.of("duplicate-1", "duplicate-2");
 
     @Inject
     private ClientIdUniqueIndexUpgrader upgrader;
@@ -77,11 +74,8 @@ public class ClientIdUniqueIndexUpgraderTest extends AbstractManagementRepositor
 
     @Test
     public void should_not_create_index_nor_fail_when_applications_share_a_client_id() {
-        DUPLICATED_APPLICATION_IDS.forEach(id ->
-            applications().insertOne(
-                anActiveApplication(id, "DEFAULT", "shared-client-id")
-            )
-        );
+        DUPLICATED_APPLICATION_IDS.forEach(
+                id -> applications().insertOne(anActiveApplication(id, "DEFAULT", "shared-client-id")));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -90,15 +84,10 @@ public class ClientIdUniqueIndexUpgraderTest extends AbstractManagementRepositor
 
     @Test
     public void should_ignore_a_client_id_shared_with_an_archived_application() {
-        applications().insertOne(
-            anActiveApplication("duplicate-1", "DEFAULT", "shared-client-id")
-        );
-        applications().insertOne(
-            anActiveApplication("duplicate-2", "DEFAULT", "shared-client-id").append(
-                "status",
-                "ARCHIVED"
-            )
-        );
+        applications().insertOne(anActiveApplication("duplicate-1", "DEFAULT", "shared-client-id"));
+        applications()
+                .insertOne(anActiveApplication("duplicate-2", "DEFAULT", "shared-client-id")
+                        .append("status", "ARCHIVED"));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -106,26 +95,20 @@ public class ClientIdUniqueIndexUpgraderTest extends AbstractManagementRepositor
     }
 
     private MongoCollection<Document> applications() {
-        return mongoOperations.getCollection(
-            environment.getProperty("management.mongodb.prefix", "") + "applications"
-        );
+        return mongoOperations.getCollection(environment.getProperty("management.mongodb.prefix", "") + "applications");
     }
 
     private List<String> indexNames() {
         return StreamSupport.stream(applications().listIndexes().spliterator(), false)
-            .map(index -> index.getString("name"))
-            .toList();
+                .map(index -> index.getString("name"))
+                .toList();
     }
 
-    private Document anActiveApplication(
-        String id,
-        String environmentId,
-        String clientId
-    ) {
+    private Document anActiveApplication(String id, String environmentId, String clientId) {
         return new Document("_id", id)
-            .append("name", id)
-            .append("environmentId", environmentId)
-            .append("status", "ACTIVE")
-            .append("metadata", new Document("client_id", clientId));
+                .append("name", id)
+                .append("environmentId", environmentId)
+                .append("status", "ACTIVE")
+                .append("metadata", new Document("client_id", clientId));
     }
 }

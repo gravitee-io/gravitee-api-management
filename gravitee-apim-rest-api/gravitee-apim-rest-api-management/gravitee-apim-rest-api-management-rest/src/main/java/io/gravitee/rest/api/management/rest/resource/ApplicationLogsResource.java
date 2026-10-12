@@ -61,15 +61,14 @@ public class ApplicationLogsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get application logs")
     @ApiResponse(
-        responseCode = "200",
-        description = "Application logs",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            schema = @Schema(implementation = ApplicationRequestItemSearchLogResponse.class)
-        )
-    )
+            responseCode = "200",
+            description = "Application logs",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationRequestItemSearchLogResponse.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)})
     public SearchLogResponse<ApplicationRequestItem> getApplicationLogs(@BeanParam LogsParam param) {
         param.validate();
 
@@ -90,13 +89,16 @@ public class ApplicationLogsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get a specific log")
     @ApiResponse(
-        responseCode = "200",
-        description = "Single log",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationRequest.class))
-    )
+            responseCode = "200",
+            description = "Single log",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationRequest.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
-    public ApplicationRequest getApplicationLog(@PathParam("log") String logId, @QueryParam("timestamp") Long timestamp) {
+    @Permissions({@Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)})
+    public ApplicationRequest getApplicationLog(
+            @PathParam("log") String logId, @QueryParam("timestamp") Long timestamp) {
         return logsService.findApplicationLog(GraviteeContext.getExecutionContext(), application, logId, timestamp);
     }
 
@@ -105,16 +107,17 @@ public class ApplicationLogsResource extends AbstractResource {
     @Produces("text/csv")
     @Operation(summary = "Export application logs as CSV")
     @ApiResponse(
-        responseCode = "200",
-        description = "Application logs as CSV",
-        content = @Content(mediaType = "text/csv", schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "Application logs as CSV",
+            content = @Content(mediaType = "text/csv", schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)})
     public Response exportApplicationLogsAsCSV(@BeanParam LogsParam param) {
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getApplicationLogs(param);
         return Response.ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
-            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", application, System.currentTimeMillis()))
-            .build();
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        format("attachment;filename=logs-%s-%s.csv", application, System.currentTimeMillis()))
+                .build();
     }
 }

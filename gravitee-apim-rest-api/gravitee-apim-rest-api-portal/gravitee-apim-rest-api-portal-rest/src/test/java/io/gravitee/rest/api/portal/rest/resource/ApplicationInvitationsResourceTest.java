@@ -46,7 +46,6 @@ import io.gravitee.rest.api.portal.rest.model.InvitationResendInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationUpdateInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationsResponse;
 import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -94,7 +93,10 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         reset(applicationInvitationNotificationDomainService);
         applicationCrudService.reset();
         roleQueryService.reset();
-        applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(APPLICATION).environmentId("DEFAULT").build()));
+        applicationCrudService.initWith(List.of(BaseApplicationEntity.builder()
+                .id(APPLICATION)
+                .environmentId("DEFAULT")
+                .build()));
         roleQueryService.initWith(List.of(applicationRole(ROLE_NAME), applicationRole(UPDATED_ROLE_NAME)));
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
@@ -102,55 +104,45 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_create_invitations() {
         when(invitationQueryService.findByReference(any())).thenReturn(List.of());
-        when(invitationCrudService.create(any(ApplicationInvitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(invitationCrudService.create(any(ApplicationInvitation.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         var response = target(APPLICATION)
-            .path("invitations")
-            .request()
-            .post(
-                Entity.json(
-                    new InvitationCreateInput()
-                        .recipients(
-                            List.of(
+                .path("invitations")
+                .request()
+                .post(Entity.json(new InvitationCreateInput()
+                        .recipients(List.of(
                                 new InvitationRecipientInput().email(" Alice@example.com "),
-                                new InvitationRecipientInput().email("BOB@example.com")
-                            )
-                        )
+                                new InvitationRecipientInput().email("BOB@example.com")))
                         .role(ROLE_NAME)
-                        .notify(false)
-                )
-            );
+                        .notify(false)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
         var invitationsResponse = response.readEntity(InvitationsResponse.class);
         assertThat(invitationsResponse.getData()).hasSize(2);
         assertThat(invitationsResponse.getData())
-            .extracting(io.gravitee.rest.api.portal.rest.model.Invitation::getEmail)
-            .containsExactly("alice@example.com", "bob@example.com");
+                .extracting(io.gravitee.rest.api.portal.rest.model.Invitation::getEmail)
+                .containsExactly("alice@example.com", "bob@example.com");
         assertThat(invitationsResponse.getData())
-            .extracting(io.gravitee.rest.api.portal.rest.model.Invitation::getRole)
-            .containsOnly(ROLE_NAME);
-        verify(invitationCrudService).create(
-            argThat(invitation -> invitation.applicationId().equals(APPLICATION) && invitation.email().equals("alice@example.com"))
-        );
-        verify(invitationCrudService).create(
-            argThat(invitation -> invitation.applicationId().equals(APPLICATION) && invitation.email().equals("bob@example.com"))
-        );
+                .extracting(io.gravitee.rest.api.portal.rest.model.Invitation::getRole)
+                .containsOnly(ROLE_NAME);
+        verify(invitationCrudService)
+                .create(argThat(invitation -> invitation.applicationId().equals(APPLICATION)
+                        && invitation.email().equals("alice@example.com")));
+        verify(invitationCrudService)
+                .create(argThat(invitation -> invitation.applicationId().equals(APPLICATION)
+                        && invitation.email().equals("bob@example.com")));
     }
 
     @Test
     void should_return_bad_request_when_create_input_is_invalid() {
         var response = target(APPLICATION)
-            .path("invitations")
-            .request()
-            .post(
-                Entity.json(
-                    new InvitationCreateInput()
+                .path("invitations")
+                .request()
+                .post(Entity.json(new InvitationCreateInput()
                         .recipients(List.of(new InvitationRecipientInput().email("not-an-email")))
                         .role(ROLE_NAME)
-                        .notify(false)
-                )
-            );
+                        .notify(false)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         verify(invitationCrudService, never()).create(any());
@@ -166,7 +158,8 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_conflict_when_pending_invitation_already_exists() {
-        when(invitationQueryService.findByReference(any())).thenReturn(List.of(anInvitation(INVITATION_ID_1, "alice@example.com")));
+        when(invitationQueryService.findByReference(any()))
+                .thenReturn(List.of(anInvitation(INVITATION_ID_1, "alice@example.com")));
 
         var response = target(APPLICATION).path("invitations").request().post(Entity.json(createInput(false)));
 
@@ -177,78 +170,76 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_create_invitations_and_dispatch_notifications_when_notify_is_true() {
         when(invitationQueryService.findByReference(any())).thenReturn(List.of());
-        when(invitationCrudService.create(any(ApplicationInvitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(invitationCrudService.create(any(ApplicationInvitation.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         var response = target(APPLICATION).path("invitations").request().post(Entity.json(createInput(true)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
-        verify(applicationInvitationNotificationDomainService).dispatchAsync(
-            anyString(),
-            anyString(),
-            eq(APPLICATION),
-            argThat(invitations -> invitations.size() == 1 && invitations.get(0).email().equals("alice@example.com")),
-            eq(CONFIRMATION_PAGE_URL)
-        );
+        verify(applicationInvitationNotificationDomainService)
+                .dispatchAsync(
+                        anyString(),
+                        anyString(),
+                        eq(APPLICATION),
+                        argThat(invitations -> invitations.size() == 1
+                                && invitations.get(0).email().equals("alice@example.com")),
+                        eq(CONFIRMATION_PAGE_URL));
     }
 
     @Test
     void should_search_invitations() {
-        when(
-            invitationQueryService.findByApplicationId(
-                eq(APPLICATION),
-                eq(new SearchApplicationInvitationsCriteria(Optional.empty())),
-                eq(new PageableImpl(1, 10))
-            )
-        ).thenReturn(
-            new Page<>(
-                List.of(anInvitation(INVITATION_ID_1, "alice@example.com"), anInvitation(INVITATION_ID_2, "bob@example.com")),
-                1,
-                2,
-                2
-            )
-        );
+        when(invitationQueryService.findByApplicationId(
+                        eq(APPLICATION),
+                        eq(new SearchApplicationInvitationsCriteria(Optional.empty())),
+                        eq(new PageableImpl(1, 10))))
+                .thenReturn(new Page<>(
+                        List.of(
+                                anInvitation(INVITATION_ID_1, "alice@example.com"),
+                                anInvitation(INVITATION_ID_2, "bob@example.com")),
+                        1,
+                        2,
+                        2));
 
         var response = target(APPLICATION)
-            .path("invitations")
-            .path("_search")
-            .queryParam("page", 1)
-            .queryParam("size", 10)
-            .request()
-            .post(Entity.json(new ApplicationInvitationsSearchInput()));
+                .path("invitations")
+                .path("_search")
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+                .request()
+                .post(Entity.json(new ApplicationInvitationsSearchInput()));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         var invitationsResponse = response.readEntity(InvitationsResponse.class);
         assertThat(invitationsResponse.getData()).hasSize(2);
         assertThat(invitationsResponse.getData())
-            .extracting(io.gravitee.rest.api.portal.rest.model.Invitation::getEmail)
-            .containsExactly("alice@example.com", "bob@example.com");
+                .extracting(io.gravitee.rest.api.portal.rest.model.Invitation::getEmail)
+                .containsExactly("alice@example.com", "bob@example.com");
         assertThat(invitationsResponse.getMetadata().get("paginateMetaData")).containsEntry("totalElements", 2);
         assertThat(invitationsResponse.getMetadata().get("pagination")).containsEntry("total", 2);
-        verify(invitationQueryService).findByApplicationId(
-            APPLICATION,
-            new SearchApplicationInvitationsCriteria(Optional.empty()),
-            new PageableImpl(1, 10)
-        );
+        verify(invitationQueryService)
+                .findByApplicationId(
+                        APPLICATION,
+                        new SearchApplicationInvitationsCriteria(Optional.empty()),
+                        new PageableImpl(1, 10));
     }
 
     @Test
     void should_search_invitations_by_email() {
-        when(
-            invitationQueryService.findByApplicationId(
-                eq(APPLICATION),
-                eq(new SearchApplicationInvitationsCriteria(Optional.of("bob"))),
-                eq(new PageableImpl(1, 10))
-            )
-        ).thenReturn(new Page<>(List.of(anInvitation(INVITATION_ID_2, "bob@example.com")), 1, 1, 1));
+        when(invitationQueryService.findByApplicationId(
+                        eq(APPLICATION),
+                        eq(new SearchApplicationInvitationsCriteria(Optional.of("bob"))),
+                        eq(new PageableImpl(1, 10))))
+                .thenReturn(new Page<>(List.of(anInvitation(INVITATION_ID_2, "bob@example.com")), 1, 1, 1));
 
-        var input = new ApplicationInvitationsSearchInput().filters(new ApplicationInvitationsSearchFilters().email("bob"));
+        var input =
+                new ApplicationInvitationsSearchInput().filters(new ApplicationInvitationsSearchFilters().email("bob"));
         var response = target(APPLICATION)
-            .path("invitations")
-            .path("_search")
-            .queryParam("page", 1)
-            .queryParam("size", 10)
-            .request()
-            .post(Entity.json(input));
+                .path("invitations")
+                .path("_search")
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+                .request()
+                .post(Entity.json(input));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         var invitationsResponse = response.readEntity(InvitationsResponse.class);
@@ -260,12 +251,12 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_return_not_found_when_application_does_not_exist() {
         var response = target(UNKNOWN_APPLICATION)
-            .path("invitations")
-            .path("_search")
-            .queryParam("page", 1)
-            .queryParam("size", 10)
-            .request()
-            .post(Entity.json(new ApplicationInvitationsSearchInput()));
+                .path("invitations")
+                .path("_search")
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+                .request()
+                .post(Entity.json(new ApplicationInvitationsSearchInput()));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         verify(invitationQueryService, never()).findByApplicationId(anyString(), any(), any());
@@ -274,11 +265,14 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_delete_invitation() {
         var invitationId = InvitationId.of(INVITATION_ID_1);
-        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
-            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
-        );
+        when(invitationCrudService.findApplicationInvitationById(invitationId))
+                .thenReturn(Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com")));
 
-        var response = target(APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+        var response = target(APPLICATION)
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .request()
+                .delete();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
         verify(invitationCrudService).delete(invitationId);
@@ -286,7 +280,11 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_not_found_when_deleting_invitation_for_unknown_application() {
-        var response = target(UNKNOWN_APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+        var response = target(UNKNOWN_APPLICATION)
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .request()
+                .delete();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         verify(invitationCrudService, never()).findApplicationInvitationById(any());
@@ -298,7 +296,11 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         var invitationId = InvitationId.of(INVITATION_ID_1);
         when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.empty());
 
-        var response = target(APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+        var response = target(APPLICATION)
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .request()
+                .delete();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         verify(invitationCrudService, never()).delete(any());
@@ -307,11 +309,14 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_return_not_found_when_deleting_invitation_from_another_application() {
         var invitationId = InvitationId.of(INVITATION_ID_1);
-        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
-            Optional.of(anInvitation(INVITATION_ID_1, OTHER_APPLICATION, "alice@example.com"))
-        );
+        when(invitationCrudService.findApplicationInvitationById(invitationId))
+                .thenReturn(Optional.of(anInvitation(INVITATION_ID_1, OTHER_APPLICATION, "alice@example.com")));
 
-        var response = target(APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+        var response = target(APPLICATION)
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .request()
+                .delete();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         verify(invitationCrudService, never()).delete(any());
@@ -320,45 +325,42 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_resend_invitation() {
         var invitationId = InvitationId.of(INVITATION_ID_1);
-        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
-            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
-        );
-        when(invitationCrudService.update(any(ApplicationInvitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(invitationCrudService.findApplicationInvitationById(invitationId))
+                .thenReturn(Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com")));
+        when(invitationCrudService.update(any(ApplicationInvitation.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         var response = target(APPLICATION)
-            .path("invitations")
-            .path(INVITATION_ID_1)
-            .path("_resend")
-            .request()
-            .post(Entity.json(new InvitationResendInput().confirmationPageUrl(CONFIRMATION_PAGE_URL)));
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .path("_resend")
+                .request()
+                .post(Entity.json(new InvitationResendInput().confirmationPageUrl(CONFIRMATION_PAGE_URL)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
-        verify(invitationCrudService).update(
-            argThat(
-                updatedInvitation ->
-                    updatedInvitation.id().equals(invitationId) &&
-                    updatedInvitation.applicationId().equals(APPLICATION) &&
-                    updatedInvitation.email().equals("alice@example.com") &&
-                    updatedInvitation.roleName().equals(ROLE_NAME)
-            )
-        );
-        verify(applicationInvitationNotificationDomainService).dispatchAsync(
-            anyString(),
-            anyString(),
-            eq(APPLICATION),
-            argThat(invitations -> invitations.size() == 1 && invitations.get(0).email().equals("alice@example.com")),
-            eq(CONFIRMATION_PAGE_URL)
-        );
+        verify(invitationCrudService)
+                .update(argThat(updatedInvitation -> updatedInvitation.id().equals(invitationId)
+                        && updatedInvitation.applicationId().equals(APPLICATION)
+                        && updatedInvitation.email().equals("alice@example.com")
+                        && updatedInvitation.roleName().equals(ROLE_NAME)));
+        verify(applicationInvitationNotificationDomainService)
+                .dispatchAsync(
+                        anyString(),
+                        anyString(),
+                        eq(APPLICATION),
+                        argThat(invitations -> invitations.size() == 1
+                                && invitations.get(0).email().equals("alice@example.com")),
+                        eq(CONFIRMATION_PAGE_URL));
     }
 
     @Test
     void should_return_bad_request_when_resending_invitation_without_confirmation_page_url() {
         var response = target(APPLICATION)
-            .path("invitations")
-            .path(INVITATION_ID_1)
-            .path("_resend")
-            .request()
-            .post(Entity.json(new InvitationResendInput()));
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .path("_resend")
+                .request()
+                .post(Entity.json(new InvitationResendInput()));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         verify(invitationCrudService, never()).findApplicationInvitationById(any());
@@ -369,11 +371,11 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_return_not_found_when_resending_invitation_for_unknown_application() {
         var response = target(UNKNOWN_APPLICATION)
-            .path("invitations")
-            .path(INVITATION_ID_1)
-            .path("_resend")
-            .request()
-            .post(Entity.json(new InvitationResendInput().confirmationPageUrl(CONFIRMATION_PAGE_URL)));
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .path("_resend")
+                .request()
+                .post(Entity.json(new InvitationResendInput().confirmationPageUrl(CONFIRMATION_PAGE_URL)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         verify(invitationCrudService, never()).findApplicationInvitationById(any());
@@ -387,11 +389,11 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.empty());
 
         var response = target(APPLICATION)
-            .path("invitations")
-            .path(INVITATION_ID_1)
-            .path("_resend")
-            .request()
-            .post(Entity.json(new InvitationResendInput().confirmationPageUrl(CONFIRMATION_PAGE_URL)));
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .path("_resend")
+                .request()
+                .post(Entity.json(new InvitationResendInput().confirmationPageUrl(CONFIRMATION_PAGE_URL)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         verify(invitationCrudService, never()).update(any());
@@ -401,40 +403,36 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_update_invitation_role() {
         var invitationId = InvitationId.of(INVITATION_ID_1);
-        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
-            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
-        );
-        when(invitationCrudService.update(any(ApplicationInvitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(invitationCrudService.findApplicationInvitationById(invitationId))
+                .thenReturn(Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com")));
+        when(invitationCrudService.update(any(ApplicationInvitation.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         var response = target(APPLICATION)
-            .path("invitations")
-            .path(INVITATION_ID_1)
-            .request()
-            .put(Entity.json(new InvitationUpdateInput().role(" " + UPDATED_ROLE_NAME + " ")));
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .request()
+                .put(Entity.json(new InvitationUpdateInput().role(" " + UPDATED_ROLE_NAME + " ")));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         var invitation = response.readEntity(io.gravitee.rest.api.portal.rest.model.Invitation.class);
         assertThat(invitation.getId()).isEqualTo(INVITATION_ID_1);
         assertThat(invitation.getEmail()).isEqualTo("alice@example.com");
         assertThat(invitation.getRole()).isEqualTo(UPDATED_ROLE_NAME);
-        verify(invitationCrudService).update(
-            argThat(
-                updatedInvitation ->
-                    updatedInvitation.id().equals(invitationId) &&
-                    updatedInvitation.applicationId().equals(APPLICATION) &&
-                    updatedInvitation.email().equals("alice@example.com") &&
-                    updatedInvitation.roleName().equals(UPDATED_ROLE_NAME)
-            )
-        );
+        verify(invitationCrudService)
+                .update(argThat(updatedInvitation -> updatedInvitation.id().equals(invitationId)
+                        && updatedInvitation.applicationId().equals(APPLICATION)
+                        && updatedInvitation.email().equals("alice@example.com")
+                        && updatedInvitation.roleName().equals(UPDATED_ROLE_NAME)));
     }
 
     @Test
     void should_return_not_found_when_updating_invitation_for_unknown_application() {
         var response = target(UNKNOWN_APPLICATION)
-            .path("invitations")
-            .path(INVITATION_ID_1)
-            .request()
-            .put(Entity.json(new InvitationUpdateInput().role(UPDATED_ROLE_NAME)));
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .request()
+                .put(Entity.json(new InvitationUpdateInput().role(UPDATED_ROLE_NAME)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         verify(invitationCrudService, never()).findApplicationInvitationById(any());
@@ -447,10 +445,10 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.empty());
 
         var response = target(APPLICATION)
-            .path("invitations")
-            .path(INVITATION_ID_1)
-            .request()
-            .put(Entity.json(new InvitationUpdateInput().role(UPDATED_ROLE_NAME)));
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .request()
+                .put(Entity.json(new InvitationUpdateInput().role(UPDATED_ROLE_NAME)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         verify(invitationCrudService, never()).update(any());
@@ -459,15 +457,14 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_return_not_found_when_updating_invitation_from_another_application() {
         var invitationId = InvitationId.of(INVITATION_ID_1);
-        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
-            Optional.of(anInvitation(INVITATION_ID_1, OTHER_APPLICATION, "alice@example.com"))
-        );
+        when(invitationCrudService.findApplicationInvitationById(invitationId))
+                .thenReturn(Optional.of(anInvitation(INVITATION_ID_1, OTHER_APPLICATION, "alice@example.com")));
 
         var response = target(APPLICATION)
-            .path("invitations")
-            .path(INVITATION_ID_1)
-            .request()
-            .put(Entity.json(new InvitationUpdateInput().role(UPDATED_ROLE_NAME)));
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .request()
+                .put(Entity.json(new InvitationUpdateInput().role(UPDATED_ROLE_NAME)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         verify(invitationCrudService, never()).update(any());
@@ -476,15 +473,14 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_return_bad_request_when_updating_invitation_with_blank_role() {
         var invitationId = InvitationId.of(INVITATION_ID_1);
-        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
-            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
-        );
+        when(invitationCrudService.findApplicationInvitationById(invitationId))
+                .thenReturn(Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com")));
 
         var response = target(APPLICATION)
-            .path("invitations")
-            .path(INVITATION_ID_1)
-            .request()
-            .put(Entity.json(new InvitationUpdateInput().role(" ")));
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .request()
+                .put(Entity.json(new InvitationUpdateInput().role(" ")));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         verify(invitationCrudService, never()).update(any());
@@ -493,15 +489,14 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     @Test
     void should_return_bad_request_when_updating_invitation_with_unknown_role() {
         var invitationId = InvitationId.of(INVITATION_ID_1);
-        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
-            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
-        );
+        when(invitationCrudService.findApplicationInvitationById(invitationId))
+                .thenReturn(Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com")));
 
         var response = target(APPLICATION)
-            .path("invitations")
-            .path(INVITATION_ID_1)
-            .request()
-            .put(Entity.json(new InvitationUpdateInput().role("UNKNOWN")));
+                .path("invitations")
+                .path(INVITATION_ID_1)
+                .request()
+                .put(Entity.json(new InvitationUpdateInput().role("UNKNOWN")));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         verify(invitationCrudService, never()).update(any());
@@ -513,34 +508,34 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
 
     private ApplicationInvitation anInvitation(String id, String applicationId, String email) {
         return ApplicationInvitation.of(
-            InvitationId.of(id),
-            applicationId,
-            email,
-            "USER",
-            ZonedDateTime.parse("2026-04-23T09:30:00Z"),
-            ZonedDateTime.parse("2026-04-23T09:45:00Z")
-        );
+                InvitationId.of(id),
+                applicationId,
+                email,
+                "USER",
+                ZonedDateTime.parse("2026-04-23T09:30:00Z"),
+                ZonedDateTime.parse("2026-04-23T09:45:00Z"));
     }
 
     private InvitationCreateInput createInput(boolean notify) {
         return new InvitationCreateInput()
-            .recipients(List.of(new InvitationRecipientInput().email("alice@example.com")))
-            .role(ROLE_NAME)
-            .notify(notify)
-            .confirmationPageUrl(CONFIRMATION_PAGE_URL);
+                .recipients(List.of(new InvitationRecipientInput().email("alice@example.com")))
+                .role(ROLE_NAME)
+                .notify(notify)
+                .confirmationPageUrl(CONFIRMATION_PAGE_URL);
     }
 
     private void verifyNoInvitationNotificationDispatch() {
-        verify(applicationInvitationNotificationDomainService, never()).dispatchAsync(anyString(), anyString(), anyString(), any(), any());
+        verify(applicationInvitationNotificationDomainService, never())
+                .dispatchAsync(anyString(), anyString(), anyString(), any(), any());
     }
 
     private Role applicationRole(String roleName) {
         return Role.builder()
-            .id("application-%s-role".formatted(roleName.toLowerCase()))
-            .name(roleName)
-            .referenceId("DEFAULT")
-            .referenceType(Role.ReferenceType.ORGANIZATION)
-            .scope(Role.Scope.APPLICATION)
-            .build();
+                .id("application-%s-role".formatted(roleName.toLowerCase()))
+                .name(roleName)
+                .referenceId("DEFAULT")
+                .referenceType(Role.ReferenceType.ORGANIZATION)
+                .scope(Role.Scope.APPLICATION)
+                .build();
     }
 }

@@ -37,7 +37,6 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
 import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +54,7 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
      * parameter wins (the use case receives the path apiId), so the body's id must be ignored.
      */
     private static final String BODY_API_ID = "id-from-body-should-be-ignored";
+
     private static final String VALID_API_DEFINITION_JSON = """
         {
           "api": {
@@ -132,14 +132,12 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
 
     @Test
     public void should_return_403_when_no_definition_update_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(false);
 
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 
@@ -148,50 +146,55 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
 
     @Test
     public void should_update_api_from_url_when_url_is_valid() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
 
         Buffer buffer = Buffer.buffer(VALID_API_DEFINITION_JSON);
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenReturn(buffer);
 
-        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API).environmentId(ENVIRONMENT).build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API)
+                .environmentId(ENVIRONMENT)
+                .build();
         var apiWithFlows = new ApiWithFlows(existingApi, List.of());
-        when(updateApiDefinitionUseCase.execute(any())).thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(apiWithFlows));
-        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(
-            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("Test API").apiVersion("1.0").build()
-        );
+        when(updateApiDefinitionUseCase.execute(any()))
+                .thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(apiWithFlows));
+        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(io.gravitee.rest.api.model.v4.api.ApiEntity.builder()
+                        .id(API)
+                        .name("Test API")
+                        .apiVersion("1.0")
+                        .build());
 
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         verify(httpClientService).request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any());
 
-        ArgumentCaptor<UpdateApiDefinitionFromImportUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
-            UpdateApiDefinitionFromImportUseCase.Input.class
-        );
+        ArgumentCaptor<UpdateApiDefinitionFromImportUseCase.Input> inputCaptor =
+                ArgumentCaptor.forClass(UpdateApiDefinitionFromImportUseCase.Input.class);
         verify(updateApiDefinitionUseCase).execute(inputCaptor.capture());
         assertThat(inputCaptor.getValue().apiId())
-            .as("Path apiId must win over body id; got %s", inputCaptor.getValue().apiId())
-            .isEqualTo(API)
-            .isNotEqualTo(BODY_API_ID);
+                .as(
+                        "Path apiId must win over body id; got %s",
+                        inputCaptor.getValue().apiId())
+                .isEqualTo(API)
+                .isNotEqualTo(BODY_API_ID);
     }
 
     @Test
     public void should_return_bad_request_when_url_is_private_and_private_not_allowed() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
 
         String privateUrl = "http://localhost:8080/api-definition.json";
         Response response = rootTarget().request().put(Entity.text(privateUrl));
@@ -201,17 +204,16 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
 
     @Test
     public void should_return_bad_request_when_url_returns_invalid_json() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
 
         Buffer buffer = Buffer.buffer("not valid json");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenReturn(buffer);
 
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 
@@ -219,7 +221,9 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
 
         // Guard against leaking Jackson internals back to the caller (review feedback on PR #16844).
         String body = response.readEntity(String.class);
-        assertThat(body).contains("Invalid API definition format").doesNotContain("io.gravitee", "fasterxml", "JsonProcessingException");
+        assertThat(body)
+                .contains("Invalid API definition format")
+                .doesNotContain("io.gravitee", "fasterxml", "JsonProcessingException");
     }
 
     @Test
@@ -228,17 +232,17 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         // as a TechnicalManagementException; it must become a clean 4xx, not a 500 leaking the remote response.
         grantUpdatePermission();
 
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
-            new TechnicalManagementException(" Error on url '" + TEST_URL + "'. Status code: 404. Message: Not Found", null)
-        );
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenThrow(new TechnicalManagementException(
+                        " Error on url '" + TEST_URL + "'. Status code: 404. Message: Not Found", null));
 
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
         String body = response.readEntity(String.class);
         assertThat(body)
-            .contains("Unable to fetch the API definition")
-            .doesNotContain("io.gravitee", "TechnicalManagementException", "Status code", "404");
+                .contains("Unable to fetch the API definition")
+                .doesNotContain("io.gravitee", "TechnicalManagementException", "Status code", "404");
     }
 
     @Test
@@ -247,20 +251,18 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         // UnknownHostException or the failing host.
         grantUpdatePermission();
 
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
-            new TechnicalManagementException(
-                "Failed to resolve 'nonexistent-host-xyz.invalid'",
-                new java.net.UnknownHostException("nonexistent-host-xyz.invalid")
-            )
-        );
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenThrow(new TechnicalManagementException(
+                        "Failed to resolve 'nonexistent-host-xyz.invalid'",
+                        new java.net.UnknownHostException("nonexistent-host-xyz.invalid")));
 
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
         String body = response.readEntity(String.class);
         assertThat(body)
-            .contains("Unable to fetch the API definition")
-            .doesNotContain("io.gravitee", "UnknownHostException", "Failed to resolve", "nonexistent-host");
+                .contains("Unable to fetch the API definition")
+                .doesNotContain("io.gravitee", "UnknownHostException", "Failed to resolve", "nonexistent-host");
     }
 
     @Test
@@ -269,7 +271,8 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         grantUpdatePermission();
 
         Buffer buffer = Buffer.buffer("{\"hello\":\"world\"}");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenReturn(buffer);
 
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 
@@ -285,7 +288,8 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
         grantUpdatePermission();
 
         Buffer buffer = Buffer.buffer("{\"api\":{\"definitionVersion\":\"V4\"},\"members\":[{\"displayName\":\"\"}]}");
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any()))
+                .thenReturn(buffer);
 
         Response response = rootTarget().request().put(Entity.text(TEST_URL));
 
@@ -295,26 +299,22 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
     }
 
     private void grantUpdatePermission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
     }
 
     @Test
     public void should_reject_url_not_in_whitelist() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DEFINITION,
-                API,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        API,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
 
         when(importConfiguration.getImportWhitelist()).thenReturn(List.of("https://allowed.example.com"));
 

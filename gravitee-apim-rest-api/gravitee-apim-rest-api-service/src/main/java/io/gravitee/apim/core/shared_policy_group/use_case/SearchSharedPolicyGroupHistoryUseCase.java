@@ -18,7 +18,6 @@ package io.gravitee.apim.core.shared_policy_group.use_case;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupHistoryQueryService;
-import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -34,14 +33,8 @@ public class SearchSharedPolicyGroupHistoryUseCase {
 
     private final SharedPolicyGroupHistoryQueryService sharedPolicyGroupHistoryQueryService;
 
-    private static final Set<String> allowedSortableFields = Set.of(
-        "version",
-        "-version",
-        "updatedAt",
-        "-updatedAt",
-        "deployedAt",
-        "-deployedAt"
-    );
+    private static final Set<String> allowedSortableFields =
+            Set.of("version", "-version", "updatedAt", "-updatedAt", "deployedAt", "-deployedAt");
 
     public Output execute(Input input) {
         validateInput(input);
@@ -49,9 +42,8 @@ public class SearchSharedPolicyGroupHistoryUseCase {
 
         Sortable sortable = toSortable(input.sortBy());
 
-        return new Output(
-            this.sharedPolicyGroupHistoryQueryService.search(input.environmentId, input.sharedPolicyGroupId, pageable, sortable)
-        );
+        return new Output(this.sharedPolicyGroupHistoryQueryService.search(
+                input.environmentId, input.sharedPolicyGroupId, pageable, sortable));
     }
 
     private static void validateInput(Input input) {

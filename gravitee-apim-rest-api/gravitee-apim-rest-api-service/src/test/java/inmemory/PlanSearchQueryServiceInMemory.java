@@ -41,50 +41,48 @@ public class PlanSearchQueryServiceInMemory implements PlanSearchQueryService, I
 
     @Override
     public List<Plan> searchPlans(
-        String referenceId,
-        GenericPlanEntity.ReferenceType referenceType,
-        PlanQuery query,
-        String authenticatedUser,
-        boolean isAdmin
-    ) {
-        return storage
-            .stream()
-            .filter(p -> referenceId.equals(p.getReferenceId()) && referenceType.equals(p.getReferenceType()))
-            .filter(p -> {
-                boolean filtered = true;
-                if (query.getName() != null) {
-                    filtered = query.getName().equals(p.getName());
-                }
-                if (filtered && !CollectionUtils.isEmpty(query.getSecurityType())) {
-                    if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
-                        return false;
+            String referenceId,
+            GenericPlanEntity.ReferenceType referenceType,
+            PlanQuery query,
+            String authenticatedUser,
+            boolean isAdmin) {
+        return storage.stream()
+                .filter(p -> referenceId.equals(p.getReferenceId()) && referenceType.equals(p.getReferenceType()))
+                .filter(p -> {
+                    boolean filtered = true;
+                    if (query.getName() != null) {
+                        filtered = query.getName().equals(p.getName());
                     }
-                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
-                    filtered = query.getSecurityType().contains(planSecurityType);
-                }
-                if (filtered && !CollectionUtils.isEmpty(query.getStatus())) {
-                    PlanStatus planStatus = PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
-                    filtered = query.getStatus().contains(planStatus);
-                }
-                if (filtered && query.getMode() != null) {
-                    filtered = query.getMode().equals(p.getPlanMode());
-                }
-                return filtered;
-            })
-            .toList();
+                    if (filtered && !CollectionUtils.isEmpty(query.getSecurityType())) {
+                        if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
+                            return false;
+                        }
+                        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(
+                                p.getPlanSecurity().getType());
+                        filtered = query.getSecurityType().contains(planSecurityType);
+                    }
+                    if (filtered && !CollectionUtils.isEmpty(query.getStatus())) {
+                        PlanStatus planStatus =
+                                PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
+                        filtered = query.getStatus().contains(planStatus);
+                    }
+                    if (filtered && query.getMode() != null) {
+                        filtered = query.getMode().equals(p.getPlanMode());
+                    }
+                    return filtered;
+                })
+                .toList();
     }
 
     @Override
     public Plan findByPlanIdAndReferenceIdAndReferenceType(
-        String planId,
-        String referenceId,
-        GenericPlanEntity.ReferenceType referenceType
-    ) {
-        return storage
-            .stream()
-            .filter(p -> planId.equals(p.getId()) && referenceId.equals(p.getReferenceId()) && referenceType.equals(p.getReferenceType()))
-            .findFirst()
-            .orElseThrow(() -> new PlanNotFoundException(planId));
+            String planId, String referenceId, GenericPlanEntity.ReferenceType referenceType) {
+        return storage.stream()
+                .filter(p -> planId.equals(p.getId())
+                        && referenceId.equals(p.getReferenceId())
+                        && referenceType.equals(p.getReferenceType()))
+                .findFirst()
+                .orElseThrow(() -> new PlanNotFoundException(planId));
     }
 
     @Override

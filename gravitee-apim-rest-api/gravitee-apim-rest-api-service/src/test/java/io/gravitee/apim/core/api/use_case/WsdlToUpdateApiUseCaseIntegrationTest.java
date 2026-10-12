@@ -70,7 +70,8 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
         """;
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
-    private final EndpointConnectorPluginDomainService endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
+    private final EndpointConnectorPluginDomainService endpointConnectorPluginService =
+            mock(EndpointConnectorPluginDomainService.class);
     private final PolicyPluginCrudServiceInMemory policyPluginCrudService = new PolicyPluginCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
@@ -82,38 +83,41 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
     void setUp() {
         updateInitializer = new ImportDefinitionUpdateDomainServiceTestInitializer(apiCrudService);
 
-        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn(SHARED_CONFIGURATION);
+        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString()))
+                .thenReturn(SHARED_CONFIGURATION);
 
-        when(updateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(inv ->
-            inv.getArgument(1)
-        );
+        when(updateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                .thenAnswer(inv -> inv.getArgument(1));
 
-        when(updateInitializer.apiService.update(any(), any(), any(), anyBoolean(), any())).thenAnswer(inv -> {
-            io.gravitee.rest.api.model.v4.api.UpdateApiEntity updateApi = inv.getArgument(2);
-            return ApiEntity.builder().id(API_ID).name(updateApi.getName()).apiVersion(updateApi.getApiVersion()).build();
-        });
+        when(updateInitializer.apiService.update(any(), any(), any(), anyBoolean(), any()))
+                .thenAnswer(inv -> {
+                    io.gravitee.rest.api.model.v4.api.UpdateApiEntity updateApi = inv.getArgument(2);
+                    return ApiEntity.builder()
+                            .id(API_ID)
+                            .name(updateApi.getName())
+                            .apiVersion(updateApi.getApiVersion())
+                            .build();
+                });
 
         ImportConfiguration importConfiguration = mock(ImportConfiguration.class);
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(true);
         when(importConfiguration.getImportWhitelist()).thenReturn(List.of());
 
         var oaiDomainService = new OAIDomainServiceImpl(
-            new PolicyOperationVisitorManagerImpl(),
-            new TagQueryServiceInMemory(),
-            endpointConnectorPluginService,
-            policyPluginCrudService,
-            importConfiguration
-        );
+                new PolicyOperationVisitorManagerImpl(),
+                new TagQueryServiceInMemory(),
+                endpointConnectorPluginService,
+                policyPluginCrudService,
+                importConfiguration);
 
         var updateApiDefinitionUseCase = new UpdateApiDefinitionFromImportUseCase(
-            apiCrudService,
-            updateInitializer.initialize(ENVIRONMENT_ID),
-            flowCrudService
-        );
+                apiCrudService, updateInitializer.initialize(ENVIRONMENT_ID), flowCrudService);
 
-        var oaiToUpdateApiUseCase = new OAIToUpdateApiUseCase(oaiDomainService, flowCrudService, updateApiDefinitionUseCase);
+        var oaiToUpdateApiUseCase =
+                new OAIToUpdateApiUseCase(oaiDomainService, flowCrudService, updateApiDefinitionUseCase);
 
-        useCase = new WsdlToUpdateApiUseCase(new WsdlParserDomainServiceImpl(importConfiguration), oaiToUpdateApiUseCase);
+        useCase =
+                new WsdlToUpdateApiUseCase(new WsdlParserDomainServiceImpl(importConfiguration), oaiToUpdateApiUseCase);
     }
 
     @AfterEach
@@ -163,14 +167,13 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
         var captor = ArgumentCaptor.forClass(io.gravitee.rest.api.model.v4.api.UpdateApiEntity.class);
         verify(updateInitializer.apiService).update(any(), any(), captor.capture(), anyBoolean(), any());
         assertThat(captor.getValue().getEndpointGroups())
-            .isNotEmpty()
-            .first()
-            .satisfies(endpointGroup ->
-                assertThat(endpointGroup.getEndpoints())
-                    .isNotEmpty()
-                    .first()
-                    .satisfies(endpoint -> assertThat(endpoint.getConfiguration()).contains("http://localhost:8080/calculator"))
-            );
+                .isNotEmpty()
+                .first()
+                .satisfies(endpointGroup -> assertThat(endpointGroup.getEndpoints())
+                        .isNotEmpty()
+                        .first()
+                        .satisfies(endpoint ->
+                                assertThat(endpoint.getConfiguration()).contains("http://localhost:8080/calculator")));
     }
 
     @Test
@@ -190,16 +193,17 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
         void should_update_api_from_remote_wsdl_url(WireMockRuntimeInfo wm) {
             givenExistingApi(API_ID);
             var wsdlContent = loadWsdl();
-            wm.getWireMock().register(get(urlEqualTo("/calculator.wsdl")).willReturn(aResponse().withStatus(200).withBody(wsdlContent)));
+            wm.getWireMock()
+                    .register(get(urlEqualTo("/calculator.wsdl"))
+                            .willReturn(aResponse().withStatus(200).withBody(wsdlContent)));
 
             var input = new WsdlToUpdateApiUseCase.Input.Url(
-                API_ID,
-                "http://localhost:" + wm.getHttpPort() + "/calculator.wsdl",
-                false,
-                false,
-                List.of(),
-                AUDIT_INFO
-            );
+                    API_ID,
+                    "http://localhost:" + wm.getHttpPort() + "/calculator.wsdl",
+                    false,
+                    false,
+                    List.of(),
+                    AUDIT_INFO);
             var output = useCase.execute(input);
 
             assertThat(output).isNotNull();
@@ -208,7 +212,10 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
     }
 
     private void givenExistingApi(String apiId) {
-        var existingApi = aProxyApiV4().toBuilder().id(apiId).environmentId(ENVIRONMENT_ID).build();
+        var existingApi = aProxyApiV4().toBuilder()
+                .id(apiId)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         apiCrudService.initWith(List.of(existingApi));
     }
 
@@ -217,7 +224,9 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
         return Resources.toString(Resources.getResource("wsdl/calculator.wsdl"), Charsets.UTF_8);
     }
 
-    private WsdlToUpdateApiUseCase.Input buildInput(String payload, boolean withDocumentation, boolean withOASValidationPolicy) {
-        return new WsdlToUpdateApiUseCase.Input.Inline(API_ID, payload, withDocumentation, withOASValidationPolicy, List.of(), AUDIT_INFO);
+    private WsdlToUpdateApiUseCase.Input buildInput(
+            String payload, boolean withDocumentation, boolean withOASValidationPolicy) {
+        return new WsdlToUpdateApiUseCase.Input.Inline(
+                API_ID, payload, withDocumentation, withOASValidationPolicy, List.of(), AUDIT_INFO);
     }
 }

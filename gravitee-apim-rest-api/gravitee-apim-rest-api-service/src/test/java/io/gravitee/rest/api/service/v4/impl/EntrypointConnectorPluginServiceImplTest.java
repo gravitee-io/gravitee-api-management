@@ -89,15 +89,16 @@ public class EntrypointConnectorPluginServiceImplTest {
             cut.getSubscriptionSchema(CONNECTOR_ID);
             fail("We should not go further because call should throw a TechnicalManagementException");
         } catch (TechnicalManagementException e) {
-            assertThat(e.getMessage()).isEqualTo(
-                "An error occurs while trying to get entrypoint subscription schema for plugin " + CONNECTOR_ID
-            );
+            assertThat(e.getMessage())
+                    .isEqualTo("An error occurs while trying to get entrypoint subscription schema for plugin "
+                            + CONNECTOR_ID);
         }
     }
 
     @Test
     public void shouldGetSubscriptionSchemaForGvSchemaForm() throws IOException {
-        when(pluginManager.getSchema(CONNECTOR_ID, "subscriptions/display-gv-schema-form", true)).thenReturn("subscriptionConfiguration");
+        when(pluginManager.getSchema(CONNECTOR_ID, "subscriptions/display-gv-schema-form", true))
+                .thenReturn("subscriptionConfiguration");
 
         String result = cut.getSubscriptionSchema(CONNECTOR_ID, SchemaDisplayFormat.GV_SCHEMA_FORM);
 
@@ -106,7 +107,8 @@ public class EntrypointConnectorPluginServiceImplTest {
 
     @Test
     public void shouldGetDefaultSubscriptionSchemaWhenIOException() throws IOException {
-        when(pluginManager.getSchema(CONNECTOR_ID, "subscriptions/display-gv-schema-form", true)).thenThrow(new IOException());
+        when(pluginManager.getSchema(CONNECTOR_ID, "subscriptions/display-gv-schema-form", true))
+                .thenThrow(new IOException());
         when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
 
         String result = cut.getSubscriptionSchema(CONNECTOR_ID, SchemaDisplayFormat.GV_SCHEMA_FORM);
@@ -116,7 +118,8 @@ public class EntrypointConnectorPluginServiceImplTest {
 
     @Test
     public void shouldGetDefaultSubscriptionSchemaWhenNull() throws IOException {
-        when(pluginManager.getSchema(CONNECTOR_ID, "subscriptions/display-gv-schema-form", true)).thenReturn(null);
+        when(pluginManager.getSchema(CONNECTOR_ID, "subscriptions/display-gv-schema-form", true))
+                .thenReturn(null);
         when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
 
         String result = cut.getSubscriptionSchema(CONNECTOR_ID, SchemaDisplayFormat.GV_SCHEMA_FORM);
@@ -138,7 +141,8 @@ public class EntrypointConnectorPluginServiceImplTest {
         when(pluginManager.get(CONNECTOR_ID, true)).thenReturn(new FakePlugin());
         when(pluginManager.getFactoryById(CONNECTOR_ID, true)).thenReturn(new FakeConnectorFactory());
 
-        assertThat(cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, null)).isNull();
+        assertThat(cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, null))
+                .isNull();
     }
 
     @Test
@@ -147,7 +151,8 @@ public class EntrypointConnectorPluginServiceImplTest {
         when(pluginManager.get(CONNECTOR_ID, true)).thenReturn(new FakePlugin());
         when(pluginManager.getFactoryById(CONNECTOR_ID, true)).thenReturn(new FakeConnectorFactory());
         when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
-        when(jsonSchemaService.validate(eq("subscriptionConfiguration"), eq("{}"))).thenReturn(expectedConfiguration);
+        when(jsonSchemaService.validate(eq("subscriptionConfiguration"), eq("{}")))
+                .thenReturn(expectedConfiguration);
 
         final String result = cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, null);
         assertThat(result).isEqualTo(expectedConfiguration);
@@ -161,38 +166,45 @@ public class EntrypointConnectorPluginServiceImplTest {
         when(pluginManager.get(CONNECTOR_ID, true)).thenReturn(new FakePlugin());
         when(pluginManager.getFactoryById(CONNECTOR_ID, true)).thenReturn(new FakeConnectorFactory());
         when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
-        when(jsonSchemaService.validate("subscriptionConfiguration", configuration)).thenReturn(expectedConfiguration);
+        when(jsonSchemaService.validate("subscriptionConfiguration", configuration))
+                .thenReturn(expectedConfiguration);
 
         final String result = cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, configuration);
         assertThat(result).isEqualTo(expectedConfiguration);
     }
 
     @Test
-    public void should_normalize_legacy_ssl_none_values_before_validating_webhook_subscription_configuration() throws IOException {
+    public void should_normalize_legacy_ssl_none_values_before_validating_webhook_subscription_configuration()
+            throws IOException {
         final String legacyConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"\"},\"keyStore\":{\"type\":\"\"}}}";
-        final String normalizedConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"},\"keyStore\":{\"type\":\"NONE\"}}}";
+        final String normalizedConfiguration =
+                "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"},\"keyStore\":{\"type\":\"NONE\"}}}";
         final String expectedConfiguration = "validated_and_sanitized";
 
         when(pluginManager.get(WEBHOOK_ENTRYPOINT_ID, true)).thenReturn(new FakePlugin());
         when(pluginManager.getFactoryById(CONNECTOR_ID, true)).thenReturn(new FakeConnectorFactory());
         when(pluginManager.getSubscriptionSchema(WEBHOOK_ENTRYPOINT_ID, true)).thenReturn("subscriptionConfiguration");
-        when(jsonSchemaService.validate("subscriptionConfiguration", normalizedConfiguration)).thenReturn(expectedConfiguration);
+        when(jsonSchemaService.validate("subscriptionConfiguration", normalizedConfiguration))
+                .thenReturn(expectedConfiguration);
 
-        final String result = cut.validateEntrypointSubscriptionConfiguration(WEBHOOK_ENTRYPOINT_ID, legacyConfiguration);
+        final String result =
+                cut.validateEntrypointSubscriptionConfiguration(WEBHOOK_ENTRYPOINT_ID, legacyConfiguration);
 
         assertThat(result).isEqualTo(expectedConfiguration);
         verify(jsonSchemaService).validate("subscriptionConfiguration", normalizedConfiguration);
     }
 
     @Test
-    public void should_not_normalize_subscription_configuration_of_an_entrypoint_without_the_shared_ssl_schema() throws IOException {
+    public void should_not_normalize_subscription_configuration_of_an_entrypoint_without_the_shared_ssl_schema()
+            throws IOException {
         final String legacyConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"\"},\"keyStore\":{\"type\":\"\"}}}";
         final String expectedConfiguration = "validated_and_sanitized";
 
         when(pluginManager.get(CONNECTOR_ID, true)).thenReturn(new FakePlugin());
         when(pluginManager.getFactoryById(CONNECTOR_ID, true)).thenReturn(new FakeConnectorFactory());
         when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
-        when(jsonSchemaService.validate("subscriptionConfiguration", legacyConfiguration)).thenReturn(expectedConfiguration);
+        when(jsonSchemaService.validate("subscriptionConfiguration", legacyConfiguration))
+                .thenReturn(expectedConfiguration);
 
         final String result = cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, legacyConfiguration);
 

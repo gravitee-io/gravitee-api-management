@@ -64,11 +64,12 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
     public static OriginContext toOriginContext(Api source) {
         return switch (getOriginContextOrDefault(source)) {
             case MANAGEMENT -> new OriginContext.Management();
-            case KUBERNETES -> new OriginContext.Kubernetes(
-                source.getMode() != null
-                    ? OriginContext.Kubernetes.Mode.valueOf(source.getMode().toUpperCase())
-                    : OriginContext.Kubernetes.Mode.FULLY_MANAGED
-            );
+            case KUBERNETES ->
+                new OriginContext.Kubernetes(
+                        source.getMode() != null
+                                ? OriginContext.Kubernetes.Mode.valueOf(
+                                        source.getMode().toUpperCase())
+                                : OriginContext.Kubernetes.Mode.FULLY_MANAGED);
             case INTEGRATION -> new OriginContext.Integration(source.getIntegrationId(), null, null);
         };
     }
@@ -76,8 +77,8 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
     private static OriginContext.Origin getOriginContextOrDefault(Api source) {
         try {
             return source.getOrigin() == null
-                ? OriginContext.Origin.MANAGEMENT
-                : OriginContext.Origin.valueOf(source.getOrigin().toUpperCase());
+                    ? OriginContext.Origin.MANAGEMENT
+                    : OriginContext.Origin.valueOf(source.getOrigin().toUpperCase());
         } catch (IllegalArgumentException e) {
             return OriginContext.Origin.MANAGEMENT;
         }

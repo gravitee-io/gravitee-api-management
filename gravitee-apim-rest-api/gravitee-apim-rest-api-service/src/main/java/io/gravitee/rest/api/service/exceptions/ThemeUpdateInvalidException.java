@@ -16,10 +16,8 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import static java.lang.String.format;
-import static java.util.Collections.singletonMap;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.theme.ThemeType;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 

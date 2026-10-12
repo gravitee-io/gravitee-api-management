@@ -36,7 +36,8 @@ import org.slf4j.Logger;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultExecutionContext extends AbstractExecutionContext<MutableRequest, MutableResponse> implements MutableExecutionContext {
+public class DefaultExecutionContext extends AbstractExecutionContext<MutableRequest, MutableResponse>
+        implements MutableExecutionContext {
 
     private ConcurrentHashMap<Logger, Logger> loggers;
 
@@ -82,7 +83,8 @@ public class DefaultExecutionContext extends AbstractExecutionContext<MutableReq
         return this;
     }
 
-    public DefaultExecutionContext templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders) {
+    public DefaultExecutionContext templateVariableProviders(
+            final Collection<TemplateVariableProvider> templateVariableProviders) {
         this.templateVariableProviders = templateVariableProviders;
         return this;
     }
@@ -98,12 +100,13 @@ public class DefaultExecutionContext extends AbstractExecutionContext<MutableReq
             loggers = new ConcurrentHashMap<>();
         }
 
-        return loggers.computeIfAbsent(delegate, logger ->
-            ExecutionContextLazyLogger.lazy(logger, this, DefaultExecutionContextAwareLogger::new)
-        );
+        return loggers.computeIfAbsent(
+                delegate,
+                logger -> ExecutionContextLazyLogger.lazy(logger, this, DefaultExecutionContextAwareLogger::new));
     }
 
-    private class DefaultExecutionContextAwareLogger extends AbstractBaseExecutionContextAwareLogger<DefaultExecutionContext> {
+    private class DefaultExecutionContextAwareLogger
+            extends AbstractBaseExecutionContextAwareLogger<DefaultExecutionContext> {
 
         public DefaultExecutionContextAwareLogger(DefaultExecutionContext context, Logger logger) {
             super(context, logger);

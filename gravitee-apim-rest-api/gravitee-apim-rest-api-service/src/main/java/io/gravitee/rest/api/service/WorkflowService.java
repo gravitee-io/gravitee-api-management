@@ -28,13 +28,15 @@ import java.util.List;
  */
 public interface WorkflowService {
     Workflow create(
-        WorkflowReferenceType referenceType,
-        String referenceId,
-        WorkflowType type,
-        String user,
-        WorkflowState state,
-        String comment
-    );
+            WorkflowReferenceType referenceType,
+            String referenceId,
+            WorkflowType type,
+            String user,
+            WorkflowState state,
+            String comment);
+
     List<Workflow> findByReferenceAndType(WorkflowReferenceType referenceType, String referenceId, WorkflowType type);
-    List<Workflow> findByReferencesAndType(WorkflowReferenceType referenceType, Collection<String> referenceIds, WorkflowType type);
+
+    List<Workflow> findByReferencesAndType(
+            WorkflowReferenceType referenceType, Collection<String> referenceIds, WorkflowType type);
 }

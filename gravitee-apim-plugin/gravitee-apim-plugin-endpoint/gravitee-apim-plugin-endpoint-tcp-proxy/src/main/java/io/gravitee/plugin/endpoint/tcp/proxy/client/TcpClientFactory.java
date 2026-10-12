@@ -38,15 +38,16 @@ public class TcpClientFactory {
     private final AtomicBoolean tcpClientCreated = new AtomicBoolean(false);
 
     public NetClient getOrBuildTcpClient(
-        final TcpExecutionContext ctx,
-        final TcpProxyEndpointConnectorConfiguration configuration,
-        final TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration
-    ) {
+            final TcpExecutionContext ctx,
+            final TcpProxyEndpointConnectorConfiguration configuration,
+            final TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration) {
         if (tcpClient == null) {
             synchronized (this) {
                 // Double-checked locking.
                 if (tcpClientCreated.compareAndSet(false, true)) {
-                    tcpClient = buildTcpClient(ctx, configuration, sharedConfiguration).build().createTcpClient();
+                    tcpClient = buildTcpClient(ctx, configuration, sharedConfiguration)
+                            .build()
+                            .createTcpClient();
                 }
             }
         }
@@ -54,17 +55,16 @@ public class TcpClientFactory {
     }
 
     protected VertxTcpClientFactory.VertxTcpClientFactoryBuilder buildTcpClient(
-        final TcpExecutionContext ctx,
-        final TcpProxyEndpointConnectorConfiguration configuration,
-        final TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration
-    ) {
+            final TcpExecutionContext ctx,
+            final TcpProxyEndpointConnectorConfiguration configuration,
+            final TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration) {
         return VertxTcpClientFactory.builder()
-            .vertx(ctx.getComponent(Vertx.class))
-            .tcpTarget(TcpTargetMapper.INSTANCE.map(configuration.getTcpTarget()))
-            .sslOptions(SslOptionsMapper.INSTANCE.map(sharedConfiguration.getSslOptions()))
-            .proxyOptions(TcpProxyOptionsMapper.INSTANCE.map(sharedConfiguration.getProxyOptions()))
-            .tcpOptions(TcpClientOptionsMapper.INSTANCE.map(sharedConfiguration.getTcpClientOptions()))
-            .nodeConfiguration(ctx.getComponent(Configuration.class));
+                .vertx(ctx.getComponent(Vertx.class))
+                .tcpTarget(TcpTargetMapper.INSTANCE.map(configuration.getTcpTarget()))
+                .sslOptions(SslOptionsMapper.INSTANCE.map(sharedConfiguration.getSslOptions()))
+                .proxyOptions(TcpProxyOptionsMapper.INSTANCE.map(sharedConfiguration.getProxyOptions()))
+                .tcpOptions(TcpClientOptionsMapper.INSTANCE.map(sharedConfiguration.getTcpClientOptions()))
+                .nodeConfiguration(ctx.getComponent(Configuration.class));
     }
 
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")

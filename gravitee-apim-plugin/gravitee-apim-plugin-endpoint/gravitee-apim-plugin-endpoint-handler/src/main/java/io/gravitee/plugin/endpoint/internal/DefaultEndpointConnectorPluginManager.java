@@ -35,8 +35,8 @@ import lombok.CustomLog;
 @SuppressWarnings("unchecked")
 @CustomLog
 public class DefaultEndpointConnectorPluginManager
-    extends AbstractConfigurablePluginManager<EndpointConnectorPlugin<?, ?>>
-    implements EndpointConnectorPluginManager {
+        extends AbstractConfigurablePluginManager<EndpointConnectorPlugin<?, ?>>
+        implements EndpointConnectorPluginManager {
 
     private final EndpointConnectorClassLoaderFactory classLoaderFactory;
     private final Map<String, BaseEndpointConnectorFactory<?>> factories = new HashMap<>();
@@ -45,9 +45,8 @@ public class DefaultEndpointConnectorPluginManager
     private final PluginConfigurationHelper pluginConfigurationHelper;
 
     public DefaultEndpointConnectorPluginManager(
-        final EndpointConnectorClassLoaderFactory classLoaderFactory,
-        final PluginConfigurationHelper pluginConfigurationHelper
-    ) {
+            final EndpointConnectorClassLoaderFactory classLoaderFactory,
+            final PluginConfigurationHelper pluginConfigurationHelper) {
         this.classLoaderFactory = classLoaderFactory;
         this.pluginConfigurationHelper = pluginConfigurationHelper;
     }
@@ -59,9 +58,8 @@ public class DefaultEndpointConnectorPluginManager
         // Create endpoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<BaseEndpointConnectorFactory<?>> connectorFactoryClass = (Class<
-                BaseEndpointConnectorFactory<?>
-            >) pluginClassLoader.loadClass(plugin.clazz());
+            final Class<BaseEndpointConnectorFactory<?>> connectorFactoryClass =
+                    (Class<BaseEndpointConnectorFactory<?>>) pluginClassLoader.loadClass(plugin.clazz());
             BaseEndpointConnectorFactory<?> factory = createFactory(connectorFactoryClass);
             if (plugin.deployed()) {
                 factories.put(plugin.id(), factory);
@@ -73,16 +71,17 @@ public class DefaultEndpointConnectorPluginManager
         }
     }
 
-    private BaseEndpointConnectorFactory<?> createFactory(final Class<BaseEndpointConnectorFactory<?>> connectorFactoryClass)
-        throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    private BaseEndpointConnectorFactory<?> createFactory(
+            final Class<BaseEndpointConnectorFactory<?>> connectorFactoryClass)
+            throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         BaseEndpointConnectorFactory<?> factory;
         try {
-            Constructor<BaseEndpointConnectorFactory<?>> constructorWithConfigurationHelper = connectorFactoryClass.getDeclaredConstructor(
-                PluginConfigurationHelper.class
-            );
+            Constructor<BaseEndpointConnectorFactory<?>> constructorWithConfigurationHelper =
+                    connectorFactoryClass.getDeclaredConstructor(PluginConfigurationHelper.class);
             factory = constructorWithConfigurationHelper.newInstance(pluginConfigurationHelper);
         } catch (NoSuchMethodException e) {
-            Constructor<BaseEndpointConnectorFactory<?>> emptyConstructor = connectorFactoryClass.getDeclaredConstructor();
+            Constructor<BaseEndpointConnectorFactory<?>> emptyConstructor =
+                    connectorFactoryClass.getDeclaredConstructor();
             factory = emptyConstructor.newInstance();
         }
         return factory;

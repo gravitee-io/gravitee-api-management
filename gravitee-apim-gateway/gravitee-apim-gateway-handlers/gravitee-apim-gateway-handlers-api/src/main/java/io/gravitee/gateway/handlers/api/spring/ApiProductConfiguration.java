@@ -39,11 +39,10 @@ public class ApiProductConfiguration {
 
     @Bean
     public ApiProductManager apiProductManager(
-        ApiProductRegistry apiProductRegistry,
-        EventManager eventManager,
-        LicenseManager licenseManager,
-        GatewayConfiguration gatewayConfiguration
-    ) {
+            ApiProductRegistry apiProductRegistry,
+            EventManager eventManager,
+            LicenseManager licenseManager,
+            GatewayConfiguration gatewayConfiguration) {
         return new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager, gatewayConfiguration);
     }
 }

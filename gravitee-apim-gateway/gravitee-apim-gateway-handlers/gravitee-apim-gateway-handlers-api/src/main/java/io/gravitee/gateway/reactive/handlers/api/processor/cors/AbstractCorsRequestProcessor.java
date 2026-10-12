@@ -38,13 +38,13 @@ public abstract class AbstractCorsRequestProcessor implements Processor {
             return false;
         }
 
-        boolean allowed =
-            cors.getAccessControlAllowOrigin().contains(ALLOW_ORIGIN_PUBLIC_WILDCARD) ||
-            cors.getAccessControlAllowOrigin().contains(origin);
+        boolean allowed = cors.getAccessControlAllowOrigin().contains(ALLOW_ORIGIN_PUBLIC_WILDCARD)
+                || cors.getAccessControlAllowOrigin().contains(origin);
 
         if (allowed) {
             return true;
-        } else if (cors.getAccessControlAllowOriginRegex() != null && !cors.getAccessControlAllowOriginRegex().isEmpty()) {
+        } else if (cors.getAccessControlAllowOriginRegex() != null
+                && !cors.getAccessControlAllowOriginRegex().isEmpty()) {
             for (Pattern pattern : cors.getAccessControlAllowOriginRegex()) {
                 if (pattern.matcher(origin).matches()) {
                     return true;
@@ -57,13 +57,11 @@ public abstract class AbstractCorsRequestProcessor implements Processor {
     protected Cors getCors(final HttpPlainExecutionContext ctx) {
         try {
             Api api = ctx.getComponent(io.gravitee.definition.model.v4.Api.class);
-            return api
-                .getListeners()
-                .stream()
-                .filter(listener -> listener.getType() == ListenerType.HTTP)
-                .map(listener -> ((HttpListener) listener).getCors())
-                .findFirst()
-                .orElse(null);
+            return api.getListeners().stream()
+                    .filter(listener -> listener.getType() == ListenerType.HTTP)
+                    .map(listener -> ((HttpListener) listener).getCors())
+                    .findFirst()
+                    .orElse(null);
         } catch (Exception e) {
             io.gravitee.definition.model.Api api = ctx.getComponent(io.gravitee.definition.model.Api.class);
             return api.getProxy().getCors();

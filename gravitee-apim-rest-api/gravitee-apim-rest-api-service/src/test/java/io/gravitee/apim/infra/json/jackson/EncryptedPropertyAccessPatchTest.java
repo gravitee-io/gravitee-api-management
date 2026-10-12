@@ -27,11 +27,9 @@ class EncryptedPropertyAccessPatchTest {
     void should_list_each_encrypted_property_as_an_access_operation_with_the_fingerprint_of_its_ciphertext() {
         var patch = EncryptedPropertyAccessPatch.of(Map.of("secret-b", "NEW-CIPHER", "secret-a", "CIPHER"));
 
-        assertThat(patch).isEqualTo(
-            """
+        assertThat(patch).isEqualTo("""
             [{"op":"access","path":"/properties/secret-a","value":{"value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}},\
-            {"op":"access","path":"/properties/secret-b","value":{"value":"<sha256:bc66d34feaf1dd7d7ecd90ba7834e5cb554ba533abff6cb0664c6cec6647ad57>","encrypted":true}}]"""
-        );
+            {"op":"access","path":"/properties/secret-b","value":{"value":"<sha256:bc66d34feaf1dd7d7ecd90ba7834e5cb554ba533abff6cb0664c6cec6647ad57>","encrypted":true}}]""");
     }
 
     @Test
@@ -48,9 +46,7 @@ class EncryptedPropertyAccessPatchTest {
 
         var patch = EncryptedPropertyAccessPatch.of(ciphertextByKey);
 
-        assertThat(patch).isEqualTo(
-            """
-            [{"op":"access","path":"/properties/secret","value":{"encrypted":true}}]"""
-        );
+        assertThat(patch).isEqualTo("""
+            [{"op":"access","path":"/properties/secret","value":{"encrypted":true}}]""");
     }
 }

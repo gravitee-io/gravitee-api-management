@@ -65,13 +65,11 @@ class SearchApplicationMembersUseCaseTest {
         var pageable = new PageableImpl(1, 10);
         var criteria = SearchApplicationMembersCriteria.builder().build();
 
-        when(searchApplicationMembersDomainService.searchApplicationMembers(ENVIRONMENT_ID, APPLICATION_ID)).thenThrow(
-            new ApplicationNotFoundException(APPLICATION_ID)
-        );
+        when(searchApplicationMembersDomainService.searchApplicationMembers(ENVIRONMENT_ID, APPLICATION_ID))
+                .thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
 
-        Throwable throwable = catchThrowable(() ->
-            cut.execute(new SearchApplicationMembersUseCase.Input(executionContext, APPLICATION_ID, criteria, pageable))
-        );
+        Throwable throwable = catchThrowable(() -> cut.execute(
+                new SearchApplicationMembersUseCase.Input(executionContext, APPLICATION_ID, criteria, pageable)));
 
         assertThat(throwable).isInstanceOf(ApplicationNotFoundException.class).hasMessageContaining(APPLICATION_ID);
     }
@@ -80,15 +78,15 @@ class SearchApplicationMembersUseCaseTest {
     void should_search_filter_sort_paginate_and_return_users_for_page() {
         var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
         var pageable = new PageableImpl(1, 1);
-        var criteria = SearchApplicationMembersCriteria.builder().displayName("a").build();
-        var membership1 = anApplicationMembership("00000000-0000-0000-0000-000000000001", APPLICATION_ID, "user-1", "role-1");
-        var membership2 = anApplicationMembership("00000000-0000-0000-0000-000000000002", APPLICATION_ID, "user-2", "role-2");
+        var criteria =
+                SearchApplicationMembersCriteria.builder().displayName("a").build();
+        var membership1 =
+                anApplicationMembership("00000000-0000-0000-0000-000000000001", APPLICATION_ID, "user-1", "role-1");
+        var membership2 =
+                anApplicationMembership("00000000-0000-0000-0000-000000000002", APPLICATION_ID, "user-2", "role-2");
         var groupMembership = anApplicationMembership(
-            "00000000-0000-0000-0000-000000000003",
-            APPLICATION_ID,
-            "group-1",
-            "role-3"
-        ).withMemberType(Membership.Type.GROUP);
+                        "00000000-0000-0000-0000-000000000003", APPLICATION_ID, "group-1", "role-3")
+                .withMemberType(Membership.Type.GROUP);
         var user1 = aBaseUserEntity("user-1");
         user1.setFirstname("Alice");
         user1.setLastname("");
@@ -96,12 +94,12 @@ class SearchApplicationMembersUseCaseTest {
         user2.setFirstname("Bob");
         user2.setLastname("");
 
-        when(searchApplicationMembersDomainService.searchApplicationMembers(ENVIRONMENT_ID, APPLICATION_ID)).thenReturn(
-            List.of(membership2, groupMembership, membership1)
-        );
+        when(searchApplicationMembersDomainService.searchApplicationMembers(ENVIRONMENT_ID, APPLICATION_ID))
+                .thenReturn(List.of(membership2, groupMembership, membership1));
         when(userCrudService.findBaseUsersByIds(List.of("user-2", "user-1"))).thenReturn(Set.of(user1, user2));
 
-        var result = cut.execute(new SearchApplicationMembersUseCase.Input(executionContext, APPLICATION_ID, criteria, pageable));
+        var result = cut.execute(
+                new SearchApplicationMembersUseCase.Input(executionContext, APPLICATION_ID, criteria, pageable));
 
         assertThat(result.memberships().getTotalElements()).isEqualTo(1);
         assertThat(result.memberships().getContent()).containsExactly(membership1);
@@ -114,24 +112,19 @@ class SearchApplicationMembersUseCaseTest {
     void should_throw_when_page_is_invalid() {
         var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
         var pageable = new PageableImpl(2, 10);
-        var membership = anApplicationMembership("00000000-0000-0000-0000-000000000001", APPLICATION_ID, "user-1", "role-1");
+        var membership =
+                anApplicationMembership("00000000-0000-0000-0000-000000000001", APPLICATION_ID, "user-1", "role-1");
         var user = aBaseUserEntity("user-1");
 
-        when(searchApplicationMembersDomainService.searchApplicationMembers(ENVIRONMENT_ID, APPLICATION_ID)).thenReturn(
-            List.of(membership)
-        );
+        when(searchApplicationMembersDomainService.searchApplicationMembers(ENVIRONMENT_ID, APPLICATION_ID))
+                .thenReturn(List.of(membership));
         when(userCrudService.findBaseUsersByIds(List.of("user-1"))).thenReturn(Set.of(user));
 
-        Throwable throwable = catchThrowable(() ->
-            cut.execute(
-                new SearchApplicationMembersUseCase.Input(
-                    executionContext,
-                    APPLICATION_ID,
-                    SearchApplicationMembersCriteria.builder().build(),
-                    pageable
-                )
-            )
-        );
+        Throwable throwable = catchThrowable(() -> cut.execute(new SearchApplicationMembersUseCase.Input(
+                executionContext,
+                APPLICATION_ID,
+                SearchApplicationMembersCriteria.builder().build(),
+                pageable)));
 
         assertThat(throwable).isInstanceOf(PaginationInvalidException.class);
     }

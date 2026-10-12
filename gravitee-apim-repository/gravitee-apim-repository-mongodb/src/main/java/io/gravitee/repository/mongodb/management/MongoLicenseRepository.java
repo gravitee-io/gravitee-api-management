@@ -44,10 +44,13 @@ public class MongoLicenseRepository implements LicenseRepository {
     private GraviteeMapper mapper;
 
     @Override
-    public Optional<License> findById(String referenceId, License.ReferenceType referenceType) throws TechnicalException {
+    public Optional<License> findById(String referenceId, License.ReferenceType referenceType)
+            throws TechnicalException {
         log.debug("Find license by ID [{} {}]", referenceId, referenceType);
 
-        final LicenseMongo license = internalLicenseRepo.findById(new LicensePkMongo(referenceId, referenceType.name())).orElse(null);
+        final LicenseMongo license = internalLicenseRepo
+                .findById(new LicensePkMongo(referenceId, referenceType.name()))
+                .orElse(null);
 
         log.debug("Find license by ID [{}] - Done", license);
         return Optional.ofNullable(mapper.map(license));
@@ -70,17 +73,17 @@ public class MongoLicenseRepository implements LicenseRepository {
     @Override
     public License update(License license) throws TechnicalException {
         final LicenseMongo organizationMongo = internalLicenseRepo
-            .findById(new LicensePkMongo(license.getReferenceId(), license.getReferenceType().name()))
-            .orElse(null);
+                .findById(new LicensePkMongo(
+                        license.getReferenceId(), license.getReferenceType().name()))
+                .orElse(null);
 
         if (organizationMongo == null) {
-            throw new IllegalStateException(
-                String.format("No licenses found with id [%s %s]", license.getReferenceId(), license.getReferenceType())
-            );
+            throw new IllegalStateException(String.format(
+                    "No licenses found with id [%s %s]", license.getReferenceId(), license.getReferenceType()));
         }
 
         try {
-            //Update
+            // Update
             organizationMongo.setLicense(license.getLicense());
             organizationMongo.setUpdatedAt(license.getUpdatedAt());
 
@@ -108,21 +111,18 @@ public class MongoLicenseRepository implements LicenseRepository {
         final List<License> content = mapper.mapLicenses(licenseMongoPage.getContent());
 
         return new Page(
-            content,
-            licenseMongoPage.getPageNumber(),
-            (int) licenseMongoPage.getPageElements(),
-            licenseMongoPage.getTotalElements()
-        );
+                content,
+                licenseMongoPage.getPageNumber(),
+                (int) licenseMongoPage.getPageElements(),
+                licenseMongoPage.getTotalElements());
     }
 
     @Override
     public Set<License> findAll() throws TechnicalException {
         try {
-            return internalLicenseRepo
-                .findAll()
-                .stream()
-                .map(organization -> mapper.map(organization))
-                .collect(Collectors.toSet());
+            return internalLicenseRepo.findAll().stream()
+                    .map(organization -> mapper.map(organization))
+                    .collect(Collectors.toSet());
         } catch (Exception e) {
             log.error("An error occurred when finding all licenses", e);
             throw new TechnicalException("An error occurred when finding all licenses");

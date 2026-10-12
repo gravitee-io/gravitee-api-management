@@ -23,7 +23,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.ScoringReportFixture;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringReportRepository;
@@ -73,8 +72,8 @@ public class ScoringReportCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when creating Scoring Report for API: api-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when creating Scoring Report for API: api-id");
         }
     }
 
@@ -103,8 +102,8 @@ public class ScoringReportCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when deleting Scoring Report for API: api-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when deleting Scoring Report for API: api-id");
         }
     }
 }

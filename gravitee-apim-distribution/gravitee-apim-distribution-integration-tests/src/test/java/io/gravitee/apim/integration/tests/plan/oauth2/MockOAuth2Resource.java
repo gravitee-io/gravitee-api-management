@@ -60,7 +60,8 @@ public class MockOAuth2Resource extends OAuth2Resource<MockOAuth2Resource.MockOA
 
     @Override
     public OAuth2ResourceMetadata getProtectedResourceMetadata(String protectedResourceUri) {
-        return new OAuth2ResourceMetadata(protectedResourceUri, List.of("https://some.keycloak.com/realms/test"), List.of("read", "write"));
+        return new OAuth2ResourceMetadata(
+                protectedResourceUri, List.of("https://some.keycloak.com/realms/test"), List.of("read", "write"));
     }
 
     public class MockOAuth2ResourceConfiguration implements ResourceConfiguration {}

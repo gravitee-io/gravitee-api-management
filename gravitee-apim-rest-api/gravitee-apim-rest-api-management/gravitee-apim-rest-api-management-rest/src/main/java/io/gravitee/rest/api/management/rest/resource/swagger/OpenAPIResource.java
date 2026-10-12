@@ -31,9 +31,10 @@ import jakarta.ws.rs.core.*;
 public class OpenAPIResource extends AbstractResource {
 
     @GET
-    @Produces({ "application/json", "application/yaml" })
+    @Produces({"application/json", "application/yaml"})
     @Operation(hidden = true)
     public Response getOpenApi(@PathParam("type") String type) throws Exception {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("console-openapi." + type)).build();
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("console-openapi." + type))
+                .build();
     }
 }

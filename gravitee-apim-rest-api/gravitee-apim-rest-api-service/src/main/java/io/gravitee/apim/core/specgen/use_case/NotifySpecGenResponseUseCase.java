@@ -38,10 +38,9 @@ public class NotifySpecGenResponseUseCase {
 
     public void notify(String apiId, String userId) {
         apiSpecGenQueryService
-            .rxFindByIdAndType(getExecutionContext(), apiId, PROXY)
-            .subscribe(
-                apiSpecGen -> specGenNotificationProvider.notify(apiSpecGen, userId),
-                t -> log.error("An unexpected error has occurred", t)
-            );
+                .rxFindByIdAndType(getExecutionContext(), apiId, PROXY)
+                .subscribe(
+                        apiSpecGen -> specGenNotificationProvider.notify(apiSpecGen, userId),
+                        t -> log.error("An unexpected error has occurred", t));
     }
 }

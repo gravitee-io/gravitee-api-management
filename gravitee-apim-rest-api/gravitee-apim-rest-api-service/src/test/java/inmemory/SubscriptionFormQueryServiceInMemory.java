@@ -28,32 +28,33 @@ import java.util.Optional;
  *
  * @author Gravitee.io Team
  */
-public class SubscriptionFormQueryServiceInMemory implements SubscriptionFormQueryService, InMemoryAlternative<SubscriptionForm> {
+public class SubscriptionFormQueryServiceInMemory
+        implements SubscriptionFormQueryService, InMemoryAlternative<SubscriptionForm> {
 
     final List<SubscriptionForm> storage = new ArrayList<>();
 
     @Override
-    public Optional<SubscriptionForm> findByIdAndEnvironmentId(String environmentId, SubscriptionFormId subscriptionFormId) {
-        return storage
-            .stream()
-            .filter(form -> form.getEnvironmentId().equals(environmentId) && form.getId().equals(subscriptionFormId))
-            .findFirst();
+    public Optional<SubscriptionForm> findByIdAndEnvironmentId(
+            String environmentId, SubscriptionFormId subscriptionFormId) {
+        return storage.stream()
+                .filter(form -> form.getEnvironmentId().equals(environmentId)
+                        && form.getId().equals(subscriptionFormId))
+                .findFirst();
     }
 
     @Override
     public List<SubscriptionForm> findAllByEnvironmentId(String environmentId) {
-        return storage
-            .stream()
-            .filter(form -> form.getEnvironmentId().equals(environmentId))
-            .toList();
+        return storage.stream()
+                .filter(form -> form.getEnvironmentId().equals(environmentId))
+                .toList();
     }
 
     @Override
     public Optional<SubscriptionForm> findByApiId(String environmentId, String apiId) {
-        return storage
-            .stream()
-            .filter(form -> form.getEnvironmentId().equals(environmentId) && form.getApiIds().contains(apiId))
-            .findFirst();
+        return storage.stream()
+                .filter(form -> form.getEnvironmentId().equals(environmentId)
+                        && form.getApiIds().contains(apiId))
+                .findFirst();
     }
 
     @Override

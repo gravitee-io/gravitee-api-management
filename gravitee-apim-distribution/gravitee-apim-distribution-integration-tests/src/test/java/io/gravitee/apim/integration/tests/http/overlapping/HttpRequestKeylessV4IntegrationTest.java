@@ -53,19 +53,21 @@ class HttpRequestKeylessV4IntegrationTest extends AbstractGatewayTest {
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put(
-            "dynamic-routing",
-            PolicyBuilder.build("dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class)
-        );
+                "dynamic-routing",
+                PolicyBuilder.build(
+                        "dynamic-routing", DynamicRoutingPolicy.class, DynamicRoutingPolicyConfiguration.class));
     }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
@@ -82,7 +84,7 @@ class HttpRequestKeylessV4IntegrationTest extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should receive 200 - OK on overlapping context two APIs")
-    @DeployApi({ "/apis/v4/http/overlapping/api-0.json", "/apis/v4/http/overlapping/api-2.json" })
+    @DeployApi({"/apis/v4/http/overlapping/api-0.json", "/apis/v4/http/overlapping/api-2.json"})
     void should_get200_overlapping_path_in_2_apis(HttpClient httpClient) throws InterruptedException {
         assertCalls(httpClient);
     }
@@ -92,50 +94,50 @@ class HttpRequestKeylessV4IntegrationTest extends AbstractGatewayTest {
         wiremock.stubFor(get("/endpoint0/foo").willReturn(ok("response from backend 0/foo")));
         wiremock.stubFor(get("/endpoint2").willReturn(ok("response from backend 2")));
         httpClient
-            .rxRequest(HttpMethod.GET, "/test/v2")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("response from backend 2");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test/v2")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("response from backend 2");
+                    return true;
+                })
+                .assertNoErrors();
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/foo")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("response from backend 0/foo");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/foo")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("response from backend 0/foo");
+                    return true;
+                })
+                .assertNoErrors();
         httpClient
-            .rxRequest(HttpMethod.GET, "")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("response from backend 0");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("response from backend 0");
+                    return true;
+                })
+                .assertNoErrors();
     }
 }

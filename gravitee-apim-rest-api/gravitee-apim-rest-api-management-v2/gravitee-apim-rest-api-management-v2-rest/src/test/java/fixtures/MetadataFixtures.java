@@ -21,46 +21,46 @@ public class MetadataFixtures {
 
     private MetadataFixtures() {}
 
-    public static Metadata aEnvMetadata(String environmentId, String key, String name, Object value, Metadata.MetadataFormat format) {
+    public static Metadata aEnvMetadata(
+            String environmentId, String key, String name, Object value, Metadata.MetadataFormat format) {
         assert environmentId != null;
         return aCoreMetadata(Metadata.ReferenceType.ENVIRONMENT, environmentId, key, name, value, format);
     }
 
-    public static Metadata aApiMetadata(String apidId, String key, String name, Object value, Metadata.MetadataFormat format) {
+    public static Metadata aApiMetadata(
+            String apidId, String key, String name, Object value, Metadata.MetadataFormat format) {
         assert apidId != null;
         return aCoreMetadata(Metadata.ReferenceType.API, apidId, key, name, value, format);
     }
 
     public static Metadata aCoreMetadata(
-        Metadata.ReferenceType referenceType,
-        String referenceId,
-        String key,
-        String name,
-        Object value,
-        Metadata.MetadataFormat format
-    ) {
+            Metadata.ReferenceType referenceType,
+            String referenceId,
+            String key,
+            String name,
+            Object value,
+            Metadata.MetadataFormat format) {
         return Metadata.builder()
-            .referenceId(referenceId)
-            .referenceType(referenceType)
-            .key(key)
-            .name(name)
-            .value(value != null ? value.toString() : null)
-            .format(format)
-            .build();
+                .referenceId(referenceId)
+                .referenceType(referenceType)
+                .key(key)
+                .name(name)
+                .value(value != null ? value.toString() : null)
+                .format(format)
+                .build();
     }
 
     public static io.gravitee.rest.api.management.v2.rest.model.Metadata aMapiV2Metadata(
-        String key,
-        String name,
-        Object value,
-        Object defaultValue,
-        io.gravitee.rest.api.management.v2.rest.model.MetadataFormat format
-    ) {
+            String key,
+            String name,
+            Object value,
+            Object defaultValue,
+            io.gravitee.rest.api.management.v2.rest.model.MetadataFormat format) {
         return new io.gravitee.rest.api.management.v2.rest.model.Metadata()
-            .key(key)
-            .name(name)
-            .value(value != null ? value.toString() : null)
-            .defaultValue(defaultValue != null ? defaultValue.toString() : null)
-            .format(format);
+                .key(key)
+                .name(name)
+                .value(value != null ? value.toString() : null)
+                .defaultValue(defaultValue != null ? defaultValue.toString() : null)
+                .format(format);
     }
 }

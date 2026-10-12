@@ -35,12 +35,12 @@ public class CrudServiceRulesTest extends AbstractApimArchitectureTest {
     @Test
     public void crud_service_should_reside_in_a_crud_service_package() {
         classes()
-            .that()
-            .haveNameMatching(".*CrudService*")
-            .should()
-            .resideInAPackage(anyPackageThatContains(CRUD_SERVICE_PACKAGE))
-            .as("CrudServices should reside in a package '" + anyPackageThatContains(CRUD_SERVICE_PACKAGE) + "'")
-            .check(apimClassesWithoutTests());
+                .that()
+                .haveNameMatching(".*CrudService*")
+                .should()
+                .resideInAPackage(anyPackageThatContains(CRUD_SERVICE_PACKAGE))
+                .as("CrudServices should reside in a package '" + anyPackageThatContains(CRUD_SERVICE_PACKAGE) + "'")
+                .check(apimClassesWithoutTests());
     }
 
     /**
@@ -49,12 +49,12 @@ public class CrudServiceRulesTest extends AbstractApimArchitectureTest {
     @Test
     public void crud_services_should_not_use_usecase() {
         noClasses()
-            .that()
-            .resideInAnyPackage(anyPackageThatContains(CRUD_SERVICE_PACKAGE))
-            .should()
-            .dependOnClassesThat()
-            .resideInAPackage(anyPackageThatContains(USECASE_PACKAGE))
-            .check(apimClassesWithoutTests());
+                .that()
+                .resideInAnyPackage(anyPackageThatContains(CRUD_SERVICE_PACKAGE))
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage(anyPackageThatContains(USECASE_PACKAGE))
+                .check(apimClassesWithoutTests());
     }
 
     /**
@@ -62,14 +62,13 @@ public class CrudServiceRulesTest extends AbstractApimArchitectureTest {
      */
     @Test
     public void crud_services_should_be_independent() {
-        slices()
-            .matching(anyPackageThatContains(CRUD_SERVICE_PACKAGE + ".(*)"))
-            .namingSlices("CrudService $1")
-            .as("CrudService")
-            .should()
-            .notDependOnEachOther()
-            // ignore dependencies from inmemory package are they implements services
-            .ignoreDependency(nameMatching(".*crud_service\\.inmemory.*"), alwaysTrue())
-            .check(apimClassesWithoutTests());
+        slices().matching(anyPackageThatContains(CRUD_SERVICE_PACKAGE + ".(*)"))
+                .namingSlices("CrudService $1")
+                .as("CrudService")
+                .should()
+                .notDependOnEachOther()
+                // ignore dependencies from inmemory package are they implements services
+                .ignoreDependency(nameMatching(".*crud_service\\.inmemory.*"), alwaysTrue())
+                .check(apimClassesWithoutTests());
     }
 }

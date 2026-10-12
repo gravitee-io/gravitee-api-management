@@ -28,18 +28,14 @@ public class EndpointBuilder {
         throw new IllegalStateException("Utility class");
     }
 
-    public static <T extends BaseEndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration> EndpointConnectorPlugin<T, U> build(
-        String id,
-        Class<T> endpointConnectorFactory
-    ) {
+    public static <T extends BaseEndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration>
+            EndpointConnectorPlugin<T, U> build(String id, Class<T> endpointConnectorFactory) {
         return build(id, endpointConnectorFactory, null);
     }
 
-    public static <T extends BaseEndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration> EndpointConnectorPlugin<T, U> build(
-        String id,
-        Class<T> entrypointConnectorFactory,
-        Class<U> entrypointConfiguration
-    ) {
+    public static <T extends BaseEndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration>
+            EndpointConnectorPlugin<T, U> build(
+                    String id, Class<T> entrypointConnectorFactory, Class<U> entrypointConfiguration) {
         return new EndpointConnectorPlugin<>() {
             @Override
             public Class<T> connectorFactory() {

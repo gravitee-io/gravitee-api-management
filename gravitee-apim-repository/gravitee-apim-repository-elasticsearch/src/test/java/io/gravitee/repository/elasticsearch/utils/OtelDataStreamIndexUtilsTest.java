@@ -30,7 +30,8 @@ class OtelDataStreamIndexUtilsTest {
     void should_replace_hyphens_in_dataset_position_with_underscore() {
         // Dataset-position placeholder: the OTel exporter strips hyphens from the dataset component,
         // so we must do the same on the read side or every query misses.
-        String result = OtelDataStreamIndexUtils.format("traces-gamma_{orgId}.otel-dev_apim_master", Map.of("orgId", "my-org-1"));
+        String result = OtelDataStreamIndexUtils.format(
+                "traces-gamma_{orgId}.otel-dev_apim_master", Map.of("orgId", "my-org-1"));
         assertThat(result).isEqualTo("traces-gamma_my_org_1.otel-dev_apim_master");
     }
 
@@ -90,7 +91,8 @@ class OtelDataStreamIndexUtilsTest {
     void should_preserve_structural_separators_in_the_template_outside_placeholders() {
         // The substitution is per-VALUE, not per the whole resolved string — so the structural
         // hyphens between traces / gamma / dev_apim_master stay intact.
-        String result = OtelDataStreamIndexUtils.format("traces-gamma_{orgId}.otel-dev_apim_master", Map.of("orgId", "DEFAULT"));
+        String result = OtelDataStreamIndexUtils.format(
+                "traces-gamma_{orgId}.otel-dev_apim_master", Map.of("orgId", "DEFAULT"));
         assertThat(result).isEqualTo("traces-gamma_default.otel-dev_apim_master");
     }
 

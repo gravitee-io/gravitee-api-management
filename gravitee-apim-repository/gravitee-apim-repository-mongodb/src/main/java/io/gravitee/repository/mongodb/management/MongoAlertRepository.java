@@ -76,14 +76,15 @@ public class MongoAlertRepository implements AlertTriggerRepository {
             throw new IllegalStateException("Alert trigger to update must have a name");
         }
 
-        final AlertTriggerMongo alertTriggerMongo = internalAlertRepo.findById(trigger.getId()).orElse(null);
+        final AlertTriggerMongo alertTriggerMongo =
+                internalAlertRepo.findById(trigger.getId()).orElse(null);
 
         if (alertTriggerMongo == null) {
             throw new IllegalStateException(String.format("No alert trigger found with id [%s]", trigger.getId()));
         }
 
         try {
-            //Update
+            // Update
             alertTriggerMongo.setName(trigger.getName());
             alertTriggerMongo.setType(trigger.getType());
             alertTriggerMongo.setDescription(trigger.getDescription());
@@ -97,13 +98,10 @@ public class MongoAlertRepository implements AlertTriggerRepository {
             alertTriggerMongo.setEnvironmentId(trigger.getEnvironmentId());
 
             if (trigger.getEventRules() != null && !trigger.getEventRules().isEmpty()) {
-                alertTriggerMongo.setEventRules(
-                    trigger
-                        .getEventRules()
-                        .stream()
-                        .map(alertEventRule -> new AlertEventRuleMongo(alertEventRule.getEvent().name()))
-                        .collect(Collectors.toList())
-                );
+                alertTriggerMongo.setEventRules(trigger.getEventRules().stream()
+                        .map(alertEventRule -> new AlertEventRuleMongo(
+                                alertEventRule.getEvent().name()))
+                        .collect(Collectors.toList()));
             } else {
                 alertTriggerMongo.setEventRules(null);
             }
@@ -136,7 +134,8 @@ public class MongoAlertRepository implements AlertTriggerRepository {
     public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds) {
         log.debug("Find alert trigger by reference '{}' and referencesIds '{}'", referenceType, referenceIds);
 
-        final List<AlertTriggerMongo> triggers = internalAlertRepo.findByReferenceTypeAndReferenceIds(referenceType, referenceIds);
+        final List<AlertTriggerMongo> triggers =
+                internalAlertRepo.findByReferenceTypeAndReferenceIds(referenceType, referenceIds);
 
         log.debug("Find alert trigger by reference '{}' and referencesIds '{}' done", referenceType, referenceIds);
         return triggers.stream().map(this::map).collect(Collectors.toList());
@@ -160,14 +159,12 @@ public class MongoAlertRepository implements AlertTriggerRepository {
         trigger.setTemplate(alertTriggerMongo.isTemplate());
         trigger.setEnvironmentId(alertTriggerMongo.getEnvironmentId());
 
-        if (alertTriggerMongo.getEventRules() != null && !alertTriggerMongo.getEventRules().isEmpty()) {
-            trigger.setEventRules(
-                alertTriggerMongo
-                    .getEventRules()
-                    .stream()
-                    .map(alertEventRuleMongo -> new AlertEventRule(AlertEventType.valueOf(alertEventRuleMongo.getEvent().toUpperCase())))
-                    .collect(Collectors.toList())
-            );
+        if (alertTriggerMongo.getEventRules() != null
+                && !alertTriggerMongo.getEventRules().isEmpty()) {
+            trigger.setEventRules(alertTriggerMongo.getEventRules().stream()
+                    .map(alertEventRuleMongo -> new AlertEventRule(AlertEventType.valueOf(
+                            alertEventRuleMongo.getEvent().toUpperCase())))
+                    .collect(Collectors.toList()));
         }
 
         trigger.setCreatedAt(alertTriggerMongo.getCreatedAt());

@@ -46,16 +46,11 @@ public interface GroupCRDAdapter {
     }
 
     private static SequencedSet<MemberCRD> toMemberCRDSet(Set<GroupCRDSpec.Member> members, RoleScope roleScope) {
-        return members
-            .stream()
-            .flatMap(member ->
-                member
-                    .getRoles()
-                    .entrySet()
-                    .stream()
-                    .filter(roleEntry -> roleEntry.getKey() == roleScope)
-                    .map(roleEntry -> new MemberCRD(member.getId(), member.getSource(), member.getSourceId(), roleEntry.getValue()))
-            )
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+        return members.stream()
+                .flatMap(member -> member.getRoles().entrySet().stream()
+                        .filter(roleEntry -> roleEntry.getKey() == roleScope)
+                        .map(roleEntry -> new MemberCRD(
+                                member.getId(), member.getSource(), member.getSourceId(), roleEntry.getValue())))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

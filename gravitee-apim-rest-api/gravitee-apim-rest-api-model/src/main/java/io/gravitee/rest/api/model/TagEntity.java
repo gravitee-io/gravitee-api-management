@@ -87,13 +87,11 @@ public class TagEntity {
         if (this == o) return true;
         if (!(o instanceof TagEntity)) return false;
         TagEntity tagEntity = (TagEntity) o;
-        return (
-            Objects.equals(id, tagEntity.id) &&
-            Objects.equals(key, tagEntity.key) &&
-            Objects.equals(name, tagEntity.name) &&
-            Objects.equals(description, tagEntity.description) &&
-            Objects.equals(restrictedGroups, tagEntity.restrictedGroups)
-        );
+        return (Objects.equals(id, tagEntity.id)
+                && Objects.equals(key, tagEntity.key)
+                && Objects.equals(name, tagEntity.name)
+                && Objects.equals(description, tagEntity.description)
+                && Objects.equals(restrictedGroups, tagEntity.restrictedGroups));
     }
 
     @Override
@@ -103,23 +101,20 @@ public class TagEntity {
 
     @Override
     public String toString() {
-        return (
-            "TagEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", key='" +
-            key +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", restrictedGroups=" +
-            restrictedGroups +
-            '}'
-        );
+        return ("TagEntity{" + "id='"
+                + id
+                + '\''
+                + ", key='"
+                + key
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", restrictedGroups="
+                + restrictedGroups
+                + '}');
     }
 }

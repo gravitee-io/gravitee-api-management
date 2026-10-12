@@ -42,8 +42,8 @@ public class ReferencedApiExistsRule implements CreatePortalNavigationItemValida
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
         var apiId = ((ApiReference) item.getReference()).apiId();
         apiCrudService
-            .findById(apiId)
-            .filter(api -> api.belongsToEnvironment(environmentId))
-            .orElseThrow(() -> new ApiNotFoundException(apiId));
+                .findById(apiId)
+                .filter(api -> api.belongsToEnvironment(environmentId))
+                .orElseThrow(() -> new ApiNotFoundException(apiId));
     }
 }

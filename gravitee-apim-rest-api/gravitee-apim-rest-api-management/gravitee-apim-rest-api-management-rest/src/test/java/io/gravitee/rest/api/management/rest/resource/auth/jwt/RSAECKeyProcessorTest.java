@@ -18,21 +18,13 @@ package io.gravitee.rest.api.management.rest.resource.auth.jwt;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.exceptions.InvalidTokenException;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.jwks.ECJWKSourceResolver;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.jwks.RSAJWKSourceResolver;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.interfaces.ECPrivateKey;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

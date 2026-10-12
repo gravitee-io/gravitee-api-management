@@ -40,7 +40,9 @@ public class DebugDeployer implements Deployer<DebugDeployable> {
                 eventManager.publishEvent(ReactorEvent.DEBUG, deployable.reactable());
                 log.debug("Debug event sent [{}]", deployable.id());
             } catch (Exception e) {
-                throw new SyncException(String.format("An error occurred when trying to deploy debug reactable [%s].", deployable.id()), e);
+                throw new SyncException(
+                        String.format("An error occurred when trying to deploy debug reactable [%s].", deployable.id()),
+                        e);
             }
         });
     }

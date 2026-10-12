@@ -34,8 +34,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
-import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.AddApiProductMemberUseCase;
@@ -68,10 +66,8 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -128,14 +124,13 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
         reset(
-            membershipService,
-            verifyApiProductExistsUseCase,
-            getApiProductMembersUseCase,
-            addApiProductMemberUseCase,
-            updateApiProductMemberUseCase,
-            deleteApiProductMemberUseCase,
-            transferApiProductOwnershipUseCase
-        );
+                membershipService,
+                verifyApiProductExistsUseCase,
+                getApiProductMembersUseCase,
+                addApiProductMemberUseCase,
+                updateApiProductMemberUseCase,
+                deleteApiProductMemberUseCase,
+                transferApiProductOwnershipUseCase);
     }
 
     private void givenApiProductExists() {
@@ -143,7 +138,9 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
     }
 
     private void givenApiProductMissing() {
-        doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
+        doThrow(new ApiProductNotFoundException(API_PRODUCT_ID))
+                .when(verifyApiProductExistsUseCase)
+                .execute(any());
     }
 
     @Nested
@@ -183,20 +180,17 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
             Assertions.assertThat(permissions).isNotNull().hasSize(ApiProductPermission.values().length);
 
             // Each permission key maps to a string serialised from char[] — verify CRUD chars present
-            final String expectedRights = new String(
-                new char[] {
-                    RolePermissionAction.CREATE.getId(),
-                    RolePermissionAction.READ.getId(),
-                    RolePermissionAction.UPDATE.getId(),
-                    RolePermissionAction.DELETE.getId(),
-                }
-            );
+            final String expectedRights = new String(new char[] {
+                RolePermissionAction.CREATE.getId(),
+                RolePermissionAction.READ.getId(),
+                RolePermissionAction.UPDATE.getId(),
+                RolePermissionAction.DELETE.getId(),
+            });
 
-            Arrays.stream(ApiProductPermission.values()).forEach(perm ->
-                Assertions.assertThat(permissions)
-                    .as("Permission map should contain '%s' with full CRUD rights", perm.getName())
-                    .containsEntry(perm.getName(), expectedRights)
-            );
+            Arrays.stream(ApiProductPermission.values())
+                    .forEach(perm -> Assertions.assertThat(permissions)
+                            .as("Permission map should contain '%s' with full CRUD rights", perm.getName())
+                            .containsEntry(perm.getName(), expectedRights));
         }
     }
 
@@ -219,31 +213,42 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_when_user_not_permitted_to_list_members() {
-            shouldReturn403(RolePermission.API_PRODUCT_MEMBER, API_PRODUCT_ID, RolePermissionAction.READ, () ->
-                rootTarget().request().get()
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_MEMBER,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().request().get());
         }
 
         @Test
         void should_list_one_member() {
             var member = io.gravitee.apim.core.member.model.Member.builder()
-                .id("memberId")
-                .displayName("John Doe")
-                .roles(List.of(io.gravitee.apim.core.member.model.Member.Role.builder().name("API_PRODUCT_USER").build()))
-                .type(MembershipMemberType.USER)
-                .build();
+                    .id("memberId")
+                    .displayName("John Doe")
+                    .roles(List.of(io.gravitee.apim.core.member.model.Member.Role.builder()
+                            .name("API_PRODUCT_USER")
+                            .build()))
+                    .type(MembershipMemberType.USER)
+                    .build();
 
-            when(getApiProductMembersUseCase.execute(any())).thenReturn(new GetApiProductMembersUseCase.Output(List.of(member)));
+            when(getApiProductMembersUseCase.execute(any()))
+                    .thenReturn(new GetApiProductMembersUseCase.Output(List.of(member)));
 
             Response response = rootTarget().request().get();
 
             assertThat(response).hasStatus(OK_200);
-            Assertions.assertThat(response.readEntity(MembersResponse.class)).isEqualTo(
-                new MembersResponse()
-                    .pagination(new Pagination().page(1).pageCount(1).perPage(10).totalCount(1L).pageItemsCount(1))
-                    .data(Stream.of(member).map(MemberMapper.INSTANCE::map).toList())
-                    .links(new Links().self(rootTarget().getUri().toString()))
-            );
+            Assertions.assertThat(response.readEntity(MembersResponse.class))
+                    .isEqualTo(new MembersResponse()
+                            .pagination(new Pagination()
+                                    .page(1)
+                                    .pageCount(1)
+                                    .perPage(10)
+                                    .totalCount(1L)
+                                    .pageItemsCount(1))
+                            .data(Stream.of(member)
+                                    .map(MemberMapper.INSTANCE::map)
+                                    .toList())
+                            .links(new Links().self(rootTarget().getUri().toString())));
         }
     }
 
@@ -258,14 +263,14 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
                 if ("PRIMARY_OWNER".equals(input.addMember().getRoleName())) {
                     throw new SinglePrimaryOwnerException(RoleScope.API_PRODUCT);
                 }
-                return new AddApiProductMemberUseCase.Output(
-                    MemberEntity.builder()
+                return new AddApiProductMemberUseCase.Output(MemberEntity.builder()
                         .id(input.addMember().getUserId())
                         .referenceId(input.apiProductId())
                         .displayName("John Doe")
-                        .roles(List.of(RoleEntity.builder().name(input.addMember().getRoleName()).build()))
-                        .build()
-                );
+                        .roles(List.of(RoleEntity.builder()
+                                .name(input.addMember().getRoleName())
+                                .build()))
+                        .build());
             });
         }
 
@@ -273,21 +278,22 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
         void should_return_404_when_api_product_not_found() {
             givenApiProductMissing();
 
-            Response response = rootTarget().request().post(Entity.json(new AddMember().roleName("API_PRODUCT_USER").userId("userId")));
+            Response response = rootTarget()
+                    .request()
+                    .post(Entity.json(
+                            new AddMember().roleName("API_PRODUCT_USER").userId("userId")));
 
             assertThat(response).hasStatus(NOT_FOUND_404);
         }
 
         @Test
         void should_return_403_when_user_not_permitted_to_create_members() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_PRODUCT_MEMBER),
-                    eq(API_PRODUCT_ID),
-                    eq(RolePermissionAction.CREATE)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.API_PRODUCT_MEMBER),
+                            eq(API_PRODUCT_ID),
+                            eq(RolePermissionAction.CREATE)))
+                    .thenReturn(false);
 
             Response response = rootTarget().request().post(Entity.json(new AddMember()));
 
@@ -299,9 +305,9 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
             var body = new AddMember().roleName("PRIMARY_OWNER").userId("userId");
             Response response = rootTarget().request().post(Entity.json(body));
             assertThat(response)
-                .hasStatus(BAD_REQUEST_400)
-                .asError()
-                .hasMessage("An API_PRODUCT must always have only one PRIMARY_OWNER !");
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasMessage("An API_PRODUCT must always have only one PRIMARY_OWNER !");
         }
 
         @Test
@@ -310,18 +316,17 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
             Response response = rootTarget().request().post(Entity.json(body));
 
             assertThat(response)
-                .hasStatus(CREATED_201)
-                .asEntity(Member.class)
-                .isEqualTo(new Member().id("userId").displayName("John Doe").roles(List.of(new Role().name("API_PRODUCT_USER"))));
+                    .hasStatus(CREATED_201)
+                    .asEntity(Member.class)
+                    .isEqualTo(new Member()
+                            .id("userId")
+                            .displayName("John Doe")
+                            .roles(List.of(new Role().name("API_PRODUCT_USER"))));
 
-            verify(addApiProductMemberUseCase).execute(
-                argThat(
-                    input ->
-                        "userId".equals(input.addMember().getUserId()) &&
-                        "API_PRODUCT_USER".equals(input.addMember().getRoleName()) &&
-                        API_PRODUCT_ID.equals(input.apiProductId())
-                )
-            );
+            verify(addApiProductMemberUseCase)
+                    .execute(argThat(input -> "userId".equals(input.addMember().getUserId())
+                            && "API_PRODUCT_USER".equals(input.addMember().getRoleName())
+                            && API_PRODUCT_ID.equals(input.apiProductId())));
         }
     }
 
@@ -338,23 +343,17 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
                 if ("PRIMARY_OWNER".equals(input.newRole())) {
                     throw new SinglePrimaryOwnerException(RoleScope.API_PRODUCT);
                 }
-                return new UpdateApiProductMemberUseCase.Output(
-                    io.gravitee.apim.core.member.model.Member.builder()
+                return new UpdateApiProductMemberUseCase.Output(io.gravitee.apim.core.member.model.Member.builder()
                         .id(input.memberId())
                         .referenceId(input.apiProductId())
                         .referenceType(MembershipReferenceType.API_PRODUCT)
                         .type(MembershipMemberType.USER)
                         .displayName("John Doe")
-                        .roles(
-                            List.of(
-                                io.gravitee.apim.core.member.model.Member.Role.builder()
-                                    .name(input.newRole())
-                                    .scope(RoleScope.API_PRODUCT)
-                                    .build()
-                            )
-                        )
-                        .build()
-                );
+                        .roles(List.of(io.gravitee.apim.core.member.model.Member.Role.builder()
+                                .name(input.newRole())
+                                .scope(RoleScope.API_PRODUCT)
+                                .build()))
+                        .build());
             });
         }
 
@@ -362,16 +361,19 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
         void should_return_404_when_api_product_not_found() {
             givenApiProductMissing();
 
-            Response response = rootTarget(MEMBER_ID).request().put(Entity.json(new UpdateMember().roleName("API_PRODUCT_USER")));
+            Response response =
+                    rootTarget(MEMBER_ID).request().put(Entity.json(new UpdateMember().roleName("API_PRODUCT_USER")));
 
             assertThat(response).hasStatus(NOT_FOUND_404);
         }
 
         @Test
         void should_return_403_when_user_not_permitted_to_edit_members() {
-            shouldReturn403(RolePermission.API_PRODUCT_MEMBER, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget(MEMBER_ID).request().put(Entity.json(new UpdateMember()))
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_MEMBER,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget(MEMBER_ID).request().put(Entity.json(new UpdateMember())));
         }
 
         @Test
@@ -380,9 +382,9 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
             Response response = rootTarget(MEMBER_ID).request().put(Entity.json(update));
 
             assertThat(response)
-                .hasStatus(BAD_REQUEST_400)
-                .asError()
-                .hasMessage("An API_PRODUCT must always have only one PRIMARY_OWNER !");
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasMessage("An API_PRODUCT must always have only one PRIMARY_OWNER !");
         }
 
         @Test
@@ -391,20 +393,14 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
             Response response = rootTarget(MEMBER_ID).request().put(Entity.json(update));
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(Member.class)
-                .isEqualTo(
-                    new Member()
-                        .id(MEMBER_ID)
-                        .displayName("John Doe")
-                        .roles(
-                            List.of(
-                                new Role()
+                    .hasStatus(OK_200)
+                    .asEntity(Member.class)
+                    .isEqualTo(new Member()
+                            .id(MEMBER_ID)
+                            .displayName("John Doe")
+                            .roles(List.of(new Role()
                                     .name("API_PRODUCT_USER")
-                                    .scope(io.gravitee.rest.api.management.v2.rest.model.RoleScope.API_PRODUCT)
-                            )
-                        )
-                );
+                                    .scope(io.gravitee.rest.api.management.v2.rest.model.RoleScope.API_PRODUCT))));
         }
     }
 
@@ -429,9 +425,11 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_when_user_not_permitted_to_delete_members() {
-            shouldReturn403(RolePermission.API_PRODUCT_MEMBER, API_PRODUCT_ID, RolePermissionAction.DELETE, () ->
-                rootTarget(MEMBER_ID).request().delete()
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_MEMBER,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.DELETE,
+                    () -> rootTarget(MEMBER_ID).request().delete());
         }
 
         @Test
@@ -439,9 +437,9 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
             Response response = rootTarget(MEMBER_ID).request().delete();
 
             assertThat(response).hasStatus(NO_CONTENT_204);
-            verify(deleteApiProductMemberUseCase).execute(
-                argThat(input -> API_PRODUCT_ID.equals(input.apiProductId()) && MEMBER_ID.equals(input.memberId()))
-            );
+            verify(deleteApiProductMemberUseCase)
+                    .execute(argThat(input ->
+                            API_PRODUCT_ID.equals(input.apiProductId()) && MEMBER_ID.equals(input.memberId())));
         }
     }
 
@@ -458,7 +456,8 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_204_on_successful_transfer() {
-            when(transferApiProductOwnershipUseCase.execute(any())).thenReturn(new TransferApiProductOwnershipUseCase.Output());
+            when(transferApiProductOwnershipUseCase.execute(any()))
+                    .thenReturn(new TransferApiProductOwnershipUseCase.Output());
 
             Response response = target.request().post(json(new ApiProductTransferOwnership()));
 
@@ -467,10 +466,12 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_204_on_successful_group_transfer() {
-            when(transferApiProductOwnershipUseCase.execute(any())).thenReturn(new TransferApiProductOwnershipUseCase.Output());
+            when(transferApiProductOwnershipUseCase.execute(any()))
+                    .thenReturn(new TransferApiProductOwnershipUseCase.Output());
 
             // Send userType=GROUP via raw map — the generated model gains this field after regeneration
-            var body = Map.of("newPrimaryOwnerId", "group-1", "userType", "GROUP", "currentPrimaryOwnerNewRole", "USER");
+            var body =
+                    Map.of("newPrimaryOwnerId", "group-1", "userType", "GROUP", "currentPrimaryOwnerNewRole", "USER");
 
             Response response = target.request().post(json(body));
 
@@ -478,9 +479,8 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
 
             var captor = ArgumentCaptor.forClass(TransferApiProductOwnershipUseCase.Input.class);
             verify(transferApiProductOwnershipUseCase).execute(captor.capture());
-            assertThat(captor.getValue().transferOwnership().getMemberType()).isEqualTo(
-                io.gravitee.apim.core.member.model.MembershipMemberType.GROUP
-            );
+            assertThat(captor.getValue().transferOwnership().getMemberType())
+                    .isEqualTo(io.gravitee.apim.core.member.model.MembershipMemberType.GROUP);
         }
 
         @Test
@@ -494,9 +494,11 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_MEMBER, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                target.request().post(json(new ApiProductTransferOwnership()))
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_MEMBER,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> target.request().post(json(new ApiProductTransferOwnership())));
         }
     }
 }

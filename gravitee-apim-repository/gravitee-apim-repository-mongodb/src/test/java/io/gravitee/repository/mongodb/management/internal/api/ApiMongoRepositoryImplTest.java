@@ -50,20 +50,19 @@ class ApiMongoRepositoryImplTest {
     @Test
     @SneakyThrows
     void search_returns_total_minus_one_and_items_when_count_times_out() {
-        when(mongoTemplate.count(any(Query.class), eq(ApiMongo.class))).thenThrow(
-            new UncategorizedMongoDbException("Wrapped", new MongoExecutionTimeoutException(50, "operation exceeded time limit"))
-        );
+        when(mongoTemplate.count(any(Query.class), eq(ApiMongo.class)))
+                .thenThrow(new UncategorizedMongoDbException(
+                        "Wrapped", new MongoExecutionTimeoutException(50, "operation exceeded time limit")));
         ApiMongo api1 = new ApiMongo();
         api1.setId("api-1");
         when(mongoTemplate.find(any(Query.class), eq(ApiMongo.class))).thenReturn(List.of(api1));
         ApiMongoRepositoryImpl repository = buildRepository();
 
         Page<ApiMongo> page = repository.search(
-            new ApiCriteria.Builder().build(),
-            null,
-            new PageableBuilder().pageNumber(0).pageSize(10).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder().build(),
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(10).build(),
+                ApiFieldFilter.allFields());
 
         assertThat(page.getTotalElements()).isEqualTo(-1L);
         assertThat(page.getContent()).extracting(ApiMongo::getId).containsExactly("api-1");
@@ -77,11 +76,10 @@ class ApiMongoRepositoryImplTest {
         ApiMongoRepositoryImpl repository = buildRepository();
 
         repository.search(
-            new ApiCriteria.Builder().build(),
-            null,
-            new PageableBuilder().pageNumber(0).pageSize(10).build(),
-            ApiFieldFilter.allFields()
-        );
+                new ApiCriteria.Builder().build(),
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(10).build(),
+                ApiFieldFilter.allFields());
 
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
         verify(mongoTemplate).find(queryCaptor.capture(), eq(ApiMongo.class));

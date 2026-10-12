@@ -96,7 +96,10 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
     public void setUp() {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -104,14 +107,12 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
         // Default permission for UPDATE on documentation
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.UPDATE
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.UPDATE))
+                .thenReturn(true);
 
         // Seed storage with sample items and adjust env/org to current test values
         var items = PortalNavigationItemFixtures.sampleNavigationItems();
@@ -135,11 +136,11 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT with a new title
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .title("  Updated Title  ")
-            .order(1)
-            .type(PortalNavigationItemType.PAGE)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC);
+                .title("  Updated Title  ")
+                .order(1)
+                .type(PortalNavigationItemType.PAGE)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title
@@ -151,7 +152,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getPublished()).isTrue();
 
         // And storage reflects the change
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
     }
 
@@ -159,25 +161,24 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
     void should_preserve_api_owned_page_when_updating_with_its_rendered_parent() {
         var api = PortalNavigationItemFixtures.anApi();
         var otherApiEntry = PortalNavigationItemFixtures.anApi(
-            "20000000-0000-4000-8000-000000000031",
-            "Another API entry",
-            null,
-            api.getApiId()
-        );
+                "20000000-0000-4000-8000-000000000031", "Another API entry", null, api.getApiId());
         var reference = new ApiReference(api.getApiId());
-        var page = PortalNavigationItemFixtures.aPage("API documentation", null).toBuilder().reference(reference).build();
+        var page = PortalNavigationItemFixtures.aPage("API documentation", null).toBuilder()
+                .reference(reference)
+                .build();
         page.markAsRoot();
         initStorageWith(List.of(api, otherApiEntry, page));
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
-        var getResponse = target.queryParam("area", api.getArea()).queryParam("parentId", api.getId().id()).request().get();
+        var getResponse = target.queryParam("area", api.getArea())
+                .queryParam("parentId", api.getId().id())
+                .request()
+                .get();
         assertThat(getResponse).hasStatus(OK_200);
         var items = getResponse.readEntity(PortalNavigationItemsResponse.class).getItems();
         assertThat(items).hasSize(1);
@@ -185,12 +186,12 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(renderedPage.getParentId()).isEqualTo(api.getId().id());
 
         var payload = new UpdatePortalNavigationPage()
-            .title("Updated API documentation")
-            .type(PortalNavigationItemType.PAGE)
-            .order(renderedPage.getOrder())
-            .parentId(renderedPage.getParentId())
-            .published(renderedPage.getPublished())
-            .visibility(renderedPage.getVisibility());
+                .title("Updated API documentation")
+                .type(PortalNavigationItemType.PAGE)
+                .order(renderedPage.getOrder())
+                .parentId(renderedPage.getParentId())
+                .published(renderedPage.getPublished())
+                .visibility(renderedPage.getVisibility());
         var response = target.path(page.getId().json()).request().put(json(payload));
 
         assertThat(response).hasStatus(OK_200);
@@ -201,18 +202,20 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(updated.getRootId()).isEqualTo(page.getId());
 
         for (var navigationEntry : List.of(api, otherApiEntry)) {
-            var refreshedResponse = target
-                .queryParam("area", navigationEntry.getArea())
-                .queryParam("parentId", navigationEntry.getId().id())
-                .request()
-                .get();
+            var refreshedResponse = target.queryParam("area", navigationEntry.getArea())
+                    .queryParam("parentId", navigationEntry.getId().id())
+                    .request()
+                    .get();
             assertThat(refreshedResponse).hasStatus(OK_200);
-            var refreshedItems = refreshedResponse.readEntity(PortalNavigationItemsResponse.class).getItems();
+            var refreshedItems = refreshedResponse
+                    .readEntity(PortalNavigationItemsResponse.class)
+                    .getItems();
             assertThat(refreshedItems).hasSize(1);
             var refreshedPage = (PortalNavigationPage) refreshedItems.getFirst().getActualInstance();
             assertThat(refreshedPage.getId()).isEqualTo(page.getId().id());
             assertThat(refreshedPage.getTitle()).isEqualTo("Updated API documentation");
-            assertThat(refreshedPage.getParentId()).isEqualTo(navigationEntry.getId().id());
+            assertThat(refreshedPage.getParentId())
+                    .isEqualTo(navigationEntry.getId().id());
         }
     }
 
@@ -223,12 +226,12 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT with a new title
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationLink()
-            .url("https://gravitee.io")
-            .title("  Updated Title  ")
-            .type(PortalNavigationItemType.LINK)
-            .order(0)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC);
+                .url("https://gravitee.io")
+                .title("  Updated Title  ")
+                .type(PortalNavigationItemType.LINK)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title
@@ -241,7 +244,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
     }
 
@@ -252,11 +256,11 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT with a new title
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationFolder()
-            .title("  Updated Title  ")
-            .type(PortalNavigationItemType.FOLDER)
-            .order(2)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC);
+                .title("  Updated Title  ")
+                .type(PortalNavigationItemType.FOLDER)
+                .order(2)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title
@@ -269,7 +273,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
     }
 
@@ -279,26 +284,31 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         var replacementCategoryIds = List.of(PortalCategoryId.random(), PortalCategoryId.random());
         var parent = PortalNavigationItemFixtures.aFolder(APIS_ID, "APIs");
         parent.markAsRoot();
-        var apiProduct = PortalNavigationItemFixtures.anApiProduct().toBuilder().categoryIds(List.of(existingCategoryId)).build();
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct().toBuilder()
+                .categoryIds(List.of(existingCategoryId))
+                .build();
         apiProduct.updateParent(parent);
         initStorageWith(List.of(parent, apiProduct));
 
-        var payload = new UpdatePortalNavigationApiProduct().categoryIds(
-            replacementCategoryIds.stream().map(PortalCategoryId::id).toList()
-        );
-        payload
-            .title(apiProduct.getTitle())
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .order(apiProduct.getOrder())
-            .published(apiProduct.getPublished())
-            .parentId(parent.getId().id())
-            .visibility(PortalVisibility.PUBLIC);
+        var payload = new UpdatePortalNavigationApiProduct()
+                .categoryIds(replacementCategoryIds.stream()
+                        .map(PortalCategoryId::id)
+                        .toList());
+        payload.title(apiProduct.getTitle())
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .order(apiProduct.getOrder())
+                .published(apiProduct.getPublished())
+                .parentId(parent.getId().id())
+                .visibility(PortalVisibility.PUBLIC);
 
         Response response = target.path(apiProduct.getId().toString()).request().put(json(payload));
 
         assertThat(response).hasStatus(OK_200);
         PortalNavigationApiProduct body = response.readEntity(PortalNavigationApiProduct.class);
-        assertThat(body.getCategoryIds()).containsExactlyElementsOf(replacementCategoryIds.stream().map(PortalCategoryId::id).toList());
+        assertThat(body.getCategoryIds())
+                .containsExactlyElementsOf(replacementCategoryIds.stream()
+                        .map(PortalCategoryId::id)
+                        .toList());
 
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, apiProduct.getId());
         assertThat(updated).hasFieldOrPropertyWithValue("categoryIds", replacementCategoryIds);
@@ -308,17 +318,19 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
     void should_reset_api_product_category_ids_when_omitted() {
         var parent = PortalNavigationItemFixtures.aFolder(APIS_ID, "APIs");
         parent.markAsRoot();
-        var apiProduct = PortalNavigationItemFixtures.anApiProduct().toBuilder().categoryIds(List.of(PortalCategoryId.random())).build();
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct().toBuilder()
+                .categoryIds(List.of(PortalCategoryId.random()))
+                .build();
         apiProduct.updateParent(parent);
         initStorageWith(List.of(parent, apiProduct));
 
         var payload = new UpdatePortalNavigationApiProduct()
-            .title(apiProduct.getTitle())
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .order(apiProduct.getOrder())
-            .published(apiProduct.getPublished())
-            .parentId(parent.getId().id())
-            .visibility(PortalVisibility.PUBLIC);
+                .title(apiProduct.getTitle())
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .order(apiProduct.getOrder())
+                .published(apiProduct.getPublished())
+                .parentId(parent.getId().id())
+                .visibility(PortalVisibility.PUBLIC);
 
         Response response = target.path(apiProduct.getId().toString()).request().put(json(payload));
 
@@ -337,18 +349,19 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT with a new title of type PAGE
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .title("  Updated Title  ")
-            .type(PortalNavigationItemType.LINK)
-            .order(3)
-            .published(false)
-            .visibility(PortalVisibility.PUBLIC);
+                .title("  Updated Title  ")
+                .type(PortalNavigationItemType.LINK)
+                .order(3)
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 400 Bad request and response payload with trimmed title
         assertThat(response).hasStatus(BAD_REQUEST_400);
 
         // And storage does not reflects the change
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isNotEqualTo("Updated Title");
     }
 
@@ -358,11 +371,11 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         String unknownId = PortalNavigationItemId.random().toString();
 
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .title("Won't work")
-            .type(PortalNavigationItemType.PAGE)
-            .order(1)
-            .published(false)
-            .visibility(PortalVisibility.PUBLIC);
+                .title("Won't work")
+                .type(PortalNavigationItemType.PAGE)
+                .order(1)
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(unknownId).request().put(json(payload));
 
         assertThat(response).hasStatus(NOT_FOUND_404);
@@ -375,11 +388,11 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT with a new title
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .title("  Updated Title  ")
-            .order(3)
-            .type(PortalNavigationItemType.PAGE)
-            .published(false)
-            .visibility(PortalVisibility.PUBLIC);
+                .title("  Updated Title  ")
+                .order(3)
+                .type(PortalNavigationItemType.PAGE)
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title and updated order
@@ -392,7 +405,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
         assertThat(updated.getOrder()).isEqualTo(3);
     }
@@ -404,13 +418,13 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT with a new title
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationLink()
-            .url("https://gravitee.io")
-            .title("  Updated Title  ")
-            .type(PortalNavigationItemType.LINK)
-            .order(0)
-            .parentId(UUID.fromString(APIS_ID))
-            .published(false)
-            .visibility(PortalVisibility.PUBLIC);
+                .url("https://gravitee.io")
+                .title("  Updated Title  ")
+                .type(PortalNavigationItemType.LINK)
+                .order(0)
+                .parentId(UUID.fromString(APIS_ID))
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title and updated parentId
@@ -423,7 +437,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
         assertThat(updated.getParentId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
     }
@@ -435,11 +450,11 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT with a new title
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationFolder()
-            .title("  Updated Title  ")
-            .type(PortalNavigationItemType.FOLDER)
-            .order(2)
-            .published(false)
-            .visibility(PortalVisibility.PUBLIC);
+                .title("  Updated Title  ")
+                .type(PortalNavigationItemType.FOLDER)
+                .order(2)
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title and parentId null ==> moving to root level
@@ -452,7 +467,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
         assertThat(updated.getParentId()).isNull();
     }
@@ -464,11 +480,11 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT with published = true
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .title("  Updated Title  ")
-            .order(1)
-            .type(PortalNavigationItemType.PAGE)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC);
+                .title("  Updated Title  ")
+                .order(1)
+                .type(PortalNavigationItemType.PAGE)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title
@@ -481,95 +497,134 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
 
         // And storage reflects the change
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
         assertThat(updated.getPublished()).isTrue();
     }
 
     @Test
     void should_publish_only_selected_folder_when_propagation_query_param_is_omitted() {
-        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000019", "Parent")
-            .toBuilder()
-            .published(false)
-            .build();
-        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000020", "Child", parentFolder.getId())
-            .toBuilder()
-            .published(false)
-            .build();
-        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000021", "Grand Child", childFolder.getId())
-            .toBuilder()
-            .published(false)
-            .build();
+        var parentFolder =
+                PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000019", "Parent").toBuilder()
+                        .published(false)
+                        .build();
+        var childFolder =
+                PortalNavigationItemFixtures.aFolder(
+                                "20000000-0000-4000-8000-000000000020", "Child", parentFolder.getId())
+                        .toBuilder()
+                        .published(false)
+                        .build();
+        var grandChildPage =
+                PortalNavigationItemFixtures.aPage(
+                                "20000000-0000-4000-8000-000000000021", "Grand Child", childFolder.getId())
+                        .toBuilder()
+                        .published(false)
+                        .build();
         initStorageWith(List.of(parentFolder, childFolder, grandChildPage));
 
-        Response response = target.path(parentFolder.getId().toString()).request().put(json(updateFolderPublished(parentFolder, true)));
+        Response response = target.path(parentFolder.getId().toString())
+                .request()
+                .put(json(updateFolderPublished(parentFolder, true)));
 
         assertThat(response).hasStatus(OK_200);
         PortalNavigationFolder body = response.readEntity(PortalNavigationFolder.class);
         assertThat(body.getPublished()).isTrue();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, parentFolder.getId()).getPublished()).isTrue();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, childFolder.getId()).getPublished()).isFalse();
-        assertThat(
-            portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, grandChildPage.getId()).getPublished()
-        ).isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, parentFolder.getId())
+                        .getPublished())
+                .isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, childFolder.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, grandChildPage.getId())
+                        .getPublished())
+                .isFalse();
     }
 
     @Test
     void should_publish_folder_descendants_when_propagation_query_param_is_true() {
-        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000022", "Parent")
-            .toBuilder()
-            .published(false)
-            .build();
-        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000023", "Child", parentFolder.getId())
-            .toBuilder()
-            .published(false)
-            .build();
-        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000024", "Grand Child", childFolder.getId())
-            .toBuilder()
-            .published(false)
-            .build();
+        var parentFolder =
+                PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000022", "Parent").toBuilder()
+                        .published(false)
+                        .build();
+        var childFolder =
+                PortalNavigationItemFixtures.aFolder(
+                                "20000000-0000-4000-8000-000000000023", "Child", parentFolder.getId())
+                        .toBuilder()
+                        .published(false)
+                        .build();
+        var grandChildPage =
+                PortalNavigationItemFixtures.aPage(
+                                "20000000-0000-4000-8000-000000000024", "Grand Child", childFolder.getId())
+                        .toBuilder()
+                        .published(false)
+                        .build();
         initStorageWith(List.of(parentFolder, childFolder, grandChildPage));
 
-        Response response = target
-            .path(parentFolder.getId().toString())
-            .queryParam("propagatePublishToChildren", true)
-            .request()
-            .put(json(updateFolderPublished(parentFolder, true)));
+        Response response = target.path(parentFolder.getId().toString())
+                .queryParam("propagatePublishToChildren", true)
+                .request()
+                .put(json(updateFolderPublished(parentFolder, true)));
 
         assertThat(response).hasStatus(OK_200);
         PortalNavigationFolder body = response.readEntity(PortalNavigationFolder.class);
         assertThat(body.getPublished()).isTrue();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, parentFolder.getId()).getPublished()).isTrue();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, childFolder.getId()).getPublished()).isTrue();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, grandChildPage.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, parentFolder.getId())
+                        .getPublished())
+                .isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, childFolder.getId())
+                        .getPublished())
+                .isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, grandChildPage.getId())
+                        .getPublished())
+                .isTrue();
     }
 
     @Test
     void should_unpublish_folder_descendants_when_propagation_query_param_is_omitted() {
-        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000025", "Parent")
-            .toBuilder()
-            .published(true)
-            .build();
-        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000026", "Child", parentFolder.getId())
-            .toBuilder()
-            .published(true)
-            .build();
-        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000027", "Grand Child", childFolder.getId())
-            .toBuilder()
-            .published(true)
-            .build();
+        var parentFolder =
+                PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000025", "Parent").toBuilder()
+                        .published(true)
+                        .build();
+        var childFolder =
+                PortalNavigationItemFixtures.aFolder(
+                                "20000000-0000-4000-8000-000000000026", "Child", parentFolder.getId())
+                        .toBuilder()
+                        .published(true)
+                        .build();
+        var grandChildPage =
+                PortalNavigationItemFixtures.aPage(
+                                "20000000-0000-4000-8000-000000000027", "Grand Child", childFolder.getId())
+                        .toBuilder()
+                        .published(true)
+                        .build();
         initStorageWith(List.of(parentFolder, childFolder, grandChildPage));
 
-        Response response = target.path(parentFolder.getId().toString()).request().put(json(updateFolderPublished(parentFolder, false)));
+        Response response = target.path(parentFolder.getId().toString())
+                .request()
+                .put(json(updateFolderPublished(parentFolder, false)));
 
         assertThat(response).hasStatus(OK_200);
         PortalNavigationFolder body = response.readEntity(PortalNavigationFolder.class);
         assertThat(body.getPublished()).isFalse();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, parentFolder.getId()).getPublished()).isFalse();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, childFolder.getId()).getPublished()).isFalse();
-        assertThat(
-            portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, grandChildPage.getId()).getPublished()
-        ).isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, parentFolder.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, childFolder.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, grandChildPage.getId())
+                        .getPublished())
+                .isFalse();
     }
 
     @Test
@@ -580,38 +635,44 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         api.setPublished(false);
         api.updateParent(parent);
         var reference = new ApiReference(api.getApiId());
-        var ownedFolder = PortalNavigationItemFixtures.aFolder("API guide").toBuilder().reference(reference).published(false).build();
+        var ownedFolder = PortalNavigationItemFixtures.aFolder("API guide").toBuilder()
+                .reference(reference)
+                .published(false)
+                .build();
         ownedFolder.markAsRoot();
-        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", ownedFolder.getId())
-            .toBuilder()
-            .reference(reference)
-            .published(false)
-            .build();
+        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", ownedFolder.getId()).toBuilder()
+                .reference(reference)
+                .published(false)
+                .build();
         ownedPage.updateParent(ownedFolder);
-        var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId()).toBuilder().published(false).build();
+        var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId()).toBuilder()
+                .published(false)
+                .build();
         physicalPage.updateParent(api);
         initStorageWith(List.of(parent, api, ownedFolder, ownedPage, physicalPage));
         var expectedFolder = ownedFolder.toBuilder().published(true).build();
         var expectedOwnedPage = ownedPage.toBuilder().published(true).build();
         var expectedPhysicalPage = physicalPage.toBuilder().published(true).build();
 
-        var response = target
-            .path(api.getId().json())
-            .queryParam("propagatePublishToChildren", true)
-            .request()
-            .put(json(updateApiPublished(api, true)));
+        var response = target.path(api.getId().json())
+                .queryParam("propagatePublishToChildren", true)
+                .request()
+                .put(json(updateApiPublished(api, true)));
 
         assertThat(response).hasStatus(OK_200);
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, api.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, api.getId())
+                        .getPublished())
+                .isTrue();
         assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedFolder.getId()))
-            .usingRecursiveComparison()
-            .isEqualTo(expectedFolder);
+                .usingRecursiveComparison()
+                .isEqualTo(expectedFolder);
         assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId()))
-            .usingRecursiveComparison()
-            .isEqualTo(expectedOwnedPage);
+                .usingRecursiveComparison()
+                .isEqualTo(expectedOwnedPage);
         assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId()))
-            .usingRecursiveComparison()
-            .isEqualTo(expectedPhysicalPage);
+                .usingRecursiveComparison()
+                .isEqualTo(expectedPhysicalPage);
     }
 
     @ParameterizedTest
@@ -623,13 +684,14 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         var api = PortalNavigationItemFixtures.anApi();
         api.setPublished(false);
         api.updateParent(parent);
-        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null)
-            .toBuilder()
-            .reference(new ApiReference(api.getApiId()))
-            .published(false)
-            .build();
+        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null).toBuilder()
+                .reference(new ApiReference(api.getApiId()))
+                .published(false)
+                .build();
         ownedPage.markAsRoot();
-        var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId()).toBuilder().published(false).build();
+        var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId()).toBuilder()
+                .published(false)
+                .build();
         physicalPage.updateParent(api);
         initStorageWith(List.of(parent, api, ownedPage, physicalPage));
 
@@ -640,9 +702,18 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         var response = requestTarget.request().put(json(updateApiPublished(api, true)));
 
         assertThat(response).hasStatus(OK_200);
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, api.getId()).getPublished()).isTrue();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId()).getPublished()).isFalse();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId()).getPublished()).isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, api.getId())
+                        .getPublished())
+                .isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId())
+                        .getPublished())
+                .isFalse();
     }
 
     @ParameterizedTest
@@ -653,10 +724,9 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         parent.markAsRoot();
         var api = PortalNavigationItemFixtures.anApi();
         api.updateParent(parent);
-        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null)
-            .toBuilder()
-            .reference(new ApiReference(api.getApiId()))
-            .build();
+        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null).toBuilder()
+                .reference(new ApiReference(api.getApiId()))
+                .build();
         ownedPage.markAsRoot();
         var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId());
         physicalPage.updateParent(api);
@@ -665,11 +735,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         var productFolder = PortalNavigationItemFixtures.aFolder("Product folder", product.getId());
         productFolder.updateParent(product);
         var productApi = PortalNavigationItemFixtures.anApi(
-            "20000000-0000-4000-8000-000000000032",
-            "Product API",
-            productFolder.getId(),
-            api.getApiId()
-        );
+                "20000000-0000-4000-8000-000000000032", "Product API", productFolder.getId(), api.getApiId());
         productApi.updateParent(productFolder);
         var productPage = PortalNavigationItemFixtures.aPage("Product page", productApi.getId());
         productPage.updateParent(productApi);
@@ -682,45 +748,65 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         var response = requestTarget.request().put(json(updateApiPublished(api, false)));
 
         assertThat(response).hasStatus(OK_200);
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, api.getId()).getPublished()).isFalse();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId()).getPublished()).isFalse();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId()).getPublished()).isFalse();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, product.getId()).getPublished()).isTrue();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, productApi.getId()).getPublished()).isTrue();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, productPage.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, api.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, product.getId())
+                        .getPublished())
+                .isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, productApi.getId())
+                        .getPublished())
+                .isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, productPage.getId())
+                        .getPublished())
+                .isTrue();
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = { true, false })
+    @ValueSource(booleans = {true, false})
     void should_not_propagate_unchanged_api_publication_status(boolean published) {
         var parent = PortalNavigationItemFixtures.aFolder("APIs");
         parent.markAsRoot();
         var api = PortalNavigationItemFixtures.anApi();
         api.setPublished(published);
         api.updateParent(parent);
-        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null)
-            .toBuilder()
-            .reference(new ApiReference(api.getApiId()))
-            .published(!published)
-            .build();
+        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null).toBuilder()
+                .reference(new ApiReference(api.getApiId()))
+                .published(!published)
+                .build();
         ownedPage.markAsRoot();
-        var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId()).toBuilder().published(!published).build();
+        var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId()).toBuilder()
+                .published(!published)
+                .build();
         physicalPage.updateParent(api);
         initStorageWith(List.of(parent, api, ownedPage, physicalPage));
 
-        var response = target
-            .path(api.getId().json())
-            .queryParam("propagatePublishToChildren", true)
-            .request()
-            .put(json(updateApiPublished(api, published)));
+        var response = target.path(api.getId().json())
+                .queryParam("propagatePublishToChildren", true)
+                .request()
+                .put(json(updateApiPublished(api, published)));
 
         assertThat(response).hasStatus(OK_200);
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId()).getPublished()).isEqualTo(
-            !published
-        );
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId()).getPublished()).isEqualTo(
-            !published
-        );
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId())
+                        .getPublished())
+                .isEqualTo(!published);
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId())
+                        .getPublished())
+                .isEqualTo(!published);
     }
 
     @Test
@@ -733,29 +819,40 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         productFolder.updateParent(product);
         var api = PortalNavigationItemFixtures.anApi();
         api.updateParent(productFolder);
-        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null)
-            .toBuilder()
-            .reference(new ApiReference(api.getApiId()))
-            .build();
+        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null).toBuilder()
+                .reference(new ApiReference(api.getApiId()))
+                .build();
         ownedPage.markAsRoot();
         var physicalPage = PortalNavigationItemFixtures.aPage("Product page", api.getId());
         physicalPage.updateParent(api);
         initStorageWith(List.of(parent, product, productFolder, api, ownedPage, physicalPage));
 
         var payload = new UpdatePortalNavigationFolder()
-            .title(productFolder.getTitle())
-            .parentId(product.getId().id())
-            .type(PortalNavigationItemType.FOLDER)
-            .order(productFolder.getOrder())
-            .published(false)
-            .visibility(PortalVisibility.PUBLIC);
+                .title(productFolder.getTitle())
+                .parentId(product.getId().id())
+                .type(PortalNavigationItemType.FOLDER)
+                .order(productFolder.getOrder())
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC);
         var response = target.path(productFolder.getId().json()).request().put(json(payload));
 
         assertThat(response).hasStatus(OK_200);
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, api.getId()).getPublished()).isFalse();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId()).getPublished()).isFalse();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId()).getPublished()).isTrue();
-        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, product.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, api.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId())
+                        .getPublished())
+                .isFalse();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId())
+                        .getPublished())
+                .isTrue();
+        assertThat(portalNavigationItemsQueryService
+                        .findByIdAndEnvironmentId(ENVIRONMENT, product.getId())
+                        .getPublished())
+                .isTrue();
     }
 
     @Test
@@ -765,11 +862,11 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT with visibility = PRIVATE
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .title("  Updated Title  ")
-            .order(1)
-            .type(PortalNavigationItemType.PAGE)
-            .published(true)
-            .visibility(PortalVisibility.PRIVATE);
+                .title("  Updated Title  ")
+                .order(1)
+                .type(PortalNavigationItemType.PAGE)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with trimmed title
@@ -782,7 +879,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
 
         // And storage reflects the change
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
         assertThat(updated.getVisibility()).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
     }
@@ -794,11 +892,11 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT with a new order that affects siblings
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .title("  Updated Title  ")
-            .order(1) // Current order is 2 in fixtures, so moving to 1 should shift others
-            .type(PortalNavigationItemType.PAGE)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC);
+                .title("  Updated Title  ")
+                .order(1) // Current order is 2 in fixtures, so moving to 1 should shift others
+                .type(PortalNavigationItemType.PAGE)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK and response payload with updated order
@@ -809,7 +907,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getOrder()).isEqualTo(1);
 
         // And storage reflects the change
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getOrder()).isEqualTo(1);
     }
 
@@ -821,23 +920,20 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         // When: PUT with a source carrying forged server-managed fields (only reachable through the
         // @JsonCreator constructor, exactly how Jackson materializes them from a request body)
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .source(
-                new PortalNavigationItemSource(
-                    OffsetDateTime.parse("2026-07-17T10:00:00Z"),
-                    OffsetDateTime.parse("2026-07-17T11:00:00Z"),
-                    "forged error",
-                    true
-                )
-                    .type("github-fetcher")
-                    .configuration(Map.of("repository", "docs"))
-                    .useAutoFetch(true)
-                    .fetchCron("0 */10 * * * *")
-            )
-            .title("My Page")
-            .order(1)
-            .type(PortalNavigationItemType.PAGE)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC);
+                .source(new PortalNavigationItemSource(
+                                OffsetDateTime.parse("2026-07-17T10:00:00Z"),
+                                OffsetDateTime.parse("2026-07-17T11:00:00Z"),
+                                "forged error",
+                                true)
+                        .type("github-fetcher")
+                        .configuration(Map.of("repository", "docs"))
+                        .useAutoFetch(true)
+                        .fetchCron("0 */10 * * * *"))
+                .title("My Page")
+                .order(1)
+                .type(PortalNavigationItemType.PAGE)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC);
         Response response = target.path(navId).request().put(json(payload));
 
         // Then: 200 OK, the source is applied but the server-managed fetch state is not
@@ -853,7 +949,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getSource().getSubtreeImport()).isFalse();
 
         // And storage reflects the same
-        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getSource()).isNotNull();
         assertThat(updated.getSource().getSourceType()).isEqualTo("github-fetcher");
         assertThat(updated.getSource().getLastFetchedAt()).isNull();
@@ -865,40 +962,38 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
     @Test
     void should_preserve_server_managed_fetch_state_when_updating_a_sourced_page() {
         // Given a PAGE whose source has already been fetched by the server
-        var sourcedPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000030", "Sourced Page", null)
-            .toBuilder()
-            .source(
-                io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
-                    .sourceType("github-fetcher")
-                    // stored exactly as the API serializes it, so the PUT below targets the same origin;
-                    // hard-coded on purpose: a serialization format change must break this test, as it
-                    // would reset the fetch state of every already-stored page on its first PUT
-                    .sourceConfiguration(
-                        """
+        var sourcedPage =
+                PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000030", "Sourced Page", null)
+                        .toBuilder()
+                        .source(io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
+                                .sourceType("github-fetcher")
+                                // stored exactly as the API serializes it, so the PUT below targets the same origin;
+                                // hard-coded on purpose: a serialization format change must break this test, as it
+                                // would reset the fetch state of every already-stored page on its first PUT
+                                .sourceConfiguration("""
                         {
                           "repository" : "docs"
-                        }"""
-                    )
-                    .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
-                    .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
-                    .lastFetchError("boom")
-                    .build()
-            )
-            .build();
+                        }""")
+                                .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
+                                .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
+                                .lastFetchError("boom")
+                                .build())
+                        .build();
         sourcedPage.markAsRoot();
         initStorageWith(List.of(sourcedPage));
 
         // When: PUT keeping the same source origin (clients never send the readOnly fields back)
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .source(
-                new PortalNavigationItemSource(null, null, null, null).type("github-fetcher").configuration(Map.of("repository", "docs"))
-            )
-            .title("Sourced Page")
-            .order(0)
-            .type(PortalNavigationItemType.PAGE)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC);
-        Response response = target.path(sourcedPage.getId().toString()).request().put(json(payload));
+                .source(new PortalNavigationItemSource(null, null, null, null)
+                        .type("github-fetcher")
+                        .configuration(Map.of("repository", "docs")))
+                .title("Sourced Page")
+                .order(0)
+                .type(PortalNavigationItemType.PAGE)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC);
+        Response response =
+                target.path(sourcedPage.getId().toString()).request().put(json(payload));
 
         // Then: 200 OK and the server-managed fetch state survives the update
         assertThat(response).hasStatus(OK_200);
@@ -925,25 +1020,23 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
     }
 
     private BaseUpdatePortalNavigationItem updateFolderPublished(
-        io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder,
-        boolean published
-    ) {
+            io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder, boolean published) {
         return new UpdatePortalNavigationFolder()
-            .title(folder.getTitle())
-            .type(PortalNavigationItemType.FOLDER)
-            .order(folder.getOrder())
-            .published(published)
-            .visibility(PortalVisibility.valueOf(folder.getVisibility().name()));
+                .title(folder.getTitle())
+                .type(PortalNavigationItemType.FOLDER)
+                .order(folder.getOrder())
+                .published(published)
+                .visibility(PortalVisibility.valueOf(folder.getVisibility().name()));
     }
 
     private BaseUpdatePortalNavigationItem updateApiPublished(PortalNavigationApi api, boolean published) {
         return new UpdatePortalNavigationApi()
-            .apiId(api.getApiId())
-            .title(api.getTitle())
-            .type(PortalNavigationItemType.API)
-            .parentId(api.getParentId().id())
-            .order(api.getOrder())
-            .published(published)
-            .visibility(PortalVisibility.valueOf(api.getVisibility().name()));
+                .apiId(api.getApiId())
+                .title(api.getTitle())
+                .type(PortalNavigationItemType.API)
+                .parentId(api.getParentId().id())
+                .order(api.getOrder())
+                .published(published)
+                .visibility(PortalVisibility.valueOf(api.getVisibility().name()));
     }
 }

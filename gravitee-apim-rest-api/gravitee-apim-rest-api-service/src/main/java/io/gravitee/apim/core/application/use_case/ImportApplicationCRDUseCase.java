@@ -58,14 +58,13 @@ public class ImportApplicationCRDUseCase {
     private final MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService;
 
     public ImportApplicationCRDUseCase(
-        ApplicationCrudService applicationCrudService,
-        ImportApplicationCRDDomainService importApplicationCRDDomainService,
-        ApplicationMetadataCrudService applicationMetadataCrudService,
-        ApplicationMetadataQueryService applicationMetadataQueryService,
-        CRDMembersDomainService membersDomainService,
-        ValidateApplicationCRDDomainService crdValidator,
-        MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService
-    ) {
+            ApplicationCrudService applicationCrudService,
+            ImportApplicationCRDDomainService importApplicationCRDDomainService,
+            ApplicationMetadataCrudService applicationMetadataCrudService,
+            ApplicationMetadataQueryService applicationMetadataQueryService,
+            CRDMembersDomainService membersDomainService,
+            ValidateApplicationCRDDomainService crdValidator,
+            MtlsSubscriptionSyncDomainService mtlsSubscriptionSyncDomainService) {
         this.applicationCrudService = applicationCrudService;
         this.importApplicationCRDDomainService = importApplicationCRDDomainService;
         this.applicationMetadataCrudService = applicationMetadataCrudService;
@@ -82,14 +81,14 @@ public class ImportApplicationCRDUseCase {
     public Output execute(Input input) {
         var validationResult = validateAndSanitize(input);
         var warnings = validationResult.warning().orElseGet(List::of);
-        var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
+        var sanitizedInput = validationResult
+                .value()
+                .orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
         ApplicationCRDStatus status;
         try {
-            BaseApplicationEntity application = applicationCrudService.findById(
-                sanitizedInput.crd.getId(),
-                input.auditInfo.environmentId()
-            );
+            BaseApplicationEntity application =
+                    applicationCrudService.findById(sanitizedInput.crd.getId(), input.auditInfo.environmentId());
             status = this.update(sanitizedInput, application);
         } catch (ApplicationNotFoundException e) {
             status = this.create(sanitizedInput);
@@ -102,23 +101,21 @@ public class ImportApplicationCRDUseCase {
     private ApplicationCRDStatus create(Input sanitizedInput) {
         try {
             var newApplicationEntity = sanitizedInput.crd().toNewApplicationEntity();
-            var newApplication = importApplicationCRDDomainService.create(newApplicationEntity, sanitizedInput.auditInfo);
+            var newApplication =
+                    importApplicationCRDDomainService.create(newApplicationEntity, sanitizedInput.auditInfo);
 
             createOrUpdateApplicationMetadata(sanitizedInput, newApplication);
 
             membersDomainService.updateApplicationMembers(
-                sanitizedInput.auditInfo,
-                newApplication.getId(),
-                sanitizedInput.crd.getMembers()
-            );
+                    sanitizedInput.auditInfo, newApplication.getId(), sanitizedInput.crd.getMembers());
 
             mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(newApplication.getId());
 
             return ApplicationCRDStatus.builder()
-                .id(newApplication.getId())
-                .organizationId(sanitizedInput.auditInfo.organizationId())
-                .environmentId(sanitizedInput.auditInfo.environmentId())
-                .build();
+                    .id(newApplication.getId())
+                    .organizationId(sanitizedInput.auditInfo.organizationId())
+                    .environmentId(sanitizedInput.auditInfo.environmentId())
+                    .build();
         } catch (AbstractDomainException | AbstractManagementException e) {
             throw e;
         } catch (Exception e) {
@@ -135,24 +132,18 @@ public class ImportApplicationCRDUseCase {
             var updateApplicationEntity = sanitizedInput.crd.toUpdateApplicationEntity();
 
             var updatedApplication = importApplicationCRDDomainService.update(
-                application.getId(),
-                updateApplicationEntity,
-                sanitizedInput.auditInfo
-            );
+                    application.getId(), updateApplicationEntity, sanitizedInput.auditInfo);
 
             createOrUpdateApplicationMetadata(sanitizedInput, updatedApplication);
 
             membersDomainService.updateApplicationMembers(
-                sanitizedInput.auditInfo,
-                updatedApplication.getId(),
-                sanitizedInput.crd.getMembers()
-            );
+                    sanitizedInput.auditInfo, updatedApplication.getId(), sanitizedInput.crd.getMembers());
 
             return ApplicationCRDStatus.builder()
-                .id(updatedApplication.getId())
-                .organizationId(sanitizedInput.auditInfo.organizationId())
-                .environmentId(sanitizedInput.auditInfo.environmentId())
-                .build();
+                    .id(updatedApplication.getId())
+                    .organizationId(sanitizedInput.auditInfo.organizationId())
+                    .environmentId(sanitizedInput.auditInfo.environmentId())
+                    .build();
         } catch (AbstractDomainException | AbstractManagementException e) {
             throw e;
         } catch (Exception e) {
@@ -162,19 +153,16 @@ public class ImportApplicationCRDUseCase {
 
     private Validator.Result<ImportApplicationCRDUseCase.Input> validateAndSanitize(Input input) {
         var validationResult = crdValidator
-            .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(input.auditInfo(), input.crd()))
-            .map(sanitized -> new ImportApplicationCRDUseCase.Input(sanitized.auditInfo(), sanitized.spec()));
+                .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(input.auditInfo(), input.crd()))
+                .map(sanitized -> new ImportApplicationCRDUseCase.Input(sanitized.auditInfo(), sanitized.spec()));
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(
-                    String.format(
-                        "Unable to import because of errors [%s]",
-                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
-                    )
-                );
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(String.format(
+                    "Unable to import because of errors [%s]",
+                    String.join(
+                            ",",
+                            errors.stream().map(Validator.Error::getMessage).toList())));
+        });
 
         return validationResult;
     }
@@ -186,10 +174,9 @@ public class ImportApplicationCRDUseCase {
             for (ApplicationMetadataCRD metadata : input.crd.getMetadata()) {
                 metadata.setApplicationId(applicationId);
 
-                var applicationMetadataEntity = exitingAppMetadata
-                    .stream()
-                    .filter(ame -> ame.getName().equals(metadata.getName()))
-                    .findFirst();
+                var applicationMetadataEntity = exitingAppMetadata.stream()
+                        .filter(ame -> ame.getName().equals(metadata.getName()))
+                        .findFirst();
 
                 if (applicationMetadataEntity.isPresent()) {
                     exitingAppMetadata.remove(applicationMetadataEntity.get());

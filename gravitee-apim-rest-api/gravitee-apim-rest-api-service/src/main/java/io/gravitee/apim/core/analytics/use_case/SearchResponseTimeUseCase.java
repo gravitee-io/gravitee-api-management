@@ -45,26 +45,27 @@ public class SearchResponseTimeUseCase {
         Duration interval = DurationUtils.buildIntervalFromTimePeriod(from, to);
 
         return validateApiRequirements(input)
-            .flatMapMaybe(api ->
-                analyticsQueryService.searchAvgResponseTimeOverTime(
-                    executionContext,
-                    List.of(api.getId()),
-                    from,
-                    to,
-                    interval,
-                    List.of(api.getDefinitionVersion())
-                )
-            )
-            .map(statsData -> new Output(from, to, interval, statsData.values().stream().map(Math::round).toList()))
-            .defaultIfEmpty(new Output(from, to, interval, List.of()));
+                .flatMapMaybe(api -> analyticsQueryService.searchAvgResponseTimeOverTime(
+                        executionContext,
+                        List.of(api.getId()),
+                        from,
+                        to,
+                        interval,
+                        List.of(api.getDefinitionVersion())))
+                .map(statsData -> new Output(
+                        from,
+                        to,
+                        interval,
+                        statsData.values().stream().map(Math::round).toList()))
+                .defaultIfEmpty(new Output(from, to, interval, List.of()));
     }
 
     private Single<Api> validateApiRequirements(Input input) {
         return Maybe.fromOptional(apiCrudService.findById(input.apiId))
-            .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId)))
-            .flatMap(SearchResponseTimeUseCase::validateApiDefinitionVersion)
-            .flatMap(api -> validateApiMultiTenancyAccess(api, input.environmentId))
-            .flatMap(SearchResponseTimeUseCase::validateApiIsNotTcp);
+                .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId)))
+                .flatMap(SearchResponseTimeUseCase::validateApiDefinitionVersion)
+                .flatMap(api -> validateApiMultiTenancyAccess(api, input.environmentId))
+                .flatMap(SearchResponseTimeUseCase::validateApiIsNotTcp);
     }
 
     private static Single<Api> validateApiIsNotTcp(Api api) {
@@ -72,14 +73,16 @@ public class SearchResponseTimeUseCase {
     }
 
     private static Single<Api> validateApiMultiTenancyAccess(Api api, String environmentId) {
-        return api.belongsToEnvironment(environmentId) ? Single.just(api) : Single.error(new ApiNotFoundException(api.getId()));
+        return api.belongsToEnvironment(environmentId)
+                ? Single.just(api)
+                : Single.error(new ApiNotFoundException(api.getId()));
     }
 
     private static Single<Api> validateApiDefinitionVersion(Api api) {
         var version = api.getDefinitionVersion();
         return (DefinitionVersion.V4.equals(version) || DefinitionVersion.V2.equals(version))
-            ? Single.just(api)
-            : Single.error(new ApiInvalidDefinitionVersionException(api.getId()));
+                ? Single.just(api)
+                : Single.error(new ApiInvalidDefinitionVersionException(api.getId()));
     }
 
     public record Input(String apiId, String environmentId, Instant from, Instant to) {}

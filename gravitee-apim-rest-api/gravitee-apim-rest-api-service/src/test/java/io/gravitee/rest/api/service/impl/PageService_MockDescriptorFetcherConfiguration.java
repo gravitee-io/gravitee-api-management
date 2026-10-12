@@ -22,7 +22,8 @@ import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PageService_MockDescriptorFetcherConfiguration implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
+public class PageService_MockDescriptorFetcherConfiguration
+        implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
 
     @Override
     public String getFilepath() {

@@ -45,24 +45,25 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
     @Override
     public SubscriptionForm create(SubscriptionForm subscriptionForm) {
         SubscriptionForm toCreate = subscriptionForm.getId() == null
-            ? SubscriptionForm.builder()
-                .id(SubscriptionFormId.random())
-                .environmentId(subscriptionForm.getEnvironmentId())
-                .name(subscriptionForm.getName())
-                .gmdContent(subscriptionForm.getGmdContent())
-                .enabled(subscriptionForm.isEnabled())
-                .validationConstraints(subscriptionForm.getValidationConstraints())
-                .apiIds(subscriptionForm.getApiIds())
-                .build()
-            : subscriptionForm;
+                ? SubscriptionForm.builder()
+                        .id(SubscriptionFormId.random())
+                        .environmentId(subscriptionForm.getEnvironmentId())
+                        .name(subscriptionForm.getName())
+                        .gmdContent(subscriptionForm.getGmdContent())
+                        .enabled(subscriptionForm.isEnabled())
+                        .validationConstraints(subscriptionForm.getValidationConstraints())
+                        .apiIds(subscriptionForm.getApiIds())
+                        .build()
+                : subscriptionForm;
         try {
             var result = subscriptionFormRepository.create(subscriptionFormAdapter.toRepository(toCreate));
             return subscriptionFormAdapter.toEntity(result);
         } catch (TechnicalException e) {
             throw toDomainException(
-                e,
-                String.format("An error occurred while trying to create a SubscriptionForm for env: %s", toCreate.getEnvironmentId())
-            );
+                    e,
+                    String.format(
+                            "An error occurred while trying to create a SubscriptionForm for env: %s",
+                            toCreate.getEnvironmentId()));
         }
     }
 
@@ -73,12 +74,10 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
             return subscriptionFormAdapter.toEntity(result);
         } catch (TechnicalException e) {
             throw toDomainException(
-                e,
-                String.format(
-                    "An error occurred while trying to update a SubscriptionForm with id: %s",
-                    subscriptionForm.getId().toString()
-                )
-            );
+                    e,
+                    String.format(
+                            "An error occurred while trying to update a SubscriptionForm with id: %s",
+                            subscriptionForm.getId().toString()));
         }
     }
 
@@ -89,9 +88,7 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
             subscriptionFormRepository.delete(id);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to delete a SubscriptionForm with id: %s", id),
-                e
-            );
+                    String.format("An error occurred while trying to delete a SubscriptionForm with id: %s", id), e);
         }
     }
 

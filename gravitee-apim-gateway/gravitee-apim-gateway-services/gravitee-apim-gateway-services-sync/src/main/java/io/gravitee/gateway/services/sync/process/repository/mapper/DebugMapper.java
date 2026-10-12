@@ -35,7 +35,8 @@ public class DebugMapper {
             try {
                 ReactableEvent<Event> reactableEvent = new ReactableEvent<>(event.getId(), event);
                 reactableEvent.setDeployedAt(event.getCreatedAt());
-                String environmentId = event.getEnvironments().stream().findFirst().orElse(null);
+                String environmentId =
+                        event.getEnvironments().stream().findFirst().orElse(null);
                 environmentService.fill(environmentId, reactableEvent);
 
                 return reactableEvent;

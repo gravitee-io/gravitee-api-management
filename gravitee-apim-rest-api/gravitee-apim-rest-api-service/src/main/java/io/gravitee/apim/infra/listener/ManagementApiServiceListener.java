@@ -34,7 +34,8 @@ public class ManagementApiServiceListener implements EventListener<ManagementApi
 
     private final UpdateDynamicPropertiesUseCase updateDynamicPropertiesUsecase;
 
-    public ManagementApiServiceListener(EventManager eventManager, UpdateDynamicPropertiesUseCase updateDynamicPropertiesUsecase) {
+    public ManagementApiServiceListener(
+            EventManager eventManager, UpdateDynamicPropertiesUseCase updateDynamicPropertiesUsecase) {
         this.updateDynamicPropertiesUsecase = updateDynamicPropertiesUsecase;
         eventManager.subscribeForEvents(this, ManagementApiServiceEvent.class);
     }
@@ -44,14 +45,11 @@ public class ManagementApiServiceListener implements EventListener<ManagementApi
         switch (event.type()) {
             case DYNAMIC_PROPERTY_UPDATE -> {
                 if (event.content() instanceof DynamicPropertiesEvent dynamicPropertiesEvent) {
-                    updateDynamicPropertiesUsecase.execute(
-                        new UpdateDynamicPropertiesUseCase.Input(
+                    updateDynamicPropertiesUsecase.execute(new UpdateDynamicPropertiesUseCase.Input(
                             dynamicPropertiesEvent.apiId(),
                             dynamicPropertiesEvent.pluginId(),
                             dynamicPropertiesEvent.dynamicProperties(),
-                            dynamicPropertiesEvent.encryptOnFetch()
-                        )
-                    );
+                            dynamicPropertiesEvent.encryptOnFetch()));
                     return;
                 }
                 log.warn("Not able to parse the DYNAMIC_PROPERTY_UPDATE event");

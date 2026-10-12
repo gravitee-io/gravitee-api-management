@@ -24,9 +24,5 @@ public interface IntegrationMongoRepositoryCustom {
     Page<IntegrationMongo> findAllByEnvironmentId(String environmentId, Pageable pageable);
 
     Page<IntegrationMongo> findAllByEnvironmentIdAndGroups(
-        String environmentId,
-        Pageable pageable,
-        Collection<String> integrationIds,
-        Collection<String> groups
-    );
+            String environmentId, Pageable pageable, Collection<String> integrationIds, Collection<String> groups);
 }

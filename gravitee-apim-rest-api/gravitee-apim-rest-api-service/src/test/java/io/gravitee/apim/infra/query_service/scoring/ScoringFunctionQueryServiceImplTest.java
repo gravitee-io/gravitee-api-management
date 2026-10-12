@@ -52,30 +52,25 @@ public class ScoringFunctionQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_functions() {
-            when(scoringFunctionRepository.findAllByReferenceId(any(), any())).thenAnswer(invocation ->
-                List.of(
-                    ScoringFunctionFixture.aFunction()
-                        .toBuilder()
-                        .referenceId(invocation.getArgument(0))
-                        .referenceType(invocation.getArgument(1))
-                        .build()
-                )
-            );
+            when(scoringFunctionRepository.findAllByReferenceId(any(), any()))
+                    .thenAnswer(invocation -> List.of(ScoringFunctionFixture.aFunction().toBuilder()
+                            .referenceId(invocation.getArgument(0))
+                            .referenceType(invocation.getArgument(1))
+                            .build()));
 
             // When
             var result = service.findByReference("ref-id", ScoringFunction.ReferenceType.ENVIRONMENT);
 
             // Then
-            assertThat(result).contains(
-                ScoringFunction.builder()
-                    .id("function-id")
-                    .name("function-name")
-                    .payload("function-payload")
-                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .referenceType(ScoringFunction.ReferenceType.ENVIRONMENT)
-                    .referenceId("ref-id")
-                    .build()
-            );
+            assertThat(result)
+                    .contains(ScoringFunction.builder()
+                            .id("function-id")
+                            .name("function-name")
+                            .payload("function-payload")
+                            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .referenceType(ScoringFunction.ReferenceType.ENVIRONMENT)
+                            .referenceId("ref-id")
+                            .build());
         }
 
         @Test
@@ -84,12 +79,13 @@ public class ScoringFunctionQueryServiceImplTest {
             when(scoringFunctionRepository.findAllByReferenceId(any(), any())).thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() -> service.findByReference("env-id", ScoringFunction.ReferenceType.ENVIRONMENT));
+            Throwable throwable =
+                    catchThrowable(() -> service.findByReference("env-id", ScoringFunction.ReferenceType.ENVIRONMENT));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurred while finding Scoring function [ENVIRONMENT:env-id] ");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurred while finding Scoring function [ENVIRONMENT:env-id] ");
         }
     }
 }

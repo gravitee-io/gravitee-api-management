@@ -80,13 +80,17 @@ class PromotionsResourceTest extends AbstractResourceTest {
 
     @BeforeEach
     public void init() {
-        environmentCrudServiceInMemory.initWith(List.of(Environment.builder().id(TARGET_ENV_ID).cockpitId(TARGET_ENV_COCKPIT_ID).build()));
+        environmentCrudServiceInMemory.initWith(List.of(Environment.builder()
+                .id(TARGET_ENV_ID)
+                .cockpitId(TARGET_ENV_COCKPIT_ID)
+                .build()));
         target = rootTarget();
     }
 
     @AfterEach
     public void clean() {
-        Stream.of(apiCrudServiceInMemory, promotionCrudServiceInMemory, environmentCrudServiceInMemory).forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudServiceInMemory, promotionCrudServiceInMemory, environmentCrudServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
         reset(processPromotionUseCase);
     }
 
@@ -99,29 +103,39 @@ class PromotionsResourceTest extends AbstractResourceTest {
     @SneakyThrows
     void should_map_exported_definition_to_import_definition() {
         var export = GraviteeDefinition.from(
-            ApiDescriptor.ApiDescriptorV4.builder().id(API_ID).crossId(API_CROSS_ID).build(),
-            Collections.emptySet(),
-            List.of(NewApiMetadata.builder().apiId(API_ID).name("metadata").value("metadata-value").build()),
-            List.of(PageExport.builder().id("page-id").build()),
-            List.of(PlanDescriptor.V4.builder().id("plan-id").build()),
-            Collections.emptyList(),
-            BASE64_PICTURE,
-            BASE64_PICTURE
-        );
-        apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).crossId(API_CROSS_ID).environmentId(DEFAULT_ENV_ID).build()));
+                ApiDescriptor.ApiDescriptorV4.builder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .build(),
+                Collections.emptySet(),
+                List.of(NewApiMetadata.builder()
+                        .apiId(API_ID)
+                        .name("metadata")
+                        .value("metadata-value")
+                        .build()),
+                List.of(PageExport.builder().id("page-id").build()),
+                List.of(PlanDescriptor.V4.builder().id("plan-id").build()),
+                Collections.emptyList(),
+                BASE64_PICTURE,
+                BASE64_PICTURE);
+        apiCrudServiceInMemory.initWith(List.of(Api.builder()
+                .id(API_ID)
+                .crossId(API_CROSS_ID)
+                .environmentId(DEFAULT_ENV_ID)
+                .build()));
 
-        var promotion = PromotionFixtures.aPromotion()
-            .toBuilder()
-            .id(PROMOTION_ID)
-            .apiId(API_ID)
-            .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
-            .apiDefinition(graviteeDefinitionSerializer.serialize(export))
-            .build();
+        var promotion = PromotionFixtures.aPromotion().toBuilder()
+                .id(PROMOTION_ID)
+                .apiId(API_ID)
+                .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
+                .apiDefinition(graviteeDefinitionSerializer.serialize(export))
+                .build();
         promotionCrudServiceInMemory.initWith(List.of(promotion));
 
-        when(processPromotionUseCase.execute(any())).thenReturn(
-            new ProcessPromotionUseCase.Output(PromotionFixtures.aPromotion().toBuilder().status(PromotionStatus.REJECTED).build())
-        );
+        when(processPromotionUseCase.execute(any()))
+                .thenReturn(new ProcessPromotionUseCase.Output(PromotionFixtures.aPromotion().toBuilder()
+                        .status(PromotionStatus.REJECTED)
+                        .build()));
 
         Response response = target.request().post(Entity.json(false));
 
@@ -129,15 +143,13 @@ class PromotionsResourceTest extends AbstractResourceTest {
         verify(processPromotionUseCase).execute(captor.capture());
 
         var inputValue = captor.getValue();
-        assertThat(inputValue)
-            .isNotNull()
-            .satisfies(input -> {
-                assertThat(input.promotion()).isEqualTo(promotion);
-                assertThat(input.definitionVersion()).isEqualTo(DefinitionVersion.V4);
-                assertThat(input.importDefinition()).isNull();
-                assertThat(input.isAccepted()).isFalse();
-                assertThat(input.auditInfo().environmentId()).isEqualTo(TARGET_ENV_ID);
-            });
+        assertThat(inputValue).isNotNull().satisfies(input -> {
+            assertThat(input.promotion()).isEqualTo(promotion);
+            assertThat(input.definitionVersion()).isEqualTo(DefinitionVersion.V4);
+            assertThat(input.importDefinition()).isNull();
+            assertThat(input.isAccepted()).isFalse();
+            assertThat(input.auditInfo().environmentId()).isEqualTo(TARGET_ENV_ID);
+        });
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
     }
@@ -145,19 +157,23 @@ class PromotionsResourceTest extends AbstractResourceTest {
     @Test
     @SneakyThrows
     void should_call_use_case_with_promotion_and_v2_definition_version_without_mapping_exported_definition() {
-        var promotion = PromotionFixtures.aPromotion()
-            .toBuilder()
-            .id(PROMOTION_ID)
-            .apiId(API_ID)
-            .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
-            .apiDefinition("{ \"gravitee\" : \"2.0.0\", \"id\" : \"api-id\", \"crossId\" : \"api-cross-id\" }")
-            .build();
+        var promotion = PromotionFixtures.aPromotion().toBuilder()
+                .id(PROMOTION_ID)
+                .apiId(API_ID)
+                .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
+                .apiDefinition("{ \"gravitee\" : \"2.0.0\", \"id\" : \"api-id\", \"crossId\" : \"api-cross-id\" }")
+                .build();
         promotionCrudServiceInMemory.initWith(List.of(promotion));
-        apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).crossId(API_CROSS_ID).environmentId(DEFAULT_ENV_ID).build()));
+        apiCrudServiceInMemory.initWith(List.of(Api.builder()
+                .id(API_ID)
+                .crossId(API_CROSS_ID)
+                .environmentId(DEFAULT_ENV_ID)
+                .build()));
 
-        when(processPromotionUseCase.execute(any())).thenReturn(
-            new ProcessPromotionUseCase.Output(PromotionFixtures.aPromotion().toBuilder().status(PromotionStatus.ACCEPTED).build())
-        );
+        when(processPromotionUseCase.execute(any()))
+                .thenReturn(new ProcessPromotionUseCase.Output(PromotionFixtures.aPromotion().toBuilder()
+                        .status(PromotionStatus.ACCEPTED)
+                        .build()));
 
         Response response = target.request().post(Entity.json(true));
 
@@ -165,15 +181,13 @@ class PromotionsResourceTest extends AbstractResourceTest {
         verify(processPromotionUseCase).execute(captor.capture());
 
         var inputValue = captor.getValue();
-        assertThat(inputValue)
-            .isNotNull()
-            .satisfies(input -> {
-                assertThat(input.promotion()).isEqualTo(promotion);
-                assertThat(input.definitionVersion()).isEqualTo(DefinitionVersion.V2);
-                assertThat(input.importDefinition()).isNull();
-                assertThat(input.isAccepted()).isTrue();
-                assertThat(input.auditInfo()).isNull();
-            });
+        assertThat(inputValue).isNotNull().satisfies(input -> {
+            assertThat(input.promotion()).isEqualTo(promotion);
+            assertThat(input.definitionVersion()).isEqualTo(DefinitionVersion.V2);
+            assertThat(input.importDefinition()).isNull();
+            assertThat(input.isAccepted()).isTrue();
+            assertThat(input.auditInfo()).isNull();
+        });
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
     }

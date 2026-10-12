@@ -52,6 +52,7 @@ public final class SecurityTokenProjection {
      * An unknown, blank or {@code null} type is not projectable.
      */
     public static boolean isTokenProjectable(String securityType) {
-        return securityType != null && PROJECTABLE_SECURITY_TYPES.contains(securityType.trim().toUpperCase(Locale.ROOT));
+        return securityType != null
+                && PROJECTABLE_SECURITY_TYPES.contains(securityType.trim().toUpperCase(Locale.ROOT));
     }
 }

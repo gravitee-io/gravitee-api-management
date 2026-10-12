@@ -45,7 +45,8 @@ class HealthCheckStatusTest {
     @Test
     void should_move_back_to_up_when_success_threshold_reached_and_was_transitionally_down() {
         final int successThreshold = 5;
-        final HealthCheckStatus cut = new HealthCheckStatus(ManagedEndpoint.Status.TRANSITIONALLY_DOWN, successThreshold, 3);
+        final HealthCheckStatus cut =
+                new HealthCheckStatus(ManagedEndpoint.Status.TRANSITIONALLY_DOWN, successThreshold, 3);
 
         for (int i = 0; i < successThreshold - 1; i++) {
             assertThat(cut.reportSuccess()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_DOWN);

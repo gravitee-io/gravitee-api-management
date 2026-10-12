@@ -55,9 +55,12 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
     @Override
     public List<PortalNotificationEntity> findByUser(String user) {
         try {
-            return portalNotificationRepository.findByUser(user).stream().map(this::convert).collect(Collectors.toList());
+            return portalNotificationRepository.findByUser(user).stream()
+                    .map(this::convert)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find notifications by username " + user, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find notifications by username " + user, ex);
         }
     }
 
@@ -70,7 +73,8 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
             }
             throw new PortalNotificationNotFoundException(notificationId);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find notification with id " + notificationId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find notification with id " + notificationId, ex);
         }
     }
 
@@ -78,15 +82,9 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
     public void create(ExecutionContext executionContext, Hook hook, List<String> users, Object params) {
         try {
             final String title = notificationTemplateService.resolveTemplateWithParam(
-                executionContext.getOrganizationId(),
-                hook.getTemplate() + ".PORTAL.TITLE",
-                params
-            );
+                    executionContext.getOrganizationId(), hook.getTemplate() + ".PORTAL.TITLE", params);
             final String content = notificationTemplateService.resolveTemplateWithParam(
-                executionContext.getOrganizationId(),
-                hook.getTemplate() + ".PORTAL",
-                params
-            );
+                    executionContext.getOrganizationId(), hook.getTemplate() + ".PORTAL", params);
 
             List<NewPortalNotificationEntity> notifications = new ArrayList<>(users.size());
             users.forEach(user -> {
@@ -108,7 +106,8 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
         try {
             portalNotificationRepository.deleteAll(user);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying delete all notifications for user " + user, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying delete all notifications for user " + user, ex);
         }
     }
 
@@ -123,7 +122,8 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
 
     private void create(List<NewPortalNotificationEntity> notificationEntities) {
         final Date now = new Date();
-        List<PortalNotification> notifications = notificationEntities.stream().map(this::convert).collect(Collectors.toList());
+        List<PortalNotification> notifications =
+                notificationEntities.stream().map(this::convert).collect(Collectors.toList());
         notifications.forEach(n -> {
             n.setId(UuidString.generateRandom());
             n.setCreatedAt(now);

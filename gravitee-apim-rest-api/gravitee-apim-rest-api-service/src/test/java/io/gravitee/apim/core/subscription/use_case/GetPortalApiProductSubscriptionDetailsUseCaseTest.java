@@ -83,15 +83,15 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
         useCase = createUseCase(List.of());
     }
 
-    private GetPortalApiProductSubscriptionDetailsUseCase createUseCase(List<PortalNavigationItemVisibilityService> visibilityServices) {
+    private GetPortalApiProductSubscriptionDetailsUseCase createUseCase(
+            List<PortalNavigationItemVisibilityService> visibilityServices) {
         return new GetPortalApiProductSubscriptionDetailsUseCase(
-            apiProductQueryService,
-            planCrudService,
-            apiQueryService,
-            apiExposedEntrypointDomainService,
-            navigationItemsQueryService,
-            visibilityServices
-        );
+                apiProductQueryService,
+                planCrudService,
+                apiQueryService,
+                apiExposedEntrypointDomainService,
+                navigationItemsQueryService,
+                visibilityServices);
     }
 
     @Test
@@ -103,9 +103,8 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
         planCrudService.initWith(List.of(productPlan()));
         apiQueryService.initWith(List.of(api));
         navigationItemsQueryService.initWith(List.of(productNavigation, apiNavigation));
-        when(apiExposedEntrypointDomainService.get(ORGANIZATION_ID, ENVIRONMENT_ID, api)).thenReturn(
-            List.of(new ExposedEntrypoint("https://gateway.example.com/api"))
-        );
+        when(apiExposedEntrypointDomainService.get(ORGANIZATION_ID, ENVIRONMENT_ID, api))
+                .thenReturn(List.of(new ExposedEntrypoint("https://gateway.example.com/api")));
 
         var result = useCase.execute(input()).apiProduct();
 
@@ -118,19 +117,18 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
         assertThat(result.plan().name()).isEqualTo("Product plan");
         assertThat(result.plan().security()).isNotBlank();
         assertThat(result.plan().mode()).isEqualTo("STANDARD");
-        assertThat(result.apis())
-            .singleElement()
-            .satisfies(apiDetails -> {
-                assertThat(apiDetails.id()).isEqualTo(API_ID);
-                assertThat(apiDetails.name()).isEqualTo("API");
-                assertThat(apiDetails.version()).isEqualTo("2.0");
-                assertThat(apiDetails.type()).isEqualTo("PROXY");
-                assertThat(apiDetails.availability()).isEqualTo(PortalApiProductSubscriptionDetails.ApiAvailability.AVAILABLE);
-                assertThat(apiDetails.entrypoints()).containsExactly("https://gateway.example.com/api");
-                assertThat(apiDetails.documentation()).isEqualTo(
-                    new PortalApiProductSubscriptionDetails.DocumentationTarget(API_PRODUCT_NAVIGATION_ID, API_NAVIGATION_ID)
-                );
-            });
+        assertThat(result.apis()).singleElement().satisfies(apiDetails -> {
+            assertThat(apiDetails.id()).isEqualTo(API_ID);
+            assertThat(apiDetails.name()).isEqualTo("API");
+            assertThat(apiDetails.version()).isEqualTo("2.0");
+            assertThat(apiDetails.type()).isEqualTo("PROXY");
+            assertThat(apiDetails.availability())
+                    .isEqualTo(PortalApiProductSubscriptionDetails.ApiAvailability.AVAILABLE);
+            assertThat(apiDetails.entrypoints()).containsExactly("https://gateway.example.com/api");
+            assertThat(apiDetails.documentation())
+                    .isEqualTo(new PortalApiProductSubscriptionDetails.DocumentationTarget(
+                            API_PRODUCT_NAVIGATION_ID, API_NAVIGATION_ID));
+        });
     }
 
     @Test
@@ -143,19 +141,16 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
         planCrudService.initWith(List.of(productPlan()));
         apiQueryService.initWith(List.of(api));
         navigationItemsQueryService.initWith(List.of(productNavigation, apiNavigation));
-        when(apiExposedEntrypointDomainService.get(ORGANIZATION_ID, ENVIRONMENT_ID, api)).thenReturn(
-            List.of(new ExposedEntrypoint("https://gateway.example.com/api"))
-        );
+        when(apiExposedEntrypointDomainService.get(ORGANIZATION_ID, ENVIRONMENT_ID, api))
+                .thenReturn(List.of(new ExposedEntrypoint("https://gateway.example.com/api")));
 
         var result = useCase.execute(input()).apiProduct();
 
         assertThat(result.availability()).isEqualTo(PortalApiProductSubscriptionDetails.Availability.AVAILABLE);
-        assertThat(result.apis())
-            .singleElement()
-            .satisfies(apiDetails -> {
-                assertThat(apiDetails.entrypoints()).containsExactly("https://gateway.example.com/api");
-                assertThat(apiDetails.documentation()).isNull();
-            });
+        assertThat(result.apis()).singleElement().satisfies(apiDetails -> {
+            assertThat(apiDetails.entrypoints()).containsExactly("https://gateway.example.com/api");
+            assertThat(apiDetails.documentation()).isNull();
+        });
     }
 
     @Test
@@ -170,7 +165,8 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
 
         useCase.execute(input());
 
-        verify(navigationItemsQueryService, times(1)).findByIdAndEnvironmentId(ENVIRONMENT_ID, productNavigation.getId());
+        verify(navigationItemsQueryService, times(1))
+                .findByIdAndEnvironmentId(ENVIRONMENT_ID, productNavigation.getId());
     }
 
     @Test
@@ -180,21 +176,22 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
 
         var result = useCase.execute(input()).apiProduct();
 
-        assertThat(result.apis())
-            .singleElement()
-            .satisfies(apiDetails -> {
-                assertThat(apiDetails.id()).isEqualTo(API_ID);
-                assertThat(apiDetails.name()).isNull();
-                assertThat(apiDetails.availability()).isEqualTo(PortalApiProductSubscriptionDetails.ApiAvailability.UNAVAILABLE);
-                assertThat(apiDetails.entrypoints()).isEmpty();
-                assertThat(apiDetails.documentation()).isNull();
-            });
+        assertThat(result.apis()).singleElement().satisfies(apiDetails -> {
+            assertThat(apiDetails.id()).isEqualTo(API_ID);
+            assertThat(apiDetails.name()).isNull();
+            assertThat(apiDetails.availability())
+                    .isEqualTo(PortalApiProductSubscriptionDetails.ApiAvailability.UNAVAILABLE);
+            assertThat(apiDetails.entrypoints()).isEmpty();
+            assertThat(apiDetails.documentation()).isNull();
+        });
         verify(apiExposedEntrypointDomainService, never()).get(ORGANIZATION_ID, ENVIRONMENT_ID, publishedApi());
     }
 
     @Test
     void should_mark_unpublished_api_and_hide_its_entrypoints_and_documentation() {
-        var api = publishedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build();
+        var api = publishedApi().toBuilder()
+                .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
+                .build();
         var productNavigation = productNavigation();
         apiProductQueryService.initWith(List.of(apiProduct(Set.of(API_ID))));
         planCrudService.initWith(List.of(productPlan()));
@@ -203,13 +200,12 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
 
         var result = useCase.execute(input()).apiProduct();
 
-        assertThat(result.apis())
-            .singleElement()
-            .satisfies(apiDetails -> {
-                assertThat(apiDetails.availability()).isEqualTo(PortalApiProductSubscriptionDetails.ApiAvailability.UNPUBLISHED);
-                assertThat(apiDetails.entrypoints()).isEmpty();
-                assertThat(apiDetails.documentation()).isNull();
-            });
+        assertThat(result.apis()).singleElement().satisfies(apiDetails -> {
+            assertThat(apiDetails.availability())
+                    .isEqualTo(PortalApiProductSubscriptionDetails.ApiAvailability.UNPUBLISHED);
+            assertThat(apiDetails.entrypoints()).isEmpty();
+            assertThat(apiDetails.documentation()).isNull();
+        });
         verify(apiExposedEntrypointDomainService, never()).get(ORGANIZATION_ID, ENVIRONMENT_ID, api);
     }
 
@@ -223,13 +219,12 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
 
         var result = useCase.execute(input()).apiProduct();
 
-        assertThat(result.apis())
-            .singleElement()
-            .satisfies(apiDetails -> {
-                assertThat(apiDetails.availability()).isEqualTo(PortalApiProductSubscriptionDetails.ApiAvailability.UNAVAILABLE);
-                assertThat(apiDetails.entrypoints()).isEmpty();
-                assertThat(apiDetails.documentation()).isNull();
-            });
+        assertThat(result.apis()).singleElement().satisfies(apiDetails -> {
+            assertThat(apiDetails.availability())
+                    .isEqualTo(PortalApiProductSubscriptionDetails.ApiAvailability.UNAVAILABLE);
+            assertThat(apiDetails.entrypoints()).isEmpty();
+            assertThat(apiDetails.documentation()).isNull();
+        });
         verify(apiExposedEntrypointDomainService, never()).get(ORGANIZATION_ID, ENVIRONMENT_ID, api);
     }
 
@@ -246,8 +241,8 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
         var result = useCase.execute(input()).apiProduct();
 
         assertThat(result.apis())
-            .singleElement()
-            .satisfies(apiDetails -> assertThat(apiDetails.documentation()).isNull());
+                .singleElement()
+                .satisfies(apiDetails -> assertThat(apiDetails.documentation()).isNull());
     }
 
     @Test
@@ -265,47 +260,46 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
 
     private static GetPortalApiProductSubscriptionDetailsUseCase.Input input() {
         return new GetPortalApiProductSubscriptionDetailsUseCase.Input(
-            ORGANIZATION_ID,
-            ENVIRONMENT_ID,
-            API_PRODUCT_ID,
-            PLAN_ID,
-            PortalNavigationItemViewerContext.forPortal("user-id")
-        );
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                API_PRODUCT_ID,
+                PLAN_ID,
+                PortalNavigationItemViewerContext.forPortal("user-id"));
     }
 
     private static ApiProduct apiProduct(Set<String> apiIds) {
         return ApiProduct.builder()
-            .id(API_PRODUCT_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .name("API Product")
-            .version("1.0")
-            .apiIds(apiIds)
-            .build();
+                .id(API_PRODUCT_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .name("API Product")
+                .version("1.0")
+                .apiIds(apiIds)
+                .build();
     }
 
     private static io.gravitee.apim.core.plan.model.Plan productPlan() {
-        return PlanFixtures.aPlanHttpV4()
-            .toBuilder()
-            .id(PLAN_ID)
-            .name("Product plan")
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .build();
+        return PlanFixtures.aPlanHttpV4().toBuilder()
+                .id(PLAN_ID)
+                .name("Product plan")
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .build();
     }
 
     private static Api publishedApi() {
         return Api.builder()
-            .id(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .name("API")
-            .version("2.0")
-            .type(ApiType.PROXY)
-            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
-            .build();
+                .id(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .name("API")
+                .version("2.0")
+                .type(ApiType.PROXY)
+                .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                .build();
     }
 
     private static PortalNavigationApiProduct productNavigation() {
-        var item = PortalNavigationItemFixtures.anApiProduct(API_PRODUCT_NAVIGATION_ID, "API Product", null, API_PRODUCT_ID);
+        var item = PortalNavigationItemFixtures.anApiProduct(
+                API_PRODUCT_NAVIGATION_ID, "API Product", null, API_PRODUCT_ID);
         item.markAsRoot();
         return item;
     }
@@ -314,7 +308,8 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
         return apiNavigation(API_NAVIGATION_ID, productNavigation);
     }
 
-    private static PortalNavigationApi apiNavigation(String navigationId, PortalNavigationApiProduct productNavigation) {
+    private static PortalNavigationApi apiNavigation(
+            String navigationId, PortalNavigationApiProduct productNavigation) {
         var item = PortalNavigationItemFixtures.anApi(navigationId, "API", productNavigation.getId(), API_ID);
         item.updateParent(productNavigation);
         return item;
@@ -329,9 +324,7 @@ class GetPortalApiProductSubscriptionDetailsUseCaseTest {
 
             @Override
             public Predicate<PortalNavigationItem> prepareVisibilityPredicate(
-                String environmentId,
-                PortalNavigationItemViewerContext viewerContext
-            ) {
+                    String environmentId, PortalNavigationItemViewerContext viewerContext) {
                 return item -> false;
             }
         };

@@ -36,25 +36,19 @@ public class ValidateApiCRDUseCase {
         var statusBuilder = ApiCRDStatus.builder();
 
         validator
-            .validateAndSanitize(new ValidateApiCRDDomainService.Input(input.auditInfo(), input.spec()))
-            .peek(
-                sanitized ->
-                    statusBuilder
-                        .id(sanitized.spec().getId())
-                        .crossId(sanitized.spec().getCrossId())
-                        .organizationId(input.auditInfo().organizationId())
-                        .environmentId(input.auditInfo().environmentId())
-                        .state(sanitized.spec().getState())
-                        .plans(
-                            sanitized
-                                .spec()
-                                .getPlans()
-                                .entrySet()
-                                .stream()
-                                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getId()))
-                        ),
-                errors -> statusBuilder.errors(ApiCRDStatus.Errors.fromErrorList(errors))
-            );
+                .validateAndSanitize(new ValidateApiCRDDomainService.Input(input.auditInfo(), input.spec()))
+                .peek(
+                        sanitized -> statusBuilder
+                                .id(sanitized.spec().getId())
+                                .crossId(sanitized.spec().getCrossId())
+                                .organizationId(input.auditInfo().organizationId())
+                                .environmentId(input.auditInfo().environmentId())
+                                .state(sanitized.spec().getState())
+                                .plans(sanitized.spec().getPlans().entrySet().stream()
+                                        .collect(Collectors.toMap(
+                                                Map.Entry::getKey,
+                                                entry -> entry.getValue().getId()))),
+                        errors -> statusBuilder.errors(ApiCRDStatus.Errors.fromErrorList(errors)));
 
         return new ImportApiCRDUseCase.Output(statusBuilder.build());
     }

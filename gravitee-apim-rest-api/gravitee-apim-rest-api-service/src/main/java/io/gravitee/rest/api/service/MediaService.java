@@ -30,11 +30,15 @@ public interface MediaService {
     String saveApiMedia(ExecutionContext context, String api, MediaEntity imageEntity);
 
     MediaEntity findByHash(ExecutionContext context, String hash);
+
     MediaEntity findByHashAndApiId(String hash, String apiId);
+
     MediaEntity findByHash(ExecutionContext context, String id, boolean ignoreType);
+
     MediaEntity findByHashAndApi(String id, String api, boolean ignoreType);
 
     List<MediaEntity> findAllWithoutContent(ExecutionContext context, List<PageMediaEntity> pageMediaEntities);
+
     List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities, String api);
 
     Long getMediaMaxSize(ExecutionContext executionContext);

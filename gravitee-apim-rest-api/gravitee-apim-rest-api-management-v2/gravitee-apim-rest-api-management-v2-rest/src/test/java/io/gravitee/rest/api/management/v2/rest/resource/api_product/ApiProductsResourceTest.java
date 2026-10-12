@@ -114,36 +114,45 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_verify_api_product_name_is_available() {
-            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class)))
+                    .thenReturn(true);
             VerifyApiProduct verifyApiProduct = new VerifyApiProduct();
             verifyApiProduct.setName("My API Product");
 
-            when(verifyApiProductNameUseCase.execute(any())).thenReturn(new VerifyApiProductNameUseCase.Output("My API Product"));
+            when(verifyApiProductNameUseCase.execute(any()))
+                    .thenReturn(new VerifyApiProductNameUseCase.Output("My API Product"));
 
             final Response response = rootTarget().path("_verify").request().post(json(verifyApiProduct));
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
 
             var result = response.readEntity(VerifyApiProductResponse.class);
-            assertAll(() -> assertThat(result.getOk()).isTrue(), () -> assertThat(result.getReason()).isNull());
+            assertAll(
+                    () -> assertThat(result.getOk()).isTrue(),
+                    () -> assertThat(result.getReason()).isNull());
         }
 
         @Test
         void should_verify_api_product_name_is_available_for_update() {
-            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class)))
+                    .thenReturn(true);
             VerifyApiProduct verifyApiProduct = new VerifyApiProduct();
             verifyApiProduct.setName("My API Product");
             verifyApiProduct.setApiProductId("existing-id");
-            when(verifyApiProductNameUseCase.execute(any())).thenReturn(new VerifyApiProductNameUseCase.Output("My API Product"));
+            when(verifyApiProductNameUseCase.execute(any()))
+                    .thenReturn(new VerifyApiProductNameUseCase.Output("My API Product"));
             final Response response = rootTarget().path("_verify").request().post(json(verifyApiProduct));
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var result = response.readEntity(VerifyApiProductResponse.class);
-            assertAll(() -> assertThat(result.getOk()).isTrue(), () -> assertThat(result.getReason()).isNull());
+            assertAll(
+                    () -> assertThat(result.getOk()).isTrue(),
+                    () -> assertThat(result.getReason()).isNull());
         }
 
         @Test
         void should_return_400_if_missing_body() {
-            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class)))
+                    .thenReturn(true);
             final Response response = rootTarget().path("_verify").request().post(json(null));
 
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
@@ -152,22 +161,20 @@ class ApiProductsResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_403_if_incorrect_permissions() {
             reset(permissionService);
-            when(
-                permissionService.hasPermission(
-                    any(),
-                    eq(RolePermission.ENVIRONMENT_API_PRODUCT),
-                    eq(ENV_ID),
-                    eq(RolePermissionAction.READ)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            any(),
+                            eq(RolePermission.ENVIRONMENT_API_PRODUCT),
+                            eq(ENV_ID),
+                            eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
             VerifyApiProduct verifyApiProduct = new VerifyApiProduct();
             verifyApiProduct.setName("My API Product");
             Response response = rootTarget().path("_verify").request().post(json(verifyApiProduct));
             MAPIAssertions.assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
     }
 
@@ -181,17 +188,19 @@ class ApiProductsResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var hooks = response.readEntity(new GenericType<List<Hook>>() {});
             var expectedIds = Arrays.stream(ApiProductHook.values())
-                .filter(hook -> !hook.isHidden())
-                .map(Enum::name)
-                .toList();
+                    .filter(hook -> !hook.isHidden())
+                    .map(Enum::name)
+                    .toList();
             assertThat(hooks).extracting(Hook::getId).containsExactlyInAnyOrderElementsOf(expectedIds);
         }
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.READ, () ->
-                rootTarget().path("hooks").request().get()
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_API_PRODUCT,
+                    ENV_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().path("hooks").request().get());
         }
     }
 
@@ -206,16 +215,20 @@ class ApiProductsResourceTest extends AbstractResourceTest {
             createApiProduct.setVersion("1.0.0");
 
             ApiProduct output = ApiProduct.builder()
-                .id("api-product-id")
-                .environmentId(ENV_ID)
-                .name(createApiProduct.getName())
-                .description(createApiProduct.getDescription())
-                .version(createApiProduct.getVersion())
-                .createdAt(ZonedDateTime.now())
-                .updatedAt(ZonedDateTime.now())
-                .apiIds(new HashSet<>())
-                .primaryOwner(PrimaryOwnerEntity.builder().id("user-id").displayName("User").type(PrimaryOwnerEntity.Type.USER).build())
-                .build();
+                    .id("api-product-id")
+                    .environmentId(ENV_ID)
+                    .name(createApiProduct.getName())
+                    .description(createApiProduct.getDescription())
+                    .version(createApiProduct.getVersion())
+                    .createdAt(ZonedDateTime.now())
+                    .updatedAt(ZonedDateTime.now())
+                    .apiIds(new HashSet<>())
+                    .primaryOwner(PrimaryOwnerEntity.builder()
+                            .id("user-id")
+                            .displayName("User")
+                            .type(PrimaryOwnerEntity.Type.USER)
+                            .build())
+                    .build();
 
             when(createApiProductUseCase.execute(any())).thenReturn(new CreateApiProductUseCase.Output(output));
 
@@ -226,13 +239,12 @@ class ApiProductsResourceTest extends AbstractResourceTest {
             var createdApiProduct = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ApiProduct.class);
 
             assertAll(
-                () -> assertThat(createdApiProduct.getId()).isEqualTo(output.getId()),
-                () -> assertThat(createdApiProduct.getName()).isEqualTo(createApiProduct.getName()),
-                () -> assertThat(createdApiProduct.getDescription()).isEqualTo(createApiProduct.getDescription()),
-                () -> assertThat(createdApiProduct.getVersion()).isEqualTo(createApiProduct.getVersion()),
-                () -> assertThat(createdApiProduct.getCreatedAt()).isNotNull(),
-                () -> assertThat(createdApiProduct.getUpdatedAt()).isNotNull()
-            );
+                    () -> assertThat(createdApiProduct.getId()).isEqualTo(output.getId()),
+                    () -> assertThat(createdApiProduct.getName()).isEqualTo(createApiProduct.getName()),
+                    () -> assertThat(createdApiProduct.getDescription()).isEqualTo(createApiProduct.getDescription()),
+                    () -> assertThat(createdApiProduct.getVersion()).isEqualTo(createApiProduct.getVersion()),
+                    () -> assertThat(createdApiProduct.getCreatedAt()).isNotNull(),
+                    () -> assertThat(createdApiProduct.getUpdatedAt()).isNotNull());
         }
 
         @Test
@@ -244,9 +256,8 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_when_license_does_not_allow_api_product() {
-            when(createApiProductUseCase.execute(any())).thenThrow(
-                new io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException("api-product")
-            );
+            when(createApiProductUseCase.execute(any()))
+                    .thenThrow(new io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException("api-product"));
 
             CreateApiProduct createApiProduct = new CreateApiProduct();
             createApiProduct.setName("My API Product");
@@ -260,14 +271,17 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.CREATE, () ->
-                rootTarget().request().post(json(new CreateApiProduct()))
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_API_PRODUCT,
+                    ENV_ID,
+                    RolePermissionAction.CREATE,
+                    () -> rootTarget().request().post(json(new CreateApiProduct())));
         }
 
         @Test
         void should_return_400_when_user_not_allowed_to_use_restricted_tag() {
-            when(createApiProductUseCase.execute(any())).thenThrow(new TagNotAllowedException(new String[] { "restricted-tag" }));
+            when(createApiProductUseCase.execute(any()))
+                    .thenThrow(new TagNotAllowedException(new String[] {"restricted-tag"}));
 
             CreateApiProduct createApiProduct = new CreateApiProduct();
             createApiProduct.setName("My API Product");
@@ -286,27 +300,26 @@ class ApiProductsResourceTest extends AbstractResourceTest {
         @Test
         void should_get_api_products() {
             Set<ApiProduct> apiProducts = Set.of(
-                ApiProduct.builder()
-                    .id("api-product-1")
-                    .environmentId(ENV_ID)
-                    .name("Product 1")
-                    .description("Description 1")
-                    .version("1.0.0")
-                    .createdAt(ZonedDateTime.now())
-                    .updatedAt(ZonedDateTime.now())
-                    .apiIds(new HashSet<>())
-                    .build(),
-                ApiProduct.builder()
-                    .id("api-product-2")
-                    .environmentId(ENV_ID)
-                    .name("Product 2")
-                    .description("Description 2")
-                    .version("1.0.0")
-                    .createdAt(ZonedDateTime.now())
-                    .updatedAt(ZonedDateTime.now())
-                    .apiIds(new HashSet<>())
-                    .build()
-            );
+                    ApiProduct.builder()
+                            .id("api-product-1")
+                            .environmentId(ENV_ID)
+                            .name("Product 1")
+                            .description("Description 1")
+                            .version("1.0.0")
+                            .createdAt(ZonedDateTime.now())
+                            .updatedAt(ZonedDateTime.now())
+                            .apiIds(new HashSet<>())
+                            .build(),
+                    ApiProduct.builder()
+                            .id("api-product-2")
+                            .environmentId(ENV_ID)
+                            .name("Product 2")
+                            .description("Description 2")
+                            .version("1.0.0")
+                            .createdAt(ZonedDateTime.now())
+                            .updatedAt(ZonedDateTime.now())
+                            .apiIds(new HashSet<>())
+                            .build());
 
             when(getApiProductsUseCase.execute(any())).thenReturn(GetApiProductsUseCase.Output.multiple(apiProducts));
 
@@ -317,10 +330,9 @@ class ApiProductsResourceTest extends AbstractResourceTest {
             var responseMap = response.readEntity(java.util.Map.class);
 
             assertAll(
-                () -> assertThat(responseMap).containsKey("data"),
-                () -> assertThat(responseMap).containsKey("pagination"),
-                () -> assertThat(responseMap).containsKey("links")
-            );
+                    () -> assertThat(responseMap).containsKey("data"),
+                    () -> assertThat(responseMap).containsKey("pagination"),
+                    () -> assertThat(responseMap).containsKey("links"));
         }
 
         @Test
@@ -337,7 +349,11 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_API_PRODUCT,
+                    ENV_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().request().get());
         }
     }
 
@@ -346,10 +362,10 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_full_list_when_no_query_and_no_ids() {
-            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class)))
+                    .thenReturn(true);
             ApiProductSearchQuery searchQuery = new ApiProductSearchQuery();
-            List<ApiProduct> apiProductsList = List.of(
-                ApiProduct.builder()
+            List<ApiProduct> apiProductsList = List.of(ApiProduct.builder()
                     .id("api-product-1")
                     .environmentId(ENV_ID)
                     .name("Product One")
@@ -357,11 +373,10 @@ class ApiProductsResourceTest extends AbstractResourceTest {
                     .createdAt(ZonedDateTime.now())
                     .updatedAt(ZonedDateTime.now())
                     .apiIds(new HashSet<>())
-                    .build()
-            );
-            when(searchApiProductsUseCase.execute(any())).thenReturn(
-                new SearchApiProductsUseCase.Output(new Page<>(apiProductsList, 1, apiProductsList.size(), apiProductsList.size()))
-            );
+                    .build());
+            when(searchApiProductsUseCase.execute(any()))
+                    .thenReturn(new SearchApiProductsUseCase.Output(
+                            new Page<>(apiProductsList, 1, apiProductsList.size(), apiProductsList.size())));
 
             final Response response = rootTarget().path("_search").request().post(json(searchQuery));
 
@@ -373,12 +388,12 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_search_by_query() {
-            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class)))
+                    .thenReturn(true);
             ApiProductSearchQuery searchQuery = new ApiProductSearchQuery();
             searchQuery.setQuery("My Product");
 
-            List<ApiProduct> apiProductsList = List.of(
-                ApiProduct.builder()
+            List<ApiProduct> apiProductsList = List.of(ApiProduct.builder()
                     .id("api-product-1")
                     .environmentId(ENV_ID)
                     .name("My Product One")
@@ -386,11 +401,10 @@ class ApiProductsResourceTest extends AbstractResourceTest {
                     .createdAt(ZonedDateTime.now())
                     .updatedAt(ZonedDateTime.now())
                     .apiIds(new HashSet<>())
-                    .build()
-            );
-            when(searchApiProductsUseCase.execute(any())).thenReturn(
-                new SearchApiProductsUseCase.Output(new Page<>(apiProductsList, 1, apiProductsList.size(), apiProductsList.size()))
-            );
+                    .build());
+            when(searchApiProductsUseCase.execute(any()))
+                    .thenReturn(new SearchApiProductsUseCase.Output(
+                            new Page<>(apiProductsList, 1, apiProductsList.size(), apiProductsList.size())));
 
             final Response response = rootTarget().path("_search").request().post(json(searchQuery));
 
@@ -401,12 +415,12 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_search_by_ids() {
-            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class)))
+                    .thenReturn(true);
             ApiProductSearchQuery searchQuery = new ApiProductSearchQuery();
             searchQuery.setIds(java.util.List.of("api-product-1", "api-product-2"));
 
-            List<ApiProduct> apiProductsList = List.of(
-                ApiProduct.builder()
+            List<ApiProduct> apiProductsList = List.of(ApiProduct.builder()
                     .id("api-product-1")
                     .environmentId(ENV_ID)
                     .name("Product 1")
@@ -414,11 +428,10 @@ class ApiProductsResourceTest extends AbstractResourceTest {
                     .createdAt(ZonedDateTime.now())
                     .updatedAt(ZonedDateTime.now())
                     .apiIds(new HashSet<>())
-                    .build()
-            );
-            when(searchApiProductsUseCase.execute(any())).thenReturn(
-                new SearchApiProductsUseCase.Output(new Page<>(apiProductsList, 1, apiProductsList.size(), apiProductsList.size()))
-            );
+                    .build());
+            when(searchApiProductsUseCase.execute(any()))
+                    .thenReturn(new SearchApiProductsUseCase.Output(
+                            new Page<>(apiProductsList, 1, apiProductsList.size(), apiProductsList.size())));
 
             final Response response = rootTarget().path("_search").request().post(json(searchQuery));
 
@@ -429,11 +442,16 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_invalid_sortBy() {
-            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class)))
+                    .thenReturn(true);
             ApiProductSearchQuery searchQuery = new ApiProductSearchQuery();
             searchQuery.setQuery("test");
 
-            final Response response = rootTarget().path("_search").queryParam("sortBy", "invalid_sort").request().post(json(searchQuery));
+            final Response response = rootTarget()
+                    .path("_search")
+                    .queryParam("sortBy", "invalid_sort")
+                    .request()
+                    .post(json(searchQuery));
 
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
         }
@@ -442,9 +460,11 @@ class ApiProductsResourceTest extends AbstractResourceTest {
         public void should_return_403_if_incorrect_permissions() {
             ApiProductSearchQuery searchQuery = new ApiProductSearchQuery();
             searchQuery.setQuery("test");
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.READ, () ->
-                rootTarget().path("_search").request().post(json(searchQuery))
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_API_PRODUCT,
+                    ENV_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().path("_search").request().post(json(searchQuery)));
         }
     }
 }

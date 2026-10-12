@@ -122,24 +122,21 @@ public class NewCategoryEntity {
 
     @Override
     public String toString() {
-        return (
-            "NewCategoryEntity{" +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", order='" +
-            order +
-            '\'' +
-            ", hidden='" +
-            hidden +
-            '\'' +
-            ", page='" +
-            page +
-            '\'' +
-            '}'
-        );
+        return ("NewCategoryEntity{" + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", order='"
+                + order
+                + '\''
+                + ", hidden='"
+                + hidden
+                + '\''
+                + ", page='"
+                + page
+                + '\''
+                + '}');
     }
 }

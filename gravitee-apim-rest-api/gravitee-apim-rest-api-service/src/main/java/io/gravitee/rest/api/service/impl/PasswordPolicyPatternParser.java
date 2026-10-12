@@ -46,29 +46,28 @@ public class PasswordPolicyPatternParser {
             int minLength = Integer.parseInt(lengthMatcher.group(1));
             String maxLengthGroup = lengthMatcher.group(2);
             addRule(
-                rules,
-                seenRuleIds,
-                PasswordPolicyRuleEntity.builder()
-                    .id("minLength")
-                    .label("At least " + minLength + " characters")
-                    .pattern(String.format("^.{%d,}$", minLength))
-                    .build()
-            );
-            if (maxLengthGroup != null && !maxLengthGroup.isBlank()) {
-                int maxLength = Integer.parseInt(maxLengthGroup);
-                addRule(
                     rules,
                     seenRuleIds,
                     PasswordPolicyRuleEntity.builder()
-                        .id("maxLength")
-                        .label("At most " + maxLength + " characters")
-                        .pattern(String.format("^.{0,%d}$", maxLength))
-                        .build()
-                );
+                            .id("minLength")
+                            .label("At least " + minLength + " characters")
+                            .pattern(String.format("^.{%d,}$", minLength))
+                            .build());
+            if (maxLengthGroup != null && !maxLengthGroup.isBlank()) {
+                int maxLength = Integer.parseInt(maxLengthGroup);
+                addRule(
+                        rules,
+                        seenRuleIds,
+                        PasswordPolicyRuleEntity.builder()
+                                .id("maxLength")
+                                .label("At most " + maxLength + " characters")
+                                .pattern(String.format("^.{0,%d}$", maxLength))
+                                .build());
             }
         }
 
-        for (PasswordPolicyRuleEntity lookaheadRule : lookaheadContributions(policyPattern).values()) {
+        for (PasswordPolicyRuleEntity lookaheadRule :
+                lookaheadContributions(policyPattern).values()) {
             if (lookaheadRule != null) {
                 addRule(rules, seenRuleIds, lookaheadRule);
             }
@@ -76,14 +75,13 @@ public class PasswordPolicyPatternParser {
 
         if (policyPattern.contains("(?!.*(.)\\1{2,})")) {
             addRule(
-                rules,
-                seenRuleIds,
-                PasswordPolicyRuleEntity.builder()
-                    .id("noConsecutive")
-                    .label("No more than 2 consecutive equal characters")
-                    .pattern("^(?!.*(.)\\1{2,}).+$")
-                    .build()
-            );
+                    rules,
+                    seenRuleIds,
+                    PasswordPolicyRuleEntity.builder()
+                            .id("noConsecutive")
+                            .label("No more than 2 consecutive equal characters")
+                            .pattern("^(?!.*(.)\\1{2,}).+$")
+                            .build());
         }
 
         return List.copyOf(rules);
@@ -167,7 +165,8 @@ public class PasswordPolicyPatternParser {
         return -1;
     }
 
-    private static void addRule(List<PasswordPolicyRuleEntity> rules, Set<String> seenRuleIds, PasswordPolicyRuleEntity rule) {
+    private static void addRule(
+            List<PasswordPolicyRuleEntity> rules, Set<String> seenRuleIds, PasswordPolicyRuleEntity rule) {
         if (seenRuleIds.add(rule.getId())) {
             rules.add(rule);
         }
@@ -175,28 +174,32 @@ public class PasswordPolicyPatternParser {
 
     private static java.util.Optional<PasswordPolicyRuleEntity> classifyLookahead(String charClass) {
         if ("0-9".equals(charClass)) {
-            return java.util.Optional.of(
-                PasswordPolicyRuleEntity.builder().id("digit").label("Contains a number").pattern("[0-9]").build()
-            );
+            return java.util.Optional.of(PasswordPolicyRuleEntity.builder()
+                    .id("digit")
+                    .label("Contains a number")
+                    .pattern("[0-9]")
+                    .build());
         }
         if ("A-Z".equals(charClass)) {
-            return java.util.Optional.of(
-                PasswordPolicyRuleEntity.builder().id("uppercase").label("Contains uppercase letter").pattern("[A-Z]").build()
-            );
+            return java.util.Optional.of(PasswordPolicyRuleEntity.builder()
+                    .id("uppercase")
+                    .label("Contains uppercase letter")
+                    .pattern("[A-Z]")
+                    .build());
         }
         if ("a-z".equals(charClass)) {
-            return java.util.Optional.of(
-                PasswordPolicyRuleEntity.builder().id("lowercase").label("Contains lowercase letter").pattern("[a-z]").build()
-            );
+            return java.util.Optional.of(PasswordPolicyRuleEntity.builder()
+                    .id("lowercase")
+                    .label("Contains lowercase letter")
+                    .pattern("[a-z]")
+                    .build());
         }
         if (containsSpecialCharacter(charClass)) {
-            return java.util.Optional.of(
-                PasswordPolicyRuleEntity.builder()
+            return java.util.Optional.of(PasswordPolicyRuleEntity.builder()
                     .id("special")
                     .label("Contains a special character")
                     .pattern("[" + charClass + "]")
-                    .build()
-            );
+                    .build());
         }
         return java.util.Optional.empty();
     }

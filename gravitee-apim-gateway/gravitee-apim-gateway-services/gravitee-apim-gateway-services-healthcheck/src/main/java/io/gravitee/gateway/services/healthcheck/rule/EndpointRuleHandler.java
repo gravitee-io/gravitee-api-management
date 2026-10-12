@@ -62,7 +62,8 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
 public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler<Long> {
 
     // Pattern reuse for duplicate slash removal
-    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(grpc:|grpcs:|http:|https:|wss:|ws:))[//]+");
+    private static final Pattern DUPLICATE_SLASH_REMOVER =
+            Pattern.compile("(?<!(grpc:|grpcs:|http:|https:|wss:|ws:))[//]+");
 
     private static final String EVENT_TYPE = "ENDPOINT_HEALTH_CHECK";
     private static final String CONTEXT_NODE_ID = "node.id";
@@ -91,7 +92,9 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     private final HttpClient httpClient;
     protected final ProxyOptions systemProxyOptions;
 
-    public EndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine, Environment environment) throws Exception {
+    public EndpointRuleHandler(
+            Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine, Environment environment)
+            throws Exception {
         this.rule = rule;
         this.environment = environment;
         this.systemProxyOptions = rule.getSystemProxyOptions();
@@ -116,27 +119,33 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         try {
             MDC.put("api", rule.api().getId());
             T endpoint = rule.endpoint();
-            log.debug("Running API '{}' health-check for endpoint: {} [{}]", rule.api().getId(), endpoint.getName(), endpoint.getTarget());
+            log.debug(
+                    "Running API '{}' health-check for endpoint: {} [{}]",
+                    rule.api().getId(),
+                    endpoint.getName(),
+                    endpoint.getTarget());
 
-            // We only allow one step per rule. To support more than one step implement healthCheckResponseHandler accordingly
+            // We only allow one step per rule. To support more than one step implement healthCheckResponseHandler
+            // accordingly
             runStep(endpoint, rule.steps().get(0));
         } finally {
             MDC.remove("api");
         }
     }
 
-    protected abstract HttpClientOptions createHttpClientOptions(final T endpoint, final URL requestUrl) throws Exception;
+    protected abstract HttpClientOptions createHttpClientOptions(final T endpoint, final URL requestUrl)
+            throws Exception;
 
     protected abstract PoolOptions createPoolOptions(final T endpoint, final URL requestUrl) throws Exception;
 
-    protected Future<HttpClientRequest> createHttpClientRequest(final HttpClient httpClient, URL request, HealthCheckStep step) {
+    protected Future<HttpClientRequest> createHttpClientRequest(
+            final HttpClient httpClient, URL request, HealthCheckStep step) {
         log.debug("Health-check Request for API '{}' host {}", rule.api().getId(), request.getHost());
         RequestOptions options = prepareHttpClientRequest(request, step);
         log.debug(
-            "Health-check create HttpClient Request for API '{}' with options {}",
-            rule.api().getId(),
-            options.toJson().encodePrettily()
-        );
+                "Health-check create HttpClient Request for API '{}' with options {}",
+                rule.api().getId(),
+                options.toJson().encodePrettily());
         return httpClient.request(options);
     }
 
@@ -177,10 +186,8 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             healthRequestPromise.onComplete(requestPreparationEvent -> {
                 HttpClientRequest healthRequest = requestPreparationEvent.result();
                 final EndpointStatus.Builder healthBuilder = EndpointStatus.forEndpoint(
-                    rule.api().getId(),
-                    rule.api().getName(),
-                    endpoint.getName()
-                ).on(currentTimeMillis());
+                                rule.api().getId(), rule.api().getName(), endpoint.getName())
+                        .on(currentTimeMillis());
 
                 long startTime = currentTimeMillis();
 
@@ -192,47 +199,42 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     rescheduleHandler.handle(null);
                     reportThrowable(requestPreparationEvent.cause(), step, healthBuilder, startTime, request);
                 } else {
-                    healthRequest
-                        .response()
-                        .onComplete(healthRequestEvent -> {
-                            if (healthRequestEvent.succeeded()) {
-                                HttpClientResponse response = healthRequestEvent.result();
-                                response.bodyHandler(buffer -> {
-                                    long endTime = currentTimeMillis();
-                                    log.debug(
+                    healthRequest.response().onComplete(healthRequestEvent -> {
+                        if (healthRequestEvent.succeeded()) {
+                            HttpClientResponse response = healthRequestEvent.result();
+                            response.bodyHandler(buffer -> {
+                                long endTime = currentTimeMillis();
+                                log.debug(
                                         "Health-check endpoint for API '{}' returns a response with a {} status code",
                                         rule.api().getId(),
-                                        response.statusCode()
-                                    );
+                                        response.statusCode());
 
-                                    String body = buffer.toString();
+                                String body = buffer.toString();
 
-                                    Step healthCheckStep = buildStep(step, startTime, endTime, request, response, body);
+                                Step healthCheckStep = buildStep(step, startTime, endTime, request, response, body);
 
-                                    // Append step stepBuilder
-                                    healthBuilder.step(healthCheckStep);
+                                // Append step stepBuilder
+                                healthBuilder.step(healthCheckStep);
 
-                                    rescheduleHandler.handle(null);
-                                    report(healthBuilder.build());
-                                });
-                                response.exceptionHandler(throwable -> {
-                                    log.error(
+                                rescheduleHandler.handle(null);
+                                report(healthBuilder.build());
+                            });
+                            response.exceptionHandler(throwable -> {
+                                log.error(
                                         "An error has occurred during Health check response handler for API '{}'",
                                         rule.api().getId(),
-                                        throwable
-                                    );
-                                    rescheduleHandler.handle(null);
-                                });
-                            } else {
-                                log.error(
+                                        throwable);
+                                rescheduleHandler.handle(null);
+                            });
+                        } else {
+                            log.error(
                                     "An error has occurred during Health check request for API '{}'",
                                     rule.api().getId(),
-                                    healthRequestEvent.cause()
-                                );
-                                rescheduleHandler.handle(null);
-                                reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
-                            }
-                        });
+                                    healthRequestEvent.cause());
+                            rescheduleHandler.handle(null);
+                            reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
+                        }
+                    });
 
                     healthRequest.exceptionHandler(throwable -> {
                         rescheduleHandler.handle(null);
@@ -240,8 +242,12 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     });
 
                     // Send request
-                    log.debug("Execute health-check request for API '{}': {}", rule.api().getId(), healthRequest);
-                    if (step.getRequest().getBody() != null && !step.getRequest().getBody().isEmpty()) {
+                    log.debug(
+                            "Execute health-check request for API '{}': {}",
+                            rule.api().getId(),
+                            healthRequest);
+                    if (step.getRequest().getBody() != null
+                            && !step.getRequest().getBody().isEmpty()) {
                         healthRequest.end(step.getRequest().getBody());
                     } else {
                         healthRequest.end();
@@ -249,17 +255,19 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                 }
             });
         } catch (Exception ex) {
-            log.error("An unexpected error has occurred while configuring Healthcheck for API : {}", rule.api().getId(), ex);
+            log.error(
+                    "An unexpected error has occurred while configuring Healthcheck for API : {}",
+                    rule.api().getId(),
+                    ex);
         }
     }
 
     private void reportThrowable(
-        Throwable throwable,
-        HealthCheckStep step,
-        EndpointStatus.Builder healthBuilder,
-        long startTime,
-        Request request
-    ) {
+            Throwable throwable,
+            HealthCheckStep step,
+            EndpointStatus.Builder healthBuilder,
+            long startTime,
+            Request request) {
         long endTime = currentTimeMillis();
         Step failingStep = buildFailingStep(step, startTime, endTime, request, throwable);
 
@@ -269,10 +277,17 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         report(healthBuilder.build());
     }
 
-    private Step buildStep(HealthCheckStep step, long startTime, long endTime, Request request, HttpClientResponse response, String body) {
+    private Step buildStep(
+            HealthCheckStep step,
+            long startTime,
+            long endTime,
+            Request request,
+            HttpClientResponse response,
+            String body) {
         long responseTime = endTime - startTime;
 
-        EndpointStatus.StepBuilder stepBuilder = validateAssertions(step, new EvaluableHttpResponse(response, body), responseTime);
+        EndpointStatus.StepBuilder stepBuilder =
+                validateAssertions(step, new EvaluableHttpResponse(response, body), responseTime);
         stepBuilder.request(request);
         stepBuilder.responseTime(responseTime);
 
@@ -299,7 +314,8 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return stepBuilder.build();
     }
 
-    private Step buildFailingStep(HealthCheckStep step, long startTime, long endTime, Request request, Throwable throwable) {
+    private Step buildFailingStep(
+            HealthCheckStep step, long startTime, long endTime, Request request, Throwable throwable) {
         EndpointStatus.StepBuilder stepBuilder = EndpointStatus.forStep(step.getName());
         stepBuilder.fail(throwable.getMessage());
         stepBuilder.request(request);
@@ -329,23 +345,20 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     private io.gravitee.gateway.api.http.HttpHeaders getHttpHeaders(HealthCheckStep step) {
         io.gravitee.gateway.api.http.HttpHeaders reqHeaders = io.gravitee.gateway.api.http.HttpHeaders.create();
-        step
-            .getRequest()
-            .getHeaders()
-            .forEach(httpHeader -> reqHeaders.add(httpHeader.getName(), httpHeader.getValue()));
+        step.getRequest()
+                .getHeaders()
+                .forEach(httpHeader -> reqHeaders.add(httpHeader.getName(), httpHeader.getValue()));
         return reqHeaders;
     }
 
     private EndpointStatus.StepBuilder validateAssertions(
-        final HealthCheckStep step,
-        final EvaluableHttpResponse response,
-        final long responseTime
-    ) {
+            final HealthCheckStep step, final EvaluableHttpResponse response, final long responseTime) {
         EndpointStatus.StepBuilder stepBuilder = EndpointStatus.forStep(step.getName());
 
         // Run assertions
         if (step.getResponse().getAssertions() != null) {
-            Iterator<String> assertionIterator = step.getResponse().getAssertions().iterator();
+            Iterator<String> assertionIterator =
+                    step.getResponse().getAssertions().iterator();
             boolean success = true;
             while (success && assertionIterator.hasNext()) {
                 try {
@@ -379,29 +392,32 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         endpointStatus.setState(rule.endpoint().getStatus().code());
         endpointStatus.setAvailable(!rule.endpoint().getStatus().isDown());
 
-        final long responseTime = endpointStatus.getSteps().stream().mapToLong(Step::getResponseTime).sum();
+        final long responseTime = endpointStatus.getSteps().stream()
+                .mapToLong(Step::getResponseTime)
+                .sum();
         endpointStatus.setResponseTime(responseTime);
-        final boolean transition = previousStatusCode != rule.endpoint().getStatus().code();
+        final boolean transition =
+                previousStatusCode != rule.endpoint().getStatus().code();
         endpointStatus.setTransition(transition);
 
         if (transition && alertEventProducer != null && !alertEventProducer.isEmpty()) {
             final Event event = Event.at(currentTimeMillis())
-                .context(CONTEXT_NODE_ID, node.id())
-                .context(CONTEXT_NODE_HOSTNAME, node.hostname())
-                .context(CONTEXT_NODE_APPLICATION, node.application())
-                .type(EVENT_TYPE)
-                .property(PROP_API, rule.api().getId())
-                .property(PROP_ENDPOINT_NAME, rule.endpoint().getName())
-                .property(PROP_STATUS_OLD, previousStatusName)
-                .property(PROP_STATUS_NEW, rule.endpoint().getStatus().name())
-                .property(PROP_SUCCESS, endpointStatus.isSuccess())
-                .property(PROP_TENANT, () -> node.metadata().get("tenant"))
-                .property(PROP_RESPONSE_TIME, responseTime)
-                .property(PROP_MESSAGE, endpointStatus.getSteps().get(0).getMessage())
-                .organization(rule.api().getOrganizationId())
-                .environment(rule.api().getEnvironmentId())
-                .installation((String) node.metadata().get(Node.META_INSTALLATION))
-                .build();
+                    .context(CONTEXT_NODE_ID, node.id())
+                    .context(CONTEXT_NODE_HOSTNAME, node.hostname())
+                    .context(CONTEXT_NODE_APPLICATION, node.application())
+                    .type(EVENT_TYPE)
+                    .property(PROP_API, rule.api().getId())
+                    .property(PROP_ENDPOINT_NAME, rule.endpoint().getName())
+                    .property(PROP_STATUS_OLD, previousStatusName)
+                    .property(PROP_STATUS_NEW, rule.endpoint().getStatus().name())
+                    .property(PROP_SUCCESS, endpointStatus.isSuccess())
+                    .property(PROP_TENANT, () -> node.metadata().get("tenant"))
+                    .property(PROP_RESPONSE_TIME, responseTime)
+                    .property(PROP_MESSAGE, endpointStatus.getSteps().get(0).getMessage())
+                    .organization(rule.api().getOrganizationId())
+                    .environment(rule.api().getEnvironmentId())
+                    .installation((String) node.metadata().get(Node.META_INSTALLATION))
+                    .build();
             alertEventProducer.send(event);
         }
 

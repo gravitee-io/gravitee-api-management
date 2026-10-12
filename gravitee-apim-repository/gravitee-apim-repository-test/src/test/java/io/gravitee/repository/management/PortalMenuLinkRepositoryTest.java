@@ -36,14 +36,16 @@ public class PortalMenuLinkRepositoryTest extends AbstractManagementRepositoryTe
 
     @Test
     public void shouldFindByIdAndEnvironment() throws Exception {
-        Optional<PortalMenuLink> portalLink = portalMenuLinkRepository.findByIdAndEnvironmentId("menuLink1", "environment1");
+        Optional<PortalMenuLink> portalLink =
+                portalMenuLinkRepository.findByIdAndEnvironmentId("menuLink1", "environment1");
 
         assertTrue(portalLink.isPresent());
     }
 
     @Test
     public void shouldNotFindByIdAndEnvironment() throws Exception {
-        Optional<PortalMenuLink> portalLink = portalMenuLinkRepository.findByIdAndEnvironmentId("menuLink1", "environment2");
+        Optional<PortalMenuLink> portalLink =
+                portalMenuLinkRepository.findByIdAndEnvironmentId("menuLink1", "environment2");
 
         assertFalse(portalLink.isPresent());
     }
@@ -65,9 +67,7 @@ public class PortalMenuLinkRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void shouldFindByEnvironmentAndVisibility() throws Exception {
         List<PortalMenuLink> portalLinks = portalMenuLinkRepository.findByEnvironmentIdAndVisibilitySortByOrder(
-            "environment1",
-            PortalMenuLink.PortalMenuLinkVisibility.PUBLIC
-        );
+                "environment1", PortalMenuLink.PortalMenuLinkVisibility.PUBLIC);
 
         assertNotNull(portalLinks);
         assertEquals(3, portalLinks.size());
@@ -79,7 +79,8 @@ public class PortalMenuLinkRepositoryTest extends AbstractManagementRepositoryTe
 
     @Test
     public void shouldFindNothingByEnvironment() throws Exception {
-        List<PortalMenuLink> portalLinks = portalMenuLinkRepository.findByEnvironmentIdSortByOrder("unknownEnvironment");
+        List<PortalMenuLink> portalLinks =
+                portalMenuLinkRepository.findByEnvironmentIdSortByOrder("unknownEnvironment");
 
         assertNotNull(portalLinks);
         assertEquals(0, portalLinks.size());

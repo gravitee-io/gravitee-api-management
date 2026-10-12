@@ -46,75 +46,72 @@ public class PlanSearchQueryServiceImpl implements PlanSearchQueryService {
 
     @Override
     public List<Plan> searchPlans(
-        String referenceId,
-        GenericPlanEntity.ReferenceType referenceType,
-        PlanQuery query,
-        String authenticatedUser,
-        boolean isAdmin
-    ) {
-        return findByReferenceIdAndReferenceType(referenceId, referenceType)
-            .stream()
-            .filter(p -> {
-                boolean filtered = true;
-                if (query.getName() != null) {
-                    filtered = query.getName().equals(p.getName());
-                }
-                if (filtered && !CollectionUtils.isEmpty(query.getSecurityType())) {
-                    if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
-                        return false;
+            String referenceId,
+            GenericPlanEntity.ReferenceType referenceType,
+            PlanQuery query,
+            String authenticatedUser,
+            boolean isAdmin) {
+        return findByReferenceIdAndReferenceType(referenceId, referenceType).stream()
+                .filter(p -> {
+                    boolean filtered = true;
+                    if (query.getName() != null) {
+                        filtered = query.getName().equals(p.getName());
                     }
-                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
-                    filtered = query.getSecurityType().contains(planSecurityType);
-                }
-                if (filtered && !CollectionUtils.isEmpty(query.getStatus())) {
-                    PlanStatus planStatus = PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
-                    filtered = query.getStatus().contains(planStatus);
-                }
-                if (filtered && query.getMode() != null) {
-                    filtered = query.getMode().equals(p.getPlanMode());
-                }
-                return filtered;
-            })
-            .collect(Collectors.toList());
+                    if (filtered && !CollectionUtils.isEmpty(query.getSecurityType())) {
+                        if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
+                            return false;
+                        }
+                        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(
+                                p.getPlanSecurity().getType());
+                        filtered = query.getSecurityType().contains(planSecurityType);
+                    }
+                    if (filtered && !CollectionUtils.isEmpty(query.getStatus())) {
+                        PlanStatus planStatus =
+                                PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
+                        filtered = query.getStatus().contains(planStatus);
+                    }
+                    if (filtered && query.getMode() != null) {
+                        filtered = query.getMode().equals(p.getPlanMode());
+                    }
+                    return filtered;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
     public Plan findByPlanIdAndReferenceIdAndReferenceType(
-        String planId,
-        String referenceId,
-        GenericPlanEntity.ReferenceType referenceType
-    ) {
+            String planId, String referenceId, GenericPlanEntity.ReferenceType referenceType) {
         try {
             log.debug("Find plan {} by reference {} ({})", planId, referenceId, referenceType);
             return planRepository
-                .findByIdAndReferenceIdAndReferenceType(
-                    planId,
-                    referenceId,
-                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType.name())
-                )
-                .map(PlanAdapter.INSTANCE::fromRepository)
-                .orElseThrow(() -> new PlanNotFoundException(planId));
+                    .findByIdAndReferenceIdAndReferenceType(
+                            planId,
+                            referenceId,
+                            io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(
+                                    referenceType.name()))
+                    .map(PlanAdapter.INSTANCE::fromRepository)
+                    .orElseThrow(() -> new PlanNotFoundException(planId));
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by id: %s", planId), ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while trying to find a plan by id: %s", planId), ex);
         }
     }
 
-    private Set<Plan> findByReferenceIdAndReferenceType(final String referenceId, final GenericPlanEntity.ReferenceType referenceType) {
+    private Set<Plan> findByReferenceIdAndReferenceType(
+            final String referenceId, final GenericPlanEntity.ReferenceType referenceType) {
         try {
             log.debug("Find plans by reference {} ({})", referenceId, referenceType);
             return planRepository
-                .findByReferenceIdAndReferenceType(
-                    referenceId,
-                    io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(referenceType.name())
-                )
-                .stream()
-                .map(PlanAdapter.INSTANCE::fromRepository)
-                .collect(Collectors.toSet());
+                    .findByReferenceIdAndReferenceType(
+                            referenceId,
+                            io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(
+                                    referenceType.name()))
+                    .stream()
+                    .map(PlanAdapter.INSTANCE::fromRepository)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to find plans by reference: %s", referenceId),
-                ex
-            );
+                    String.format("An error occurs while trying to find plans by reference: %s", referenceId), ex);
         }
     }
 }

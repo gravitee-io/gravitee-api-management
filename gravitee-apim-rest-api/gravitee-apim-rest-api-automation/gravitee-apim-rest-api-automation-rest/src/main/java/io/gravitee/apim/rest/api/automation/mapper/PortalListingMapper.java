@@ -36,19 +36,17 @@ public interface PortalListingMapper {
 
     /** PUT path — composes the wire state from the input spec plus the use case Output (id + errors). */
     default PortalListingState toPortalListingState(
-        PortalListingSpec spec,
-        PortalListingId id,
-        List<Validator.Error> errors,
-        AuditInfo audit,
-        String portalHrid
-    ) {
+            PortalListingSpec spec,
+            PortalListingId id,
+            List<Validator.Error> errors,
+            AuditInfo audit,
+            String portalHrid) {
         var state = new PortalListingState(
-            id == null ? null : id.toString(),
-            audit.environmentId(),
-            audit.organizationId(),
-            toErrors(errors),
-            portalHrid
-        );
+                id == null ? null : id.toString(),
+                audit.environmentId(),
+                audit.organizationId(),
+                toErrors(errors),
+                portalHrid);
         state.setHrid(spec.getHrid());
         state.setApis(spec.getApis());
         return state;
@@ -57,12 +55,11 @@ public interface PortalListingMapper {
     /** GET path — composes the wire state from the persisted entity. */
     default PortalListingState toPortalListingState(PortalListing portalListing, String hrid, String portalHrid) {
         var state = new PortalListingState(
-            portalListing.getId() != null ? portalListing.getId().toString() : null,
-            portalListing.getEnvironmentId(),
-            portalListing.getOrganizationId(),
-            null,
-            portalHrid
-        );
+                portalListing.getId() != null ? portalListing.getId().toString() : null,
+                portalListing.getEnvironmentId(),
+                portalListing.getOrganizationId(),
+                null,
+                portalHrid);
         state.setHrid(hrid);
         state.setApis(toWireApis(portalListing.getApis()));
         return state;
@@ -73,12 +70,19 @@ public interface PortalListingMapper {
             return null;
         }
         var wire = new Errors();
-        wire.setSevere(validationErrors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).toList());
-        wire.setWarning(validationErrors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).toList());
+        wire.setSevere(validationErrors.stream()
+                .filter(Validator.Error::isSevere)
+                .map(Validator.Error::getMessage)
+                .toList());
+        wire.setWarning(validationErrors.stream()
+                .filter(Validator.Error::isWarning)
+                .map(Validator.Error::getMessage)
+                .toList());
         return wire;
     }
 
-    default List<io.gravitee.apim.rest.api.automation.model.PortalListingApiEntry> toWireApis(List<PortalListingApiEntry> apis) {
+    default List<io.gravitee.apim.rest.api.automation.model.PortalListingApiEntry> toWireApis(
+            List<PortalListingApiEntry> apis) {
         if (apis == null) {
             return List.of();
         }
@@ -94,7 +98,8 @@ public interface PortalListingMapper {
         return wire;
     }
 
-    default List<PortalListingApiEntry> toDomainApis(List<io.gravitee.apim.rest.api.automation.model.PortalListingApiEntry> apis) {
+    default List<PortalListingApiEntry> toDomainApis(
+            List<io.gravitee.apim.rest.api.automation.model.PortalListingApiEntry> apis) {
         if (apis == null) {
             return List.of();
         }
@@ -103,22 +108,18 @@ public interface PortalListingMapper {
 
     default PortalListingApiEntry toDomain(io.gravitee.apim.rest.api.automation.model.PortalListingApiEntry entry) {
         return new PortalListingApiEntry(
-            entry.getApiHrid(),
-            entry.getLocation(),
-            entry.getOrder(),
-            toDomainVisibility(entry.getVisibility())
-        );
+                entry.getApiHrid(), entry.getLocation(), entry.getOrder(), toDomainVisibility(entry.getVisibility()));
     }
 
     default io.gravitee.apim.core.portal.model.PortalVisibility toDomainVisibility(
-        io.gravitee.apim.rest.api.automation.model.PortalVisibility wire
-    ) {
+            io.gravitee.apim.rest.api.automation.model.PortalVisibility wire) {
         return wire == null ? null : io.gravitee.apim.core.portal.model.PortalVisibility.valueOf(wire.getValue());
     }
 
     default io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(
-        io.gravitee.apim.core.portal.model.PortalVisibility domain
-    ) {
-        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
+            io.gravitee.apim.core.portal.model.PortalVisibility domain) {
+        return domain == null
+                ? null
+                : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
     }
 }

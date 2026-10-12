@@ -28,7 +28,8 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 public class ApiPermissionFilter extends SimpleBeanPropertyFilter {
 
     @Override
-    public void serializeAsField(Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+    public void serializeAsField(Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer)
+            throws Exception {
         if (includeField(pojo, writer)) {
             writer.serializeAsField(pojo, jgen, provider);
         }

@@ -62,12 +62,14 @@ public class ApiLogsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get API logs")
     @ApiResponse(
-        responseCode = "200",
-        description = "API logs",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiRequestItemSearchLogResponse.class))
-    )
+            responseCode = "200",
+            description = "API logs",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiRequestItemSearchLogResponse.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
     public SearchLogResponse<ApiRequestItem> getApiLogs(@BeanParam LogsParam param) {
         param.validate();
 
@@ -88,12 +90,14 @@ public class ApiLogsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get a specific log")
     @ApiResponse(
-        responseCode = "200",
-        description = "Single log",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiRequest.class))
-    )
+            responseCode = "200",
+            description = "Single log",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiRequest.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
     public ApiRequest getApiLog(@PathParam("log") String logId, @QueryParam("timestamp") Long timestamp) {
         ApiRequest apiLog = logsService.findApiLog(GraviteeContext.getExecutionContext(), logId, timestamp);
         if (api.equalsIgnoreCase(apiLog.getApi())) {
@@ -107,16 +111,17 @@ public class ApiLogsResource extends AbstractResource {
     @Produces("text/csv")
     @Operation(summary = "Export API logs as CSV")
     @ApiResponse(
-        responseCode = "200",
-        description = "API logs as CSV",
-        content = @Content(mediaType = "text/csv", schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "API logs as CSV",
+            content = @Content(mediaType = "text/csv", schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
     public Response exportApiLogsAsCSV(@BeanParam LogsParam param) {
         final SearchLogResponse<ApiRequestItem> searchLogResponse = getApiLogs(param);
         return Response.ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
-            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", api, System.currentTimeMillis()))
-            .build();
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        format("attachment;filename=logs-%s-%s.csv", api, System.currentTimeMillis()))
+                .build();
     }
 }

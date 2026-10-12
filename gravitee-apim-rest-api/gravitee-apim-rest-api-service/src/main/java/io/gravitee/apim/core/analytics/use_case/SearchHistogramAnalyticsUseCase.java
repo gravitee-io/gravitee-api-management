@@ -50,7 +50,8 @@ public class SearchHistogramAnalyticsUseCase {
 
     public Output execute(ExecutionContext executionContext, Input input) {
         Api api = apiCrudService.get(input.api);
-        ApiAnalyticsSpecification.forSearchHistogramAnalytics().throwIfNotSatisfied(api, executionContext, input.from(), input.to());
+        ApiAnalyticsSpecification.forSearchHistogramAnalytics()
+                .throwIfNotSatisfied(api, executionContext, input.from(), input.to());
 
         if (api.getType() == ApiType.NATIVE) {
             return executeV4NativeAPICase(executionContext, input);
@@ -61,33 +62,30 @@ public class SearchHistogramAnalyticsUseCase {
 
     private Output executeV4APICase(ExecutionContext executionContext, Input input) {
         var histogramQuery = new AnalyticsQueryService.HistogramQuery(
-            AnalyticsQueryService.SearchTermId.forApi(input.api),
-            Instant.ofEpochMilli(input.from()),
-            Instant.ofEpochMilli(input.to()),
-            Duration.ofMillis(input.interval()),
-            input.aggregations(),
-            input.query(),
-            null
-        );
+                AnalyticsQueryService.SearchTermId.forApi(input.api),
+                Instant.ofEpochMilli(input.from()),
+                Instant.ofEpochMilli(input.to()),
+                Duration.ofMillis(input.interval()),
+                input.aggregations(),
+                input.query(),
+                null);
         var result = analyticsQueryService
-            .searchHistogramAnalytics(executionContext, histogramQuery)
-            .map(HistogramAnalytics::buckets)
-            .orElse(List.of());
+                .searchHistogramAnalytics(executionContext, histogramQuery)
+                .map(HistogramAnalytics::buckets)
+                .orElse(List.of());
 
         Map<String, Map<String, Map<String, String>>> metadata = new HashMap<>();
 
         // Process count buckets to collect metadata
-        List<HistogramAnalytics.CountBucket> countBuckets = result
-            .stream()
-            .filter(bucket -> bucket instanceof HistogramAnalytics.CountBucket)
-            .map(bucket -> (HistogramAnalytics.CountBucket) bucket)
-            .toList();
+        List<HistogramAnalytics.CountBucket> countBuckets = result.stream()
+                .filter(bucket -> bucket instanceof HistogramAnalytics.CountBucket)
+                .map(bucket -> (HistogramAnalytics.CountBucket) bucket)
+                .toList();
 
         for (HistogramAnalytics.CountBucket countBucket : countBuckets) {
-            var providerOpt = metadataProviders
-                .stream()
-                .filter(p -> p.appliesTo(AnalyticsMetadataProvider.Field.of(countBucket.getField())))
-                .findFirst();
+            var providerOpt = metadataProviders.stream()
+                    .filter(p -> p.appliesTo(AnalyticsMetadataProvider.Field.of(countBucket.getField())))
+                    .findFirst();
 
             if (providerOpt.isPresent()) {
                 AnalyticsMetadataProvider provider = providerOpt.get();
@@ -96,7 +94,8 @@ public class SearchHistogramAnalyticsUseCase {
                 List<String> keys = new ArrayList<>(countBucket.getCounts().keySet());
 
                 // Get metadata for all keys at once
-                Map<String, Map<String, String>> bucketMetadata = provider.provide(keys, executionContext.getEnvironmentId());
+                Map<String, Map<String, String>> bucketMetadata =
+                        provider.provide(keys, executionContext.getEnvironmentId());
 
                 metadata.put(countBucket.getName(), bucketMetadata);
             } else {
@@ -105,56 +104,53 @@ public class SearchHistogramAnalyticsUseCase {
         }
 
         return new Output(
-            new Timestamp(Instant.ofEpochMilli(input.from()), Instant.ofEpochMilli(input.to()), Duration.ofMillis(input.interval())),
-            result,
-            metadata
-        );
+                new Timestamp(
+                        Instant.ofEpochMilli(input.from()),
+                        Instant.ofEpochMilli(input.to()),
+                        Duration.ofMillis(input.interval())),
+                result,
+                metadata);
     }
 
     private Output executeV4NativeAPICase(ExecutionContext executionContext, Input input) {
         Instant from = Instant.ofEpochMilli(input.from());
         Instant to = Instant.ofEpochMilli(input.to());
         var histogramQuery = new AnalyticsQueryService.HistogramQuery(
-            AnalyticsQueryService.SearchTermId.forApi(input.api),
-            from,
-            to,
-            Duration.ofMillis(input.interval()),
-            input.aggregations(),
-            input.query(),
-            (input.terms() != null && input.terms().isPresent()) ? input.terms().get() : List.of()
-        );
+                AnalyticsQueryService.SearchTermId.forApi(input.api),
+                from,
+                to,
+                Duration.ofMillis(input.interval()),
+                input.aggregations(),
+                input.query(),
+                (input.terms() != null && input.terms().isPresent())
+                        ? input.terms().get()
+                        : List.of());
 
-        Optional<EventAnalytics> eventAnalytics = analyticsQueryService.searchEventAnalytics(executionContext, histogramQuery);
+        Optional<EventAnalytics> eventAnalytics =
+                analyticsQueryService.searchEventAnalytics(executionContext, histogramQuery);
         // Dump analytics data into metric buckets.
         List<HistogramAnalytics.Bucket> buckets = new ArrayList<>();
         Timestamp timestamp = new Timestamp(from, to, Duration.ofMillis(input.interval()));
 
-        eventAnalytics.ifPresent(
-            (analytics ->
-                    analytics
-                        .values()
-                        .forEach((key, values) -> {
-                            HistogramAnalytics.MetricBucket bucket = new HistogramAnalytics.MetricBucket(key, key, values);
-                            buckets.add(bucket);
-                        }))
-        );
+        eventAnalytics.ifPresent((analytics -> analytics.values().forEach((key, values) -> {
+            HistogramAnalytics.MetricBucket bucket = new HistogramAnalytics.MetricBucket(key, key, values);
+            buckets.add(bucket);
+        })));
 
         return new Output(timestamp, buckets, Collections.emptyMap());
     }
 
     public record Input(
-        String api,
-        long from,
-        long to,
-        long interval,
-        List<Aggregation> aggregations,
-        Optional<String> query,
-        Optional<List<Term>> terms
-    ) {}
+            String api,
+            long from,
+            long to,
+            long interval,
+            List<Aggregation> aggregations,
+            Optional<String> query,
+            Optional<List<Term>> terms) {}
 
     public record Output(
-        Timestamp timestamp,
-        List<HistogramAnalytics.Bucket> values,
-        Map<String, Map<String, Map<String, String>>> metadata
-    ) {}
+            Timestamp timestamp,
+            List<HistogramAnalytics.Bucket> values,
+            Map<String, Map<String, Map<String, String>>> metadata) {}
 }

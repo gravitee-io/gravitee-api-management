@@ -55,21 +55,19 @@ public class GroupService_FindByUserAndEnvironmentTest {
     public void shouldReturnGroupsForUserInEnvironment() throws TechnicalException {
         String userId = "user1";
         String envId = "env1";
-        Group group1 = Group.builder().id("g1").environmentId(envId).name("Group1").build();
-        Group group2 = Group.builder().id("g2").environmentId("env2").name("Group2").build();
-        Group group3 = Group.builder().id("g3").environmentId(envId).name("Group3").build();
+        Group group1 =
+                Group.builder().id("g1").environmentId(envId).name("Group1").build();
+        Group group2 =
+                Group.builder().id("g2").environmentId("env2").name("Group2").build();
+        Group group3 =
+                Group.builder().id("g3").environmentId(envId).name("Group3").build();
         Set<String> userGroups = new HashSet<>(Arrays.asList("g1", "g2", "g3"));
-        when(
-            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
-        ).thenReturn(
-            new HashSet<>(
-                Arrays.asList(
-                    MembershipEntity.builder().id("m1").referenceId("g1").build(),
-                    MembershipEntity.builder().id("m2").referenceId("g2").build(),
-                    MembershipEntity.builder().id("m3").referenceId("g3").build()
-                )
-            )
-        );
+        when(membershipService.getMembershipsByMemberAndReference(
+                        MembershipMemberType.USER, userId, MembershipReferenceType.GROUP))
+                .thenReturn(new HashSet<>(Arrays.asList(
+                        MembershipEntity.builder().id("m1").referenceId("g1").build(),
+                        MembershipEntity.builder().id("m2").referenceId("g2").build(),
+                        MembershipEntity.builder().id("m3").referenceId("g3").build())));
         when(groupRepository.findByIds(userGroups)).thenReturn(Set.of(group1, group2, group3));
         Set<GroupEntity> result = groupService.findByUserAndEnvironment(userId, envId);
         assertThat(result).hasSize(2);
@@ -80,11 +78,13 @@ public class GroupService_FindByUserAndEnvironmentTest {
     public void shouldReturnEmptyForUserWithNoGroupsInEnv() throws TechnicalException {
         String userId = "user2";
         String envId = "env1";
-        Group group1 = Group.builder().id("g1").environmentId("env2").name("Group2").build();
+        Group group1 =
+                Group.builder().id("g1").environmentId("env2").name("Group2").build();
         Set<String> userGroups = Collections.singleton("g1");
-        when(
-            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
-        ).thenReturn(new HashSet<>(Collections.singletonList(MembershipEntity.builder().id("m4").referenceId("g1").build())));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        MembershipMemberType.USER, userId, MembershipReferenceType.GROUP))
+                .thenReturn(new HashSet<>(Collections.singletonList(
+                        MembershipEntity.builder().id("m4").referenceId("g1").build())));
         when(groupRepository.findByIds(userGroups)).thenReturn(Set.of(group1));
         Set<GroupEntity> result = groupService.findByUserAndEnvironment(userId, envId);
         assertThat(result).isEmpty();
@@ -94,9 +94,9 @@ public class GroupService_FindByUserAndEnvironmentTest {
     public void shouldReturnEmptyForNonExistentUserOrEnv() throws TechnicalException {
         String userId = "nouser";
         String envId = "noenv";
-        when(
-            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
-        ).thenReturn(new HashSet<>());
+        when(membershipService.getMembershipsByMemberAndReference(
+                        MembershipMemberType.USER, userId, MembershipReferenceType.GROUP))
+                .thenReturn(new HashSet<>());
         when(groupRepository.findByIds(Collections.emptySet())).thenReturn(Set.of());
         Set<GroupEntity> result = groupService.findByUserAndEnvironment(userId, envId);
         assertThat(result).isEmpty();
@@ -105,19 +105,16 @@ public class GroupService_FindByUserAndEnvironmentTest {
     @Test
     public void shouldReturnAllGroupsIfEnvIdIsNull() throws TechnicalException {
         String userId = "user3";
-        Group group1 = Group.builder().id("g1").environmentId("env1").name("Group1").build();
-        Group group2 = Group.builder().id("g2").environmentId("env2").name("Group2").build();
+        Group group1 =
+                Group.builder().id("g1").environmentId("env1").name("Group1").build();
+        Group group2 =
+                Group.builder().id("g2").environmentId("env2").name("Group2").build();
         Set<String> userGroups = new HashSet<>(Arrays.asList("g1", "g2"));
-        when(
-            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
-        ).thenReturn(
-            new HashSet<>(
-                Arrays.asList(
-                    MembershipEntity.builder().id("m5").referenceId("g1").build(),
-                    MembershipEntity.builder().id("m6").referenceId("g2").build()
-                )
-            )
-        );
+        when(membershipService.getMembershipsByMemberAndReference(
+                        MembershipMemberType.USER, userId, MembershipReferenceType.GROUP))
+                .thenReturn(new HashSet<>(Arrays.asList(
+                        MembershipEntity.builder().id("m5").referenceId("g1").build(),
+                        MembershipEntity.builder().id("m6").referenceId("g2").build())));
         when(groupRepository.findByIds(userGroups)).thenReturn(Set.of(group1, group2));
         Set<GroupEntity> result = groupService.findByUserAndEnvironment(userId, null);
         assertThat(result).hasSize(2);

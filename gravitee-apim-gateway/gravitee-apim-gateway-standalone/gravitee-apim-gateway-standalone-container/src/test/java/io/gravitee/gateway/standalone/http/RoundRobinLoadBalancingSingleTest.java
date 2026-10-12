@@ -40,7 +40,14 @@ public class RoundRobinLoadBalancingSingleTest extends AbstractWiremockGatewayTe
         Request request = Request.Get("http://localhost:8082/api");
 
         // Set the first endpoint with down status
-        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().updateStatus(Endpoint.Status.DOWN);
+        api.getProxy()
+                .getGroups()
+                .iterator()
+                .next()
+                .getEndpoints()
+                .iterator()
+                .next()
+                .updateStatus(Endpoint.Status.DOWN);
 
         int calls = 20;
 

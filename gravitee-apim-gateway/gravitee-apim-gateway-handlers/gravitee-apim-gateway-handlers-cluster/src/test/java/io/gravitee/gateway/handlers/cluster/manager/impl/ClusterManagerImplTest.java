@@ -51,10 +51,10 @@ class ClusterManagerImplTest {
     @Test
     void should_deploy_new_cluster() {
         ReactableCluster cluster = KafkaClusterReactableCluster.builder()
-            .id("cluster-1")
-            .crossId("my-cluster")
-            .deployedAt(new Date())
-            .build();
+                .id("cluster-1")
+                .crossId("my-cluster")
+                .deployedAt(new Date())
+                .build();
 
         boolean result = cut.register(cluster);
 
@@ -65,10 +65,16 @@ class ClusterManagerImplTest {
 
     @Test
     void should_update_cluster_when_newer() {
-        ReactableCluster oldCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date(1000)).build();
+        ReactableCluster oldCluster = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(new Date(1000))
+                .build();
         cut.register(oldCluster);
 
-        ReactableCluster newCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date(2000)).build();
+        ReactableCluster newCluster = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(new Date(2000))
+                .build();
 
         boolean result = cut.register(newCluster);
 
@@ -79,10 +85,16 @@ class ClusterManagerImplTest {
 
     @Test
     void should_not_update_cluster_when_older() {
-        ReactableCluster oldCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date(2000)).build();
+        ReactableCluster oldCluster = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(new Date(2000))
+                .build();
         cut.register(oldCluster);
 
-        ReactableCluster olderCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date(1000)).build();
+        ReactableCluster olderCluster = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(new Date(1000))
+                .build();
 
         boolean result = cut.register(olderCluster);
 
@@ -95,10 +107,18 @@ class ClusterManagerImplTest {
         // Two redeploys landing in the same wall-clock second carry an identical (second-resolution)
         // deployedAt, but the monotonic version still advances. The update must not be dropped.
         Date sameSecond = new Date(1_698_000_000L);
-        ReactableCluster oldCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).version(1).build();
+        ReactableCluster oldCluster = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(sameSecond)
+                .version(1)
+                .build();
         cut.register(oldCluster);
 
-        ReactableCluster newCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).version(2).build();
+        ReactableCluster newCluster = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(sameSecond)
+                .version(2)
+                .build();
 
         boolean result = cut.register(newCluster);
 
@@ -111,10 +131,18 @@ class ClusterManagerImplTest {
     void should_not_update_cluster_when_version_unchanged() {
         // Idempotent re-delivery of the same event (same version) must not republish an update.
         Date sameSecond = new Date(1_698_000_000L);
-        ReactableCluster cluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).version(1).build();
+        ReactableCluster cluster = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(sameSecond)
+                .version(1)
+                .build();
         cut.register(cluster);
 
-        ReactableCluster redelivered = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).version(1).build();
+        ReactableCluster redelivered = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(sameSecond)
+                .version(1)
+                .build();
 
         boolean result = cut.register(redelivered);
 
@@ -128,10 +156,17 @@ class ClusterManagerImplTest {
         // event carries one. Even with an equal (second-resolution) deployedAt, the versioned
         // candidate must win — falling back to deployedAt would silently drop the update.
         Date sameSecond = new Date(1_698_000_000L);
-        ReactableCluster oldCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).build();
+        ReactableCluster oldCluster = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(sameSecond)
+                .build();
         cut.register(oldCluster);
 
-        ReactableCluster newCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).version(1).build();
+        ReactableCluster newCluster = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(sameSecond)
+                .version(1)
+                .build();
 
         boolean result = cut.register(newCluster);
 
@@ -143,10 +178,17 @@ class ClusterManagerImplTest {
     @Test
     void should_not_update_cluster_when_candidate_has_no_version_and_current_does() {
         // A versioned deployment must never be superseded by an unversioned (older-producer) event.
-        ReactableCluster versioned = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date(1000)).version(1).build();
+        ReactableCluster versioned = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(new Date(1000))
+                .version(1)
+                .build();
         cut.register(versioned);
 
-        ReactableCluster unversioned = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date(5000)).build();
+        ReactableCluster unversioned = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(new Date(5000))
+                .build();
 
         boolean result = cut.register(unversioned);
 
@@ -156,7 +198,10 @@ class ClusterManagerImplTest {
 
     @Test
     void should_undeploy_cluster() {
-        ReactableCluster cluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date()).build();
+        ReactableCluster cluster = KafkaClusterReactableCluster.builder()
+                .id("cluster-1")
+                .deployedAt(new Date())
+                .build();
         cut.register(cluster);
 
         cut.unregister("cluster-1");
@@ -174,8 +219,14 @@ class ClusterManagerImplTest {
 
     @Test
     void should_list_all_clusters() {
-        cut.register(KafkaClusterReactableCluster.builder().id("c1").deployedAt(new Date()).build());
-        cut.register(KafkaClusterReactableCluster.builder().id("c2").deployedAt(new Date()).build());
+        cut.register(KafkaClusterReactableCluster.builder()
+                .id("c1")
+                .deployedAt(new Date())
+                .build());
+        cut.register(KafkaClusterReactableCluster.builder()
+                .id("c2")
+                .deployedAt(new Date())
+                .build());
 
         assertThat(cut.clusters()).hasSize(2);
     }

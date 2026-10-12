@@ -20,13 +20,8 @@ import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageRevision;
 import io.gravitee.apim.infra.adapter.PageAdapter;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.rest.api.model.PageRevisionEntity;
-import io.gravitee.rest.api.service.PageRevisionService;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class PageRevisionCrudServiceInMemory implements InMemoryAlternative<PageRevision>, PageRevisionCrudService {
 

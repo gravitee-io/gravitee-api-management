@@ -51,9 +51,7 @@ public class AccessManagementConfiguration {
 
     @Bean
     public AmSdkClientFactory amSdkClientFactory(
-        Vertx vertx,
-        @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository
-    ) {
+            Vertx vertx, @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository) {
         return new AmSdkClientFactory(vertx, amConnectionRepository);
     }
 
@@ -69,8 +67,7 @@ public class AccessManagementConfiguration {
 
     @Bean
     public AmConnectionViewDomainService amConnectionViewDomainService(
-        @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository
-    ) {
+            @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository) {
         return new AmConnectionViewDomainService(amConnectionRepository);
     }
 
@@ -81,17 +78,15 @@ public class AccessManagementConfiguration {
 
     @Bean
     public SaveAmConnectionUseCase saveAmConnectionUseCase(
-        @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository,
-        AmConnectionViewDomainService amConnectionViewDomainService
-    ) {
+            @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository,
+            AmConnectionViewDomainService amConnectionViewDomainService) {
         return new SaveAmConnectionUseCase(amConnectionRepository, amConnectionViewDomainService);
     }
 
     @Bean
     public TestAmConnectionUseCase testAmConnectionUseCase(
-        @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository,
-        AmConnectionTester amConnectionTester
-    ) {
+            @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository,
+            AmConnectionTester amConnectionTester) {
         return new TestAmConnectionUseCase(amConnectionRepository, amConnectionTester);
     }
 

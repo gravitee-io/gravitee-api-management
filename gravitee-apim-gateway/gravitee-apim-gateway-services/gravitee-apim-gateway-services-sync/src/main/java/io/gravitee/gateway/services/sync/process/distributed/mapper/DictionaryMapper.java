@@ -37,10 +37,10 @@ public class DictionaryMapper {
             try {
                 final Dictionary dictionary = objectMapper.readValue(event.getPayload(), Dictionary.class);
                 return DictionaryDeployable.builder()
-                    .id(dictionary.getId())
-                    .dictionary(dictionary)
-                    .syncAction(SyncActionMapper.to(event.getSyncAction()))
-                    .build();
+                        .id(dictionary.getId())
+                        .dictionary(dictionary)
+                        .syncAction(SyncActionMapper.to(event.getSyncAction()))
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while determining dictionary into event payload", e);
                 return null;
@@ -52,10 +52,10 @@ public class DictionaryMapper {
         return Maybe.fromCallable(() -> {
             try {
                 DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
-                    .id(deployable.id())
-                    .type(DistributedEventType.DICTIONARY)
-                    .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                    .updatedAt(new Date());
+                        .id(deployable.id())
+                        .type(DistributedEventType.DICTIONARY)
+                        .syncAction(SyncActionMapper.to(deployable.syncAction()))
+                        .updatedAt(new Date());
                 if (deployable.syncAction() == SyncAction.DEPLOY) {
                     builder.payload(objectMapper.writeValueAsString(deployable.dictionary()));
                 }

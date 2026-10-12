@@ -46,16 +46,17 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(invitations);
         assertEquals(5, invitations.size());
-        final Optional<Invitation> optionalInvitation = invitations
-            .stream()
-            .filter(invitation -> "e6d5e6d0-17e9-4606-83c3-cfef8b91d5ce".equals(invitation.getId()))
-            .findAny();
+        final Optional<Invitation> optionalInvitation = invitations.stream()
+                .filter(invitation -> "e6d5e6d0-17e9-4606-83c3-cfef8b91d5ce".equals(invitation.getId()))
+                .findAny();
         assertTrue(optionalInvitation.isPresent());
         assertEquals("APPLICATION", optionalInvitation.get().getReferenceType());
         assertEquals("application-id", optionalInvitation.get().getReferenceId());
         assertEquals("invitation@application.com", optionalInvitation.get().getEmail());
-        assertTrue(compareDate(1439022010883L, optionalInvitation.get().getCreatedAt().getTime()));
-        assertTrue(compareDate(1439022010883L, optionalInvitation.get().getUpdatedAt().getTime()));
+        assertTrue(compareDate(
+                1439022010883L, optionalInvitation.get().getCreatedAt().getTime()));
+        assertTrue(compareDate(
+                1439022010883L, optionalInvitation.get().getUpdatedAt().getTime()));
     }
 
     @Test
@@ -134,32 +135,29 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByReferenceIdAndReferenceType() throws Exception {
-        final List<Invitation> invitations = invitationRepository.findByReferenceIdAndReferenceType("api-id", InvitationReferenceType.API);
+        final List<Invitation> invitations =
+                invitationRepository.findByReferenceIdAndReferenceType("api-id", InvitationReferenceType.API);
         assertNotNull(invitations);
         assertEquals(1, invitations.size());
     }
 
     @Test
     public void shouldSearchByCriteriaWithSortableAndPageable() throws Exception {
+        invitationRepository.create(anInvitation(
+                "search-1", "search-application", InvitationReferenceType.APPLICATION, "alpha@example.com"));
+        invitationRepository.create(anInvitation(
+                "search-2", "search-application", InvitationReferenceType.APPLICATION, "bravo@example.com"));
+        invitationRepository.create(anInvitation(
+                "search-3", "search-application", InvitationReferenceType.APPLICATION, "charlie@example.com"));
+        invitationRepository.create(anInvitation(
+                "search-4", "search-application", InvitationReferenceType.APPLICATION, "other@gravitee.io"));
         invitationRepository.create(
-            anInvitation("search-1", "search-application", InvitationReferenceType.APPLICATION, "alpha@example.com")
-        );
-        invitationRepository.create(
-            anInvitation("search-2", "search-application", InvitationReferenceType.APPLICATION, "bravo@example.com")
-        );
-        invitationRepository.create(
-            anInvitation("search-3", "search-application", InvitationReferenceType.APPLICATION, "charlie@example.com")
-        );
-        invitationRepository.create(
-            anInvitation("search-4", "search-application", InvitationReferenceType.APPLICATION, "other@gravitee.io")
-        );
-        invitationRepository.create(anInvitation("search-5", "search-application", InvitationReferenceType.API, "delta@example.com"));
+                anInvitation("search-5", "search-application", InvitationReferenceType.API, "delta@example.com"));
 
         Page<Invitation> page = invitationRepository.search(
-            new InvitationCriteria("search-application", InvitationReferenceType.APPLICATION, "EXAMPLE.COM"),
-            new SortableBuilder().field("email").order(Order.DESC).build(),
-            new PageableBuilder().pageNumber(1).pageSize(1).build()
-        );
+                new InvitationCriteria("search-application", InvitationReferenceType.APPLICATION, "EXAMPLE.COM"),
+                new SortableBuilder().field("email").order(Order.DESC).build(),
+                new PageableBuilder().pageNumber(1).pageSize(1).build());
 
         assertNotNull(page);
         assertEquals(3L, page.getTotalElements());
@@ -189,19 +187,13 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
         final List<Invitation> beforeDelete = invitationRepository.findByReferenceIdAndReferenceType(
-            "ToBeDeleted",
-            InvitationReferenceType.APPLICATION
-        );
+                "ToBeDeleted", InvitationReferenceType.APPLICATION);
 
         final List<String> deleted = invitationRepository.deleteByReferenceIdAndReferenceType(
-            "ToBeDeleted",
-            InvitationReferenceType.APPLICATION
-        );
+                "ToBeDeleted", InvitationReferenceType.APPLICATION);
 
         final List<Invitation> afterDelete = invitationRepository.findByReferenceIdAndReferenceType(
-            "ToBeDeleted",
-            InvitationReferenceType.APPLICATION
-        );
+                "ToBeDeleted", InvitationReferenceType.APPLICATION);
 
         assertNotNull(beforeDelete);
         assertEquals(2, beforeDelete.size());

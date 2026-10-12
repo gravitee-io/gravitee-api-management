@@ -56,16 +56,15 @@ public class DebugApiV4 extends Api implements ReactableDebugApi<io.gravitee.def
         this.setRevision(eventId);
 
         if (definition.getListeners() != null) {
-            definition
-                .getListeners()
-                .stream()
-                .filter(l -> l.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
-                .forEach(listener -> {
-                    HttpListener httpListener = (HttpListener) listener;
-                    httpListener
-                        .getPaths()
-                        .forEach(path -> path.setPath(PathTransformer.computePathWithEventId(this.eventId, path.getPath())));
-                });
+            definition.getListeners().stream()
+                    .filter(l -> l.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
+                    .forEach(listener -> {
+                        HttpListener httpListener = (HttpListener) listener;
+                        httpListener
+                                .getPaths()
+                                .forEach(path -> path.setPath(
+                                        PathTransformer.computePathWithEventId(this.eventId, path.getPath())));
+                    });
         }
     }
 
@@ -95,29 +94,23 @@ public class DebugApiV4 extends Api implements ReactableDebugApi<io.gravitee.def
 
     @Override
     public String extractHost() {
-        return definition
-            .getListeners()
-            .stream()
-            .filter(l -> l.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
-            .flatMap(listener -> ((HttpListener) listener).getPaths().stream())
-            .findFirst()
-            .map(Path::getHost)
-            .orElse(null);
+        return definition.getListeners().stream()
+                .filter(l -> l.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
+                .flatMap(listener -> ((HttpListener) listener).getPaths().stream())
+                .findFirst()
+                .map(Path::getHost)
+                .orElse(null);
     }
 
     @Override
     public String extractUri() {
-        return (
-            definition
-                .getListeners()
-                .stream()
-                .filter(l -> l.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
-                .flatMap(listener -> ((HttpListener) listener).getPaths().stream())
-                .map(Path::getPath)
-                .findFirst()
-                .map(path -> path.endsWith("/") ? path.substring(0, path.length() - 1) : path)
-                .orElse("") +
-            request.getPath()
-        );
+        return (definition.getListeners().stream()
+                        .filter(l -> l.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
+                        .flatMap(listener -> ((HttpListener) listener).getPaths().stream())
+                        .map(Path::getPath)
+                        .findFirst()
+                        .map(path -> path.endsWith("/") ? path.substring(0, path.length() - 1) : path)
+                        .orElse("")
+                + request.getPath());
     }
 }

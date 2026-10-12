@@ -53,13 +53,11 @@ class DistributedWriteGate {
         // defer so `held` is per-subscription: correct even if a retry()/repeat() is ever composed above.
         return Completable.defer(() -> {
             AtomicBoolean held = new AtomicBoolean();
-            return acquire(held)
-                .andThen(write)
-                .doFinally(() -> {
-                    if (held.compareAndSet(true, false)) {
-                        release();
-                    }
-                });
+            return acquire(held).andThen(write).doFinally(() -> {
+                if (held.compareAndSet(true, false)) {
+                    release();
+                }
+            });
         });
     }
 

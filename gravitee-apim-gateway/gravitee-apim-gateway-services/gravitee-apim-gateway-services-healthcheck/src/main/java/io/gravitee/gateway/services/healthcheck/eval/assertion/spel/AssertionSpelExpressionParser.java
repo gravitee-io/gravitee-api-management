@@ -23,7 +23,8 @@ import org.springframework.expression.ParserContext;
  */
 public class AssertionSpelExpressionParser extends io.gravitee.el.spel.SpelExpressionParser {
 
-    private static final ParserContext PARSER_CONTEXT = new AssertionParserContext(EXPRESSION_PREFIX, EXPRESSION_SUFFIX);
+    private static final ParserContext PARSER_CONTEXT =
+            new AssertionParserContext(EXPRESSION_PREFIX, EXPRESSION_SUFFIX);
 
     @Override
     protected ParserContext getParserContext() {

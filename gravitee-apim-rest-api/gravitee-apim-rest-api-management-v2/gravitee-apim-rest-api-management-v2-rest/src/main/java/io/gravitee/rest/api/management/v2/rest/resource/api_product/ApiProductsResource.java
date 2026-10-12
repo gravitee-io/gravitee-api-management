@@ -88,20 +88,22 @@ public class ApiProductsResource extends AbstractResource {
     @Path("_verify")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API_PRODUCT,
+                acls = {RolePermissionAction.READ})
+    })
     public Response verifyApiProductName(@Valid @NotNull final VerifyApiProduct verifyApiProduct) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             log.debug(
-                "Verifying API Product name [{}] for environment [{}]",
-                verifyApiProduct.getName(),
-                executionContext.getEnvironmentId()
-            );
+                    "Verifying API Product name [{}] for environment [{}]",
+                    verifyApiProduct.getName(),
+                    executionContext.getEnvironmentId());
             var input = VerifyApiProductNameUseCase.Input.of(
-                executionContext.getEnvironmentId(),
-                verifyApiProduct.getName(),
-                verifyApiProduct.getApiProductId()
-            );
+                    executionContext.getEnvironmentId(),
+                    verifyApiProduct.getName(),
+                    verifyApiProduct.getApiProductId());
             verifyApiProductNameUseCase.execute(input);
 
             VerifyApiProductResponse response = new VerifyApiProductResponse();
@@ -118,119 +120,130 @@ public class ApiProductsResource extends AbstractResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.CREATE }) })
-    public Response createApiProduct(@Valid @NotNull final CreateApiProduct createApiProduct) throws TechnicalException {
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API_PRODUCT,
+                acls = {RolePermissionAction.CREATE})
+    })
+    public Response createApiProduct(@Valid @NotNull final CreateApiProduct createApiProduct)
+            throws TechnicalException {
         AuditInfo audit = getAuditInfo();
         var input = new CreateApiProductUseCase.Input(createApiProduct, audit);
         log.debug("Creating API Product [{}]", createApiProduct.getName());
         var output = createApiProductUseCase.execute(input);
-        log.debug("API Product [{}] created with id [{}]", output.apiProduct().getName(), output.apiProduct().getId());
-        return Response.created(uriInfo.getAbsolutePathBuilder().path(output.apiProduct().getId()).build())
-            .entity(output.apiProduct())
-            .build();
+        log.debug(
+                "API Product [{}] created with id [{}]",
+                output.apiProduct().getName(),
+                output.apiProduct().getId());
+        return Response.created(uriInfo.getAbsolutePathBuilder()
+                        .path(output.apiProduct().getId())
+                        .build())
+                .entity(output.apiProduct())
+                .build();
     }
 
     @POST
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API_PRODUCT,
+                acls = {RolePermissionAction.READ})
+    })
     public Response searchApiProducts(
-        @BeanParam @Valid PaginationParam paginationParam,
-        @BeanParam ApiProductSortByParam apiProductSortByParam,
-        @Valid @NotNull ApiProductSearchQuery searchQuery
-    ) {
+            @BeanParam @Valid PaginationParam paginationParam,
+            @BeanParam ApiProductSortByParam apiProductSortByParam,
+            @Valid @NotNull ApiProductSearchQuery searchQuery) {
         apiProductSortByParam.validate();
         boolean hasIds = CollectionUtils.isNotEmpty(searchQuery.getIds());
         var executionContext = GraviteeContext.getExecutionContext();
         Set<String> ids = hasIds
-            ? searchQuery
-                .getIds()
-                .stream()
-                .filter(id -> id != null && !id.isBlank())
-                .collect(Collectors.toSet())
-            : Set.of();
+                ? searchQuery.getIds().stream()
+                        .filter(id -> id != null && !id.isBlank())
+                        .collect(Collectors.toSet())
+                : Set.of();
 
         var input = SearchApiProductsUseCase.Input.of(
-            executionContext.getEnvironmentId(),
-            executionContext.getOrganizationId(),
-            searchQuery.getQuery(),
-            ids.isEmpty() ? null : ids,
-            paginationParam.toPageable(),
-            apiProductSortByParam.toSortable(),
-            getAuthenticatedUser(),
-            isAdmin(),
-            ApiProductKindFilter.classicOnly()
-        );
+                executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId(),
+                searchQuery.getQuery(),
+                ids.isEmpty() ? null : ids,
+                paginationParam.toPageable(),
+                apiProductSortByParam.toSortable(),
+                getAuthenticatedUser(),
+                isAdmin(),
+                ApiProductKindFilter.classicOnly());
         var output = searchApiProductsUseCase.execute(input);
         var page = output.page();
 
         long totalElements = page.getTotalElements();
         int pageItemsCount = Math.toIntExact(page.getPageElements());
         log.debug(
-            "Search API Products for environment [{}]: {} total, page has {} items",
-            executionContext.getEnvironmentId(),
-            totalElements,
-            pageItemsCount
-        );
+                "Search API Products for environment [{}]: {} total, page has {} items",
+                executionContext.getEnvironmentId(),
+                totalElements,
+                pageItemsCount);
         return Response.ok()
-            .entity(
-                Map.of(
-                    "data",
-                    page.getContent().stream().map(ApiProductMapper.INSTANCE::map).toList(),
-                    "pagination",
-                    PaginationInfo.computePaginationInfo(totalElements, pageItemsCount, paginationParam),
-                    "links",
-                    computePaginationLinks(totalElements, paginationParam)
-                )
-            )
-            .build();
+                .entity(Map.of(
+                        "data",
+                        page.getContent().stream()
+                                .map(ApiProductMapper.INSTANCE::map)
+                                .toList(),
+                        "pagination",
+                        PaginationInfo.computePaginationInfo(totalElements, pageItemsCount, paginationParam),
+                        "links",
+                        computePaginationLinks(totalElements, paginationParam)))
+                .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API_PRODUCT,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiProducts(@BeanParam @Valid PaginationParam paginationParam) {
         var executionContext = GraviteeContext.getExecutionContext();
-        var output = getApiProductsUseCase.execute(
-            GetApiProductsUseCase.Input.of(
+        var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(
                 executionContext.getEnvironmentId(),
                 executionContext.getOrganizationId(),
                 getAuthenticatedUser(),
                 isAdmin(),
-                ApiProductKindFilter.classicOnly()
-            )
-        );
+                ApiProductKindFilter.classicOnly()));
         Set<ApiProduct> allApiProducts = output.apiProducts();
         List<ApiProduct> paginationApiProducts = computePaginationData(allApiProducts, paginationParam);
         log.debug("Get API Products for environment [{}]: {} found", executionContext, allApiProducts.size());
-        List<io.gravitee.rest.api.management.v2.rest.model.ApiProduct> restPaginationData = paginationApiProducts
-            .stream()
-            .map(ApiProductMapper.INSTANCE::map)
-            .toList();
+        List<io.gravitee.rest.api.management.v2.rest.model.ApiProduct> restPaginationData =
+                paginationApiProducts.stream()
+                        .map(ApiProductMapper.INSTANCE::map)
+                        .toList();
         return Response.ok()
-            .entity(
-                Map.of(
-                    "data",
-                    restPaginationData,
-                    "pagination",
-                    PaginationInfo.computePaginationInfo(allApiProducts.size(), paginationApiProducts.size(), paginationParam),
-                    "links",
-                    computePaginationLinks(allApiProducts.size(), paginationParam)
-                )
-            )
-            .build();
+                .entity(Map.of(
+                        "data",
+                        restPaginationData,
+                        "pagination",
+                        PaginationInfo.computePaginationInfo(
+                                allApiProducts.size(), paginationApiProducts.size(), paginationParam),
+                        "links",
+                        computePaginationLinks(allApiProducts.size(), paginationParam)))
+                .build();
     }
 
     @GET
     @Path("hooks")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API_PRODUCT,
+                acls = {RolePermissionAction.READ})
+    })
     public List<Hook> getApiProductHooks() {
         return Arrays.stream(ApiProductHook.values())
-            .filter(hook -> !hook.isHidden())
-            .map(ApiProductsResource::toHook)
-            .toList();
+                .filter(hook -> !hook.isHidden())
+                .map(ApiProductsResource::toHook)
+                .toList();
     }
 
     private static Hook toHook(ApiProductHook hook) {

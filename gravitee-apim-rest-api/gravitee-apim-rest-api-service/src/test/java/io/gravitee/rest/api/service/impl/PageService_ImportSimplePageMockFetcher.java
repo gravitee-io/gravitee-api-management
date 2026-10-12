@@ -42,7 +42,7 @@ public class PageService_ImportSimplePageMockFetcher implements FilesFetcher {
 
     @Override
     public String[] files() throws FetcherException {
-        return new String[] { "poc.md" };
+        return new String[] {"poc.md"};
     }
 
     @Override

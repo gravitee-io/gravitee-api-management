@@ -17,7 +17,6 @@ package io.gravitee.apim.core.notification.model.hook.portal;
 
 import io.gravitee.apim.core.notification.model.hook.AbstractHookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
-import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import java.util.HashMap;
 import java.util.Map;

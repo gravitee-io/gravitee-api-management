@@ -62,12 +62,11 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
     private final ApiEntrypointService apiEntrypointService;
 
     public ApiTemplateServiceImpl(
-        @Lazy final ApiSearchService apiSearchService,
-        final ApiMetadataService apiMetadataService,
-        final PrimaryOwnerService primaryOwnerService,
-        final NotificationTemplateService notificationTemplateService,
-        @Lazy final ApiEntrypointService apiEntrypointService
-    ) {
+            @Lazy final ApiSearchService apiSearchService,
+            final ApiMetadataService apiMetadataService,
+            final PrimaryOwnerService primaryOwnerService,
+            final NotificationTemplateService notificationTemplateService,
+            @Lazy final ApiEntrypointService apiEntrypointService) {
         this.apiSearchService = apiSearchService;
         this.apiMetadataService = apiMetadataService;
         this.primaryOwnerService = primaryOwnerService;
@@ -76,8 +75,10 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
     }
 
     @Override
-    public GenericApiModel findByIdForTemplates(ExecutionContext executionContext, String apiId, boolean decodeTemplate) {
-        final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+    public GenericApiModel findByIdForTemplates(
+            ExecutionContext executionContext, String apiId, boolean decodeTemplate) {
+        final GenericApiEntity genericApiEntity =
+                apiSearchService.findGenericById(executionContext, apiId, false, false, false);
 
         return switch (genericApiEntity.getDefinitionVersion()) {
             case FEDERATED, FEDERATED_AGENT -> {
@@ -133,8 +134,10 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                     apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
                     yield apiModelEntity;
                 } else {
-                    io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
-                    final io.gravitee.rest.api.model.v4.api.ApiModel apiModelEntity = new io.gravitee.rest.api.model.v4.api.ApiModel();
+                    io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity =
+                            (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
+                    final io.gravitee.rest.api.model.v4.api.ApiModel apiModelEntity =
+                            new io.gravitee.rest.api.model.v4.api.ApiModel();
 
                     apiModelEntity.setId(apiEntity.getId());
                     apiModelEntity.setDefinitionVersion(apiEntity.getDefinitionVersion());
@@ -199,11 +202,10 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
     }
 
     private Map<String, String> getApiMetadata(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final boolean decodeTemplate,
-        final GenericApiModel genericApiModel
-    ) {
+            final ExecutionContext executionContext,
+            final String apiId,
+            final boolean decodeTemplate,
+            final GenericApiModel genericApiModel) {
         final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(executionContext, apiId);
 
         if (metadataList == null) {
@@ -211,9 +213,8 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
         }
 
         final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
-        metadataList.forEach(metadata ->
-            mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
-        );
+        metadataList.forEach(metadata -> mapMetadata.put(
+                metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
 
         try {
             return decodeTemplate ? decodeMetadata(executionContext, genericApiModel, mapMetadata) : mapMetadata;
@@ -223,28 +224,25 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
     }
 
     private Map<String, String> decodeMetadata(
-        ExecutionContext executionContext,
-        GenericApiModel genericApiModel,
-        Map<String, String> metadata
-    ) {
+            ExecutionContext executionContext, GenericApiModel genericApiModel, Map<String, String> metadata) {
         try {
             String decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
-                executionContext.getOrganizationId(),
-                genericApiModel.getId(),
-                new StringReader(metadata.toString()),
-                Collections.singletonMap("api", genericApiModel)
-            );
+                    executionContext.getOrganizationId(),
+                    genericApiModel.getId(),
+                    new StringReader(metadata.toString()),
+                    Collections.singletonMap("api", genericApiModel));
 
-            Map<String, String> decodedMetadata = Arrays.stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
-                .map(entry -> entry.split("=", 2))
-                .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+            Map<String, String> decodedMetadata = Arrays.stream(
+                            decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                    .map(entry -> entry.split("=", 2))
+                    .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
 
             String supportEmail = decodedMetadata.getOrDefault(MetadataService.METADATA_EMAIL_SUPPORT_KEY, "");
             if (supportEmail.isBlank()) {
                 decodedMetadata.put(
-                    MetadataService.METADATA_EMAIL_SUPPORT_KEY,
-                    primaryOwnerService.getPrimaryOwnerEmail(executionContext.getOrganizationId(), genericApiModel.getId())
-                );
+                        MetadataService.METADATA_EMAIL_SUPPORT_KEY,
+                        primaryOwnerService.getPrimaryOwnerEmail(
+                                executionContext.getOrganizationId(), genericApiModel.getId()));
             }
 
             return decodedMetadata;
@@ -254,22 +252,23 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
     }
 
     private List<String> computeApiEntrypoints(ExecutionContext executionContext, GenericApiEntity api) {
-        return apiEntrypointService.getApiEntrypoints(executionContext, api).stream().map(ApiEntrypointEntity::getTarget).toList();
+        return apiEntrypointService.getApiEntrypoints(executionContext, api).stream()
+                .map(ApiEntrypointEntity::getTarget)
+                .toList();
     }
 
     private Map<String, Object> computeMcp(io.gravitee.rest.api.model.v4.api.ApiEntity api) {
-        if (api.getListeners() == null || api.getListeners().isEmpty() || api.getListeners().getFirst().getEntrypoints() == null) {
+        if (api.getListeners() == null
+                || api.getListeners().isEmpty()
+                || api.getListeners().getFirst().getEntrypoints() == null) {
             return Map.of();
         }
 
-        var mcpEntrypoint = api
-            .getListeners()
-            .getFirst()
-            .getEntrypoints()
-            .stream()
-            .filter(entrypoint -> Objects.equals(entrypoint.getType(), "mcp") || Objects.equals(entrypoint.getType(), "mcp-proxy"))
-            .findFirst()
-            .orElse(null);
+        var mcpEntrypoint = api.getListeners().getFirst().getEntrypoints().stream()
+                .filter(entrypoint -> Objects.equals(entrypoint.getType(), "mcp")
+                        || Objects.equals(entrypoint.getType(), "mcp-proxy"))
+                .findFirst()
+                .orElse(null);
 
         if (mcpEntrypoint == null || mcpEntrypoint.getConfiguration() == null) {
             return Map.of();

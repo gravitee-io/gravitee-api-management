@@ -57,9 +57,12 @@ class DictionaryPropertiesSerializationTest {
 
         UpdateDictionaryEntity entity = objectMapper.readValue(json, UpdateDictionaryEntity.class);
 
-        assertThat(entity.getPropertyOptions()).containsExactlyInAnyOrderEntriesOf(
-            Map.of("apiKey", new DictionaryPropertyOptions(true, false), "renewed", new DictionaryPropertyOptions(null, true))
-        );
+        assertThat(entity.getPropertyOptions())
+                .containsExactlyInAnyOrderEntriesOf(Map.of(
+                        "apiKey",
+                        new DictionaryPropertyOptions(true, false),
+                        "renewed",
+                        new DictionaryPropertyOptions(null, true)));
         assertThat(entity.getPropertyOptions().get("apiKey").getEncrypted()).isTrue();
     }
 
@@ -83,14 +86,18 @@ class DictionaryPropertiesSerializationTest {
     @Test
     void should_serialize_properties_and_options_side_by_side() throws Exception {
         DictionaryEntity entity = DictionaryEntity.builder()
-            .id("dictionary-id")
-            .name("My Dictionary")
-            .properties(Map.of("apiKey", "••••••••••••"))
-            .propertyOptions(Map.of("apiKey", DictionaryPropertyOptions.builder().encrypted(true).build()))
-            .build();
+                .id("dictionary-id")
+                .name("My Dictionary")
+                .properties(Map.of("apiKey", "••••••••••••"))
+                .propertyOptions(Map.of(
+                        "apiKey",
+                        DictionaryPropertyOptions.builder().encrypted(true).build()))
+                .build();
 
         String json = objectMapper.writeValueAsString(entity);
 
-        assertThat(json).contains("\"properties\":{\"apiKey\":").contains("\"propertyOptions\":{\"apiKey\":{\"encrypted\":true");
+        assertThat(json)
+                .contains("\"properties\":{\"apiKey\":")
+                .contains("\"propertyOptions\":{\"apiKey\":{\"encrypted\":true");
     }
 }

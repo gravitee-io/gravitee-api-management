@@ -36,9 +36,8 @@ public class UserDefinedProxyEndpointTest {
     public void shouldCreateProxyRequest_withQueryParamsFromTarget() {
         String queryParamKey = "endpointParam";
         ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(
-            mock(Endpoint.class),
-            "http://host:8080/test?%s=v".formatted(queryParamKey)
-        ).createProxyRequest(mock(Request.class));
+                        mock(Endpoint.class), "http://host:8080/test?%s=v".formatted(queryParamKey))
+                .createProxyRequest(mock(Request.class));
 
         assertThat(proxyRequest.parameters()).containsKeys(queryParamKey);
     }
@@ -51,7 +50,8 @@ public class UserDefinedProxyEndpointTest {
         requestQueryParameters.add(queryParamKey, "v");
         when(request.parameters()).thenReturn(requestQueryParameters);
 
-        ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(mock(Endpoint.class), "http://host:8080/test").createProxyRequest(request);
+        ProxyRequest proxyRequest =
+                new UserDefinedProxyEndpoint(mock(Endpoint.class), "http://host:8080/test").createProxyRequest(request);
 
         assertThat(proxyRequest.parameters()).containsKeys(queryParamKey);
     }
@@ -66,9 +66,8 @@ public class UserDefinedProxyEndpointTest {
         when(request.parameters()).thenReturn(requestQueryParameters);
 
         var proxyRequest = new UserDefinedProxyEndpoint(
-            mock(Endpoint.class),
-            "http://host:8080/test?%s=v".formatted(urlParamKey)
-        ).createProxyRequest(request);
+                        mock(Endpoint.class), "http://host:8080/test?%s=v".formatted(urlParamKey))
+                .createProxyRequest(request);
 
         assertThat(proxyRequest.parameters()).containsKeys(queryParamKey, urlParamKey);
     }

@@ -59,8 +59,9 @@ public class ApplicationAlertResource extends AbstractResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.DELETE) })
-    public Response deleteApplicationAlert(@PathParam("applicationId") String applicationId, @PathParam("alertId") String alertId) {
+    @Permissions({@Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.DELETE)})
+    public Response deleteApplicationAlert(
+            @PathParam("applicationId") String applicationId, @PathParam("alertId") String alertId) {
         log.info("Deleting alert {}", alertId);
 
         checkPlugins(GraviteeContext.getExecutionContext());
@@ -71,12 +72,11 @@ public class ApplicationAlertResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.UPDATE)})
     public Response updateAlert(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("alertId") String alertId,
-        @Valid @NotNull(message = "Input must not be null.") AlertInput alertInput
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @PathParam("alertId") String alertId,
+            @Valid @NotNull(message = "Input must not be null.") AlertInput alertInput) {
         log.info("Updating alert {}", alertId);
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
@@ -86,7 +86,8 @@ public class ApplicationAlertResource extends AbstractResource {
         final UpdateAlertTriggerEntity updateAlertTriggerEntity = alertMapper.convertToUpdate(alertInput);
         updateAlertTriggerEntity.setId(alertId);
 
-        final AlertTriggerEntity updated = applicationAlertService.update(executionContext, applicationId, updateAlertTriggerEntity);
+        final AlertTriggerEntity updated =
+                applicationAlertService.update(executionContext, applicationId, updateAlertTriggerEntity);
 
         Alert alert = alertMapper.convert(updated);
         return Response.ok(alert).build();

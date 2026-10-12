@@ -44,18 +44,16 @@ public interface PortalMapper {
     PortalMapper INSTANCE = Mappers.getMapper(PortalMapper.class);
 
     default PortalState toPortalState(
-        Portal portal,
-        String hrid,
-        io.gravitee.apim.core.portal.model.PortalNavigationStructure structure,
-        String activeThemeHrid,
-        List<Validator.Error> errors
-    ) {
+            Portal portal,
+            String hrid,
+            io.gravitee.apim.core.portal.model.PortalNavigationStructure structure,
+            String activeThemeHrid,
+            List<Validator.Error> errors) {
         var state = new PortalState(
-            portal.getId() != null ? portal.getId().toString() : null,
-            portal.getEnvironmentId(),
-            portal.getOrganizationId(),
-            toErrors(errors)
-        );
+                portal.getId() != null ? portal.getId().toString() : null,
+                portal.getEnvironmentId(),
+                portal.getOrganizationId(),
+                toErrors(errors));
         state.setHrid(hrid);
         mapPortalToState(portal, state);
         var wireStructure = new PortalNavigationStructure();
@@ -66,7 +64,8 @@ public interface PortalMapper {
         return state;
     }
 
-    private static void writeWireArea(PortalNavigationStructure wireStructure, PortalArea area, List<PortalNavigationPath> paths) {
+    private static void writeWireArea(
+            PortalNavigationStructure wireStructure, PortalArea area, List<PortalNavigationPath> paths) {
         switch (area) {
             case TOP_NAVBAR -> wireStructure.setTopNavbar(paths);
             case HOMEPAGE -> navigationNotAllowedFor(area);
@@ -82,8 +81,14 @@ public interface PortalMapper {
             return null;
         }
         var wire = new Errors();
-        wire.setSevere(validationErrors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).toList());
-        wire.setWarning(validationErrors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).toList());
+        wire.setSevere(validationErrors.stream()
+                .filter(Validator.Error::isSevere)
+                .map(Validator.Error::getMessage)
+                .toList());
+        wire.setWarning(validationErrors.stream()
+                .filter(Validator.Error::isWarning)
+                .map(Validator.Error::getMessage)
+                .toList());
         return wire;
     }
 
@@ -127,16 +132,19 @@ public interface PortalMapper {
         return list;
     }
 
-    default List<PortalNavigationPath> toApiNavigation(List<io.gravitee.apim.core.portal.model.NavigationPath> navigation) {
+    default List<PortalNavigationPath> toApiNavigation(
+            List<io.gravitee.apim.core.portal.model.NavigationPath> navigation) {
         if (navigation == null) {
             return List.of();
         }
-        return navigation
-            .stream()
-            .filter(Objects::nonNull)
-            .sorted(Comparator.comparing(np -> np.order() == null ? 0 : np.order()))
-            .map(n -> new PortalNavigationPath().path(n.path()).displayName(n.displayName()).visibility(toWireVisibility(n.visibility())))
-            .toList();
+        return navigation.stream()
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(np -> np.order() == null ? 0 : np.order()))
+                .map(n -> new PortalNavigationPath()
+                        .path(n.path())
+                        .displayName(n.displayName())
+                        .visibility(toWireVisibility(n.visibility())))
+                .toList();
     }
 
     private static boolean isValidNavigationPath(PortalNavigationPath n) {
@@ -148,6 +156,8 @@ public interface PortalMapper {
     }
 
     static io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(PortalVisibility domain) {
-        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
+        return domain == null
+                ? null
+                : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
     }
 }

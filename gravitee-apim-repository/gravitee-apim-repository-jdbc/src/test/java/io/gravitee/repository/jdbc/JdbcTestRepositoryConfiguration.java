@@ -19,7 +19,6 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
 import javax.sql.DataSource;
@@ -29,7 +28,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.testcontainers.containers.*;
-import org.testcontainers.containers.startupcheck.MinimumDurationRunningStartupCheckStrategy;
 import org.testcontainers.utility.DockerImageName;
 
 /**
@@ -73,10 +71,12 @@ public class JdbcTestRepositoryConfiguration {
         setEscapeReservedWordFromDatabaseType(databaseType);
 
         JdbcDatabaseContainer containerBean;
-        DockerImageName dockerImageName = DockerImageName.parse(tcDatabase.getDockerImageName()).withTag(tag);
+        DockerImageName dockerImageName =
+                DockerImageName.parse(tcDatabase.getDockerImageName()).withTag(tag);
         switch (tcDatabase) {
             case MYSQL:
-                // It appears that the limitation is not entirely due to the DB engine configuration, but also in the way I/O are managed between container and host.
+                // It appears that the limitation is not entirely due to the DB engine configuration, but also in the
+                // way I/O are managed between container and host.
                 // I let this configuration for documentation purpose, but it does not solve our performance issue.
                 // See --> https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html
                 containerBean = new MySQLContainer<>(dockerImageName);
@@ -87,7 +87,8 @@ public class JdbcTestRepositoryConfiguration {
                 }
                 break;
             case MARIADB:
-                // It appears that the limitation is not entirely due to the DB engine configuration, but also in the way I/O are managed between container and host.
+                // It appears that the limitation is not entirely due to the DB engine configuration, but also in the
+                // way I/O are managed between container and host.
                 // I let this configuration for documentation purpose, but it does not solve our performance issue.
                 // See --> https://mariadb.com/kb/en/innodb-system-variables/
                 containerBean = new MariaDBContainer<>(dockerImageName);
@@ -112,8 +113,13 @@ public class JdbcTestRepositoryConfiguration {
                 break;
         }
         containerBean
-            .withUrlParam("TC_DAEMON", "true") // https://www.testcontainers.org/modules/databases/jdbc/#running-container-in-daemon-mode
-            .withTmpFs(Collections.singletonMap("/testtmpfs", "rw")); // https://www.testcontainers.org/modules/databases/jdbc/#running-container-with-tmpfs-options
+                .withUrlParam(
+                        "TC_DAEMON",
+                        "true") // https://www.testcontainers.org/modules/databases/jdbc/#running-container-in-daemon-mode
+                .withTmpFs(
+                        Collections.singletonMap(
+                                "/testtmpfs",
+                                "rw")); // https://www.testcontainers.org/modules/databases/jdbc/#running-container-with-tmpfs-options
         containerBean.start();
         return containerBean;
     }

@@ -24,5 +24,5 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { NoOpRepositoryConfigurationTest.class })
+@ContextConfiguration(classes = {NoOpRepositoryConfigurationTest.class})
 public abstract class AbstractNoOpRepositoryTest {}

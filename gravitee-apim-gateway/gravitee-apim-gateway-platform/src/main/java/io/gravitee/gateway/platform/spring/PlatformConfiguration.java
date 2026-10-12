@@ -66,34 +66,30 @@ public class PlatformConfiguration {
      */
     @Bean
     public OrganizationReactorFactory v3OrganizationReactorFactory(
-        DefaultClassLoader classLoader,
-        io.gravitee.gateway.policy.PolicyFactoryCreator factoryCreator,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider,
-        ResourceClassLoaderFactory resourceClassLoaderFactory
-    ) {
+            DefaultClassLoader classLoader,
+            io.gravitee.gateway.policy.PolicyFactoryCreator factoryCreator,
+            PolicyClassLoaderFactory policyClassLoaderFactory,
+            ComponentProvider componentProvider,
+            ResourceClassLoaderFactory resourceClassLoaderFactory) {
         return new V3OrganizationReactorFactory(
-            classLoaderLegacyMode,
-            classLoader,
-            applicationContext,
-            factoryCreator,
-            policyClassLoaderFactory,
-            componentProvider,
-            resourceClassLoaderFactory
-        );
+                classLoaderLegacyMode,
+                classLoader,
+                applicationContext,
+                factoryCreator,
+                policyClassLoaderFactory,
+                componentProvider,
+                resourceClassLoaderFactory);
     }
 
     @Bean
     public OrganizationReactorRegistry v3OrganizationReactorRegistry(
-        @Qualifier("v3OrganizationReactorFactory") OrganizationReactorFactory organizationReactorFactory
-    ) {
+            @Qualifier("v3OrganizationReactorFactory") OrganizationReactorFactory organizationReactorFactory) {
         return new OrganizationReactorRegistry(organizationReactorFactory);
     }
 
     @Bean
     public OrganizationPolicyChainFactoryManager v3PlatformPolicyChainFactoryManager(
-        @Qualifier("v3OrganizationReactorRegistry") OrganizationReactorRegistry organizationReactorRegistry
-    ) {
+            @Qualifier("v3OrganizationReactorRegistry") OrganizationReactorRegistry organizationReactorRegistry) {
         return new V3OrganizationPolicyChainFactoryManager(organizationReactorRegistry);
     }
 
@@ -104,26 +100,18 @@ public class PlatformConfiguration {
 
     @Bean
     public OnRequestPlatformPolicyChainProvider onRequestPlatformPolicyChainProvider(
-        OrganizationFlowResolver organizationFlowResolver,
-        OrganizationPolicyChainFactoryManager v3OrganizationPolicyChainFactoryManager
-    ) {
+            OrganizationFlowResolver organizationFlowResolver,
+            OrganizationPolicyChainFactoryManager v3OrganizationPolicyChainFactoryManager) {
         return new OnRequestPlatformPolicyChainProvider(
-            organizationFlowResolver,
-            v3OrganizationPolicyChainFactoryManager,
-            new FlowPolicyResolverFactory()
-        );
+                organizationFlowResolver, v3OrganizationPolicyChainFactoryManager, new FlowPolicyResolverFactory());
     }
 
     @Bean
     public OnResponsePlatformPolicyChainProvider onResponsePlatformPolicyChainProvider(
-        OrganizationFlowResolver organizationFlowResolver,
-        OrganizationPolicyChainFactoryManager v3OrganizationPolicyChainFactoryManager
-    ) {
+            OrganizationFlowResolver organizationFlowResolver,
+            OrganizationPolicyChainFactoryManager v3OrganizationPolicyChainFactoryManager) {
         return new OnResponsePlatformPolicyChainProvider(
-            organizationFlowResolver,
-            v3OrganizationPolicyChainFactoryManager,
-            new FlowPolicyResolverFactory()
-        );
+                organizationFlowResolver, v3OrganizationPolicyChainFactoryManager, new FlowPolicyResolverFactory());
     }
 
     /*
@@ -131,42 +119,38 @@ public class PlatformConfiguration {
      */
     @Bean
     public OrganizationReactorFactory organizationReactorFactory(
-        DefaultClassLoader classLoader,
-        PolicyFactoryManager policyFactoryManager,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider,
-        OpenTelemetryConfiguration configuration
-    ) {
+            DefaultClassLoader classLoader,
+            PolicyFactoryManager policyFactoryManager,
+            PolicyClassLoaderFactory policyClassLoaderFactory,
+            ComponentProvider componentProvider,
+            OpenTelemetryConfiguration configuration) {
         return new DefaultOrganizationReactorFactory(
-            classLoader,
-            applicationContext,
-            policyFactoryManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            configuration
-        );
+                classLoader,
+                applicationContext,
+                policyFactoryManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                configuration);
     }
 
     @Bean
     public OrganizationReactorRegistry organizationReactorRegistry(
-        @Qualifier("organizationReactorFactory") OrganizationReactorFactory organizationReactorFactory
-    ) {
+            @Qualifier("organizationReactorFactory") OrganizationReactorFactory organizationReactorFactory) {
         return new OrganizationReactorRegistry(organizationReactorFactory);
     }
 
     @Bean
-    public io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager platformPolicyChainFactoryManager(
-        @Qualifier("organizationReactorRegistry") OrganizationReactorRegistry organizationReactorRegistry
-    ) {
+    public io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager
+            platformPolicyChainFactoryManager(
+                    @Qualifier("organizationReactorRegistry") OrganizationReactorRegistry organizationReactorRegistry) {
         return new DefaultPlatformPolicyChainFactoryManager(organizationReactorRegistry);
     }
 
     @Bean
     public OrganizationEventListener organizationEventListener(
-        EventManager eventManager,
-        @Qualifier("v3OrganizationReactorRegistry") OrganizationReactorRegistry v3OrganizationReactorRegistry,
-        @Qualifier("organizationReactorRegistry") OrganizationReactorRegistry organizationReactorRegistry
-    ) {
+            EventManager eventManager,
+            @Qualifier("v3OrganizationReactorRegistry") OrganizationReactorRegistry v3OrganizationReactorRegistry,
+            @Qualifier("organizationReactorRegistry") OrganizationReactorRegistry organizationReactorRegistry) {
         return new OrganizationEventListener(eventManager, v3OrganizationReactorRegistry, organizationReactorRegistry);
     }
 }

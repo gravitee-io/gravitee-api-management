@@ -19,9 +19,8 @@ import java.util.List;
 import java.util.Optional;
 
 public record HistogramQuery(
-    SearchTermId searchTermId,
-    TimeRange timeRange,
-    List<Aggregation> aggregations,
-    Optional<String> query,
-    List<Term> terms
-) {}
+        SearchTermId searchTermId,
+        TimeRange timeRange,
+        List<Aggregation> aggregations,
+        Optional<String> query,
+        List<Term> terms) {}

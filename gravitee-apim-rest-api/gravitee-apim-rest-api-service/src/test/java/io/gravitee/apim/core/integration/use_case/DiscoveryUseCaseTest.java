@@ -59,13 +59,13 @@ class DiscoveryUseCaseTest {
     @BeforeEach
     void setUp() {
         usecase = new DiscoveryUseCase(
-            integrationAgent,
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-            apiQueryService,
-            integrationCrudService
-        );
+                integrationAgent,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+                apiQueryService,
+                integrationCrudService);
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
@@ -76,48 +76,60 @@ class DiscoveryUseCaseTest {
     @Test
     void should_throw_exception_if_no_license_found() {
         // Given
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anOssLicense());
 
         // When
-        usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().assertError(NotAllowedDomainException.class);
+        usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+                .test()
+                .assertError(NotAllowedDomainException.class);
     }
 
     @Test
     void should_throw_exception_if_no_integration_found() {
-        //When
-        usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().assertError(IntegrationNotFoundException.class);
+        // When
+        usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+                .test()
+                .assertError(IntegrationNotFoundException.class);
     }
 
     @Test
     void should_discover_new_api_if_this_api_not_exist() {
-        //Given
+        // Given
         integrationCrudService.initWith(List.of(IntegrationFixture.anApiIntegration(ENV_ID)));
         IntegrationApi api = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID);
         integrationAgent.initWith(List.of(api));
         apiQueryService.initWith(List.of());
 
-        //When
-        var result = usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).blockingGet();
+        // When
+        var result = usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+                .blockingGet();
 
-        //Then
-        assertThat(result.apis()).containsExactlyInAnyOrder(new DiscoveryUseCase.Output.PreviewApi(api, DiscoveryUseCase.Output.State.NEW));
+        // Then
+        assertThat(result.apis())
+                .containsExactlyInAnyOrder(
+                        new DiscoveryUseCase.Output.PreviewApi(api, DiscoveryUseCase.Output.State.NEW));
     }
 
     @Test
     void should_not_discover_new_api_if_this_api_is_already_ingested() {
-        //Given
+        // Given
         integrationCrudService.initWith(List.of(IntegrationFixture.anApiIntegration(ENV_ID)));
         IntegrationApi api = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID);
         var discoveredApiId = ApiModelFactory.generateFederatedApiId(ENV_ID, INTEGRATION_ID, api);
         integrationAgent.initWith(List.of(api));
-        apiQueryService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(discoveredApiId).name("A name").build()));
+        apiQueryService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder()
+                .id(discoveredApiId)
+                .name("A name")
+                .build()));
 
-        //When
-        var result = usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).blockingGet();
+        // When
+        var result = usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+                .blockingGet();
 
-        //Then
-        assertThat(result.apis()).containsExactlyInAnyOrder(
-            new DiscoveryUseCase.Output.PreviewApi(api, DiscoveryUseCase.Output.State.UPDATE)
-        );
+        // Then
+        assertThat(result.apis())
+                .containsExactlyInAnyOrder(
+                        new DiscoveryUseCase.Output.PreviewApi(api, DiscoveryUseCase.Output.State.UPDATE));
     }
 }

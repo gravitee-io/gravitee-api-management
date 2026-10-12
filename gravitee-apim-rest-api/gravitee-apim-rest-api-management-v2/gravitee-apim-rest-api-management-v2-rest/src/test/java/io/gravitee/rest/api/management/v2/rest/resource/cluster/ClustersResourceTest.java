@@ -94,7 +94,11 @@ class ClustersResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(createClusterUseCase, getDeployedClustersUseCase, searchClusterUseCase, countClustersByLifecycleStateUseCase);
+        reset(
+                createClusterUseCase,
+                getDeployedClustersUseCase,
+                searchClusterUseCase,
+                countClustersByLifecycleStateUseCase);
     }
 
     @Nested
@@ -109,14 +113,14 @@ class ClustersResourceTest extends AbstractResourceTest {
             createCluster.setConfiguration(Map.of("bootstrapServers", "localhost:9092"));
 
             Cluster output = Cluster.builder()
-                .createdAt(Instant.now())
-                .id("cl-id-1")
-                .name(createCluster.getName())
-                .environmentId(ENV_ID)
-                .organizationId(ORGANIZATION)
-                .description(createCluster.getDescription())
-                .configuration(createCluster.getConfiguration())
-                .build();
+                    .createdAt(Instant.now())
+                    .id("cl-id-1")
+                    .name(createCluster.getName())
+                    .environmentId(ENV_ID)
+                    .organizationId(ORGANIZATION)
+                    .description(createCluster.getDescription())
+                    .configuration(createCluster.getConfiguration())
+                    .build();
 
             when(createClusterUseCase.execute(any())).thenReturn(new CreateClusterUseCase.Output(output));
 
@@ -127,16 +131,15 @@ class ClustersResourceTest extends AbstractResourceTest {
             var createdCluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
 
             assertAll(
-                () -> assertThat(createdCluster.getId()).isEqualTo(output.getId()),
-                () ->
-                    assertThat(createdCluster.getCreatedAt()).isEqualTo(
-                        output.getCreatedAt().atZone(TimeProvider.clock().getZone()).toOffsetDateTime()
-                    ),
-                () -> assertThat(createdCluster.getUpdatedAt()).isNull(),
-                () -> assertThat(createdCluster.getName()).isEqualTo(createCluster.getName()),
-                () -> assertThat(createdCluster.getDescription()).isEqualTo(createCluster.getDescription()),
-                () -> assertThat(createdCluster.getConfiguration()).isEqualTo(createCluster.getConfiguration())
-            );
+                    () -> assertThat(createdCluster.getId()).isEqualTo(output.getId()),
+                    () -> assertThat(createdCluster.getCreatedAt())
+                            .isEqualTo(output.getCreatedAt()
+                                    .atZone(TimeProvider.clock().getZone())
+                                    .toOffsetDateTime()),
+                    () -> assertThat(createdCluster.getUpdatedAt()).isNull(),
+                    () -> assertThat(createdCluster.getName()).isEqualTo(createCluster.getName()),
+                    () -> assertThat(createdCluster.getDescription()).isEqualTo(createCluster.getDescription()),
+                    () -> assertThat(createdCluster.getConfiguration()).isEqualTo(createCluster.getConfiguration()));
 
             var captor = ArgumentCaptor.forClass(CreateClusterUseCase.Input.class);
             verify(createClusterUseCase).execute(captor.capture());
@@ -152,19 +155,18 @@ class ClustersResourceTest extends AbstractResourceTest {
             CreateCluster createCluster = new CreateCluster();
             createCluster.setType(io.gravitee.rest.api.management.v2.rest.model.ClusterType.KAFKA_CLUSTER);
             createCluster.setName("kafka-cluster-1");
-            createCluster.setConfiguration(
-                Map.of("connections", java.util.List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092")))
-            );
+            createCluster.setConfiguration(Map.of(
+                    "connections", java.util.List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092"))));
 
             Cluster output = Cluster.builder()
-                .createdAt(Instant.now())
-                .id("cl-id-2")
-                .type(io.gravitee.definition.model.cluster.ClusterType.KAFKA_CLUSTER)
-                .name(createCluster.getName())
-                .environmentId(ENV_ID)
-                .organizationId(ORGANIZATION)
-                .configuration(createCluster.getConfiguration())
-                .build();
+                    .createdAt(Instant.now())
+                    .id("cl-id-2")
+                    .type(io.gravitee.definition.model.cluster.ClusterType.KAFKA_CLUSTER)
+                    .name(createCluster.getName())
+                    .environmentId(ENV_ID)
+                    .organizationId(ORGANIZATION)
+                    .configuration(createCluster.getConfiguration())
+                    .build();
 
             when(createClusterUseCase.execute(any())).thenReturn(new CreateClusterUseCase.Output(output));
 
@@ -174,7 +176,8 @@ class ClustersResourceTest extends AbstractResourceTest {
 
             var createdCluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
 
-            assertThat(createdCluster.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ClusterType.KAFKA_CLUSTER);
+            assertThat(createdCluster.getType())
+                    .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ClusterType.KAFKA_CLUSTER);
             assertThat(createdCluster.getName()).isEqualTo(createCluster.getName());
         }
 
@@ -205,9 +208,11 @@ class ClustersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.CREATE, () ->
-                rootTarget().request().post(json(new CreateCluster()))
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_CLUSTER,
+                    ENV_ID,
+                    RolePermissionAction.CREATE,
+                    () -> rootTarget().request().post(json(new CreateCluster())));
         }
     }
 
@@ -217,17 +222,16 @@ class ClustersResourceTest extends AbstractResourceTest {
         @Test
         void should_search_clusters() {
             List<Cluster> outputClusters = List.of(
-                Cluster.builder().name("Cluster 1").build(),
-                Cluster.builder().name("Cluster 2").build(),
-                Cluster.builder().name("Cluster 3").build(),
-                Cluster.builder().name("Cluster 4").build(),
-                Cluster.builder().name("Cluster 5").build(),
-                Cluster.builder().name("Cluster 6").build(),
-                Cluster.builder().name("Cluster 7").build(),
-                Cluster.builder().name("Cluster 8").build(),
-                Cluster.builder().name("Cluster 9").build(),
-                Cluster.builder().name("Cluster 10").build()
-            );
+                    Cluster.builder().name("Cluster 1").build(),
+                    Cluster.builder().name("Cluster 2").build(),
+                    Cluster.builder().name("Cluster 3").build(),
+                    Cluster.builder().name("Cluster 4").build(),
+                    Cluster.builder().name("Cluster 5").build(),
+                    Cluster.builder().name("Cluster 6").build(),
+                    Cluster.builder().name("Cluster 7").build(),
+                    Cluster.builder().name("Cluster 8").build(),
+                    Cluster.builder().name("Cluster 9").build(),
+                    Cluster.builder().name("Cluster 10").build());
             var output = new Page<>(outputClusters, 1, 10, 23);
 
             when(searchClusterUseCase.execute(any())).thenReturn(new SearchClusterUseCase.Output(output));
@@ -236,24 +240,33 @@ class ClustersResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
 
-            var clustersResponse = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ClustersResponse.class);
+            var clustersResponse =
+                    response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ClustersResponse.class);
 
             assertAll(
-                () ->
-                    assertThat(
-                        clustersResponse.getData().stream().map(io.gravitee.rest.api.management.v2.rest.model.Cluster::getName).toList()
-                    ).isEqualTo(outputClusters.stream().map(Cluster::getName).toList()),
-                () -> assertThat(clustersResponse.getPagination().getPage()).isEqualTo(1),
-                () -> assertThat(clustersResponse.getPagination().getPerPage()).isEqualTo(10),
-                () -> assertThat(clustersResponse.getPagination().getPageCount()).isEqualTo(3),
-                () -> assertThat(clustersResponse.getPagination().getTotalCount()).isEqualTo(23),
-                () -> assertThat(clustersResponse.getLinks()).isNotNull()
-            );
+                    () -> assertThat(clustersResponse.getData().stream()
+                                    .map(io.gravitee.rest.api.management.v2.rest.model.Cluster::getName)
+                                    .toList())
+                            .isEqualTo(outputClusters.stream()
+                                    .map(Cluster::getName)
+                                    .toList()),
+                    () -> assertThat(clustersResponse.getPagination().getPage()).isEqualTo(1),
+                    () -> assertThat(clustersResponse.getPagination().getPerPage())
+                            .isEqualTo(10),
+                    () -> assertThat(clustersResponse.getPagination().getPageCount())
+                            .isEqualTo(3),
+                    () -> assertThat(clustersResponse.getPagination().getTotalCount())
+                            .isEqualTo(23),
+                    () -> assertThat(clustersResponse.getLinks()).isNotNull());
         }
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_CLUSTER,
+                    ENV_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().request().get());
         }
     }
 
@@ -262,27 +275,28 @@ class ClustersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_lifecycle_state_stats() {
-            when(countClustersByLifecycleStateUseCase.execute(any())).thenReturn(
-                new CountClustersByLifecycleStateUseCase.Output(17, 12, 2, 3)
-            );
+            when(countClustersByLifecycleStateUseCase.execute(any()))
+                    .thenReturn(new CountClustersByLifecycleStateUseCase.Output(17, 12, 2, 3));
 
             final Response response = rootTarget().path("_stats").request().get();
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
-            var stats = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ClusterLifecycleStateStats.class);
+            var stats =
+                    response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ClusterLifecycleStateStats.class);
             assertAll(
-                () -> assertThat(stats.getTotal()).isEqualTo(17L),
-                () -> assertThat(stats.getDeployed()).isEqualTo(12L),
-                () -> assertThat(stats.getPending()).isEqualTo(2L),
-                () -> assertThat(stats.getUndeployed()).isEqualTo(3L)
-            );
+                    () -> assertThat(stats.getTotal()).isEqualTo(17L),
+                    () -> assertThat(stats.getDeployed()).isEqualTo(12L),
+                    () -> assertThat(stats.getPending()).isEqualTo(2L),
+                    () -> assertThat(stats.getUndeployed()).isEqualTo(3L));
         }
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () ->
-                rootTarget().path("_stats").request().get()
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_CLUSTER,
+                    ENV_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().path("_stats").request().get());
         }
     }
 
@@ -291,15 +305,17 @@ class ClustersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_deployed_clusters() {
-            var deployedClusters = List.of(
-                DeployedCluster.builder()
+            var deployedClusters = List.of(DeployedCluster.builder()
                     .crossId("my-cluster")
                     .name("My Cluster")
                     .version(1)
-                    .connections(List.of(DeployedCluster.DeployedClusterConnection.builder().crossId("primary").name("Primary").build()))
-                    .build()
-            );
-            when(getDeployedClustersUseCase.execute(any())).thenReturn(new GetDeployedClustersUseCase.Output(deployedClusters));
+                    .connections(List.of(DeployedCluster.DeployedClusterConnection.builder()
+                            .crossId("primary")
+                            .name("Primary")
+                            .build()))
+                    .build());
+            when(getDeployedClustersUseCase.execute(any()))
+                    .thenReturn(new GetDeployedClustersUseCase.Output(deployedClusters));
 
             final Response response = rootTarget().path("deployed").request().get();
 
@@ -310,7 +326,8 @@ class ClustersResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_empty_list_when_no_deployed_clusters() {
-            when(getDeployedClustersUseCase.execute(any())).thenReturn(new GetDeployedClustersUseCase.Output(List.of()));
+            when(getDeployedClustersUseCase.execute(any()))
+                    .thenReturn(new GetDeployedClustersUseCase.Output(List.of()));
 
             final Response response = rootTarget().path("deployed").request().get();
 
@@ -321,9 +338,11 @@ class ClustersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () ->
-                rootTarget().path("deployed").request().get()
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_CLUSTER,
+                    ENV_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().path("deployed").request().get());
         }
     }
 
@@ -340,9 +359,13 @@ class ClustersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_bind_every_value_of_a_comma_separated_parameter() {
-            when(searchClusterUseCase.execute(any())).thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
+            when(searchClusterUseCase.execute(any()))
+                    .thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
 
-            final Response response = rootTarget().queryParam("lifecycleState", "DEPLOYED,UNDEPLOYED").request().get();
+            final Response response = rootTarget()
+                    .queryParam("lifecycleState", "DEPLOYED,UNDEPLOYED")
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var captor = ArgumentCaptor.forClass(SearchClusterUseCase.Input.class);
@@ -352,13 +375,14 @@ class ClustersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_keep_only_the_first_occurrence_of_a_repeated_parameter() {
-            when(searchClusterUseCase.execute(any())).thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
+            when(searchClusterUseCase.execute(any()))
+                    .thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
 
             final Response response = rootTarget()
-                .queryParam("lifecycleState", "DEPLOYED")
-                .queryParam("lifecycleState", "UNDEPLOYED")
-                .request()
-                .get();
+                    .queryParam("lifecycleState", "DEPLOYED")
+                    .queryParam("lifecycleState", "UNDEPLOYED")
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var captor = ArgumentCaptor.forClass(SearchClusterUseCase.Input.class);

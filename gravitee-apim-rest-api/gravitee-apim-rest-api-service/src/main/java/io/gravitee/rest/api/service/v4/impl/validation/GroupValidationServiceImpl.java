@@ -55,13 +55,12 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
 
     @Override
     public Set<String> validateAndSanitize(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final Set<String> groups,
-        final Set<String> existingGroups,
-        final PrimaryOwnerEntity primaryOwnerEntity,
-        final boolean addDefaultGroups
-    ) {
+            final ExecutionContext executionContext,
+            final String apiId,
+            final Set<String> groups,
+            final Set<String> existingGroups,
+            final PrimaryOwnerEntity primaryOwnerEntity,
+            final boolean addDefaultGroups) {
         if (existingGroups != null && groups == null) {
             return existingGroups;
         }
@@ -72,17 +71,17 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
                 Set<GroupEntity> groundGroupEntities = groupService.findByIds(groups);
                 sanitizedGroups = removePrimaryOwnerGroups(executionContext, groundGroupEntities, apiId);
             } catch (GroupsNotFoundException e) {
-                throw new InvalidDataException("These groups [" + e.getParameters().get("groups") + "] do not exist");
+                throw new InvalidDataException(
+                        "These groups [" + e.getParameters().get("groups") + "] do not exist");
             }
         }
 
         if (addDefaultGroups) {
             // Add default groups on
-            Set<String> defaultGroups = groupService
-                .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
-                .stream()
-                .map(GroupEntity::getId)
-                .collect(toSet());
+            Set<String> defaultGroups =
+                    groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE).stream()
+                            .map(GroupEntity::getId)
+                            .collect(toSet());
             sanitizedGroups.addAll(defaultGroups);
         }
 
@@ -95,26 +94,18 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
     }
 
     private Set<String> removePrimaryOwnerGroups(
-        final ExecutionContext executionContext,
-        final Set<GroupEntity> groundGroupEntities,
-        final String apiId
-    ) {
+            final ExecutionContext executionContext, final Set<GroupEntity> groundGroupEntities, final String apiId) {
         Stream<GroupEntity> groupEntityStream = groundGroupEntities.stream();
         if (apiId != null) {
             final MembershipEntity primaryOwner = membershipService.getPrimaryOwner(
-                executionContext.getOrganizationId(),
-                MembershipReferenceType.API,
-                apiId
-            );
+                    executionContext.getOrganizationId(), MembershipReferenceType.API, apiId);
             if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
                 // don't remove the primary owner group of this API.
                 groupEntityStream = groupEntityStream.filter(
-                    group -> isNotPrimaryOwnerGroup(group) || group.getId().equals(primaryOwner.getMemberId())
-                );
+                        group -> isNotPrimaryOwnerGroup(group) || group.getId().equals(primaryOwner.getMemberId()));
             } else {
-                groupEntityStream = groupEntityStream.filter(
-                    group -> isNotPrimaryOwnerGroup(group) || StringUtils.equals(group.getApiPrimaryOwner(), primaryOwner.getMemberId())
-                );
+                groupEntityStream = groupEntityStream.filter(group -> isNotPrimaryOwnerGroup(group)
+                        || StringUtils.equals(group.getApiPrimaryOwner(), primaryOwner.getMemberId()));
             }
         } else {
             groupEntityStream = groupEntityStream.filter(this::isNotPrimaryOwnerGroup);

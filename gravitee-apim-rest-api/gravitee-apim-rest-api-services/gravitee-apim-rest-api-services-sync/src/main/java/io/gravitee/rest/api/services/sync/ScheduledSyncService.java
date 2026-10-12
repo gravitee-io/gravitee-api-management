@@ -77,11 +77,15 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
      * This sync phase must be done by all node before starting.
      */
     private void doSync() {
-        log.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+        log.debug(
+                "Synchronization #{} started at {}",
+                counter.incrementAndGet(),
+                Instant.now().toString());
 
         syncStateManager.refresh();
 
-        log.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
+        log.debug(
+                "Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 
     @Override

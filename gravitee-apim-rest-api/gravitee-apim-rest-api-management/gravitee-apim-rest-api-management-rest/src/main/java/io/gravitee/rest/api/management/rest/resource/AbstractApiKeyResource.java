@@ -50,13 +50,9 @@ public class AbstractApiKeyResource extends AbstractResource {
 
     private void checkApplicationUsesSharedApiKey(ApplicationEntity applicationEntity, boolean usesSharedApiKey) {
         if (applicationEntity.hasApiKeySharedMode() != usesSharedApiKey) {
-            throw new InvalidApplicationApiKeyModeException(
-                String.format(
+            throw new InvalidApplicationApiKeyModeException(String.format(
                     "Invalid operation for API Key mode [%s] of application [%s]",
-                    applicationEntity.getApiKeyMode(),
-                    applicationEntity.getId()
-                )
-            );
+                    applicationEntity.getApiKeyMode(), applicationEntity.getId()));
         }
     }
 }

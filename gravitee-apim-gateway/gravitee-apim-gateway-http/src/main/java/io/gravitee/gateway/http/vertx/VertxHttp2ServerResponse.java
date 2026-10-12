@@ -33,17 +33,19 @@ public class VertxHttp2ServerResponse extends VertxHttpServerResponse {
 
     @Override
     public Response writeCustomFrame(HttpFrame frame) {
-        serverResponse.writeCustomFrame(frame.type(), frame.flags(), BufferInternal.buffer(frame.payload().getNativeBuffer()));
+        serverResponse.writeCustomFrame(
+                frame.type(),
+                frame.flags(),
+                BufferInternal.buffer(frame.payload().getNativeBuffer()));
 
         return this;
     }
 
     protected void writeHeaders() {
-        if (
-            headers.contains(HttpHeaders.CONNECTION) &&
-            headers.getAll(HttpHeaders.CONNECTION).contains(HttpHeadersValues.CONNECTION_GO_AWAY)
-        ) {
-            // 'Connection: goAway' is a special header indicating the native connection should be shutdown because of the node itself will shutdown.
+        if (headers.contains(HttpHeaders.CONNECTION)
+                && headers.getAll(HttpHeaders.CONNECTION).contains(HttpHeadersValues.CONNECTION_GO_AWAY)) {
+            // 'Connection: goAway' is a special header indicating the native connection should be shutdown because of
+            // the node itself will shutdown.
             this.getNativeConnection().shutdown();
         }
 

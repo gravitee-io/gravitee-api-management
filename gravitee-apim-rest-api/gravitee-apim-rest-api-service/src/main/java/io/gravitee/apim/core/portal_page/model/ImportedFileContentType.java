@@ -71,7 +71,9 @@ public final class ImportedFileContentType {
         if (root.has("asyncapi")) {
             return Optional.of(PortalPageContentType.ASYNCAPI);
         }
-        return root.has("openapi") || root.has("swagger") ? Optional.of(PortalPageContentType.OPENAPI) : Optional.empty();
+        return root.has("openapi") || root.has("swagger")
+                ? Optional.of(PortalPageContentType.OPENAPI)
+                : Optional.empty();
     }
 
     private static String extensionOf(@Nullable String fileName) {

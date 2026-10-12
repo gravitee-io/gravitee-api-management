@@ -35,16 +35,16 @@ public class NoTransactionManager extends AbstractPlatformTransactionManager {
 
     @Override
     protected void doBegin(Object transaction, TransactionDefinition definition) throws TransactionException {
-        //noop
+        // noop
     }
 
     @Override
     protected void doCommit(DefaultTransactionStatus status) throws TransactionException {
-        //noop
+        // noop
     }
 
     @Override
     protected void doRollback(DefaultTransactionStatus status) throws TransactionException {
-        //noop
+        // noop
     }
 }

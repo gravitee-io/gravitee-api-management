@@ -31,7 +31,8 @@ public class NoOpSubscriptionDispatcher implements SubscriptionDispatcher {
 
     @Override
     public Completable dispatch(Subscription subscription) {
-        log.warn("Cannot dispatch subscription [{}]. Please install apim-reactor-message plugin.", subscription.getId());
+        log.warn(
+                "Cannot dispatch subscription [{}]. Please install apim-reactor-message plugin.", subscription.getId());
         return Completable.complete();
     }
 

@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.infra.query_service.audit;
 
-import static io.gravitee.rest.api.service.impl.MetadataServiceImpl.getDefaultReferenceId;
-
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.infra.adapter.UserAdapter;
@@ -56,15 +54,14 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
     private final ApiProductsRepository apiProductRepository;
 
     public AuditMetadataQueryServiceImpl(
-        @Lazy ApiRepository apiRepository,
-        @Lazy ApplicationRepository applicationRepository,
-        @Lazy GroupRepository groupRepository,
-        @Lazy MetadataRepository metadataRepository,
-        @Lazy PageRepository pageRepository,
-        @Lazy PlanRepository planRepository,
-        @Lazy UserRepository userRepository,
-        @Lazy ApiProductsRepository apiProductRepository
-    ) {
+            @Lazy ApiRepository apiRepository,
+            @Lazy ApplicationRepository applicationRepository,
+            @Lazy GroupRepository groupRepository,
+            @Lazy MetadataRepository metadataRepository,
+            @Lazy PageRepository pageRepository,
+            @Lazy PlanRepository planRepository,
+            @Lazy UserRepository userRepository,
+            @Lazy ApiProductsRepository apiProductRepository) {
         this.apiRepository = apiRepository;
         this.applicationRepository = applicationRepository;
         this.groupRepository = groupRepository;
@@ -79,9 +76,9 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
     public String fetchUserNameMetadata(String userId) {
         try {
             return userRepository
-                .findById(userId)
-                .map(user -> UserAdapter.INSTANCE.fromUser(user).displayName())
-                .orElse(userId);
+                    .findById(userId)
+                    .map(user -> UserAdapter.INSTANCE.fromUser(user).displayName())
+                    .orElse(userId);
         } catch (TechnicalException e) {
             log.error("Error finding user audit metadata {}", userId);
             return userId;
@@ -103,28 +100,47 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
         try {
             switch (Audit.AuditProperties.valueOf(propertyName)) {
                 case API:
-                    return apiRepository.findById(propertyValue).map(Api::getName).orElse(propertyValue);
+                    return apiRepository
+                            .findById(propertyValue)
+                            .map(Api::getName)
+                            .orElse(propertyValue);
                 case APPLICATION:
-                    return applicationRepository.findById(propertyValue).map(Application::getName).orElse(propertyValue);
+                    return applicationRepository
+                            .findById(propertyValue)
+                            .map(Application::getName)
+                            .orElse(propertyValue);
                 case GROUP:
-                    return groupRepository.findById(propertyValue).map(Group::getName).orElse(propertyValue);
+                    return groupRepository
+                            .findById(propertyValue)
+                            .map(Group::getName)
+                            .orElse(propertyValue);
                 case METADATA:
-                    var refType = MetadataReferenceType.parse(audit.getReferenceType().name());
+                    var refType =
+                            MetadataReferenceType.parse(audit.getReferenceType().name());
                     return metadataRepository
-                        .findById(propertyValue, audit.getReferenceId(), refType)
-                        .map(Metadata::getName)
-                        .orElse(propertyValue);
+                            .findById(propertyValue, audit.getReferenceId(), refType)
+                            .map(Metadata::getName)
+                            .orElse(propertyValue);
                 case PAGE:
-                    return pageRepository.findById(propertyValue).map(Page::getName).orElse(propertyValue);
+                    return pageRepository
+                            .findById(propertyValue)
+                            .map(Page::getName)
+                            .orElse(propertyValue);
                 case PLAN:
-                    return planRepository.findById(propertyValue).map(Plan::getName).orElse(propertyValue);
+                    return planRepository
+                            .findById(propertyValue)
+                            .map(Plan::getName)
+                            .orElse(propertyValue);
                 case API_PRODUCT:
-                    return apiProductRepository.findById(propertyValue).map(ApiProduct::getName).orElse(propertyValue);
+                    return apiProductRepository
+                            .findById(propertyValue)
+                            .map(ApiProduct::getName)
+                            .orElse(propertyValue);
                 case USER:
                     return userRepository
-                        .findById(propertyValue)
-                        .map(user -> UserAdapter.INSTANCE.fromUser(user).displayName())
-                        .orElse(propertyValue);
+                            .findById(propertyValue)
+                            .map(user -> UserAdapter.INSTANCE.fromUser(user).displayName())
+                            .orElse(propertyValue);
                 default:
                     return propertyValue;
             }

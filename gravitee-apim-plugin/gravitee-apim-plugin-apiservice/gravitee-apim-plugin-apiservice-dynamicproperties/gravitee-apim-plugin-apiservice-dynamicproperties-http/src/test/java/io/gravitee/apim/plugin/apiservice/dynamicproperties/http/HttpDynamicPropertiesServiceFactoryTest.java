@@ -41,30 +41,32 @@ class HttpDynamicPropertiesServiceFactoryTest {
 
     @Test
     void should_return_null_when_service_cannot_be_handled() {
-        assertThat(
-            cut.createService(new DefaultManagementDeploymentContext(Api.builder().build(), mock(ApplicationContext.class)))
-        ).isNull();
+        assertThat(cut.createService(
+                        new DefaultManagementDeploymentContext(Api.builder().build(), mock(ApplicationContext.class))))
+                .isNull();
     }
 
     @Test
     void should_return_service_when_service_can_be_handled_for_http_api() {
         final ApiServices services = new ApiServices();
-        services.setDynamicProperty(Service.builder().enabled(true).type(HTTP_DYNAMIC_PROPERTIES_TYPE).build());
-        assertThat(
-            cut.createService(
-                new DefaultManagementDeploymentContext(Api.builder().services(services).build(), mock(ApplicationContext.class))
-            )
-        ).isInstanceOf(HttpDynamicPropertiesService.class);
+        services.setDynamicProperty(Service.builder()
+                .enabled(true)
+                .type(HTTP_DYNAMIC_PROPERTIES_TYPE)
+                .build());
+        assertThat(cut.createService(new DefaultManagementDeploymentContext(
+                        Api.builder().services(services).build(), mock(ApplicationContext.class))))
+                .isInstanceOf(HttpDynamicPropertiesService.class);
     }
 
     @Test
     void should_return_service_when_service_can_be_handled_for_native_api() {
         final NativeApiServices services = new NativeApiServices();
-        services.setDynamicProperty(Service.builder().enabled(true).type(HTTP_DYNAMIC_PROPERTIES_TYPE).build());
-        assertThat(
-            cut.createService(
-                new DefaultManagementDeploymentContext(NativeApi.builder().services(services).build(), mock(ApplicationContext.class))
-            )
-        ).isInstanceOf(HttpDynamicPropertiesService.class);
+        services.setDynamicProperty(Service.builder()
+                .enabled(true)
+                .type(HTTP_DYNAMIC_PROPERTIES_TYPE)
+                .build());
+        assertThat(cut.createService(new DefaultManagementDeploymentContext(
+                        NativeApi.builder().services(services).build(), mock(ApplicationContext.class))))
+                .isInstanceOf(HttpDynamicPropertiesService.class);
     }
 }

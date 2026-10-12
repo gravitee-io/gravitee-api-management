@@ -28,9 +28,9 @@ public class HooksIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("genericnotificationconfigs")
-            .name("hooks_1")
-            .key("hooks", ascending())
-            .build();
+                .collection("genericnotificationconfigs")
+                .name("hooks_1")
+                .key("hooks", ascending())
+                .build();
     }
 }

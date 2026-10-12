@@ -25,7 +25,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface ApiQueryService {
-    Page<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter);
+    Page<Api> search(
+            ApiSearchCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter);
+
     Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter);
 
     Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId);

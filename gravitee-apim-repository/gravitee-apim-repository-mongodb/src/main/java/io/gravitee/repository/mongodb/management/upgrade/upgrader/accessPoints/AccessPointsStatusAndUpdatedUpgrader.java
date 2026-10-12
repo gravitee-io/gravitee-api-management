@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 public class AccessPointsStatusAndUpdatedUpgrader extends MongoUpgrader {
 
     public static final int ACCESSPOINTS_STATUS_AND_UPDATED_UPGRADER_ORDER =
-        MissingEnvironmentUpgrader.MISSING_ENVIRONMENT_UPGRADER_ORDER + 1;
+            MissingEnvironmentUpgrader.MISSING_ENVIRONMENT_UPGRADER_ORDER + 1;
 
     @Override
     public String version() {
@@ -37,13 +37,12 @@ public class AccessPointsStatusAndUpdatedUpgrader extends MongoUpgrader {
     public boolean upgrade() {
         var accessPointsStatusNullQuery = new Document("status", null);
 
-        this.getCollection("access_points")
-            .find(accessPointsStatusNullQuery)
-            .forEach(accessPoint -> {
-                accessPoint.append("status", "CREATED");
-                accessPoint.append("updatedAt", new Date());
-                this.getCollection("access_points").replaceOne(Filters.eq("_id", accessPoint.getString("_id")), accessPoint);
-            });
+        this.getCollection("access_points").find(accessPointsStatusNullQuery).forEach(accessPoint -> {
+            accessPoint.append("status", "CREATED");
+            accessPoint.append("updatedAt", new Date());
+            this.getCollection("access_points")
+                    .replaceOne(Filters.eq("_id", accessPoint.getString("_id")), accessPoint);
+        });
 
         return true;
     }

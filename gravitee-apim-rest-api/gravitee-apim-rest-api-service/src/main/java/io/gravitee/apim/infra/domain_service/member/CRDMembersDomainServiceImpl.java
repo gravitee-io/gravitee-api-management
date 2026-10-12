@@ -58,7 +58,8 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
     private final MembershipService membershipService;
     private final RoleService roleService;
 
-    private static final List<RoleScope> GROUP_DEFAULT_ROLE_SCOPES = List.of(RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT);
+    private static final List<RoleScope> GROUP_DEFAULT_ROLE_SCOPES =
+            List.of(RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT);
 
     @Override
     public void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
@@ -91,12 +92,7 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
     @Override
     public void updateGroupDefaultRoles(
-        AuditInfo auditInfo,
-        String groupId,
-        String apiRole,
-        String applicationRole,
-        String apiProductRole
-    ) {
+            AuditInfo auditInfo, String groupId, String apiRole, String applicationRole, String apiProductRole) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
         if (!StringUtils.isEmpty(apiRole)) {
@@ -113,7 +109,8 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
     }
 
     @Override
-    public void updateGroupDefaultRoles(AuditInfo auditInfo, String groupId, Map<RoleScope, String> defaultMemberRoles) {
+    public void updateGroupDefaultRoles(
+            AuditInfo auditInfo, String groupId, Map<RoleScope, String> defaultMemberRoles) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
         for (var roleScope : GROUP_DEFAULT_ROLE_SCOPES) {
@@ -128,48 +125,49 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
     private void clearDefaultRole(ExecutionContext executionContext, String groupId, RoleScope roleScope) {
         var referenceType = MembershipReferenceType.valueOf(roleScope.name());
-        var hasDefaultRole = !membershipService.getRoles(referenceType, null, MembershipMemberType.GROUP, groupId).isEmpty();
+        var hasDefaultRole = !membershipService
+                .getRoles(referenceType, null, MembershipMemberType.GROUP, groupId)
+                .isEmpty();
         if (hasDefaultRole) {
-            membershipService.deleteReferenceMember(executionContext, referenceType, null, MembershipMemberType.GROUP, groupId);
+            membershipService.deleteReferenceMember(
+                    executionContext, referenceType, null, MembershipMemberType.GROUP, groupId);
         }
     }
 
-    private void updateDefaultRole(ExecutionContext executionContext, String groupId, String roleName, RoleScope roleScope) {
+    private void updateDefaultRole(
+            ExecutionContext executionContext, String groupId, String roleName, RoleScope roleScope) {
         if (SystemRole.PRIMARY_OWNER.name().equals(roleName)) {
             return;
         }
 
         var referenceType = MembershipReferenceType.valueOf(roleScope.name());
-        var currentRole = membershipService
-            .getRoles(referenceType, null, MembershipMemberType.GROUP, groupId)
-            .stream()
-            .findFirst()
-            .map(RoleEntity::getName)
-            .orElse(null);
+        var currentRole = membershipService.getRoles(referenceType, null, MembershipMemberType.GROUP, groupId).stream()
+                .findFirst()
+                .map(RoleEntity::getName)
+                .orElse(null);
 
         if (roleName.equals(currentRole)) {
             return;
         }
 
         if (currentRole != null) {
-            membershipService.deleteReferenceMember(executionContext, referenceType, null, MembershipMemberType.GROUP, groupId);
+            membershipService.deleteReferenceMember(
+                    executionContext, referenceType, null, MembershipMemberType.GROUP, groupId);
         }
 
         membershipService.addRoleToMemberOnReference(
-            executionContext,
-            new MembershipService.MembershipReference(referenceType, null),
-            new MembershipService.MembershipMember(groupId, null, MembershipMemberType.GROUP),
-            new MembershipService.MembershipRole(mapRoleScope(roleScope), roleName)
-        );
+                executionContext,
+                new MembershipService.MembershipReference(referenceType, null),
+                new MembershipService.MembershipMember(groupId, null, MembershipMemberType.GROUP),
+                new MembershipService.MembershipRole(mapRoleScope(roleScope), roleName));
     }
 
     private void updateMembers(
-        AuditInfo auditInfo,
-        String referenceId,
-        RoleScope roleScope,
-        MembershipReferenceType referenceType,
-        Set<MemberCRD> members
-    ) {
+            AuditInfo auditInfo,
+            String referenceId,
+            RoleScope roleScope,
+            MembershipReferenceType referenceType,
+            Set<MemberCRD> members) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
 
         var defaultRoles = roleService.findDefaultRoleByScopes(auditInfo.organizationId(), mapRoleScope(roleScope));
@@ -179,44 +177,41 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
         for (var member : members) {
             if (StringUtils.isEmpty(member.getRole())) {
                 assertDefaultRoleForScope(defaultRole, roleScope);
-                log.warn("There is no role associated with member [{}]. Default role will be applied", member.getSourceId());
+                log.warn(
+                        "There is no role associated with member [{}]. Default role will be applied",
+                        member.getSourceId());
             }
 
             var memberRoleEntity = StringUtils.isEmpty(member.getRole())
-                ? defaultRole
-                : findRoleEntity(auditInfo.organizationId(), roleScope, member.getRole(), defaultRole);
+                    ? defaultRole
+                    : findRoleEntity(auditInfo.organizationId(), roleScope, member.getRole(), defaultRole);
 
             Objects.requireNonNull(memberRoleEntity, "Unable to find role for member [" + member.getSourceId() + "]");
 
-            membershipService
-                .getRoles(referenceType, referenceId, MembershipMemberType.USER, member.getId())
-                .stream()
-                .filter(role -> role.getScope().name().equals(roleScope.name()))
-                .findFirst()
-                .ifPresent(role ->
-                    membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, member.getId(), role.getId())
-                );
+            membershipService.getRoles(referenceType, referenceId, MembershipMemberType.USER, member.getId()).stream()
+                    .filter(role -> role.getScope().name().equals(roleScope.name()))
+                    .findFirst()
+                    .ifPresent(role -> membershipService.removeRole(
+                            referenceType, referenceId, MembershipMemberType.USER, member.getId(), role.getId()));
 
             membershipService.addRoleToMemberOnReference(
-                executionContext,
-                referenceType,
-                referenceId,
-                MembershipMemberType.USER,
-                member.getId(),
-                memberRoleEntity.getId()
-            );
+                    executionContext,
+                    referenceType,
+                    referenceId,
+                    MembershipMemberType.USER,
+                    member.getId(),
+                    memberRoleEntity.getId());
         }
 
         log.debug("Members successfully created for {} [{}]", referenceType, referenceId);
     }
 
     private void deleteOrphans(
-        AuditInfo auditInfo,
-        String referenceId,
-        RoleScope roleScope,
-        MembershipReferenceType referenceType,
-        Set<MemberCRD> members
-    ) {
+            AuditInfo auditInfo,
+            String referenceId,
+            RoleScope roleScope,
+            MembershipReferenceType referenceType,
+            Set<MemberCRD> members) {
         log.debug("Deleting orphan members");
 
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
@@ -228,46 +223,54 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
         var givenMemberIds = members.stream().map(MemberCRD::getId).collect(Collectors.toSet());
 
         var existingMemberIds = new LinkedHashSet<>(
-            membershipService
-                .getMembersByReference(executionContext, referenceType, referenceId)
-                .stream()
-                .filter(member -> member.getRoles().stream().noneMatch(poRole::equals))
-                .map(MemberEntity::getId)
-                .toList()
-        );
+                membershipService.getMembersByReference(executionContext, referenceType, referenceId).stream()
+                        .filter(member -> member.getRoles().stream().noneMatch(poRole::equals))
+                        .map(MemberEntity::getId)
+                        .toList());
 
         existingMemberIds.removeAll(givenMemberIds);
 
-        existingMemberIds.forEach(memberId ->
-            membershipService.deleteReferenceMember(executionContext, referenceType, referenceId, MembershipMemberType.USER, memberId)
-        );
+        existingMemberIds.forEach(memberId -> membershipService.deleteReferenceMember(
+                executionContext, referenceType, referenceId, MembershipMemberType.USER, memberId));
     }
 
-    private void transferOwnerShip(AuditInfo auditInfo, String referenceId, RoleScope roleScope, MembershipReferenceType referenceType) {
-        log.debug("Transferring owner ship to authenticated user {}", auditInfo.actor().userSourceId());
+    private void transferOwnerShip(
+            AuditInfo auditInfo, String referenceId, RoleScope roleScope, MembershipReferenceType referenceType) {
+        log.debug(
+                "Transferring owner ship to authenticated user {}",
+                auditInfo.actor().userSourceId());
 
-        var currentPrimaryOwner = membershipService.getPrimaryOwner(auditInfo.organizationId(), referenceType, referenceId);
+        var currentPrimaryOwner =
+                membershipService.getPrimaryOwner(auditInfo.organizationId(), referenceType, referenceId);
 
-        if (currentPrimaryOwner != null && currentPrimaryOwner.getMemberId().equals(auditInfo.actor().userId())) {
-            log.debug("User {} is already the primary owner for {} {}", auditInfo.actor().userSourceId(), referenceType, referenceId);
+        if (currentPrimaryOwner != null
+                && currentPrimaryOwner.getMemberId().equals(auditInfo.actor().userId())) {
+            log.debug(
+                    "User {} is already the primary owner for {} {}",
+                    auditInfo.actor().userSourceId(),
+                    referenceType,
+                    referenceId);
             return;
         }
 
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
-        var primaryOwner = new MembershipService.MembershipMember(auditInfo.actor().userId(), null, MembershipMemberType.USER);
+        var primaryOwner =
+                new MembershipService.MembershipMember(auditInfo.actor().userId(), null, MembershipMemberType.USER);
 
         switch (roleScope) {
             case API -> membershipService.transferApiOwnership(executionContext, referenceId, primaryOwner, List.of());
-            case APPLICATION -> membershipService.transferApplicationOwnership(executionContext, referenceId, primaryOwner, List.of());
+            case APPLICATION ->
+                membershipService.transferApplicationOwnership(executionContext, referenceId, primaryOwner, List.of());
             default -> throw new TechnicalDomainException(String.format("Unknown role scope [%s]", roleScope));
         }
     }
 
-    private RoleEntity findRoleEntity(String organizationId, RoleScope roleScope, String roleNameOrId, RoleEntity defaultRole) {
+    private RoleEntity findRoleEntity(
+            String organizationId, RoleScope roleScope, String roleNameOrId, RoleEntity defaultRole) {
         try {
             return roleService
-                .findByScopeAndName(mapRoleScope(roleScope), roleNameOrId, organizationId)
-                .orElseGet(() -> roleService.findById(roleNameOrId));
+                    .findByScopeAndName(mapRoleScope(roleScope), roleNameOrId, organizationId)
+                    .orElseGet(() -> roleService.findById(roleNameOrId));
         } catch (RoleNotFoundException e) {
             assertDefaultRoleForScope(defaultRole, roleScope);
             log.warn("Unable to find role [{}]. Using default role [{}]", roleNameOrId, defaultRole);
@@ -282,8 +285,9 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
     private void assertDefaultRoleForScope(RoleEntity defaultRole, RoleScope roleScope) {
         if (defaultRole == null) {
             var explanation =
-                "If an existing member role has not been explicitly set, a default role must be set for the role scope in your organization settings.";
-            throw new ValidationDomainException(String.format("Unable to set role for scope [%s]. %s", roleScope, explanation));
+                    "If an existing member role has not been explicitly set, a default role must be set for the role scope in your organization settings.";
+            throw new ValidationDomainException(
+                    String.format("Unable to set role for scope [%s]. %s", roleScope, explanation));
         }
     }
 }

@@ -69,19 +69,18 @@ public class ApisResource_CreateApiFromWsdlTest extends AbstractResourceTest {
         environmentEntity.setId(ENVIRONMENT_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
         when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environmentEntity);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID))
+                .thenReturn(environmentEntity);
     }
 
     @Test
     public void should_return_403_when_no_permission() {
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT_ID,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT_ID,
+                        RolePermissionAction.CREATE))
+                .thenReturn(false);
 
         var response = rootTarget().request().post(null);
 
@@ -91,15 +90,19 @@ public class ApisResource_CreateApiFromWsdlTest extends AbstractResourceTest {
     @Test
     public void should_return_201_with_created_api() {
         var createdApi = Api.builder()
-            .id("wsdl-api-id")
-            .name("CalculatorService")
-            .environmentId(ENVIRONMENT_ID)
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            .build();
-        when(wsdlToImportApiUseCase.execute(any())).thenReturn(new WsdlToImportApiUseCase.Output(new ApiWithFlows(createdApi, List.of())));
+                .id("wsdl-api-id")
+                .name("CalculatorService")
+                .environmentId(ENVIRONMENT_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .build();
+        when(wsdlToImportApiUseCase.execute(any()))
+                .thenReturn(new WsdlToImportApiUseCase.Output(new ApiWithFlows(createdApi, List.of())));
 
-        var descriptor = new ImportWsdlDescriptor().payload("<definitions/>").withDocumentation(false).withOASValidationPolicy(false);
+        var descriptor = new ImportWsdlDescriptor()
+                .payload("<definitions/>")
+                .withDocumentation(false)
+                .withOASValidationPolicy(false);
 
         var response = rootTarget().request().post(Entity.json(descriptor));
 
@@ -111,17 +114,27 @@ public class ApisResource_CreateApiFromWsdlTest extends AbstractResourceTest {
 
     @Test
     public void should_return_resources_in_response_on_success() {
-        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).configuration("{\"key\":\"value\"}").build();
+        var resource = Resource.builder()
+                .name("cache-resource")
+                .type("cache")
+                .enabled(true)
+                .configuration("{\"key\":\"value\"}")
+                .build();
         var baseApi = ApiFixtures.aProxyApiV4();
-        var createdApi = baseApi
-            .toBuilder()
-            .id("wsdl-api-id")
-            .environmentId(ENVIRONMENT_ID)
-            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
-            .build();
-        when(wsdlToImportApiUseCase.execute(any())).thenReturn(new WsdlToImportApiUseCase.Output(new ApiWithFlows(createdApi, List.of())));
+        var createdApi = baseApi.toBuilder()
+                .id("wsdl-api-id")
+                .environmentId(ENVIRONMENT_ID)
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .resources(List.of(resource))
+                        .build())
+                .build();
+        when(wsdlToImportApiUseCase.execute(any()))
+                .thenReturn(new WsdlToImportApiUseCase.Output(new ApiWithFlows(createdApi, List.of())));
 
-        var descriptor = new ImportWsdlDescriptor().payload("<definitions/>").withDocumentation(false).withOASValidationPolicy(false);
+        var descriptor = new ImportWsdlDescriptor()
+                .payload("<definitions/>")
+                .withDocumentation(false)
+                .withOASValidationPolicy(false);
 
         var response = rootTarget().request().post(Entity.json(descriptor));
 

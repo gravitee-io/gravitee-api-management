@@ -51,15 +51,15 @@ public class KafkaPortRangeRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void shouldCreate() throws Exception {
         var row = KafkaPortRange.builder()
-            .planId("new-plan")
-            .apiId("new-api")
-            .environmentId("DEFAULT")
-            .bootstrapPort(9700)
-            .rangeStart(9710)
-            .rangeEnd(9712)
-            .createdAt(Instant.parse("2026-05-01T00:00:00Z"))
-            .updatedAt(Instant.parse("2026-05-01T00:00:00Z"))
-            .build();
+                .planId("new-plan")
+                .apiId("new-api")
+                .environmentId("DEFAULT")
+                .bootstrapPort(9700)
+                .rangeStart(9710)
+                .rangeEnd(9712)
+                .createdAt(Instant.parse("2026-05-01T00:00:00Z"))
+                .updatedAt(Instant.parse("2026-05-01T00:00:00Z"))
+                .build();
 
         kafkaPortRangeRepository.create(row);
 
@@ -157,13 +157,17 @@ public class KafkaPortRangeRepositoryTest extends AbstractManagementRepositoryTe
         // plan-other-env has the same bootstrap+range as plan-default-1 but in OTHER_ENV
         List<KafkaPortRange> conflicts = kafkaPortRangeRepository.findConflicting("OTHER_ENV", 9092, 9100, 9105, null);
 
-        assertThat(conflicts).extracting(KafkaPortRange::getPlanId).contains("plan-other-env").doesNotContain("plan-default-1");
+        assertThat(conflicts)
+                .extracting(KafkaPortRange::getPlanId)
+                .contains("plan-other-env")
+                .doesNotContain("plan-default-1");
     }
 
     @Test
     public void findConflicting_should_exclude_plan_id() throws Exception {
         // Querying plan-default-1's own allocation while excluding it returns no self-conflict
-        List<KafkaPortRange> conflicts = kafkaPortRangeRepository.findConflicting("DEFAULT", 9092, 9100, 9105, "plan-default-1");
+        List<KafkaPortRange> conflicts =
+                kafkaPortRangeRepository.findConflicting("DEFAULT", 9092, 9100, 9105, "plan-default-1");
 
         assertThat(conflicts).extracting(KafkaPortRange::getPlanId).doesNotContain("plan-default-1");
     }
@@ -171,7 +175,8 @@ public class KafkaPortRangeRepositoryTest extends AbstractManagementRepositoryTe
     @Test
     public void findConflictingForUpdate_should_behave_like_findConflicting() throws Exception {
         // Same overlap as the broker-range case but via the locking variant.
-        List<KafkaPortRange> conflicts = kafkaPortRangeRepository.findConflictingForUpdate("DEFAULT", 9999, 9103, 9108, null);
+        List<KafkaPortRange> conflicts =
+                kafkaPortRangeRepository.findConflictingForUpdate("DEFAULT", 9999, 9103, 9108, null);
         assertThat(conflicts).extracting(KafkaPortRange::getPlanId).contains("plan-default-1");
     }
 }

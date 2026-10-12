@@ -46,86 +46,86 @@ class HttpPostEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitMQ
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put(
-            "interrupt-message-request-phase",
-            PolicyBuilder.build("interrupt-message-request-phase", InterruptMessageRequestPhasePolicy.class)
-        );
+                "interrupt-message-request-phase",
+                PolicyBuilder.build("interrupt-message-request-phase", InterruptMessageRequestPhasePolicy.class));
         policies.put(
-            "assign-attributes",
-            PolicyBuilder.build("assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class)
-        );
+                "assign-attributes",
+                PolicyBuilder.build(
+                        "assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class));
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-rabbitmq-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/http-post/http-post-entrypoint-rabbitmq-endpoint.json"})
     void should_publish_message(HttpClient client) throws InterruptedException {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
         subscribeToRabbitMQ(exchange, routingKey)
-            .zipWith(
-                postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value"))
-                    .delaySubscription(750, MILLISECONDS)
-                    .isEmpty()
-                    .toFlowable(),
-                (c, o) -> c
-            )
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(message -> {
-                assertThat(message.getBody()).isEqualTo(requestBody.toBuffer().getBytes());
+                .zipWith(
+                        postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value"))
+                                .delaySubscription(750, MILLISECONDS)
+                                .isEmpty()
+                                .toFlowable(),
+                        (c, o) -> c)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(message -> {
+                    assertThat(message.getBody())
+                            .isEqualTo(requestBody.toBuffer().getBytes());
 
-                var headers = message.getProperties().getHeaders();
-                assertThat(headers)
-                    .containsEntry("X-Test-Header", LongStringHelper.asLongString("header-value"))
-                    .containsKey("X-Gravitee-Transaction-Id")
-                    .containsKey("X-Gravitee-Request-Id");
+                    var headers = message.getProperties().getHeaders();
+                    assertThat(headers)
+                            .containsEntry("X-Test-Header", LongStringHelper.asLongString("header-value"))
+                            .containsKey("X-Gravitee-Transaction-Id")
+                            .containsKey("X-Gravitee-Request-Id");
 
-                return true;
-            });
+                    return true;
+                });
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-rabbitmq-endpoint-failure.json" })
+    @DeployApi({"/apis/v4/messages/http-post/http-post-entrypoint-rabbitmq-endpoint-failure.json"})
     void should_return_an_error_when_message_failed_to_be_published(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
-        TestSubscriber<Delivery> testSubscriber = subscribeToRabbitMQ(exchange, routingKey).test();
+        TestSubscriber<Delivery> testSubscriber =
+                subscribeToRabbitMQ(exchange, routingKey).test();
 
-        client
-            .rxRequest(HttpMethod.POST, "/test-failure")
-            .flatMap(request -> request.rxSend(requestBody.toString()))
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(412);
-                return response.body();
-            })
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(buffer -> {
-                assertThat(buffer).hasToString("An error occurred");
-                return true;
-            });
+        client.rxRequest(HttpMethod.POST, "/test-failure")
+                .flatMap(request -> request.rxSend(requestBody.toString()))
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(412);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(buffer -> {
+                    assertThat(buffer).hasToString("An error occurred");
+                    return true;
+                });
 
         testSubscriber.awaitDone(2, TimeUnit.SECONDS).assertNoValues().assertNotComplete();
     }
 
-    private Flowable<Buffer> postMessage(HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
-        return client
-            .rxRequest(HttpMethod.POST, requestURI)
-            .flatMap(request -> {
-                headers.forEach(request::putHeader);
-                return request.rxSend(requestBody.toString());
-            })
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(202);
-                return response.toFlowable();
-            });
+    private Flowable<Buffer> postMessage(
+            HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
+        return client.rxRequest(HttpMethod.POST, requestURI)
+                .flatMap(request -> {
+                    headers.forEach(request::putHeader);
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(202);
+                    return response.toFlowable();
+                });
     }
 }

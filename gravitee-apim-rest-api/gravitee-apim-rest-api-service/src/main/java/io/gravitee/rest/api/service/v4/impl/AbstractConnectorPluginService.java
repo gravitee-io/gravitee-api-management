@@ -46,10 +46,10 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugin<?>>
-    extends AbstractPluginService<T, ConnectorPluginEntity>
-    implements ConnectorPluginService {
+        extends AbstractPluginService<T, ConnectorPluginEntity> implements ConnectorPluginService {
 
-    protected AbstractConnectorPluginService(final JsonSchemaService jsonSchemaService, final ConfigurablePluginManager<T> pluginManager) {
+    protected AbstractConnectorPluginService(
+            final JsonSchemaService jsonSchemaService, final ConfigurablePluginManager<T> pluginManager) {
         super(jsonSchemaService, pluginManager);
     }
 
@@ -81,50 +81,43 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         ConnectorFactory<?> connectorFactory = getConnectorFactory(plugin.id());
 
         if (connectorFactory.supportedApi() != null) {
-            entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
+            entity.setSupportedApiType(
+                    ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         }
         if (connectorFactory.supportedApi() == io.gravitee.gateway.reactive.api.ApiType.MESSAGE) {
             Set<io.gravitee.gateway.reactive.api.qos.Qos> supportedQos = extractSupportedQos(connectorFactory);
             if (supportedQos != null) {
-                entity.setSupportedQos(
-                    supportedQos
-                        .stream()
+                entity.setSupportedQos(supportedQos.stream()
                         .map(qos -> Qos.fromLabel(qos.getLabel()))
                         .sorted()
-                        .collect(Collectors.toCollection(LinkedHashSet::new))
-                );
+                        .collect(Collectors.toCollection(LinkedHashSet::new)));
             }
         }
         if (connectorFactory.supportedModes() != null) {
-            entity.setSupportedModes(
-                connectorFactory
-                    .supportedModes()
-                    .stream()
+            entity.setSupportedModes(connectorFactory.supportedModes().stream()
                     .map(connectorMode -> ConnectorMode.fromLabel(connectorMode.getLabel()))
-                    .collect(Collectors.toSet())
-            );
+                    .collect(Collectors.toSet()));
         }
         if (connectorFactory.supportedApi() != null) {
-            entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
+            entity.setSupportedApiType(
+                    ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
         }
 
         if (connectorFactory instanceof EntrypointConnectorFactory) {
             EntrypointConnectorFactory entrypointConnectorFactory = (EntrypointConnectorFactory) connectorFactory;
             if (entrypointConnectorFactory.supportedListenerType() != null) {
-                entity.setSupportedListenerType(ListenerType.fromLabel(entrypointConnectorFactory.supportedListenerType().getLabel()));
+                entity.setSupportedListenerType(ListenerType.fromLabel(
+                        entrypointConnectorFactory.supportedListenerType().getLabel()));
             }
         }
 
-        if (
-            plugin.manifest().properties() != null &&
-            plugin.manifest().properties().get("features") != null &&
-            !plugin.manifest().properties().get("features").isEmpty()
-        ) {
+        if (plugin.manifest().properties() != null
+                && plugin.manifest().properties().get("features") != null
+                && !plugin.manifest().properties().get("features").isEmpty()) {
             entity.setAvailableFeatures(
-                Arrays.stream(plugin.manifest().properties().get("features").split(","))
-                    .map(ConnectorFeature::fromLabel)
-                    .collect(Collectors.toSet())
-            );
+                    Arrays.stream(plugin.manifest().properties().get("features").split(","))
+                            .map(ConnectorFeature::fromLabel)
+                            .collect(Collectors.toSet()));
         } else {
             entity.setAvailableFeatures(Collections.emptySet());
         }
@@ -132,13 +125,15 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         return entity;
     }
 
-    private static Set<io.gravitee.gateway.reactive.api.qos.Qos> extractSupportedQos(ConnectorFactory<?> connectorFactory) {
+    private static Set<io.gravitee.gateway.reactive.api.qos.Qos> extractSupportedQos(
+            ConnectorFactory<?> connectorFactory) {
         Set<io.gravitee.gateway.reactive.api.qos.Qos> supportedQos = null;
         if (connectorFactory instanceof HttpEntrypointAsyncConnectorFactory<?> httpEntrypointAsyncConnectorFactory) {
             supportedQos = httpEntrypointAsyncConnectorFactory.supportedQos();
         } else if (connectorFactory instanceof HttpEndpointAsyncConnectorFactory<?> httpEndpointAsyncConnectorFactory) {
             supportedQos = httpEndpointAsyncConnectorFactory.supportedQos();
-        } else if (connectorFactory instanceof EntrypointAsyncConnectorFactory<?> legacyEntrypointAsyncConnectorFactory) {
+        } else if (connectorFactory
+                instanceof EntrypointAsyncConnectorFactory<?> legacyEntrypointAsyncConnectorFactory) {
             supportedQos = legacyEntrypointAsyncConnectorFactory.supportedQos();
         } else if (connectorFactory instanceof EndpointAsyncConnectorFactory<?> legacyEndpointAsyncConnectorFactory) {
             supportedQos = legacyEndpointAsyncConnectorFactory.supportedQos();
@@ -148,30 +143,24 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
 
     @Override
     public Set<ConnectorPluginEntity> findBySupportedApi(final ApiType apiType) {
-        return super
-            .list()
-            .stream()
-            .filter(plugin ->
-                ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id(), true)
-                    .supportedApi()
-                    .equals(io.gravitee.gateway.reactive.api.ApiType.fromLabel(apiType.getLabel()))
-            )
-            .map(this::convert)
-            .collect(Collectors.toSet());
+        return super.list().stream()
+                .filter(plugin -> ((EntrypointConnectorPluginManager) pluginManager)
+                        .getFactoryById(plugin.id(), true)
+                        .supportedApi()
+                        .equals(io.gravitee.gateway.reactive.api.ApiType.fromLabel(apiType.getLabel())))
+                .map(this::convert)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Set<ConnectorPluginEntity> findByConnectorMode(final ConnectorMode connectorMode) {
-        return super
-            .list()
-            .stream()
-            .filter(plugin ->
-                ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id(), true)
-                    .supportedModes()
-                    .contains(io.gravitee.gateway.reactive.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
-            )
-            .map(this::convert)
-            .collect(Collectors.toSet());
+        return super.list().stream()
+                .filter(plugin -> ((EntrypointConnectorPluginManager) pluginManager)
+                        .getFactoryById(plugin.id(), true)
+                        .supportedModes()
+                        .contains(io.gravitee.gateway.reactive.api.ConnectorMode.fromLabel(connectorMode.getLabel())))
+                .map(this::convert)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -181,7 +170,8 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
     }
 
     @Override
-    public String validateConnectorConfiguration(final ConnectorPluginEntity connectorPluginEntity, final String configuration) {
+    public String validateConnectorConfiguration(
+            final ConnectorPluginEntity connectorPluginEntity, final String configuration) {
         return validateConfiguration(connectorPluginEntity.getId(), configuration);
     }
 
@@ -192,7 +182,8 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
      * @param schemaProvider is a function returning the schema for a given plugin id
      * @return the validated configuration
      */
-    protected String validatePluginConfigurationAgainstSchema(String pluginId, String configuration, UnaryOperator<String> schemaProvider) {
+    protected String validatePluginConfigurationAgainstSchema(
+            String pluginId, String configuration, UnaryOperator<String> schemaProvider) {
         if (pluginId != null && configuration != null) {
             String schema = schemaProvider.apply(pluginId);
             return jsonSchemaService.validate(schema, configuration);

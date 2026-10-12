@@ -98,7 +98,9 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
         switch (name) {
             case ATTR_FAILURE_ATTRIBUTE:
                 ProcessorFailure processorFailure = (ProcessorFailure) value;
-                ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, new ProcessFailureAdapter(processorFailure).toExecutionFailure());
+                ctx.setInternalAttribute(
+                        ATTR_INTERNAL_EXECUTION_FAILURE,
+                        new ProcessFailureAdapter(processorFailure).toExecutionFailure());
                 break;
             case ATTR_INVOKER:
                 ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER, value);

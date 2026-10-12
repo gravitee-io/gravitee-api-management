@@ -53,7 +53,8 @@ public class LoggableClientResponse implements Response {
     public WriteStream<Buffer> write(Buffer chunk) {
         if (buffer == null) {
             buffer = Buffer.buffer();
-            isContentTypeLoggable = isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
+            isContentTypeLoggable =
+                    isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE), context);
         }
 
         if (isContentTypeLoggable && LoggingUtils.isResponsePayloadsLoggable(context)) {
@@ -90,7 +91,8 @@ public class LoggableClientResponse implements Response {
 
     private void writeClientResponseLog(Buffer buffer) {
         // Check if log is not already write by GDPR policy
-        if (LoggingUtils.isResponseHeadersLoggable(context) && log.getClientResponse().getHeaders() == null) {
+        if (LoggingUtils.isResponseHeadersLoggable(context)
+                && log.getClientResponse().getHeaders() == null) {
             // Here we are sure that headers has been full processed by policies
             log.getClientResponse().setHeaders(headers());
         }

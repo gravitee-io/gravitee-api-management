@@ -49,8 +49,8 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
     private final UserDomainService userDomainService;
     private final RoleQueryService roleQueryService;
 
-    public record Input(AuditInfo auditInfo, MembershipReferenceType referenceType, SequencedSet<MemberCRD> members) implements
-        Validator.Input {
+    public record Input(AuditInfo auditInfo, MembershipReferenceType referenceType, SequencedSet<MemberCRD> members)
+            implements Validator.Input {
         Input sanitized(SequencedSet<MemberCRD> sanitizedMembers) {
             return new Input(auditInfo, referenceType, sanitizedMembers);
         }
@@ -58,7 +58,8 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
-        var sanitizedMembers = input.members == null ? new LinkedHashSet<MemberCRD>() : new LinkedHashSet<>(input.members);
+        var sanitizedMembers =
+                input.members == null ? new LinkedHashSet<MemberCRD>() : new LinkedHashSet<>(input.members);
         var errors = new ArrayList<Error>();
 
         validateAndSanitizeMemberId(input, sanitizedMembers, errors);
@@ -73,30 +74,22 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
         while (members.hasNext()) {
             var member = members.next();
             userDomainService
-                .findBySource(input.auditInfo.organizationId(), member.getSource(), member.getSourceId())
-                .ifPresentOrElse(
-                    user -> member.setId(user.getId()),
-                    () -> {
-                        errors.add(
-                            Error.warning(
+                    .findBySource(input.auditInfo.organizationId(), member.getSource(), member.getSourceId())
+                    .ifPresentOrElse(user -> member.setId(user.getId()), () -> {
+                        errors.add(Error.warning(
                                 "member [%s] of source [%s] could not be found in organization [%s]",
-                                member.getSourceId(),
-                                member.getSource(),
-                                input.auditInfo.organizationId()
-                            )
-                        );
+                                member.getSourceId(), member.getSource(), input.auditInfo.organizationId()));
                         members.remove();
-                    }
-                );
+                    });
         }
     }
 
     private void validateMemberRole(Input input, SequencedSet<MemberCRD> sanitized, ArrayList<Error> errors) {
         for (var member : sanitized) {
-            findRole(input.auditInfo.organizationId(), input.referenceType, member.getRole()).ifPresentOrElse(
-                role -> log.debug("Role {} found for scope {}", member.getRole(), input.referenceType),
-                () -> errors.add(Error.warning("member role [%s] doesn't exist", member.getRole()))
-            );
+            findRole(input.auditInfo.organizationId(), input.referenceType, member.getRole())
+                    .ifPresentOrElse(
+                            role -> log.debug("Role {} found for scope {}", member.getRole(), input.referenceType),
+                            () -> errors.add(Error.warning("member role [%s] doesn't exist", member.getRole())));
         }
     }
 
@@ -104,7 +97,8 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
         var context = new ReferenceContext(ORGANIZATION, organizationId);
         try {
             UUID roleId = UUID.fromString(role);
-            return roleQueryService.findByIds(Set.of(roleId.toString())).stream().findFirst();
+            return roleQueryService.findByIds(Set.of(roleId.toString())).stream()
+                    .findFirst();
         } catch (IllegalArgumentException e) {
             return switch (scope) {
                 case API -> roleQueryService.findApiRole(role, context);
@@ -130,7 +124,9 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
                 return;
             }
 
-            log.debug("checking that member {} is not the authenticated user who will be set as a primary owner", member.getSourceId());
+            log.debug(
+                    "checking that member {} is not the authenticated user who will be set as a primary owner",
+                    member.getSourceId());
 
             if (actor.userId().equals(member.getId())) {
                 errors.add(Error.severe("can not change the role of primary owner [%s]", member.getSourceId()));

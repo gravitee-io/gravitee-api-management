@@ -57,9 +57,11 @@ public class PortalSettingsResourceTest extends AbstractResourceTest {
     public void shouldResetBrandedSendersAndReturnRefreshedInheritedSettings() {
         PortalSettingsEntity refreshed = new PortalSettingsEntity();
         refreshed.getEmail().setBrandedSendersInherited(true);
-        when(configService.resetPortalBrandedSenders(any(ExecutionContext.class))).thenReturn(refreshed);
+        when(configService.resetPortalBrandedSenders(any(ExecutionContext.class)))
+                .thenReturn(refreshed);
 
-        final Response response = envTarget("/email/branded-senders/reset").request().post(Entity.json(""));
+        final Response response =
+                envTarget("/email/branded-senders/reset").request().post(Entity.json(""));
         response.bufferEntity();
 
         assertEquals(OK_200, response.getStatus(), response.readEntity(String.class));
@@ -71,7 +73,8 @@ public class PortalSettingsResourceTest extends AbstractResourceTest {
     public void shouldReturn404WhenEnvironmentDoesNotExist() {
         when(environmentService.findById(any())).thenThrow(new EnvironmentNotFoundException("unknown-env"));
 
-        final Response response = envTarget("/email/branded-senders/reset").request().post(Entity.json(""));
+        final Response response =
+                envTarget("/email/branded-senders/reset").request().post(Entity.json(""));
 
         assertEquals(NOT_FOUND_404, response.getStatus(), response.readEntity(String.class));
         verify(configService, never()).resetPortalBrandedSenders(any(ExecutionContext.class));
@@ -81,7 +84,8 @@ public class PortalSettingsResourceTest extends AbstractResourceTest {
     public void shouldReturn403WhenMissingUpdatePermission() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
-        final Response response = envTarget("/email/branded-senders/reset").request().post(Entity.json(""));
+        final Response response =
+                envTarget("/email/branded-senders/reset").request().post(Entity.json(""));
 
         assertEquals(FORBIDDEN_403, response.getStatus(), response.readEntity(String.class));
         verify(configService, never()).resetPortalBrandedSenders(any(ExecutionContext.class));
@@ -94,11 +98,11 @@ public class PortalSettingsResourceTest extends AbstractResourceTest {
         // the page can be saved; the service validates only the sender values that are actually changed.
         PortalSettingsEntity settings = new PortalSettingsEntity();
         settings.getEmail().setFrom("\"user@my.domain\"");
-        settings
-            .getEmail()
-            .setBrandedSenders(
-                List.of(BrandedSenderConfig.builder().domains(List.of("example.com")).from("Example, Inc <noreply@example.com>").build())
-            );
+        settings.getEmail()
+                .setBrandedSenders(List.of(BrandedSenderConfig.builder()
+                        .domains(List.of("example.com"))
+                        .from("Example, Inc <noreply@example.com>")
+                        .build()));
 
         final Response response = envTarget().request().post(Entity.json(settings));
 
@@ -108,17 +112,18 @@ public class PortalSettingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturn400WhenTheServiceRejectsAnEditedSender() {
-        var violations = Validation.buildDefaultValidatorFactory().getValidator().validateValue(Email.class, "from", "not-an-email");
+        var violations = Validation.buildDefaultValidatorFactory()
+                .getValidator()
+                .validateValue(Email.class, "from", "not-an-email");
         doThrow(new ConstraintViolationException(violations))
-            .when(configService)
-            .save(any(ExecutionContext.class), any(PortalSettingsEntity.class));
+                .when(configService)
+                .save(any(ExecutionContext.class), any(PortalSettingsEntity.class));
 
         final Response response = envTarget().request().post(Entity.json(new PortalSettingsEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         assertEquals(
-            "must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")",
-            response.readEntity(JsonNode.class).get("message").asText()
-        );
+                "must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")",
+                response.readEntity(JsonNode.class).get("message").asText());
     }
 }

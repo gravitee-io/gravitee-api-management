@@ -37,7 +37,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormResolutionDomainService;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +53,8 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
     private static final String API_ID = "api-1";
     private static final String USER_ID = "user-1";
 
-    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService =
+            new PortalNavigationItemsQueryServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
@@ -72,25 +72,22 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
         queryService.reset();
         elResolver.reset();
 
-        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
-            membershipQueryService,
-            subscriptionQueryService,
-            apiQueryService
-        );
+        var apiMembershipDomainService =
+                new ApiPortalMembershipDomainService(membershipQueryService, subscriptionQueryService, apiQueryService);
         var visibility = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
         useCase = new GetSubscriptionFormForApiPortalUseCase(
-            visibility,
-            new SubscriptionFormResolutionDomainService(queryService),
-            schemaGenerator,
-            elResolver
-        );
+                visibility, new SubscriptionFormResolutionDomainService(queryService), schemaGenerator, elResolver);
     }
 
     @Test
     void should_throw_api_not_found_when_api_not_visible_in_portal() {
         navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PRIVATE)));
 
-        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build();
+        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder()
+                .environmentId(ENV_ID)
+                .apiId(API_ID)
+                .userId(USER_ID)
+                .build();
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(ApiNotFoundException.class);
     }
@@ -102,9 +99,11 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
         queryService.initWith(List.of(form));
         elResolver.withResolved(Map.of("{#api.metadata['envs']}", List.of("Dev", "Staging", "Prod")));
 
-        var result = useCase.execute(
-            GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build()
-        );
+        var result = useCase.execute(GetSubscriptionFormForApiPortalUseCase.Input.builder()
+                .environmentId(ENV_ID)
+                .apiId(API_ID)
+                .userId(USER_ID)
+                .build());
 
         assertThat(result.subscriptionForm()).isEqualTo(form);
         assertThat(result.resolvedOptions()).containsEntry("env", List.of("Dev", "Staging", "Prod"));
@@ -113,24 +112,22 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
     @Test
     void should_return_resolved_options_when_api_is_private_and_user_is_member() {
         navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PRIVATE)));
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("membership-" + USER_ID + "-" + API_ID)
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(API_ID)
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("membership-" + USER_ID + "-" + API_ID)
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(API_ID)
+                .build()));
         var form = enabledFormWithDynamicSelect();
         queryService.initWith(List.of(form));
         elResolver.withResolved(Map.of("{#api.metadata['envs']}", List.of("A", "B")));
 
-        var result = useCase.execute(
-            GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build()
-        );
+        var result = useCase.execute(GetSubscriptionFormForApiPortalUseCase.Input.builder()
+                .environmentId(ENV_ID)
+                .apiId(API_ID)
+                .userId(USER_ID)
+                .build());
 
         assertThat(result.resolvedOptions()).containsEntry("env", List.of("A", "B"));
     }
@@ -140,7 +137,11 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
         navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC)));
         queryService.initWith(List.of());
 
-        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(null).build();
+        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder()
+                .environmentId(ENV_ID)
+                .apiId(API_ID)
+                .userId(null)
+                .build();
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
     }
@@ -149,13 +150,17 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
     void should_throw_when_form_disabled() {
         navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC)));
         SubscriptionForm disabledForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .environmentId(ENV_ID)
-            .enabled(false)
-            .apiIds(List.of(API_ID))
-            .build();
+                .environmentId(ENV_ID)
+                .enabled(false)
+                .apiIds(List.of(API_ID))
+                .build();
         queryService.initWith(List.of(disabledForm));
 
-        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(null).build();
+        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder()
+                .environmentId(ENV_ID)
+                .apiId(API_ID)
+                .userId(null)
+                .build();
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
     }
@@ -164,42 +169,43 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
     void should_throw_when_the_api_has_no_dedicated_form() {
         navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC)));
         var formOfAnotherApi = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .environmentId(ENV_ID)
-            .enabled(true)
-            .apiIds(List.of("another-api"))
-            .build();
+                .environmentId(ENV_ID)
+                .enabled(true)
+                .apiIds(List.of("another-api"))
+                .build();
         queryService.initWith(List.of(formOfAnotherApi));
 
-        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(null).build();
+        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder()
+                .environmentId(ENV_ID)
+                .apiId(API_ID)
+                .userId(null)
+                .build();
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
     }
 
     private SubscriptionForm enabledFormWithDynamicSelect() {
         return SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .environmentId(ENV_ID)
-            .enabled(true)
-            .apiIds(List.of(API_ID))
-            .gmdContent(
-                io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown.of(
-                    "<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"
-                )
-            )
-            .build();
+                .environmentId(ENV_ID)
+                .enabled(true)
+                .apiIds(List.of(API_ID))
+                .gmdContent(io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown.of(
+                        "<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"))
+                .build();
     }
 
     private PortalNavigationApi publishedApiNavItem(String apiId, PortalVisibility visibility) {
         return PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("Nav for " + apiId)
-            .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiId(apiId)
-            .published(true)
-            .visibility(visibility)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Nav for " + apiId)
+                .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(apiId)
+                .published(true)
+                .visibility(visibility)
+                .build();
     }
 }

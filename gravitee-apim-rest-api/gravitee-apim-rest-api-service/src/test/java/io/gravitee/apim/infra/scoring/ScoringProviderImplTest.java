@@ -72,12 +72,10 @@ class ScoringProviderImplTest {
         scoringProvider = new ScoringProviderImpl(controller, installationService);
 
         lenient()
-            .when(installationService.get())
-            .thenReturn(
-                InstallationEntity.builder()
-                    .additionalInformation(Map.of(InstallationService.COCKPIT_INSTALLATION_ID, INSTALLATION_ID))
-                    .build()
-            );
+                .when(installationService.get())
+                .thenReturn(InstallationEntity.builder()
+                        .additionalInformation(Map.of(InstallationService.COCKPIT_INSTALLATION_ID, INSTALLATION_ID))
+                        .build());
     }
 
     @Nested
@@ -86,8 +84,8 @@ class ScoringProviderImplTest {
         @BeforeEach
         void setUp() {
             lenient()
-                .when(controller.sendCommand(any()))
-                .thenReturn(Single.just(new ScoringRequestReply("command-id", CommandStatus.SUCCEEDED)));
+                    .when(controller.sendCommand(any()))
+                    .thenReturn(Single.just(new ScoringRequestReply("command-id", CommandStatus.SUCCEEDED)));
         }
 
         @Test
@@ -98,65 +96,63 @@ class ScoringProviderImplTest {
             Mockito.verify(controller).sendCommand(captor.capture());
 
             assertThat(captor.getValue())
-                .isInstanceOf(ScoringRequestCommand.class)
-                .extracting(Command::getPayload)
-                .isEqualTo(
-                    new ScoringRequestCommandPayload(
-                        JOB_ID,
-                        ORGANIZATION_ID,
-                        ENVIRONMENT_ID,
-                        INSTALLATION_ID,
-                        new ScoringRequest(
-                            List.of(
-                                new AssetToAnalyze("page-id", AssetType.OPEN_API, "echo-oas.json", "{}", ContentType.JSON, Format.OPENAPI)
-                            ),
-                            null,
-                            List.of(
-                                new CustomRuleset("custom-ruleset-payload"),
-                                new CustomRuleset(Format.GRAVITEE_PROXY, "gravitee-format-ruleset"),
-                                new CustomRuleset(Format.OPENAPI, "openapi-format-ruleset")
-                            ),
-                            List.of()
-                        )
-                    )
-                );
+                    .isInstanceOf(ScoringRequestCommand.class)
+                    .extracting(Command::getPayload)
+                    .isEqualTo(new ScoringRequestCommandPayload(
+                            JOB_ID,
+                            ORGANIZATION_ID,
+                            ENVIRONMENT_ID,
+                            INSTALLATION_ID,
+                            new ScoringRequest(
+                                    List.of(new AssetToAnalyze(
+                                            "page-id",
+                                            AssetType.OPEN_API,
+                                            "echo-oas.json",
+                                            "{}",
+                                            ContentType.JSON,
+                                            Format.OPENAPI)),
+                                    null,
+                                    List.of(
+                                            new CustomRuleset("custom-ruleset-payload"),
+                                            new CustomRuleset(Format.GRAVITEE_PROXY, "gravitee-format-ruleset"),
+                                            new CustomRuleset(Format.OPENAPI, "openapi-format-ruleset")),
+                                    List.of())));
         }
 
         @Test
         void should_throw_when_command_fails() {
-            when(controller.sendCommand(any())).thenReturn(Single.just(new ScoringRequestReply("command-id", "Fail to score")));
+            when(controller.sendCommand(any()))
+                    .thenReturn(Single.just(new ScoringRequestReply("command-id", "Fail to score")));
 
             scoringProvider
-                .requestScore(aRequest())
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertError(error -> {
-                    assertThat(error).isInstanceOf(TechnicalDomainException.class).hasMessage("Fail to score");
-                    return true;
-                });
+                    .requestScore(aRequest())
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertError(error -> {
+                        assertThat(error)
+                                .isInstanceOf(TechnicalDomainException.class)
+                                .hasMessage("Fail to score");
+                        return true;
+                    });
         }
 
         private ScoreRequest aRequest() {
             return new ScoreRequest(
-                JOB_ID,
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                API_ID,
-                List.of(
-                    new ScoreRequest.AssetToScore(
-                        "page-id",
-                        new ScoreRequest.AssetType(ScoringAssetType.SWAGGER, ScoreRequest.Format.OPENAPI),
-                        "echo-oas.json",
-                        "{}"
-                    )
-                ),
-                List.of(
-                    new ScoreRequest.CustomRuleset("custom-ruleset-payload"),
-                    new ScoreRequest.CustomRuleset("gravitee-format-ruleset", ScoreRequest.Format.GRAVITEE_PROXY),
-                    new ScoreRequest.CustomRuleset("openapi-format-ruleset", ScoreRequest.Format.OPENAPI)
-                ),
-                List.of()
-            );
+                    JOB_ID,
+                    ORGANIZATION_ID,
+                    ENVIRONMENT_ID,
+                    API_ID,
+                    List.of(new ScoreRequest.AssetToScore(
+                            "page-id",
+                            new ScoreRequest.AssetType(ScoringAssetType.SWAGGER, ScoreRequest.Format.OPENAPI),
+                            "echo-oas.json",
+                            "{}")),
+                    List.of(
+                            new ScoreRequest.CustomRuleset("custom-ruleset-payload"),
+                            new ScoreRequest.CustomRuleset(
+                                    "gravitee-format-ruleset", ScoreRequest.Format.GRAVITEE_PROXY),
+                            new ScoreRequest.CustomRuleset("openapi-format-ruleset", ScoreRequest.Format.OPENAPI)),
+                    List.of());
         }
     }
 }

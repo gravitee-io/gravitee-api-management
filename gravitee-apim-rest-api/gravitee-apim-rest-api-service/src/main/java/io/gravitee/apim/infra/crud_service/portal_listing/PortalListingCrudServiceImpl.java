@@ -45,9 +45,10 @@ public class PortalListingCrudServiceImpl implements PortalListingCrudService {
             return portalListingAdapter.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to create a Portal Listing with id: %s", portalListing.getId()),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to create a Portal Listing with id: %s",
+                            portalListing.getId()),
+                    e);
         }
     }
 
@@ -58,9 +59,10 @@ public class PortalListingCrudServiceImpl implements PortalListingCrudService {
             return portalListingAdapter.toEntity(result);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to update a Portal Listing with id: %s", portalListing.getId()),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to update a Portal Listing with id: %s",
+                            portalListing.getId()),
+                    e);
         }
     }
 
@@ -68,17 +70,14 @@ public class PortalListingCrudServiceImpl implements PortalListingCrudService {
     public Optional<PortalListing> findByIdAndEnvironmentId(PortalListingId portalListingId, String environmentId) {
         try {
             return portalListingRepository
-                .findByIdAndEnvironmentId(portalListingId.toString(), environmentId)
-                .map(portalListingAdapter::toEntity);
+                    .findByIdAndEnvironmentId(portalListingId.toString(), environmentId)
+                    .map(portalListingAdapter::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while trying to find a Portal Listing with id (%s) in environment (%s)",
-                    portalListingId,
-                    environmentId
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to find a Portal Listing with id (%s) in environment (%s)",
+                            portalListingId, environmentId),
+                    e);
         }
     }
 
@@ -86,19 +85,16 @@ public class PortalListingCrudServiceImpl implements PortalListingCrudService {
     public List<PortalListing> findAllByPortalIdAndEnvironmentId(PortalId portalId, String environmentId) {
         try {
             return portalListingRepository
-                .findAllByPortalIdAndEnvironmentId(portalId.toString(), environmentId)
-                .stream()
-                .map(portalListingAdapter::toEntity)
-                .toList();
+                    .findAllByPortalIdAndEnvironmentId(portalId.toString(), environmentId)
+                    .stream()
+                    .map(portalListingAdapter::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while trying to find Portal Listings for portal (%s) in environment (%s)",
-                    portalId,
-                    environmentId
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to find Portal Listings for portal (%s) in environment (%s)",
+                            portalId, environmentId),
+                    e);
         }
     }
 
@@ -108,9 +104,9 @@ public class PortalListingCrudServiceImpl implements PortalListingCrudService {
             portalListingRepository.delete(portalListingId.toString());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to delete the Portal Listing with id: %s", portalListingId),
-                e
-            );
+                    String.format(
+                            "An error occurred while trying to delete the Portal Listing with id: %s", portalListingId),
+                    e);
         }
     }
 }

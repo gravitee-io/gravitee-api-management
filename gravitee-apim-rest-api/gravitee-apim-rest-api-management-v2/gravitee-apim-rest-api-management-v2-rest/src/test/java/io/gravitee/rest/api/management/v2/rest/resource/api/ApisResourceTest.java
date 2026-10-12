@@ -84,7 +84,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
@@ -158,7 +157,10 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            final Api tcpApi = aTcpApiV4().toBuilder().id("tcp-1").environmentId(ENVIRONMENT).build();
+            final Api tcpApi = aTcpApiV4().toBuilder()
+                    .id("tcp-1")
+                    .environmentId(ENVIRONMENT)
+                    .build();
             apiQueryServiceInMemory.initWith(List.of(tcpApi));
 
             verifyHostsTarget = rootTarget().path("_verify/hosts");
@@ -177,9 +179,11 @@ class ApisResourceTest extends AbstractResourceTest {
 
             // then
             assertThat(response)
-                .hasStatus(ACCEPTED_202)
-                .asEntity(VerifyApiHostsResponse.class)
-                .isEqualTo(new VerifyApiHostsResponse().ok(false).reason("At least one host is required for the TCP listener."));
+                    .hasStatus(ACCEPTED_202)
+                    .asEntity(VerifyApiHostsResponse.class)
+                    .isEqualTo(new VerifyApiHostsResponse()
+                            .ok(false)
+                            .reason("At least one host is required for the TCP listener."));
         }
 
         @Test
@@ -187,20 +191,21 @@ class ApisResourceTest extends AbstractResourceTest {
             // given
             VerifyApiHosts verifyApiHosts = new VerifyApiHosts();
             verifyApiHosts.setApiId("tcp-1");
-            verifyApiHosts.setHosts(List.of("tcp.example.com", "tcp.example.com", "tcp-2.example.com", "tcp-2.example.com"));
+            verifyApiHosts.setHosts(
+                    List.of("tcp.example.com", "tcp.example.com", "tcp-2.example.com", "tcp-2.example.com"));
 
             // when
             final Response response = verifyHostsTarget.request().post(Entity.json(verifyApiHosts));
 
             // then
             assertThat(response)
-                .hasStatus(ACCEPTED_202)
-                .asEntity(VerifyApiHostsResponse.class)
-                .isEqualTo(
-                    new VerifyApiHostsResponse()
-                        .ok(false)
-                        .reason("Duplicated hosts detected: 'tcp.example.com, tcp-2.example.com'. Please ensure each host is unique.")
-                );
+                    .hasStatus(ACCEPTED_202)
+                    .asEntity(VerifyApiHostsResponse.class)
+                    .isEqualTo(
+                            new VerifyApiHostsResponse()
+                                    .ok(false)
+                                    .reason(
+                                            "Duplicated hosts detected: 'tcp.example.com, tcp-2.example.com'. Please ensure each host is unique."));
         }
 
         @Test
@@ -215,9 +220,11 @@ class ApisResourceTest extends AbstractResourceTest {
 
             // then
             assertThat(response)
-                .hasStatus(ACCEPTED_202)
-                .asEntity(VerifyApiHostsResponse.class)
-                .isEqualTo(new VerifyApiHostsResponse().ok(false).reason("Hosts [foo.example.com, bar.example.com] already exists"));
+                    .hasStatus(ACCEPTED_202)
+                    .asEntity(VerifyApiHostsResponse.class)
+                    .isEqualTo(new VerifyApiHostsResponse()
+                            .ok(false)
+                            .reason("Hosts [foo.example.com, bar.example.com] already exists"));
         }
 
         @Test
@@ -232,9 +239,9 @@ class ApisResourceTest extends AbstractResourceTest {
 
             // then
             assertThat(response)
-                .hasStatus(ACCEPTED_202)
-                .asEntity(VerifyApiHostsResponse.class)
-                .isEqualTo(new VerifyApiHostsResponse().ok(true));
+                    .hasStatus(ACCEPTED_202)
+                    .asEntity(VerifyApiHostsResponse.class)
+                    .isEqualTo(new VerifyApiHostsResponse().ok(true));
         }
     }
 
@@ -248,32 +255,32 @@ class ApisResourceTest extends AbstractResourceTest {
             target = rootTarget();
 
             roleQueryService.resetSystemRoles(ORGANIZATION);
-            parametersQueryService.initWith(
-                List.of(new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT, ParameterReferenceType.ENVIRONMENT, "USER"))
-            );
-            userCrudService.initWith(
-                List.of(BaseUserEntity.builder().id(USER_NAME).firstname("John").lastname("Doe").email("john.doe@gravitee.io").build())
-            );
+            parametersQueryService.initWith(List.of(new Parameter(
+                    Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT, ParameterReferenceType.ENVIRONMENT, "USER")));
+            userCrudService.initWith(List.of(BaseUserEntity.builder()
+                    .id(USER_NAME)
+                    .firstname("John")
+                    .lastname("Doe")
+                    .email("john.doe@gravitee.io")
+                    .build()));
         }
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_API),
-                    eq(ENVIRONMENT),
-                    any()
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.ENVIRONMENT_API),
+                            eq(ENVIRONMENT),
+                            any()))
+                    .thenReturn(false);
 
             final Response response = target.request().post(Entity.json(new CreateApiV4()));
 
             assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
@@ -285,41 +292,34 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_an_api_without_name() {
-            final Response response = target
-                .request()
-                .post(
-                    Entity.json(
-                        new CreateApiV4()
+            final Response response = target.request()
+                    .post(Entity.json(new CreateApiV4()
                             .type(ApiType.PROXY)
-                            .listeners(
-                                List.of(
-                                    new Listener(
-                                        (HttpListener) new HttpListener()
-                                            .paths(List.of(new PathV4().path("/path")))
-                                            .entrypoints(List.of(new Entrypoint().type("sse")))
-                                    )
-                                )
-                            )
+                            .listeners(List.of(new Listener((HttpListener) new HttpListener()
+                                    .paths(List.of(new PathV4().path("/path")))
+                                    .entrypoints(List.of(new Entrypoint().type("sse"))))))
                             .apiVersion("v1")
-                            .name("")
-                    )
-                );
+                            .name("")));
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
         }
 
         @Test
         void should_return_400_when_an_api_without_listeners() {
-            final Response response = target
-                .request()
-                .post(Entity.json(new CreateApiV4().type(ApiType.PROXY).name("no-listeners").apiVersion("v1")));
+            final Response response = target.request()
+                    .post(Entity.json(new CreateApiV4()
+                            .type(ApiType.PROXY)
+                            .name("no-listeners")
+                            .apiVersion("v1")));
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
         }
 
         @Test
         void should_return_400_when_native_api_has_multiple_flows() {
-            doThrow(new NativeApiWithMultipleFlowsException()).when(createApiDomainService).create(any(), any(), any(), any(), any());
+            doThrow(new NativeApiWithMultipleFlowsException())
+                    .when(createApiDomainService)
+                    .create(any(), any(), any(), any(), any());
 
             var newApi = aValidNativeV4Api().flows(List.of(new FlowV4(), new FlowV4()));
 
@@ -330,34 +330,26 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_an_api_without_endpoints() {
-            final Response response = target
-                .request()
-                .post(
-                    Entity.json(
-                        new CreateApiV4()
-                            .listeners(
-                                List.of(
-                                    new Listener(
-                                        (HttpListener) new HttpListener()
-                                            .paths(List.of(new PathV4().path("/path")))
-                                            .entrypoints(List.of(new Entrypoint().type("sse")))
-                                    )
-                                )
-                            )
+            final Response response = target.request()
+                    .post(Entity.json(new CreateApiV4()
+                            .listeners(List.of(new Listener((HttpListener) new HttpListener()
+                                    .paths(List.of(new PathV4().path("/path")))
+                                    .entrypoints(List.of(new Entrypoint().type("sse"))))))
                             .type(ApiType.PROXY)
                             .name("no-endpoints")
-                            .apiVersion("v1")
-                    )
-                );
+                            .apiVersion("v1")));
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
         }
 
         @Test
         void should_return_400_when_a_step_has_a_scalar_configuration() {
-            var newApi = aValidV4Api().flows(
-                List.of(new FlowV4().request(List.of(new StepV4().enabled(true).policy("my-policy").configuration("a-string"))))
-            );
+            var newApi = aValidV4Api()
+                    .flows(List.of(new FlowV4()
+                            .request(List.of(new StepV4()
+                                    .enabled(true)
+                                    .policy("my-policy")
+                                    .configuration("a-string")))));
 
             final Response response = target.request().post(Entity.json(newApi));
 
@@ -366,26 +358,28 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_created_api() {
-            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
-                invocation.getArgument(0)
-            );
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
-            when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+            when(verifyApiPathDomainService.validateAndSanitize(any()))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
-                Api api = invocation.getArgument(0);
-                return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionHttpV4().getFlows());
-            });
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any()))
+                    .thenAnswer(invocation -> {
+                        Api api = invocation.getArgument(0);
+                        return new ApiWithFlows(
+                                api.toBuilder().id("api-id").build(),
+                                api.getApiDefinitionHttpV4().getFlows());
+                    });
 
             var newApi = aValidV4Api();
 
             final Response response = target.request().post(Entity.json(newApi));
 
             assertThat(response)
-                .hasStatus(CREATED_201)
-                .asEntity(ApiV4.class)
-                .satisfies(api ->
-                    SoftAssertions.assertSoftly(soft -> {
+                    .hasStatus(CREATED_201)
+                    .asEntity(ApiV4.class)
+                    .satisfies(api -> SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(api.getId()).isEqualTo("api-id");
                         soft.assertThat(api.getAnalytics()).isEqualTo(newApi.getAnalytics());
                         soft.assertThat(api.getApiVersion()).isEqualTo(newApi.getApiVersion());
@@ -399,38 +393,39 @@ class ApisResourceTest extends AbstractResourceTest {
                         soft.assertThat(api.getName()).isEqualTo(newApi.getName());
                         soft.assertThat(api.getTags()).containsExactlyElementsOf(newApi.getTags());
                         soft.assertThat(api.getType()).isEqualTo(newApi.getType());
-                    })
-                );
+                    }));
         }
 
         @Test
         void should_return_created_native_api() {
-            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
-                invocation.getArgument(0)
-            );
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
-            when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+            when(verifyApiPathDomainService.validateAndSanitize(any()))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
-                Api api = invocation.getArgument(0);
-                // For native APIs, we need to ensure the API has both the regular fields AND the native definition
-                // The conversion logic likely uses the native definition to populate the response
-                Api apiWithId = api.toBuilder().id("api-id").build();
-                return new ApiWithFlows(
-                    apiWithId,
-                    api.getApiDefinitionNativeV4() != null ? api.getApiDefinitionNativeV4().getFlows() : List.of()
-                );
-            });
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any()))
+                    .thenAnswer(invocation -> {
+                        Api api = invocation.getArgument(0);
+                        // For native APIs, we need to ensure the API has both the regular fields AND the native
+                        // definition
+                        // The conversion logic likely uses the native definition to populate the response
+                        Api apiWithId = api.toBuilder().id("api-id").build();
+                        return new ApiWithFlows(
+                                apiWithId,
+                                api.getApiDefinitionNativeV4() != null
+                                        ? api.getApiDefinitionNativeV4().getFlows()
+                                        : List.of());
+                    });
 
             var newApi = aValidNativeV4Api();
 
             final Response response = target.request().post(Entity.json(newApi));
 
             assertThat(response)
-                .hasStatus(CREATED_201)
-                .asEntity(ApiV4.class)
-                .satisfies(api ->
-                    SoftAssertions.assertSoftly(soft -> {
+                    .hasStatus(CREATED_201)
+                    .asEntity(ApiV4.class)
+                    .satisfies(api -> SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(api.getId()).isEqualTo("api-id");
                         // For native APIs, analytics might not be set during conversion - make it conditional
                         if (api.getAnalytics() != null) {
@@ -439,7 +434,8 @@ class ApisResourceTest extends AbstractResourceTest {
                         soft.assertThat(api.getApiVersion()).isEqualTo(newApi.getApiVersion());
                         // For native APIs, the endpoint groups and listeners might come from different fields
                         // Let's be more lenient with these assertions for now
-                        if (api.getEndpointGroups() != null && !api.getEndpointGroups().isEmpty()) {
+                        if (api.getEndpointGroups() != null
+                                && !api.getEndpointGroups().isEmpty()) {
                             soft.assertThat(api.getEndpointGroups()).isNotEmpty();
                         }
                         soft.assertThat(api.getDescription()).isEqualTo(newApi.getDescription());
@@ -454,174 +450,132 @@ class ApisResourceTest extends AbstractResourceTest {
                         soft.assertThat(api.getName()).isEqualTo(newApi.getName());
                         soft.assertThat(api.getTags()).containsExactlyElementsOf(newApi.getTags());
                         soft.assertThat(api.getType()).isEqualTo(newApi.getType());
-                    })
-                );
+                    }));
         }
 
         @Test
         void should_return_created_native_api_without_kafka_listener_port() {
-            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
-                invocation.getArgument(0)
-            );
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
-            when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+            when(verifyApiPathDomainService.validateAndSanitize(any()))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
-                Api api = invocation.getArgument(0);
-                Api apiWithId = api.toBuilder().id("api-id").build();
-                return new ApiWithFlows(
-                    apiWithId,
-                    api.getApiDefinitionNativeV4() != null ? api.getApiDefinitionNativeV4().getFlows() : List.of()
-                );
-            });
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any()))
+                    .thenAnswer(invocation -> {
+                        Api api = invocation.getArgument(0);
+                        Api apiWithId = api.toBuilder().id("api-id").build();
+                        return new ApiWithFlows(
+                                apiWithId,
+                                api.getApiDefinitionNativeV4() != null
+                                        ? api.getApiDefinitionNativeV4().getFlows()
+                                        : List.of());
+                    });
 
             var newApi = aValidNativeV4Api();
-            var kafkaListenerWithoutPort = newApi.getListeners().getFirst().getKafkaListener().port(null);
+            var kafkaListenerWithoutPort =
+                    newApi.getListeners().getFirst().getKafkaListener().port(null);
             newApi.setListeners(List.of(new Listener(kafkaListenerWithoutPort)));
 
             final Response response = target.request().post(Entity.json(newApi));
 
-            assertThat(response)
-                .hasStatus(CREATED_201)
-                .asEntity(ApiV4.class)
-                .satisfies(api -> {
-                    SoftAssertions.assertSoftly(soft -> {
-                        soft.assertThat(api.getId()).isEqualTo("api-id");
-                        // For native APIs, just check that we got some response back
-                        // The exact structure might be different due to conversion logic
-                        soft.assertThat(api.getType()).isEqualTo(ApiType.NATIVE);
-                        soft.assertThat(api.getName()).isEqualTo(newApi.getName());
-                    });
+            assertThat(response).hasStatus(CREATED_201).asEntity(ApiV4.class).satisfies(api -> {
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(api.getId()).isEqualTo("api-id");
+                    // For native APIs, just check that we got some response back
+                    // The exact structure might be different due to conversion logic
+                    soft.assertThat(api.getType()).isEqualTo(ApiType.NATIVE);
+                    soft.assertThat(api.getName()).isEqualTo(newApi.getName());
                 });
+            });
         }
 
         private static CreateApiV4 aValidV4Api() {
-            HttpListener httpListener = new HttpListener().paths(List.of(new PathV4().path("/path").overrideAccess(false)));
+            HttpListener httpListener =
+                    new HttpListener().paths(List.of(new PathV4().path("/path").overrideAccess(false)));
             httpListener.setType(ListenerType.HTTP);
             httpListener.setEntrypoints(List.of(new Entrypoint().type("sse").qos(Qos.AUTO)));
             httpListener.requestValidation(new RequestValidation().rejectNullByte(true));
             return (CreateApiV4) new CreateApiV4()
-                .analytics(new Analytics().enabled(true))
-                .type(ApiType.PROXY)
-                .tags(Set.of("tag1"))
-                .listeners(List.of(new Listener(httpListener)))
-                .endpointGroups(
-                    List.of(
-                        new EndpointGroupV4()
+                    .analytics(new Analytics().enabled(true))
+                    .type(ApiType.PROXY)
+                    .tags(Set.of("tag1"))
+                    .listeners(List.of(new Listener(httpListener)))
+                    .endpointGroups(List.of(new EndpointGroupV4()
                             .name("default-group")
                             .type("http")
-                            .endpoints(
-                                List.of(
-                                    new EndpointV4()
-                                        .name("default")
-                                        .type("kafka")
-                                        .weight(1)
-                                        .secondary(false)
-                                        .inheritConfiguration(false)
-                                        .configuration(Map.ofEntries(Map.entry("bootstrapServers", "kafka:9092")))
-                                        .sharedConfigurationOverride(
+                            .endpoints(List.of(new EndpointV4()
+                                    .name("default")
+                                    .type("kafka")
+                                    .weight(1)
+                                    .secondary(false)
+                                    .inheritConfiguration(false)
+                                    .configuration(Map.ofEntries(Map.entry("bootstrapServers", "kafka:9092")))
+                                    .sharedConfigurationOverride(Map.ofEntries(Map.entry(
+                                            "consumer",
                                             Map.ofEntries(
-                                                Map.entry(
-                                                    "consumer",
-                                                    Map.ofEntries(
-                                                        Map.entry("enabled", true),
-                                                        Map.entry("topics", List.of("demo")),
-                                                        Map.entry("autoOffsetReset", "earliest")
-                                                    )
-                                                )
-                                            )
-                                        )
-                                )
-                            )
-                    )
-                )
-                .flowExecution(new FlowExecution().mode(FlowMode.BEST_MATCH).matchRequired(true))
-                .flows(
-                    List.of(
-                        new FlowV4()
+                                                    Map.entry("enabled", true),
+                                                    Map.entry("topics", List.of("demo")),
+                                                    Map.entry("autoOffsetReset", "earliest")))))))))
+                    .flowExecution(new FlowExecution().mode(FlowMode.BEST_MATCH).matchRequired(true))
+                    .flows(List.of(new FlowV4()
                             .name("flowName")
                             .enabled(true)
                             .tags(Set.of("tag1"))
-                            .request(List.of(new StepV4().enabled(true).policy("my-policy").condition("my-condition")))
-                            .selectors(
-                                List.of(
-                                    new Selector(
-                                        (HttpSelector) new HttpSelector()
-                                            .path("/test")
-                                            .methods(Set.of(HttpMethod.GET, HttpMethod.POST))
-                                            .pathOperator(Operator.STARTS_WITH)
-                                            .type(BaseSelector.TypeEnum.HTTP)
-                                    )
-                                )
-                            )
-                    )
-                )
-                .name("my api")
-                .description("api description")
-                .definitionVersion(DefinitionVersion.V4)
-                .groups(List.of("group1"))
-                .apiVersion("v1");
+                            .request(List.of(new StepV4()
+                                    .enabled(true)
+                                    .policy("my-policy")
+                                    .condition("my-condition")))
+                            .selectors(List.of(new Selector((HttpSelector) new HttpSelector()
+                                    .path("/test")
+                                    .methods(Set.of(HttpMethod.GET, HttpMethod.POST))
+                                    .pathOperator(Operator.STARTS_WITH)
+                                    .type(BaseSelector.TypeEnum.HTTP))))))
+                    .name("my api")
+                    .description("api description")
+                    .definitionVersion(DefinitionVersion.V4)
+                    .groups(List.of("group1"))
+                    .apiVersion("v1");
         }
 
         private static CreateApiV4 aValidNativeV4Api() {
             return (CreateApiV4) new CreateApiV4()
-                .type(ApiType.NATIVE)
-                .tags(Set.of("tag1"))
-                .listeners(
-                    List.of(
-                        new Listener(
-                            (KafkaListener) new KafkaListener()
-                                .host("host")
-                                .port(4000)
-                                .type(ListenerType.KAFKA)
-                                .entrypoints(List.of(new Entrypoint().type("mock").qos(Qos.AUTO)))
-                        )
-                    )
-                )
-                .endpointGroups(
-                    List.of(
-                        new EndpointGroupV4()
+                    .type(ApiType.NATIVE)
+                    .tags(Set.of("tag1"))
+                    .listeners(List.of(new Listener((KafkaListener) new KafkaListener()
+                            .host("host")
+                            .port(4000)
+                            .type(ListenerType.KAFKA)
+                            .entrypoints(List.of(new Entrypoint().type("mock").qos(Qos.AUTO))))))
+                    .endpointGroups(List.of(new EndpointGroupV4()
                             .name("default-group")
                             .type("http")
-                            .endpoints(
-                                List.of(
-                                    new EndpointV4()
-                                        .name("default")
-                                        .type("kafka")
-                                        .weight(1)
-                                        .secondary(false)
-                                        .inheritConfiguration(false)
-                                        .configuration(Map.ofEntries(Map.entry("bootstrapServers", "kafka:9092")))
-                                        .sharedConfigurationOverride(
+                            .endpoints(List.of(new EndpointV4()
+                                    .name("default")
+                                    .type("kafka")
+                                    .weight(1)
+                                    .secondary(false)
+                                    .inheritConfiguration(false)
+                                    .configuration(Map.ofEntries(Map.entry("bootstrapServers", "kafka:9092")))
+                                    .sharedConfigurationOverride(Map.ofEntries(Map.entry(
+                                            "consumer",
                                             Map.ofEntries(
-                                                Map.entry(
-                                                    "consumer",
-                                                    Map.ofEntries(
-                                                        Map.entry("enabled", true),
-                                                        Map.entry("topics", List.of("demo")),
-                                                        Map.entry("autoOffsetReset", "earliest")
-                                                    )
-                                                )
-                                            )
-                                        )
-                                )
-                            )
-                    )
-                )
-                .flows(
-                    List.of(
-                        new FlowV4()
+                                                    Map.entry("enabled", true),
+                                                    Map.entry("topics", List.of("demo")),
+                                                    Map.entry("autoOffsetReset", "earliest")))))))))
+                    .flows(List.of(new FlowV4()
                             .name("flowName")
                             .enabled(true)
                             .tags(Set.of("tag1"))
-                            .entrypointConnect(List.of(new StepV4().enabled(true).policy("my-policy").condition("my-condition")))
-                    )
-                )
-                .name("my api")
-                .description("api description")
-                .definitionVersion(DefinitionVersion.V4)
-                .groups(List.of("group1"))
-                .apiVersion("v1");
+                            .entrypointConnect(List.of(new StepV4()
+                                    .enabled(true)
+                                    .policy("my-policy")
+                                    .condition("my-condition")))))
+                    .name("my api")
+                    .description("api description")
+                    .definitionVersion(DefinitionVersion.V4)
+                    .groups(List.of("group1"))
+                    .apiVersion("v1");
         }
     }
 
@@ -635,48 +589,40 @@ class ApisResourceTest extends AbstractResourceTest {
             target = rootTarget().path("/_import/crd");
             apiCrudService.reset();
             categoryQueryService.reset();
-            categoryQueryService.initWith(
-                List.of(Category.builder().id("category-id").build(), Category.builder().id("category-key").build())
-            );
-            parametersQueryService.define(
-                new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), "fake-env", ParameterReferenceType.ENVIRONMENT, "true")
-            );
-            when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
-            roleQueryService.initWith(
-                List.of(
-                    Role.builder()
-                        .name(PRIMARY_OWNER.name())
-                        .referenceType(Role.ReferenceType.ORGANIZATION)
-                        .referenceId(ORGANIZATION)
-                        .id("primary_owner_id")
-                        .scope(Role.Scope.API)
-                        .build()
-                )
-            );
+            categoryQueryService.initWith(List.of(
+                    Category.builder().id("category-id").build(),
+                    Category.builder().id("category-key").build()));
+            parametersQueryService.define(new Parameter(
+                    Key.PLAN_SECURITY_APIKEY_ENABLED.key(), "fake-env", ParameterReferenceType.ENVIRONMENT, "true"));
+            when(verifyApiPathDomainService.validateAndSanitize(any()))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+            roleQueryService.initWith(List.of(Role.builder()
+                    .name(PRIMARY_OWNER.name())
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION)
+                    .id("primary_owner_id")
+                    .scope(Role.Scope.API)
+                    .build()));
         }
 
         @Test
         void should_return_category_warning_in_status_without_saving_if_dry_run() {
             var crdStatus = doImport("/crd/with-unknown-category.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApiCRDStatus.builder()
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
-                            .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
-                            .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
-                            .state("STARTED")
-                            .errors(
-                                ApiCRDStatus.Errors.builder()
-                                    .warning(List.of("category [unknown-category] is not defined in environment [fake-env]"))
-                                    .severe(List.of())
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApiCRDStatus.builder()
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
+                                .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
+                                .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
+                                .state("STARTED")
+                                .errors(ApiCRDStatus.Errors.builder()
+                                        .warning(List.of(
+                                                "category [unknown-category] is not defined in environment [fake-env]"))
+                                        .severe(List.of())
+                                        .build())
+                                .build());
 
                 soft.assertThat(apiCrudService.storage()).isEmpty();
             });
@@ -686,24 +632,21 @@ class ApisResourceTest extends AbstractResourceTest {
         void should_return_member_warning_in_status_without_saving_if_dry_run() {
             var crdStatus = doImport("/crd/with-unknown-member.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApiCRDStatus.builder()
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
-                            .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
-                            .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
-                            .state("STARTED")
-                            .errors(
-                                ApiCRDStatus.Errors.builder()
-                                    .warning(List.of("member [unknown] of source [memory] could not be found in organization [fake-org]"))
-                                    .severe(List.of())
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApiCRDStatus.builder()
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
+                                .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
+                                .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
+                                .state("STARTED")
+                                .errors(ApiCRDStatus.Errors.builder()
+                                        .warning(
+                                                List.of(
+                                                        "member [unknown] of source [memory] could not be found in organization [fake-org]"))
+                                        .severe(List.of())
+                                        .build())
+                                .build());
 
                 soft.assertThat(apiCrudService.storage()).isEmpty();
             });
@@ -713,24 +656,20 @@ class ApisResourceTest extends AbstractResourceTest {
         void should_return_group_warning_in_status_without_saving_if_dry_run() {
             var crdStatus = doImport("/crd/with-unknown-group.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApiCRDStatus.builder()
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
-                            .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
-                            .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
-                            .state("STARTED")
-                            .errors(
-                                ApiCRDStatus.Errors.builder()
-                                    .warning(List.of("Group [unknown-group] could not be found in environment [fake-env]"))
-                                    .severe(List.of())
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApiCRDStatus.builder()
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
+                                .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
+                                .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
+                                .state("STARTED")
+                                .errors(ApiCRDStatus.Errors.builder()
+                                        .warning(List.of(
+                                                "Group [unknown-group] could not be found in environment [fake-env]"))
+                                        .severe(List.of())
+                                        .build())
+                                .build());
 
                 soft.assertThat(apiCrudService.storage()).isEmpty();
             });
@@ -740,18 +679,15 @@ class ApisResourceTest extends AbstractResourceTest {
         void should_return_resource_warning_in_status_without_saving_if_dry_run() {
             var crdStatus = doImport("/crd/with-valid-resource.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApiCRDStatus.builder()
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
-                            .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
-                            .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
-                            .state("STARTED")
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApiCRDStatus.builder()
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
+                                .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
+                                .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
+                                .state("STARTED")
+                                .build());
 
                 soft.assertThat(apiCrudService.storage()).isEmpty();
             });
@@ -761,24 +697,21 @@ class ApisResourceTest extends AbstractResourceTest {
         void should_return_fetcher_error_and_warning_without_saving_if_dry_run() {
             var crdStatus = doImport("/crd/with-invalid-github-fetcher.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApiCRDStatus.builder()
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
-                            .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
-                            .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
-                            .state("STARTED")
-                            .errors(
-                                ApiCRDStatus.Errors.builder()
-                                    .severe(List.of("property [owner] is required in [github-fetcher] configuration for page [swagger]"))
-                                    .warning(List.of())
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApiCRDStatus.builder()
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
+                                .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
+                                .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
+                                .state("STARTED")
+                                .errors(ApiCRDStatus.Errors.builder()
+                                        .severe(
+                                                List.of(
+                                                        "property [owner] is required in [github-fetcher] configuration for page [swagger]"))
+                                        .warning(List.of())
+                                        .build())
+                                .build());
 
                 soft.assertThat(apiCrudService.storage()).isEmpty();
             });
@@ -788,18 +721,15 @@ class ApisResourceTest extends AbstractResourceTest {
         void should_return_pages_without_error_status_and_no_saving_if_dry_run() {
             var crdStatus = doImport("/crd/with-valid-page-resource-config.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        ApiCRDStatus.builder()
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
-                            .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
-                            .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
-                            .state("STARTED")
-                            .build()
-                    );
+                soft.assertThat(crdStatus)
+                        .isEqualTo(ApiCRDStatus.builder()
+                                .organizationId(ORGANIZATION)
+                                .environmentId(ENVIRONMENT)
+                                .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
+                                .id(("63cb34e5-e5cb-40cf-94ca-4687e7813473"))
+                                .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
+                                .state("STARTED")
+                                .build());
 
                 soft.assertThat(apiCrudService.storage()).isEmpty();
             });

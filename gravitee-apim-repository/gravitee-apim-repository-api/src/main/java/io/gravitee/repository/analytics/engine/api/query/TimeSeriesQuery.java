@@ -22,14 +22,14 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record TimeSeriesQuery(
-    TimeRange timeRange,
-    List<Filter> filters,
-    Long interval,
-    List<MetricMeasuresQuery> metrics,
-    List<Facet> facets,
-    Integer limit,
-    List<NumberRange> ranges
-) implements Query {
+        TimeRange timeRange,
+        List<Filter> filters,
+        Long interval,
+        List<MetricMeasuresQuery> metrics,
+        List<Facet> facets,
+        Integer limit,
+        List<NumberRange> ranges)
+        implements Query {
     public TimeSeriesQuery {
         // The convenience constructors below default the limit to 0 to mean "no explicit cap", but a
         // terms `size` of 0 is rejected by Elasticsearch. Normalise it to null once here (FacetsQuery
@@ -40,17 +40,17 @@ public record TimeSeriesQuery(
         }
     }
 
-    public TimeSeriesQuery(TimeRange timeRange, List<Filter> filters, Long interval, List<MetricMeasuresQuery> metrics) {
+    public TimeSeriesQuery(
+            TimeRange timeRange, List<Filter> filters, Long interval, List<MetricMeasuresQuery> metrics) {
         this(timeRange, filters, interval, metrics, List.of(), 0, List.of());
     }
 
     public TimeSeriesQuery(
-        TimeRange timeRange,
-        List<Filter> filters,
-        Long interval,
-        List<MetricMeasuresQuery> metrics,
-        List<Facet> facets
-    ) {
+            TimeRange timeRange,
+            List<Filter> filters,
+            Long interval,
+            List<MetricMeasuresQuery> metrics,
+            List<Facet> facets) {
         this(timeRange, filters, interval, metrics, facets, 0, List.of());
     }
 

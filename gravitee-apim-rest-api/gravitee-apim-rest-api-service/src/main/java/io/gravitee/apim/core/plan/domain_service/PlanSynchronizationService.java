@@ -22,5 +22,7 @@ import java.util.List;
 
 public interface PlanSynchronizationService {
     boolean checkSynchronized(Plan oldPlan, List<Flow> oldFlows, Plan newPlan, List<Flow> newFlows);
-    boolean checkNativePlanSynchronized(Plan oldPlan, List<NativeFlow> oldFlows, Plan newPlan, List<NativeFlow> newFlows);
+
+    boolean checkNativePlanSynchronized(
+            Plan oldPlan, List<NativeFlow> oldFlows, Plan newPlan, List<NativeFlow> newFlows);
 }

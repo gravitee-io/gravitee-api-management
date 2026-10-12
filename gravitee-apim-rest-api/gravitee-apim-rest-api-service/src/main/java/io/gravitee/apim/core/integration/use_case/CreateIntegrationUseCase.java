@@ -53,16 +53,12 @@ public class CreateIntegrationUseCase {
         var integrationCreated = integrationCrudService.create(integrationToCreate);
 
         var primaryOwner = integrationPrimaryOwnerFactory.createForNewIntegration(
-            input.auditInfo.organizationId(),
-            input.auditInfo.environmentId(),
-            input.auditInfo.actor().userId()
-        );
+                input.auditInfo.organizationId(),
+                input.auditInfo.environmentId(),
+                input.auditInfo.actor().userId());
 
         integrationPrimaryOwnerDomainService.createIntegrationPrimaryOwnerMembership(
-            integrationCreated.id(),
-            primaryOwner,
-            input.auditInfo
-        );
+                integrationCreated.id(), primaryOwner, input.auditInfo);
 
         return new Output(integrationCreated);
     }

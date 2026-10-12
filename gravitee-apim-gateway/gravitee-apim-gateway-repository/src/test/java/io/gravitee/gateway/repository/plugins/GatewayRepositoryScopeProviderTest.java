@@ -34,11 +34,11 @@ public class GatewayRepositoryScopeProviderTest {
 
     @Test
     void should_return_handled_scopes() {
-        Assertions.assertArrayEquals(new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT }, provider.getHandledScopes());
+        Assertions.assertArrayEquals(new Scope[] {Scope.MANAGEMENT, Scope.RATE_LIMIT}, provider.getHandledScopes());
     }
 
     @Test
     void should_return_optional_handled_scopes() {
-        Assertions.assertArrayEquals(new Scope[] { Scope.DISTRIBUTED_SYNC }, provider.getOptionalHandledScopes());
+        Assertions.assertArrayEquals(new Scope[] {Scope.DISTRIBUTED_SYNC}, provider.getOptionalHandledScopes());
     }
 }

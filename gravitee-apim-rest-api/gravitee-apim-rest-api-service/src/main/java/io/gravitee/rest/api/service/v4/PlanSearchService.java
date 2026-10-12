@@ -35,15 +35,15 @@ public interface PlanSearchService {
 
     Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final String apiId, boolean withFlow);
 
-    Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final GenericApiEntity api, boolean withFlow);
+    Set<GenericPlanEntity> findByApi(
+            final ExecutionContext executionContext, final GenericApiEntity api, boolean withFlow);
 
     List<GenericPlanEntity> search(
-        final ExecutionContext executionContext,
-        final PlanQuery query,
-        String user,
-        boolean isAdmin,
-        boolean expandWithFlow
-    );
+            final ExecutionContext executionContext,
+            final PlanQuery query,
+            String user,
+            boolean isAdmin,
+            boolean expandWithFlow);
 
     boolean anyPlanMismatchWithApi(List<String> planIds, String apiId);
 
@@ -51,14 +51,11 @@ public interface PlanSearchService {
 
     boolean exists(String planId);
 
-    GenericPlanEntity findByPlanIdIdForApiProduct(final ExecutionContext executionContext, final String plan, final String apiProductId);
+    GenericPlanEntity findByPlanIdIdForApiProduct(
+            final ExecutionContext executionContext, final String plan, final String apiProductId);
 
     Set<GenericPlanEntity> findByApiProduct(final ExecutionContext executionContext, final String apiId);
 
     List<GenericPlanEntity> searchForApiProductPlans(
-        final ExecutionContext executionContext,
-        final PlanQuery query,
-        String user,
-        boolean isAdmin
-    );
+            final ExecutionContext executionContext, final PlanQuery query, String user, boolean isAdmin);
 }

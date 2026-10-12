@@ -35,6 +35,8 @@ public class HttpMethodConditionEvaluator implements ConditionEvaluator<Flow> {
     }
 
     protected boolean evaluate(HttpMethod method, Flow flow) {
-        return flow.getMethods() == null || flow.getMethods().isEmpty() || flow.getMethods().contains(method);
+        return flow.getMethods() == null
+                || flow.getMethods().isEmpty()
+                || flow.getMethods().contains(method);
     }
 }

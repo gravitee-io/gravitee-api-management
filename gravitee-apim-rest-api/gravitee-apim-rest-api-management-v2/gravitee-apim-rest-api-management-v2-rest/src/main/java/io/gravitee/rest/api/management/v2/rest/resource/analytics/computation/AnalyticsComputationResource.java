@@ -59,7 +59,8 @@ public class AnalyticsComputationResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
-        var input = new ComputeMeasuresUseCase.Input(getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
+        var input = new ComputeMeasuresUseCase.Input(
+                getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
         var output = computeMeasuresUseCase.execute(input);
         return AnalyticsMeasuresMapper.INSTANCE.fromResponseModel(output.response());
     }
@@ -73,7 +74,8 @@ public class AnalyticsComputationResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
-        var input = new ComputeFacetsUseCase.Input(getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
+        var input = new ComputeFacetsUseCase.Input(
+                getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
         var output = computeFacetsUseCase.execute(input);
         return AnalyticsMeasuresMapper.INSTANCE.fromResponseModel(output.response());
     }
@@ -87,7 +89,8 @@ public class AnalyticsComputationResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
-        var input = new ComputeTimeSeriesUseCase.Input(getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
+        var input = new ComputeTimeSeriesUseCase.Input(
+                getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
         var output = computeTimeSeriesUseCase.execute(input);
         return AnalyticsMeasuresMapper.INSTANCE.fromResponseModel(output.response());
     }

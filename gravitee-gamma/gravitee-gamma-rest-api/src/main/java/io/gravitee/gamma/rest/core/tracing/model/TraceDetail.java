@@ -25,12 +25,11 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record TraceDetail(
-    String traceId,
-    Instant startTime,
-    long durationNanos,
-    String rootServiceName,
-    String rootOperationName,
-    SpanStatus status,
-    int spanCount,
-    List<Span> spans
-) {}
+        String traceId,
+        Instant startTime,
+        long durationNanos,
+        String rootServiceName,
+        String rootOperationName,
+        SpanStatus status,
+        int spanCount,
+        List<Span> spans) {}

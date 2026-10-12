@@ -38,10 +38,9 @@ public class ApiPolicyChainProvider extends AbstractPolicyChainProvider {
     private final PolicyChainFactory policyChainFactory;
 
     public ApiPolicyChainProvider(
-        final StreamType streamType,
-        final PolicyResolver policyResolver,
-        final PolicyChainFactory policyChainFactory
-    ) {
+            final StreamType streamType,
+            final PolicyResolver policyResolver,
+            final PolicyChainFactory policyChainFactory) {
         super(policyResolver);
         this.streamType = streamType;
         this.policyChainFactory = policyChainFactory;

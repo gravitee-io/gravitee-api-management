@@ -83,27 +83,27 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     @Override
     protected JdbcObjectMapper<Page> buildOrm() {
         return JdbcObjectMapper.builder(Page.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("cross_id", Types.NVARCHAR, String.class)
-            .addColumn("hrid", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, PageReferenceType.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.NVARCHAR, String.class)
-            .addColumn("last_contributor", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("published", Types.BOOLEAN, boolean.class)
-            .addColumn("homepage", Types.BOOLEAN, boolean.class)
-            .addColumn("visibility", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("parent_id", Types.NVARCHAR, String.class)
-            .addColumn("parent_hrid", Types.NVARCHAR, String.class)
-            .addColumn("use_auto_fetch", Types.BOOLEAN, Boolean.class)
-            .addColumn("excluded_access_controls", Types.BOOLEAN, boolean.class)
-            .addColumn("ingested", Types.BOOLEAN, boolean.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("cross_id", Types.NVARCHAR, String.class)
+                .addColumn("hrid", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, PageReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.NVARCHAR, String.class)
+                .addColumn("last_contributor", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .addColumn("published", Types.BOOLEAN, boolean.class)
+                .addColumn("homepage", Types.BOOLEAN, boolean.class)
+                .addColumn("visibility", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("parent_id", Types.NVARCHAR, String.class)
+                .addColumn("parent_hrid", Types.NVARCHAR, String.class)
+                .addColumn("use_auto_fetch", Types.BOOLEAN, Boolean.class)
+                .addColumn("excluded_access_controls", Types.BOOLEAN, boolean.class)
+                .addColumn("ingested", Types.BOOLEAN, boolean.class)
+                .build();
     }
 
     private static final JdbcHelper.ChildAdder<Page> CHILD_ADDER = (Page parent, ResultSet rs) -> {
@@ -168,8 +168,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             log.debug("page: {}", page);
             PreparedStatement stmt = cnctn.prepareStatement(sql);
             int idx = orm.setStatementValues(stmt, page, 1);
-            stmt.setString(idx++, page.getSource() == null ? null : page.getSource().getType());
-            stmt.setString(idx++, page.getSource() == null ? null : page.getSource().getConfiguration());
+            stmt.setString(
+                    idx++, page.getSource() == null ? null : page.getSource().getType());
+            stmt.setString(
+                    idx++, page.getSource() == null ? null : page.getSource().getConfiguration());
 
             for (Object id : ids) {
                 stmt.setObject(idx++, id);
@@ -254,13 +256,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     }
 
     private Set<AccessControl> getAccessControls(String pageId) {
-        return new HashSet<>(
-            jdbcTemplate.query(
+        return new HashSet<>(jdbcTemplate.query(
                 "select reference_id, reference_type from " + PAGE_ACL + " where page_id = ?",
                 (ResultSet rs, int rowNum) -> new AccessControl(rs.getString(1), rs.getString(2)),
-                pageId
-            )
-        );
+                pageId));
     }
 
     private void addAttachedMedia(Page page) {
@@ -270,10 +269,9 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     private List<PageMedia> getAttachedMedia(String pageId) {
         return jdbcTemplate.query(
-            "select media_hash, media_name, attached_at from " + PAGE_ATTACHED_MEDIA + " where page_id = ?",
-            (ResultSet rs, int rowNum) -> new PageMedia(rs.getString(1), rs.getString(2), rs.getTimestamp(3)),
-            pageId
-        );
+                "select media_hash, media_name, attached_at from " + PAGE_ATTACHED_MEDIA + " where page_id = ?",
+                (ResultSet rs, int rowNum) -> new PageMedia(rs.getString(1), rs.getString(2), rs.getTimestamp(3)),
+                pageId);
     }
 
     private void storeAttachedMedia(Page page, boolean deleteFirst) {
@@ -283,22 +281,25 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         final List<PageMedia> attachedMedia = page.getAttachedMedia();
         if (attachedMedia != null && !attachedMedia.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + PAGE_ATTACHED_MEDIA + " ( page_id, media_hash, media_name, attached_at ) values ( ?, ?, ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, page.getId());
-                        ps.setString(2, attachedMedia.get(i).getMediaHash());
-                        ps.setString(3, attachedMedia.get(i).getMediaName());
-                        ps.setTimestamp(4, new java.sql.Timestamp(attachedMedia.get(i).getAttachedAt().getTime()));
-                    }
+                    "insert into " + PAGE_ATTACHED_MEDIA
+                            + " ( page_id, media_hash, media_name, attached_at ) values ( ?, ?, ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, page.getId());
+                            ps.setString(2, attachedMedia.get(i).getMediaHash());
+                            ps.setString(3, attachedMedia.get(i).getMediaName());
+                            ps.setTimestamp(
+                                    4,
+                                    new java.sql.Timestamp(
+                                            attachedMedia.get(i).getAttachedAt().getTime()));
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return attachedMedia.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return attachedMedia.size();
+                        }
+                    });
         }
     }
 
@@ -309,22 +310,21 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         if (page.getAccessControls() != null && !page.getAccessControls().isEmpty()) {
             Iterator<AccessControl> iterator = page.getAccessControls().iterator();
             jdbcTemplate.batchUpdate(
-                "insert into " + PAGE_ACL + " ( page_id, reference_id, reference_type ) values ( ?, ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        AccessControl accessControl = iterator.next();
-                        ps.setString(1, page.getId());
-                        ps.setString(2, accessControl.getReferenceId());
-                        ps.setString(3, accessControl.getReferenceType());
-                    }
+                    "insert into " + PAGE_ACL + " ( page_id, reference_id, reference_type ) values ( ?, ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            AccessControl accessControl = iterator.next();
+                            ps.setString(1, page.getId());
+                            ps.setString(2, accessControl.getReferenceId());
+                            ps.setString(3, accessControl.getReferenceType());
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return page.getAccessControls().size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return page.getAccessControls().size();
+                        }
+                    });
         }
     }
 
@@ -333,23 +333,23 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             jdbcTemplate.update("delete from " + PAGE_CONFIGURATION + " where page_id = ?", page.getId());
         }
         if (page.getConfiguration() != null && !page.getConfiguration().isEmpty()) {
-            List<Map.Entry<String, String>> entries = new ArrayList<>(page.getConfiguration().entrySet());
+            List<Map.Entry<String, String>> entries =
+                    new ArrayList<>(page.getConfiguration().entrySet());
             jdbcTemplate.batchUpdate(
-                "insert into " + PAGE_CONFIGURATION + " ( page_id, k, v ) values ( ?, ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, page.getId());
-                        ps.setString(2, entries.get(i).getKey());
-                        ps.setString(3, entries.get(i).getValue());
-                    }
+                    "insert into " + PAGE_CONFIGURATION + " ( page_id, k, v ) values ( ?, ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, page.getId());
+                            ps.setString(2, entries.get(i).getKey());
+                            ps.setString(3, entries.get(i).getValue());
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return entries.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return entries.size();
+                        }
+                    });
         }
     }
 
@@ -358,23 +358,23 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             jdbcTemplate.update("delete from " + PAGE_METADATA + " where page_id = ?", page.getId());
         }
         if (page.getMetadata() != null && !page.getMetadata().isEmpty()) {
-            List<Map.Entry<String, String>> entries = new ArrayList<>(page.getMetadata().entrySet());
+            List<Map.Entry<String, String>> entries =
+                    new ArrayList<>(page.getMetadata().entrySet());
             jdbcTemplate.batchUpdate(
-                "insert into " + PAGE_METADATA + " ( page_id, k, v ) values ( ?, ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, page.getId());
-                        ps.setString(2, entries.get(i).getKey());
-                        ps.setString(3, entries.get(i).getValue());
-                    }
+                    "insert into " + PAGE_METADATA + " ( page_id, k, v ) values ( ?, ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, page.getId());
+                            ps.setString(2, entries.get(i).getKey());
+                            ps.setString(3, entries.get(i).getValue());
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return entries.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return entries.size();
+                        }
+                    });
         }
     }
 
@@ -382,24 +382,23 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     public Optional<Page> findById(String id) throws TechnicalException {
         log.debug("JdbcPageRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            JdbcHelper.CollatingRowMapper<Page> rowMapper =
+                    new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(
-                "select p.*, " +
-                    "pm.k as pm_k, pm.v as pm_v, " +
-                    "pc.k as pc_k, pc.v as pc_v " +
-                    "from " +
-                    this.tableName +
-                    " p " +
-                    "left join " +
-                    PAGE_CONFIGURATION +
-                    " pc on p.id = pc.page_id " +
-                    "left join " +
-                    PAGE_METADATA +
-                    " pm on p.id = pm.page_id " +
-                    "where p.id = ?",
-                rowMapper,
-                id
-            );
+                    "select p.*, " + "pm.k as pm_k, pm.v as pm_v, "
+                            + "pc.k as pc_k, pc.v as pc_v "
+                            + "from "
+                            + this.tableName
+                            + " p "
+                            + "left join "
+                            + PAGE_CONFIGURATION
+                            + " pc on p.id = pc.page_id "
+                            + "left join "
+                            + PAGE_METADATA
+                            + " pm on p.id = pm.page_id "
+                            + "where p.id = ?",
+                    rowMapper,
+                    id);
             Optional<Page> result = rowMapper.getRows().stream().findFirst();
             result.ifPresent(page -> {
                 this.addAttachedMedia(page);
@@ -417,35 +416,33 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     public io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException {
         log.debug("JdbcPageRepository.findAll()", pageable);
         try {
-            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            Integer totalPages = jdbcTemplate.queryForObject("select count(*) from " + this.tableName + " p", Integer.class);
+            JdbcHelper.CollatingRowMapper<Page> rowMapper =
+                    new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            Integer totalPages =
+                    jdbcTemplate.queryForObject("select count(*) from " + this.tableName + " p", Integer.class);
             jdbcTemplate.query(
-                "select p.*, " +
-                    "pm.k as pm_k, pm.v as pm_v, " +
-                    "pc.k as pc_k, pc.v as pc_v " +
-                    "from ( " +
-                    getOrm().getSelectAllSql() +
-                    " ORDER BY id " +
-                    createPagingClause(pageable.pageSize(), pageable.from()) +
-                    ") as p " +
-                    "left join " +
-                    PAGE_CONFIGURATION +
-                    " pc on p.id = pc.page_id " +
-                    "left join " +
-                    PAGE_METADATA +
-                    " pm on p.id = pm.page_id",
-                rowMapper
-            );
-            List<Page> result = rowMapper
-                .getRows()
-                .stream()
-                .limit(pageable.pageSize())
-                .map(p -> {
-                    addAccessControls(p);
-                    addAttachedMedia(p);
-                    return p;
-                })
-                .collect(Collectors.toList());
+                    "select p.*, " + "pm.k as pm_k, pm.v as pm_v, "
+                            + "pc.k as pc_k, pc.v as pc_v "
+                            + "from ( "
+                            + getOrm().getSelectAllSql()
+                            + " ORDER BY id "
+                            + createPagingClause(pageable.pageSize(), pageable.from())
+                            + ") as p "
+                            + "left join "
+                            + PAGE_CONFIGURATION
+                            + " pc on p.id = pc.page_id "
+                            + "left join "
+                            + PAGE_METADATA
+                            + " pm on p.id = pm.page_id",
+                    rowMapper);
+            List<Page> result = rowMapper.getRows().stream()
+                    .limit(pageable.pageSize())
+                    .map(p -> {
+                        addAccessControls(p);
+                        addAttachedMedia(p);
+                        return p;
+                    })
+                    .collect(Collectors.toList());
             log.debug("JdbcPageRepository.findAll() = {} result", result.size());
             return new io.gravitee.common.data.domain.Page<>(result, pageable.pageNumber(), result.size(), totalPages);
         } catch (final Exception ex) {
@@ -459,8 +456,8 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         try {
             final List<Object> args = new ArrayList<>();
 
-            String builder =
-                "select count(*) from " + this.tableName + " p " + WHERE_CLAUSE + "parent_id = ?" + AND_CLAUSE + "published = ?";
+            String builder = "select count(*) from " + this.tableName + " p " + WHERE_CLAUSE + "parent_id = ?"
+                    + AND_CLAUSE + "published = ?";
             args.add(parentId);
             args.add(true);
 
@@ -484,9 +481,9 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     @Override
     public void unsetHomepage(Collection<String> ids) {
         jdbcTemplate.update(
-            "update from " + this.tableName + " where page_id  in (" + getOrm().buildInClause(ids) + ") set homepage = false",
-            ids.toArray()
-        );
+                "update from " + this.tableName + " where page_id  in (" + getOrm().buildInClause(ids)
+                        + ") set homepage = false",
+                ids.toArray());
     }
 
     @Override
@@ -517,7 +514,8 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             storeConfiguration(page, true);
             storeMetadata(page, true);
             storeAccessControls(page, true);
-            return findById(page.getId()).orElseThrow(() -> new IllegalStateException(format("No page found with id [%s]", page.getId())));
+            return findById(page.getId())
+                    .orElseThrow(() -> new IllegalStateException(format("No page found with id [%s]", page.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -528,15 +526,15 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     @Override
     public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcPageRepository.findMaxPageReferenceIdAndReferenceTypeOrder({}, {})", referenceId, referenceType);
         try {
             Integer result = jdbcTemplate.queryForObject(
-                "select max(" + ESCAPED_ORDER_COLUMN_NAME + ") from " + this.tableName + " where reference_type = ? and reference_id = ? ",
-                Integer.class,
-                referenceType.name(),
-                referenceId
-            );
+                    "select max(" + ESCAPED_ORDER_COLUMN_NAME + ") from " + this.tableName
+                            + " where reference_type = ? and reference_id = ? ",
+                    Integer.class,
+                    referenceType.name(),
+                    referenceId);
             return result == null ? 0 : result;
         } catch (final Exception ex) {
             log.error("Failed to find max page order by api:", ex);
@@ -545,37 +543,43 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     }
 
     @Override
-    public Map<String, List<String>> deleteByReferenceIdAndReferenceType(String referenceId, PageReferenceType referenceType)
-        throws TechnicalException {
+    public Map<String, List<String>> deleteByReferenceIdAndReferenceType(
+            String referenceId, PageReferenceType referenceType) throws TechnicalException {
         log.debug("JdbcPageRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
         try {
             final var pageIds = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_id = ? and reference_type = ?",
-                String.class,
-                referenceId,
-                referenceType.name()
-            );
+                    "select id from " + tableName + " where reference_id = ? and reference_type = ?",
+                    String.class,
+                    referenceId,
+                    referenceType.name());
 
-            final var pageIdAndMedias = pageIds
-                .stream()
-                .collect(
-                    Collectors.toMap(pageId -> pageId, pageId -> getAttachedMedia(pageId).stream().map(PageMedia::getMediaHash).toList())
-                );
+            final var pageIdAndMedias = pageIds.stream()
+                    .collect(Collectors.toMap(
+                            pageId -> pageId,
+                            pageId -> getAttachedMedia(pageId).stream()
+                                    .map(PageMedia::getMediaHash)
+                                    .toList()));
 
             if (!pageIds.isEmpty()) {
                 String inClause = getOrm().buildInClause(pageIds);
-                jdbcTemplate.update("delete from " + PAGE_ACL + " where page_id IN (" + inClause + ")", pageIds.toArray());
-                jdbcTemplate.update("delete from " + PAGE_ATTACHED_MEDIA + " where page_id IN (" + inClause + ")", pageIds.toArray());
-                jdbcTemplate.update("delete from " + PAGE_CONFIGURATION + " where page_id IN (" + inClause + ")", pageIds.toArray());
-                jdbcTemplate.update("delete from " + PAGE_METADATA + " where page_id IN (" + inClause + ")", pageIds.toArray());
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
-                    referenceId,
-                    referenceType.name()
-                );
+                        "delete from " + PAGE_ACL + " where page_id IN (" + inClause + ")", pageIds.toArray());
+                jdbcTemplate.update(
+                        "delete from " + PAGE_ATTACHED_MEDIA + " where page_id IN (" + inClause + ")",
+                        pageIds.toArray());
+                jdbcTemplate.update(
+                        "delete from " + PAGE_CONFIGURATION + " where page_id IN (" + inClause + ")",
+                        pageIds.toArray());
+                jdbcTemplate.update(
+                        "delete from " + PAGE_METADATA + " where page_id IN (" + inClause + ")", pageIds.toArray());
+                jdbcTemplate.update(
+                        "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                        referenceId,
+                        referenceType.name());
             }
 
-            log.debug("JdbcPageRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
+            log.debug(
+                    "JdbcPageRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
             return pageIdAndMedias;
         } catch (final Exception ex) {
             log.error("Failed to delete page for refId: {}/{}", referenceId, referenceType, ex);
@@ -592,21 +596,19 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
         try {
             jdbcTemplate.batchUpdate(
-                "UPDATE " + tableName + " SET cross_id = ? WHERE id = ?",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        Page page = pages.get(i);
-                        ps.setString(1, page.getCrossId());
-                        ps.setString(2, page.getId());
-                    }
+                    "UPDATE " + tableName + " SET cross_id = ? WHERE id = ?", new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            Page page = pages.get(i);
+                            ps.setString(1, page.getCrossId());
+                            ps.setString(2, page.getId());
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return pages.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return pages.size();
+                        }
+                    });
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to update pages cross IDs", ex);
         }
@@ -616,21 +618,20 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     public List<Page> search(PageCriteria criteria) throws TechnicalException {
         log.debug("JdbcPageRepository.search()");
         try {
-            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            JdbcHelper.CollatingRowMapper<Page> rowMapper =
+                    new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
 
-            String select =
-                "select distinct p.*, " +
-                "pm.k as pm_k, pm.v as pm_v, " +
-                "pc.k as pc_k, pc.v as pc_v " +
-                "from " +
-                this.tableName +
-                " p " +
-                "left join " +
-                PAGE_CONFIGURATION +
-                " pc on p.id = pc.page_id " +
-                "left join " +
-                PAGE_METADATA +
-                " pm on p.id = pm.page_id ";
+            String select = "select distinct p.*, " + "pm.k as pm_k, pm.v as pm_v, "
+                    + "pc.k as pc_k, pc.v as pc_v "
+                    + "from "
+                    + this.tableName
+                    + " p "
+                    + "left join "
+                    + PAGE_CONFIGURATION
+                    + " pc on p.id = pc.page_id "
+                    + "left join "
+                    + PAGE_METADATA
+                    + " pm on p.id = pm.page_id ";
             StringJoiner where = new StringJoiner(" and ", " ", " ");
             List<Object> params = new ArrayList<>();
 
@@ -687,7 +688,8 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 select += " where ";
             }
 
-            final String sql = select + where + "order by " + ESCAPED_ORDER_COLUMN_NAME + ", p.id, p.reference_id, p.reference_type";
+            final String sql = select + where + "order by " + ESCAPED_ORDER_COLUMN_NAME
+                    + ", p.id, p.reference_id, p.reference_type";
             jdbcTemplate.query(sql, rowMapper, params.toArray());
 
             List<Page> items = rowMapper.getRows();

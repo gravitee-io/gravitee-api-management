@@ -23,5 +23,6 @@ import io.reactivex.rxjava3.core.Single;
 
 public interface NewtAIProvider {
     Single<ELGenReply> generateEL(ELGenQuery query);
+
     Completable submitFeedback(ELGenFeedback feedback);
 }

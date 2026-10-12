@@ -42,7 +42,8 @@ public class ScoringReportCrudServiceImpl extends AbstractService implements Sco
             var created = scoringReportRepository.create(ScoringReportAdapter.INSTANCE.toRepository(scoringReport));
             return ScoringReportAdapter.INSTANCE.toEntity(created);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("Error when creating Scoring Report for API: " + scoringReport.apiId(), e);
+            throw new TechnicalManagementException(
+                    "Error when creating Scoring Report for API: " + scoringReport.apiId(), e);
         }
     }
 

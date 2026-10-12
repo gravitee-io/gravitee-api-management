@@ -23,7 +23,8 @@ import java.util.List;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class ThemePortalNextAssetsDomainServiceInMemory implements ThemePortalNextAssetsDomainService, InMemoryAlternative<Theme> {
+public class ThemePortalNextAssetsDomainServiceInMemory
+        implements ThemePortalNextAssetsDomainService, InMemoryAlternative<Theme> {
 
     final List<Theme> storage = new ArrayList<>();
 

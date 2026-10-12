@@ -62,12 +62,11 @@ public class NativeFlow extends AbstractFlow {
     @Override
     public List<Plugin> getPlugins() {
         return Stream.of(
-            computePlugins(this.entrypointConnect),
-            computePlugins(this.interact),
-            computePlugins(this.publish),
-            computePlugins(this.subscribe)
-        )
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
+                        computePlugins(this.entrypointConnect),
+                        computePlugins(this.interact),
+                        computePlugins(this.publish),
+                        computePlugins(this.subscribe))
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 }

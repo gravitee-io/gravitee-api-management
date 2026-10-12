@@ -29,13 +29,9 @@ import lombok.NoArgsConstructor;
 public final class LuceneTransformerUtils {
 
     public static String generateApiType(Api api) {
-        boolean isTcpApi =
-            api.getType() == ApiType.PROXY &&
-            Objects.nonNull(api.getApiListeners()) &&
-            api
-                .getApiListeners()
-                .stream()
-                .anyMatch(listener -> listener.getType() == ListenerType.TCP);
+        boolean isTcpApi = api.getType() == ApiType.PROXY
+                && Objects.nonNull(api.getApiListeners())
+                && api.getApiListeners().stream().anyMatch(listener -> listener.getType() == ListenerType.TCP);
         return generateApiType(api.getDefinitionVersion(), api.getType(), isTcpApi);
     }
 
@@ -48,13 +44,9 @@ public final class LuceneTransformerUtils {
     }
 
     private static String generateApiType(ApiEntity api) {
-        boolean isTcpApi =
-            api.getType() == ApiType.PROXY &&
-            Objects.nonNull(api.getListeners()) &&
-            api
-                .getListeners()
-                .stream()
-                .anyMatch(listener -> listener.getType() == ListenerType.TCP);
+        boolean isTcpApi = api.getType() == ApiType.PROXY
+                && Objects.nonNull(api.getListeners())
+                && api.getListeners().stream().anyMatch(listener -> listener.getType() == ListenerType.TCP);
         return generateApiType(api.getDefinitionVersion(), api.getType(), isTcpApi);
     }
 

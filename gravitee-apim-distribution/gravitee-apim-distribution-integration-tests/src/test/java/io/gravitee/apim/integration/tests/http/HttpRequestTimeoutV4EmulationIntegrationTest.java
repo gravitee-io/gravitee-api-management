@@ -72,9 +72,8 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
     @Nested
     @GatewayTest
     @DeployOrganization(
-        organization = "/organizations/organization-add-header.json",
-        apis = { "/apis/http/api.json", "/apis/http/api-latency.json" }
-    )
+            organization = "/organizations/organization-add-header.json",
+            apis = {"/apis/http/api.json", "/apis/http/api-latency.json"})
     class OrganizationWithAddHeader extends AbstractGatewayTest {
 
         @Override
@@ -86,134 +85,130 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
 
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
-            policies.put("latency", PolicyBuilder.build("latency", LatencyPolicy.class, LatencyPolicy.LatencyConfiguration.class));
+            policies.put(
+                    "latency",
+                    PolicyBuilder.build("latency", LatencyPolicy.class, LatencyPolicy.LatencyConfiguration.class));
             policies.put("add-header", PolicyBuilder.build("add-header", AddHeaderPolicy.class));
         }
 
         @Test
         @DisplayName(
-            "Should receive 504 - GATEWAY_TIMEOUT and a plain text response when backend answers slower than the timeout and without Accept header"
-        )
+                "Should receive 504 - GATEWAY_TIMEOUT and a plain text response when backend answers slower than the timeout and without Accept header")
         void shouldGet504TextPlainWhenTimeoutFromBackend(HttpClient httpClient) throws InterruptedException {
-            wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend").withFixedDelay(REQUEST_TIMEOUT + 250)));
+            wiremock.stubFor(
+                    get("/endpoint").willReturn(ok("response from backend").withFixedDelay(REQUEST_TIMEOUT + 250)));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertPlatformHeaders(response);
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertValue(body -> {
-                    assertThat(body.toString()).isEqualTo("Request timeout");
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(504);
+                        assertPlatformHeaders(response);
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertValue(body -> {
+                        assertThat(body.toString()).isEqualTo("Request timeout");
+                        return true;
+                    })
+                    .assertNoErrors();
 
             wiremock.verify(
-                1,
-                getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(
-                    AddHeaderPolicy.HEADER_NAME,
-                    equalTo(AddHeaderPolicy.REQUEST_HEADER)
-                )
-            );
+                    1,
+                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                            .withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER)));
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+        @ValueSource(strings = {MediaType.APPLICATION_JSON, MediaType.WILDCARD})
         @DisplayName(
-            "Should receive 504 - GATEWAY_TIMEOUT and a json response when backend answers slower than the timeout and with Accept header"
-        )
-        void shouldGet504WhenTimeoutFromBackend(String acceptHeader, HttpClient httpClient) throws InterruptedException {
-            wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend").withFixedDelay(REQUEST_TIMEOUT + 10)));
+                "Should receive 504 - GATEWAY_TIMEOUT and a json response when backend answers slower than the timeout and with Accept header")
+        void shouldGet504WhenTimeoutFromBackend(String acceptHeader, HttpClient httpClient)
+                throws InterruptedException {
+            wiremock.stubFor(
+                    get("/endpoint").willReturn(ok("response from backend").withFixedDelay(REQUEST_TIMEOUT + 10)));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), acceptHeader).rxSend())
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertPlatformHeaders(response);
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertValue(body -> {
-                    assertThat(body.toString()).isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), acceptHeader)
+                            .rxSend())
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(504);
+                        assertPlatformHeaders(response);
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertValue(body -> {
+                        assertThat(body.toString())
+                                .isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
+                        return true;
+                    })
+                    .assertNoErrors();
 
             wiremock.verify(
-                1,
-                getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(
-                    AddHeaderPolicy.HEADER_NAME,
-                    equalTo(AddHeaderPolicy.REQUEST_HEADER)
-                )
-            );
+                    1,
+                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                            .withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER)));
         }
 
         @Test
         @DisplayName(
-            "Should receive 504 - GATEWAY_TIMEOUT and a plain text response when policy executes slower than the timeout and without Accept header"
-        )
+                "Should receive 504 - GATEWAY_TIMEOUT and a plain text response when policy executes slower than the timeout and without Accept header")
         void shouldGet504TextPlainWhenTimeoutFromPolicy(HttpClient httpClient) throws InterruptedException {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test-latency")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertPlatformHeaders(response);
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertValue(body -> {
-                    assertThat(body.toString()).isEqualTo("Request timeout");
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/test-latency")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(504);
+                        assertPlatformHeaders(response);
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertValue(body -> {
+                        assertThat(body.toString()).isEqualTo("Request timeout");
+                        return true;
+                    })
+                    .assertNoErrors();
 
             wiremock.verify(
-                0,
-                getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(
-                    AddHeaderPolicy.HEADER_NAME,
-                    equalTo(AddHeaderPolicy.REQUEST_HEADER)
-                )
-            );
+                    0,
+                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                            .withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER)));
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+        @ValueSource(strings = {MediaType.APPLICATION_JSON, MediaType.WILDCARD})
         @DisplayName(
-            "Should receive 504 - GATEWAY_TIMEOUT and a json response when policy executes slower than the timeout and with Accept header"
-        )
+                "Should receive 504 - GATEWAY_TIMEOUT and a json response when policy executes slower than the timeout and with Accept header")
         void shouldGet504WhenTimeoutFromPolicy(String acceptHeader, HttpClient httpClient) throws InterruptedException {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test-latency")
-                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), acceptHeader).rxSend())
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertPlatformHeaders(response);
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertValue(body -> {
-                    assertThat(body.toString()).isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/test-latency")
+                    .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT.toString(), acceptHeader)
+                            .rxSend())
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(504);
+                        assertPlatformHeaders(response);
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertValue(body -> {
+                        assertThat(body.toString())
+                                .isEqualTo("{\"message\":\"Request timeout\",\"http_status_code\":504}");
+                        return true;
+                    })
+                    .assertNoErrors();
 
             wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
@@ -226,7 +221,9 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployOrganization(organization = "/organizations/organization-add-header-and-latency.json", apis = { "/apis/http/api.json" })
+    @DeployOrganization(
+            organization = "/organizations/organization-add-header-and-latency.json",
+            apis = {"/apis/http/api.json"})
     class OrganizationWithAddHeaderAndLatency extends AbstractGatewayTest {
 
         @Override
@@ -238,41 +235,40 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
 
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
-            policies.put("latency", PolicyBuilder.build("latency", LatencyPolicy.class, LatencyPolicy.LatencyConfiguration.class));
+            policies.put(
+                    "latency",
+                    PolicyBuilder.build("latency", LatencyPolicy.class, LatencyPolicy.LatencyConfiguration.class));
             policies.put("add-header", PolicyBuilder.build("add-header", AddHeaderPolicy.class));
         }
 
         @Test
         @DisplayName(
-            "Should receive 504 - GATEWAY_TIMEOUT when policy on platform response executes slower than the timeout and interrupt chain"
-        )
+                "Should receive 504 - GATEWAY_TIMEOUT when policy on platform response executes slower than the timeout and interrupt chain")
         void shouldGet504WhenTimeoutFromPlatformResponse(HttpClient httpClient) throws InterruptedException {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(504);
-                    assertThat(response.headers().contains(AddHeaderPolicy.HEADER_NAME)).isFalse();
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertValue(body -> {
-                    assertThat(body).hasToString("Request timeout");
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMapPublisher(response -> {
+                        assertThat(response.statusCode()).isEqualTo(504);
+                        assertThat(response.headers().contains(AddHeaderPolicy.HEADER_NAME))
+                                .isFalse();
+                        return response.toFlowable();
+                    })
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertValue(body -> {
+                        assertThat(body).hasToString("Request timeout");
+                        return true;
+                    })
+                    .assertNoErrors();
 
             wiremock.verify(
-                1,
-                getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(
-                    AddHeaderPolicy.HEADER_NAME,
-                    equalTo(AddHeaderPolicy.REQUEST_HEADER)
-                )
-            );
+                    1,
+                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                            .withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER)));
         }
     }
 
@@ -303,12 +299,14 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -327,37 +325,32 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
             int port = gatewayConfig.httpPort();
 
             // Backend delays response for 3 seconds
-            wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend").withFixedDelay(3000)));
+            wiremock.stubFor(
+                    get("/endpoint").willReturn(ok("response from backend").withFixedDelay(3000)));
 
             // Send HTTP request via raw socket and close it before response arrives
-            vertx
-                .createNetClient(new NetClientOptions())
-                .rxConnect(port, "localhost")
-                .subscribe(socket -> {
-                    String httpRequest = "GET /test HTTP/1.1\r\n" + "Host: localhost:" + port + "\r\n" + "Connection: close\r\n\r\n";
-                    socket.write(httpRequest);
+            vertx.createNetClient(new NetClientOptions())
+                    .rxConnect(port, "localhost")
+                    .subscribe(socket -> {
+                        String httpRequest = "GET /test HTTP/1.1\r\n" + "Host: localhost:" + port + "\r\n"
+                                + "Connection: close\r\n\r\n";
+                        socket.write(httpRequest);
 
-                    // Close socket after 500ms (before backend responds)
-                    vertx
-                        .getDelegate()
-                        .setTimer(500, id -> {
+                        // Close socket after 500ms (before backend responds)
+                        vertx.getDelegate().setTimer(500, id -> {
                             socket.close();
                         });
-                });
+                    });
 
-            metricsSubject
-                .take(1)
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.getStatus()).isEqualTo(499);
-                    // The downstream close is now classified: the abort is recorded with a stable CLIENT_ABORTED_*
-                    // key (the exact reason — channel closed, TCP reset… — depends on how the client tears the
-                    // connection down) instead of being reported with no error key (APIM-12769).
-                    assertThat(metrics.getErrorKey()).startsWith("CLIENT_ABORTED_");
-                    assertThat(metrics.getErrorMessage()).isNotBlank();
-                    return true;
-                });
+            metricsSubject.take(1).test().awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.getStatus()).isEqualTo(499);
+                // The downstream close is now classified: the abort is recorded with a stable CLIENT_ABORTED_*
+                // key (the exact reason — channel closed, TCP reset… — depends on how the client tears the
+                // connection down) instead of being reported with no error key (APIM-12769).
+                assertThat(metrics.getErrorKey()).startsWith("CLIENT_ABORTED_");
+                assertThat(metrics.getErrorMessage()).isNotBlank();
+                return true;
+            });
         }
     }
 }

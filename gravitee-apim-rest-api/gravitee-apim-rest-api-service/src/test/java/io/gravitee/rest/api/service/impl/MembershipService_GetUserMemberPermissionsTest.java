@@ -26,11 +26,9 @@ import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import java.util.Collections;
 import java.util.Map;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,83 +57,82 @@ public class MembershipService_GetUserMemberPermissionsTest {
     @BeforeEach
     public void init() {
         membershipService = new MembershipServiceImpl(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            node,
-            objectMapper,
-            commandRepository,
-            null,
-            null,
-            null
-        );
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                node,
+                objectMapper,
+                commandRepository,
+                null,
+                null,
+                null);
         membershipService = spy(membershipService);
     }
 
     @Test
     public void should_cached_user_permissions() {
         MemberEntity member = new MemberEntity();
-        member.setPermissions(Map.of("API", new char[] { 'C', 'R', 'U', 'D' }));
+        member.setPermissions(Map.of("API", new char[] {'C', 'R', 'U', 'D'}));
 
         // First call
-        doReturn(member).when(membershipService).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
+        doReturn(member)
+                .when(membershipService)
+                .getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
 
         Map<String, char[]> permissions1 = membershipService.getUserMemberPermissions(
-            EXECUTION_CONTEXT,
-            MembershipReferenceType.API,
-            REFERENCE_ID,
-            USER_ID
-        );
+                EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
 
         assertThat(permissions1).containsKey("API");
         assertThat(permissions1.get("API")).containsExactly('C', 'R', 'U', 'D');
 
         // Second call - should use cache
         Map<String, char[]> permissions2 = membershipService.getUserMemberPermissions(
-            EXECUTION_CONTEXT,
-            MembershipReferenceType.API,
-            REFERENCE_ID,
-            USER_ID
-        );
+                EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
 
         assertThat(permissions2).isSameAs(permissions1);
-        verify(membershipService, times(1)).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
+        verify(membershipService, times(1))
+                .getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
     }
 
     @SneakyThrows
     @Test
     public void should_cached_invalidate_cache() {
         MemberEntity member = new MemberEntity();
-        member.setPermissions(Map.of("API", new char[] { 'R' }));
+        member.setPermissions(Map.of("API", new char[] {'R'}));
 
-        doReturn(member).when(membershipService).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
+        doReturn(member)
+                .when(membershipService)
+                .getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
 
         // First call to fill cache
-        membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
+        membershipService.getUserMemberPermissions(
+                EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
 
         // Invalidate cache
         membershipService.invalidateRoleCacheAndSendCommand("API", REFERENCE_ID, "USER", USER_ID, EXECUTION_CONTEXT);
 
         // Second call - should call getUserMember again
-        membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
+        membershipService.getUserMemberPermissions(
+                EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
 
-        verify(membershipService, times(2)).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
+        verify(membershipService, times(2))
+                .getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
         verify(commandRepository).create(any());
     }
 
@@ -145,11 +142,11 @@ public class MembershipService_GetUserMemberPermissionsTest {
         // so Guava's cache wraps it in an UncheckedExecutionException. getUserMemberPermissions must unwrap it
         // and propagate the original ApiNotFoundException so the REST layer maps it to 404 (not 500).
         doThrow(new ApiNotFoundException(REFERENCE_ID))
-            .when(membershipService)
-            .getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
+                .when(membershipService)
+                .getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
 
-        assertThatThrownBy(() ->
-            membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID)
-        ).isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> membershipService.getUserMemberPermissions(
+                        EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID))
+                .isInstanceOf(ApiNotFoundException.class);
     }
 }

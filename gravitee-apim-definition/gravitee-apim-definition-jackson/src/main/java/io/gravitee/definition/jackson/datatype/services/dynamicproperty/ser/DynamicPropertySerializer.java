@@ -32,8 +32,9 @@ public class DynamicPropertySerializer extends ScheduledServiceSerializer<Dynami
     }
 
     @Override
-    protected void doSerialize(DynamicPropertyService service, JsonGenerator jgen, SerializerProvider serializerProvider)
-        throws IOException {
+    protected void doSerialize(
+            DynamicPropertyService service, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         super.doSerialize(service, jgen, serializerProvider);
 
         jgen.writeStringField("provider", service.getProvider().name());

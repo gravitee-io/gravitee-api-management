@@ -75,7 +75,8 @@ class ApiProductSearchQueryServiceImplTest {
     void should_require_the_kind_when_the_listing_does_not_want_classic_products() {
         // The page has to be narrowed by the store, not after it: a page of twenty-five asked of a store
         // that also holds classic products comes back with fewer than twenty-five workspaces, or none.
-        var query = searchWith(new ApiProductKindFilter(Set.of(ApiProductKind.AI_WORKSPACE), false)).build();
+        var query = searchWith(new ApiProductKindFilter(Set.of(ApiProductKind.AI_WORKSPACE), false))
+                .build();
 
         assertThat(query.getFilters()).containsEntry(FIELD_KIND, Set.of(ApiProductKind.AI_WORKSPACE.name()));
         assertThat(query.getExcludedFilters()).doesNotContainKey(FIELD_KIND);

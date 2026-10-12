@@ -25,7 +25,8 @@ import java.util.stream.Stream;
 public interface SharedPolicyGroupHistoryQueryService {
     Stream<SharedPolicyGroup> streamLatestBySharedPolicyGroupId(String environmentId);
 
-    Page<SharedPolicyGroup> search(String environmentId, String sharedPolicyGroupId, Pageable pageable, Sortable sortable);
+    Page<SharedPolicyGroup> search(
+            String environmentId, String sharedPolicyGroupId, Pageable pageable, Sortable sortable);
 
     Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId);
 }

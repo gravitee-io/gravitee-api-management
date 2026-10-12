@@ -50,7 +50,8 @@ class TcpGatewayWebsocketIntegrationTest extends AbstractWebsocketGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("tcp-proxy", EntrypointBuilder.build("tcp-proxy", TcpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "tcp-proxy", EntrypointBuilder.build("tcp-proxy", TcpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
@@ -66,9 +67,10 @@ class TcpGatewayWebsocketIntegrationTest extends AbstractWebsocketGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/tcp/api-websocket.json" })
+    @DeployApi({"/apis/v4/tcp/api-websocket.json"})
     @SneakyThrows
-    void should_call_websocket_backend_via_TCP_port(VertxTestContext testContext, GatewayDynamicConfig.TcpConfig tcpConfig) {
+    void should_call_websocket_backend_via_TCP_port(
+            VertxTestContext testContext, GatewayDynamicConfig.TcpConfig tcpConfig) {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
         var serverMessageChecked = testContext.checkpoint();
@@ -81,34 +83,39 @@ class TcpGatewayWebsocketIntegrationTest extends AbstractWebsocketGatewayTest {
                 if (frame.isText()) {
                     testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
                     serverWebSocket
-                        .writeTextMessage("PONG")
-                        .doOnComplete(serverMessageSent::flag)
-                        .doOnError(testContext::failNow)
-                        .subscribe();
+                            .writeTextMessage("PONG")
+                            .doOnComplete(serverMessageSent::flag)
+                            .doOnError(testContext::failNow)
+                            .subscribe();
                 }
             });
         };
 
-        //Use EtcHostConfigurer to use a valid hostname for SNI as Netty is checking it with this method SslUtils.isValidHostNameForSNI
+        // Use EtcHostConfigurer to use a valid hostname for SNI as Netty is checking it with this method
+        // SslUtils.isValidHostNameForSNI
         try (var etcHostsConfigurer = new EtcHostsConfigurer()) {
             etcHostsConfigurer.addHost("127.0.0.1", "myapi.tcp.local");
 
             // Configure hosts
             AddressResolverOptions resolverOptions = new AddressResolverOptions()
-                .setHostsPath(etcHostsConfigurer.generateHostsFile())
-                .setOptResourceEnabled(true)
-                .setCacheMinTimeToLive(0)
-                .setQueryTimeout(5000);
+                    .setHostsPath(etcHostsConfigurer.generateHostsFile())
+                    .setOptResourceEnabled(true)
+                    .setCacheMinTimeToLive(0)
+                    .setQueryTimeout(5000);
 
             VertxOptions vertxOptions = new VertxOptions().setAddressResolverOptions(resolverOptions);
 
             Vertx clientVertx = Vertx.vertx(vertxOptions);
             try {
-                VertxWebSocketClientFactory.VertxWebSocketClientFactoryBuilder builder = VertxWebSocketClientFactory.builder()
-                    .vertx(clientVertx)
-                    .nodeConfiguration(mock(Configuration.class))
-                    .defaultTarget("wss://localhost:" + tcpConfig.tcpPort())
-                    .sslOptions(SslOptions.builder().hostnameVerifier(false).trustAll(true).build());
+                VertxWebSocketClientFactory.VertxWebSocketClientFactoryBuilder builder =
+                        VertxWebSocketClientFactory.builder()
+                                .vertx(clientVertx)
+                                .nodeConfiguration(mock(Configuration.class))
+                                .defaultTarget("wss://localhost:" + tcpConfig.tcpPort())
+                                .sslOptions(SslOptions.builder()
+                                        .hostnameVerifier(false)
+                                        .trustAll(true)
+                                        .build());
 
                 var webSocketClient = builder.build().createWebSocketClient();
 
@@ -116,21 +123,25 @@ class TcpGatewayWebsocketIntegrationTest extends AbstractWebsocketGatewayTest {
                 // When calling the TCP proxy with an Api pointing to the websocket
                 // Then we should expect a normal bidirectional websocket call
                 webSocketClient
-                    // path is not used by the TCP api, so it can be whatever we want
-                    .connect("myapi.tcp.local", "/a-random-path")
-                    .doOnSuccess(webSocket -> {
-                        webSocket.exceptionHandler(testContext::failNow);
-                        webSocket.frameHandler(frame -> {
-                            if (frame.isText()) {
-                                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PONG"));
-                                serverMessageChecked.flag();
-                            }
-                        });
-                        webSocket.writeTextMessage("PING").doOnError(testContext::failNow).subscribe();
-                    })
-                    .doOnError(testContext::failNow)
-                    .test()
-                    .awaitDone(5, TimeUnit.SECONDS);
+                        // path is not used by the TCP api, so it can be whatever we want
+                        .connect("myapi.tcp.local", "/a-random-path")
+                        .doOnSuccess(webSocket -> {
+                            webSocket.exceptionHandler(testContext::failNow);
+                            webSocket.frameHandler(frame -> {
+                                if (frame.isText()) {
+                                    testContext.verify(
+                                            () -> assertThat(frame.textData()).isEqualTo("PONG"));
+                                    serverMessageChecked.flag();
+                                }
+                            });
+                            webSocket
+                                    .writeTextMessage("PING")
+                                    .doOnError(testContext::failNow)
+                                    .subscribe();
+                        })
+                        .doOnError(testContext::failNow)
+                        .test()
+                        .awaitDone(5, TimeUnit.SECONDS);
 
                 // Wait for the full PING-PONG exchange to complete before closing the Vert.x instance.
                 // awaitDone() only waits for the connect() Single to emit; the frame exchange is async.

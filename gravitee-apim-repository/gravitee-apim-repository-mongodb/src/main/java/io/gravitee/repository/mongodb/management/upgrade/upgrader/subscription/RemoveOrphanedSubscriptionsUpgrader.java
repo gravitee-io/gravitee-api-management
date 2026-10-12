@@ -40,10 +40,10 @@ public class RemoveOrphanedSubscriptionsUpgrader extends MongoUpgrader {
         MongoCollection<Document> subscriptions = getCollection("subscriptions");
 
         Set<String> validAppIds = applications
-            .find()
-            .projection(Projections.include("_id"))
-            .map(doc -> doc.get("_id").toString())
-            .into(new HashSet<>());
+                .find()
+                .projection(Projections.include("_id"))
+                .map(doc -> doc.get("_id").toString())
+                .into(new HashSet<>());
 
         if (validAppIds.isEmpty()) {
             log.warn("No valid applications found! Skipping orphaned subscriptions cleanup.");
@@ -51,12 +51,14 @@ public class RemoveOrphanedSubscriptionsUpgrader extends MongoUpgrader {
         }
 
         var bulkDeletes = StreamSupport.stream(
-            subscriptions.find().projection(Projections.include("_id", "application")).spliterator(),
-            false
-        )
-            .filter(doc -> !validAppIds.contains(doc.getString("application")))
-            .map(doc -> new DeleteOneModel<Document>(Filters.eq("_id", doc.get("_id"))))
-            .toList();
+                        subscriptions
+                                .find()
+                                .projection(Projections.include("_id", "application"))
+                                .spliterator(),
+                        false)
+                .filter(doc -> !validAppIds.contains(doc.getString("application")))
+                .map(doc -> new DeleteOneModel<Document>(Filters.eq("_id", doc.get("_id"))))
+                .toList();
 
         if (bulkDeletes.isEmpty()) {
             log.info("No orphaned subscriptions found, nothing to delete.");

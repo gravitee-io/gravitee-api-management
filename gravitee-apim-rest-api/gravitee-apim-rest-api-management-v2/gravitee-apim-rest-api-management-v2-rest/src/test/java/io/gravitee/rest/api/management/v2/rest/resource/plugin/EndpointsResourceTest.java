@@ -85,23 +85,23 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
         // Check data
         ConnectorPlugin pluginEntity1 = new ConnectorPlugin()
-            .id("id-1")
-            .name("name")
-            .version("1.0")
-            .icon("my-icon")
-            .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
-            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
-            .supportedQos(Set.of(io.gravitee.rest.api.management.v2.rest.model.Qos.AUTO))
-            .deployed(true);
+                .id("id-1")
+                .name("name")
+                .version("1.0")
+                .icon("my-icon")
+                .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
+                .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
+                .supportedQos(Set.of(io.gravitee.rest.api.management.v2.rest.model.Qos.AUTO))
+                .deployed(true);
         ConnectorPlugin pluginEntity2 = new ConnectorPlugin()
-            .id("id-2")
-            .name("name")
-            .version("1.0")
-            .icon("my-icon")
-            .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
-            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
-            .supportedQos(Set.of(io.gravitee.rest.api.management.v2.rest.model.Qos.AUTO))
-            .deployed(false);
+                .id("id-2")
+                .name("name")
+                .version("1.0")
+                .icon("my-icon")
+                .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
+                .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
+                .supportedQos(Set.of(io.gravitee.rest.api.management.v2.rest.model.Qos.AUTO))
+                .deployed(false);
 
         assertEquals(Set.of(pluginEntity1, pluginEntity2), connectorPlugins);
     }
@@ -117,7 +117,8 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenReturn(connectorPlugin);
         when(endpointConnectorPluginService.getSchema(FAKE_ENDPOINT_ID)).thenReturn("schemaResponse");
 
-        final Response response = rootTarget(FAKE_ENDPOINT_ID).path("schema").request().get();
+        final Response response =
+                rootTarget(FAKE_ENDPOINT_ID).path("schema").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("schemaResponse");
@@ -131,9 +132,11 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENDPOINT_ID));
+        when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID))
+                .thenThrow(new PluginNotFoundException(FAKE_ENDPOINT_ID));
 
-        final Response response = rootTarget(FAKE_ENDPOINT_ID).path("schema").request().get();
+        final Response response =
+                rootTarget(FAKE_ENDPOINT_ID).path("schema").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         final Error error = response.readEntity(Error.class);
 
@@ -157,7 +160,8 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenReturn(connectorPlugin);
         when(endpointConnectorPluginService.getDocumentation(FAKE_ENDPOINT_ID)).thenReturn("documentationResponse");
 
-        final Response response = rootTarget(FAKE_ENDPOINT_ID).path("documentation").request().get();
+        final Response response =
+                rootTarget(FAKE_ENDPOINT_ID).path("documentation").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("documentationResponse");
@@ -171,9 +175,11 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setVersion("1.0");
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENDPOINT_ID));
+        when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID))
+                .thenThrow(new PluginNotFoundException(FAKE_ENDPOINT_ID));
 
-        final Response response = rootTarget(FAKE_ENDPOINT_ID).path("documentation").request().get();
+        final Response response =
+                rootTarget(FAKE_ENDPOINT_ID).path("documentation").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
 
         final Error error = response.readEntity(Error.class);
@@ -206,7 +212,9 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals("Fake Endpoint", endpoint.getName());
         assertEquals("1.0", endpoint.getVersion());
         assertEquals(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE, endpoint.getSupportedApiType());
-        assertEquals(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE), endpoint.getSupportedModes());
+        assertEquals(
+                Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE),
+                endpoint.getSupportedModes());
     }
 
     @Test
@@ -218,9 +226,13 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenReturn(connectorPlugin);
-        when(endpointConnectorPluginService.getSharedConfigurationSchema(FAKE_ENDPOINT_ID)).thenReturn("sharedConfigurationSchemaResponse");
+        when(endpointConnectorPluginService.getSharedConfigurationSchema(FAKE_ENDPOINT_ID))
+                .thenReturn("sharedConfigurationSchemaResponse");
 
-        final Response response = rootTarget(FAKE_ENDPOINT_ID).path("shared-configuration-schema").request().get();
+        final Response response = rootTarget(FAKE_ENDPOINT_ID)
+                .path("shared-configuration-schema")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("sharedConfigurationSchemaResponse");
@@ -228,9 +240,13 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetSharedConfigurationSchemaWhenPluginNotFound() {
-        when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENDPOINT_ID));
+        when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID))
+                .thenThrow(new PluginNotFoundException(FAKE_ENDPOINT_ID));
 
-        final Response response = rootTarget(FAKE_ENDPOINT_ID).path("shared-configuration-schema").request().get();
+        final Response response = rootTarget(FAKE_ENDPOINT_ID)
+                .path("shared-configuration-schema")
+                .request()
+                .get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         final Error error = response.readEntity(Error.class);
 
@@ -261,7 +277,8 @@ public class EndpointsResourceTest extends AbstractResourceTest {
     }
 
     private io.gravitee.apim.core.plugin.model.ConnectorPlugin getConnectorPlugin(String id) {
-        io.gravitee.apim.core.plugin.model.ConnectorPlugin connectorPlugin = new io.gravitee.apim.core.plugin.model.ConnectorPlugin();
+        io.gravitee.apim.core.plugin.model.ConnectorPlugin connectorPlugin =
+                new io.gravitee.apim.core.plugin.model.ConnectorPlugin();
         connectorPlugin.setId(id);
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");

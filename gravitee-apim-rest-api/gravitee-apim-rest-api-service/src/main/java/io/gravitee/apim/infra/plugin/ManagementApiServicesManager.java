@@ -52,7 +52,8 @@ public class ManagementApiServicesManager extends AbstractService {
     @VisibleForTesting
     final Map<String, List<ManagementApiService>> servicesByApi = new ConcurrentHashMap<>();
 
-    public ManagementApiServicesManager(ApplicationContext applicationContext, ApiServicePluginManager apiServicePluginManager) {
+    public ManagementApiServicesManager(
+            ApplicationContext applicationContext, ApiServicePluginManager apiServicePluginManager) {
         this.apiServicePluginManager = apiServicePluginManager;
         this.applicationContext = applicationContext;
     }
@@ -69,16 +70,18 @@ public class ManagementApiServicesManager extends AbstractService {
         log.debug("Deploying services for api: {}", api.getId());
         final DefaultManagementDeploymentContext deploymentContext = deploymentContext(api);
         List<ManagementApiService> services = deploymentContext == null
-            ? List.of()
-            : apiServicePluginManager
-                .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
-                .stream()
-                .map(managementApiServiceFactory -> managementApiServiceFactory.createService(deploymentContext))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                ? List.of()
+                : apiServicePluginManager
+                        .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
+                        .stream()
+                        .map(managementApiServiceFactory ->
+                                managementApiServiceFactory.createService(deploymentContext))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
         Completable.concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
-            .doOnError(throwable -> log.error("Unable to start management-api-service: {}", throwable.getMessage(), throwable))
-            .blockingAwait();
+                .doOnError(throwable ->
+                        log.error("Unable to start management-api-service: {}", throwable.getMessage(), throwable))
+                .blockingAwait();
         if (!services.isEmpty()) {
             servicesByApi.put(api.getId(), services);
         }
@@ -103,17 +106,20 @@ public class ManagementApiServicesManager extends AbstractService {
         if (deploymentContext == null) {
             return;
         }
-        List<ManagementApiService> services = apiServicePluginManager
-            .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
-            .stream()
-            .map(managementApiServiceFactory -> managementApiServiceFactory.createService(deploymentContext))
-            .filter(Objects::nonNull)
-            .filter(service -> "http-dynamic-properties".equals(service.id()))
-            .collect(Collectors.toList());
+        List<ManagementApiService> services =
+                apiServicePluginManager
+                        .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
+                        .stream()
+                        .map(managementApiServiceFactory ->
+                                managementApiServiceFactory.createService(deploymentContext))
+                        .filter(Objects::nonNull)
+                        .filter(service -> "http-dynamic-properties".equals(service.id()))
+                        .collect(Collectors.toList());
 
         Completable.concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
-            .doOnError(throwable -> log.error("Unable to start dynamic-api-service for api {}", api.getId(), throwable))
-            .blockingAwait();
+                .doOnError(throwable ->
+                        log.error("Unable to start dynamic-api-service for api {}", api.getId(), throwable))
+                .blockingAwait();
         if (!services.isEmpty()) {
             servicesByApi.computeIfAbsent(api.getId(), k -> new ArrayList<>()).addAll(services);
         }
@@ -125,12 +131,10 @@ public class ManagementApiServicesManager extends AbstractService {
         final AbstractApi updatedDefinition = v4Definition(api);
         final List<ManagementApiService> managedApi = servicesByApi.get(api.getId());
         if (updatedDefinition != null && managedApi != null && !managedApi.isEmpty()) {
-            Completable.concat(
-                managedApi
-                    .stream()
-                    .map(managementApiService -> managementApiService.update(updatedDefinition))
-                    .collect(Collectors.toList())
-            ).blockingAwait();
+            Completable.concat(managedApi.stream()
+                            .map(managementApiService -> managementApiService.update(updatedDefinition))
+                            .collect(Collectors.toList()))
+                    .blockingAwait();
             return;
         }
         deployServices(api);
@@ -144,7 +148,8 @@ public class ManagementApiServicesManager extends AbstractService {
      */
     private DefaultManagementDeploymentContext deploymentContext(Api api) {
         return switch (api.getApiDefinitionValue()) {
-            case io.gravitee.definition.model.v4.Api v4Api -> new DefaultManagementDeploymentContext(v4Api, applicationContext);
+            case io.gravitee.definition.model.v4.Api v4Api ->
+                new DefaultManagementDeploymentContext(v4Api, applicationContext);
             case NativeApi v4NativeApi -> new DefaultManagementDeploymentContext(v4NativeApi, applicationContext);
             case null, default -> null;
         };
@@ -162,18 +167,16 @@ public class ManagementApiServicesManager extends AbstractService {
     }
 
     private static void stopManagementApiServices(Stream<ManagementApiService> apiServices) {
-        Completable.concat(apiServices.map(ManagementApiService::stop).collect(Collectors.toList())).blockingAwait();
+        Completable.concat(apiServices.map(ManagementApiService::stop).collect(Collectors.toList()))
+                .blockingAwait();
     }
 
     public void stopDynamicProperties(Api api) {
         Optional.ofNullable(servicesByApi.get(api.getId()))
-            .flatMap(services ->
-                services
-                    .stream()
-                    .filter(service -> "http-dynamic-properties".equals(service.id()))
-                    .findFirst()
-            )
-            .ifPresent(service -> service.stop().blockingAwait());
+                .flatMap(services -> services.stream()
+                        .filter(service -> "http-dynamic-properties".equals(service.id()))
+                        .findFirst())
+                .ifPresent(service -> service.stop().blockingAwait());
         if (servicesByApi.get(api.getId()) != null) {
             servicesByApi.get(api.getId()).removeIf(service -> "http-dynamic-properties".equals(service.id()));
         }

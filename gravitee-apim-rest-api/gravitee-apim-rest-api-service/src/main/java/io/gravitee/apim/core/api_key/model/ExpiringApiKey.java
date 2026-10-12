@@ -23,10 +23,9 @@ import java.util.List;
  * Carries only the fields needed for window bucketing, idempotency and notification dispatch.
  */
 public record ExpiringApiKey(
-    String id,
-    String key,
-    ZonedDateTime expireAt,
-    Integer daysToExpirationOnLastNotification,
-    String applicationId,
-    List<ExpiringApiKeySubscription> subscriptions
-) {}
+        String id,
+        String key,
+        ZonedDateTime expireAt,
+        Integer daysToExpirationOnLastNotification,
+        String applicationId,
+        List<ExpiringApiKeySubscription> subscriptions) {}

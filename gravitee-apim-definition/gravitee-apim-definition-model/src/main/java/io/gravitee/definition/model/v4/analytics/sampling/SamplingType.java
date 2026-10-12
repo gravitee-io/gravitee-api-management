@@ -34,7 +34,8 @@ public enum SamplingType {
     PROBABILITY("probability", (value, validationLimit) -> {
         try {
             double parseDouble = Double.parseDouble(value);
-            return parseDouble >= 0.01 && parseDouble <= ((ValidationLimit.ProbabilityLimit) validationLimit).getLimit();
+            return parseDouble >= 0.01
+                    && parseDouble <= ((ValidationLimit.ProbabilityLimit) validationLimit).getLimit();
         } catch (Exception e) {
             return false;
         }
@@ -59,7 +60,8 @@ public enum SamplingType {
     WINDOWED_COUNT("windowed_count", (value, validationLimit) -> {
         try {
             var windowedCount = Sampling.parseWindowedCount(value);
-            var maxWindowedCount = Sampling.parseWindowedCount(((ValidationLimit.WindowedCountLimit) validationLimit).getLimit());
+            var maxWindowedCount =
+                    Sampling.parseWindowedCount(((ValidationLimit.WindowedCountLimit) validationLimit).getLimit());
             return windowedCount.ratePerSeconds() <= maxWindowedCount.ratePerSeconds();
         } catch (Exception e) {
             return false;
@@ -67,15 +69,14 @@ public enum SamplingType {
     });
 
     private static final Map<String, SamplingType> LABELS_MAP = Map.of(
-        PROBABILITY.label,
-        PROBABILITY,
-        TEMPORAL.label,
-        TEMPORAL,
-        COUNT.label,
-        COUNT,
-        WINDOWED_COUNT.label,
-        WINDOWED_COUNT
-    );
+            PROBABILITY.label,
+            PROBABILITY,
+            TEMPORAL.label,
+            TEMPORAL,
+            COUNT.label,
+            COUNT,
+            WINDOWED_COUNT.label,
+            WINDOWED_COUNT);
 
     @JsonValue
     @Getter

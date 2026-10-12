@@ -107,7 +107,8 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
     }
 
     @Override
-    public Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable) {
+    public Page<String> searchIds(
+            List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable) {
         requireNonNull(pageable, "Pageable must not be null");
 
         Query query = new Query();
@@ -125,11 +126,9 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
         long total = mongoQueries.countOrTimeout(mongoTemplate, query, ApiProductMongo.class);
         query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sort));
 
-        List<String> ids = mongoTemplate
-            .find(query, ApiProductMongo.class)
-            .stream()
-            .map(ApiProductMongo::getId)
-            .collect(Collectors.toList());
+        List<String> ids = mongoTemplate.find(query, ApiProductMongo.class).stream()
+                .map(ApiProductMongo::getId)
+                .collect(Collectors.toList());
 
         return new Page<>(ids, pageable.pageNumber(), ids.size(), total);
     }
@@ -138,46 +137,43 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
         if (orCriteria == null || orCriteria.isEmpty()) {
             return;
         }
-        List<List<Criteria>> convertedCriteria = orCriteria
-            .stream()
-            .filter(Objects::nonNull)
-            .map(criteria -> {
-                List<Criteria> list = new ArrayList<>();
-                if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
-                    list.add(where("id").in(criteria.getIds()));
-                }
-                if (criteria.getName() != null && !criteria.getName().isEmpty()) {
-                    list.add(where("name").is(criteria.getName()));
-                }
-                if (criteria.getVersion() != null && !criteria.getVersion().isEmpty()) {
-                    list.add(where("version").is(criteria.getVersion()));
-                }
-                if (criteria.getEnvironmentId() != null && !criteria.getEnvironmentId().isEmpty()) {
-                    list.add(where("environmentId").is(criteria.getEnvironmentId()));
-                }
-                if (criteria.getEnvironments() != null && !criteria.getEnvironments().isEmpty()) {
-                    list.add(where("environmentId").in(criteria.getEnvironments()));
-                }
-                if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
-                    list.add(where("apiIds").in(criteria.getApiIds()));
-                }
-                if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
-                    list.add(where("groups").in(criteria.getGroups()));
-                }
-                return list;
-            })
-            .filter(criteria -> !criteria.isEmpty())
-            .collect(Collectors.toList());
+        List<List<Criteria>> convertedCriteria = orCriteria.stream()
+                .filter(Objects::nonNull)
+                .map(criteria -> {
+                    List<Criteria> list = new ArrayList<>();
+                    if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
+                        list.add(where("id").in(criteria.getIds()));
+                    }
+                    if (criteria.getName() != null && !criteria.getName().isEmpty()) {
+                        list.add(where("name").is(criteria.getName()));
+                    }
+                    if (criteria.getVersion() != null && !criteria.getVersion().isEmpty()) {
+                        list.add(where("version").is(criteria.getVersion()));
+                    }
+                    if (criteria.getEnvironmentId() != null
+                            && !criteria.getEnvironmentId().isEmpty()) {
+                        list.add(where("environmentId").is(criteria.getEnvironmentId()));
+                    }
+                    if (criteria.getEnvironments() != null
+                            && !criteria.getEnvironments().isEmpty()) {
+                        list.add(where("environmentId").in(criteria.getEnvironments()));
+                    }
+                    if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
+                        list.add(where("apiIds").in(criteria.getApiIds()));
+                    }
+                    if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
+                        list.add(where("groups").in(criteria.getGroups()));
+                    }
+                    return list;
+                })
+                .filter(criteria -> !criteria.isEmpty())
+                .collect(Collectors.toList());
 
         if (convertedCriteria.size() > 1) {
-            query.addCriteria(
-                new Criteria().orOperator(
-                    convertedCriteria
-                        .stream()
-                        .map(criteria -> new Criteria().andOperator(criteria))
-                        .collect(Collectors.toList())
-                )
-            );
+            query.addCriteria(new Criteria()
+                    .orOperator(convertedCriteria.stream()
+                            .map(criteria -> new Criteria().andOperator(criteria))
+                            .collect(Collectors.toList())));
         } else if (convertedCriteria.size() == 1) {
             convertedCriteria.get(0).forEach(query::addCriteria);
         }

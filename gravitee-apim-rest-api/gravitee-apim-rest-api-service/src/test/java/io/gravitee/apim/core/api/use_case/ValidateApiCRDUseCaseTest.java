@@ -35,7 +35,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ValidateApiCRDUseCaseTest {
 
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().environmentId("TEST").organizationId("TEST").build();
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfo.builder().environmentId("TEST").organizationId("TEST").build();
 
     ValidateApiCRDDomainService validator = mock(ValidateApiCRDDomainService.class);
 
@@ -47,22 +48,20 @@ class ValidateApiCRDUseCaseTest {
 
         var input = new ImportApiCRDUseCase.Input(AUDIT_INFO, spec);
 
-        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))).thenReturn(
-            Validator.Result.ofValue(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
-        );
+        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)))
+                .thenReturn(Validator.Result.ofValue(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)));
 
         var output = cut.execute(input);
 
-        assertThat(output.status()).isEqualTo(
-            ApiCRDStatus.builder()
-                .id("api-id")
-                .crossId("api-cross-id")
-                .environmentId("TEST")
-                .organizationId("TEST")
-                .plan("plan-name", "plan-id")
-                .state("STARTED")
-                .build()
-        );
+        assertThat(output.status())
+                .isEqualTo(ApiCRDStatus.builder()
+                        .id("api-id")
+                        .crossId("api-cross-id")
+                        .environmentId("TEST")
+                        .organizationId("TEST")
+                        .plan("plan-name", "plan-id")
+                        .state("STARTED")
+                        .build());
     }
 
     @Test
@@ -71,22 +70,20 @@ class ValidateApiCRDUseCaseTest {
 
         var input = new ImportApiCRDUseCase.Input(AUDIT_INFO, spec);
 
-        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))).thenReturn(
-            Validator.Result.ofValue(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
-        );
+        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)))
+                .thenReturn(Validator.Result.ofValue(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)));
 
         var output = cut.execute(input);
 
-        assertThat(output.status()).isEqualTo(
-            ApiCRDStatus.builder()
-                .id("api-id")
-                .crossId("api-cross-id")
-                .environmentId("TEST")
-                .organizationId("TEST")
-                .plan("plan-name", "plan-id")
-                .state("STARTED")
-                .build()
-        );
+        assertThat(output.status())
+                .isEqualTo(ApiCRDStatus.builder()
+                        .id("api-id")
+                        .crossId("api-cross-id")
+                        .environmentId("TEST")
+                        .organizationId("TEST")
+                        .plan("plan-name", "plan-id")
+                        .state("STARTED")
+                        .build());
     }
 
     @Test
@@ -95,26 +92,23 @@ class ValidateApiCRDUseCaseTest {
 
         var input = new ImportApiCRDUseCase.Input(AUDIT_INFO, spec);
 
-        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))).thenReturn(
-            Validator.Result.ofBoth(
-                new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec),
-                List.of(Validator.Error.warning("something went wrong but it's OK"))
-            )
-        );
+        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)))
+                .thenReturn(Validator.Result.ofBoth(
+                        new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec),
+                        List.of(Validator.Error.warning("something went wrong but it's OK"))));
 
         var output = cut.execute(input);
 
-        assertThat(output.status()).isEqualTo(
-            ApiCRDStatus.builder()
-                .id("api-id")
-                .crossId("api-cross-id")
-                .environmentId("TEST")
-                .organizationId("TEST")
-                .plan("plan-name", "plan-id")
-                .state("STARTED")
-                .errors(new ApiCRDStatus.Errors(List.of(), List.of("something went wrong but it's OK")))
-                .build()
-        );
+        assertThat(output.status())
+                .isEqualTo(ApiCRDStatus.builder()
+                        .id("api-id")
+                        .crossId("api-cross-id")
+                        .environmentId("TEST")
+                        .organizationId("TEST")
+                        .plan("plan-name", "plan-id")
+                        .state("STARTED")
+                        .errors(new ApiCRDStatus.Errors(List.of(), List.of("something went wrong but it's OK")))
+                        .build());
     }
 
     @Test
@@ -123,26 +117,23 @@ class ValidateApiCRDUseCaseTest {
 
         var input = new ImportApiCRDUseCase.Input(AUDIT_INFO, spec);
 
-        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))).thenReturn(
-            Validator.Result.ofBoth(
-                new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec),
-                List.of(Validator.Error.warning("something went wrong but it's OK"))
-            )
-        );
+        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)))
+                .thenReturn(Validator.Result.ofBoth(
+                        new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec),
+                        List.of(Validator.Error.warning("something went wrong but it's OK"))));
 
         var output = cut.execute(input);
 
-        assertThat(output.status()).isEqualTo(
-            ApiCRDStatus.builder()
-                .id("api-id")
-                .crossId("api-cross-id")
-                .environmentId("TEST")
-                .organizationId("TEST")
-                .plan("plan-name", "plan-id")
-                .state("STARTED")
-                .errors(new ApiCRDStatus.Errors(List.of(), List.of("something went wrong but it's OK")))
-                .build()
-        );
+        assertThat(output.status())
+                .isEqualTo(ApiCRDStatus.builder()
+                        .id("api-id")
+                        .crossId("api-cross-id")
+                        .environmentId("TEST")
+                        .organizationId("TEST")
+                        .plan("plan-name", "plan-id")
+                        .state("STARTED")
+                        .errors(new ApiCRDStatus.Errors(List.of(), List.of("something went wrong but it's OK")))
+                        .build());
     }
 
     @Test
@@ -151,15 +142,16 @@ class ValidateApiCRDUseCaseTest {
 
         var input = new ImportApiCRDUseCase.Input(AUDIT_INFO, spec);
 
-        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))).thenReturn(
-            Validator.Result.ofErrors(List.of(Validator.Error.severe("something went wrong and it's not OK")))
-        );
+        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)))
+                .thenReturn(Validator.Result.ofErrors(
+                        List.of(Validator.Error.severe("something went wrong and it's not OK"))));
 
         var output = cut.execute(input);
 
-        assertThat(output.status()).isEqualTo(
-            ApiCRDStatus.builder().errors(new ApiCRDStatus.Errors(List.of("something went wrong and it's not OK"), List.of())).build()
-        );
+        assertThat(output.status())
+                .isEqualTo(ApiCRDStatus.builder()
+                        .errors(new ApiCRDStatus.Errors(List.of("something went wrong and it's not OK"), List.of()))
+                        .build());
     }
 
     @Test
@@ -168,14 +160,15 @@ class ValidateApiCRDUseCaseTest {
 
         var input = new ImportApiCRDUseCase.Input(AUDIT_INFO, spec);
 
-        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))).thenReturn(
-            Validator.Result.ofErrors(List.of(Validator.Error.severe("something went wrong and it's not OK")))
-        );
+        when(validator.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec)))
+                .thenReturn(Validator.Result.ofErrors(
+                        List.of(Validator.Error.severe("something went wrong and it's not OK"))));
 
         var output = cut.execute(input);
 
-        assertThat(output.status()).isEqualTo(
-            ApiCRDStatus.builder().errors(new ApiCRDStatus.Errors(List.of("something went wrong and it's not OK"), List.of())).build()
-        );
+        assertThat(output.status())
+                .isEqualTo(ApiCRDStatus.builder()
+                        .errors(new ApiCRDStatus.Errors(List.of("something went wrong and it's not OK"), List.of()))
+                        .build());
     }
 }

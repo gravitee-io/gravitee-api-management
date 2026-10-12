@@ -53,40 +53,37 @@ public class ApiKeyFetcher {
 
     public Flowable<List<ApiKey>> fetchLatest(final Long from, final Long to, final Set<String> environments) {
         ApiKeyCriteria criteria = ApiKeyCriteria.builder()
-            .includeRevoked(true)
-            .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
-            .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
-            .environments(environments)
-            .build();
+                .includeRevoked(true)
+                .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
+                .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                .environments(environments)
+                .build();
         var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
 
-        return Flowable.<List<ApiKey>, ApiKeyPage>generate(
-            () -> new ApiKeyPage(null),
-            (page, emitter) -> {
-                try {
-                    List<ApiKey> apiKeys = apiKeyRepository.searchAfter(criteria, sortable, page.cursor, bulkItems);
-                    if (apiKeys != null && !apiKeys.isEmpty()) {
-                        emitter.onNext(apiKeys);
-                        ApiKey last = apiKeys.getLast();
-                        if (last.getUpdatedAt() == null) {
-                            // Criteria.from/to > 0 already filters rows lacking updatedAt at the
-                            // repository layer. Guard the cursor advance so a malformed row never
-                            // wedges the loop (NPE → onError → retry exhaustion → tick never
-                            // completes → next tick refetches the same poison row).
-                            log.warn("ApiKey {} has null updatedAt; terminating page loop early", last.getId());
-                            emitter.onComplete();
-                            return;
-                        }
-                        page.cursor = ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId());
-                    }
-                    if (apiKeys == null || apiKeys.size() < bulkItems) {
+        return Flowable.<List<ApiKey>, ApiKeyPage>generate(() -> new ApiKeyPage(null), (page, emitter) -> {
+            try {
+                List<ApiKey> apiKeys = apiKeyRepository.searchAfter(criteria, sortable, page.cursor, bulkItems);
+                if (apiKeys != null && !apiKeys.isEmpty()) {
+                    emitter.onNext(apiKeys);
+                    ApiKey last = apiKeys.getLast();
+                    if (last.getUpdatedAt() == null) {
+                        // Criteria.from/to > 0 already filters rows lacking updatedAt at the
+                        // repository layer. Guard the cursor advance so a malformed row never
+                        // wedges the loop (NPE → onError → retry exhaustion → tick never
+                        // completes → next tick refetches the same poison row).
+                        log.warn("ApiKey {} has null updatedAt; terminating page loop early", last.getId());
                         emitter.onComplete();
+                        return;
                     }
-                } catch (Exception e) {
-                    emitter.onError(e);
+                    page.cursor = ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId());
                 }
+                if (apiKeys == null || apiKeys.size() < bulkItems) {
+                    emitter.onComplete();
+                }
+            } catch (Exception e) {
+                emitter.onError(e);
             }
-        );
+        });
     }
 
     @AllArgsConstructor

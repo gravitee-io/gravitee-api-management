@@ -30,14 +30,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author GraviteeSource Team
  */
 public abstract class AbstractAccessPointAcceptor<T extends Acceptor<T>>
-    implements Acceptor<T>, EventListener<AccessPointEvent, ReactableAccessPoint> {
+        implements Acceptor<T>, EventListener<AccessPointEvent, ReactableAccessPoint> {
 
     protected final ReactorHandler apiReactor;
     private final String environmentId;
     private final EventManager eventManager;
     protected List<T> acceptors;
 
-    public AbstractAccessPointAcceptor(ReactorHandler apiReactor, final EventManager eventManager, final String environmentId) {
+    public AbstractAccessPointAcceptor(
+            ReactorHandler apiReactor, final EventManager eventManager, final String environmentId) {
         this.apiReactor = apiReactor;
         this.environmentId = environmentId;
         this.eventManager = eventManager;
@@ -45,11 +46,10 @@ public abstract class AbstractAccessPointAcceptor<T extends Acceptor<T>>
     }
 
     protected void initializeAcceptors(final List<ReactableAccessPoint> initialReactableAccessPoints) {
-        this.acceptors = initialReactableAccessPoints
-            .stream()
-            .filter(reactableAccessPoint -> reactableAccessPoint.getTarget() == getTarget())
-            .map((ReactableAccessPoint reactableAccessPoint) -> createAcceptor(reactableAccessPoint.getHost()))
-            .collect(toCollection(CopyOnWriteArrayList::new));
+        this.acceptors = initialReactableAccessPoints.stream()
+                .filter(reactableAccessPoint -> reactableAccessPoint.getTarget() == getTarget())
+                .map((ReactableAccessPoint reactableAccessPoint) -> createAcceptor(reactableAccessPoint.getHost()))
+                .collect(toCollection(CopyOnWriteArrayList::new));
     }
 
     protected abstract T createAcceptor(String accessPointHost);

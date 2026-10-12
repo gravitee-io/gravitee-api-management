@@ -57,19 +57,17 @@ public class ApplicationMetadataResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List metadata for an application",
-        description = "User must have the APPLICATION_METADATA[READ] permission to use this service"
-    )
+            summary = "List metadata for an application",
+            description = "User must have the APPLICATION_METADATA[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of metadata for an application",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApplicationMetadataEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of metadata for an application",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ApplicationMetadataEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ)})
     public List<ApplicationMetadataEntity> getApplicationMetadatas() {
         return metadataService.findAllByApplication(application);
     }
@@ -78,17 +76,18 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Path("{metadata}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "A metadata for an application and metadata id",
-        description = "User must have the APPLICATION_METADATA[READ] permission to use this service"
-    )
+            summary = "A metadata for an application and metadata id",
+            description = "User must have the APPLICATION_METADATA[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "A metadata",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationMetadataEntity.class))
-    )
+            responseCode = "200",
+            description = "A metadata",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationMetadataEntity.class)))
     @ApiResponse(responseCode = "404", description = "Metadata not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ)})
     public ApplicationMetadataEntity getApplicationMetadata(@PathParam("metadata") String metadata) {
         return metadataService.findByIdAndApplication(metadata, application);
     }
@@ -97,22 +96,26 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create an application metadata",
-        description = "User must have the APPLICATION_METADATA[CREATE] permission to use this service"
-    )
+            summary = "Create an application metadata",
+            description = "User must have the APPLICATION_METADATA[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Application metadata successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationMetadataEntity.class))
-    )
+            responseCode = "201",
+            description = "Application metadata successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationMetadataEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.CREATE)})
     public Response createApplicationMetadata(@Valid @NotNull final NewApplicationMetadataEntity metadata) {
         // prevent creation of a metadata on an another APPLICATION
         metadata.setApplicationId(application);
 
-        final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(GraviteeContext.getExecutionContext(), metadata);
-        return Response.created(this.getLocationHeader(applicationMetadataEntity.getKey())).entity(applicationMetadataEntity).build();
+        final ApplicationMetadataEntity applicationMetadataEntity =
+                metadataService.create(GraviteeContext.getExecutionContext(), metadata);
+        return Response.created(this.getLocationHeader(applicationMetadataEntity.getKey()))
+                .entity(applicationMetadataEntity)
+                .build();
     }
 
     @PUT
@@ -120,35 +123,35 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update an application metadata",
-        description = "User must have the APPLICATION_METADATA[UPDATE] permission to use this service"
-    )
+            summary = "Update an application metadata",
+            description = "User must have the APPLICATION_METADATA[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated application metadata",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationMetadataEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated application metadata",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationMetadataEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.UPDATE)})
     public Response updateApplicationMetadata(
-        @PathParam("metadata") String metadataPathParam,
-        @Valid @NotNull final UpdateApplicationMetadataEntity metadata
-    ) {
+            @PathParam("metadata") String metadataPathParam,
+            @Valid @NotNull final UpdateApplicationMetadataEntity metadata) {
         // prevent update of a metadata on an another APPLICATION
         metadata.setApplicationId(application);
 
-        return Response.ok(metadataService.update(GraviteeContext.getExecutionContext(), metadata)).build();
+        return Response.ok(metadataService.update(GraviteeContext.getExecutionContext(), metadata))
+                .build();
     }
 
     @DELETE
     @Path("{metadata}")
     @Operation(
-        summary = "Delete a metadata",
-        description = "User must have the APPLICATION_METADATA[DELETE] permission to use this service"
-    )
+            summary = "Delete a metadata",
+            description = "User must have the APPLICATION_METADATA[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Metadata successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.DELETE)})
     public Response deleteApplicationMetadata(@PathParam("metadata") String metadata) {
         metadataService.delete(GraviteeContext.getExecutionContext(), metadata, application);
         return Response.noContent().build();

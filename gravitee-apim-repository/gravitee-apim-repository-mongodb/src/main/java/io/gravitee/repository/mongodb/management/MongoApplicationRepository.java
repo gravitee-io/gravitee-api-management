@@ -73,7 +73,8 @@ public class MongoApplicationRepository implements ApplicationRepository {
             return mapApplication(applicationMongoCreated);
         } catch (org.springframework.dao.DuplicateKeyException e) {
             if (isClientIdConflict(e)) {
-                throw new DuplicateKeyException(String.format("An error occurred while creating application [%s]", application.getId()), e);
+                throw new DuplicateKeyException(
+                        String.format("An error occurred while creating application [%s]", application.getId()), e);
             }
             throw e;
         }
@@ -93,7 +94,8 @@ public class MongoApplicationRepository implements ApplicationRepository {
             throw new IllegalStateException("Application to update must have an id");
         }
 
-        final ApplicationMongo applicationMongo = internalApplicationRepo.findById(application.getId()).orElse(null);
+        final ApplicationMongo applicationMongo =
+                internalApplicationRepo.findById(application.getId()).orElse(null);
         if (applicationMongo == null) {
             throw new IllegalStateException(String.format("No application found with id [%s]", application.getId()));
         }
@@ -119,7 +121,8 @@ public class MongoApplicationRepository implements ApplicationRepository {
             return mapApplication(applicationMongoUpdated);
         } catch (org.springframework.dao.DuplicateKeyException e) {
             if (isClientIdConflict(e)) {
-                throw new DuplicateKeyException(String.format("An error occurred while updating application [%s]", application.getId()), e);
+                throw new DuplicateKeyException(
+                        String.format("An error occurred while updating application [%s]", application.getId()), e);
             }
             throw e;
         }
@@ -127,7 +130,8 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
     @Override
     public Optional<Application> findById(String applicationId) throws TechnicalException {
-        ApplicationMongo application = internalApplicationRepo.findById(applicationId).orElse(null);
+        ApplicationMongo application =
+                internalApplicationRepo.findById(applicationId).orElse(null);
         return Optional.ofNullable(mapApplication(application));
     }
 
@@ -161,7 +165,9 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
     @Override
     public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable) {
-        return internalApplicationRepo.search(applicationCriteria, pageable, sortable).map(this::mapApplication);
+        return internalApplicationRepo
+                .search(applicationCriteria, pageable, sortable)
+                .map(this::mapApplication);
     }
 
     @Override
@@ -169,12 +175,11 @@ public class MongoApplicationRepository implements ApplicationRepository {
         if (sortable == null) {
             return internalApplicationRepo.searchIds(applicationCriteria).collect(Collectors.toSet());
         }
-        final Page<ApplicationMongo> applicationsMongo = internalApplicationRepo.search(applicationCriteria, null, sortable);
-        return applicationsMongo
-            .getContent()
-            .parallelStream()
-            .map(ApplicationMongo::getId)
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+        final Page<ApplicationMongo> applicationsMongo =
+                internalApplicationRepo.search(applicationCriteria, null, sortable);
+        return applicationsMongo.getContent().parallelStream()
+                .map(ApplicationMongo::getId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override
@@ -197,7 +202,8 @@ public class MongoApplicationRepository implements ApplicationRepository {
     @Override
     public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses) {
         if (statuses != null && statuses.length > 0) {
-            return mapApplications(internalApplicationRepo.findAllByEnvironmentId(environmentId, Arrays.asList(statuses)));
+            return mapApplications(
+                    internalApplicationRepo.findAllByEnvironmentId(environmentId, Arrays.asList(statuses)));
         } else {
             return mapApplications(internalApplicationRepo.findAllByEnvironmentId(environmentId));
         }
@@ -207,11 +213,9 @@ public class MongoApplicationRepository implements ApplicationRepository {
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete by environmentId [{}]", environmentId);
         try {
-            final var applicationMongos = internalApplicationRepo
-                .deleteByEnvironmentId(environmentId)
-                .stream()
-                .map(ApplicationMongo::getId)
-                .toList();
+            final var applicationMongos = internalApplicationRepo.deleteByEnvironmentId(environmentId).stream()
+                    .map(ApplicationMongo::getId)
+                    .toList();
             log.debug("Delete by environmentId [{}] - Done", environmentId);
             return applicationMongos;
         } catch (Exception ex) {
@@ -227,6 +231,8 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
     @Override
     public Set<Application> findAll() throws TechnicalException {
-        return internalApplicationRepo.findAll().stream().map(this::mapApplication).collect(Collectors.toSet());
+        return internalApplicationRepo.findAll().stream()
+                .map(this::mapApplication)
+                .collect(Collectors.toSet());
     }
 }

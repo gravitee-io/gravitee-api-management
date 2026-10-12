@@ -35,20 +35,19 @@ public class AccessPointDeployer implements Deployer<AccessPointDeployable> {
         return Completable.fromRunnable(() -> {
             try {
                 accessPointManager.register(deployable.reactableAccessPoint());
-                log.debug("Access point for environment [{}] deployed ", deployable.reactableAccessPoint().getEnvironmentId());
+                log.debug(
+                        "Access point for environment [{}] deployed ",
+                        deployable.reactableAccessPoint().getEnvironmentId());
             } catch (Exception e) {
                 log.warn(
-                    "Access point cannot be registered for environment [{}].",
-                    deployable.reactableAccessPoint().getEnvironmentId(),
-                    e
-                );
+                        "Access point cannot be registered for environment [{}].",
+                        deployable.reactableAccessPoint().getEnvironmentId(),
+                        e);
                 throw new SyncException(
-                    String.format(
-                        "An error occurred when trying to deploy access point for environment %s.",
-                        deployable.reactableAccessPoint().getEnvironmentId()
-                    ),
-                    e
-                );
+                        String.format(
+                                "An error occurred when trying to deploy access point for environment %s.",
+                                deployable.reactableAccessPoint().getEnvironmentId()),
+                        e);
             }
         });
     }
@@ -60,17 +59,14 @@ public class AccessPointDeployer implements Deployer<AccessPointDeployable> {
                 accessPointManager.unregister(deployable.reactableAccessPoint());
             } catch (Exception e) {
                 log.warn(
-                    "Access point cannot be unregistered for environment [{}].",
-                    deployable.reactableAccessPoint().getEnvironmentId(),
-                    e
-                );
+                        "Access point cannot be unregistered for environment [{}].",
+                        deployable.reactableAccessPoint().getEnvironmentId(),
+                        e);
                 throw new SyncException(
-                    String.format(
-                        "An error occurred when trying to undeploy access point for environment %s.",
-                        deployable.reactableAccessPoint().getEnvironmentId()
-                    ),
-                    e
-                );
+                        String.format(
+                                "An error occurred when trying to undeploy access point for environment %s.",
+                                deployable.reactableAccessPoint().getEnvironmentId()),
+                        e);
             }
         });
     }

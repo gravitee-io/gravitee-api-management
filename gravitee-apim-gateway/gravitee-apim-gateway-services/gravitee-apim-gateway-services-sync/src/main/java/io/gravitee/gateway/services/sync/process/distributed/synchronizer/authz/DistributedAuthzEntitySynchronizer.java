@@ -29,18 +29,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 import lombok.CustomLog;
 
 @CustomLog
-public class DistributedAuthzEntitySynchronizer extends AbstractDistributedSynchronizer<AuthzEntityReactorDeployable, AuthzEntityDeployer> {
+public class DistributedAuthzEntitySynchronizer
+        extends AbstractDistributedSynchronizer<AuthzEntityReactorDeployable, AuthzEntityDeployer> {
 
     private final DeployerFactory deployerFactory;
     private final AuthzEntityMapper authzEntityMapper;
 
     public DistributedAuthzEntitySynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final AuthzEntityMapper authzEntityMapper
-    ) {
+            final DistributedEventFetcher distributedEventFetcher,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final DeployerFactory deployerFactory,
+            final AuthzEntityMapper authzEntityMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.authzEntityMapper = authzEntityMapper;

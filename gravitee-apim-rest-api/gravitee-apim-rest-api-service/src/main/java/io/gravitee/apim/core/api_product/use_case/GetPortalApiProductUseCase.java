@@ -36,8 +36,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetPortalApiProductUseCase {
 
-    private static final Comparator<String> NULL_SAFE_STRING_COMPARATOR = Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER);
-    private static final ApiFieldFilter API_FIELD_FILTER = ApiFieldFilter.builder().definitionExcluded(true).pictureExcluded(true).build();
+    private static final Comparator<String> NULL_SAFE_STRING_COMPARATOR =
+            Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER);
+    private static final ApiFieldFilter API_FIELD_FILTER = ApiFieldFilter.builder()
+            .definitionExcluded(true)
+            .pictureExcluded(true)
+            .build();
 
     private final PortalApiProductAccessDomainService portalApiProductAccessDomainService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
@@ -45,18 +49,16 @@ public class GetPortalApiProductUseCase {
 
     public Output execute(Input input) {
         var accessibleApiProduct = portalApiProductAccessDomainService.findAccessible(
-            input.environmentId(),
-            input.apiProductId(),
-            input.viewerContext()
-        );
+                input.environmentId(), input.apiProductId(), input.viewerContext());
         var apiProduct = accessibleApiProduct.apiProduct();
         var apis = findAccessibleApis(apiProduct, input);
         var tags = apiProduct.getTags() == null
-            ? List.<String>of()
-            : apiProduct.getTags().stream().sorted(NULL_SAFE_STRING_COMPARATOR).toList();
+                ? List.<String>of()
+                : apiProduct.getTags().stream()
+                        .sorted(NULL_SAFE_STRING_COMPARATOR)
+                        .toList();
 
-        return new Output(
-            new PortalApiProductDetails(
+        return new Output(new PortalApiProductDetails(
                 apiProduct.getId(),
                 apiProduct.getName(),
                 apiProduct.getDescription(),
@@ -64,9 +66,7 @@ public class GetPortalApiProductUseCase {
                 apiProduct.getKind(),
                 accessibleApiProduct.navigationItem().getId().json(),
                 tags,
-                apis
-            )
-        );
+                apis));
     }
 
     private List<PortalApiProductDetails.ApiSummary> findAccessibleApis(ApiProduct apiProduct, Input input) {
@@ -75,32 +75,32 @@ public class GetPortalApiProductUseCase {
         }
 
         Set<String> visibleApiIds = input
-            .viewerContext()
-            .userId()
-            .map(userId -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), userId))
-            .orElseGet(() -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId()))
-            .stream()
-            .map(PortalNavigationApi::getApiId)
-            .filter(apiProduct.getApiIds()::contains)
-            .collect(Collectors.toSet());
+                .viewerContext()
+                .userId()
+                .map(userId -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), userId))
+                .orElseGet(() -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId()))
+                .stream()
+                .map(PortalNavigationApi::getApiId)
+                .filter(apiProduct.getApiIds()::contains)
+                .collect(Collectors.toSet());
 
         if (visibleApiIds.isEmpty()) {
             return List.of();
         }
 
         return apiQueryService
-            .search(
-                ApiSearchCriteria.builder().environmentId(input.environmentId()).ids(List.copyOf(visibleApiIds)).build(),
-                null,
-                API_FIELD_FILTER
-            )
-            .sorted(
-                Comparator.comparing(Api::getName, NULL_SAFE_STRING_COMPARATOR)
-                    .thenComparing(Api::getVersion, NULL_SAFE_STRING_COMPARATOR)
-                    .thenComparing(Api::getId, NULL_SAFE_STRING_COMPARATOR)
-            )
-            .map(api -> new PortalApiProductDetails.ApiSummary(api.getId(), api.getName(), api.getVersion()))
-            .toList();
+                .search(
+                        ApiSearchCriteria.builder()
+                                .environmentId(input.environmentId())
+                                .ids(List.copyOf(visibleApiIds))
+                                .build(),
+                        null,
+                        API_FIELD_FILTER)
+                .sorted(Comparator.comparing(Api::getName, NULL_SAFE_STRING_COMPARATOR)
+                        .thenComparing(Api::getVersion, NULL_SAFE_STRING_COMPARATOR)
+                        .thenComparing(Api::getId, NULL_SAFE_STRING_COMPARATOR))
+                .map(api -> new PortalApiProductDetails.ApiSummary(api.getId(), api.getName(), api.getVersion()))
+                .toList();
     }
 
     public record Input(String environmentId, String apiProductId, PortalNavigationItemViewerContext viewerContext) {}

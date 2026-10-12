@@ -21,7 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-@JsonPropertyOrder({ Error.JSON_PROPERTY_HTTP_STATUS, Error.JSON_PROPERTY_MESSAGE })
+@JsonPropertyOrder({Error.JSON_PROPERTY_HTTP_STATUS, Error.JSON_PROPERTY_MESSAGE})
 @Builder
 @Getter
 @AllArgsConstructor

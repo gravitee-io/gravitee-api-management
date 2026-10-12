@@ -69,9 +69,7 @@ public class IntegrationCrudServiceImpl extends AbstractService implements Integ
     }
 
     public <T extends Integration> Optional<T> findById(
-        String id,
-        Function<io.gravitee.repository.management.model.Integration, T> mapper
-    ) {
+            String id, Function<io.gravitee.repository.management.model.Integration, T> mapper) {
         try {
             return integrationRepository.findByIntegrationId(id).map(mapper);
         } catch (TechnicalException e) {
@@ -86,7 +84,8 @@ public class IntegrationCrudServiceImpl extends AbstractService implements Integ
             var updatedIntegration = integrationRepository.update(specificAdapter.toRepository(integration));
             return specificAdapter.toEntity(updatedIntegration);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurred when updating integration: " + integration.id(), e);
+            throw new TechnicalManagementException(
+                    "An error occurred when updating integration: " + integration.id(), e);
         }
     }
 

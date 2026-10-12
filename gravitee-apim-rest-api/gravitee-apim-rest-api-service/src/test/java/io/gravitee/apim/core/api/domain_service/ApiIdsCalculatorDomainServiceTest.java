@@ -75,9 +75,10 @@ class ApiIdsCalculatorDomainServiceTest {
 
     @Test
     void should_fail_if_no_api_entity() {
-        assertThatThrownBy(() -> cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, ImportDefinition.builder().build()))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessage("Api is mandatory");
+        assertThatThrownBy(() -> cut.recalculateApiDefinitionIds(
+                        ENVIRONMENT_ID, ImportDefinition.builder().build()))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Api is mandatory");
     }
 
     @Nested
@@ -93,7 +94,11 @@ class ApiIdsCalculatorDomainServiceTest {
         }
 
         private static Stream<Arguments> provideEmptyOrNullPlansAndPage() {
-            return Stream.of(arguments(null, null), arguments(Set.of(), null), arguments(null, List.of()), arguments(Set.of(), List.of()));
+            return Stream.of(
+                    arguments(null, null),
+                    arguments(Set.of(), null),
+                    arguments(null, List.of()),
+                    arguments(Set.of(), List.of()));
         }
 
         @ParameterizedTest
@@ -101,26 +106,23 @@ class ApiIdsCalculatorDomainServiceTest {
         void should_generate_ids_for_plans_and_pages_when_absent(Set<PlanWithFlows> plans, List<Page> pages) {
             final ImportDefinition toRecalculate = buildImportDefinition("api-id", plans, pages);
             final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
-            result
-                .getPlans()
-                .forEach(plan -> {
-                    assertThat(plan.getId()).isNotEmpty();
-                    assertIsUuid(plan.getId());
-                });
-            result
-                .getPages()
-                .forEach(page -> {
-                    assertThat(page.getId()).isNotEmpty();
-                    assertIsUuid(page.getId());
-                });
+            result.getPlans().forEach(plan -> {
+                assertThat(plan.getId()).isNotEmpty();
+                assertIsUuid(plan.getId());
+            });
+            result.getPages().forEach(page -> {
+                assertThat(page.getId()).isNotEmpty();
+                assertIsUuid(page.getId());
+            });
         }
 
         private static Stream<Arguments> providePlansAndPagesWithoutId() {
             return Stream.of(
-                arguments(Set.of(buildPlanWithFlows("", ""), buildPlanWithFlows(null, "")), List.of()),
-                arguments(Set.of(), List.of(buildPage("", ""), buildPage(null, ""))),
-                arguments(Set.of(buildPlanWithFlows("", ""), buildPlanWithFlows(null, "")), List.of(buildPage("", ""), buildPage(null, "")))
-            );
+                    arguments(Set.of(buildPlanWithFlows("", ""), buildPlanWithFlows(null, "")), List.of()),
+                    arguments(Set.of(), List.of(buildPage("", ""), buildPage(null, ""))),
+                    arguments(
+                            Set.of(buildPlanWithFlows("", ""), buildPlanWithFlows(null, "")),
+                            List.of(buildPage("", ""), buildPage(null, ""))));
         }
 
         @ParameterizedTest
@@ -128,57 +130,51 @@ class ApiIdsCalculatorDomainServiceTest {
         void should_generate_ids_only_for_plans_and_pages_without_one(Set<PlanWithFlows> plans, List<Page> pages) {
             final ImportDefinition toRecalculate = buildImportDefinition("api-id", plans, pages);
             // Save original id by entity name
-            final Map<String, String> plansIdByName = plans
-                .stream()
-                .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
-                .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
-            final Map<String, String> pagesIdByName = pages
-                .stream()
-                .filter(page -> page.getId() != null && !page.getId().isEmpty())
-                .collect(Collectors.toMap(Page::getName, Page::getId));
+            final Map<String, String> plansIdByName = plans.stream()
+                    .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
+                    .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
+            final Map<String, String> pagesIdByName = pages.stream()
+                    .filter(page -> page.getId() != null && !page.getId().isEmpty())
+                    .collect(Collectors.toMap(Page::getName, Page::getId));
 
             final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
-            result
-                .getPlans()
-                .forEach(plan -> {
-                    assertThat(plan.getId()).isNotEmpty();
-                    if (plansIdByName.containsKey(plan.getName())) {
-                        // If map contains plan's name, then keep the original id
-                        assertThat(plan.getId()).isEqualTo(plansIdByName.get(plan.getName()));
-                    } else {
-                        // else generate one
-                        assertIsUuid(plan.getId());
-                    }
-                });
-            result
-                .getPages()
-                .forEach(page -> {
-                    assertThat(page.getId()).isNotEmpty();
-                    if (pagesIdByName.containsKey(page.getName())) {
-                        // If map contains page's name, then keep the original id
-                        assertThat(page.getId()).isEqualTo(pagesIdByName.get(page.getName()));
-                    } else {
-                        // else generate one
-                        assertIsUuid(page.getId());
-                    }
-                });
+            result.getPlans().forEach(plan -> {
+                assertThat(plan.getId()).isNotEmpty();
+                if (plansIdByName.containsKey(plan.getName())) {
+                    // If map contains plan's name, then keep the original id
+                    assertThat(plan.getId()).isEqualTo(plansIdByName.get(plan.getName()));
+                } else {
+                    // else generate one
+                    assertIsUuid(plan.getId());
+                }
+            });
+            result.getPages().forEach(page -> {
+                assertThat(page.getId()).isNotEmpty();
+                if (pagesIdByName.containsKey(page.getName())) {
+                    // If map contains page's name, then keep the original id
+                    assertThat(page.getId()).isEqualTo(pagesIdByName.get(page.getName()));
+                } else {
+                    // else generate one
+                    assertIsUuid(page.getId());
+                }
+            });
         }
 
         private static Stream<Arguments> provideMixedPlansAndPagesWithAndWithoutIds() {
             return Stream.of(
-                arguments(Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows(null, "")), List.of()),
-                arguments(Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows("apikey-plan-id", "")), List.of()),
-                arguments(Set.of(), List.of(buildPage("a-page-id", ""), buildPage(null, ""))),
-                arguments(Set.of(), List.of(buildPage("a-page-id", ""), buildPage("another-page-id", ""))),
-                arguments(
-                    Set.of(buildPlanWithFlows("", ""), buildPlanWithFlows(null, "")),
-                    List.of(buildPage("", ""), buildPage(null, ""))
-                ),
-                arguments(
-                    Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows(null, "")),
-                    List.of(buildPage("a-page-id", ""), buildPage("", ""))
-                )
-            );
+                    arguments(
+                            Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows(null, "")), List.of()),
+                    arguments(
+                            Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows("apikey-plan-id", "")),
+                            List.of()),
+                    arguments(Set.of(), List.of(buildPage("a-page-id", ""), buildPage(null, ""))),
+                    arguments(Set.of(), List.of(buildPage("a-page-id", ""), buildPage("another-page-id", ""))),
+                    arguments(
+                            Set.of(buildPlanWithFlows("", ""), buildPlanWithFlows(null, "")),
+                            List.of(buildPage("", ""), buildPage(null, ""))),
+                    arguments(
+                            Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows(null, "")),
+                            List.of(buildPage("a-page-id", ""), buildPage("", ""))));
         }
     }
 
@@ -187,20 +183,28 @@ class ApiIdsCalculatorDomainServiceTest {
 
         @BeforeEach
         void setUp() {
-            apiQueryService.initWith(List.of(Api.builder().id(API_DB_ID).crossId(API_CROSS_ID).environmentId(ENVIRONMENT_ID).build()));
-            pageQueryServiceInMemory.initWith(
-                List.of(
-                    buildPage("a-page-id", "a-page-cross-id").toBuilder().referenceId(API_DB_ID).build(),
-                    PAGE_WITH_CHANGING_CROSS_ID.toBuilder().referenceId(API_DB_ID).build(),
-                    buildPage("a-child-id", "a-child-cross-id", "a-page-id").toBuilder().referenceId(API_DB_ID).build()
-                )
-            );
-            planQueryServiceInMemory.initWith(
-                List.of(
-                    buildPlanWithFlows("keyless-plan-id", "keyless-plan-cross-id").toBuilder().referenceId(API_DB_ID).build(),
-                    buildPlanWithFlows("a-plan-id", "a-plan-cross-id").toBuilder().referenceId(API_DB_ID).build()
-                )
-            );
+            apiQueryService.initWith(List.of(Api.builder()
+                    .id(API_DB_ID)
+                    .crossId(API_CROSS_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .build()));
+            pageQueryServiceInMemory.initWith(List.of(
+                    buildPage("a-page-id", "a-page-cross-id").toBuilder()
+                            .referenceId(API_DB_ID)
+                            .build(),
+                    PAGE_WITH_CHANGING_CROSS_ID.toBuilder()
+                            .referenceId(API_DB_ID)
+                            .build(),
+                    buildPage("a-child-id", "a-child-cross-id", "a-page-id").toBuilder()
+                            .referenceId(API_DB_ID)
+                            .build()));
+            planQueryServiceInMemory.initWith(List.of(
+                    buildPlanWithFlows("keyless-plan-id", "keyless-plan-cross-id").toBuilder()
+                            .referenceId(API_DB_ID)
+                            .build(),
+                    buildPlanWithFlows("a-plan-id", "a-plan-cross-id").toBuilder()
+                            .referenceId(API_DB_ID)
+                            .build()));
         }
 
         @Test
@@ -208,26 +212,22 @@ class ApiIdsCalculatorDomainServiceTest {
             final PlanWithFlows newPlan = buildPlanWithFlows("new-plan-id", "new-plan-cross-id");
             newPlan.setGeneralConditions("another-page-id");
             final Set<PlanWithFlows> plans = Set.of(
-                buildPlanWithFlows("keyless-plan-id", "keyless-plan-cross-id"),
-                buildPlanWithFlows("a-plan-id", "a-plan-cross-id"),
-                newPlan
-            );
+                    buildPlanWithFlows("keyless-plan-id", "keyless-plan-cross-id"),
+                    buildPlanWithFlows("a-plan-id", "a-plan-cross-id"),
+                    newPlan);
             final List<Page> pages = List.of(
-                buildPage("a-page-id", "a-page-cross-id"),
-                buildPage("another-page-id", "another-cross-id"),
-                buildPage("a-child-id", "a-child-cross-id", "a-page-id")
-            );
+                    buildPage("a-page-id", "a-page-cross-id"),
+                    buildPage("another-page-id", "another-cross-id"),
+                    buildPage("a-child-id", "a-child-cross-id", "a-page-id"));
             final ImportDefinition toRecalculate = buildImportDefinition("", plans, pages);
             toRecalculate.getApiExport().setCrossId(API_CROSS_ID);
             // Save original id by entity name
-            final Map<String, String> plansIdByName = plans
-                .stream()
-                .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
-                .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
-            final Map<String, String> pagesIdByName = pages
-                .stream()
-                .filter(page -> page.getId() != null && !page.getId().isEmpty())
-                .collect(Collectors.toMap(Page::getName, Page::getId));
+            final Map<String, String> plansIdByName = plans.stream()
+                    .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
+                    .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
+            final Map<String, String> pagesIdByName = pages.stream()
+                    .filter(page -> page.getId() != null && !page.getId().isEmpty())
+                    .collect(Collectors.toMap(Page::getName, Page::getId));
 
             final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
 
@@ -235,7 +235,8 @@ class ApiIdsCalculatorDomainServiceTest {
 
             for (Page page : result.getPages()) {
                 assertThat(page.getId()).isNotEmpty();
-                if (pagesIdByName.containsKey(page.getName()) && page.getName().equals(PAGE_WITH_CHANGING_CROSS_ID.getName())) {
+                if (pagesIdByName.containsKey(page.getName())
+                        && page.getName().equals(PAGE_WITH_CHANGING_CROSS_ID.getName())) {
                     // If map contains page's name, then id must not have been recalculated
                     assertThat(page.getId()).isEqualTo(pagesIdByName.get(page.getName()));
                 } else if (page.getName().equals(PAGE_WITH_CHANGING_CROSS_ID.getName())) {
@@ -247,13 +248,12 @@ class ApiIdsCalculatorDomainServiceTest {
                     pagesIdByName.forEach((key, value) -> {
                         if (value.equals("a-page-id")) {
                             String pageName = key;
-                            final Optional<Page> parentPage = result
-                                .getPages()
-                                .stream()
-                                .filter(p -> p.getName().equals(pageName))
-                                .findFirst();
+                            final Optional<Page> parentPage = result.getPages().stream()
+                                    .filter(p -> p.getName().equals(pageName))
+                                    .findFirst();
                             assertThat(parentPage).isNotEmpty();
-                            assertThat(page.getParentId()).isEqualTo(parentPage.get().getId());
+                            assertThat(page.getParentId())
+                                    .isEqualTo(parentPage.get().getId());
                         }
                     });
                 }
@@ -266,16 +266,16 @@ class ApiIdsCalculatorDomainServiceTest {
                     // plan id should remain the same
                     assertThat(plan.getId()).isEqualTo(plansIdByName.get(plan.getName()));
                 }
-                // new plan entity should use the right page id for general conditions. Also, its id should be recalculated
+                // new plan entity should use the right page id for general conditions. Also, its id should be
+                // recalculated
                 if (plan.getName().equals(newPlan.getName())) {
                     assertIsUuid(plan.getId());
-                    final Optional<Page> pageCondition = result
-                        .getPages()
-                        .stream()
-                        .filter(p -> p.getCrossId().equals("another-cross-id"))
-                        .findFirst();
+                    final Optional<Page> pageCondition = result.getPages().stream()
+                            .filter(p -> p.getCrossId().equals("another-cross-id"))
+                            .findFirst();
                     assertThat(pageCondition).isPresent();
-                    assertThat(plan.getGeneralConditions()).isEqualTo(pageCondition.get().getId());
+                    assertThat(plan.getGeneralConditions())
+                            .isEqualTo(pageCondition.get().getId());
                 }
             }
         }
@@ -286,36 +286,31 @@ class ApiIdsCalculatorDomainServiceTest {
 
         private static final String TARGET_API_ID = "target-api-id";
         private final Api targetApi = Api.builder()
-            .id(TARGET_API_ID)
-            .crossId("target-cross-id-that-does-not-match")
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+                .id(TARGET_API_ID)
+                .crossId("target-cross-id-that-does-not-match")
+                .environmentId(ENVIRONMENT_ID)
+                .build();
 
         @BeforeEach
         void setUp() {
             // The target API is NOT resolvable by the definition crossId (e.g. resolved through promotion history).
             apiQueryService.initWith(List.of(targetApi));
-            pageQueryServiceInMemory.initWith(
-                List.of(
-                    buildPage("existing-page-id", "a-page-cross-id")
-                        .toBuilder()
-                        .referenceId(TARGET_API_ID)
-                        .referenceType(Page.ReferenceType.API)
-                        .build()
-                )
-            );
+            pageQueryServiceInMemory.initWith(List.of(buildPage("existing-page-id", "a-page-cross-id").toBuilder()
+                    .referenceId(TARGET_API_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .build()));
             planQueryServiceInMemory.initWith(
-                List.of(buildPlanWithFlows("existing-plan-id", "a-plan-cross-id").toBuilder().referenceId(TARGET_API_ID).build())
-            );
+                    List.of(buildPlanWithFlows("existing-plan-id", "a-plan-cross-id").toBuilder()
+                            .referenceId(TARGET_API_ID)
+                            .build()));
         }
 
         @Test
         void should_recalculate_ids_against_target_api_when_definition_has_no_id_and_cross_id_does_not_match() {
             final Set<PlanWithFlows> plans = Set.of(
-                buildPlanWithFlows("", "a-plan-cross-id"),
-                buildPlanWithFlows("", "brand-new-plan-cross-id")
-            );
-            final List<Page> pages = List.of(buildPage("", "a-page-cross-id"), buildPage("", "brand-new-page-cross-id"));
+                    buildPlanWithFlows("", "a-plan-cross-id"), buildPlanWithFlows("", "brand-new-plan-cross-id"));
+            final List<Page> pages =
+                    List.of(buildPage("", "a-page-cross-id"), buildPage("", "brand-new-page-cross-id"));
             final ImportDefinition toRecalculate = buildImportDefinition("", plans, pages);
             toRecalculate.getApiExport().setCrossId(API_CROSS_ID);
 
@@ -323,19 +318,19 @@ class ApiIdsCalculatorDomainServiceTest {
 
             assertThat(result.getApiExport().getId()).isEqualTo(TARGET_API_ID);
             assertThat(result.getPlans())
-                .filteredOn(plan -> "a-plan-cross-id".equals(plan.getCrossId()))
-                .extracting(PlanWithFlows::getId)
-                .containsExactly("existing-plan-id");
+                    .filteredOn(plan -> "a-plan-cross-id".equals(plan.getCrossId()))
+                    .extracting(PlanWithFlows::getId)
+                    .containsExactly("existing-plan-id");
             assertThat(result.getPlans())
-                .filteredOn(plan -> "brand-new-plan-cross-id".equals(plan.getCrossId()))
-                .allSatisfy(plan -> assertIsUuid(plan.getId()));
+                    .filteredOn(plan -> "brand-new-plan-cross-id".equals(plan.getCrossId()))
+                    .allSatisfy(plan -> assertIsUuid(plan.getId()));
             assertThat(result.getPages())
-                .filteredOn(page -> "a-page-cross-id".equals(page.getCrossId()))
-                .extracting(Page::getId)
-                .containsExactly("existing-page-id");
+                    .filteredOn(page -> "a-page-cross-id".equals(page.getCrossId()))
+                    .extracting(Page::getId)
+                    .containsExactly("existing-page-id");
             assertThat(result.getPages())
-                .filteredOn(page -> "brand-new-page-cross-id".equals(page.getCrossId()))
-                .allSatisfy(page -> assertIsUuid(page.getId()));
+                    .filteredOn(page -> "brand-new-page-cross-id".equals(page.getCrossId()))
+                    .allSatisfy(page -> assertIsUuid(page.getId()));
         }
 
         @Test
@@ -355,10 +350,10 @@ class ApiIdsCalculatorDomainServiceTest {
         @Test
         void should_prefer_target_api_over_cross_id_lookup() {
             final Api apiMatchingCrossId = Api.builder()
-                .id("api-matching-cross-id")
-                .crossId(API_CROSS_ID)
-                .environmentId(ENVIRONMENT_ID)
-                .build();
+                    .id("api-matching-cross-id")
+                    .crossId(API_CROSS_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .build();
             apiQueryService.initWith(List.of(targetApi, apiMatchingCrossId));
             final ImportDefinition toRecalculate = buildImportDefinition("", Set.of(), List.of());
             toRecalculate.getApiExport().setCrossId(API_CROSS_ID);
@@ -385,10 +380,13 @@ class ApiIdsCalculatorDomainServiceTest {
             final ImportDefinition toRecalculate = buildImportDefinition("api-id-from-definition", Set.of(), List.of());
 
             final ImportDefinition result = cut.recalculateApiDefinitionIds(
-                ENVIRONMENT_ID,
-                toRecalculate,
-                Api.builder().id(null).crossId("target-cross-id").environmentId(ENVIRONMENT_ID).build()
-            );
+                    ENVIRONMENT_ID,
+                    toRecalculate,
+                    Api.builder()
+                            .id(null)
+                            .crossId("target-cross-id")
+                            .environmentId(ENVIRONMENT_ID)
+                            .build());
 
             assertThat(result.getApiExport().getId()).isEqualTo("api-id-from-definition");
         }
@@ -398,9 +396,8 @@ class ApiIdsCalculatorDomainServiceTest {
             final ImportDefinition toRecalculate = buildImportDefinition("", null, null);
             toRecalculate.getApiExport().setCrossId(API_CROSS_ID);
 
-            final ImportDefinition result = assertDoesNotThrow(() ->
-                cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate, targetApi)
-            );
+            final ImportDefinition result =
+                    assertDoesNotThrow(() -> cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate, targetApi));
 
             assertThat(result.getApiExport().getId()).isEqualTo(TARGET_API_ID);
         }
@@ -423,116 +420,114 @@ class ApiIdsCalculatorDomainServiceTest {
 
         @Test
         void should_recalculate_ids_from_definition() {
-            final Set<PlanWithFlows> plans = Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows("an-id", ""));
-            final List<Page> pages = List.of(buildPage("a-page-id", ""), buildPage("", ""), buildPage("a-child-id", "", "a-page-id"));
+            final Set<PlanWithFlows> plans =
+                    Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows("an-id", ""));
+            final List<Page> pages =
+                    List.of(buildPage("a-page-id", ""), buildPage("", ""), buildPage("a-child-id", "", "a-page-id"));
             final ImportDefinition toRecalculate = buildImportDefinition("", plans, pages);
             // Save original id by entity name
-            final Map<String, String> plansIdByName = plans
-                .stream()
-                .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
-                .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
-            final Map<String, String> pagesIdByName = pages
-                .stream()
-                .filter(page -> page.getId() != null && !page.getId().isEmpty())
-                .collect(Collectors.toMap(Page::getName, Page::getId));
+            final Map<String, String> plansIdByName = plans.stream()
+                    .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
+                    .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
+            final Map<String, String> pagesIdByName = pages.stream()
+                    .filter(page -> page.getId() != null && !page.getId().isEmpty())
+                    .collect(Collectors.toMap(Page::getName, Page::getId));
 
             final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
 
             assertIsUuid(result.getApiExport().getId());
 
             // Verify ids has properly been recalculated when empty
-            result
-                .getPlans()
-                .forEach(plan -> {
-                    assertThat(plan.getId()).isNotEmpty();
-                    if (plansIdByName.containsKey(plan.getName())) {
-                        // If map contains plan's name, then id must have been recalculated
-                        assertThat(plan.getId()).isNotEqualTo(plansIdByName.get(plan.getName()));
-                    }
-                    assertIsUuid(plan.getId());
-                });
-            result
-                .getPages()
-                .forEach(page -> {
-                    assertThat(page.getId()).isNotEmpty();
-                    if (pagesIdByName.containsKey(page.getName())) {
-                        // If map contains page's name, then id must have been recalculated
-                        assertThat(page.getId()).isNotEqualTo(pagesIdByName.get(page.getName()));
-                    }
-                    // one page of the data set has a parent id, verify the matching
-                    if (page.getParentId() != null) {
-                        pagesIdByName.forEach((key, value) -> {
-                            if (value.equals("a-page-id")) {
-                                String pageName = key;
-                                final Optional<Page> parentPage = result
-                                    .getPages()
-                                    .stream()
+            result.getPlans().forEach(plan -> {
+                assertThat(plan.getId()).isNotEmpty();
+                if (plansIdByName.containsKey(plan.getName())) {
+                    // If map contains plan's name, then id must have been recalculated
+                    assertThat(plan.getId()).isNotEqualTo(plansIdByName.get(plan.getName()));
+                }
+                assertIsUuid(plan.getId());
+            });
+            result.getPages().forEach(page -> {
+                assertThat(page.getId()).isNotEmpty();
+                if (pagesIdByName.containsKey(page.getName())) {
+                    // If map contains page's name, then id must have been recalculated
+                    assertThat(page.getId()).isNotEqualTo(pagesIdByName.get(page.getName()));
+                }
+                // one page of the data set has a parent id, verify the matching
+                if (page.getParentId() != null) {
+                    pagesIdByName.forEach((key, value) -> {
+                        if (value.equals("a-page-id")) {
+                            String pageName = key;
+                            final Optional<Page> parentPage = result.getPages().stream()
                                     .filter(p -> p.getName().equals(pageName))
                                     .findFirst();
-                                assertThat(parentPage).isNotEmpty();
-                                assertThat(page.getParentId()).isEqualTo(parentPage.get().getId());
-                            }
-                        });
-                    }
-                    assertIsUuid(page.getId());
-                });
+                            assertThat(parentPage).isNotEmpty();
+                            assertThat(page.getParentId())
+                                    .isEqualTo(parentPage.get().getId());
+                        }
+                    });
+                }
+                assertIsUuid(page.getId());
+            });
         }
 
         @Test
         void should_not_recalculate_ids_from_definition_if_k8s_origin() {
-            final Set<PlanWithFlows> plans = Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows("an-id", ""));
+            final Set<PlanWithFlows> plans =
+                    Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows("an-id", ""));
             final List<Page> pages = List.of(buildPage("a-page-id", ""), buildPage("", ""));
             final ImportDefinition toRecalculate = buildImportDefinition("", plans, pages);
             // Save original id by entity name
-            final Map<String, String> plansIdByName = plans
-                .stream()
-                .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
-                .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
-            final Map<String, String> pagesIdByName = pages
-                .stream()
-                .filter(page -> page.getId() != null && !page.getId().isEmpty())
-                .collect(Collectors.toMap(Page::getName, Page::getId));
+            final Map<String, String> plansIdByName = plans.stream()
+                    .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
+                    .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
+            final Map<String, String> pagesIdByName = pages.stream()
+                    .filter(page -> page.getId() != null && !page.getId().isEmpty())
+                    .collect(Collectors.toMap(Page::getName, Page::getId));
 
-            toRecalculate.getApiExport().setOriginContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED));
+            toRecalculate
+                    .getApiExport()
+                    .setOriginContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED));
             final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
 
             // Verify ids has properly been recalculated when empty
-            result
-                .getPlans()
-                .forEach(plan -> {
-                    assertThat(plan.getId()).isNotEmpty();
-                    if (plansIdByName.containsKey(plan.getName())) {
-                        // If map contains plan's name, then keep the original id
-                        assertThat(plan.getId()).isEqualTo(plansIdByName.get(plan.getName()));
-                    } else {
-                        // else generate one
-                        assertIsUuid(plan.getId());
-                    }
-                });
-            result
-                .getPages()
-                .forEach(page -> {
-                    assertThat(page.getId()).isNotEmpty();
-                    if (pagesIdByName.containsKey(page.getName())) {
-                        // If map contains page's name, then keep the original id
-                        assertThat(page.getId()).isEqualTo(pagesIdByName.get(page.getName()));
-                    } else {
-                        // else generate one
-                        assertIsUuid(page.getId());
-                    }
-                });
+            result.getPlans().forEach(plan -> {
+                assertThat(plan.getId()).isNotEmpty();
+                if (plansIdByName.containsKey(plan.getName())) {
+                    // If map contains plan's name, then keep the original id
+                    assertThat(plan.getId()).isEqualTo(plansIdByName.get(plan.getName()));
+                } else {
+                    // else generate one
+                    assertIsUuid(plan.getId());
+                }
+            });
+            result.getPages().forEach(page -> {
+                assertThat(page.getId()).isNotEmpty();
+                if (pagesIdByName.containsKey(page.getName())) {
+                    // If map contains page's name, then keep the original id
+                    assertThat(page.getId()).isEqualTo(pagesIdByName.get(page.getName()));
+                } else {
+                    // else generate one
+                    assertIsUuid(page.getId());
+                }
+            });
         }
     }
 
     private static ImportDefinition buildImportDefinition(String apiId, Set<PlanWithFlows> plans, List<Page> pages) {
-        return ImportDefinition.builder().apiExport(ApiExport.builder().id(apiId).build()).plans(plans).pages(pages).build();
+        return ImportDefinition.builder()
+                .apiExport(ApiExport.builder().id(apiId).build())
+                .plans(plans)
+                .pages(pages)
+                .build();
     }
 
     private static PlanWithFlows buildPlanWithFlows(String id, String crossId) {
         return new PlanWithFlows(
-            PlanFixtures.aPlanHttpV4().setPlanId(id).toBuilder().crossId(crossId).name(generateRandomName()).build(),
-            List.of()
-        );
+                PlanFixtures.aPlanHttpV4().setPlanId(id).toBuilder()
+                        .crossId(crossId)
+                        .name(generateRandomName())
+                        .build(),
+                List.of());
     }
 
     private static Page buildPage(String id, String crossId) {
@@ -540,7 +535,12 @@ class ApiIdsCalculatorDomainServiceTest {
     }
 
     private static Page buildPage(String id, String crossId, String parentId) {
-        return Page.builder().id(id).crossId(crossId).parentId(parentId).name(generateRandomName()).build();
+        return Page.builder()
+                .id(id)
+                .crossId(crossId)
+                .parentId(parentId)
+                .name(generateRandomName())
+                .build();
     }
 
     private static void assertIsUuid(String id) {

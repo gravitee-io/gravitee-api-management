@@ -29,14 +29,16 @@ class TrustStoreMigrationTest {
 
     @Test
     void shouldConvertJKSTrustStore() {
-        io.gravitee.definition.model.ssl.jks.JKSTrustStore v2Jks = new io.gravitee.definition.model.ssl.jks.JKSTrustStore();
+        io.gravitee.definition.model.ssl.jks.JKSTrustStore v2Jks =
+                new io.gravitee.definition.model.ssl.jks.JKSTrustStore();
         v2Jks.setPath("jksPath");
         v2Jks.setContent("jksContent");
         v2Jks.setPassword("jksPassword");
 
         var result = TrustStoreMigration.convert(v2Jks);
         assertThat(result).isInstanceOf(io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore.class);
-        io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore jks = (io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore) result;
+        io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore jks =
+                (io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore) result;
         assertThat(jks.getPath()).isEqualTo("jksPath");
         assertThat(jks.getContent()).isEqualTo("jksContent");
         assertThat(jks.getPassword()).isEqualTo("jksPassword");
@@ -44,20 +46,23 @@ class TrustStoreMigrationTest {
 
     @Test
     void shouldConvertPEMTrustStore() {
-        io.gravitee.definition.model.ssl.pem.PEMTrustStore v2Pem = new io.gravitee.definition.model.ssl.pem.PEMTrustStore();
+        io.gravitee.definition.model.ssl.pem.PEMTrustStore v2Pem =
+                new io.gravitee.definition.model.ssl.pem.PEMTrustStore();
         v2Pem.setPath("pemPath");
         v2Pem.setContent("pemContent");
 
         var result = TrustStoreMigration.convert(v2Pem);
         assertThat(result).isInstanceOf(io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore.class);
-        io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore pem = (io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore) result;
+        io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore pem =
+                (io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore) result;
         assertThat(pem.getPath()).isEqualTo("pemPath");
         assertThat(pem.getContent()).isEqualTo("pemContent");
     }
 
     @Test
     void shouldConvertPKCS12TrustStore() {
-        io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore v2Pkcs12 = new io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore();
+        io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore v2Pkcs12 =
+                new io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore();
         v2Pkcs12.setPath("pkcsPath");
         v2Pkcs12.setContent("pkcsContent");
         v2Pkcs12.setPassword("pkcsPassword");
@@ -65,7 +70,7 @@ class TrustStoreMigrationTest {
         var result = TrustStoreMigration.convert(v2Pkcs12);
         assertThat(result).isInstanceOf(io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore.class);
         io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore pkcs12 =
-            (io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore) result;
+                (io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore) result;
         assertThat(pkcs12.getPath()).isEqualTo("pkcsPath");
         assertThat(pkcs12.getContent()).isEqualTo("pkcsContent");
         assertThat(pkcs12.getPassword()).isEqualTo("pkcsPassword");
@@ -73,9 +78,8 @@ class TrustStoreMigrationTest {
 
     @Test
     void shouldConvertNoneTrustStore() {
-        io.gravitee.definition.model.ssl.none.NoneTrustStore v2None = new io.gravitee.definition.model.ssl.none.NoneTrustStore(
-            TrustStoreType.None
-        );
+        io.gravitee.definition.model.ssl.none.NoneTrustStore v2None =
+                new io.gravitee.definition.model.ssl.none.NoneTrustStore(TrustStoreType.None);
 
         var result = TrustStoreMigration.convert(v2None);
         assertThat(result).isInstanceOf(io.gravitee.plugin.configurations.ssl.none.NoneTrustStore.class);

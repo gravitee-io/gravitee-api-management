@@ -98,9 +98,15 @@ public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTe
     // deleteByReferenceId
     @Test
     public void should_delete_by_reference_id() throws TechnicalException {
-        int nbBeforeDeletion = scoringRulesetRepository.findAllByReferenceId("ToBeDeleted", "ENVIRONMENT").size();
-        int deleted = scoringRulesetRepository.deleteByReferenceId("ToBeDeleted", "ENVIRONMENT").size();
-        int nbAfterDeletion = scoringRulesetRepository.findAllByReferenceId("ToBeDeleted", "ENVIRONMENT").size();
+        int nbBeforeDeletion = scoringRulesetRepository
+                .findAllByReferenceId("ToBeDeleted", "ENVIRONMENT")
+                .size();
+        int deleted = scoringRulesetRepository
+                .deleteByReferenceId("ToBeDeleted", "ENVIRONMENT")
+                .size();
+        int nbAfterDeletion = scoringRulesetRepository
+                .findAllByReferenceId("ToBeDeleted", "ENVIRONMENT")
+                .size();
 
         assertThat(nbBeforeDeletion).isEqualTo(2);
         assertThat(deleted).isEqualTo(2);
@@ -109,15 +115,15 @@ public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTe
 
     private static ScoringRuleset aRuleset(String uuid, Date date) {
         return ScoringRuleset.builder()
-            .id(uuid)
-            .name("ruleset-name")
-            .description("ruleset-description")
-            .referenceType("ENVIRONMENT")
-            .referenceId("my-env")
-            .createdAt(date)
-            .updatedAt(date)
-            .payload("ruleset-payload")
-            .build();
+                .id(uuid)
+                .name("ruleset-name")
+                .description("ruleset-description")
+                .referenceType("ENVIRONMENT")
+                .referenceId("my-env")
+                .createdAt(date)
+                .updatedAt(date)
+                .payload("ruleset-payload")
+                .build();
     }
 
     Condition<ScoringRuleset> haveId(String id) {
@@ -132,15 +138,15 @@ public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTe
         var updateDate = new Date(1_712_660_289L);
 
         var ruleset = ScoringRuleset.builder()
-            .id(id)
-            .name("updated-name")
-            .description("updated-description")
-            .referenceType("ENVIRONMENT")
-            .referenceId("my-env")
-            .createdAt(date)
-            .updatedAt(updateDate)
-            .payload("ruleset-payload")
-            .build();
+                .id(id)
+                .name("updated-name")
+                .description("updated-description")
+                .referenceType("ENVIRONMENT")
+                .referenceId("my-env")
+                .createdAt(date)
+                .updatedAt(updateDate)
+                .payload("ruleset-payload")
+                .build();
 
         var updatedRuleset = scoringRulesetRepository.update(ruleset);
 

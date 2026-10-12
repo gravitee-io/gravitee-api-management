@@ -30,7 +30,8 @@ public class SearchEnvironmentConnectionLogErrorKeysUseCase {
     }
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        return new Output(connectionLogsCrudService.searchEnvironmentConnectionLogErrorKeys(executionContext, input.from(), input.to()));
+        return new Output(connectionLogsCrudService.searchEnvironmentConnectionLogErrorKeys(
+                executionContext, input.from(), input.to()));
     }
 
     public record Input(Long from, Long to) {}

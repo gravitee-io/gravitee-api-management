@@ -17,16 +17,15 @@ package io.gravitee.gateway.reactive.platform.organization.reactor;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
-import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-public abstract class AbstractOrganizationReactor extends AbstractLifecycleComponent<OrganizationReactor> implements OrganizationReactor {
+public abstract class AbstractOrganizationReactor extends AbstractLifecycleComponent<OrganizationReactor>
+        implements OrganizationReactor {
 
     private final ReactableOrganization reactableOrganization;
 

@@ -51,83 +51,68 @@ public class ApplicationMetadataResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ)})
     public Response getMetadataByApplicationId(
-        @PathParam("applicationId") String applicationId,
-        @BeanParam PaginationParam paginationParam
-    ) {
-        List<ReferenceMetadata> applicationMetadata = metadataService
-            .findAllByApplication(applicationId)
-            .stream()
-            .map(this.referenceMetadataMapper::convert)
-            .collect(Collectors.toList());
-        return Response.ok(
-            this.createDataResponse(GraviteeContext.getExecutionContext(), applicationMetadata, paginationParam, null, true)
-        ).build();
+            @PathParam("applicationId") String applicationId, @BeanParam PaginationParam paginationParam) {
+        List<ReferenceMetadata> applicationMetadata = metadataService.findAllByApplication(applicationId).stream()
+                .map(this.referenceMetadataMapper::convert)
+                .collect(Collectors.toList());
+        return Response.ok(this.createDataResponse(
+                        GraviteeContext.getExecutionContext(), applicationMetadata, paginationParam, null, true))
+                .build();
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.CREATE)})
     public Response createApplicationMetadata(
-        @PathParam("applicationId") String applicationId,
-        @Valid @NotNull final ReferenceMetadataInput metadata
-    ) {
+            @PathParam("applicationId") String applicationId, @Valid @NotNull final ReferenceMetadataInput metadata) {
         // prevent creation of a metadata on an another APPLICATION
-        NewApplicationMetadataEntity newApplicationMetadataEntity = this.referenceMetadataMapper.convert(metadata, applicationId);
+        NewApplicationMetadataEntity newApplicationMetadataEntity =
+                this.referenceMetadataMapper.convert(metadata, applicationId);
 
-        final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(
-            GraviteeContext.getExecutionContext(),
-            newApplicationMetadataEntity
-        );
+        final ApplicationMetadataEntity applicationMetadataEntity =
+                metadataService.create(GraviteeContext.getExecutionContext(), newApplicationMetadataEntity);
         return Response.created(this.getLocationHeader(applicationMetadataEntity.getKey()))
-            .entity(this.referenceMetadataMapper.convert(applicationMetadataEntity))
-            .build();
+                .entity(this.referenceMetadataMapper.convert(applicationMetadataEntity))
+                .build();
     }
 
     @GET
     @Path("{metadataId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ)})
     public Response getApplicationMetadataByApplicationIdAndMetadataId(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("metadataId") String metadataId
-    ) {
-        return Response.ok(this.referenceMetadataMapper.convert(metadataService.findByIdAndApplication(metadataId, applicationId))).build();
+            @PathParam("applicationId") String applicationId, @PathParam("metadataId") String metadataId) {
+        return Response.ok(this.referenceMetadataMapper.convert(
+                        metadataService.findByIdAndApplication(metadataId, applicationId)))
+                .build();
     }
 
     @PUT
     @Path("{metadataId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.UPDATE)})
     public Response updateApplicationMetadataByApplicationIdAndMetadataId(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("metadataId") String metadataId,
-        @Valid @NotNull final ReferenceMetadataInput metadata
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @PathParam("metadataId") String metadataId,
+            @Valid @NotNull final ReferenceMetadataInput metadata) {
         // prevent creation of a metadata on an another APPLICATION
-        UpdateApplicationMetadataEntity updateApplicationMetadataEntity = this.referenceMetadataMapper.convert(
-            metadata,
-            applicationId,
-            metadataId
-        );
+        UpdateApplicationMetadataEntity updateApplicationMetadataEntity =
+                this.referenceMetadataMapper.convert(metadata, applicationId, metadataId);
 
-        return Response.ok(
-            this.referenceMetadataMapper.convert(
-                metadataService.update(GraviteeContext.getExecutionContext(), updateApplicationMetadataEntity)
-            )
-        ).build();
+        return Response.ok(this.referenceMetadataMapper.convert(
+                        metadataService.update(GraviteeContext.getExecutionContext(), updateApplicationMetadataEntity)))
+                .build();
     }
 
     @DELETE
     @Path("{metadataId}")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.DELETE)})
     public Response deleteApplicationMetadata(
-        @PathParam("applicationId") String applicationId,
-        @PathParam("metadataId") String metadataId
-    ) {
+            @PathParam("applicationId") String applicationId, @PathParam("metadataId") String metadataId) {
         metadataService.delete(GraviteeContext.getExecutionContext(), metadataId, applicationId);
         return Response.noContent().build();
     }

@@ -81,20 +81,18 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
 
         if (!apisFixedAndDeployed.isEmpty()) {
             log.info(
-                "{} has updated and deployed {} API with the following identifiers: {}",
-                this.getClass().getSimpleName(),
-                apisFixedAndDeployed.size(),
-                apisFixedAndDeployed
-            );
+                    "{} has updated and deployed {} API with the following identifiers: {}",
+                    this.getClass().getSimpleName(),
+                    apisFixedAndDeployed.size(),
+                    apisFixedAndDeployed);
         }
 
         if (!apisFixed.isEmpty()) {
             log.warn(
-                "{} has updated {} API with the following identifiers: {}",
-                this.getClass().getSimpleName(),
-                apisFixed.size(),
-                apisFixed
-            );
+                    "{} has updated {} API with the following identifiers: {}",
+                    this.getClass().getSimpleName(),
+                    apisFixed.size(),
+                    apisFixed);
             log.warn("They need to be redeployed manually to apply the patch.");
         }
         return true;
@@ -102,40 +100,41 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
 
     protected void fixApis(ExecutionContext executionContext) {
         apiRepository
-            .search(
-                getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId()).build(),
-                null,
-                new ApiFieldFilter.Builder().excludePicture().build()
-            )
-            .forEach(api -> {
-                try {
-                    io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                        api.getDefinition(),
-                        io.gravitee.definition.model.Api.class
-                    );
+                .search(
+                        getDefaultApiCriteriaBuilder()
+                                .environmentId(executionContext.getEnvironmentId())
+                                .build(),
+                        null,
+                        new ApiFieldFilter.Builder().excludePicture().build())
+                .forEach(api -> {
+                    try {
+                        io.gravitee.definition.model.Api apiDefinition =
+                                objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
 
-                    if (
-                        apiDefinition.getProxy() != null &&
-                        apiDefinition.getProxy().getLogging() != null &&
-                        apiDefinition.getProxy().getLogging().getCondition() != null
-                    ) {
-                        String condition = apiDefinition.getProxy().getLogging().getCondition().trim();
-                        if (condition.contains("#") && !condition.startsWith("{") && !condition.endsWith("}")) {
-                            fixLoggingCondition(executionContext, api, apiDefinition, condition);
+                        if (apiDefinition.getProxy() != null
+                                && apiDefinition.getProxy().getLogging() != null
+                                && apiDefinition.getProxy().getLogging().getCondition() != null) {
+                            String condition = apiDefinition
+                                    .getProxy()
+                                    .getLogging()
+                                    .getCondition()
+                                    .trim();
+                            if (condition.contains("#") && !condition.startsWith("{") && !condition.endsWith("}")) {
+                                fixLoggingCondition(executionContext, api, apiDefinition, condition);
+                            }
                         }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
+                });
     }
 
     protected void fixLoggingCondition(
-        ExecutionContext executionContext,
-        Api api,
-        io.gravitee.definition.model.Api apiDefinition,
-        String condition
-    ) throws Exception {
+            ExecutionContext executionContext,
+            Api api,
+            io.gravitee.definition.model.Api apiDefinition,
+            String condition)
+            throws Exception {
         apiDefinition.getProxy().getLogging().setCondition("{" + condition + "}");
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
@@ -154,7 +153,8 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
         return UpgraderOrder.API_LOGGING_CONDITION_UPGRADER;
     }
 
-    private void updateApi(ExecutionContext executionContext, Api api, ApiDeploymentEntity apiDeploymentEntity) throws Exception {
+    private void updateApi(ExecutionContext executionContext, Api api, ApiDeploymentEntity apiDeploymentEntity)
+            throws Exception {
         api.setUpdatedAt(new Date());
         api.setDeployedAt(api.getUpdatedAt());
         api = apiRepository.update(api);
@@ -169,13 +169,12 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
 
             // And create event
             eventService.createApiEvent(
-                executionContext,
-                singleton(executionContext.getEnvironmentId()),
-                executionContext.getOrganizationId(),
-                PUBLISH_API,
-                api,
-                properties
-            );
+                    executionContext,
+                    singleton(executionContext.getEnvironmentId()),
+                    executionContext.getOrganizationId(),
+                    PUBLISH_API,
+                    api,
+                    properties);
 
             apisFixedAndDeployed.add(api.getId());
         } else {
@@ -184,11 +183,10 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
     }
 
     private void addDeploymentLabelToProperties(
-        ExecutionContext executionContext,
-        String apiId,
-        Map<String, String> properties,
-        ApiDeploymentEntity apiDeploymentEntity
-    ) {
+            ExecutionContext executionContext,
+            String apiId,
+            Map<String, String> properties,
+            ApiDeploymentEntity apiDeploymentEntity) {
         final EventQuery query = new EventQuery();
         query.setApi(apiId);
         query.setTypes(singleton(PUBLISH_API));
@@ -199,14 +197,12 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
         if (executionContext.hasEnvironmentId()) {
             query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
         }
-        final Optional<EventEntity> optEvent = eventService
-            .search(executionContext, query)
-            .stream()
-            .max(comparing(EventEntity::getCreatedAt));
+        final Optional<EventEntity> optEvent =
+                eventService.search(executionContext, query).stream().max(comparing(EventEntity::getCreatedAt));
 
         String lastDeployNumber = optEvent.isPresent()
-            ? optEvent.get().getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
-            : "0";
+                ? optEvent.get().getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
+                : "0";
         String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
         properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
 

@@ -48,22 +48,23 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
     private final SharedPolicyGroupHistoryMongoRepository internalSharedPolicyGroupHistoryMongoRepo;
 
     @Override
-    public Page<SharedPolicyGroup> search(SharedPolicyGroupHistoryCriteria criteria, Pageable pageable, Sortable sortable)
-        throws TechnicalException {
+    public Page<SharedPolicyGroup> search(
+            SharedPolicyGroupHistoryCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(criteria, "SharedPolicyGroupCriteria must not be null");
         Objects.requireNonNull(criteria.getEnvironmentId(), "EnvironmentId must not be null");
         log.debug("MongoSharedPolicyGroupHistoryRepository.search({}, {})", criteria.toString(), pageable.toString());
 
         try {
-            sortable = sortable == null ? new SortableBuilder().field("updated_at").setAsc(true).build() : sortable;
+            sortable = sortable == null
+                    ? new SortableBuilder().field("updated_at").setAsc(true).build()
+                    : sortable;
             final var sortOrder = sortable.order() == Order.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
             final var sortField = FieldUtils.toCamelCase(sortable.field());
 
-            return this.internalSharedPolicyGroupHistoryMongoRepo.search(
-                criteria,
-                PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
-            ).map(this::mapSharedPolicyGroupHistory);
+            return this.internalSharedPolicyGroupHistoryMongoRepo
+                    .search(criteria, PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField))
+                    .map(this::mapSharedPolicyGroupHistory);
         } catch (Exception e) {
             log.error("An error occurred when searching for shared policy group history", e);
             throw new TechnicalException("An error occurred when searching for shared policy group history", e);
@@ -71,17 +72,19 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
     }
 
     @Override
-    public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable) throws TechnicalException {
+    public Page<SharedPolicyGroup> searchLatestBySharedPolicyGroupId(String environmentId, Pageable pageable)
+            throws TechnicalException {
         Objects.requireNonNull(pageable, "Pageable must not be null");
         Objects.requireNonNull(environmentId, "EnvironmentId must not be null");
-        log.debug("MongoSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId({}, {})", environmentId, pageable.toString());
+        log.debug(
+                "MongoSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId({}, {})",
+                environmentId,
+                pageable.toString());
 
         try {
-            return this.internalSharedPolicyGroupHistoryMongoRepo.searchLatestBySharedPolicyGroupId(
-                environmentId,
-                pageable.pageNumber(),
-                pageable.pageSize()
-            ).map(this::mapSharedPolicyGroupHistory);
+            return this.internalSharedPolicyGroupHistoryMongoRepo
+                    .searchLatestBySharedPolicyGroupId(environmentId, pageable.pageNumber(), pageable.pageSize())
+                    .map(this::mapSharedPolicyGroupHistory);
         } catch (Exception e) {
             log.error("An error occurred when searching for shared policy group history", e);
             throw new TechnicalException("An error occurred when searching for shared policy group history", e);
@@ -90,22 +93,20 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
 
     @Override
     public Optional<SharedPolicyGroup> getLatestBySharedPolicyGroupId(String environmentId, String sharedPolicyGroupId)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug(
-            "Get latest shared policy group by environment ID [{}] and shared policy group ID [{}]",
-            environmentId,
-            sharedPolicyGroupId
-        );
+                "Get latest shared policy group by environment ID [{}] and shared policy group ID [{}]",
+                environmentId,
+                sharedPolicyGroupId);
 
         final SharedPolicyGroupHistoryMongo sharedPolicyGroupMongo = internalSharedPolicyGroupHistoryMongoRepo
-            .getLatestBySharedPolicyGroupId(environmentId, sharedPolicyGroupId)
-            .orElse(null);
+                .getLatestBySharedPolicyGroupId(environmentId, sharedPolicyGroupId)
+                .orElse(null);
 
         log.debug(
-            "Get shared policy group by environment ID [{}] and shared policy group ID [{}] - Done",
-            environmentId,
-            sharedPolicyGroupId
-        );
+                "Get shared policy group by environment ID [{}] and shared policy group ID [{}] - Done",
+                environmentId,
+                sharedPolicyGroupId);
 
         return Optional.ofNullable(mapSharedPolicyGroupHistory(sharedPolicyGroupMongo));
     }
@@ -121,7 +122,8 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
 
         SharedPolicyGroupHistoryMongo sharedPolicyGroupHistoryMongo = mapSharedPolicyGroup(item);
 
-        SharedPolicyGroupHistoryMongo created = internalSharedPolicyGroupHistoryMongoRepo.insert(sharedPolicyGroupHistoryMongo);
+        SharedPolicyGroupHistoryMongo created =
+                internalSharedPolicyGroupHistoryMongoRepo.insert(sharedPolicyGroupHistoryMongo);
 
         SharedPolicyGroup res = mapSharedPolicyGroupHistory(created);
 
@@ -154,11 +156,9 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
         log.debug("Delete shared policy group history by environmentId [{}]", environmentId);
 
         try {
-            final var res = internalSharedPolicyGroupHistoryMongoRepo
-                .deleteByEnvironmentId(environmentId)
-                .stream()
-                .map(SharedPolicyGroupHistoryMongo::get_id)
-                .toList();
+            final var res = internalSharedPolicyGroupHistoryMongoRepo.deleteByEnvironmentId(environmentId).stream()
+                    .map(SharedPolicyGroupHistoryMongo::get_id)
+                    .toList();
 
             log.debug("Delete shared policy group history by environmentId [{}] - Done", environmentId);
             return res;

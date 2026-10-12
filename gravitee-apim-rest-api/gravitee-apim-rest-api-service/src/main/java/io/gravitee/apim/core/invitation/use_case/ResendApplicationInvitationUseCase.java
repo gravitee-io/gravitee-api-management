@@ -32,24 +32,20 @@ public class ResendApplicationInvitationUseCase {
 
     public Output execute(Input input) {
         applicationCrudService.findById(input.applicationId(), input.environmentId());
-        return new Output(
-            resendApplicationInvitationDomainService.resend(
+        return new Output(resendApplicationInvitationDomainService.resend(
                 input.organizationId(),
                 input.environmentId(),
                 input.applicationId(),
                 input.invitationId(),
-                input.confirmationPageUrl()
-            )
-        );
+                input.confirmationPageUrl()));
     }
 
     public record Input(
-        String organizationId,
-        String environmentId,
-        String applicationId,
-        InvitationId invitationId,
-        URI confirmationPageUrl
-    ) {}
+            String organizationId,
+            String environmentId,
+            String applicationId,
+            InvitationId invitationId,
+            URI confirmationPageUrl) {}
 
     public record Output(ApplicationInvitation invitation) {}
 }

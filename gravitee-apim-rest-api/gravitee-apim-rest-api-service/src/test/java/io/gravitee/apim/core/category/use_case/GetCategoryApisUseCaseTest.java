@@ -51,37 +51,34 @@ class GetCategoryApisUseCaseTest {
     void setUp() {
         validateCategoryDomainService = new ValidateCategoryDomainService(categoryQueryService);
         useCase = new GetCategoryApisUseCase(
-            validateCategoryDomainService,
-            apiAuthorizationDomainService,
-            apiCategoryOrderQueryService,
-            apiQueryServiceInMemory
-        );
+                validateCategoryDomainService,
+                apiAuthorizationDomainService,
+                apiCategoryOrderQueryService,
+                apiQueryServiceInMemory);
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiAuthorizationDomainService,
-            apiCategoryOrderQueryService,
-            apiQueryServiceInMemory,
-            apiCategoryOrderQueryService
-        ).forEach(InMemoryAlternative::reset);
+                        apiAuthorizationDomainService,
+                        apiCategoryOrderQueryService,
+                        apiQueryServiceInMemory,
+                        apiCategoryOrderQueryService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_throw_error_when_category_id_is_null() {
-        var throwable = Assertions.catchThrowable(() ->
-            useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, null, USER_ID, false))
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, null, USER_ID, false)));
 
         Assertions.assertThat(throwable).isInstanceOf(CategoryNotFoundException.class);
     }
 
     @Test
     void should_throw_error_when_category_id_not_found() {
-        var throwable = Assertions.catchThrowable(() ->
-            useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, false))
-        );
+        var throwable = Assertions.catchThrowable(
+                () -> useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, false)));
 
         Assertions.assertThat(throwable).isInstanceOf(CategoryNotFoundException.class);
     }
@@ -97,72 +94,85 @@ class GetCategoryApisUseCaseTest {
     @Test
     void should_search_with_restricted_api_ids_if_not_admin() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
-        apiCategoryOrderQueryService.initWith(
-            List.of(
-                ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-2").categoryId(CAT_ID).order(0).build()
-            )
-        );
+        apiCategoryOrderQueryService.initWith(List.of(
+                ApiCategoryOrder.builder()
+                        .apiId("api-1")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-2")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build()));
 
-        var apiInUserScope = Api.builder().id("api-1").categories(Set.of(CAT_ID)).build();
+        var apiInUserScope =
+                Api.builder().id("api-1").categories(Set.of(CAT_ID)).build();
         apiAuthorizationDomainService.initWith(List.of(apiInUserScope));
 
-        apiQueryServiceInMemory.initWith(List.of(apiInUserScope, Api.builder().id("api-2").categories(Set.of(CAT_ID)).build()));
+        apiQueryServiceInMemory.initWith(List.of(
+                apiInUserScope,
+                Api.builder().id("api-2").categories(Set.of(CAT_ID)).build()));
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, false));
 
         Assertions.assertThat(result)
-            .extracting("results")
-            .isEqualTo(
-                List.of(
-                    new GetCategoryApisUseCase.Result(
-                        ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                        apiInUserScope
-                    )
-                )
-            );
+                .extracting("results")
+                .isEqualTo(List.of(new GetCategoryApisUseCase.Result(
+                        ApiCategoryOrder.builder()
+                                .apiId("api-1")
+                                .categoryId(CAT_ID)
+                                .order(0)
+                                .build(),
+                        apiInUserScope)));
     }
 
     @Test
     void should_search_with_all_api_ids_in_category_if_admin() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
-        apiCategoryOrderQueryService.initWith(
-            List.of(
-                ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-2").categoryId(CAT_ID).order(0).build()
-            )
-        );
+        apiCategoryOrderQueryService.initWith(List.of(
+                ApiCategoryOrder.builder()
+                        .apiId("api-1")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-2")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build()));
 
-        apiQueryServiceInMemory.initWith(
-            List.of(
+        apiQueryServiceInMemory.initWith(List.of(
                 Api.builder().id("api-1").categories(Set.of(CAT_ID)).build(),
-                Api.builder().id("api-2").categories(Set.of(CAT_ID)).build()
-            )
-        );
+                Api.builder().id("api-2").categories(Set.of(CAT_ID)).build()));
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, true));
 
         Assertions.assertThat(result)
-            .extracting("results")
-            .isEqualTo(List.of(resultForApi("api-1", 0, Api.Visibility.PRIVATE), resultForApi("api-2", 0, Api.Visibility.PRIVATE)));
+                .extracting("results")
+                .isEqualTo(List.of(
+                        resultForApi("api-1", 0, Api.Visibility.PRIVATE),
+                        resultForApi("api-2", 0, Api.Visibility.PRIVATE)));
     }
 
     @Test
     void should_return_empty_list_if_no_apis_in_scope_when_not_admin() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
-        apiCategoryOrderQueryService.initWith(
-            List.of(
-                ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-2").categoryId(CAT_ID).order(0).build()
-            )
-        );
+        apiCategoryOrderQueryService.initWith(List.of(
+                ApiCategoryOrder.builder()
+                        .apiId("api-1")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-2")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build()));
 
-        apiQueryServiceInMemory.initWith(
-            List.of(
+        apiQueryServiceInMemory.initWith(List.of(
                 Api.builder().id("api-1").categories(Set.of(CAT_ID)).build(),
-                Api.builder().id("api-2").categories(Set.of(CAT_ID)).build()
-            )
-        );
+                Api.builder().id("api-2").categories(Set.of(CAT_ID)).build()));
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, false));
 
@@ -172,12 +182,17 @@ class GetCategoryApisUseCaseTest {
     @Test
     void should_return_empty_lists_if_no_apis_found() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
-        apiCategoryOrderQueryService.initWith(
-            List.of(
-                ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-2").categoryId(CAT_ID).order(0).build()
-            )
-        );
+        apiCategoryOrderQueryService.initWith(List.of(
+                ApiCategoryOrder.builder()
+                        .apiId("api-1")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-2")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build()));
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, true));
 
@@ -187,153 +202,229 @@ class GetCategoryApisUseCaseTest {
     @Test
     void should_return_category_api_list_and_api_list() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
-        apiCategoryOrderQueryService.initWith(
-            List.of(
-                ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-2").categoryId("another-category").order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-3").categoryId(CAT_ID).order(2).build(),
-                ApiCategoryOrder.builder().apiId("api-4").categoryId(CAT_ID).order(1).build(),
-                ApiCategoryOrder.builder().apiId("api-5").categoryId(CAT_ID).order(3).build()
-            )
-        );
+        apiCategoryOrderQueryService.initWith(List.of(
+                ApiCategoryOrder.builder()
+                        .apiId("api-1")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-2")
+                        .categoryId("another-category")
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-3")
+                        .categoryId(CAT_ID)
+                        .order(2)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-4")
+                        .categoryId(CAT_ID)
+                        .order(1)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-5")
+                        .categoryId(CAT_ID)
+                        .order(3)
+                        .build()));
 
-        apiQueryServiceInMemory.initWith(
-            List.of(
+        apiQueryServiceInMemory.initWith(List.of(
                 Api.builder().id("api-1").categories(Set.of(CAT_ID)).build(),
                 Api.builder().id("api-3").categories(Set.of(CAT_ID)).build(),
                 Api.builder().id("api-4").categories(Set.of(CAT_ID)).build(),
-                Api.builder().id("api-5").categories(Set.of(CAT_ID)).build()
-            )
-        );
+                Api.builder().id("api-5").categories(Set.of(CAT_ID)).build()));
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, true));
 
         Assertions.assertThat(result)
-            .extracting("results")
-            .isEqualTo(
-                List.of(
-                    resultForApi("api-1", 0, Api.Visibility.PRIVATE),
-                    resultForApi("api-4", 1, Api.Visibility.PRIVATE),
-                    resultForApi("api-3", 2, Api.Visibility.PRIVATE),
-                    resultForApi("api-5", 3, Api.Visibility.PRIVATE)
-                )
-            );
+                .extracting("results")
+                .isEqualTo(List.of(
+                        resultForApi("api-1", 0, Api.Visibility.PRIVATE),
+                        resultForApi("api-4", 1, Api.Visibility.PRIVATE),
+                        resultForApi("api-3", 2, Api.Visibility.PRIVATE),
+                        resultForApi("api-5", 3, Api.Visibility.PRIVATE)));
     }
 
     @Test
     void should_return_category_api_list_and_api_published_list_if_not_admin() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
-        apiCategoryOrderQueryService.initWith(
-            List.of(
-                ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-2").categoryId("another-category").order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-3").categoryId(CAT_ID).order(2).build(),
-                ApiCategoryOrder.builder().apiId("api-4").categoryId(CAT_ID).order(1).build(),
-                ApiCategoryOrder.builder().apiId("api-5").categoryId(CAT_ID).order(3).build()
-            )
-        );
+        apiCategoryOrderQueryService.initWith(List.of(
+                ApiCategoryOrder.builder()
+                        .apiId("api-1")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-2")
+                        .categoryId("another-category")
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-3")
+                        .categoryId(CAT_ID)
+                        .order(2)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-4")
+                        .categoryId(CAT_ID)
+                        .order(1)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-5")
+                        .categoryId(CAT_ID)
+                        .order(3)
+                        .build()));
 
-        apiAuthorizationDomainService.initWith(
-            List.of(
+        apiAuthorizationDomainService.initWith(List.of(
                 Api.builder().id("api-1").categories(Set.of(CAT_ID)).build(),
-                Api.builder().id("api-4").categories(Set.of(CAT_ID)).build()
-            )
-        );
+                Api.builder().id("api-4").categories(Set.of(CAT_ID)).build()));
 
-        apiQueryServiceInMemory.initWith(
-            List.of(
-                Api.builder().id("api-1").categories(Set.of(CAT_ID)).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build(),
-                Api.builder().id("api-3").categories(Set.of(CAT_ID)).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build(),
+        apiQueryServiceInMemory.initWith(List.of(
+                Api.builder()
+                        .id("api-1")
+                        .categories(Set.of(CAT_ID))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
+                Api.builder()
+                        .id("api-3")
+                        .categories(Set.of(CAT_ID))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
                 Api.builder().id("api-4").categories(Set.of(CAT_ID)).build(),
-                Api.builder().id("api-5").categories(Set.of(CAT_ID)).build()
-            )
-        );
+                Api.builder().id("api-5").categories(Set.of(CAT_ID)).build()));
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, false, true));
 
         Assertions.assertThat(result)
-            .extracting("results")
-            .isEqualTo(List.of(resultForApi("api-1", 0, Api.ApiLifecycleState.PUBLISHED, Api.Visibility.PRIVATE)));
+                .extracting("results")
+                .isEqualTo(List.of(resultForApi("api-1", 0, Api.ApiLifecycleState.PUBLISHED, Api.Visibility.PRIVATE)));
     }
 
     @Test
     void should_return_category_api_list_and_api_published_list_if_admin() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
-        apiCategoryOrderQueryService.initWith(
-            List.of(
-                ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-2").categoryId("another-category").order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-3").categoryId(CAT_ID).order(2).build(),
-                ApiCategoryOrder.builder().apiId("api-4").categoryId(CAT_ID).order(1).build(),
-                ApiCategoryOrder.builder().apiId("api-5").categoryId(CAT_ID).order(3).build()
-            )
-        );
+        apiCategoryOrderQueryService.initWith(List.of(
+                ApiCategoryOrder.builder()
+                        .apiId("api-1")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-2")
+                        .categoryId("another-category")
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-3")
+                        .categoryId(CAT_ID)
+                        .order(2)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-4")
+                        .categoryId(CAT_ID)
+                        .order(1)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-5")
+                        .categoryId(CAT_ID)
+                        .order(3)
+                        .build()));
 
-        apiQueryServiceInMemory.initWith(
-            List.of(
-                Api.builder().id("api-1").categories(Set.of(CAT_ID)).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build(),
-                Api.builder().id("api-3").categories(Set.of(CAT_ID)).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build(),
+        apiQueryServiceInMemory.initWith(List.of(
+                Api.builder()
+                        .id("api-1")
+                        .categories(Set.of(CAT_ID))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
+                Api.builder()
+                        .id("api-3")
+                        .categories(Set.of(CAT_ID))
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build(),
                 Api.builder().id("api-4").categories(Set.of(CAT_ID)).build(),
-                Api.builder().id("api-5").categories(Set.of(CAT_ID)).build()
-            )
-        );
+                Api.builder().id("api-5").categories(Set.of(CAT_ID)).build()));
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, true, true));
 
         Assertions.assertThat(result)
-            .extracting("results")
-            .isEqualTo(
-                List.of(
-                    resultForApi("api-1", 0, Api.ApiLifecycleState.PUBLISHED, Api.Visibility.PRIVATE),
-                    resultForApi("api-3", 2, Api.ApiLifecycleState.PUBLISHED, Api.Visibility.PRIVATE)
-                )
-            );
+                .extracting("results")
+                .isEqualTo(List.of(
+                        resultForApi("api-1", 0, Api.ApiLifecycleState.PUBLISHED, Api.Visibility.PRIVATE),
+                        resultForApi("api-3", 2, Api.ApiLifecycleState.PUBLISHED, Api.Visibility.PRIVATE)));
     }
 
     @Test
     void should_return_public_and_published_apis_when_user_id_is_null() {
         categoryQueryService.initWith(List.of(Category.builder().id(CAT_ID).build()));
-        apiCategoryOrderQueryService.initWith(
-            List.of(
-                ApiCategoryOrder.builder().apiId("api-1").categoryId(CAT_ID).order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-2").categoryId("another-category").order(0).build(),
-                ApiCategoryOrder.builder().apiId("api-3").categoryId(CAT_ID).order(2).build(),
-                ApiCategoryOrder.builder().apiId("api-4").categoryId(CAT_ID).order(1).build(),
-                ApiCategoryOrder.builder().apiId("api-5").categoryId(CAT_ID).order(3).build()
-            )
-        );
+        apiCategoryOrderQueryService.initWith(List.of(
+                ApiCategoryOrder.builder()
+                        .apiId("api-1")
+                        .categoryId(CAT_ID)
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-2")
+                        .categoryId("another-category")
+                        .order(0)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-3")
+                        .categoryId(CAT_ID)
+                        .order(2)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-4")
+                        .categoryId(CAT_ID)
+                        .order(1)
+                        .build(),
+                ApiCategoryOrder.builder()
+                        .apiId("api-5")
+                        .categoryId(CAT_ID)
+                        .order(3)
+                        .build()));
 
-        apiQueryServiceInMemory.initWith(
-            List.of(
-                Api.builder().id("api-1").categories(Set.of(CAT_ID)).visibility(Api.Visibility.PUBLIC).build(),
-                Api.builder().id("api-3").categories(Set.of(CAT_ID)).visibility(Api.Visibility.PUBLIC).build(),
-                Api.builder().id("api-4").categories(Set.of(CAT_ID)).visibility(Api.Visibility.PUBLIC).build()
-            )
-        );
+        apiQueryServiceInMemory.initWith(List.of(
+                Api.builder()
+                        .id("api-1")
+                        .categories(Set.of(CAT_ID))
+                        .visibility(Api.Visibility.PUBLIC)
+                        .build(),
+                Api.builder()
+                        .id("api-3")
+                        .categories(Set.of(CAT_ID))
+                        .visibility(Api.Visibility.PUBLIC)
+                        .build(),
+                Api.builder()
+                        .id("api-4")
+                        .categories(Set.of(CAT_ID))
+                        .visibility(Api.Visibility.PUBLIC)
+                        .build()));
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, null, true));
 
         Assertions.assertThat(result)
-            .extracting("results")
-            .isEqualTo(
-                List.of(
-                    resultForApi("api-1", 0, Api.Visibility.PUBLIC),
-                    resultForApi("api-4", 1, Api.Visibility.PUBLIC),
-                    resultForApi("api-3", 2, Api.Visibility.PUBLIC)
-                )
-            );
+                .extracting("results")
+                .isEqualTo(List.of(
+                        resultForApi("api-1", 0, Api.Visibility.PUBLIC),
+                        resultForApi("api-4", 1, Api.Visibility.PUBLIC),
+                        resultForApi("api-3", 2, Api.Visibility.PUBLIC)));
     }
 
     private static GetCategoryApisUseCase.Result resultForApi(
-        String apiId,
-        int order,
-        Api.ApiLifecycleState apiLifecycleState,
-        Api.Visibility visibility
-    ) {
+            String apiId, int order, Api.ApiLifecycleState apiLifecycleState, Api.Visibility visibility) {
         return new GetCategoryApisUseCase.Result(
-            ApiCategoryOrder.builder().apiId(apiId).categoryId(CAT_ID).order(order).build(),
-            Api.builder().id(apiId).categories(Set.of(CAT_ID)).apiLifecycleState(apiLifecycleState).visibility(visibility).build()
-        );
+                ApiCategoryOrder.builder()
+                        .apiId(apiId)
+                        .categoryId(CAT_ID)
+                        .order(order)
+                        .build(),
+                Api.builder()
+                        .id(apiId)
+                        .categories(Set.of(CAT_ID))
+                        .apiLifecycleState(apiLifecycleState)
+                        .visibility(visibility)
+                        .build());
     }
 
     private static GetCategoryApisUseCase.Result resultForApi(String apiId, int order, Api.Visibility visibility) {

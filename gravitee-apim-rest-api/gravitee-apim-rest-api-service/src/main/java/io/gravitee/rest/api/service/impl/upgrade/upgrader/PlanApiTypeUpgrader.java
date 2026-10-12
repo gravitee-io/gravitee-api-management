@@ -57,12 +57,13 @@ public class PlanApiTypeUpgrader implements Upgrader {
         log.info("Starting migration of plan api_type...");
 
         var apis = apiRepository
-            .search(
-                new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V4)).build(),
-                null,
-                ApiFieldFilter.defaultFields()
-            )
-            .toList();
+                .search(
+                        new ApiCriteria.Builder()
+                                .definitionVersion(List.of(DefinitionVersion.V4))
+                                .build(),
+                        null,
+                        ApiFieldFilter.defaultFields())
+                .toList();
 
         for (var api : apis) {
             try {

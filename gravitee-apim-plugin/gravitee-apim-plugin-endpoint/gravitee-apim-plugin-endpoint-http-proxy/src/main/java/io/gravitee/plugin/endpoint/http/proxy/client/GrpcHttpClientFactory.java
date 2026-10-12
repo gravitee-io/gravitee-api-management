@@ -31,10 +31,9 @@ public class GrpcHttpClientFactory extends HttpClientFactory {
 
     @Override
     protected VertxHttpClientFactory.VertxHttpClientFactoryBuilder buildHttpClient(
-        final HttpExecutionContext ctx,
-        final HttpProxyEndpointConnectorConfiguration configuration,
-        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
-    ) {
+            final HttpExecutionContext ctx,
+            final HttpProxyEndpointConnectorConfiguration configuration,
+            final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration) {
         // The shared configuration is reused by every request and by the plain HTTP client factory of the same
         // endpoint group, so it must never be mutated here: forcing HTTP/2 on it would permanently switch the
         // endpoint to HTTP/2 for all subsequent traffic on this node. Force the version on a fresh copy instead.

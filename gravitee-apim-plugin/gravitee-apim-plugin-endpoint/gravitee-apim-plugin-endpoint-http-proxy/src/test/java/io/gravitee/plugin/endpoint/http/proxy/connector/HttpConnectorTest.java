@@ -52,7 +52,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
@@ -132,6 +131,7 @@ class HttpConnectorTest {
     public static final int TIMEOUT_SECONDS = 60;
     /** Time already spent on the endpoint when the connector takes over, so a measured duration is provably ≥ it. */
     private static final long BACKEND_ELAPSED_NS = TimeUnit.MILLISECONDS.toNanos(100);
+
     private static final String ERROR_ENDPOINT = "/error";
     /** Target URI as the connector resolved it, only ever reported in the technical log. */
     private static final String UPSTREAM_TARGET = "http://backend:8080/team";
@@ -139,12 +139,14 @@ class HttpConnectorTest {
     private static final long NO_SILENCE_MEASURED = -1;
     /** No Content-Length on the response: the body is framed by the stream, so its expected size is unknown. */
     private static final long NO_CONTENT_LENGTH_ANNOUNCED = -1;
+
     private static final long NO_BYTES_COUNTED = 0;
     /**
      * Path of the stubs that answer late. Their serve outlives the test that started it and re-enters the request
      * journal after the class-level reset, so it is kept off the path every other test counts requests on.
      */
     private static final String SLOW_ENDPOINT = "/slow";
+
     private static final int BACKEND_FIXED_DELAY_MS = 2_000;
     private static final long READ_TIMEOUT_MS = 500;
     private static final long NO_FURTHER_REQUEST_WINDOW_MS = 1_000;
@@ -157,6 +159,7 @@ class HttpConnectorTest {
      * schedule the test does not control.
      */
     private static final long VERIFY_TIMEOUT_MS = 5_000;
+
     private static final String POOLED_CONNECTION_SCENARIO = "pooled keep-alive connection";
     private static final String PEER_CLOSED_THE_POOLED_CONNECTION = "peer closed the pooled connection";
     private static final String PEER_ACCEPTS_A_FRESH_CONNECTION = "peer accepts a fresh connection";
@@ -213,12 +216,11 @@ class HttpConnectorTest {
         lenient().when(ctx.getTracer()).thenReturn(new Tracer(null, new NoOpTracer()));
         // withLogger is a default method on the context interface returning the delegate it is given; Mockito stubs
         // default methods to null, which would NPE any logging path under test.
-        lenient()
-            .when(ctx.withLogger(any(Logger.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(ctx.withLogger(any(Logger.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         requestHeaders = HttpHeaders.create();
-        // request.parameters() can't be null. See https://github.com/gravitee-io/gravitee-common/blob/master/src/main/java/io/gravitee/common/util/URIUtils.java#L74
+        // request.parameters() can't be null. See
+        // https://github.com/gravitee-io/gravitee-common/blob/master/src/main/java/io/gravitee/common/util/URIUtils.java#L74
         lenient().when(request.parameters()).thenReturn(new LinkedMultiValueMap<>());
         lenient().when(request.pathInfo()).thenReturn("");
         lenient().when(request.headers()).thenReturn(requestHeaders);
@@ -266,17 +268,18 @@ class HttpConnectorTest {
         when(metrics.getErrorKey()).thenReturn(null);
 
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            NO_SILENCE_MEASURED,
-            NO_BYTES_COUNTED,
-            NO_CONTENT_LENGTH_ANNOUNCED,
-            new IOException("Connection reset by peer")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                NO_SILENCE_MEASURED,
+                NO_BYTES_COUNTED,
+                NO_CONTENT_LENGTH_ANNOUNCED,
+                new IOException("Connection reset by peer"));
 
         // A reset is a genuine backend fault, so it keeps its own key: only a clean close mid-body is re-keyed.
         verify(metrics).setErrorKey("GATEWAY_CLIENT_CONNECTION_RESET");
-        verify(metrics).setErrorMessage("The backend ended the response body before it was complete (Connection reset by peer)");
+        verify(metrics)
+                .setErrorMessage(
+                        "The backend ended the response body before it was complete (Connection reset by peer)");
         // Status was already committed before streaming, so it must not be touched.
         verify(response, never()).status(anyInt());
         verify(ctx, never()).warnWith(any());
@@ -287,13 +290,12 @@ class HttpConnectorTest {
         when(metrics.getErrorKey()).thenReturn("CLIENT_ABORTED_DURING_RESPONSE_ERROR");
 
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            NO_SILENCE_MEASURED,
-            NO_BYTES_COUNTED,
-            NO_CONTENT_LENGTH_ANNOUNCED,
-            new IOException("Connection reset by peer")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                NO_SILENCE_MEASURED,
+                NO_BYTES_COUNTED,
+                NO_CONTENT_LENGTH_ANNOUNCED,
+                new IOException("Connection reset by peer"));
 
         verify(metrics, never()).setErrorKey(anyString());
         verify(metrics, never()).setErrorMessage(anyString());
@@ -308,13 +310,12 @@ class HttpConnectorTest {
         when(metrics.getErrorKey()).thenReturn(null);
 
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            NO_SILENCE_MEASURED,
-            NO_BYTES_COUNTED,
-            NO_CONTENT_LENGTH_ANNOUNCED,
-            new HttpClosedException("Connection was closed")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                NO_SILENCE_MEASURED,
+                NO_BYTES_COUNTED,
+                NO_CONTENT_LENGTH_ANNOUNCED,
+                new HttpClosedException("Connection was closed"));
 
         // The caller already received status and headers, so this is a truncated response, not a failed request:
         // reporting it as GATEWAY_CLIENT_CONNECTION_CLOSED is what makes streaming APIs look like they are failing.
@@ -327,13 +328,12 @@ class HttpConnectorTest {
         when(metrics.getErrorKey()).thenReturn(null);
 
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            NO_SILENCE_MEASURED,
-            NO_BYTES_COUNTED,
-            NO_CONTENT_LENGTH_ANNOUNCED,
-            new HttpClosedException("Connection was closed")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                NO_SILENCE_MEASURED,
+                NO_BYTES_COUNTED,
+                NO_CONTENT_LENGTH_ANNOUNCED,
+                new HttpClosedException("Connection was closed"));
 
         // The reporter already turns errorKey/errorMessage into the Diagnostic carried by the metrics, attributed to
         // the ENDPOINT component. Raising an ExecutionWarn on top would emit a duplicate for the very same event —
@@ -349,20 +349,19 @@ class HttpConnectorTest {
         sharedConfiguration.getHttpOptions().setReadTimeout(24_000);
 
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            12_000,
-            NO_BYTES_COUNTED,
-            NO_CONTENT_LENGTH_ANNOUNCED,
-            new HttpClosedException("Connection was closed")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                12_000,
+                NO_BYTES_COUNTED,
+                NO_CONTENT_LENGTH_ANNOUNCED,
+                new HttpClosedException("Connection was closed"));
 
         assertThat(errorMessageRecorded())
-            .contains("having received nothing from it for the last 12000 ms")
-            .contains("This matches the endpoint idleTimeout (12200 ms, applied as 12000 ms)")
-            .contains("the gateway itself likely closed this connection")
-            // readTimeout longer than idleTimeout can never fire — the misconfiguration behind the whole symptom.
-            .contains("readTimeout (24000 ms) is not shorter than idleTimeout");
+                .contains("having received nothing from it for the last 12000 ms")
+                .contains("This matches the endpoint idleTimeout (12200 ms, applied as 12000 ms)")
+                .contains("the gateway itself likely closed this connection")
+                // readTimeout longer than idleTimeout can never fire — the misconfiguration behind the whole symptom.
+                .contains("readTimeout (24000 ms) is not shorter than idleTimeout");
     }
 
     @Test
@@ -375,15 +374,15 @@ class HttpConnectorTest {
         when(metrics.timestamp()).thenReturn(Instant.now().minusMillis(600_000));
 
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            12_000,
-            NO_BYTES_COUNTED,
-            NO_CONTENT_LENGTH_ANNOUNCED,
-            new HttpClosedException("Connection was closed")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                12_000,
+                NO_BYTES_COUNTED,
+                NO_CONTENT_LENGTH_ANNOUNCED,
+                new HttpClosedException("Connection was closed"));
 
-        assertThat(errorMessageRecorded()).contains("This matches the endpoint idleTimeout (12200 ms, applied as 12000 ms)");
+        assertThat(errorMessageRecorded())
+                .contains("This matches the endpoint idleTimeout (12200 ms, applied as 12000 ms)");
     }
 
     @Test
@@ -393,16 +392,17 @@ class HttpConnectorTest {
         sharedConfiguration.getHttpOptions().setReadTimeout(24_000);
 
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            3_000,
-            NO_BYTES_COUNTED,
-            NO_CONTENT_LENGTH_ANNOUNCED,
-            new HttpClosedException("Connection was closed")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                3_000,
+                NO_BYTES_COUNTED,
+                NO_CONTENT_LENGTH_ANNOUNCED,
+                new HttpClosedException("Connection was closed"));
 
         // Scattered durations point at the backend: claiming a timeout match here would send operators the wrong way.
-        assertThat(errorMessageRecorded()).doesNotContain("idleTimeout").contains("having received nothing from it for the last 3000 ms");
+        assertThat(errorMessageRecorded())
+                .doesNotContain("idleTimeout")
+                .contains("having received nothing from it for the last 3000 ms");
     }
 
     @Test
@@ -412,15 +412,16 @@ class HttpConnectorTest {
         sharedConfiguration.getHttpOptions().setReadTimeout(8_000);
 
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            12_000,
-            NO_BYTES_COUNTED,
-            NO_CONTENT_LENGTH_ANNOUNCED,
-            new HttpClosedException("Connection was closed")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                12_000,
+                NO_BYTES_COUNTED,
+                NO_CONTENT_LENGTH_ANNOUNCED,
+                new HttpClosedException("Connection was closed"));
 
-        assertThat(errorMessageRecorded()).contains("This matches the endpoint idleTimeout").doesNotContain("readTimeout");
+        assertThat(errorMessageRecorded())
+                .contains("This matches the endpoint idleTimeout")
+                .doesNotContain("readTimeout");
     }
 
     @Test
@@ -430,13 +431,12 @@ class HttpConnectorTest {
         // The backend wrote all 2048 bytes it announced, then closed abruptly instead of cleanly. The caller holds a
         // complete response, so raising an error here would flag an exchange that lost nothing.
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            NO_SILENCE_MEASURED,
-            2_048,
-            2_048,
-            new HttpClosedException("Connection was closed")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                NO_SILENCE_MEASURED,
+                2_048,
+                2_048,
+                new HttpClosedException("Connection was closed"));
 
         verify(metrics, never()).setErrorKey(anyString());
         verify(metrics, never()).setErrorMessage(anyString());
@@ -450,13 +450,12 @@ class HttpConnectorTest {
 
         // A body longer than advertised is a backend framing bug, but nothing was lost on the way to the caller.
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            NO_SILENCE_MEASURED,
-            4_096,
-            2_048,
-            new HttpClosedException("Connection was closed")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                NO_SILENCE_MEASURED,
+                4_096,
+                2_048,
+                new HttpClosedException("Connection was closed"));
 
         verify(metrics, never()).setErrorKey(anyString());
     }
@@ -466,17 +465,17 @@ class HttpConnectorTest {
         when(metrics.getErrorKey()).thenReturn(null);
 
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            NO_SILENCE_MEASURED,
-            1_500,
-            4_000,
-            new HttpClosedException("Connection was closed")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                NO_SILENCE_MEASURED,
+                1_500,
+                4_000,
+                new HttpClosedException("Connection was closed"));
 
         verify(metrics).setErrorKey("GATEWAY_CLIENT_STREAM_ENDED_EARLY");
         // The shortfall makes the data loss measurable instead of merely asserted.
-        assertThat(errorMessageRecorded()).contains("1500 of the 4000 announced bytes were received, so 2500 are missing");
+        assertThat(errorMessageRecorded())
+                .contains("1500 of the 4000 announced bytes were received, so 2500 are missing");
     }
 
     @Test
@@ -486,13 +485,12 @@ class HttpConnectorTest {
         // A chunked response carries no Content-Length, so nothing can be compared. It loses nothing by it: the
         // stream only breaks because the terminal chunk never came, which is the truncation itself.
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            NO_SILENCE_MEASURED,
-            1_500,
-            NO_CONTENT_LENGTH_ANNOUNCED,
-            new HttpClosedException("Connection was closed")
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                NO_SILENCE_MEASURED,
+                1_500,
+                NO_CONTENT_LENGTH_ANNOUNCED,
+                new HttpClosedException("Connection was closed"));
 
         verify(metrics).setErrorKey("GATEWAY_CLIENT_STREAM_ENDED_EARLY");
         assertThat(errorMessageRecorded()).doesNotContain("announced bytes");
@@ -503,15 +501,15 @@ class HttpConnectorTest {
         when(metrics.getErrorKey()).thenReturn(null);
 
         cut.recordBackendResponseStreamFailure(
-            ctx,
-            UPSTREAM_TARGET,
-            NO_SILENCE_MEASURED,
-            NO_BYTES_COUNTED,
-            NO_CONTENT_LENGTH_ANNOUNCED,
-            new ClosedChannelException()
-        );
+                ctx,
+                UPSTREAM_TARGET,
+                NO_SILENCE_MEASURED,
+                NO_BYTES_COUNTED,
+                NO_CONTENT_LENGTH_ANNOUNCED,
+                new ClosedChannelException());
 
-        assertThat(errorMessageRecorded()).isEqualTo("The backend ended the response body before it was complete (ClosedChannelException)");
+        assertThat(errorMessageRecorded())
+                .isEqualTo("The backend ended the response body before it was complete (ClosedChannelException)");
     }
 
     private String errorMessageRecorded() {
@@ -540,13 +538,12 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         wiremock.verify(
-            1,
-            getRequestedFor(urlPathEqualTo("/team"))
-                .withQueryParam("foo", equalTo("bar"))
-                .withQueryParam("foo", equalTo("otherBar"))
-                .withQueryParam("other", equalTo("otherValue"))
-                .withHost(equalTo("localhost"))
-        );
+                1,
+                getRequestedFor(urlPathEqualTo("/team"))
+                        .withQueryParam("foo", equalTo("bar"))
+                        .withQueryParam("foo", equalTo("otherBar"))
+                        .withQueryParam("other", equalTo("otherValue"))
+                        .withHost(equalTo("localhost")));
     }
 
     @Test
@@ -565,7 +562,8 @@ class HttpConnectorTest {
     }
 
     @Test
-    void should_execute_get_request_when_endpoint_attribute_overriden_with_absolute_url_and_query_parameters() throws InterruptedException {
+    void should_execute_get_request_when_endpoint_attribute_overriden_with_absolute_url_and_query_parameters()
+            throws InterruptedException {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.add("foo", "otherBar");
         parameters.add("other", "otherValue");
@@ -582,19 +580,19 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         wiremock.verify(
-            1,
-            getRequestedFor(urlPathEqualTo("/"))
-                .withQueryParam("foo", equalTo("bar"))
-                .withQueryParam("foo", equalTo("otherBar"))
-                .withQueryParam("other", equalTo("otherValue"))
-                .withHost(equalTo("127.0.0.1"))
-        );
+                1,
+                getRequestedFor(urlPathEqualTo("/"))
+                        .withQueryParam("foo", equalTo("bar"))
+                        .withQueryParam("foo", equalTo("otherBar"))
+                        .withQueryParam("other", equalTo("otherValue"))
+                        .withHost(equalTo("127.0.0.1")));
     }
 
     @Test
     void should_execute_get_request_when_attribute_overriden_with_absolute_url_and_path() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port() + "/team/subPath");
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT))
+                .thenReturn("http://127.0.0.1:" + wiremock.port() + "/team/subPath");
 
         wiremock.stubFor(get(urlPathEqualTo("/team/subPath")).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -607,14 +605,16 @@ class HttpConnectorTest {
     }
 
     @Test
-    void should_execute_get_request_when_attribute_overriden_with_absolute_url_and_path_and_query_parameters() throws InterruptedException {
+    void should_execute_get_request_when_attribute_overriden_with_absolute_url_and_path_and_query_parameters()
+            throws InterruptedException {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.add("foo", "otherBar");
         parameters.add("other", "otherValue");
 
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.parameters()).thenReturn(parameters);
-        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port() + "/team/subPath?foo=bar");
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT))
+                .thenReturn("http://127.0.0.1:" + wiremock.port() + "/team/subPath?foo=bar");
 
         wiremock.stubFor(get(urlPathEqualTo("/team/subPath")).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -624,17 +624,17 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         wiremock.verify(
-            1,
-            getRequestedFor(urlPathEqualTo("/team/subPath"))
-                .withQueryParam("foo", equalTo("bar"))
-                .withQueryParam("foo", equalTo("otherBar"))
-                .withQueryParam("other", equalTo("otherValue"))
-                .withHost(equalTo("127.0.0.1"))
-        );
+                1,
+                getRequestedFor(urlPathEqualTo("/team/subPath"))
+                        .withQueryParam("foo", equalTo("bar"))
+                        .withQueryParam("foo", equalTo("otherBar"))
+                        .withQueryParam("other", equalTo("otherValue"))
+                        .withHost(equalTo("127.0.0.1")));
     }
 
     @Test
-    void should_execute_get_request_when_attribute_overriden_with_relative_url_and_path_and_query_parameters() throws InterruptedException {
+    void should_execute_get_request_when_attribute_overriden_with_relative_url_and_path_and_query_parameters()
+            throws InterruptedException {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.add("foo", "otherBar");
         parameters.add("other", "otherValue");
@@ -651,22 +651,24 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         wiremock.verify(
-            1,
-            getRequestedFor(urlPathEqualTo("/team/subPath"))
-                .withQueryParam("foo", equalTo("bar"))
-                .withQueryParam("foo", equalTo("otherBar"))
-                .withQueryParam("other", equalTo("otherValue"))
-                .withHost(equalTo("localhost")) // -> use the host defined by the configuration 'target'.
-        );
+                1,
+                getRequestedFor(urlPathEqualTo("/team/subPath"))
+                        .withQueryParam("foo", equalTo("bar"))
+                        .withQueryParam("foo", equalTo("otherBar"))
+                        .withQueryParam("other", equalTo("otherValue"))
+                        .withHost(equalTo("localhost")) // -> use the host defined by the configuration 'target'.
+                );
     }
 
     @Test
     void should_execute_post_request() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.POST);
         when(request.headers()).thenReturn(HttpHeaders.create().add(TRANSFER_ENCODING, "chunked"));
-        when(request.chunks()).thenReturn(
-            Flowable.just(Buffer.buffer(REQUEST_BODY_CHUNK1), Buffer.buffer(REQUEST_BODY_CHUNK2), Buffer.buffer(REQUEST_BODY_CHUNK3))
-        );
+        when(request.chunks())
+                .thenReturn(Flowable.just(
+                        Buffer.buffer(REQUEST_BODY_CHUNK1),
+                        Buffer.buffer(REQUEST_BODY_CHUNK2),
+                        Buffer.buffer(REQUEST_BODY_CHUNK3)));
 
         wiremock.stubFor(post(urlPathEqualTo("/team")).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -674,11 +676,11 @@ class HttpConnectorTest {
         assertNoTimeout(obs);
         obs.assertComplete();
         wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo("/team"))
-                .withHeader(TRANSFER_ENCODING, new EqualToPattern("chunked"))
-                .withRequestBody(new EqualToPattern(REQUEST_BODY_CHUNK1 + REQUEST_BODY_CHUNK2 + REQUEST_BODY_CHUNK3))
-        );
+                1,
+                postRequestedFor(urlPathEqualTo("/team"))
+                        .withHeader(TRANSFER_ENCODING, new EqualToPattern("chunked"))
+                        .withRequestBody(
+                                new EqualToPattern(REQUEST_BODY_CHUNK1 + REQUEST_BODY_CHUNK2 + REQUEST_BODY_CHUNK3)));
     }
 
     @Test
@@ -687,18 +689,18 @@ class HttpConnectorTest {
         when(request.headers()).thenReturn(HttpHeaders.create().add(TRANSFER_ENCODING, "chunked"));
         when(request.chunks()).thenReturn(Flowable.just(Buffer.buffer(REQUEST_BODY)));
 
-        wiremock.stubFor(post("/team").withRequestBody(new EqualToPattern(REQUEST_BODY)).willReturn(ok(BACKEND_RESPONSE_BODY)));
+        wiremock.stubFor(
+                post("/team").withRequestBody(new EqualToPattern(REQUEST_BODY)).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
         assertNoTimeout(obs);
         obs.assertComplete();
 
         wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo("/team"))
-                .withHeader(TRANSFER_ENCODING, new EqualToPattern("chunked"))
-                .withRequestBody(new EqualToPattern(REQUEST_BODY.trim()))
-        );
+                1,
+                postRequestedFor(urlPathEqualTo("/team"))
+                        .withHeader(TRANSFER_ENCODING, new EqualToPattern("chunked"))
+                        .withRequestBody(new EqualToPattern(REQUEST_BODY.trim())));
     }
 
     @Test
@@ -708,9 +710,11 @@ class HttpConnectorTest {
         // the decision to forward the body.
         when(request.method()).thenReturn(HttpMethod.POST);
         when(request.version()).thenReturn(HttpVersion.HTTP_2);
-        when(request.chunks()).thenReturn(
-            Flowable.just(Buffer.buffer(REQUEST_BODY_CHUNK1), Buffer.buffer(REQUEST_BODY_CHUNK2), Buffer.buffer(REQUEST_BODY_CHUNK3))
-        );
+        when(request.chunks())
+                .thenReturn(Flowable.just(
+                        Buffer.buffer(REQUEST_BODY_CHUNK1),
+                        Buffer.buffer(REQUEST_BODY_CHUNK2),
+                        Buffer.buffer(REQUEST_BODY_CHUNK3)));
 
         wiremock.stubFor(post(urlPathEqualTo("/team")).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -725,7 +729,8 @@ class HttpConnectorTest {
         // ...and the streamed body reached the backend intact.
         final List<LoggedRequest> attempts = wiremock.findAll(postRequestedFor(urlPathEqualTo("/team")));
         assertThat(attempts).hasSize(1);
-        assertThat(attempts.get(0).getBodyAsString()).isEqualTo(REQUEST_BODY_CHUNK1 + REQUEST_BODY_CHUNK2 + REQUEST_BODY_CHUNK3);
+        assertThat(attempts.get(0).getBodyAsString())
+                .isEqualTo(REQUEST_BODY_CHUNK1 + REQUEST_BODY_CHUNK2 + REQUEST_BODY_CHUNK3);
     }
 
     @Test
@@ -733,24 +738,25 @@ class HttpConnectorTest {
         // A policy set a fresh Content-Length on a chunked request. The backend must receive
         // Content-Length only, never both (RFC 9112 §6.1).
         when(request.method()).thenReturn(HttpMethod.POST);
-        when(request.headers()).thenReturn(
-            HttpHeaders.create().add(TRANSFER_ENCODING, "chunked").add(CONTENT_LENGTH, Integer.toString(REQUEST_BODY_LENGTH))
-        );
+        when(request.headers())
+                .thenReturn(HttpHeaders.create()
+                        .add(TRANSFER_ENCODING, "chunked")
+                        .add(CONTENT_LENGTH, Integer.toString(REQUEST_BODY_LENGTH)));
         when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer(REQUEST_BODY)));
 
-        wiremock.stubFor(post("/team").withRequestBody(new EqualToPattern(REQUEST_BODY)).willReturn(ok(BACKEND_RESPONSE_BODY)));
+        wiremock.stubFor(
+                post("/team").withRequestBody(new EqualToPattern(REQUEST_BODY)).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
         assertNoTimeout(obs);
         obs.assertComplete();
 
         wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo("/team"))
-                .withoutHeader(TRANSFER_ENCODING)
-                .withHeader(CONTENT_LENGTH, new EqualToPattern(Integer.toString(REQUEST_BODY_LENGTH)))
-                .withRequestBody(new EqualToPattern(REQUEST_BODY))
-        );
+                1,
+                postRequestedFor(urlPathEqualTo("/team"))
+                        .withoutHeader(TRANSFER_ENCODING)
+                        .withHeader(CONTENT_LENGTH, new EqualToPattern(Integer.toString(REQUEST_BODY_LENGTH)))
+                        .withRequestBody(new EqualToPattern(REQUEST_BODY)));
     }
 
     @Test
@@ -767,8 +773,8 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
-            .withHeader("X-Custom", new EqualToPattern("value1"))
-            .withHeader("X-Custom", new EqualToPattern("value2"));
+                .withHeader("X-Custom", new EqualToPattern("value1"))
+                .withHeader("X-Custom", new EqualToPattern("value2"));
 
         for (CharSequence header : HttpConnector.HOP_HEADERS) {
             requestPatternBuilder = requestPatternBuilder.withoutHeader(header.toString());
@@ -780,7 +786,8 @@ class HttpConnectorTest {
     @Test
     void should_add_or_replace_request_headers_with_configuration() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
-        sharedConfiguration.setHeaders(List.of(new HttpHeader("X-To-Be-Overriden", "Override"), new HttpHeader("X-To-Be-Added", "Added")));
+        sharedConfiguration.setHeaders(
+                List.of(new HttpHeader("X-To-Be-Overriden", "Override"), new HttpHeader("X-To-Be-Added", "Added")));
 
         requestHeaders.add("X-Custom", "value1");
         requestHeaders.add("X-To-Be-Overriden", List.of("toOverrideValue1", "toOverrideValue2"));
@@ -792,9 +799,9 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
-            .withHeader("X-Custom", new EqualToPattern("value1"))
-            .withHeader("X-To-Be-Overriden", new EqualToPattern("Override"))
-            .withHeader("X-To-Be-Added", new EqualToPattern("Added"));
+                .withHeader("X-Custom", new EqualToPattern("value1"))
+                .withHeader("X-To-Be-Overriden", new EqualToPattern("Override"))
+                .withHeader("X-To-Be-Added", new EqualToPattern("Added"));
 
         for (CharSequence header : HttpConnector.HOP_HEADERS) {
             requestPatternBuilder = requestPatternBuilder.withoutHeader(header.toString());
@@ -819,8 +826,8 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
-            .withHeader(HOST, new EqualToPattern("api.gravitee.io"))
-            .withHeader("X-Custom", new EqualToPattern("value1"));
+                .withHeader(HOST, new EqualToPattern("api.gravitee.io"))
+                .withHeader("X-Custom", new EqualToPattern("value1"));
 
         for (CharSequence header : HttpConnector.HOP_HEADERS) {
             requestPatternBuilder = requestPatternBuilder.withoutHeader(header.toString());
@@ -844,8 +851,8 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
-            .withHeader(HOST, new EqualToPattern("localhost:" + wiremock.port()))
-            .withHeader("X-Custom", new EqualToPattern("value1"));
+                .withHeader(HOST, new EqualToPattern("localhost:" + wiremock.port()))
+                .withHeader("X-Custom", new EqualToPattern("value1"));
 
         for (CharSequence header : HttpConnector.HOP_HEADERS) {
             requestPatternBuilder = requestPatternBuilder.withoutHeader(header.toString());
@@ -855,7 +862,8 @@ class HttpConnectorTest {
     }
 
     @Test
-    void should_override_host_header_with_PropagateClientHost_option_and_originalHost_equal_to_host() throws InterruptedException {
+    void should_override_host_header_with_PropagateClientHost_option_and_originalHost_equal_to_host()
+            throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.originalHost()).thenReturn("api.gravitee.io");
         when(request.host()).thenReturn("api.gravitee.io");
@@ -868,16 +876,15 @@ class HttpConnectorTest {
         assertNoTimeout(obs);
         obs.assertComplete();
 
-        RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team")).withHeader(
-            HOST,
-            new EqualToPattern("api.gravitee.io")
-        );
+        RequestPatternBuilder requestPatternBuilder =
+                getRequestedFor(urlPathEqualTo("/team")).withHeader(HOST, new EqualToPattern("api.gravitee.io"));
 
         wiremock.verify(1, requestPatternBuilder);
     }
 
     @Test
-    void should_override_host_header_with_PropagateClientHost_option_and_host_different_from_originalHost() throws InterruptedException {
+    void should_override_host_header_with_PropagateClientHost_option_and_host_different_from_originalHost()
+            throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.originalHost()).thenReturn("api.gravitee.io");
         when(request.host()).thenReturn("new.host.com");
@@ -890,10 +897,8 @@ class HttpConnectorTest {
         assertNoTimeout(obs);
         obs.assertComplete();
 
-        RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team")).withHeader(
-            HOST,
-            new EqualToPattern("new.host.com")
-        );
+        RequestPatternBuilder requestPatternBuilder =
+                getRequestedFor(urlPathEqualTo("/team")).withHeader(HOST, new EqualToPattern("new.host.com"));
 
         wiremock.verify(1, requestPatternBuilder);
     }
@@ -912,17 +917,15 @@ class HttpConnectorTest {
         assertNoTimeout(obs);
         obs.assertComplete();
 
-        RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team")).withHeader(
-            HOST,
-            new EqualToPattern("localhost:" + wiremock.port())
-        );
+        RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
+                .withHeader(HOST, new EqualToPattern("localhost:" + wiremock.port()));
 
         wiremock.verify(1, requestPatternBuilder);
     }
 
     @Test
     void should_connect_to_hc_absolute_target_not_to_endpoint_default_host_when_custom_host_header_is_configured()
-        throws InterruptedException {
+            throws InterruptedException {
         // Regression: setServer() must use options.getHost() (actual HC target) not defaultHost (endpoint config).
         // Using defaultHost when the two differ causes the TCP connection to go to the wrong server.
         configuration.setTarget("http://endpoint-host.invalid/");
@@ -939,7 +942,8 @@ class HttpConnectorTest {
         assertNoTimeout(obs);
         obs.assertComplete();
 
-        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/health")).withHeader(HOST, equalTo("custom-backend.example.com")));
+        wiremock.verify(
+                1, getRequestedFor(urlPathEqualTo("/health")).withHeader(HOST, equalTo("custom-backend.example.com")));
     }
 
     @Test
@@ -958,8 +962,8 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
-            .withHeader("X-Custom", new EqualToPattern("value1"))
-            .withHeader("X-Custom", new EqualToPattern("value2"));
+                .withHeader("X-Custom", new EqualToPattern("value1"))
+                .withHeader("X-Custom", new EqualToPattern("value2"));
 
         for (CharSequence header : HttpConnector.HOP_HEADERS) {
             requestPatternBuilder = requestPatternBuilder.withoutHeader(header.toString());
@@ -972,11 +976,10 @@ class HttpConnectorTest {
     void should_propagate_response_headers() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
 
-        wiremock.stubFor(
-            get("/team").willReturn(
-                ok(BACKEND_RESPONSE_BODY).withHeader("X-Response-Header", "Value1", "Value2").withHeader("X-Other", "OtherValue")
-            )
-        );
+        wiremock.stubFor(get("/team")
+                .willReturn(ok(BACKEND_RESPONSE_BODY)
+                        .withHeader("X-Response-Header", "Value1", "Value2")
+                        .withHeader("X-Other", "OtherValue")));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
 
@@ -995,11 +998,10 @@ class HttpConnectorTest {
         when(response.headers()).thenReturn(responseHeaders);
         when(request.method()).thenReturn(HttpMethod.GET);
 
-        wiremock.stubFor(
-            get("/team").willReturn(
-                ok(BACKEND_RESPONSE_BODY).withHeader("X-Response-Header", "Value1", "Value2").withHeader("X-Other", "OtherValue")
-            )
-        );
+        wiremock.stubFor(get("/team")
+                .willReturn(ok(BACKEND_RESPONSE_BODY)
+                        .withHeader("X-Response-Header", "Value1", "Value2")
+                        .withHeader("X-Other", "OtherValue")));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
 
@@ -1015,9 +1017,9 @@ class HttpConnectorTest {
     void should_throw_illegal_argument_exception_with_null_target() {
         configuration.setTarget(null);
 
-        assertThrows(IllegalArgumentException.class, () ->
-            cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory())
-        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory()));
     }
 
     @Test
@@ -1036,11 +1038,10 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         wiremock.verify(
-            1,
-            getRequestedFor(urlPathEqualTo("/team"))
-                .withQueryParam("foo1", new EqualToPattern("bar1"))
-                .withQueryParam("foo2", new EqualToPattern("bar2"))
-        );
+                1,
+                getRequestedFor(urlPathEqualTo("/team"))
+                        .withQueryParam("foo1", new EqualToPattern("bar1"))
+                        .withQueryParam("foo2", new EqualToPattern("bar2")));
     }
 
     @Test
@@ -1063,14 +1064,13 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         wiremock.verify(
-            1,
-            getRequestedFor(urlPathEqualTo("/team"))
-                .withQueryParam("foo1", new EqualToPattern("bar1"))
-                .withQueryParam("foo2", new EqualToPattern("bar2"))
-                .withQueryParam("param1", new EqualToPattern("value1"))
-                .withQueryParam("param2", new EqualToPattern("value2"))
-                .withQueryParam("foo3", new EqualToPattern(""))
-        );
+                1,
+                getRequestedFor(urlPathEqualTo("/team"))
+                        .withQueryParam("foo1", new EqualToPattern("bar1"))
+                        .withQueryParam("foo2", new EqualToPattern("bar2"))
+                        .withQueryParam("param1", new EqualToPattern("value1"))
+                        .withQueryParam("param2", new EqualToPattern("value2"))
+                        .withQueryParam("foo3", new EqualToPattern("")));
     }
 
     @Test
@@ -1097,10 +1097,9 @@ class HttpConnectorTest {
         assertNoTimeout(obs);
         obs.assertComplete();
         verify(tracer, never()).endOnError(any(Span.class), any(Throwable.class));
-        verify(ctx, never()).setInternalAttribute(
-            eq(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE),
-            any(ExecutionFailure.class)
-        );
+        verify(ctx, never())
+                .setInternalAttribute(
+                        eq(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE), any(ExecutionFailure.class));
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/error")));
     }
 
@@ -1155,7 +1154,8 @@ class HttpConnectorTest {
     }
 
     @Test
-    void should_record_endpoint_response_time_when_the_response_body_is_cancelled_mid_stream() throws InterruptedException {
+    void should_record_endpoint_response_time_when_the_response_body_is_cancelled_mid_stream()
+            throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(metrics.getEndpointRequestStartNs()).thenReturn(System.nanoTime() - BACKEND_ELAPSED_NS);
 
@@ -1171,13 +1171,13 @@ class HttpConnectorTest {
         verify(response).chunks(chunksCaptor.capture());
         chunksCaptor.getValue().test(1).cancel();
 
-        verify(metrics, timeout(VERIFY_TIMEOUT_MS)).setEndpointResponseTimeNs(
-            longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS)
-        );
+        verify(metrics, timeout(VERIFY_TIMEOUT_MS))
+                .setEndpointResponseTimeNs(longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS));
     }
 
     @Test
-    void should_record_endpoint_response_time_once_the_response_body_has_been_fully_received() throws InterruptedException {
+    void should_record_endpoint_response_time_once_the_response_body_has_been_fully_received()
+            throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(metrics.getEndpointRequestStartNs()).thenReturn(System.nanoTime() - BACKEND_ELAPSED_NS);
 
@@ -1194,13 +1194,13 @@ class HttpConnectorTest {
         drainChunks(response);
 
         // The whole response is now proxied, body included, which is what the endpoint response time stands for.
-        verify(metrics, timeout(VERIFY_TIMEOUT_MS)).setEndpointResponseTimeNs(
-            longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS)
-        );
+        verify(metrics, timeout(VERIFY_TIMEOUT_MS))
+                .setEndpointResponseTimeNs(longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS));
     }
 
     @Test
-    void should_leave_endpoint_response_time_untouched_when_the_endpoint_request_start_is_unknown() throws InterruptedException {
+    void should_leave_endpoint_response_time_untouched_when_the_endpoint_request_start_is_unknown()
+            throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(metrics.getEndpointRequestStartNs()).thenReturn(-1L);
 
@@ -1218,31 +1218,27 @@ class HttpConnectorTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = Fault.class, names = { "EMPTY_RESPONSE", "CONNECTION_RESET_BY_PEER" })
-    void should_retry_on_a_fresh_connection_when_the_pooled_connection_was_closed_or_reset_by_the_peer(final Fault fault)
-        throws InterruptedException {
+    @EnumSource(
+            value = Fault.class,
+            names = {"EMPTY_RESPONSE", "CONNECTION_RESET_BY_PEER"})
+    void should_retry_on_a_fresh_connection_when_the_pooled_connection_was_closed_or_reset_by_the_peer(
+            final Fault fault) throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
 
-        wiremock.stubFor(
-            get("/team")
+        wiremock.stubFor(get("/team")
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(Scenario.STARTED)
                 .willReturn(ok(BACKEND_RESPONSE_BODY))
-                .willSetStateTo(PEER_CLOSED_THE_POOLED_CONNECTION)
-        );
-        wiremock.stubFor(
-            get("/team")
+                .willSetStateTo(PEER_CLOSED_THE_POOLED_CONNECTION));
+        wiremock.stubFor(get("/team")
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(PEER_CLOSED_THE_POOLED_CONNECTION)
                 .willReturn(aResponse().withFault(fault))
-                .willSetStateTo(PEER_ACCEPTS_A_FRESH_CONNECTION)
-        );
-        wiremock.stubFor(
-            get("/team")
+                .willSetStateTo(PEER_ACCEPTS_A_FRESH_CONNECTION));
+        wiremock.stubFor(get("/team")
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(PEER_ACCEPTS_A_FRESH_CONNECTION)
-                .willReturn(ok(BACKEND_RESPONSE_BODY))
-        );
+                .willReturn(ok(BACKEND_RESPONSE_BODY)));
 
         primePooledConnection();
 
@@ -1251,44 +1247,43 @@ class HttpConnectorTest {
         assertNoTimeout(obs);
         obs.assertComplete();
         verify(response).status(HttpStatusCode.OK_200);
-        assertThat(drainChunks(response).values().stream().map(Buffer::toString).collect(Collectors.joining())).isEqualTo(
-            BACKEND_RESPONSE_BODY
-        );
+        assertThat(drainChunks(response).values().stream().map(Buffer::toString).collect(Collectors.joining()))
+                .isEqualTo(BACKEND_RESPONSE_BODY);
         wiremock.verify(3, getRequestedFor(urlPathEqualTo("/team")));
     }
 
     @ParameterizedTest
-    @EnumSource(value = HttpMethod.class, names = { "GET", "HEAD", "OPTIONS", "PUT", "DELETE" })
-    void should_retry_a_body_less_idempotent_request_with_the_exact_same_request(final HttpMethod method) throws InterruptedException {
+    @EnumSource(
+            value = HttpMethod.class,
+            names = {"GET", "HEAD", "OPTIONS", "PUT", "DELETE"})
+    void should_retry_a_body_less_idempotent_request_with_the_exact_same_request(final HttpMethod method)
+            throws InterruptedException {
         when(request.method()).thenReturn(method);
         final AtomicInteger chunksSubscriptions = new AtomicInteger();
-        when(request.chunks()).thenReturn(Flowable.<Buffer>empty().doOnSubscribe(subscription -> chunksSubscriptions.incrementAndGet()));
-        // Identifies the failed attempt and its retry in the request journal below; the priming request never carries it.
+        when(request.chunks())
+                .thenReturn(
+                        Flowable.<Buffer>empty().doOnSubscribe(subscription -> chunksSubscriptions.incrementAndGet()));
+        // Identifies the failed attempt and its retry in the request journal below; the priming request never carries
+        // it.
         final String traceId = "3f1c9e2a";
         requestHeaders.set("X-Test-Trace-Id", traceId);
 
         // The priming request always uses GET (see primePooledConnection), so this transitional stub matches any
         // method to consume it and drive the scenario into the peer-closed state before the request under test begins.
-        wiremock.stubFor(
-            any(urlPathEqualTo("/team"))
+        wiremock.stubFor(any(urlPathEqualTo("/team"))
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(Scenario.STARTED)
                 .willReturn(ok())
-                .willSetStateTo(PEER_CLOSED_THE_POOLED_CONNECTION)
-        );
-        wiremock.stubFor(
-            request(method.name(), urlPathEqualTo("/team"))
+                .willSetStateTo(PEER_CLOSED_THE_POOLED_CONNECTION));
+        wiremock.stubFor(request(method.name(), urlPathEqualTo("/team"))
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(PEER_CLOSED_THE_POOLED_CONNECTION)
                 .willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE))
-                .willSetStateTo(PEER_ACCEPTS_A_FRESH_CONNECTION)
-        );
-        wiremock.stubFor(
-            request(method.name(), urlPathEqualTo("/team"))
+                .willSetStateTo(PEER_ACCEPTS_A_FRESH_CONNECTION));
+        wiremock.stubFor(request(method.name(), urlPathEqualTo("/team"))
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(PEER_ACCEPTS_A_FRESH_CONNECTION)
-                .willReturn(ok())
-        );
+                .willReturn(ok()));
 
         primePooledConnection();
 
@@ -1301,11 +1296,10 @@ class HttpConnectorTest {
         // The priming request always uses GET (see above), so it never carries this header: filtering on it isolates
         // exactly the failed attempt and its retry, proving the retry happened for each idempotent method — the retry
         // is now gated on the method's idempotence, so nothing else here would catch a regression narrowing it to GET.
-        final List<LoggedRequest> retriableAttempts = wiremock
-            .findAll(requestedFor(method.name(), urlPathEqualTo("/team")))
-            .stream()
-            .filter(loggedRequest -> loggedRequest.containsHeader("X-Test-Trace-Id"))
-            .collect(Collectors.toList());
+        final List<LoggedRequest> retriableAttempts =
+                wiremock.findAll(requestedFor(method.name(), urlPathEqualTo("/team"))).stream()
+                        .filter(loggedRequest -> loggedRequest.containsHeader("X-Test-Trace-Id"))
+                        .collect(Collectors.toList());
         // One for the failed attempt, one for its retry: the options built for the first attempt are reused as-is,
         // not rebuilt, so proving both carry this request-specific header rules out a silent divergence between them.
         assertThat(retriableAttempts).hasSize(2);
@@ -1316,8 +1310,8 @@ class HttpConnectorTest {
         assertThat(failedAttempt.getHeader("X-Test-Trace-Id")).isEqualTo(traceId);
         assertThat(retriedAttempt.getHeader("X-Test-Trace-Id")).isEqualTo(traceId);
         assertThat(chunksSubscriptions.get())
-            .as("Client body should be consumed exactly once across the retry, neither lost nor read again")
-            .isEqualTo(1);
+                .as("Client body should be consumed exactly once across the retry, neither lost nor read again")
+                .isEqualTo(1);
     }
 
     @Test
@@ -1327,32 +1321,27 @@ class HttpConnectorTest {
         // pooled connection will be closed by the peer before it answers.
         when(request.method()).thenReturn(HttpMethod.PUT);
         requestHeaders.set(CONTENT_LENGTH, "0");
-        // Identifies the failed attempt and its retry in the request journal below; the priming request never carries it.
+        // Identifies the failed attempt and its retry in the request journal below; the priming request never carries
+        // it.
         final String traceId = "9a2e5f74";
         requestHeaders.set("X-Test-Trace-Id", traceId);
 
         // The priming request always uses GET (see primePooledConnection), so this transitional stub matches any
         // method to consume it and drive the scenario into the peer-closed state before the request under test begins.
-        wiremock.stubFor(
-            any(urlPathEqualTo("/team"))
+        wiremock.stubFor(any(urlPathEqualTo("/team"))
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(Scenario.STARTED)
                 .willReturn(ok())
-                .willSetStateTo(PEER_CLOSED_THE_POOLED_CONNECTION)
-        );
-        wiremock.stubFor(
-            request(HttpMethod.PUT.name(), urlPathEqualTo("/team"))
+                .willSetStateTo(PEER_CLOSED_THE_POOLED_CONNECTION));
+        wiremock.stubFor(request(HttpMethod.PUT.name(), urlPathEqualTo("/team"))
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(PEER_CLOSED_THE_POOLED_CONNECTION)
                 .willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE))
-                .willSetStateTo(PEER_ACCEPTS_A_FRESH_CONNECTION)
-        );
-        wiremock.stubFor(
-            request(HttpMethod.PUT.name(), urlPathEqualTo("/team"))
+                .willSetStateTo(PEER_ACCEPTS_A_FRESH_CONNECTION));
+        wiremock.stubFor(request(HttpMethod.PUT.name(), urlPathEqualTo("/team"))
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(PEER_ACCEPTS_A_FRESH_CONNECTION)
-                .willReturn(ok())
-        );
+                .willReturn(ok()));
 
         primePooledConnection();
 
@@ -1365,11 +1354,10 @@ class HttpConnectorTest {
         verify(response).status(HttpStatusCode.OK_200);
 
         // ...and both the failed attempt and the retry carried the same method, URL, and headers.
-        final List<LoggedRequest> retriableAttempts = wiremock
-            .findAll(requestedFor(HttpMethod.PUT.name(), urlPathEqualTo("/team")))
-            .stream()
-            .filter(loggedRequest -> loggedRequest.containsHeader("X-Test-Trace-Id"))
-            .collect(Collectors.toList());
+        final List<LoggedRequest> retriableAttempts =
+                wiremock.findAll(requestedFor(HttpMethod.PUT.name(), urlPathEqualTo("/team"))).stream()
+                        .filter(loggedRequest -> loggedRequest.containsHeader("X-Test-Trace-Id"))
+                        .collect(Collectors.toList());
         assertThat(retriableAttempts).hasSize(2);
         assertThat(retriableAttempts).allSatisfy(attempt -> {
             assertThat(attempt.getMethod().getName()).isEqualTo(HttpMethod.PUT.name());
@@ -1380,7 +1368,8 @@ class HttpConnectorTest {
     }
 
     @Test
-    void should_read_the_client_request_body_once_for_a_body_less_put_declaring_content_length_zero() throws InterruptedException {
+    void should_read_the_client_request_body_once_for_a_body_less_put_declaring_content_length_zero()
+            throws InterruptedException {
         // Given a PUT declaring Content-Length: 0, whose client body stream is instrumented to count
         // subscriptions — the gateway's chunks are a single Vert.x request stream that throws "Request has
         // already been read" on a second subscription, so counting them here is what a plain Flowable.empty()
@@ -1388,7 +1377,9 @@ class HttpConnectorTest {
         when(request.method()).thenReturn(HttpMethod.PUT);
         requestHeaders.set(CONTENT_LENGTH, "0");
         final AtomicInteger chunksSubscriptions = new AtomicInteger();
-        when(request.chunks()).thenReturn(Flowable.<Buffer>empty().doOnSubscribe(subscription -> chunksSubscriptions.incrementAndGet()));
+        when(request.chunks())
+                .thenReturn(
+                        Flowable.<Buffer>empty().doOnSubscribe(subscription -> chunksSubscriptions.incrementAndGet()));
 
         wiremock.stubFor(put("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -1399,9 +1390,8 @@ class HttpConnectorTest {
         assertNoTimeout(obs);
         obs.assertComplete();
         verify(response).status(HttpStatusCode.OK_200);
-        assertThat(drainChunks(response).values().stream().map(Buffer::toString).collect(Collectors.joining())).isEqualTo(
-            BACKEND_RESPONSE_BODY
-        );
+        assertThat(drainChunks(response).values().stream().map(Buffer::toString).collect(Collectors.joining()))
+                .isEqualTo(BACKEND_RESPONSE_BODY);
 
         // ...the backend received an empty body...
         final List<LoggedRequest> attempts = wiremock.findAll(putRequestedFor(urlPathEqualTo("/team")));
@@ -1410,19 +1400,18 @@ class HttpConnectorTest {
         assertThat(attempts.get(0).getBodyAsString()).isEmpty();
         // ...and the client's body stream was drained exactly once, never sent.
         assertThat(chunksSubscriptions.get())
-            .as("Client body should be read exactly once: a declared length of zero bytes is drained, never sent")
-            .isEqualTo(1);
+                .as("Client body should be read exactly once: a declared length of zero bytes is drained, never sent")
+                .isEqualTo(1);
     }
 
     private record NonResendableRequest(
-        String description,
-        HttpMethod method,
-        String contentLengthHeader,
-        boolean chunkedTransferEncoding,
-        List<String> bodyChunks,
-        String expectedRequestBody,
-        String expectedContentLengthHeader
-    ) {
+            String description,
+            HttpMethod method,
+            String contentLengthHeader,
+            boolean chunkedTransferEncoding,
+            List<String> bodyChunks,
+            String expectedRequestBody,
+            String expectedContentLengthHeader) {
         @Override
         public String toString() {
             return description;
@@ -1432,52 +1421,49 @@ class HttpConnectorTest {
     private static Stream<NonResendableRequest> nonResendableRequests() {
         final String chunkedBody = REQUEST_BODY_CHUNK1 + REQUEST_BODY_CHUNK2 + REQUEST_BODY_CHUNK3;
         return Stream.of(
-            // PUT is idempotent, so a declared length of exactly as many bytes as are streamed is the only thing
-            // keeping this request off the retry path: those bytes reached the backend, which may already have
-            // acted on them.
-            new NonResendableRequest(
-                "PUT declaring a non-zero Content-Length",
-                HttpMethod.PUT,
-                Integer.toString(REQUEST_BODY_LENGTH),
-                false,
-                List.of(REQUEST_BODY),
-                REQUEST_BODY,
-                Integer.toString(REQUEST_BODY_LENGTH)
-            ),
-            new NonResendableRequest("body-less POST", HttpMethod.POST, null, false, List.of(), null, null),
-            // A declared body of exactly zero bytes reaches the backend as no body at all, so the method's
-            // non-idempotence is the only thing left keeping this request off the retry path.
-            new NonResendableRequest("POST declaring an empty body", HttpMethod.POST, "0", false, List.of(), null, "0"),
-            // PUT is idempotent, so the method no longer excludes the resend on its own: a body announced with
-            // Transfer-Encoding is what has to keep this failure off the retry path.
-            new NonResendableRequest(
-                "idempotent PUT whose chunked body was streamed",
-                HttpMethod.PUT,
-                null,
-                true,
-                List.of(REQUEST_BODY_CHUNK1, REQUEST_BODY_CHUNK2, REQUEST_BODY_CHUNK3),
-                chunkedBody,
-                null
-            ),
-            // The peer takes the whole body, then ends the connection without answering: the bytes of a
-            // non-idempotent request have already reached the backend, so this failure is not the pre-write
-            // pool-reuse race and must never be answered by sending the request a second time.
-            new NonResendableRequest(
-                "POST whose chunked body was streamed",
-                HttpMethod.POST,
-                null,
-                true,
-                List.of(REQUEST_BODY_CHUNK1, REQUEST_BODY_CHUNK2, REQUEST_BODY_CHUNK3),
-                chunkedBody,
-                null
-            )
-        );
+                // PUT is idempotent, so a declared length of exactly as many bytes as are streamed is the only thing
+                // keeping this request off the retry path: those bytes reached the backend, which may already have
+                // acted on them.
+                new NonResendableRequest(
+                        "PUT declaring a non-zero Content-Length",
+                        HttpMethod.PUT,
+                        Integer.toString(REQUEST_BODY_LENGTH),
+                        false,
+                        List.of(REQUEST_BODY),
+                        REQUEST_BODY,
+                        Integer.toString(REQUEST_BODY_LENGTH)),
+                new NonResendableRequest("body-less POST", HttpMethod.POST, null, false, List.of(), null, null),
+                // A declared body of exactly zero bytes reaches the backend as no body at all, so the method's
+                // non-idempotence is the only thing left keeping this request off the retry path.
+                new NonResendableRequest(
+                        "POST declaring an empty body", HttpMethod.POST, "0", false, List.of(), null, "0"),
+                // PUT is idempotent, so the method no longer excludes the resend on its own: a body announced with
+                // Transfer-Encoding is what has to keep this failure off the retry path.
+                new NonResendableRequest(
+                        "idempotent PUT whose chunked body was streamed",
+                        HttpMethod.PUT,
+                        null,
+                        true,
+                        List.of(REQUEST_BODY_CHUNK1, REQUEST_BODY_CHUNK2, REQUEST_BODY_CHUNK3),
+                        chunkedBody,
+                        null),
+                // The peer takes the whole body, then ends the connection without answering: the bytes of a
+                // non-idempotent request have already reached the backend, so this failure is not the pre-write
+                // pool-reuse race and must never be answered by sending the request a second time.
+                new NonResendableRequest(
+                        "POST whose chunked body was streamed",
+                        HttpMethod.POST,
+                        null,
+                        true,
+                        List.of(REQUEST_BODY_CHUNK1, REQUEST_BODY_CHUNK2, REQUEST_BODY_CHUNK3),
+                        chunkedBody,
+                        null));
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("nonResendableRequests")
-    void should_not_resend_a_request_when_the_pooled_connection_was_closed_by_the_peer(final NonResendableRequest testCase)
-        throws InterruptedException {
+    void should_not_resend_a_request_when_the_pooled_connection_was_closed_by_the_peer(
+            final NonResendableRequest testCase) throws InterruptedException {
         // Given a request whose body — declared, streamed, or its method's non-idempotence — makes it unsafe to
         // resend, and whose pooled connection will be closed by the peer before it answers.
         when(request.method()).thenReturn(testCase.method());
@@ -1487,24 +1473,26 @@ class HttpConnectorTest {
             requestHeaders.set(CONTENT_LENGTH, testCase.contentLengthHeader());
         }
         if (!testCase.bodyChunks().isEmpty()) {
-            when(request.chunks()).thenReturn(Flowable.fromIterable(testCase.bodyChunks()).map(Buffer::buffer));
+            when(request.chunks())
+                    .thenReturn(Flowable.fromIterable(testCase.bodyChunks()).map(Buffer::buffer));
         }
 
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
-        wiremock.stubFor(
-            request(testCase.method().name(), urlPathEqualTo("/team")).willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE))
-        );
+        wiremock.stubFor(request(testCase.method().name(), urlPathEqualTo("/team"))
+                .willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
 
         primePooledConnection();
 
         // When the connector executes the request.
         final AtomicReference<Throwable> connectFailure = new AtomicReference<>();
-        final TestObserver<Void> obs = cut.connect(ctx).doOnError(connectFailure::set).test();
+        final TestObserver<Void> obs =
+                cut.connect(ctx).doOnError(connectFailure::set).test();
 
         // Then it fails as a client-connection-closed error, never as a resend...
         assertNoTimeout(obs);
         obs.assertNotComplete();
-        assertThat(ConnectionFailureClassifier.classify(connectFailure.get()).key()).isEqualTo("GATEWAY_CLIENT_CONNECTION_CLOSED");
+        assertThat(ConnectionFailureClassifier.classify(connectFailure.get()).key())
+                .isEqualTo("GATEWAY_CLIENT_CONNECTION_CLOSED");
 
         // ...and the backend received exactly one attempt.
         final RequestPatternBuilder pattern = requestedFor(testCase.method().name(), urlPathEqualTo("/team"));
@@ -1519,7 +1507,8 @@ class HttpConnectorTest {
     }
 
     @Test
-    void should_not_resend_an_http2_request_when_the_pooled_connection_was_closed_by_the_peer() throws InterruptedException {
+    void should_not_resend_an_http2_request_when_the_pooled_connection_was_closed_by_the_peer()
+            throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         // An HTTP/2 request signals its body with Data frames rather than with Content-Length or Transfer-Encoding, so
         // the gateway streams a body it cannot replay even though no body header says so — leaving the headers unset
@@ -1528,41 +1517,38 @@ class HttpConnectorTest {
         // Identifies the single attempt in the request journal below; the priming request never carries it.
         requestHeaders.set("X-Test-Trace-Id", "7b4d0c15");
 
-        wiremock.stubFor(
-            get("/team")
+        wiremock.stubFor(get("/team")
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(Scenario.STARTED)
                 .willReturn(ok())
-                .willSetStateTo(PEER_CLOSED_THE_POOLED_CONNECTION)
-        );
+                .willSetStateTo(PEER_CLOSED_THE_POOLED_CONNECTION));
         // No follow-up success stub: a resend would hit this same fault and be recorded, so the journal count below is
         // what proves the request was never sent twice.
-        wiremock.stubFor(
-            get("/team")
+        wiremock.stubFor(get("/team")
                 .inScenario(POOLED_CONNECTION_SCENARIO)
                 .whenScenarioStateIs(PEER_CLOSED_THE_POOLED_CONNECTION)
-                .willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE))
-        );
+                .willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
 
         primePooledConnection();
 
         final AtomicReference<Throwable> connectFailure = new AtomicReference<>();
-        final TestObserver<Void> obs = cut.connect(ctx).doOnError(connectFailure::set).test();
+        final TestObserver<Void> obs =
+                cut.connect(ctx).doOnError(connectFailure::set).test();
 
         assertNoTimeout(obs);
         obs.assertNotComplete();
-        assertThat(ConnectionFailureClassifier.classify(connectFailure.get()).key()).isEqualTo("GATEWAY_CLIENT_CONNECTION_CLOSED");
+        assertThat(ConnectionFailureClassifier.classify(connectFailure.get()).key())
+                .isEqualTo("GATEWAY_CLIENT_CONNECTION_CLOSED");
 
-        final List<LoggedRequest> attempts = wiremock
-            .findAll(getRequestedFor(urlPathEqualTo("/team")))
-            .stream()
-            .filter(loggedRequest -> loggedRequest.containsHeader("X-Test-Trace-Id"))
-            .collect(Collectors.toList());
+        final List<LoggedRequest> attempts = wiremock.findAll(getRequestedFor(urlPathEqualTo("/team"))).stream()
+                .filter(loggedRequest -> loggedRequest.containsHeader("X-Test-Trace-Id"))
+                .collect(Collectors.toList());
         assertThat(attempts).hasSize(1);
     }
 
     @Test
-    void should_not_retry_a_second_time_when_the_retried_connection_is_also_closed_by_the_peer() throws InterruptedException {
+    void should_not_retry_a_second_time_when_the_retried_connection_is_also_closed_by_the_peer()
+            throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
 
         // Every attempt hits the same fault, so the retried one fails the same way the first did instead of being
@@ -1570,17 +1556,20 @@ class HttpConnectorTest {
         wiremock.stubFor(get("/team").willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
 
         final AtomicReference<Throwable> connectFailure = new AtomicReference<>();
-        final TestObserver<Void> obs = cut.connect(ctx).doOnError(connectFailure::set).test();
+        final TestObserver<Void> obs =
+                cut.connect(ctx).doOnError(connectFailure::set).test();
 
         assertNoTimeout(obs);
         obs.assertNotComplete();
-        assertThat(ConnectionFailureClassifier.classify(connectFailure.get()).key()).isEqualTo("GATEWAY_CLIENT_CONNECTION_CLOSED");
+        assertThat(ConnectionFailureClassifier.classify(connectFailure.get()).key())
+                .isEqualTo("GATEWAY_CLIENT_CONNECTION_CLOSED");
         // The failure surfaces to the client after a single retry: one original attempt and one retry, never a third.
         wiremock.verify(2, getRequestedFor(urlPathEqualTo("/team")));
     }
 
     @Test
-    void should_not_retry_a_body_less_request_when_the_failure_is_not_a_closed_or_reset_connection() throws InterruptedException {
+    void should_not_retry_a_body_less_request_when_the_failure_is_not_a_closed_or_reset_connection()
+            throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         sharedConfiguration.getHttpOptions().setReadTimeout(READ_TIMEOUT_MS);
         configuration.setTarget("http://localhost:" + wiremock.port() + SLOW_ENDPOINT);
@@ -1588,14 +1577,17 @@ class HttpConnectorTest {
 
         // Answers well past the read timeout above, so the exchange fails on a timeout rather than on a connection the
         // peer closed or reset.
-        wiremock.stubFor(get(SLOW_ENDPOINT).willReturn(ok(BACKEND_RESPONSE_BODY).withFixedDelay(BACKEND_FIXED_DELAY_MS)));
+        wiremock.stubFor(
+                get(SLOW_ENDPOINT).willReturn(ok(BACKEND_RESPONSE_BODY).withFixedDelay(BACKEND_FIXED_DELAY_MS)));
 
         final AtomicReference<Throwable> connectFailure = new AtomicReference<>();
-        final TestObserver<Void> obs = cut.connect(ctx).doOnError(connectFailure::set).test();
+        final TestObserver<Void> obs =
+                cut.connect(ctx).doOnError(connectFailure::set).test();
 
         assertNoTimeout(obs);
         obs.assertNotComplete();
-        assertThat(ConnectionFailureClassifier.classify(connectFailure.get()).key()).isEqualTo("GATEWAY_CLIENT_READ_TIMEOUT");
+        assertThat(ConnectionFailureClassifier.classify(connectFailure.get()).key())
+                .isEqualTo("GATEWAY_CLIENT_READ_TIMEOUT");
         // A retry would have been sent before the failure reached the client, so the journal is final here.
         wiremock.verify(1, getRequestedFor(urlPathEqualTo(SLOW_ENDPOINT)));
     }
@@ -1606,7 +1598,8 @@ class HttpConnectorTest {
         configuration.setTarget("http://localhost:" + wiremock.port() + SLOW_ENDPOINT);
         cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
 
-        wiremock.stubFor(get(SLOW_ENDPOINT).willReturn(ok(BACKEND_RESPONSE_BODY).withFixedDelay(BACKEND_FIXED_DELAY_MS)));
+        wiremock.stubFor(
+                get(SLOW_ENDPOINT).willReturn(ok(BACKEND_RESPONSE_BODY).withFixedDelay(BACKEND_FIXED_DELAY_MS)));
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
 
@@ -1628,10 +1621,13 @@ class HttpConnectorTest {
         while (wiremock.findAll(pattern).isEmpty() && System.nanoTime() - deadlineNs < 0) {
             Thread.sleep(REQUEST_JOURNAL_POLL_INTERVAL_MS);
         }
-        assertThat(wiremock.findAll(pattern)).as("Backend should have received the request before timeout").isNotEmpty();
+        assertThat(wiremock.findAll(pattern))
+                .as("Backend should have received the request before timeout")
+                .isNotEmpty();
     }
 
-    private void assertRequestCountStaysAt(final RequestPatternBuilder pattern, final int expectedCount) throws InterruptedException {
+    private void assertRequestCountStaysAt(final RequestPatternBuilder pattern, final int expectedCount)
+            throws InterruptedException {
         final long deadlineNs = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(NO_FURTHER_REQUEST_WINDOW_MS);
         while (System.nanoTime() - deadlineNs < 0) {
             assertThat(wiremock.findAll(pattern)).hasSize(expectedCount);
@@ -1678,10 +1674,16 @@ class HttpConnectorTest {
         final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         verify(target).chunks(chunksCaptor.capture());
 
-        return chunksCaptor.getValue().test().awaitDone(TIMEOUT_SECONDS, TimeUnit.SECONDS).assertComplete();
+        return chunksCaptor
+                .getValue()
+                .test()
+                .awaitDone(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .assertComplete();
     }
 
     private void assertNoTimeout(TestObserver<Void> obs) throws InterruptedException {
-        assertThat(obs.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).as("Should complete before timeout").isTrue();
+        assertThat(obs.await(TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("Should complete before timeout")
+                .isTrue();
     }
 }

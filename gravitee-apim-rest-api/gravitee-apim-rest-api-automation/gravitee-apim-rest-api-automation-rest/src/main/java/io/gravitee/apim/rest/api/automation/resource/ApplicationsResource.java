@@ -65,21 +65,24 @@ public class ApplicationsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_APPLICATION,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(
-        @Valid @NotNull ApplicationSpec spec,
-        @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
-        @QueryParam("ignoreGroups") boolean ignoreGroups
-    ) {
+            @Valid @NotNull ApplicationSpec spec,
+            @QueryParam("dryRun") boolean dryRun,
+            @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+            @QueryParam("ignoreGroups") boolean ignoreGroups) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         var auditInfo = buildAuditInfo(executionContext, userDetails);
 
-        ApplicationCRDSpec applicationCRDSpec = io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper.INSTANCE.map(
-            ApplicationMapper.INSTANCE.applicationSpecToApplicationCRDSpec(spec)
-        );
+        ApplicationCRDSpec applicationCRDSpec =
+                io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper.INSTANCE.map(
+                        ApplicationMapper.INSTANCE.applicationSpecToApplicationCRDSpec(spec));
 
         if (hridContainsUUID) {
             // As Automation API does not have any ID field,
@@ -96,15 +99,17 @@ public class ApplicationsResource extends AbstractResource {
 
         if (dryRun) {
             ApplicationCRDStatus status = validateApplicationCRDUseCase
-                .execute(new ImportApplicationCRDUseCase.Input(auditInfo, applicationCRDSpec))
-                .status();
-            return Response.ok(ApplicationMapper.INSTANCE.applicationSpecAndStatusToApplicationState(spec, status)).build();
+                    .execute(new ImportApplicationCRDUseCase.Input(auditInfo, applicationCRDSpec))
+                    .status();
+            return Response.ok(ApplicationMapper.INSTANCE.applicationSpecAndStatusToApplicationState(spec, status))
+                    .build();
         }
 
         ApplicationCRDStatus status = importApplicationCRDUseCase
-            .execute(new ImportApplicationCRDUseCase.Input(auditInfo, applicationCRDSpec))
-            .status();
+                .execute(new ImportApplicationCRDUseCase.Input(auditInfo, applicationCRDSpec))
+                .status();
 
-        return Response.ok(ApplicationMapper.INSTANCE.applicationSpecAndStatusToApplicationState(spec, status)).build();
+        return Response.ok(ApplicationMapper.INSTANCE.applicationSpecAndStatusToApplicationState(spec, status))
+                .build();
     }
 }

@@ -118,17 +118,16 @@ class ObservabilityLogsDataPortAdapterTest {
     @BeforeEach
     void setUp() {
         adapter = new ObservabilityLogsDataPortAdapter(
-            aggregatedMessageLogCrudService,
-            connectionLogsCrudService,
-            authzDecisionLogsCrudService,
-            analyticsQueryService,
-            userContextLoader,
-            planCrudService,
-            applicationCrudService,
-            instanceQueryService,
-            apiProductQueryService,
-            apiCrudService
-        );
+                aggregatedMessageLogCrudService,
+                connectionLogsCrudService,
+                authzDecisionLogsCrudService,
+                analyticsQueryService,
+                userContextLoader,
+                planCrudService,
+                applicationCrudService,
+                instanceQueryService,
+                apiProductQueryService,
+                apiCrudService);
     }
 
     @Test
@@ -136,17 +135,17 @@ class ObservabilityLogsDataPortAdapterTest {
         var query = queryWith(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("HTTP_PROXY")));
 
         assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
-            .isInstanceOf(UnsupportedObservabilityFilterException.class)
-            .hasMessageContaining("API_TYPE");
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("API_TYPE");
 
         verifyNoInteractions(connectionLogsCrudService);
     }
 
     @Test
     void should_propagate_api_type_onto_log_rows() {
-        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
-            new SearchLogsResponse<>(1, List.of(BaseConnectionLog.builder().apiId("api-1").build()))
-        );
+        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any()))
+                .thenReturn(new SearchLogsResponse<>(
+                        1, List.of(BaseConnectionLog.builder().apiId("api-1").build())));
 
         var page = adapter.searchLogs(ORG, ENV, queryWith());
 
@@ -159,26 +158,19 @@ class ObservabilityLogsDataPortAdapterTest {
     void should_hoist_the_kafka_client_software_onto_log_rows() {
         // The table offers a "Client library" column, so the light row has to carry the two fields —
         // not only the detail. They live in additional-metrics, like the client id already hoisted here.
-        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
-            new SearchLogsResponse<>(
-                1,
-                List.of(
-                    BaseConnectionLog.builder()
-                        .apiId("api-1")
-                        .additionalMetrics(
-                            Map.of(
-                                NativeApiMetricKeys.CLIENT_ID,
-                                "rdkafka",
-                                NativeApiMetricKeys.CLIENT_SOFTWARE_NAME,
-                                "librdkafka",
-                                NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION,
-                                "2.6.1"
-                            )
-                        )
-                        .build()
-                )
-            )
-        );
+        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any()))
+                .thenReturn(new SearchLogsResponse<>(
+                        1,
+                        List.of(BaseConnectionLog.builder()
+                                .apiId("api-1")
+                                .additionalMetrics(Map.of(
+                                        NativeApiMetricKeys.CLIENT_ID,
+                                        "rdkafka",
+                                        NativeApiMetricKeys.CLIENT_SOFTWARE_NAME,
+                                        "librdkafka",
+                                        NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION,
+                                        "2.6.1"))
+                                .build())));
 
         var row = adapter.searchLogs(ORG, ENV, queryWith()).data().getFirst();
 
@@ -191,14 +183,13 @@ class ObservabilityLogsDataPortAdapterTest {
     void should_leave_the_client_software_null_on_a_row_written_before_the_gateway_read_it() {
         // Distinct from the "unknown" sentinel a client advertises: here the gateway never wrote the
         // fields, and the UI must be able to drop the cell rather than render a misleading value.
-        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
-            new SearchLogsResponse<>(
-                1,
-                List.of(
-                    BaseConnectionLog.builder().apiId("api-1").additionalMetrics(Map.of(NativeApiMetricKeys.CLIENT_ID, "rdkafka")).build()
-                )
-            )
-        );
+        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any()))
+                .thenReturn(new SearchLogsResponse<>(
+                        1,
+                        List.of(BaseConnectionLog.builder()
+                                .apiId("api-1")
+                                .additionalMetrics(Map.of(NativeApiMetricKeys.CLIENT_ID, "rdkafka"))
+                                .build())));
 
         var row = adapter.searchLogs(ORG, ENV, queryWith()).data().getFirst();
 
@@ -249,9 +240,8 @@ class ObservabilityLogsDataPortAdapterTest {
         void should_merge_gte_and_lte_into_single_closed_range() {
             stubEmptySearchResult();
             var query = queryWith(
-                new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("400")),
-                new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("500"))
-            );
+                    new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("400")),
+                    new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("500")));
 
             adapter.searchLogs(ORG, ENV, query);
 
@@ -264,14 +254,13 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_reject_inverted_gte_lte_range() {
             var query = queryWith(
-                new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("500")),
-                new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("200"))
-            );
+                    new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("500")),
+                    new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("200")));
 
             assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("gte")
-                .hasMessageContaining("lte");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("gte")
+                    .hasMessageContaining("lte");
         }
 
         @Test
@@ -279,8 +268,8 @@ class ObservabilityLogsDataPortAdapterTest {
             var query = queryWith(new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("1000")));
 
             assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("1000");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("1000");
         }
 
         @Test
@@ -288,8 +277,8 @@ class ObservabilityLogsDataPortAdapterTest {
             var query = queryWith(new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("99")));
 
             assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("99");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("99");
         }
 
         @Test
@@ -297,8 +286,8 @@ class ObservabilityLogsDataPortAdapterTest {
             var query = queryWith(new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("abc")));
 
             assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("abc");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("abc");
         }
     }
 
@@ -318,7 +307,8 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_pass_multiple_group_keys() {
             stubEmptySearchResult();
-            var query = queryWith(new FilterCondition("HTTP_STATUS_CODE_GROUP", FilterOperator.IN, List.of("2XX", "4XX")));
+            var query =
+                    queryWith(new FilterCondition("HTTP_STATUS_CODE_GROUP", FilterOperator.IN, List.of("2XX", "4XX")));
 
             adapter.searchLogs(ORG, ENV, query);
 
@@ -350,8 +340,8 @@ class ObservabilityLogsDataPortAdapterTest {
             var query = queryWith(new FilterCondition("HTTP_STATUS_CODE_GROUP", FilterOperator.EQ, List.of("9XX")));
 
             assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("9XX");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("9XX");
         }
     }
 
@@ -361,7 +351,8 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_translate_llm_proxy_model() {
             stubEmptySearchResult();
-            var query = queryWith(new FilterCondition("LLM_PROXY_MODEL", FilterOperator.IN, List.of("gpt-4", "claude-3")));
+            var query =
+                    queryWith(new FilterCondition("LLM_PROXY_MODEL", FilterOperator.IN, List.of("gpt-4", "claude-3")));
 
             adapter.searchLogs(ORG, ENV, query);
 
@@ -438,7 +429,8 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_translate_gte_to_response_time_from() {
             stubEmptySearchResult();
-            var query = queryWith(new FilterCondition("HTTP_GATEWAY_RESPONSE_TIME", FilterOperator.GTE, List.of("100")));
+            var query =
+                    queryWith(new FilterCondition("HTTP_GATEWAY_RESPONSE_TIME", FilterOperator.GTE, List.of("100")));
 
             adapter.searchLogs(ORG, ENV, query);
 
@@ -451,7 +443,8 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_translate_lte_to_response_time_to() {
             stubEmptySearchResult();
-            var query = queryWith(new FilterCondition("HTTP_GATEWAY_RESPONSE_TIME", FilterOperator.LTE, List.of("500")));
+            var query =
+                    queryWith(new FilterCondition("HTTP_GATEWAY_RESPONSE_TIME", FilterOperator.LTE, List.of("500")));
 
             adapter.searchLogs(ORG, ENV, query);
 
@@ -525,19 +518,20 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_translate_native_connection_status_filter() {
             stubEmptySearchResult();
-            var query = queryWith(
-                new FilterCondition("NATIVE_CONNECTION_STATUS", FilterOperator.IN, List.of("CONNECTED", "SESSION_ERROR"))
-            );
+            var query = queryWith(new FilterCondition(
+                    "NATIVE_CONNECTION_STATUS", FilterOperator.IN, List.of("CONNECTED", "SESSION_ERROR")));
 
             adapter.searchLogs(ORG, ENV, query);
 
-            assertThat(captureSearchFilters().nativeConnectionStatuses()).containsExactlyInAnyOrder("CONNECTED", "SESSION_ERROR");
+            assertThat(captureSearchFilters().nativeConnectionStatuses())
+                    .containsExactlyInAnyOrder("CONNECTED", "SESSION_ERROR");
         }
 
         @Test
         void should_translate_kafka_client_id_filter() {
             stubEmptySearchResult();
-            var query = queryWith(new FilterCondition("NATIVE_CLIENT_ID", FilterOperator.IN, List.of("rdkafka", "adminclient-1")));
+            var query = queryWith(
+                    new FilterCondition("NATIVE_CLIENT_ID", FilterOperator.IN, List.of("rdkafka", "adminclient-1")));
 
             adapter.searchLogs(ORG, ENV, query);
 
@@ -549,27 +543,32 @@ class ObservabilityLogsDataPortAdapterTest {
             stubEmptySearchResult();
             // 'unknown' is a selectable population, not an absence: it is every client that advertised
             // no library (KafkaJS, anything on ApiVersions v0-v2).
-            var query = queryWith(new FilterCondition("NATIVE_CLIENT_SOFTWARE_NAME", FilterOperator.IN, List.of("librdkafka", "unknown")));
+            var query = queryWith(new FilterCondition(
+                    "NATIVE_CLIENT_SOFTWARE_NAME", FilterOperator.IN, List.of("librdkafka", "unknown")));
 
             adapter.searchLogs(ORG, ENV, query);
 
-            assertThat(captureSearchFilters().nativeClientSoftwareNames()).containsExactlyInAnyOrder("librdkafka", "unknown");
+            assertThat(captureSearchFilters().nativeClientSoftwareNames())
+                    .containsExactlyInAnyOrder("librdkafka", "unknown");
         }
 
         @Test
         void should_translate_kafka_client_library_version_filter() {
             stubEmptySearchResult();
-            var query = queryWith(new FilterCondition("NATIVE_CLIENT_SOFTWARE_VERSION", FilterOperator.IN, List.of("1.8.2", "2.6.1")));
+            var query = queryWith(new FilterCondition(
+                    "NATIVE_CLIENT_SOFTWARE_VERSION", FilterOperator.IN, List.of("1.8.2", "2.6.1")));
 
             adapter.searchLogs(ORG, ENV, query);
 
-            assertThat(captureSearchFilters().nativeClientSoftwareVersions()).containsExactlyInAnyOrder("1.8.2", "2.6.1");
+            assertThat(captureSearchFilters().nativeClientSoftwareVersions())
+                    .containsExactlyInAnyOrder("1.8.2", "2.6.1");
         }
 
         @Test
         void should_translate_failure_origin_filter() {
             stubEmptySearchResult();
-            var query = queryWith(new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of("GATEWAY_TO_BROKER", "NONE")));
+            var query = queryWith(
+                    new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of("GATEWAY_TO_BROKER", "NONE")));
 
             adapter.searchLogs(ORG, ENV, query);
 
@@ -578,29 +577,22 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_hoist_native_fields_and_derive_failure_origin() {
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
-                new SearchLogsResponse<>(
-                    1,
-                    List.of(
-                        BaseConnectionLog.builder()
-                            .apiId("api-1")
-                            .errorKey("BROKER_NOT_AVAILABLE")
-                            .additionalMetrics(
-                                Map.of(
-                                    "keyword_native-kafka_connection-status",
-                                    "SESSION_ERROR",
-                                    "keyword_native-kafka_client-id",
-                                    "orders-consumer",
-                                    "keyword_native-kafka_broker-id",
-                                    "1",
-                                    "long_native-kafka_connection-duration-ms",
-                                    1250L
-                                )
-                            )
-                            .build()
-                    )
-                )
-            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(
+                            1,
+                            List.of(BaseConnectionLog.builder()
+                                    .apiId("api-1")
+                                    .errorKey("BROKER_NOT_AVAILABLE")
+                                    .additionalMetrics(Map.of(
+                                            "keyword_native-kafka_connection-status",
+                                            "SESSION_ERROR",
+                                            "keyword_native-kafka_client-id",
+                                            "orders-consumer",
+                                            "keyword_native-kafka_broker-id",
+                                            "1",
+                                            "long_native-kafka_connection-duration-ms",
+                                            1250L))
+                                    .build())));
 
             var page = adapter.searchLogs(ORG, ENV, queryWith());
 
@@ -614,24 +606,17 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_read_duration_from_legacy_keyword_key_as_fallback() {
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
-                new SearchLogsResponse<>(
-                    1,
-                    List.of(
-                        BaseConnectionLog.builder()
-                            .apiId("api-1")
-                            .additionalMetrics(
-                                Map.of(
-                                    "keyword_native-kafka_connection-status",
-                                    "CONNECTION_ERROR",
-                                    "keyword_native-kafka_connection-duration-ms",
-                                    "740"
-                                )
-                            )
-                            .build()
-                    )
-                )
-            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(
+                            1,
+                            List.of(BaseConnectionLog.builder()
+                                    .apiId("api-1")
+                                    .additionalMetrics(Map.of(
+                                            "keyword_native-kafka_connection-status",
+                                            "CONNECTION_ERROR",
+                                            "keyword_native-kafka_connection-duration-ms",
+                                            "740"))
+                                    .build())));
 
             var page = adapter.searchLogs(ORG, ENV, queryWith());
 
@@ -640,12 +625,14 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_propagate_host_and_subscription_id_onto_log_rows() {
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
-                new SearchLogsResponse<>(
-                    1,
-                    List.of(BaseConnectionLog.builder().apiId("api-1").host("kafka.orders.gravitee.dev").subscriptionId("sub-1").build())
-                )
-            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(
+                            1,
+                            List.of(BaseConnectionLog.builder()
+                                    .apiId("api-1")
+                                    .host("kafka.orders.gravitee.dev")
+                                    .subscriptionId("sub-1")
+                                    .build())));
 
             var page = adapter.searchLogs(ORG, ENV, queryWith());
 
@@ -655,9 +642,13 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_not_derive_failure_origin_for_rows_without_connection_status() {
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
-                new SearchLogsResponse<>(1, List.of(BaseConnectionLog.builder().apiId("api-1").errorKey("GATEWAY_TIMEOUT").build()))
-            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(
+                            1,
+                            List.of(BaseConnectionLog.builder()
+                                    .apiId("api-1")
+                                    .errorKey("GATEWAY_TIMEOUT")
+                                    .build())));
 
             var page = adapter.searchLogs(ORG, ENV, queryWith());
 
@@ -688,8 +679,8 @@ class ObservabilityLogsDataPortAdapterTest {
             var query = queryWith(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of()));
 
             assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
-                .isInstanceOf(UnsupportedObservabilityFilterException.class)
-                .hasMessageContaining("non-blank");
+                    .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                    .hasMessageContaining("non-blank");
         }
 
         @Test
@@ -706,10 +697,9 @@ class ObservabilityLogsDataPortAdapterTest {
         void should_combine_payload_with_other_filters() {
             stubEmptySearchResult();
             var query = queryWith(
-                new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("quantum")),
-                new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("200")),
-                new FilterCondition("HTTP_METHOD", FilterOperator.EQ, List.of("POST"))
-            );
+                    new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("quantum")),
+                    new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("200")),
+                    new FilterCondition("HTTP_METHOD", FilterOperator.EQ, List.of("POST")));
 
             adapter.searchLogs(ORG, ENV, query);
 
@@ -722,7 +712,8 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_translate_payload_with_special_characters() {
             stubEmptySearchResult();
-            var query = queryWith(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("{\"key\":\"value\"}")));
+            var query =
+                    queryWith(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("{\"key\":\"value\"}")));
 
             adapter.searchLogs(ORG, ENV, query);
 
@@ -737,22 +728,24 @@ class ObservabilityLogsDataPortAdapterTest {
         void should_hand_the_entrypoint_scope_to_the_platform_as_is() {
             stubEmptySearchResult();
             var query = LogsSearchQuery.builder()
-                .apiIds(Set.of("api-1"))
-                .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
-                .conditions(List.of())
-                .page(1)
-                .perPage(20)
-                .entrypointScope(EntrypointScope.exactly(List.of("mcp-studio", "(none)")))
-                .build();
+                    .apiIds(Set.of("api-1"))
+                    .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
+                    .conditions(List.of())
+                    .page(1)
+                    .perPage(20)
+                    .entrypointScope(EntrypointScope.exactly(List.of("mcp-studio", "(none)")))
+                    .build();
 
             adapter.searchLogs(ORG, ENV, query);
 
             var captor = ArgumentCaptor.forClass(SearchLogsFilters.class);
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), captor.capture(), any(), any());
-            assertThat(captor.getValue().entrypointScope()).isEqualTo(
-                new SearchLogsFilters.EntrypointScope(SearchLogsFilters.EntrypointScope.Kind.EXACTLY, List.of("mcp-studio", "(none)"))
-            );
-            assertThat(captor.getValue().entrypointIds()).as("the legacy ids are never set by Gamma").isNullOrEmpty();
+            assertThat(captor.getValue().entrypointScope())
+                    .isEqualTo(new SearchLogsFilters.EntrypointScope(
+                            SearchLogsFilters.EntrypointScope.Kind.EXACTLY, List.of("mcp-studio", "(none)")));
+            assertThat(captor.getValue().entrypointIds())
+                    .as("the legacy ids are never set by Gamma")
+                    .isNullOrEmpty();
         }
 
         @Test
@@ -771,25 +764,24 @@ class ObservabilityLogsDataPortAdapterTest {
             var query = queryWith(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.of("mcp")));
 
             assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
-                .isInstanceOf(UnsupportedObservabilityFilterException.class)
-                .hasMessageContaining("ENTRYPOINT");
+                    .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                    .hasMessageContaining("ENTRYPOINT");
         }
     }
 
     private LogsSearchQuery queryWith(FilterCondition... conditions) {
         return LogsSearchQuery.builder()
-            .apiIds(Set.of("api-1"))
-            .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
-            .conditions(List.of(conditions))
-            .page(1)
-            .perPage(20)
-            .build();
+                .apiIds(Set.of("api-1"))
+                .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
+                .conditions(List.of(conditions))
+                .page(1)
+                .perPage(20)
+                .build();
     }
 
     private void stubEmptySearchResult() {
-        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
-            new SearchLogsResponse<>(0, List.of())
-        );
+        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any()))
+                .thenReturn(new SearchLogsResponse<>(0, List.of()));
     }
 
     private SearchLogsFilters captureSearchFilters() {
@@ -808,27 +800,39 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_carry_the_connection_entrypoint_onto_the_log_row() {
-            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
-                new SearchLogsResponse<>(
-                    1,
-                    List.of(BaseConnectionLog.builder().apiId("api-1").requestId("req-1").entrypointId("sse").build())
-                )
-            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(
+                            1,
+                            List.of(BaseConnectionLog.builder()
+                                    .apiId("api-1")
+                                    .requestId("req-1")
+                                    .entrypointId("sse")
+                                    .build())));
 
             var page = adapter.searchLogs(ORG, ENV, queryWith());
 
-            assertThat(page.data()).singleElement().extracting(LogEntry::entrypointId).isEqualTo("sse");
+            assertThat(page.data())
+                    .singleElement()
+                    .extracting(LogEntry::entrypointId)
+                    .isEqualTo("sse");
         }
 
         @Test
         void should_resolve_the_api_type_onto_the_log_detail() {
-            when(apiCrudService.findById("api-1")).thenReturn(
-                Optional.of(Api.builder().id("api-1").name("API 1").environmentId(ENV).type(ApiType.MESSAGE).build())
-            );
-            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
-                Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder().apiId("api-1").requestId("req-1").build())
-            );
-            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+            when(apiCrudService.findById("api-1"))
+                    .thenReturn(Optional.of(Api.builder()
+                            .id("api-1")
+                            .name("API 1")
+                            .environmentId(ENV)
+                            .type(ApiType.MESSAGE)
+                            .build()));
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1")))
+                    .thenReturn(Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                            .apiId("api-1")
+                            .requestId("req-1")
+                            .build()));
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any()))
+                    .thenReturn(Optional.empty());
 
             var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
 
@@ -841,13 +845,20 @@ class ObservabilityLogsDataPortAdapterTest {
          */
         @Test
         void should_not_resolve_the_api_type_of_another_environment() {
-            when(apiCrudService.findById("api-1")).thenReturn(
-                Optional.of(Api.builder().id("api-1").name("API 1").environmentId("other-env").type(ApiType.MESSAGE).build())
-            );
-            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
-                Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder().apiId("api-1").requestId("req-1").build())
-            );
-            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+            when(apiCrudService.findById("api-1"))
+                    .thenReturn(Optional.of(Api.builder()
+                            .id("api-1")
+                            .name("API 1")
+                            .environmentId("other-env")
+                            .type(ApiType.MESSAGE)
+                            .build()));
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1")))
+                    .thenReturn(Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                            .apiId("api-1")
+                            .requestId("req-1")
+                            .build()));
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any()))
+                    .thenReturn(Optional.empty());
 
             var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
 
@@ -866,28 +877,34 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @BeforeEach
         void stubApiLookup() {
-            when(apiCrudService.findById("api-1")).thenReturn(
-                Optional.of(Api.builder().id("api-1").name("Payments MCP").environmentId(ENV).type(ApiType.MCP_PROXY).build())
-            );
-            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+            when(apiCrudService.findById("api-1"))
+                    .thenReturn(Optional.of(Api.builder()
+                            .id("api-1")
+                            .name("Payments MCP")
+                            .environmentId(ENV)
+                            .type(ApiType.MCP_PROXY)
+                            .build()));
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any()))
+                    .thenReturn(Optional.empty());
         }
 
         private void stubMetrics(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail metrics) {
-            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(Optional.of(metrics));
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1")))
+                    .thenReturn(Optional.of(metrics));
         }
 
         private io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.ApiMetricsDetailBuilder metrics() {
-            return io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder().apiId("api-1").requestId("req-1");
+            return io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                    .apiId("api-1")
+                    .requestId("req-1");
         }
 
         @Test
         void should_carry_the_api_name_the_entrypoint_and_the_mcp_method() {
-            stubMetrics(
-                metrics()
+            stubMetrics(metrics()
                     .entrypointId("mcp-proxy")
                     .additionalMetrics(Map.of(ConnectionLogAdapter.MCP_PROXY_METHOD_KEY, "tools/list"))
-                    .build()
-            );
+                    .build());
 
             var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
 
@@ -898,9 +915,12 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_resolve_the_api_product_name_within_the_environment() {
-            when(apiProductQueryService.findByEnvironmentIdAndIdIn(ENV, Set.of(PRODUCT_ID))).thenReturn(
-                Set.of(ApiProduct.builder().id(PRODUCT_ID).environmentId(ENV).name("Payments bundle").build())
-            );
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(ENV, Set.of(PRODUCT_ID)))
+                    .thenReturn(Set.of(ApiProduct.builder()
+                            .id(PRODUCT_ID)
+                            .environmentId(ENV)
+                            .name("Payments bundle")
+                            .build()));
             stubMetrics(metrics().apiProductId(PRODUCT_ID).build());
 
             var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
@@ -921,7 +941,9 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_leave_the_mcp_method_null_outside_an_mcp_request() {
-            stubMetrics(metrics().additionalMetrics(Map.of("keyword_llm-proxy_model", "gpt-4o-mini")).build());
+            stubMetrics(metrics()
+                    .additionalMetrics(Map.of("keyword_llm-proxy_model", "gpt-4o-mini"))
+                    .build());
 
             var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
 
@@ -952,17 +974,15 @@ class ObservabilityLogsDataPortAdapterTest {
          */
         @Test
         void should_not_expose_the_security_credential_on_a_non_native_document() {
-            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
-                Optional.of(
-                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
-                        .apiId("api-1")
-                        .requestId("req-1")
-                        .securityType("API_KEY")
-                        .securityToken("f4c1a0de-live-api-key")
-                        .build()
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1")))
+                    .thenReturn(Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                            .apiId("api-1")
+                            .requestId("req-1")
+                            .securityType("API_KEY")
+                            .securityToken("f4c1a0de-live-api-key")
+                            .build()));
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any()))
+                    .thenReturn(Optional.empty());
 
             var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
 
@@ -980,18 +1000,16 @@ class ObservabilityLogsDataPortAdapterTest {
          */
         @Test
         void should_not_expose_the_token_of_an_api_key_plan_even_on_a_native_document() {
-            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
-                Optional.of(
-                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
-                        .apiId("api-1")
-                        .requestId("req-1")
-                        .securityType("API_KEY")
-                        .securityToken("f4c1a0de-live-api-key")
-                        .additionalMetrics(Map.of(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED"))
-                        .build()
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1")))
+                    .thenReturn(Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                            .apiId("api-1")
+                            .requestId("req-1")
+                            .securityType("API_KEY")
+                            .securityToken("f4c1a0de-live-api-key")
+                            .additionalMetrics(Map.of(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED"))
+                            .build()));
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any()))
+                    .thenReturn(Optional.empty());
 
             var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
 
@@ -1002,18 +1020,16 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_expose_the_security_credential_on_a_native_connection_document() {
-            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
-                Optional.of(
-                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
-                        .apiId("api-1")
-                        .requestId("req-1")
-                        .securityType("JWT")
-                        .securityToken("oauth-client-1")
-                        .additionalMetrics(Map.of(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED"))
-                        .build()
-                )
-            );
-            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1")))
+                    .thenReturn(Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                            .apiId("api-1")
+                            .requestId("req-1")
+                            .securityType("JWT")
+                            .securityToken("oauth-client-1")
+                            .additionalMetrics(Map.of(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED"))
+                            .build()));
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any()))
+                    .thenReturn(Optional.empty());
 
             var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
 
@@ -1027,24 +1043,56 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_read_decisions_instead_of_connection_logs() {
-            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
-                new SearchLogsResponse<>(
-                    3,
-                    List.of(
-                        AuthzDecisionLog.builder()
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(
+                            3,
+                            List.of(AuthzDecisionLog.builder()
+                                    .eventId("evt-1")
+                                    .apiId("api-1")
+                                    .timestamp(1_000L)
+                                    .requestId("req-1")
+                                    .gatewayId("gateway-1")
+                                    .status("success")
+                                    .caller("pep")
+                                    .targetPdpId("pdp-a")
+                                    .policyGeneration("42")
+                                    .decision("FORBID")
+                                    .outcome("DENY")
+                                    .enforced("DENY")
+                                    .matchedRules(List.of(new AuthzDecisionLog.MatchedRule(
+                                            "p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
+                                    .reasons(List.of("blocked"))
+                                    .subjectType("User")
+                                    .subjectId("alice")
+                                    .action("read")
+                                    .resourceType("Doc")
+                                    .resourceId("d1")
+                                    .batchId("batch-1")
+                                    .batchIndex(1)
+                                    .batchSize(2)
+                                    .durationNanos(4_200L)
+                                    .errorType("TimeoutException")
+                                    .build())));
+
+            var page = adapter.searchLogs(ORG, ENV, decisionQuery());
+
+            assertThat(page.totalCount()).isEqualTo(3);
+            var entry = page.data().getFirst();
+            assertThat(entry.apiName()).isEqualTo("API 1");
+            assertThat(entry.timestamp()).isEqualTo(Instant.ofEpochMilli(1_000L));
+            assertThat(entry.authz())
+                    .isNotNull()
+                    .isEqualTo(AuthzDecision.builder()
                             .eventId("evt-1")
-                            .apiId("api-1")
-                            .timestamp(1_000L)
-                            .requestId("req-1")
-                            .gatewayId("gateway-1")
+                            .decision("FORBID")
+                            .outcome("DENY")
+                            .enforced("DENY")
                             .status("success")
                             .caller("pep")
                             .targetPdpId("pdp-a")
                             .policyGeneration("42")
-                            .decision("FORBID")
-                            .outcome("DENY")
-                            .enforced("DENY")
-                            .matchedRules(List.of(new AuthzDecisionLog.MatchedRule("p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
+                            .matchedRules(List.of(
+                                    new AuthzDecision.MatchedRule("p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
                             .reasons(List.of("blocked"))
                             .subjectType("User")
                             .subjectId("alice")
@@ -1056,52 +1104,20 @@ class ObservabilityLogsDataPortAdapterTest {
                             .batchSize(2)
                             .durationNanos(4_200L)
                             .errorType("TimeoutException")
-                            .build()
-                    )
-                )
-            );
-
-            var page = adapter.searchLogs(ORG, ENV, decisionQuery());
-
-            assertThat(page.totalCount()).isEqualTo(3);
-            var entry = page.data().getFirst();
-            assertThat(entry.apiName()).isEqualTo("API 1");
-            assertThat(entry.timestamp()).isEqualTo(Instant.ofEpochMilli(1_000L));
-            assertThat(entry.authz())
-                .isNotNull()
-                .isEqualTo(
-                    AuthzDecision.builder()
-                        .eventId("evt-1")
-                        .decision("FORBID")
-                        .outcome("DENY")
-                        .enforced("DENY")
-                        .status("success")
-                        .caller("pep")
-                        .targetPdpId("pdp-a")
-                        .policyGeneration("42")
-                        .matchedRules(List.of(new AuthzDecision.MatchedRule("p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
-                        .reasons(List.of("blocked"))
-                        .subjectType("User")
-                        .subjectId("alice")
-                        .action("read")
-                        .resourceType("Doc")
-                        .resourceId("d1")
-                        .batchId("batch-1")
-                        .batchIndex(1)
-                        .batchSize(2)
-                        .durationNanos(4_200L)
-                        .errorType("TimeoutException")
-                        .build()
-                );
+                            .build());
             assertThat(entry.additionalMetrics()).isNull();
             verifyNoInteractions(connectionLogsCrudService);
         }
 
         @Test
         void should_leave_absent_decision_details_null() {
-            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
-                new SearchLogsResponse<>(1, List.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").build()))
-            );
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(
+                            1,
+                            List.of(AuthzDecisionLog.builder()
+                                    .eventId("evt-1")
+                                    .apiId("api-1")
+                                    .build())));
 
             var entry = adapter.searchLogs(ORG, ENV, decisionQuery()).data().getFirst();
 
@@ -1114,13 +1130,14 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_translate_the_decision_condition_into_a_repository_filter() {
-            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(0, List.of()));
 
             adapter.searchLogs(
-                ORG,
-                ENV,
-                decisionQueryWith(new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID")))
-            );
+                    ORG,
+                    ENV,
+                    decisionQueryWith(
+                            new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID"))));
 
             var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
             verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
@@ -1130,22 +1147,21 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_route_every_decision_condition_to_its_own_repository_field() {
-            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(0, List.of()));
 
             adapter.searchLogs(
-                ORG,
-                ENV,
-                decisionQueryWith(
-                    new FilterCondition("AUTHZ_STATUS", FilterOperator.EQ, List.of("error")),
-                    new FilterCondition("AUTHZ_INDETERMINATE_CAUSE", FilterOperator.EQ, List.of("NOT_READY")),
-                    new FilterCondition("AUTHZ_ERROR_TYPE", FilterOperator.IN, List.of("evaluation_timeout")),
-                    new FilterCondition("AUTHZ_PDP", FilterOperator.EQ, List.of("pdp-a")),
-                    new FilterCondition("AUTHZ_MATCHED_POLICY", FilterOperator.EQ, List.of("forbid-delete")),
-                    new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("9")),
-                    new FilterCondition("REQUEST_ID", FilterOperator.EQ, List.of("req-1")),
-                    new FilterCondition("AUTHZ_REASON", FilterOperator.CONTAINS, List.of("forbid"))
-                )
-            );
+                    ORG,
+                    ENV,
+                    decisionQueryWith(
+                            new FilterCondition("AUTHZ_STATUS", FilterOperator.EQ, List.of("error")),
+                            new FilterCondition("AUTHZ_INDETERMINATE_CAUSE", FilterOperator.EQ, List.of("NOT_READY")),
+                            new FilterCondition("AUTHZ_ERROR_TYPE", FilterOperator.IN, List.of("evaluation_timeout")),
+                            new FilterCondition("AUTHZ_PDP", FilterOperator.EQ, List.of("pdp-a")),
+                            new FilterCondition("AUTHZ_MATCHED_POLICY", FilterOperator.EQ, List.of("forbid-delete")),
+                            new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("9")),
+                            new FilterCondition("REQUEST_ID", FilterOperator.EQ, List.of("req-1")),
+                            new FilterCondition("AUTHZ_REASON", FilterOperator.CONTAINS, List.of("forbid"))));
 
             var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
             verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
@@ -1163,9 +1179,13 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_pass_the_engine_generation_through_as_the_keyword_it_is_stored_as() {
-            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(0, List.of()));
 
-            adapter.searchLogs(ORG, ENV, decisionQueryWith(new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("v9"))));
+            adapter.searchLogs(
+                    ORG,
+                    ENV,
+                    decisionQueryWith(new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("v9"))));
 
             var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
             verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
@@ -1174,15 +1194,16 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_skip_a_blank_reason_value_rather_than_dropping_the_whole_clause() {
-            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(0, List.of()));
 
             // The validator only refuses a condition whose values are all blank, so a leading blank would
             // otherwise silently return the unfiltered set under an active filter chip.
             adapter.searchLogs(
-                ORG,
-                ENV,
-                decisionQueryWith(new FilterCondition("AUTHZ_REASON", FilterOperator.CONTAINS, Arrays.asList("", "forbid")))
-            );
+                    ORG,
+                    ENV,
+                    decisionQueryWith(
+                            new FilterCondition("AUTHZ_REASON", FilterOperator.CONTAINS, Arrays.asList("", "forbid"))));
 
             var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
             verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
@@ -1191,7 +1212,8 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_leave_the_decision_filter_empty_when_none_is_requested() {
-            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any()))
+                    .thenReturn(new SearchLogsResponse<>(0, List.of()));
 
             adapter.searchLogs(ORG, ENV, decisionQuery());
 
@@ -1214,9 +1236,11 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_resolve_the_api_by_id_rather_than_loading_the_whole_environment() {
             grantAccessToApi1();
-            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("evt-1"))).thenReturn(
-                Optional.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").build())
-            );
+            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("evt-1")))
+                    .thenReturn(Optional.of(AuthzDecisionLog.builder()
+                            .eventId("evt-1")
+                            .apiId("api-1")
+                            .build()));
 
             adapter.getDecision(ORG, ENV, "api-1", "evt-1");
 
@@ -1228,9 +1252,13 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_read_the_decision_of_an_accessible_api_and_enrich_it_with_the_api_identity() {
             grantAccessToApi1();
-            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("evt-1"))).thenReturn(
-                Optional.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").requestId("req-1").decision("PERMIT").build())
-            );
+            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("evt-1")))
+                    .thenReturn(Optional.of(AuthzDecisionLog.builder()
+                            .eventId("evt-1")
+                            .apiId("api-1")
+                            .requestId("req-1")
+                            .decision("PERMIT")
+                            .build()));
 
             var decision = adapter.getDecision(ORG, ENV, "api-1", "evt-1");
 
@@ -1243,17 +1271,20 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_report_no_decision_when_the_accessible_api_has_no_such_event() {
             grantAccessToApi1();
-            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("gone"))).thenReturn(Optional.empty());
+            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("gone")))
+                    .thenReturn(Optional.empty());
 
             assertThat(adapter.getDecision(ORG, ENV, "api-1", "gone")).isEmpty();
         }
 
         private void grantAccessToApi1() {
-            when(userContextLoader.loadApi(any(), eq("api-1"))).thenAnswer(invocation ->
-                ((UserContext) invocation.getArgument(0)).withApis(
-                    List.of(Api.builder().id("api-1").name("API 1").type(ApiType.AUTHZ).build())
-                )
-            );
+            when(userContextLoader.loadApi(any(), eq("api-1")))
+                    .thenAnswer(invocation -> ((UserContext) invocation.getArgument(0))
+                            .withApis(List.of(Api.builder()
+                                    .id("api-1")
+                                    .name("API 1")
+                                    .type(ApiType.AUTHZ)
+                                    .build())));
         }
 
         private LogsSearchQuery decisionQuery() {
@@ -1262,13 +1293,13 @@ class ObservabilityLogsDataPortAdapterTest {
 
         private LogsSearchQuery decisionQueryWith(FilterCondition... conditions) {
             return LogsSearchQuery.builder()
-                .apiIds(Set.of("api-1"))
-                .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
-                .conditions(List.of(conditions))
-                .page(1)
-                .perPage(20)
-                .recordType(RecordType.AUTHZ_DECISION)
-                .build();
+                    .apiIds(Set.of("api-1"))
+                    .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
+                    .conditions(List.of(conditions))
+                    .page(1)
+                    .perPage(20)
+                    .recordType(RecordType.AUTHZ_DECISION)
+                    .build();
         }
     }
 
@@ -1278,26 +1309,27 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_map_both_legs_of_a_message() {
             var message = AggregatedMessageLog.builder()
-                .requestId("req-1")
-                .apiId("api-1")
-                .timestamp("2026-08-24T13:14:59.395Z")
-                .clientIdentifier("client-1")
-                .correlationId("corr-1")
-                .operation(MessageOperation.PUBLISH)
-                .entrypoint(
-                    AggregatedMessageLog.Message.builder()
-                        .id("msg-1")
-                        .connectorId("http-post")
-                        .payload("{\"order\":200}")
-                        .isError(false)
-                        .headers(Map.of("content-type", List.of("application/json")))
-                        .build()
-                )
-                .endpoint(AggregatedMessageLog.Message.builder().id("msg-1").connectorId("kafka").payload("{\"order\":200}").build())
-                .build();
-            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any())).thenReturn(
-                new SearchLogsResponse<>(1L, List.of(message))
-            );
+                    .requestId("req-1")
+                    .apiId("api-1")
+                    .timestamp("2026-08-24T13:14:59.395Z")
+                    .clientIdentifier("client-1")
+                    .correlationId("corr-1")
+                    .operation(MessageOperation.PUBLISH)
+                    .entrypoint(AggregatedMessageLog.Message.builder()
+                            .id("msg-1")
+                            .connectorId("http-post")
+                            .payload("{\"order\":200}")
+                            .isError(false)
+                            .headers(Map.of("content-type", List.of("application/json")))
+                            .build())
+                    .endpoint(AggregatedMessageLog.Message.builder()
+                            .id("msg-1")
+                            .connectorId("kafka")
+                            .payload("{\"order\":200}")
+                            .build())
+                    .build();
+            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any()))
+                    .thenReturn(new SearchLogsResponse<>(1L, List.of(message)));
 
             var page = adapter.searchMessages("org-1", "env-1", "api-1", "req-1", 1, 20);
 
@@ -1312,11 +1344,11 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_return_an_empty_page_when_the_api_records_no_message_logs() {
-            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any())).thenReturn(
-                new SearchLogsResponse<>(0L, List.of())
-            );
+            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any()))
+                    .thenReturn(new SearchLogsResponse<>(0L, List.of()));
 
-            assertThat(adapter.searchMessages("org-1", "env-1", "api-1", "req-1", 1, 20)).isEqualTo(MessageLogsPage.EMPTY);
+            assertThat(adapter.searchMessages("org-1", "env-1", "api-1", "req-1", 1, 20))
+                    .isEqualTo(MessageLogsPage.EMPTY);
         }
 
         /**
@@ -1326,9 +1358,8 @@ class ObservabilityLogsDataPortAdapterTest {
          */
         @Test
         void should_keep_the_total_on_a_page_past_the_end() {
-            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any())).thenReturn(
-                new SearchLogsResponse<>(30L, List.of())
-            );
+            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any()))
+                    .thenReturn(new SearchLogsResponse<>(30L, List.of()));
 
             var page = adapter.searchMessages("org-1", "env-1", "api-1", "req-1", 3, 20);
 

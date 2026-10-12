@@ -29,6 +29,9 @@ public class NotFoundExceptionMapper extends AbstractExceptionMapper<NotFoundExc
     @Override
     public Response toResponse(final NotFoundException e) {
         final Response.Status error = Response.Status.NOT_FOUND;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, error.getStatusCode())).build();
+        return Response.status(error)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(e, error.getStatusCode()))
+                .build();
     }
 }

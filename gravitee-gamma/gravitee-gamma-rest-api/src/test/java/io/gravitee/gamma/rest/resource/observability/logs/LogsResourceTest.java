@@ -63,7 +63,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = { ResourceContextConfiguration.class, LogsTestConfiguration.class })
+@ContextConfiguration(classes = {ResourceContextConfiguration.class, LogsTestConfiguration.class})
 class LogsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
@@ -104,20 +104,20 @@ class LogsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_200_with_paginated_envelope() {
             var entry = LogEntry.builder()
-                .apiId("api-1")
-                .apiName("Petstore")
-                .requestId("req-1")
-                .timestamp(Instant.parse("2026-06-10T10:00:00Z"))
-                .status(200)
-                .method("GET")
-                .uri("/pets")
-                .gatewayResponseTime(42)
-                .build();
-            when(searchLogsUseCase.execute(any())).thenReturn(
-                new SearchObservabilityLogsUseCase.Output(new LogsPage(List.of(entry), 1), 1, 20)
-            );
+                    .apiId("api-1")
+                    .apiName("Petstore")
+                    .requestId("req-1")
+                    .timestamp(Instant.parse("2026-06-10T10:00:00Z"))
+                    .status(200)
+                    .method("GET")
+                    .uri("/pets")
+                    .gatewayResponseTime(42)
+                    .build();
+            when(searchLogsUseCase.execute(any()))
+                    .thenReturn(new SearchObservabilityLogsUseCase.Output(new LogsPage(List.of(entry), 1), 1, 20));
 
-            Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
+            Response response =
+                    rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
@@ -125,24 +125,26 @@ class LogsResourceTest extends AbstractResourceTest {
             assertThat(body.get("data").get(0).get("apiId").asText()).isEqualTo("api-1");
             assertThat(body.get("data").get(0).get("apiName").asText()).isEqualTo("Petstore");
             assertThat(body.get("data").get(0).get("status").asInt()).isEqualTo(200);
-            // timestamp is emitted as integer epoch millis (not a fractional Instant) so the UI can pass it to new Date()
-            assertThat(body.get("data").get(0).get("timestampEpochMs").isIntegralNumber()).isTrue();
-            assertThat(body.get("data").get(0).get("timestampEpochMs").asLong()).isEqualTo(
-                Instant.parse("2026-06-10T10:00:00Z").toEpochMilli()
-            );
+            // timestamp is emitted as integer epoch millis (not a fractional Instant) so the UI can pass it to new
+            // Date()
+            assertThat(body.get("data").get(0).get("timestampEpochMs").isIntegralNumber())
+                    .isTrue();
+            assertThat(body.get("data").get(0).get("timestampEpochMs").asLong())
+                    .isEqualTo(Instant.parse("2026-06-10T10:00:00Z").toEpochMilli());
             assertThat(body.get("pagination").get("totalCount").asLong()).isEqualTo(1L);
             assertThat(body.get("pagination").get("page").asInt()).isEqualTo(1);
         }
 
         @Test
         void should_forward_page_and_perPage_to_use_case() {
-            when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 2, 5));
+            when(searchLogsUseCase.execute(any()))
+                    .thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 2, 5));
 
             rootTarget("search")
-                .queryParam("page", 2)
-                .queryParam("perPage", 5)
-                .request()
-                .post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
+                    .queryParam("page", 2)
+                    .queryParam("perPage", 5)
+                    .request()
+                    .post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
 
             var captor = ArgumentCaptor.forClass(SearchObservabilityLogsUseCase.Input.class);
             Mockito.verify(searchLogsUseCase).execute(captor.capture());
@@ -152,14 +154,14 @@ class LogsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_forward_filters_and_time_range_to_use_case() {
-            when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 1, 20));
+            when(searchLogsUseCase.execute(any()))
+                    .thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 1, 20));
 
             var body = Map.of(
-                "timeRange",
-                Map.of("from", "2026-06-10T00:00:00Z", "to", "2026-06-11T00:00:00Z"),
-                "filters",
-                List.of(Map.of("name", "HTTP_STATUS", "operator", "EQ", "value", "200"))
-            );
+                    "timeRange",
+                    Map.of("from", "2026-06-10T00:00:00Z", "to", "2026-06-11T00:00:00Z"),
+                    "filters",
+                    List.of(Map.of("name", "HTTP_STATUS", "operator", "EQ", "value", "200")));
 
             rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
 
@@ -173,7 +175,8 @@ class LogsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_200_with_empty_body() {
-            when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 1, 20));
+            when(searchLogsUseCase.execute(any()))
+                    .thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 1, 20));
 
             Response response = rootTarget("search").request().post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));
 
@@ -182,14 +185,16 @@ class LogsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_a_filter_value_is_not_a_scalar_or_an_array_of_scalars() {
-            var body = Map.of("filters", List.of(Map.of("name", "API", "operator", "IN", "value", List.of(Map.of("id", "api-1")))));
+            var body = Map.of(
+                    "filters",
+                    List.of(Map.of("name", "API", "operator", "IN", "value", List.of(Map.of("id", "api-1")))));
 
-            Response response = rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+            Response response =
+                    rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(
-                "observability.filter.invalid_value_shape"
-            );
+            assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText())
+                    .isEqualTo("observability.filter.invalid_value_shape");
             verifyNoInteractions(searchLogsUseCase);
         }
 
@@ -198,10 +203,12 @@ class LogsResourceTest extends AbstractResourceTest {
             var body = new HashMap<String, Object>();
             body.put("filters", Arrays.asList((Object) null));
 
-            Response response = rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+            Response response =
+                    rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo("observability.query.null_entry");
+            assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText())
+                    .isEqualTo("observability.query.null_entry");
             verifyNoInteractions(searchLogsUseCase);
         }
 
@@ -209,7 +216,8 @@ class LogsResourceTest extends AbstractResourceTest {
         void should_return_403_when_caller_cannot_read_observability() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
-            Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
+            Response response =
+                    rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
             verifyNoInteractions(searchLogsUseCase);
@@ -225,25 +233,32 @@ class LogsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_200_with_merged_detail() {
             var detail = LogDetail.builder()
-                .requestId(REQUEST_ID)
-                .apiId(API_ID)
-                .transactionId("txn-1")
-                .timestamp(Instant.parse("2026-06-10T14:32:01Z"))
-                .status(200)
-                .method("GET")
-                .uri("/pets/42")
-                .planName("Gold")
-                .applicationName("Mobile App")
-                .gatewayHostname("gw-eu.example.com")
-                .gatewayResponseTime(12L)
-                .entrypointRequest(
-                    HttpPayload.builder().method("GET").uri("/pets/42").headers(Map.of("Accept", List.of("application/json"))).build()
-                )
-                .entrypointResponse(HttpPayload.builder().status(200).body("{\"id\":42}").build())
-                .build();
-            when(getLogDetailUseCase.execute(any())).thenReturn(new GetObservabilityLogDetailUseCase.Output(Optional.of(detail)));
+                    .requestId(REQUEST_ID)
+                    .apiId(API_ID)
+                    .transactionId("txn-1")
+                    .timestamp(Instant.parse("2026-06-10T14:32:01Z"))
+                    .status(200)
+                    .method("GET")
+                    .uri("/pets/42")
+                    .planName("Gold")
+                    .applicationName("Mobile App")
+                    .gatewayHostname("gw-eu.example.com")
+                    .gatewayResponseTime(12L)
+                    .entrypointRequest(HttpPayload.builder()
+                            .method("GET")
+                            .uri("/pets/42")
+                            .headers(Map.of("Accept", List.of("application/json")))
+                            .build())
+                    .entrypointResponse(HttpPayload.builder()
+                            .status(200)
+                            .body("{\"id\":42}")
+                            .build())
+                    .build();
+            when(getLogDetailUseCase.execute(any()))
+                    .thenReturn(new GetObservabilityLogDetailUseCase.Output(Optional.of(detail)));
 
-            Response response = rootTarget(REQUEST_ID).queryParam("apiId", API_ID).request().get();
+            Response response =
+                    rootTarget(REQUEST_ID).queryParam("apiId", API_ID).request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
@@ -251,7 +266,8 @@ class LogsResourceTest extends AbstractResourceTest {
             assertThat(body.get("apiId").asText()).isEqualTo(API_ID);
             assertThat(body.get("status").asInt()).isEqualTo(200);
             assertThat(body.get("timestampEpochMs").isIntegralNumber()).isTrue();
-            assertThat(body.get("timestampEpochMs").asLong()).isEqualTo(Instant.parse("2026-06-10T14:32:01Z").toEpochMilli());
+            assertThat(body.get("timestampEpochMs").asLong())
+                    .isEqualTo(Instant.parse("2026-06-10T14:32:01Z").toEpochMilli());
             assertThat(body.get("planName").asText()).isEqualTo("Gold");
             assertThat(body.get("entrypointRequest").get("method").asText()).isEqualTo("GET");
             assertThat(body.get("entrypointResponse").get("body").asText()).isEqualTo("{\"id\":42}");
@@ -267,20 +283,23 @@ class LogsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_log_not_found() {
-            when(getLogDetailUseCase.execute(any())).thenReturn(new GetObservabilityLogDetailUseCase.Output(Optional.empty()));
+            when(getLogDetailUseCase.execute(any()))
+                    .thenReturn(new GetObservabilityLogDetailUseCase.Output(Optional.empty()));
 
-            Response response = rootTarget(REQUEST_ID).queryParam("apiId", API_ID).request().get();
+            Response response =
+                    rootTarget(REQUEST_ID).queryParam("apiId", API_ID).request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         }
 
         @Test
         void should_return_404_when_caller_has_no_api_log_permission() {
-            when(permissionService.hasPermission(any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ))).thenReturn(
-                false
-            );
+            when(permissionService.hasPermission(
+                            any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
 
-            Response response = rootTarget(REQUEST_ID).queryParam("apiId", API_ID).request().get();
+            Response response =
+                    rootTarget(REQUEST_ID).queryParam("apiId", API_ID).request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
             verifyNoInteractions(getLogDetailUseCase);
@@ -288,7 +307,8 @@ class LogsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_forward_apiId_and_requestId_to_use_case() {
-            when(getLogDetailUseCase.execute(any())).thenReturn(new GetObservabilityLogDetailUseCase.Output(Optional.empty()));
+            when(getLogDetailUseCase.execute(any()))
+                    .thenReturn(new GetObservabilityLogDetailUseCase.Output(Optional.empty()));
 
             rootTarget(REQUEST_ID).queryParam("apiId", API_ID).request().get();
 
@@ -309,24 +329,27 @@ class LogsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_the_decision_in_the_same_shape_a_row_has() {
             var decision = LogEntry.builder()
-                .apiId(API_ID)
-                .requestId(REQUEST_ID)
-                .timestamp(Instant.parse("2026-06-10T14:32:01Z"))
-                .authz(
-                    AuthzDecision.builder()
-                        .eventId(EVENT_ID)
-                        .decision("FORBID")
-                        .outcome("DENY")
-                        .enforced("DENY")
-                        .subjectId("alice")
-                        .policyGeneration("3")
-                        .matchedRules(List.of(new AuthzDecision.MatchedRule("p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
-                        .build()
-                )
-                .build();
-            when(getAuthzDecisionUseCase.execute(any())).thenReturn(new GetAuthzDecisionUseCase.Output(Optional.of(decision)));
+                    .apiId(API_ID)
+                    .requestId(REQUEST_ID)
+                    .timestamp(Instant.parse("2026-06-10T14:32:01Z"))
+                    .authz(AuthzDecision.builder()
+                            .eventId(EVENT_ID)
+                            .decision("FORBID")
+                            .outcome("DENY")
+                            .enforced("DENY")
+                            .subjectId("alice")
+                            .policyGeneration("3")
+                            .matchedRules(List.of(
+                                    new AuthzDecision.MatchedRule("p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
+                            .build())
+                    .build();
+            when(getAuthzDecisionUseCase.execute(any()))
+                    .thenReturn(new GetAuthzDecisionUseCase.Output(Optional.of(decision)));
 
-            Response response = rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+            Response response = rootTarget("decisions/" + EVENT_ID)
+                    .queryParam("apiId", API_ID)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
@@ -336,16 +359,25 @@ class LogsResourceTest extends AbstractResourceTest {
             assertThat(body.get("authz").get("policyGeneration").asText()).isEqualTo("3");
             assertThat(body.get("authz").get("outcome").asText()).isEqualTo("DENY");
             assertThat(body.get("authz").get("enforced").asText()).isEqualTo("DENY");
-            assertThat(body.get("authz").get("matchedRules").get(0).get("version").asText()).isEqualTo("2026-09-23T10:00:00Z");
+            assertThat(body.get("authz")
+                            .get("matchedRules")
+                            .get(0)
+                            .get("version")
+                            .asText())
+                    .isEqualTo("2026-09-23T10:00:00Z");
             assertThat(body.get("authz").has("operation")).isFalse();
             assertThat(body.get("authz").has("matchedPolicyNames")).isFalse();
         }
 
         @Test
         void should_forward_apiId_and_eventId_to_the_use_case() {
-            when(getAuthzDecisionUseCase.execute(any())).thenReturn(new GetAuthzDecisionUseCase.Output(Optional.empty()));
+            when(getAuthzDecisionUseCase.execute(any()))
+                    .thenReturn(new GetAuthzDecisionUseCase.Output(Optional.empty()));
 
-            rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+            rootTarget("decisions/" + EVENT_ID)
+                    .queryParam("apiId", API_ID)
+                    .request()
+                    .get();
 
             var captor = ArgumentCaptor.forClass(GetAuthzDecisionUseCase.Input.class);
             verify(getAuthzDecisionUseCase).execute(captor.capture());
@@ -363,20 +395,27 @@ class LogsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_the_decision_does_not_exist() {
-            when(getAuthzDecisionUseCase.execute(any())).thenReturn(new GetAuthzDecisionUseCase.Output(Optional.empty()));
+            when(getAuthzDecisionUseCase.execute(any()))
+                    .thenReturn(new GetAuthzDecisionUseCase.Output(Optional.empty()));
 
-            Response response = rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+            Response response = rootTarget("decisions/" + EVENT_ID)
+                    .queryParam("apiId", API_ID)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         }
 
         @Test
         void should_collapse_a_permission_denial_into_the_same_404() {
-            when(permissionService.hasPermission(any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ))).thenReturn(
-                false
-            );
+            when(permissionService.hasPermission(
+                            any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
 
-            Response response = rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+            Response response = rootTarget("decisions/" + EVENT_ID)
+                    .queryParam("apiId", API_ID)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
             verifyNoInteractions(getAuthzDecisionUseCase);
@@ -391,21 +430,30 @@ class LogsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_the_messages_in_a_paginated_envelope() {
-            when(permissionService.hasPermission(any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ))).thenReturn(
-                true
-            );
+            when(permissionService.hasPermission(
+                            any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ)))
+                    .thenReturn(true);
             var message = MessageLog.builder()
-                .requestId(REQUEST_ID)
-                .timestamp("2026-08-24T13:14:59.395Z")
-                .operation("PUBLISH")
-                .entrypoint(MessageLog.Message.builder().connectorId("http-post").payload("{}").build())
-                .endpoint(MessageLog.Message.builder().connectorId("kafka").payload("{}").build())
-                .build();
-            when(searchLogMessagesUseCase.execute(any())).thenReturn(
-                new SearchObservabilityLogMessagesUseCase.Output(new MessageLogsPage(List.of(message), 1), 1, 20)
-            );
+                    .requestId(REQUEST_ID)
+                    .timestamp("2026-08-24T13:14:59.395Z")
+                    .operation("PUBLISH")
+                    .entrypoint(MessageLog.Message.builder()
+                            .connectorId("http-post")
+                            .payload("{}")
+                            .build())
+                    .endpoint(MessageLog.Message.builder()
+                            .connectorId("kafka")
+                            .payload("{}")
+                            .build())
+                    .build();
+            when(searchLogMessagesUseCase.execute(any()))
+                    .thenReturn(new SearchObservabilityLogMessagesUseCase.Output(
+                            new MessageLogsPage(List.of(message), 1), 1, 20));
 
-            var response = rootTarget(REQUEST_ID + "/messages").queryParam("apiId", API_ID).request().get();
+            var response = rootTarget(REQUEST_ID + "/messages")
+                    .queryParam("apiId", API_ID)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
@@ -426,11 +474,14 @@ class LogsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_collapse_a_forbidden_api_into_404_so_it_cannot_be_probed() {
-            when(permissionService.hasPermission(any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ))).thenReturn(
-                false
-            );
+            when(permissionService.hasPermission(
+                            any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
 
-            var response = rootTarget(REQUEST_ID + "/messages").queryParam("apiId", API_ID).request().get();
+            var response = rootTarget(REQUEST_ID + "/messages")
+                    .queryParam("apiId", API_ID)
+                    .request()
+                    .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
             verifyNoInteractions(searchLogMessagesUseCase);

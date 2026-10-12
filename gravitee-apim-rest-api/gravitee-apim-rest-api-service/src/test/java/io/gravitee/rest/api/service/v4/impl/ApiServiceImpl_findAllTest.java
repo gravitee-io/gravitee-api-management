@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.rest.api.service.impl.promotion.PromotionServiceTest.USER_ID;
-import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -69,7 +68,6 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
@@ -235,102 +233,90 @@ public class ApiServiceImpl_findAllTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 
     @BeforeEach
     public void setUp() {
         ApiMapper apiMapper = new ApiMapper(
-            new ObjectMapper(),
-            planService,
-            flowService,
-            parameterService,
-            workflowService,
-            new CategoryMapper(categoryService)
-        );
+                new ObjectMapper(),
+                planService,
+                flowService,
+                parameterService,
+                workflowService,
+                new CategoryMapper(categoryService));
 
         ApiConverter apiConverter = new ApiConverter(
-            new ObjectMapper(),
-            mock(io.gravitee.rest.api.service.PlanService.class),
-            mock(io.gravitee.rest.api.service.configuration.flow.FlowService.class),
-            mock(CategoryMapper.class),
-            mock(ParameterService.class),
-            mock(WorkflowService.class)
-        );
+                new ObjectMapper(),
+                mock(io.gravitee.rest.api.service.PlanService.class),
+                mock(io.gravitee.rest.api.service.configuration.flow.FlowService.class),
+                mock(CategoryMapper.class),
+                mock(ParameterService.class),
+                mock(WorkflowService.class));
 
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
         apiService = new ApiServiceImpl(
-            apiRepository,
-            apiMapper,
-            genericApiMapper,
-            primaryOwnerService,
-            apiValidationService,
-            parameterService,
-            workflowService,
-            auditService,
-            membershipService,
-            genericNotificationConfigService,
-            apiMetadataService,
-            flowCrudService,
-            searchEngineService,
-            planService,
-            planSearchService,
-            subscriptionService,
-            eventService,
-            pageService,
-            topApiService,
-            portalNotificationConfigService,
-            alertService,
-            apiQualityRuleRepository,
-            null,
-            mediaService,
-            propertiesService,
-            apiNotificationService,
-            tagsValidationService,
-            apiAuthorizationService,
-            groupService,
-            apiCategoryService,
-            removeApiFromApiProductsDomainService,
-            removeApiFromSubscriptionFormDomainService,
-            apiMetadataQueryService,
-            propertyDomainService
-        );
+                apiRepository,
+                apiMapper,
+                genericApiMapper,
+                primaryOwnerService,
+                apiValidationService,
+                parameterService,
+                workflowService,
+                auditService,
+                membershipService,
+                genericNotificationConfigService,
+                apiMetadataService,
+                flowCrudService,
+                searchEngineService,
+                planService,
+                planSearchService,
+                subscriptionService,
+                eventService,
+                pageService,
+                topApiService,
+                portalNotificationConfigService,
+                alertService,
+                apiQualityRuleRepository,
+                null,
+                mediaService,
+                propertiesService,
+                apiNotificationService,
+                tagsValidationService,
+                apiAuthorizationService,
+                groupService,
+                apiCategoryService,
+                removeApiFromApiProductsDomainService,
+                removeApiFromSubscriptionFormDomainService,
+                apiMetadataQueryService,
+                propertyDomainService);
     }
 
     @Test
     public void should_find_empty_page() {
         var pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
-        when(
-            apiRepository.search(
-                eq(
-                    new ApiCriteria.Builder()
-                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                        .notApiTypes(List.of(ApiType.EDGE))
-                        .build()
-                ),
-                isNull(),
-                eq(pageable),
-                eq(new ApiFieldFilter.Builder().excludePicture().build())
-            )
-        ).thenReturn(new Page<>(List.of(), 1, 0, 0));
+        when(apiRepository.search(
+                        eq(new ApiCriteria.Builder()
+                                .environmentId(
+                                        GraviteeContext.getExecutionContext().getEnvironmentId())
+                                .notApiTypes(List.of(ApiType.EDGE))
+                                .build()),
+                        isNull(),
+                        eq(pageable),
+                        eq(new ApiFieldFilter.Builder().excludePicture().build())))
+                .thenReturn(new Page<>(List.of(), 1, 0, 0));
 
-        final Page<GenericApiEntity> apis = apiService.findAll(
-            GraviteeContext.getExecutionContext(),
-            "UnitTests",
-            true,
-            new PageableImpl(1, 10)
-        );
+        final Page<GenericApiEntity> apis =
+                apiService.findAll(GraviteeContext.getExecutionContext(), "UnitTests", true, new PageableImpl(1, 10));
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent().size()).isEqualTo(0);
@@ -350,26 +336,19 @@ public class ApiServiceImpl_findAllTest {
         var api2 = new Api();
         api2.setId("API_2");
 
-        when(
-            apiRepository.search(
-                eq(
-                    new ApiCriteria.Builder()
-                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                        .notApiTypes(List.of(ApiType.EDGE))
-                        .build()
-                ),
-                isNull(),
-                eq(pageable),
-                eq(new ApiFieldFilter.Builder().excludePicture().build())
-            )
-        ).thenReturn(new Page<>(List.of(api1, api2), 1, 2, 2));
+        when(apiRepository.search(
+                        eq(new ApiCriteria.Builder()
+                                .environmentId(
+                                        GraviteeContext.getExecutionContext().getEnvironmentId())
+                                .notApiTypes(List.of(ApiType.EDGE))
+                                .build()),
+                        isNull(),
+                        eq(pageable),
+                        eq(new ApiFieldFilter.Builder().excludePicture().build())))
+                .thenReturn(new Page<>(List.of(api1, api2), 1, 2, 2));
 
-        final Page<GenericApiEntity> apis = apiService.findAll(
-            GraviteeContext.getExecutionContext(),
-            "UnitTests",
-            true,
-            new PageableImpl(1, 10)
-        );
+        final Page<GenericApiEntity> apis =
+                apiService.findAll(GraviteeContext.getExecutionContext(), "UnitTests", true, new PageableImpl(1, 10));
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent().size()).isEqualTo(2);
@@ -389,31 +368,24 @@ public class ApiServiceImpl_findAllTest {
         var api2 = new Api();
         api2.setId("API_2");
 
-        when(
-            apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true))
-        ).thenReturn(Set.of("API_1"));
+        when(apiAuthorizationService.findApiIdsByUserId(
+                        eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
+                .thenReturn(Set.of("API_1"));
 
-        when(
-            apiRepository.search(
-                eq(
-                    new ApiCriteria.Builder()
-                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                        .ids(Set.of("API_1"))
-                        .notApiTypes(List.of(ApiType.EDGE))
-                        .build()
-                ),
-                isNull(),
-                eq(pageable),
-                eq(new ApiFieldFilter.Builder().excludePicture().build())
-            )
-        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+        when(apiRepository.search(
+                        eq(new ApiCriteria.Builder()
+                                .environmentId(
+                                        GraviteeContext.getExecutionContext().getEnvironmentId())
+                                .ids(Set.of("API_1"))
+                                .notApiTypes(List.of(ApiType.EDGE))
+                                .build()),
+                        isNull(),
+                        eq(pageable),
+                        eq(new ApiFieldFilter.Builder().excludePicture().build())))
+                .thenReturn(new Page<>(List.of(api1), 1, 1, 1));
 
-        final Page<GenericApiEntity> apis = apiService.findAll(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            false,
-            new PageableImpl(1, 10)
-        );
+        final Page<GenericApiEntity> apis =
+                apiService.findAll(GraviteeContext.getExecutionContext(), USER_ID, false, new PageableImpl(1, 10));
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent().size()).isEqualTo(1);
@@ -426,16 +398,12 @@ public class ApiServiceImpl_findAllTest {
 
     @Test
     public void should_return_empty_page_and_not_call_repository_if_not_admin_and_no_apis() {
-        when(
-            apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true))
-        ).thenReturn(Set.of());
+        when(apiAuthorizationService.findApiIdsByUserId(
+                        eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
+                .thenReturn(Set.of());
 
-        final Page<GenericApiEntity> apis = apiService.findAll(
-            GraviteeContext.getExecutionContext(),
-            USER_ID,
-            false,
-            new PageableImpl(1, 10)
-        );
+        final Page<GenericApiEntity> apis =
+                apiService.findAll(GraviteeContext.getExecutionContext(), USER_ID, false, new PageableImpl(1, 10));
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent().size()).isEqualTo(0);
@@ -453,38 +421,39 @@ public class ApiServiceImpl_findAllTest {
         var api1 = new Api();
         api1.setId("API_1");
 
-        when(
-            apiRepository.search(
-                eq(
-                    new ApiCriteria.Builder()
-                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                        .notApiTypes(List.of(ApiType.EDGE))
-                        .build()
-                ),
-                eq(sortable),
-                eq(pageable),
-                eq(new ApiFieldFilter.Builder().excludePicture().build())
-            )
-        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+        when(apiRepository.search(
+                        eq(new ApiCriteria.Builder()
+                                .environmentId(
+                                        GraviteeContext.getExecutionContext().getEnvironmentId())
+                                .notApiTypes(List.of(ApiType.EDGE))
+                                .build()),
+                        eq(sortable),
+                        eq(pageable),
+                        eq(new ApiFieldFilter.Builder().excludePicture().build())))
+                .thenReturn(new Page<>(List.of(api1), 1, 1, 1));
 
-        when(primaryOwnerService.getPrimaryOwner(anyString(), anyString())).thenReturn(
-            PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build()
-        );
+        when(primaryOwnerService.getPrimaryOwner(anyString(), anyString()))
+                .thenReturn(PrimaryOwnerEntity.builder()
+                        .id("po-id")
+                        .displayName("a PO")
+                        .build());
 
         final Page<GenericApiEntity> apis = apiService.findAll(
-            GraviteeContext.getExecutionContext(),
-            "UnitTests",
-            true,
-            Set.of("primaryOwner"),
-            new SortableImpl("name", true),
-            new PageableImpl(1, 10)
-        );
+                GraviteeContext.getExecutionContext(),
+                "UnitTests",
+                true,
+                Set.of("primaryOwner"),
+                new SortableImpl("name", true),
+                new PageableImpl(1, 10));
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent().size()).isEqualTo(1);
         assertThat(apis.getContent().get(0))
-            .extracting(GenericApiEntity::getPrimaryOwner)
-            .isEqualTo(PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build());
+                .extracting(GenericApiEntity::getPrimaryOwner)
+                .isEqualTo(PrimaryOwnerEntity.builder()
+                        .id("po-id")
+                        .displayName("a PO")
+                        .build());
 
         verify(primaryOwnerService).getPrimaryOwner(anyString(), eq("API_1"));
     }
@@ -496,32 +465,34 @@ public class ApiServiceImpl_findAllTest {
         var api1 = new Api();
         api1.setId("API_1");
 
-        when(
-            apiRepository.search(
-                eq(
-                    new ApiCriteria.Builder()
-                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                        .notApiTypes(List.of(ApiType.EDGE))
-                        .build()
-                ),
-                eq(sortable),
-                eq(pageable),
-                eq(new ApiFieldFilter.Builder().excludePicture().build())
-            )
-        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+        when(apiRepository.search(
+                        eq(new ApiCriteria.Builder()
+                                .environmentId(
+                                        GraviteeContext.getExecutionContext().getEnvironmentId())
+                                .notApiTypes(List.of(ApiType.EDGE))
+                                .build()),
+                        eq(sortable),
+                        eq(pageable),
+                        eq(new ApiFieldFilter.Builder().excludePicture().build())))
+                .thenReturn(new Page<>(List.of(api1), 1, 1, 1));
 
-        when(apiMetadataQueryService.findApiMetadataForApis(anyString(), eq(List.of("API_1")))).thenReturn(
-            Map.of("API_1", Map.of("env", ApiMetadata.builder().key("env").value("production").build()))
-        );
+        when(apiMetadataQueryService.findApiMetadataForApis(anyString(), eq(List.of("API_1"))))
+                .thenReturn(Map.of(
+                        "API_1",
+                        Map.of(
+                                "env",
+                                ApiMetadata.builder()
+                                        .key("env")
+                                        .value("production")
+                                        .build())));
 
         final Page<GenericApiEntity> apis = apiService.findAll(
-            GraviteeContext.getExecutionContext(),
-            "UnitTests",
-            true,
-            Set.of("metadata"),
-            new SortableImpl("name", true),
-            new PageableImpl(1, 10)
-        );
+                GraviteeContext.getExecutionContext(),
+                "UnitTests",
+                true,
+                Set.of("metadata"),
+                new SortableImpl("name", true),
+                new PageableImpl(1, 10));
 
         assertThat(apis.getContent().get(0).getMetadata()).isNotNull();
         verify(apiMetadataQueryService).findApiMetadataForApis(anyString(), eq(List.of("API_1")));
@@ -534,28 +505,24 @@ public class ApiServiceImpl_findAllTest {
         var api1 = new Api();
         api1.setId("API_1");
 
-        when(
-            apiRepository.search(
-                eq(
-                    new ApiCriteria.Builder()
-                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                        .notApiTypes(List.of(ApiType.EDGE))
-                        .build()
-                ),
-                eq(sortable),
-                eq(pageable),
-                eq(new ApiFieldFilter.Builder().excludePicture().build())
-            )
-        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+        when(apiRepository.search(
+                        eq(new ApiCriteria.Builder()
+                                .environmentId(
+                                        GraviteeContext.getExecutionContext().getEnvironmentId())
+                                .notApiTypes(List.of(ApiType.EDGE))
+                                .build()),
+                        eq(sortable),
+                        eq(pageable),
+                        eq(new ApiFieldFilter.Builder().excludePicture().build())))
+                .thenReturn(new Page<>(List.of(api1), 1, 1, 1));
 
         apiService.findAll(
-            GraviteeContext.getExecutionContext(),
-            "UnitTests",
-            true,
-            Set.of("primaryOwner"),
-            new SortableImpl("name", true),
-            new PageableImpl(1, 10)
-        );
+                GraviteeContext.getExecutionContext(),
+                "UnitTests",
+                true,
+                Set.of("primaryOwner"),
+                new SortableImpl("name", true),
+                new PageableImpl(1, 10));
 
         verify(apiMetadataQueryService, never()).findApiMetadataForApis(any(), any());
     }

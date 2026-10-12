@@ -68,17 +68,18 @@ public class ApiResource_TransferOwnershipTest extends ApiResourceTest {
         apiTransferOwnership.setPoRole(null);
         try (Response response = rootTarget().request().post(Entity.json(apiTransferOwnership))) {
             verify(roleService, never()).findByScopeAndName(any(), any(), any());
-            verify(membershipService).transferApiOwnership(
-                any(ExecutionContext.class),
-                eq(API),
-                argThat(
-                    arg ->
-                        arg.getMemberId().equals(apiTransferOwnership.getUserId()) &&
-                        arg.getReference().equals(apiTransferOwnership.getUserReference()) &&
-                        arg.getMemberType().name().equals(apiTransferOwnership.getUserType().name())
-                ),
-                eq(List.of())
-            );
+            verify(membershipService)
+                    .transferApiOwnership(
+                            any(ExecutionContext.class),
+                            eq(API),
+                            argThat(arg -> arg.getMemberId().equals(apiTransferOwnership.getUserId())
+                                    && arg.getReference().equals(apiTransferOwnership.getUserReference())
+                                    && arg.getMemberType()
+                                            .name()
+                                            .equals(apiTransferOwnership
+                                                    .getUserType()
+                                                    .name())),
+                            eq(List.of()));
             assertThat(NO_CONTENT_204).isEqualTo(response.getStatus());
         }
     }
@@ -90,23 +91,24 @@ public class ApiResource_TransferOwnershipTest extends ApiResourceTest {
         final RoleEntity roleEntity = new RoleEntity();
         roleEntity.setId("role");
         roleEntity.setName("a-role-from-db");
-        when(
-            roleService.findByScopeAndName(RoleScope.API, apiTransferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization())
-        ).thenReturn(Optional.of(roleEntity));
+        when(roleService.findByScopeAndName(
+                        RoleScope.API, apiTransferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization()))
+                .thenReturn(Optional.of(roleEntity));
 
         try (Response response = rootTarget().request().post(Entity.json(apiTransferOwnership))) {
             verify(roleService).findByScopeAndName(any(), any(), any());
-            verify(membershipService).transferApiOwnership(
-                any(ExecutionContext.class),
-                eq(API),
-                argThat(
-                    arg ->
-                        arg.getMemberId().equals(apiTransferOwnership.getUserId()) &&
-                        arg.getReference().equals(apiTransferOwnership.getUserReference()) &&
-                        arg.getMemberType().name().equals(apiTransferOwnership.getUserType().name())
-                ),
-                eq(List.of(roleEntity))
-            );
+            verify(membershipService)
+                    .transferApiOwnership(
+                            any(ExecutionContext.class),
+                            eq(API),
+                            argThat(arg -> arg.getMemberId().equals(apiTransferOwnership.getUserId())
+                                    && arg.getReference().equals(apiTransferOwnership.getUserReference())
+                                    && arg.getMemberType()
+                                            .name()
+                                            .equals(apiTransferOwnership
+                                                    .getUserType()
+                                                    .name())),
+                            eq(List.of(roleEntity)));
             assertThat(NO_CONTENT_204).isEqualTo(response.getStatus());
         }
     }
@@ -133,11 +135,12 @@ public class ApiResource_TransferOwnershipTest extends ApiResourceTest {
             Map<String, String> parameters = (Map<String, String>) error.get("parameters");
 
             assertAll(
-                () -> assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400),
-                () -> assertThat(error).containsEntry("message", "The [PRIMARY_OWNER] role cannot be transferred to a Primary Owner."),
-                () -> assertThat(error).containsEntry("technicalCode", "role.transferNotAllowed"),
-                () -> assertThat(parameters).containsEntry("role", "PRIMARY_OWNER")
-            );
+                    () -> assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400),
+                    () -> assertThat(error)
+                            .containsEntry(
+                                    "message", "The [PRIMARY_OWNER] role cannot be transferred to a Primary Owner."),
+                    () -> assertThat(error).containsEntry("technicalCode", "role.transferNotAllowed"),
+                    () -> assertThat(parameters).containsEntry("role", "PRIMARY_OWNER"));
         }
     }
 }

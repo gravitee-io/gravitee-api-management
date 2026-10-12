@@ -66,18 +66,21 @@ public class AlertService_FindByIdTest extends AlertServiceTest {
         assertThrows(TechnicalManagementException.class, () -> {
             final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-            when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+            when(alertTriggerRepository.findById(any()))
+                    .thenThrow(new TechnicalException("An unexpected error has occurred"));
 
             alertService.findById(alert.getId());
         });
     }
 
     @Test
-    public void must_throw_TechnicalManagementException_when_find_alert_trigger_entity_by_id() throws TechnicalException {
+    public void must_throw_TechnicalManagementException_when_find_alert_trigger_entity_by_id()
+            throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
             final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-            when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+            when(alertTriggerRepository.findById(any()))
+                    .thenThrow(new TechnicalException("An unexpected error has occurred"));
 
             alertService.findById(alert.getId());
         });

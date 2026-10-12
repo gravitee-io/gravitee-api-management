@@ -65,19 +65,15 @@ public class ValidateHealthCheckScheduleDomainService {
             Service endpointHealthCheck = healthCheckOf(endpoint);
             if (overridesGroupConfiguration(endpointHealthCheck)) {
                 validateSchedule(
-                    "endpointGroups[%s].endpoints[%s].services.healthCheck.configuration.schedule".formatted(
-                        group.getName(),
-                        endpoint.getName()
-                    ),
-                    endpointHealthCheck,
-                    errors
-                );
+                        "endpointGroups[%s].endpoints[%s].services.healthCheck.configuration.schedule"
+                                .formatted(group.getName(), endpoint.getName()),
+                        endpointHealthCheck,
+                        errors);
             } else if (!groupScheduleReported) {
                 validateSchedule(
-                    "endpointGroups[%s].services.healthCheck.configuration.schedule".formatted(group.getName()),
-                    groupHealthCheck,
-                    errors
-                );
+                        "endpointGroups[%s].services.healthCheck.configuration.schedule".formatted(group.getName()),
+                        groupHealthCheck,
+                        errors);
                 groupScheduleReported = true;
             }
         }
@@ -95,7 +91,8 @@ public class ValidateHealthCheckScheduleDomainService {
         if (isEnabledHttpHealthCheck(endpointHealthCheck)) {
             return true;
         }
-        return isEnabledHttpHealthCheck(groupHealthCheck) && (endpointHealthCheck == null || !endpointHealthCheck.isEnabled());
+        return isEnabledHttpHealthCheck(groupHealthCheck)
+                && (endpointHealthCheck == null || !endpointHealthCheck.isEnabled());
     }
 
     private static boolean overridesGroupConfiguration(Service endpointHealthCheck) {
@@ -145,7 +142,8 @@ public class ValidateHealthCheckScheduleDomainService {
         try {
             new CronTrigger(schedule);
         } catch (IllegalArgumentException e) {
-            errors.add(Validator.Error.severe("property [%s] value [%s] is invalid: %s", fieldPath, schedule, e.getMessage()));
+            errors.add(Validator.Error.severe(
+                    "property [%s] value [%s] is invalid: %s", fieldPath, schedule, e.getMessage()));
         }
     }
 

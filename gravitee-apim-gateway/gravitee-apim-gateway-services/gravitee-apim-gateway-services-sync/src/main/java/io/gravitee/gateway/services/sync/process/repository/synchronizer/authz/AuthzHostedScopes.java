@@ -92,7 +92,9 @@ public class AuthzHostedScopes {
 
     /** Whether this exact routing scope is provisioned here. */
     public boolean isHosted(String environmentId, String routingScope) {
-        return hostedByBase.getOrDefault(key(environmentId, baseOf(routingScope)), Set.of()).contains(routingScope);
+        return hostedByBase
+                .getOrDefault(key(environmentId, baseOf(routingScope)), Set.of())
+                .contains(routingScope);
     }
 
     /** The routing scopes this node hosts on the engine that serves {@code routingScope}, itself included. */
@@ -105,12 +107,10 @@ public class AuthzHostedScopes {
      *  exactly the engines this node hosts, rather than via a fire-and-forget broadcast. */
     public Set<String> hostedFor(String environmentId) {
         String prefix = environmentId + ":";
-        return hostedByBase
-            .entrySet()
-            .stream()
-            .filter(e -> e.getKey().startsWith(prefix))
-            .flatMap(e -> e.getValue().stream())
-            .collect(Collectors.toSet());
+        return hostedByBase.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(prefix))
+                .flatMap(e -> e.getValue().stream())
+                .collect(Collectors.toSet());
     }
 
     /**

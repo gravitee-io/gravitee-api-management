@@ -59,22 +59,16 @@ public class OrganizationFlowProvider implements FlowProvider {
             if (policyChainFactory != null) {
                 for (Flow flow : flows) {
                     flow.setStage(FlowStage.PLATFORM);
-                    chain.add(
-                        policyChainFactory.create(
+                    chain.add(policyChainFactory.create(
                             flowPolicyResolverFactory.create(flow).resolve(streamType, context),
                             streamType,
                             context,
-                            policies -> OrderedPolicyChain.create(policies, context)
-                        )
-                    );
+                            policies -> OrderedPolicyChain.create(policies, context)));
                 }
             } else {
-                log.warn(
-                    String.format(
+                log.warn(String.format(
                         "No OrganizationReactor has been registered for organization '%s' while there are resolved flows.",
-                        organizationId
-                    )
-                );
+                        organizationId));
             }
 
             return new DefaultStreamableProcessorChain<>(chain);

@@ -64,18 +64,16 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     private AuditService auditService;
 
     @Override
-    public QualityRuleEntity findByReferenceAndId(QualityRuleReferenceType referenceType, String referenceId, String id) {
+    public QualityRuleEntity findByReferenceAndId(
+            QualityRuleReferenceType referenceType, String referenceId, String id) {
         try {
             log.debug("Find quality rule by id : {}", id);
             return qualityRuleRepository
-                .findById(id)
-                .filter(
-                    qr ->
-                        qr.getReferenceType() == QualityRule.ReferenceType.valueOf(referenceType.name()) &&
-                        qr.getReferenceId().equalsIgnoreCase(referenceId)
-                )
-                .map(this::convert)
-                .orElseThrow(() -> new QualityRuleNotFoundException(id));
+                    .findById(id)
+                    .filter(qr -> qr.getReferenceType() == QualityRule.ReferenceType.valueOf(referenceType.name())
+                            && qr.getReferenceId().equalsIgnoreCase(referenceId))
+                    .map(this::convert)
+                    .orElseThrow(() -> new QualityRuleNotFoundException(id));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find a quality rule using its ID: " + id;
             throw new TechnicalManagementException(error, ex);
@@ -97,41 +95,40 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
         try {
             log.debug("Find quality rules for {} [{}]", referenceType, referenceId);
             return qualityRuleRepository
-                .findByReference(repoQualityRuleReferenceType(referenceType), referenceId)
-                .stream()
-                .map(this::convert)
-                .toList();
+                    .findByReference(repoQualityRuleReferenceType(referenceType), referenceId)
+                    .stream()
+                    .map(this::convert)
+                    .toList();
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to find quality rules for reference" + referenceType + " " + referenceId,
-                ex
-            );
+                    "An error occurs while trying to find quality rules for reference" + referenceType + " "
+                            + referenceId,
+                    ex);
         }
     }
 
     @Override
     public QualityRuleEntity create(
-        ExecutionContext executionContext,
-        NewQualityRuleEntity newEntity,
-        QualityRuleReferenceType referenceType,
-        String referenceId
-    ) {
+            ExecutionContext executionContext,
+            NewQualityRuleEntity newEntity,
+            QualityRuleReferenceType referenceType,
+            String referenceId) {
         try {
             final QualityRule qualityRule = convert(newEntity, referenceType, referenceId);
             final QualityRule createdQualityRule = qualityRuleRepository.create(qualityRule);
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(QUALITY_RULE, createdQualityRule.getId()))
-                    .event(QUALITY_RULE_CREATED)
-                    .createdAt(qualityRule.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(qualityRule)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(QUALITY_RULE, createdQualityRule.getId()))
+                            .event(QUALITY_RULE_CREATED)
+                            .createdAt(qualityRule.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(qualityRule)
+                            .build());
             return convert(createdQualityRule);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to create a quality rule " + newEntity, e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to create a quality rule " + newEntity, e);
         }
     }
 
@@ -139,27 +136,24 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     public QualityRuleEntity update(ExecutionContext executionContext, UpdateQualityRuleEntity updateEntity) {
         try {
             final QualityRule qualityRule = qualityRuleRepository
-                .findById(updateEntity.getId())
-                .filter(
-                    qr ->
-                        qr.getReferenceType() == QualityRule.ReferenceType.ENVIRONMENT &&
-                        qr.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
-                )
-                .orElseThrow(() -> new QualityRuleNotFoundException(updateEntity.getId()));
+                    .findById(updateEntity.getId())
+                    .filter(qr -> qr.getReferenceType() == QualityRule.ReferenceType.ENVIRONMENT
+                            && qr.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                    .orElseThrow(() -> new QualityRuleNotFoundException(updateEntity.getId()));
             final QualityRule updatedQualityRule = qualityRuleRepository.update(convert(updateEntity, qualityRule));
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(QUALITY_RULE, updatedQualityRule.getId()))
-                    .event(QUALITY_RULE_UPDATED)
-                    .createdAt(updatedQualityRule.getUpdatedAt())
-                    .oldValue(qualityRule)
-                    .newValue(updatedQualityRule)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(QUALITY_RULE, updatedQualityRule.getId()))
+                            .event(QUALITY_RULE_UPDATED)
+                            .createdAt(updatedQualityRule.getUpdatedAt())
+                            .oldValue(qualityRule)
+                            .newValue(updatedQualityRule)
+                            .build());
             return convert(updatedQualityRule);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to update quality rule " + updateEntity, e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to update quality rule " + updateEntity, e);
         }
     }
 
@@ -167,75 +161,73 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     public void delete(ExecutionContext executionContext, final String qualityRule) {
         try {
             final Optional<QualityRule> qualityRuleOptional = qualityRuleRepository
-                .findById(qualityRule)
-                .filter(
-                    qr ->
-                        qr.getReferenceType() == QualityRule.ReferenceType.ENVIRONMENT &&
-                        qr.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
-                );
+                    .findById(qualityRule)
+                    .filter(qr -> qr.getReferenceType() == QualityRule.ReferenceType.ENVIRONMENT
+                            && qr.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId()));
             if (qualityRuleOptional.isPresent()) {
                 qualityRuleRepository.delete(qualityRule);
                 // delete all reference on api quality rule
                 apiQualityRuleRepository.deleteByQualityRule(qualityRule);
                 auditService.createAuditLog(
-                    executionContext,
-                    AuditService.AuditLogData.builder()
-                        .properties(Collections.singletonMap(QUALITY_RULE, qualityRule))
-                        .event(QUALITY_RULE_DELETED)
-                        .createdAt(new Date())
-                        .oldValue(null)
-                        .newValue(qualityRuleOptional.get())
-                        .build()
-                );
+                        executionContext,
+                        AuditService.AuditLogData.builder()
+                                .properties(Collections.singletonMap(QUALITY_RULE, qualityRule))
+                                .event(QUALITY_RULE_DELETED)
+                                .createdAt(new Date())
+                                .oldValue(null)
+                                .newValue(qualityRuleOptional.get())
+                                .build());
             }
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to delete quality rule " + qualityRule, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to delete quality rule " + qualityRule, ex);
         }
     }
 
     private QualityRuleEntity convert(QualityRule qualityRule) {
         return QualityRuleEntity.builder()
-            .id(qualityRule.getId())
-            .referenceType(QualityRuleReferenceType.valueOf(qualityRule.getReferenceType().name()))
-            .referenceId(qualityRule.getReferenceId())
-            .name(qualityRule.getName())
-            .description(qualityRule.getDescription())
-            .weight(qualityRule.getWeight())
-            .createdAt(qualityRule.getCreatedAt())
-            .updatedAt(qualityRule.getUpdatedAt())
-            .build();
+                .id(qualityRule.getId())
+                .referenceType(QualityRuleReferenceType.valueOf(
+                        qualityRule.getReferenceType().name()))
+                .referenceId(qualityRule.getReferenceId())
+                .name(qualityRule.getName())
+                .description(qualityRule.getDescription())
+                .weight(qualityRule.getWeight())
+                .createdAt(qualityRule.getCreatedAt())
+                .updatedAt(qualityRule.getUpdatedAt())
+                .build();
     }
 
-    private QualityRule convert(final NewQualityRuleEntity qualityRuleEntity, QualityRuleReferenceType referenceType, String referenceId) {
+    private QualityRule convert(
+            final NewQualityRuleEntity qualityRuleEntity, QualityRuleReferenceType referenceType, String referenceId) {
         final Date now = new Date();
         return QualityRule.builder()
-            .id(UuidString.generateRandom())
-            .referenceType(repoQualityRuleReferenceType(referenceType))
-            .referenceId(referenceId)
-            .name(qualityRuleEntity.getName())
-            .description(qualityRuleEntity.getDescription())
-            .weight(qualityRuleEntity.getWeight())
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
+                .id(UuidString.generateRandom())
+                .referenceType(repoQualityRuleReferenceType(referenceType))
+                .referenceId(referenceId)
+                .name(qualityRuleEntity.getName())
+                .description(qualityRuleEntity.getDescription())
+                .weight(qualityRuleEntity.getWeight())
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
     }
 
     private QualityRule convert(final UpdateQualityRuleEntity qualityRuleEntity, final QualityRule qr) {
         return QualityRule.builder()
-            .id(qualityRuleEntity.getId())
-            .referenceType(qr.getReferenceType())
-            .referenceId(qr.getReferenceId())
-            .name(qualityRuleEntity.getName())
-            .description(qualityRuleEntity.getDescription())
-            .weight(qualityRuleEntity.getWeight())
-            .createdAt(qr.getCreatedAt())
-            .updatedAt(new Date())
-            .build();
+                .id(qualityRuleEntity.getId())
+                .referenceType(qr.getReferenceType())
+                .referenceId(qr.getReferenceId())
+                .name(qualityRuleEntity.getName())
+                .description(qualityRuleEntity.getDescription())
+                .weight(qualityRuleEntity.getWeight())
+                .createdAt(qr.getCreatedAt())
+                .updatedAt(new Date())
+                .build();
     }
 
     private io.gravitee.repository.management.model.QualityRule.ReferenceType repoQualityRuleReferenceType(
-        QualityRuleReferenceType referenceType
-    ) {
+            QualityRuleReferenceType referenceType) {
         return io.gravitee.repository.management.model.QualityRule.ReferenceType.valueOf(referenceType.name());
     }
 }

@@ -87,7 +87,7 @@ public class AnalyticsMapperTest {
         bucketList.add(b1);
         histogramAnalytics.setValues(bucketList);
 
-        //Test
+        // Test
         DateHistoAnalytics analytics = analyticsMapper.convert(histogramAnalytics);
         assertNotNull(analytics);
         final Timerange timeRange = analytics.getTimestamp();
@@ -130,7 +130,7 @@ public class AnalyticsMapperTest {
         HitsAnalytics hitsAnalytics = new HitsAnalytics();
         hitsAnalytics.setHits(1L);
 
-        //Test
+        // Test
         CountAnalytics analytics = analyticsMapper.convert(hitsAnalytics);
         assertNotNull(analytics);
         assertEquals(1, analytics.getHits().longValue());
@@ -150,7 +150,7 @@ public class AnalyticsMapperTest {
         values.put("valuesKey", 1L);
         topHitsAnalytics.setValues(values);
 
-        //Test
+        // Test
         GroupByAnalytics analytics = analyticsMapper.convert(topHitsAnalytics);
         assertNotNull(analytics);
         assertEquals(metadata, analytics.getMetadata());

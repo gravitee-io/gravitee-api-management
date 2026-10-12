@@ -110,31 +110,33 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.reset();
         resetAllMocks();
 
-        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity1 = new io.gravitee.rest.api.model.SubscriptionEntity();
+        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity1 =
+                new io.gravitee.rest.api.model.SubscriptionEntity();
         subscriptionEntity1.setId(SUBSCRIPTION);
         subscriptionEntity1.setStatus(SubscriptionStatus.ACCEPTED);
-        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity2 = new io.gravitee.rest.api.model.SubscriptionEntity();
+        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity2 =
+                new io.gravitee.rest.api.model.SubscriptionEntity();
         subscriptionEntity2.setId(ANOTHER_SUBSCRIPTION);
         subscriptionEntity2.setStatus(SubscriptionStatus.ACCEPTED);
-        final Page<io.gravitee.rest.api.model.SubscriptionEntity> subscriptionPage = new Page<>(
-            asList(subscriptionEntity1, subscriptionEntity2),
-            0,
-            1,
-            2
-        );
-        doReturn(subscriptionPage.getContent()).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        final Page<io.gravitee.rest.api.model.SubscriptionEntity> subscriptionPage =
+                new Page<>(asList(subscriptionEntity1, subscriptionEntity2), 0, 1, 2);
+        doReturn(subscriptionPage.getContent())
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(subscriptionPage).when(subscriptionService).search(any(), any(), any());
         doReturn(new SearchPortalSubscriptionsUseCase.Output(subscriptionPage))
-            .when(searchPortalSubscriptionsUseCase)
-            .execute(any(SearchPortalSubscriptionsUseCase.Input.class));
+                .when(searchPortalSubscriptionsUseCase)
+                .execute(any(SearchPortalSubscriptionsUseCase.Input.class));
 
         // Core subscription entity returned by UseCase
-        SubscriptionEntity coreSubscriptionEntity = SubscriptionEntity.builder().id(SUBSCRIPTION).build();
+        SubscriptionEntity coreSubscriptionEntity =
+                SubscriptionEntity.builder().id(SUBSCRIPTION).build();
         doReturn(new CreateSubscriptionUseCase.Output(coreSubscriptionEntity))
-            .when(createSubscriptionUseCase)
-            .execute(any(CreateSubscriptionUseCase.Input.class));
+                .when(createSubscriptionUseCase)
+                .execute(any(CreateSubscriptionUseCase.Input.class));
 
-        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity = new io.gravitee.rest.api.model.SubscriptionEntity();
+        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity =
+                new io.gravitee.rest.api.model.SubscriptionEntity();
         subscriptionEntity.setId(SUBSCRIPTION);
         subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
         subscriptionEntity.setReferenceId(API);
@@ -161,7 +163,9 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         final ApplicationListItem application = new ApplicationListItem();
         application.setId(APPLICATION);
 
-        doReturn(newSet(application)).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(newSet(application))
+                .when(applicationService)
+                .findByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         Metadata metadata = new Metadata();
         metadata.put("api-id", "name", "My api");
@@ -177,10 +181,11 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoSubscription() {
         doReturn(new SearchPortalSubscriptionsUseCase.Output(new Page<>(emptyList(), 10, 0, 0)))
-            .when(searchPortalSubscriptionsUseCase)
-            .execute(any(SearchPortalSubscriptionsUseCase.Input.class));
+                .when(searchPortalSubscriptionsUseCase)
+                .execute(any(SearchPortalSubscriptionsUseCase.Input.class));
 
-        final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
+        final Response response =
+                target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         SubscriptionsResponse subscriptionResponse = response.readEntity(SubscriptionsResponse.class);
@@ -191,10 +196,10 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     public void shouldGetNoPublishedApiAndNoLink() {
         final Page<io.gravitee.rest.api.model.SubscriptionEntity> subscriptionPage = new Page<>(emptyList(), 0, 1, 2);
         doReturn(new SearchPortalSubscriptionsUseCase.Output(subscriptionPage))
-            .when(searchPortalSubscriptionsUseCase)
-            .execute(any(SearchPortalSubscriptionsUseCase.Input.class));
+                .when(searchPortalSubscriptionsUseCase)
+                .execute(any(SearchPortalSubscriptionsUseCase.Input.class));
 
-        //Test with default limit
+        // Test with default limit
         final Response response = target().queryParam("apiId", API).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -204,8 +209,12 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         Links links = subscriptionResponse.getLinks();
         assertNull(links);
 
-        //Test with small limit
-        final Response anotherResponse = target().queryParam("apiId", API).queryParam("page", 2).queryParam("size", 1).request().get();
+        // Test with small limit
+        final Response anotherResponse = target().queryParam("apiId", API)
+                .queryParam("page", 2)
+                .queryParam("size", 1)
+                .request()
+                .get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
 
         subscriptionResponse = anotherResponse.readEntity(SubscriptionsResponse.class);
@@ -220,24 +229,24 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         SubscriptionConfigurationInput configuration = new SubscriptionConfigurationInput();
         configuration.setEntrypointConfiguration(new SubscriptionConfiguration("my-url"));
         SubscriptionInput subscriptionInput = new SubscriptionInput()
-            .application(APPLICATION)
-            .plan(PLAN)
-            .metadata(Map.of("my-metadata", "my-value"))
-            ._configuration(configuration)
-            .request("request")
-            .apiKeyMode(ApiKeyModeEnum.EXCLUSIVE);
+                .application(APPLICATION)
+                .plan(PLAN)
+                .metadata(Map.of("my-metadata", "my-value"))
+                ._configuration(configuration)
+                .request("request")
+                .apiKeyMode(ApiKeyModeEnum.EXCLUSIVE);
 
         final ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
         final Key key = new Key();
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION)).thenReturn(
-            Collections.singletonList(apiKeyEntity)
-        );
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION))
+                .thenReturn(Collections.singletonList(apiKeyEntity));
         when(keyMapper.convert(apiKeyEntity)).thenReturn(key);
 
         final Response response = target().request().post(Entity.json(subscriptionInput));
         assertEquals(OK_200, response.getStatus());
 
-        ArgumentCaptor<CreateSubscriptionUseCase.Input> argument = ArgumentCaptor.forClass(CreateSubscriptionUseCase.Input.class);
+        ArgumentCaptor<CreateSubscriptionUseCase.Input> argument =
+                ArgumentCaptor.forClass(CreateSubscriptionUseCase.Input.class);
         verify(createSubscriptionUseCase).execute(argument.capture());
         CreateSubscriptionUseCase.Input useCaseInput = argument.getValue();
         assertEquals(APPLICATION, useCaseInput.applicationId());
@@ -247,7 +256,8 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals("{\"url\":\"my-url\"}", useCaseInput.configuration().getEntrypointConfiguration());
         assertEquals(ApiKeyMode.EXCLUSIVE, useCaseInput.apiKeyMode());
         assertEquals(API, useCaseInput.referenceId());
-        assertEquals(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API, useCaseInput.referenceType());
+        assertEquals(
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API, useCaseInput.referenceType());
         assertTrue(Boolean.TRUE.equals(useCaseInput.subscriptionFormMetadataValidationRequired()));
 
         final Subscription subscriptionResponse = response.readEntity(Subscription.class);
@@ -263,7 +273,8 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         mockApiProductPlan();
         exposeApiProductInPortal();
 
-        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity = new io.gravitee.rest.api.model.SubscriptionEntity();
+        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity =
+                new io.gravitee.rest.api.model.SubscriptionEntity();
         subscriptionEntity.setId(SUBSCRIPTION);
         subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
         subscriptionEntity.setReferenceId(API_PRODUCT);
@@ -271,18 +282,22 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         subscriptionEntity.setApplication(APPLICATION);
         doReturn(subscriptionEntity).when(subscriptionService).findById(SUBSCRIPTION);
 
-        SubscriptionInput subscriptionInput = new SubscriptionInput().application(APPLICATION).plan(PLAN).metadata(Map.of("key", "value"));
+        SubscriptionInput subscriptionInput =
+                new SubscriptionInput().application(APPLICATION).plan(PLAN).metadata(Map.of("key", "value"));
         subscriptionInput.setGeneralConditionsAccepted(true);
 
         Response response = target().request().post(Entity.json(subscriptionInput));
 
         assertEquals(OK_200, response.getStatus());
 
-        ArgumentCaptor<CreateSubscriptionUseCase.Input> inputCaptor = ArgumentCaptor.forClass(CreateSubscriptionUseCase.Input.class);
+        ArgumentCaptor<CreateSubscriptionUseCase.Input> inputCaptor =
+                ArgumentCaptor.forClass(CreateSubscriptionUseCase.Input.class);
         verify(createSubscriptionUseCase).execute(inputCaptor.capture());
         CreateSubscriptionUseCase.Input useCaseInput = inputCaptor.getValue();
         assertEquals(API_PRODUCT, useCaseInput.referenceId());
-        assertEquals(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT, useCaseInput.referenceType());
+        assertEquals(
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT,
+                useCaseInput.referenceType());
         assertEquals(Map.of("key", "value"), useCaseInput.metadata());
         assertFalse(Boolean.TRUE.equals(useCaseInput.subscriptionFormMetadataValidationRequired()));
         assertNull(useCaseInput.generalConditionsAccepted());
@@ -299,7 +314,9 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         mockApiProductPlan();
         initApiProduct();
 
-        Response response = target().request().post(Entity.json(new SubscriptionInput().application(APPLICATION).plan(PLAN)));
+        Response response = target().request()
+                .post(Entity.json(
+                        new SubscriptionInput().application(APPLICATION).plan(PLAN)));
 
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         verify(createSubscriptionUseCase, never()).execute(any());
@@ -312,36 +329,45 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         metadata.put(API_PRODUCT, "name", "My API Product");
         doReturn(metadata).when(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), any());
 
-        Response response = target().queryParam("apiProductIds", API_PRODUCT, ANOTHER_API_PRODUCT).request().get();
+        Response response = target().queryParam("apiProductIds", API_PRODUCT, ANOTHER_API_PRODUCT)
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
 
-        ArgumentCaptor<SearchPortalSubscriptionsUseCase.Input> queryCaptor = ArgumentCaptor.forClass(
-            SearchPortalSubscriptionsUseCase.Input.class
-        );
+        ArgumentCaptor<SearchPortalSubscriptionsUseCase.Input> queryCaptor =
+                ArgumentCaptor.forClass(SearchPortalSubscriptionsUseCase.Input.class);
         verify(searchPortalSubscriptionsUseCase).execute(queryCaptor.capture());
-        assertEquals(Set.of(API_PRODUCT, ANOTHER_API_PRODUCT), queryCaptor.getValue().apiProductIds());
+        assertEquals(
+                Set.of(API_PRODUCT, ANOTHER_API_PRODUCT), queryCaptor.getValue().apiProductIds());
         assertNull(queryCaptor.getValue().apiIds());
         assertEquals(
-            Set.of(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT),
-            queryCaptor.getValue().referenceTypes()
-        );
+                Set.of(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT),
+                queryCaptor.getValue().referenceTypes());
 
-        ArgumentCaptor<SubscriptionMetadataQuery> metadataQueryCaptor = ArgumentCaptor.forClass(SubscriptionMetadataQuery.class);
-        verify(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), metadataQueryCaptor.capture());
+        ArgumentCaptor<SubscriptionMetadataQuery> metadataQueryCaptor =
+                ArgumentCaptor.forClass(SubscriptionMetadataQuery.class);
+        verify(subscriptionService)
+                .getMetadata(eq(GraviteeContext.getExecutionContext()), metadataQueryCaptor.capture());
         assertTrue(metadataQueryCaptor.getValue().ifApiProducts().isPresent());
     }
 
     @Test
     void shouldRejectCombinedApiAndApiProductFilters() {
-        Response response = target().queryParam("apiIds", API).queryParam("apiProductIds", API_PRODUCT).request().get();
+        Response response = target().queryParam("apiIds", API)
+                .queryParam("apiProductIds", API_PRODUCT)
+                .request()
+                .get();
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     void shouldRejectCombinedDeprecatedApiAndApiProductFilters() {
-        Response response = target().queryParam("apiId", API).queryParam("apiProductIds", API_PRODUCT).request().get();
+        Response response = target().queryParam("apiId", API)
+                .queryParam("apiProductIds", API_PRODUCT)
+                .request()
+                .get();
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
@@ -355,14 +381,12 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         Response response = target().request().get();
 
         assertEquals(OK_200, response.getStatus());
-        ArgumentCaptor<SearchPortalSubscriptionsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
-            SearchPortalSubscriptionsUseCase.Input.class
-        );
+        ArgumentCaptor<SearchPortalSubscriptionsUseCase.Input> inputCaptor =
+                ArgumentCaptor.forClass(SearchPortalSubscriptionsUseCase.Input.class);
         verify(searchPortalSubscriptionsUseCase).execute(inputCaptor.capture());
         assertEquals(
-            Set.of(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API),
-            inputCaptor.getValue().referenceTypes()
-        );
+                Set.of(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API),
+                inputCaptor.getValue().referenceTypes());
     }
 
     @Test
@@ -371,26 +395,22 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         Metadata metadata = new Metadata();
         doReturn(metadata).when(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), any());
 
-        Response response = target()
-            .queryParam("referenceTypes", "API", "API_PRODUCT")
-            .queryParam("query", "payment")
-            .queryParam("page", 1)
-            .queryParam("size", 10)
-            .request()
-            .get();
+        Response response = target().queryParam("referenceTypes", "API", "API_PRODUCT")
+                .queryParam("query", "payment")
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+                .request()
+                .get();
 
         assertEquals(OK_200, response.getStatus());
-        ArgumentCaptor<SearchPortalSubscriptionsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
-            SearchPortalSubscriptionsUseCase.Input.class
-        );
+        ArgumentCaptor<SearchPortalSubscriptionsUseCase.Input> inputCaptor =
+                ArgumentCaptor.forClass(SearchPortalSubscriptionsUseCase.Input.class);
         verify(searchPortalSubscriptionsUseCase).execute(inputCaptor.capture());
         assertEquals(
-            Set.of(
-                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API,
-                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
-            ),
-            inputCaptor.getValue().referenceTypes()
-        );
+                Set.of(
+                        io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API,
+                        io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT),
+                inputCaptor.getValue().referenceTypes());
         assertEquals("payment", inputCaptor.getValue().query());
         assertEquals(1, inputCaptor.getValue().pageable().getPageNumber());
         assertEquals(10, inputCaptor.getValue().pageable().getPageSize());
@@ -398,7 +418,8 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     void shouldRejectAnUnsupportedReferenceType() {
-        Response response = target().queryParam("referenceTypes", "UNKNOWN").request().get();
+        Response response =
+                target().queryParam("referenceTypes", "UNKNOWN").request().get();
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         verify(searchPortalSubscriptionsUseCase, never()).execute(any());
@@ -407,13 +428,12 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     @Test
     void shouldReturnBadRequestWhenMetadataKeyIsInvalid() {
         doThrow(new SubscriptionMetadataInvalidException("Invalid metadata key."))
-            .when(createSubscriptionUseCase)
-            .execute(argThat(input -> input.metadata() != null && input.metadata().containsKey("bad key")));
+                .when(createSubscriptionUseCase)
+                .execute(argThat(
+                        input -> input.metadata() != null && input.metadata().containsKey("bad key")));
 
-        SubscriptionInput subscriptionInput = new SubscriptionInput()
-            .application(APPLICATION)
-            .plan(PLAN)
-            .metadata(Map.of("bad key", "value"));
+        SubscriptionInput subscriptionInput =
+                new SubscriptionInput().application(APPLICATION).plan(PLAN).metadata(Map.of("bad key", "value"));
 
         final Response response = target().request().post(Entity.json(subscriptionInput));
         Assertions.assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -423,10 +443,11 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     @Test
     void shouldReturnBadRequestWhenSubscriptionFormMetadataIsInvalid() {
         doThrow(new SubscriptionFormValidationException(List.of("Field 'email' is required")))
-            .when(createSubscriptionUseCase)
-            .execute(any());
+                .when(createSubscriptionUseCase)
+                .execute(any());
 
-        SubscriptionInput subscriptionInput = new SubscriptionInput().application(APPLICATION).plan(PLAN).metadata(Map.of());
+        SubscriptionInput subscriptionInput =
+                new SubscriptionInput().application(APPLICATION).plan(PLAN).metadata(Map.of());
 
         final Response response = target().request().post(Entity.json(subscriptionInput));
         Assertions.assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -444,30 +465,28 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         reset(permissionService);
 
         SubscriptionInput subscriptionInput = new SubscriptionInput()
-            .application(APPLICATION)
-            .plan(PLAN)
-            .request("request")
-            .apiKeyMode(ApiKeyModeEnum.EXCLUSIVE);
+                .application(APPLICATION)
+                .plan(PLAN)
+                .request("request")
+                .apiKeyMode(ApiKeyModeEnum.EXCLUSIVE);
 
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.CREATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.CREATE));
         Response response = target().request().post(Entity.json(subscriptionInput));
         assertEquals(OK_200, response.getStatus());
 
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.CREATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.CREATE));
         response = target().request().post(Entity.json(subscriptionInput));
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
@@ -477,99 +496,135 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         reset(permissionService);
 
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.READ));
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.READ)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.READ));
 
         Metadata metadata = new Metadata();
         metadata.put("api-id", "name", "My api");
         doReturn(metadata).when(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), any());
 
-        assertEquals(OK_200, target().queryParam("applicationId", APPLICATION).request().get().getStatus());
+        assertEquals(
+                OK_200,
+                target().queryParam("applicationId", APPLICATION)
+                        .request()
+                        .get()
+                        .getStatus());
         assertEquals(OK_200, target().queryParam("apiId", API).request().get().getStatus());
-        assertEquals(OK_200, target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get().getStatus());
+        assertEquals(
+                OK_200,
+                target().queryParam("apiId", API)
+                        .queryParam("applicationId", APPLICATION)
+                        .request()
+                        .get()
+                        .getStatus());
 
-        //-----
+        // -----
 
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.READ));
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.READ)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.READ));
 
-        assertEquals(FORBIDDEN_403, target().queryParam("applicationId", APPLICATION).request().get().getStatus());
+        assertEquals(
+                FORBIDDEN_403,
+                target().queryParam("applicationId", APPLICATION)
+                        .request()
+                        .get()
+                        .getStatus());
         assertEquals(OK_200, target().queryParam("apiId", API).request().get().getStatus());
 
-        assertEquals(FORBIDDEN_403, target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get().getStatus());
+        assertEquals(
+                FORBIDDEN_403,
+                target().queryParam("apiId", API)
+                        .queryParam("applicationId", APPLICATION)
+                        .request()
+                        .get()
+                        .getStatus());
 
-        //----
+        // ----
 
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.READ));
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.READ)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.READ));
 
-        assertEquals(OK_200, target().queryParam("applicationId", APPLICATION).request().get().getStatus());
+        assertEquals(
+                OK_200,
+                target().queryParam("applicationId", APPLICATION)
+                        .request()
+                        .get()
+                        .getStatus());
         assertEquals(OK_200, target().queryParam("apiId", API).request().get().getStatus());
-        assertEquals(OK_200, target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get().getStatus());
+        assertEquals(
+                OK_200,
+                target().queryParam("apiId", API)
+                        .queryParam("applicationId", APPLICATION)
+                        .request()
+                        .get()
+                        .getStatus());
 
-        //----
+        // ----
 
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.READ));
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.READ)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.READ));
 
-        assertEquals(FORBIDDEN_403, target().queryParam("applicationId", APPLICATION).request().get().getStatus());
+        assertEquals(
+                FORBIDDEN_403,
+                target().queryParam("applicationId", APPLICATION)
+                        .request()
+                        .get()
+                        .getStatus());
         assertEquals(OK_200, target().queryParam("apiId", API).request().get().getStatus());
-        assertEquals(FORBIDDEN_403, target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get().getStatus());
+        assertEquals(
+                FORBIDDEN_403,
+                target().queryParam("apiId", API)
+                        .queryParam("applicationId", APPLICATION)
+                        .request()
+                        .get()
+                        .getStatus());
     }
 
     private void mockApiProductPlan() {
@@ -581,34 +636,34 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
     private void exposeApiProductInPortal() {
         initApiProduct();
-        portalNavigationItemsQueryService.initWith(
-            List.of(
-                PortalNavigationApiProduct.builder()
-                    .id(PortalNavigationItemId.random())
-                    .organizationId("organization-id")
-                    .environmentId(GraviteeContext.getCurrentEnvironment())
-                    .title("API Product")
-                    .segment("api-product")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .apiProductId(API_PRODUCT)
-                    .published(true)
-                    .visibility(PortalVisibility.PUBLIC)
-                    .build()
-            )
-        );
+        portalNavigationItemsQueryService.initWith(List.of(PortalNavigationApiProduct.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId("organization-id")
+                .environmentId(GraviteeContext.getCurrentEnvironment())
+                .title("API Product")
+                .segment("api-product")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiProductId(API_PRODUCT)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build()));
     }
 
     private void initApiProduct() {
-        apiProductQueryService.initWith(
-            List.of(ApiProduct.builder().id(API_PRODUCT).environmentId(GraviteeContext.getCurrentEnvironment()).name("API Product").build())
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(API_PRODUCT)
+                .environmentId(GraviteeContext.getCurrentEnvironment())
+                .name("API Product")
+                .build()));
     }
 
     private void mockCurrentUserApplication() {
         ApplicationListItem application = new ApplicationListItem();
         application.setId(APPLICATION);
-        doReturn(newSet(application)).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(newSet(application))
+                .when(applicationService)
+                .findByUser(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Getter

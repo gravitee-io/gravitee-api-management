@@ -71,16 +71,20 @@ class ManagementContextLoaderTest {
 
     private ManagementContextLoader contextLoader;
 
-    private static final Api API_1 = Api.builder().id("id1").name("api1").type(ApiType.PROXY).build();
-    private static final Api API_2 = Api.builder().id("id2").name("api2").type(ApiType.MESSAGE).build();
-    private static final Api API_3 = Api.builder().id("id3").name("api3").type(ApiType.LLM_PROXY).build();
+    private static final Api API_1 =
+            Api.builder().id("id1").name("api1").type(ApiType.PROXY).build();
+    private static final Api API_2 =
+            Api.builder().id("id2").name("api2").type(ApiType.MESSAGE).build();
+    private static final Api API_3 =
+            Api.builder().id("id3").name("api3").type(ApiType.LLM_PROXY).build();
 
     private static final String ADMIN_USER_ID = UUID.randomUUID().toString();
     private static final List<Api> ALL_APIS = List.of(API_1, API_2, API_3);
 
     private static final String NON_ADMIN_USER_ID = UUID.randomUUID().toString();
     private static final List<Api> NON_ADMIN_APIS = List.of(API_2);
-    private static final Set<String> NON_ADMIN_API_IDS = NON_ADMIN_APIS.stream().map(Api::getId).collect(Collectors.toSet());
+    private static final Set<String> NON_ADMIN_API_IDS =
+            NON_ADMIN_APIS.stream().map(Api::getId).collect(Collectors.toSet());
     private AuditInfo auditInfo;
 
     @BeforeEach
@@ -90,7 +94,11 @@ class ManagementContextLoaderTest {
 
     private AuditInfo auditInfo(String userId) {
         var actor = AuditActor.builder().userId(userId).build();
-        return AuditInfo.builder().organizationId("DEFAULT").environmentId("DEFAULT").actor(actor).build();
+        return AuditInfo.builder()
+                .organizationId("DEFAULT")
+                .environmentId("DEFAULT")
+                .actor(actor)
+                .build();
     }
 
     private void setUpSecurityContext(String role) {
@@ -124,12 +132,22 @@ class ManagementContextLoaderTest {
             var context = contextLoader.load(auditInfo);
 
             assertThat(context.authorizedApiIds()).containsExactlyInAnyOrder("id1", "id2", "id3");
-            assertThat(context.apiNamesById()).isEqualTo(
-                Map.of(API_1.getId(), API_1.getName(), API_2.getId(), API_2.getName(), API_3.getId(), API_3.getName())
-            );
-            assertThat(context.apiIdsByType()).isEqualTo(
-                Map.of(ApiType.PROXY, Set.of("id1"), ApiType.MESSAGE, Set.of("id2"), ApiType.LLM_PROXY, Set.of("id3"))
-            );
+            assertThat(context.apiNamesById())
+                    .isEqualTo(Map.of(
+                            API_1.getId(),
+                            API_1.getName(),
+                            API_2.getId(),
+                            API_2.getName(),
+                            API_3.getId(),
+                            API_3.getName()));
+            assertThat(context.apiIdsByType())
+                    .isEqualTo(Map.of(
+                            ApiType.PROXY,
+                            Set.of("id1"),
+                            ApiType.MESSAGE,
+                            Set.of("id2"),
+                            ApiType.LLM_PROXY,
+                            Set.of("id3")));
             assertThat(context.applicationNamesById()).isEmpty();
             assertThat(context.executionContext().getOrganizationId()).isEqualTo("DEFAULT");
             assertThat(context.executionContext().getEnvironmentId()).isEqualTo("DEFAULT");
@@ -150,7 +168,8 @@ class ManagementContextLoaderTest {
 
         @Test
         void should_exclude_apis_with_null_type_from_apiIdsByType() {
-            var apiWithoutType = Api.builder().id("id-no-type").name("no-type-api").build();
+            var apiWithoutType =
+                    Api.builder().id("id-no-type").name("no-type-api").build();
             when(apiRepository.search(any(), any())).thenReturn(List.of(API_1, apiWithoutType));
 
             var context = contextLoader.load(auditInfo);
@@ -161,7 +180,8 @@ class ManagementContextLoaderTest {
 
         @Test
         void should_group_multiple_apis_of_same_type() {
-            var anotherProxy = Api.builder().id("id4").name("api4").type(ApiType.PROXY).build();
+            var anotherProxy =
+                    Api.builder().id("id4").name("api4").type(ApiType.PROXY).build();
             when(apiRepository.search(any(), any())).thenReturn(List.of(API_1, anotherProxy, API_3));
 
             var context = contextLoader.load(auditInfo);
@@ -178,14 +198,15 @@ class ManagementContextLoaderTest {
         void setup() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
         }
 
         @Test
         void should_load_context_with_authorized_apis() {
-            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
+            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean()))
+                    .thenReturn(NON_ADMIN_API_IDS);
             when(apiRepository.search(any(), any())).thenReturn(NON_ADMIN_APIS);
 
             var context = contextLoader.load(auditInfo);
@@ -201,7 +222,8 @@ class ManagementContextLoaderTest {
 
         @Test
         void should_return_empty_when_no_apis_are_authorized() {
-            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(Collections.emptySet());
+            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean()))
+                    .thenReturn(Collections.emptySet());
 
             var context = contextLoader.load(auditInfo);
 
@@ -223,9 +245,9 @@ class ManagementContextLoaderTest {
         void setup() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ)))
+                    .thenReturn(true);
         }
 
         @Test
@@ -235,12 +257,22 @@ class ManagementContextLoaderTest {
             var context = contextLoader.load(auditInfo);
 
             assertThat(context.authorizedApiIds()).containsExactlyInAnyOrder("id1", "id2", "id3");
-            assertThat(context.apiNamesById()).isEqualTo(
-                Map.of(API_1.getId(), API_1.getName(), API_2.getId(), API_2.getName(), API_3.getId(), API_3.getName())
-            );
-            assertThat(context.apiIdsByType()).isEqualTo(
-                Map.of(ApiType.PROXY, Set.of("id1"), ApiType.MESSAGE, Set.of("id2"), ApiType.LLM_PROXY, Set.of("id3"))
-            );
+            assertThat(context.apiNamesById())
+                    .isEqualTo(Map.of(
+                            API_1.getId(),
+                            API_1.getName(),
+                            API_2.getId(),
+                            API_2.getName(),
+                            API_3.getId(),
+                            API_3.getName()));
+            assertThat(context.apiIdsByType())
+                    .isEqualTo(Map.of(
+                            ApiType.PROXY,
+                            Set.of("id1"),
+                            ApiType.MESSAGE,
+                            Set.of("id2"),
+                            ApiType.LLM_PROXY,
+                            Set.of("id3")));
             verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         }
 

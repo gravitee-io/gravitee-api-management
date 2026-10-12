@@ -48,55 +48,55 @@ class GatewayTestingExtensionTest {
     @Test
     void should_success_all_tests() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(SuccessTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(1).succeeded(1));
+                .selectors(selectClass(SuccessTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(1).succeeded(1));
     }
 
     @Test
     void should_replace_placeholders() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(PlaceholderTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(1).succeeded(1));
+                .selectors(selectClass(PlaceholderTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(1).succeeded(1));
     }
 
     @Test
     void should_redeploy_tests() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(ManuallyRedeployTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(4).succeeded(4));
+                .selectors(selectClass(ManuallyRedeployTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(4).succeeded(4));
     }
 
     @Test
     void should_undeploy_tests() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(ManuallyUndeployTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(1).succeeded(1));
+                .selectors(selectClass(ManuallyUndeployTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(1).succeeded(1));
     }
 
     @Test
     void should_deploy_class_level_tests() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(ManuallyDeployTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(2).failed(2));
+                .selectors(selectClass(ManuallyDeployTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(2).failed(2));
     }
 
     @Test
     void should_success_all_http2_tests() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(Http2HeadersTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(2).succeeded(2));
+                .selectors(selectClass(Http2HeadersTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(2).succeeded(2));
     }
 
     /**
@@ -105,90 +105,91 @@ class GatewayTestingExtensionTest {
     @Test
     void should_success_tests_with_secured_backends() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(ClientAuthenticationPEMInlineTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(1).succeeded(1));
+                .selectors(selectClass(ClientAuthenticationPEMInlineTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(1).succeeded(1));
     }
 
     @Test
     void should_success_tests_with_valid_api_and_fail_those_with_non_validone() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(ConditionalPolicyTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.succeeded(2).failed(1));
+                .selectors(selectClass(ConditionalPolicyTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.succeeded(2).failed(1));
     }
 
     @Test
     void should_not_start_test_if_importing_non_existing_api_at_class_level() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(InvalidApiClassLevelTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(0));
+                .selectors(selectClass(InvalidApiClassLevelTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(0));
     }
 
     @Test
     void should_not_start_using_non_existing_gateway_configuration() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(InvalidGatewayConfigFolderTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(0));
+                .selectors(selectClass(InvalidGatewayConfigFolderTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(0));
     }
 
     @Test
     void should_fail_if_trying_to_deploy_an_already_deployed_api_at_class_level() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(RegisterTwiceSameApiClassLevelTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(0));
+                .selectors(selectClass(RegisterTwiceSameApiClassLevelTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(0));
     }
 
     @Test
     void should_fail_if_trying_to_deploy_an_already_deployed_api() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(RegisterTwiceSameApiMethodLevelTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(2).succeeded(1).failed(1));
+                .selectors(selectClass(RegisterTwiceSameApiMethodLevelTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(2).succeeded(1).failed(1));
     }
 
     @Test
     void should_fail_if_not_extending_abstract_gateway_test() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(NotExtendingAbstractClassTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(0));
+                .selectors(selectClass(NotExtendingAbstractClassTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(0));
     }
 
     @Test
     void should_success_tests_with_organization() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(OrganizationDeploymentTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(4).succeeded(3).failed(1));
+                .selectors(selectClass(OrganizationDeploymentTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(4).succeeded(3).failed(1));
     }
 
     @Test
     void should_success_grpc_test() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(GrpcTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(1).succeeded(1).failed(0));
+                .selectors(selectClass(GrpcTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats -> stats.started(1).succeeded(1).failed(0));
     }
 
     @Test
     void should_start_gateway_and_apis_with_selected_mode() {
         EngineTestKit.engine("junit-jupiter")
-            .selectors(selectClass(GatewayModeTestCase.class))
-            .execute()
-            .testEvents()
-            .assertStatistics(stats -> stats.started(6).succeeded(6).aborted(0).skipped(0).failed(0));
+                .selectors(selectClass(GatewayModeTestCase.class))
+                .execute()
+                .testEvents()
+                .assertStatistics(stats ->
+                        stats.started(6).succeeded(6).aborted(0).skipped(0).failed(0));
     }
 }

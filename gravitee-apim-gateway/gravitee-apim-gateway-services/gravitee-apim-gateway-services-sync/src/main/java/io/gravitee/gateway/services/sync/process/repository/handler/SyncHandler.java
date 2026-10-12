@@ -38,14 +38,15 @@ public class SyncHandler implements Handler<RoutingContext> {
     public void handle(RoutingContext ctx) {
         HttpServerResponse response = ctx.response();
         JsonObject object = new JsonObject()
-            .put("initialDone", repositorySyncManager.syncDone())
-            .put("counter", repositorySyncManager.syncCounter())
-            .put("nextSyncTime", repositorySyncManager.nextSyncTime())
-            .put("lastOnError", repositorySyncManager.lastSyncOnError())
-            .put("lastErrorMessage", repositorySyncManager.lastSyncErrorMessage())
-            .put("totalOnErrors", repositorySyncManager.totalSyncOnError());
+                .put("initialDone", repositorySyncManager.syncDone())
+                .put("counter", repositorySyncManager.syncCounter())
+                .put("nextSyncTime", repositorySyncManager.nextSyncTime())
+                .put("lastOnError", repositorySyncManager.lastSyncOnError())
+                .put("lastErrorMessage", repositorySyncManager.lastSyncErrorMessage())
+                .put("totalOnErrors", repositorySyncManager.totalSyncOnError());
 
-        response.setStatusCode(repositorySyncManager.syncDone() ? HttpStatusCode.OK_200 : HttpStatusCode.SERVICE_UNAVAILABLE_503);
+        response.setStatusCode(
+                repositorySyncManager.syncDone() ? HttpStatusCode.OK_200 : HttpStatusCode.SERVICE_UNAVAILABLE_503);
         response.putHeader(HttpHeaderNames.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         response.setChunked(true);
 

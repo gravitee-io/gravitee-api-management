@@ -20,9 +20,4 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record McpToolDefinition(
-    String name,
-    String description,
-    JsonNode inputSchema,
-    JsonNode outputSchema,
-    McpToolAnnotations annotations
-) {}
+        String name, String description, JsonNode inputSchema, JsonNode outputSchema, McpToolAnnotations annotations) {}

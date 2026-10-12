@@ -51,12 +51,13 @@ public class HTTPFacetsQueryAdapter {
 
     private JsonObject json(FacetsQuery query, JsonObject boolQuery) {
         return new JsonObject()
-            .put("size", 0)
-            .put("query", boolQuery)
-            .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), query.ranges()));
+                .put("size", 0)
+                .put("query", boolQuery)
+                .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), query.ranges()));
     }
 
-    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
+    public JsonObject adaptFacets(
+            List<MetricMeasuresQuery> metrics, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
             aggs.mergeIn(adaptFacets(metric, queryFacets, limit, ranges));
@@ -64,7 +65,8 @@ public class HTTPFacetsQueryAdapter {
         return aggs;
     }
 
-    public JsonObject adaptFacets(MetricMeasuresQuery metric, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
+    public JsonObject adaptFacets(
+            MetricMeasuresQuery metric, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
         var aggs = new JsonObject();
 
         if (queryFacets.isEmpty()) {
@@ -101,11 +103,13 @@ public class HTTPFacetsQueryAdapter {
         var requestIDsPerPage = 10000;
 
         var composite = json().put(
-            "composite",
-            json()
-                .put("size", requestIDsPerPage)
-                .put("sources", JsonArray.of(json().put("request-id", json().put("terms", json().put("field", "request-id")))))
-        );
+                        "composite",
+                        json().put("size", requestIDsPerPage)
+                                .put(
+                                        "sources",
+                                        JsonArray.of(json().put(
+                                                        "request-id",
+                                                        json().put("terms", json().put("field", "request-id"))))));
 
         if (afterKey != null && !afterKey.isEmpty()) {
             composite.getJsonObject("composite").put("after", afterKey);
@@ -114,7 +118,8 @@ public class HTTPFacetsQueryAdapter {
         return composite;
     }
 
-    private JsonObject adaptFacet(MetricMeasuresQuery metric, Facet facet, Integer limit, List<NumberRange> ranges, boolean last) {
+    private JsonObject adaptFacet(
+            MetricMeasuresQuery metric, Facet facet, Integer limit, List<NumberRange> ranges, boolean last) {
         var rangeAggregation = resolveRangeAggregation(facet, ranges, last);
         if (rangeAggregation != null) {
             return rangeAggregation;
@@ -152,7 +157,9 @@ public class HTTPFacetsQueryAdapter {
     private JsonObject toQueryRange(NumberRange range) {
         var key = range.from() + "-" + range.to();
         // ES range aggregation `to` is exclusive; add 1 so the upper bound is included
-        return json().put("key", key).put("from", range.from()).put("to", range.to().longValue() + 1);
+        return json().put("key", key)
+                .put("from", range.from())
+                .put("to", range.to().longValue() + 1);
     }
 
     private JsonObject toTermsLeaf(Facet facet, MetricMeasuresQuery metric, Integer limit) {
@@ -165,7 +172,9 @@ public class HTTPFacetsQueryAdapter {
             var order = json();
             terms.put("order", order);
             for (var sort : metric.sorts()) {
-                order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+                order.put(
+                        AggregationAdapter.adaptName(metric.metric(), sort.measure()),
+                        sort.order().name().toLowerCase());
             }
         }
 

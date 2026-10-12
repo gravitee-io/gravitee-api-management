@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.v4.validation;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
@@ -25,9 +24,9 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface AnalyticsValidationService {
-    Analytics validateAndSanitize(final ExecutionContext executionContext, final ApiType type, final Analytics analytics);
+    Analytics validateAndSanitize(
+            final ExecutionContext executionContext, final ApiType type, final Analytics analytics);
+
     io.gravitee.definition.model.Logging validateAndSanitize(
-        final ExecutionContext executionContext,
-        final io.gravitee.definition.model.Logging logging
-    );
+            final ExecutionContext executionContext, final io.gravitee.definition.model.Logging logging);
 }

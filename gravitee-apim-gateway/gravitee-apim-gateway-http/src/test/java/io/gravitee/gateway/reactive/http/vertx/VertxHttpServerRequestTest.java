@@ -104,10 +104,10 @@ class VertxHttpServerRequestTest {
     void init() {
         subscriptionCount = new AtomicInteger(0);
         Flowable<io.vertx.core.buffer.Buffer> chunks = Flowable.just(
-            io.vertx.core.buffer.Buffer.buffer("chunk1"),
-            io.vertx.core.buffer.Buffer.buffer("chunk2"),
-            io.vertx.core.buffer.Buffer.buffer("chunk3")
-        ).doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
+                        io.vertx.core.buffer.Buffer.buffer("chunk1"),
+                        io.vertx.core.buffer.Buffer.buffer("chunk2"),
+                        io.vertx.core.buffer.Buffer.buffer("chunk3"))
+                .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
         when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers());
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
@@ -154,7 +154,8 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_return_original_host() {
-            when(httpServerRequest.authority()).thenReturn(HostAndPort.authority("original.host"), HostAndPort.authority("changed.host"));
+            when(httpServerRequest.authority())
+                    .thenReturn(HostAndPort.authority("original.host"), HostAndPort.authority("changed.host"));
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
             assertEquals("original.host", cut.originalHost());
@@ -180,7 +181,9 @@ class VertxHttpServerRequestTest {
 
         @BeforeEach
         public void beforeEach() {
-            requestUtilsMockedStatic.when(() -> RequestUtils.isStreaming(any(Request.class))).thenAnswer(invocation -> false);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isStreaming(any(Request.class)))
+                    .thenAnswer(invocation -> false);
         }
 
         @Test
@@ -195,16 +198,13 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_subscribe_once_when_replacing_existing_chunks_with_body() {
-            final TestSubscriber<Buffer> obs = cut
-                .chunks()
-                .ignoreElements()
-                .andThen(
-                    Flowable.defer(() -> {
+            final TestSubscriber<Buffer> obs = cut.chunks()
+                    .ignoreElements()
+                    .andThen(Flowable.defer(() -> {
                         cut.body(Buffer.buffer(NEW_CHUNK));
                         return cut.chunks();
-                    })
-                )
-                .test();
+                    }))
+                    .test();
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
         }
@@ -223,14 +223,14 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_subscribe_once_when_using_onChunks_then_getting_chunks_multiple_times() {
-            final TestSubscriber<Buffer> obs = cut
-                .onChunks(chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .ignoreElements()
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .ignoreElements()
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .test();
+            final TestSubscriber<Buffer> obs = cut.onChunks(
+                            chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .ignoreElements()
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .ignoreElements()
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .test();
 
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -238,14 +238,14 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_subscribe_once_when_using_onChunks_then_getting_body_multiple_times() {
-            final TestObserver<Buffer> obs = cut
-                .onChunks(chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
-                .andThen(Maybe.defer(() -> cut.body()))
-                .ignoreElement()
-                .andThen(Maybe.defer(() -> cut.body()))
-                .ignoreElement()
-                .andThen(Maybe.defer(() -> cut.body()))
-                .test();
+            final TestObserver<Buffer> obs = cut.onChunks(
+                            chunks -> chunks.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
+                    .andThen(Maybe.defer(() -> cut.body()))
+                    .ignoreElement()
+                    .andThen(Maybe.defer(() -> cut.body()))
+                    .ignoreElement()
+                    .andThen(Maybe.defer(() -> cut.body()))
+                    .test();
 
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -253,14 +253,13 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_subscribe_once_when_getting_body_multiple_times() {
-            final TestObserver<Buffer> obs = cut
-                .onChunks(chunks -> chunks)
-                .andThen(Maybe.defer(() -> cut.body()))
-                .ignoreElement()
-                .andThen(Maybe.defer(() -> cut.body()))
-                .ignoreElement()
-                .andThen(Maybe.defer(() -> cut.body()))
-                .test();
+            final TestObserver<Buffer> obs = cut.onChunks(chunks -> chunks)
+                    .andThen(Maybe.defer(() -> cut.body()))
+                    .ignoreElement()
+                    .andThen(Maybe.defer(() -> cut.body()))
+                    .ignoreElement()
+                    .andThen(Maybe.defer(() -> cut.body()))
+                    .test();
 
             obs.assertValue(buffer -> BODY.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -268,14 +267,14 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_subscribe_once_when_using_onBody_then_getting_chunks_multiple_times() {
-            final TestSubscriber<Buffer> obs = cut
-                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .ignoreElements()
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .ignoreElements()
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .test();
+            final TestSubscriber<Buffer> obs = cut.onBody(
+                            body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .ignoreElements()
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .ignoreElements()
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .test();
 
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -285,14 +284,14 @@ class VertxHttpServerRequestTest {
         void should_subscribe_once_and_return_empty_when_using_onBody_then_getting_chunks_multiple_times() {
             mockWithEmpty();
 
-            final TestSubscriber<Buffer> obs = cut
-                .onBody(body -> body.flatMap(buffer -> Maybe.just(Buffer.buffer(NEW_CHUNK)))) // Should not reach it cause chunks are empty.
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .ignoreElements()
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .ignoreElements()
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .test();
+            final TestSubscriber<Buffer> obs = cut.onBody(body -> body.flatMap(buffer ->
+                            Maybe.just(Buffer.buffer(NEW_CHUNK)))) // Should not reach it cause chunks are empty.
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .ignoreElements()
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .ignoreElements()
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .test();
 
             obs.assertNoValues();
             assertEquals(1, subscriptionCount.get());
@@ -310,7 +309,10 @@ class VertxHttpServerRequestTest {
         void should_subscribe_once_and_return_empty_observable_when_bodyOrEmpty_then_getting_chunks() {
             mockWithEmpty();
 
-            final TestSubscriber<Buffer> obs = cut.bodyOrEmpty().ignoreElement().andThen(Flowable.defer(() -> cut.chunks())).test();
+            final TestSubscriber<Buffer> obs = cut.bodyOrEmpty()
+                    .ignoreElement()
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .test();
 
             obs.assertNoValues();
             assertEquals(1, subscriptionCount.get());
@@ -320,10 +322,10 @@ class VertxHttpServerRequestTest {
         void should_subscribe_once_when_error_occurs_and_using_onBody() {
             mockWithError();
 
-            final TestSubscriber<Buffer> obs = cut
-                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .test();
+            final TestSubscriber<Buffer> obs = cut.onBody(
+                            body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .test();
 
             obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
             assertEquals(1, subscriptionCount.get());
@@ -333,10 +335,10 @@ class VertxHttpServerRequestTest {
         void should_subscribe_once_when_error_occurs_and_using_onChunks() {
             mockWithError();
 
-            final TestSubscriber<Buffer> obs = cut
-                .onChunks(c -> c.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
-                .andThen(Flowable.defer(() -> cut.chunks()))
-                .test();
+            final TestSubscriber<Buffer> obs = cut.onChunks(
+                            c -> c.ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))))
+                    .andThen(Flowable.defer(() -> cut.chunks()))
+                    .test();
 
             obs.assertError(throwable -> MOCK_EXCEPTION.equals(throwable.getMessage()));
             assertEquals(1, subscriptionCount.get());
@@ -364,14 +366,14 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_subscribe_once_when_using_onBody_then_getting_body_multiple_times() {
-            final TestObserver<Buffer> obs = cut
-                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-                .andThen(Maybe.defer(() -> cut.body()))
-                .ignoreElement()
-                .andThen(Maybe.defer(() -> cut.body()))
-                .ignoreElement()
-                .andThen(Maybe.defer(() -> cut.body()))
-                .test();
+            final TestObserver<Buffer> obs = cut.onBody(
+                            body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                    .andThen(Maybe.defer(() -> cut.body()))
+                    .ignoreElement()
+                    .andThen(Maybe.defer(() -> cut.body()))
+                    .ignoreElement()
+                    .andThen(Maybe.defer(() -> cut.body()))
+                    .test();
 
             obs.assertValue(buffer -> NEW_CHUNK.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -379,11 +381,12 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_subscribe_once_when_using_onBody_multiple_times() {
-            final TestObserver<Buffer> obs = cut
-                .onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
-                .andThen(Completable.defer(() -> cut.onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(BODY))))))
-                .andThen(Maybe.defer(() -> cut.body()))
-                .test();
+            final TestObserver<Buffer> obs = cut.onBody(
+                            body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(NEW_CHUNK))))
+                    .andThen(Completable.defer(
+                            () -> cut.onBody(body -> body.ignoreElement().andThen(Maybe.just(Buffer.buffer(BODY))))))
+                    .andThen(Maybe.defer(() -> cut.body()))
+                    .test();
 
             obs.assertValue(buffer -> BODY.equals(buffer.toString()));
             assertEquals(1, subscriptionCount.get());
@@ -475,7 +478,8 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_discard_then_close_when_client_expects_100_continue() {
-            when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers().add(CONTENT_LENGTH, "10").add(EXPECT, "100-continue"));
+            when(httpServerRequest.headers())
+                    .thenReturn(HttpHeaders.headers().add(CONTENT_LENGTH, "10").add(EXPECT, "100-continue"));
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
             assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.DISCARD_THEN_CLOSE);
@@ -619,7 +623,8 @@ class VertxHttpServerRequestTest {
         void should_set_onMessagesInterceptor() {
             final MessageFlow<Message> messageFlow = mock(MessageFlow.class);
             ReflectionTestUtils.setField(cut, "messageFlow", messageFlow);
-            final OnMessagesInterceptor.MessagesInterceptor interceptor = mock(OnMessagesInterceptor.MessagesInterceptor.class);
+            final OnMessagesInterceptor.MessagesInterceptor interceptor =
+                    mock(OnMessagesInterceptor.MessagesInterceptor.class);
             cut.registerMessagesInterceptor(interceptor);
 
             verify(messageFlow).registerMessagesInterceptor(interceptor);
@@ -654,7 +659,9 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_check_websocket_only_once() {
-            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class)))
+                    .thenAnswer(invocation -> true);
 
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
@@ -667,7 +674,9 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_create_websocket() {
-            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class)))
+                    .thenAnswer(invocation -> true);
 
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
             assertNotNull(cut.webSocket());
@@ -686,21 +695,27 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_no_create_websocket_when_request_is_not_websocket() {
-            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> false);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class)))
+                    .thenAnswer(invocation -> false);
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
             assertNull(cut.webSocket());
         }
 
         @Test
         void should_not_be_websocket_upgraded_when_request_is_not_websocket() {
-            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class)))
+                    .thenAnswer(invocation -> true);
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
             assertFalse(cut.isWebSocketUpgraded());
         }
 
         @Test
         void should_not_be_websocket_upgraded_when_websocket_not_created() {
-            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class)))
+                    .thenAnswer(invocation -> true);
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
             assertTrue(cut.isWebSocket());
             assertFalse(cut.isWebSocketUpgraded());
@@ -708,7 +723,9 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_not_be_websocket_upgraded_when_web_socket_has_been_created_but_not_upgraded() {
-            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class)))
+                    .thenAnswer(invocation -> true);
 
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
             final WebSocket webSocket = cut.webSocket();
@@ -720,7 +737,9 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_be_websocket_upgraded_when_websocket_hasbeen_created_and_upgraded() {
-            requestUtilsMockedStatic.when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class))).thenAnswer(invocation -> true);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isWebSocket(any(HttpServerRequest.class)))
+                    .thenAnswer(invocation -> true);
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
             final WebSocket webSocket = cut.webSocket();
             ReflectionTestUtils.setField(webSocket, "upgraded", true);
@@ -738,7 +757,9 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_check_streaming_only_once() {
-            requestUtilsMockedStatic.when(() -> RequestUtils.isStreaming(any(Request.class))).thenAnswer(invocation -> true);
+            requestUtilsMockedStatic
+                    .when(() -> RequestUtils.isStreaming(any(Request.class)))
+                    .thenAnswer(invocation -> true);
 
             cut = spy(new VertxHttpServerRequest(httpServerRequest, idGenerator));
 
@@ -751,9 +772,8 @@ class VertxHttpServerRequestTest {
     }
 
     private void mockWithEmpty() {
-        final Flowable<io.vertx.core.buffer.Buffer> chunks = Flowable.<io.vertx.core.buffer.Buffer>empty().doOnSubscribe(subscription ->
-            subscriptionCount.incrementAndGet()
-        );
+        final Flowable<io.vertx.core.buffer.Buffer> chunks = Flowable.<io.vertx.core.buffer.Buffer>empty()
+                .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
 
@@ -762,8 +782,8 @@ class VertxHttpServerRequestTest {
 
     private void mockWithError() {
         final Flowable<io.vertx.core.buffer.Buffer> chunks = Flowable.<io.vertx.core.buffer.Buffer>error(
-            new RuntimeException(MOCK_EXCEPTION)
-        ).doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
+                        new RuntimeException(MOCK_EXCEPTION))
+                .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
 

@@ -42,19 +42,17 @@ public class HttpPolicyFactory implements PolicyFactory {
     private final long policyTimeoutMs;
 
     public HttpPolicyFactory(
-        final Configuration configuration,
-        final PolicyPluginFactory policyPluginFactory,
-        final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter
-    ) {
+            final Configuration configuration,
+            final PolicyPluginFactory policyPluginFactory,
+            final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter) {
         this(configuration, policyPluginFactory, filter, 0L);
     }
 
     public HttpPolicyFactory(
-        final Configuration configuration,
-        final PolicyPluginFactory policyPluginFactory,
-        final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter,
-        final long policyTimeoutMs
-    ) {
+            final Configuration configuration,
+            final PolicyPluginFactory policyPluginFactory,
+            final ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter,
+            final long policyTimeoutMs) {
         this.configuration = configuration;
         this.policyPluginFactory = policyPluginFactory;
         this.filter = filter;
@@ -71,20 +69,18 @@ public class HttpPolicyFactory implements PolicyFactory {
 
     @Override
     public HttpPolicy create(
-        final ExecutionPhase executionPhase,
-        final PolicyManifest policyManifest,
-        final PolicyConfiguration policyConfiguration,
-        final PolicyMetadata policyMetadata
-    ) {
+            final ExecutionPhase executionPhase,
+            final PolicyManifest policyManifest,
+            final PolicyConfiguration policyConfiguration,
+            final PolicyMetadata policyMetadata) {
         return createPolicy(executionPhase, policyManifest, policyConfiguration, policyMetadata);
     }
 
     protected HttpPolicy createPolicy(
-        final ExecutionPhase phase,
-        final PolicyManifest policyManifest,
-        final PolicyConfiguration policyConfiguration,
-        final PolicyMetadata policyMetadata
-    ) {
+            final ExecutionPhase phase,
+            final PolicyManifest policyManifest,
+            final PolicyConfiguration policyConfiguration,
+            final PolicyMetadata policyMetadata) {
         HttpPolicy policy = null;
 
         if (HttpPolicy.class.isAssignableFrom(policyManifest.policy())) {
@@ -92,12 +88,8 @@ public class HttpPolicyFactory implements PolicyFactory {
         } else if (phase == ExecutionPhase.REQUEST || phase == ExecutionPhase.RESPONSE) {
             StreamType streamType = phase == ExecutionPhase.REQUEST ? StreamType.ON_REQUEST : StreamType.ON_RESPONSE;
             if (policyManifest.accept(streamType)) {
-                io.gravitee.gateway.policy.Policy v3Policy = v3PolicyFactory.create(
-                    streamType,
-                    policyManifest,
-                    policyConfiguration,
-                    policyMetadata
-                );
+                io.gravitee.gateway.policy.Policy v3Policy =
+                        v3PolicyFactory.create(streamType, policyManifest, policyConfiguration, policyMetadata);
                 // PEN-88: evaluate Schedulers.io() lazily here (at API-deploy time, after
                 // HttpProtocolVerticle has registered its RxJavaPlugins handler) so that
                 // Schedulers.io() correctly resolves to RxHelper.blockingScheduler(vertx),
@@ -106,9 +98,8 @@ public class HttpPolicyFactory implements PolicyFactory {
                 policy = new PolicyAdapter(v3Policy, workerScheduler);
             }
         } else {
-            throw new IllegalArgumentException(
-                String.format("Cannot create policy instance with [phase=%s, policy=%s]", phase, policyManifest.id())
-            );
+            throw new IllegalArgumentException(String.format(
+                    "Cannot create policy instance with [phase=%s, policy=%s]", phase, policyManifest.id()));
         }
 
         policy = decoratePolicy(policyMetadata, policy);

@@ -65,7 +65,10 @@ public class BestMatchFlowResolverBenchmark {
 
     // used to run benchmark directly from IDE
     public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder().include(BestMatchFlowResolverBenchmark.class.getSimpleName()).forks(1).build();
+        Options opt = new OptionsBuilder()
+                .include(BestMatchFlowResolverBenchmark.class.getSimpleName())
+                .forks(1)
+                .build();
 
         new Runner(opt).run();
     }
@@ -74,9 +77,7 @@ public class BestMatchFlowResolverBenchmark {
     public void setUp() {
         flowResolver = new TestFlowResolver(evaluator, buildFlows());
         executionContext = new SimpleExecutionContext(
-            new TestRequest("/book/99/chapter/888/page/7777/paragraph/6666/line/5/char/10"),
-            null
-        );
+                new TestRequest("/book/99/chapter/888/page/7777/paragraph/6666/line/5/char/10"), null);
     }
 
     @Benchmark
@@ -91,33 +92,32 @@ public class BestMatchFlowResolverBenchmark {
 
     private List<Flow> buildFlows() {
         return List.of(
-            "/book",
-            "/book/99",
-            "/book/:id",
-            "/book/99/chapter/888",
-            "/book/:id/chapter/:chapterId",
-            "/book/99/chapter/888",
-            "/book/:id/chapter/:chapterId/page/:pageId",
-            "/book/99/chapter/888/page/7777",
-            "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId",
-            "/book/99/chapter/888/page/7777/paragraph/6666",
-            "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId/line/:lineId",
-            "/book/99/chapter/888/page/7777/paragraph/6666/line/5",
-            "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId/line/:lineId/char/:charid",
-            "/book/99/chapter/888/page/7777/paragraph/6666/line/5/char/1"
-        )
-            .stream()
-            .map(path -> {
-                Flow flow = new Flow();
-                PathOperator pathOperator = new PathOperator();
-                pathOperator.setPath(path);
-                // No need to test different operator in this test.
-                // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
-                pathOperator.setOperator(Operator.STARTS_WITH);
-                flow.setPathOperator(pathOperator);
-                return flow;
-            })
-            .collect(Collectors.toList());
+                        "/book",
+                        "/book/99",
+                        "/book/:id",
+                        "/book/99/chapter/888",
+                        "/book/:id/chapter/:chapterId",
+                        "/book/99/chapter/888",
+                        "/book/:id/chapter/:chapterId/page/:pageId",
+                        "/book/99/chapter/888/page/7777",
+                        "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId",
+                        "/book/99/chapter/888/page/7777/paragraph/6666",
+                        "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId/line/:lineId",
+                        "/book/99/chapter/888/page/7777/paragraph/6666/line/5",
+                        "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId/line/:lineId/char/:charid",
+                        "/book/99/chapter/888/page/7777/paragraph/6666/line/5/char/1")
+                .stream()
+                .map(path -> {
+                    Flow flow = new Flow();
+                    PathOperator pathOperator = new PathOperator();
+                    pathOperator.setPath(path);
+                    // No need to test different operator in this test.
+                    // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
+                    pathOperator.setOperator(Operator.STARTS_WITH);
+                    flow.setPathOperator(pathOperator);
+                    return flow;
+                })
+                .collect(Collectors.toList());
     }
 
     private static class TestFlowResolver extends ConditionalFlowResolver {

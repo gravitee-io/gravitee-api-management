@@ -21,7 +21,6 @@ import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;

@@ -48,57 +48,50 @@ public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotifi
 
     @Override
     public void triggerApiSubscriptionNotification(
-        String organizationId,
-        String environmentId,
-        String referenceId,
-        ApiHookContext context
-    ) {
+            String organizationId, String environmentId, String referenceId, ApiHookContext context) {
         triggerApiHookNotification(organizationId, environmentId, referenceId, context);
     }
 
     private void triggerApiHookNotification(
-        String organizationId,
-        String environmentId,
-        String notifierReferenceId,
-        ApiHookContext context
-    ) {
+            String organizationId, String environmentId, String notifierReferenceId, ApiHookContext context) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
         var notificationParameters = templateDataFetcher.fetchData(organizationId, context);
         notifierService.trigger(executionContext, context.getHook(), notifierReferenceId, notificationParameters);
     }
 
     @Override
-    public void triggerApiProductNotification(String organizationId, String environmentId, ApiProductHookContext context) {
+    public void triggerApiProductNotification(
+            String organizationId, String environmentId, ApiProductHookContext context) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
         var notificationParameters = templateDataFetcher.fetchData(organizationId, context);
         notifierService.trigger(executionContext, context.getHook(), context.getApiProductId(), notificationParameters);
     }
 
     @Override
-    public void triggerApplicationNotification(String organizationId, String environmentId, ApplicationHookContext context) {
+    public void triggerApplicationNotification(
+            String organizationId, String environmentId, ApplicationHookContext context) {
         triggerApplicationNotification(organizationId, environmentId, context, Collections.emptyList());
     }
 
     @Override
     public void triggerApplicationNotification(
-        String organizationId,
-        String environmentId,
-        ApplicationHookContext context,
-        List<Recipient> additionalRecipients
-    ) {
+            String organizationId,
+            String environmentId,
+            ApplicationHookContext context,
+            List<Recipient> additionalRecipients) {
         var notificationParameters = templateDataFetcher.fetchData(organizationId, context);
         notifierService.trigger(
-            new ExecutionContext(organizationId, environmentId),
-            context.getHook(),
-            context.getApplicationId(),
-            notificationParameters,
-            additionalRecipients
-        );
+                new ExecutionContext(organizationId, environmentId),
+                context.getHook(),
+                context.getApplicationId(),
+                notificationParameters,
+                additionalRecipients);
     }
 
     @Override
     public void triggerPortalNotification(String organizationId, String environmentId, PortalHookContext context) {
         var notificationParameters = templateDataFetcher.fetchData(organizationId, context);
-        notifierService.trigger(new ExecutionContext(organizationId, environmentId), context.getHook(), notificationParameters);
+        notifierService.trigger(
+                new ExecutionContext(organizationId, environmentId), context.getHook(), notificationParameters);
     }
 }

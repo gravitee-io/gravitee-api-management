@@ -53,7 +53,8 @@ import org.springframework.web.filter.DelegatingFilterProxy;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer> implements ApplicationContextAware {
+public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer>
+        implements ApplicationContextAware {
 
     private final JettyServerFactory jettyServerFactory;
 
@@ -105,44 +106,40 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         if (startPortalAPI) {
             // REST configuration for Portal API
             ServletContextHandler portalContextHandler = configureAPI(
-                portalEntrypoint,
-                GraviteePortalApplication.class.getName(),
-                SecurityPortalConfiguration.class
-            );
+                    portalEntrypoint, GraviteePortalApplication.class.getName(), SecurityPortalConfiguration.class);
             contexts.add(portalContextHandler);
         }
 
         if (startAutomationAPI) {
             // REST configuration for Automation API
             ServletContextHandler automationContextHandler = configureAPI(
-                automationEntrypoint,
-                GraviteeAutomationApplication.class.getName(),
-                SecurityAutomationConfiguration.class
-            );
+                    automationEntrypoint,
+                    GraviteeAutomationApplication.class.getName(),
+                    SecurityAutomationConfiguration.class);
             contexts.add(automationContextHandler);
         }
 
         if (startManagementAPI) {
             // REST configuration for Management API
             ServletContextHandler managementContextHandler = configureAPI(
-                managementEntrypoint,
-                GraviteeManagementApplication.class.getName(),
-                SecurityManagementConfiguration.class
-            );
+                    managementEntrypoint,
+                    GraviteeManagementApplication.class.getName(),
+                    SecurityManagementConfiguration.class);
             contexts.add(managementContextHandler);
 
             // REST configuration for Management API - V2
             ServletContextHandler managementV2ContextHandler = configureAPI(
-                managementEntrypoint + "/v2",
-                GraviteeManagementV2Application.class.getName(),
-                SecurityManagementV2Configuration.class
-            );
+                    managementEntrypoint + "/v2",
+                    GraviteeManagementV2Application.class.getName(),
+                    SecurityManagementV2Configuration.class);
             contexts.add(managementV2ContextHandler);
         }
 
         if (gammaEnabled && startGamma) {
-            // Configuration for Gamma modules. For now, inherit security from Management API V2, but it could be different in the future if needed.
-            contexts.add(configureAPI("/gamma", GammaModuleApplication.class.getName(), SecurityManagementV2Configuration.class));
+            // Configuration for Gamma modules. For now, inherit security from Management API V2, but it could be
+            // different in the future if needed.
+            contexts.add(configureAPI(
+                    "/gamma", GammaModuleApplication.class.getName(), SecurityManagementV2Configuration.class));
         }
 
         if (contexts.isEmpty()) {
@@ -156,11 +153,11 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     }
 
     private ServletContextHandler configureAPI(
-        String apiContextPath,
-        String applicationName,
-        Class<? extends GlobalAuthenticationConfigurerAdapter> securityConfigurationClass
-    ) {
-        final ServletContextHandler childContext = new ServletContextHandler(apiContextPath, ServletContextHandler.SESSIONS);
+            String apiContextPath,
+            String applicationName,
+            Class<? extends GlobalAuthenticationConfigurerAdapter> securityConfigurationClass) {
+        final ServletContextHandler childContext =
+                new ServletContextHandler(apiContextPath, ServletContextHandler.SESSIONS);
 
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
         servletHolder.setInitParameter("jakarta.ws.rs.Application", applicationName);
@@ -177,10 +174,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
         // Spring Security filter
         childContext.addFilter(
-            new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),
-            "/*",
-            EnumSet.allOf(DispatcherType.class)
-        );
+                new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),
+                "/*",
+                EnumSet.allOf(DispatcherType.class));
         return childContext;
     }
 

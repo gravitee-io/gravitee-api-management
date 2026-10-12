@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.provider;
 
 import jakarta.ws.rs.NotAllowedException;
-import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
@@ -30,6 +29,9 @@ public class NotAllowedExceptionMapper extends AbstractExceptionMapper<NotAllowe
     @Override
     public Response toResponse(final NotAllowedException e) {
         final Response.Status error = Response.Status.METHOD_NOT_ALLOWED;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, error.getStatusCode())).build();
+        return Response.status(error)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(e, error.getStatusCode()))
+                .build();
     }
 }

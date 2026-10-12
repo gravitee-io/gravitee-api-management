@@ -66,14 +66,12 @@ public class MySqlChangeLogTableWithPrimaryKeyGenerator extends CreateDatabaseCh
     }
 
     @Override
-    public Sql[] generateSql(CreateDatabaseChangeLogTableStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
+    public Sql[] generateSql(
+            CreateDatabaseChangeLogTableStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
         Sql[] generated = super.generateSql(statement, database, sqlGeneratorChain);
         if (generated == null || generated.length == 0) {
-            throw new IllegalStateException(
-                "Liquibase " +
-                    CreateDatabaseChangeLogTableGenerator.class.getName() +
-                    " produced no SQL for the changelog table — strict-PK splicing cannot proceed."
-            );
+            throw new IllegalStateException("Liquibase " + CreateDatabaseChangeLogTableGenerator.class.getName()
+                    + " produced no SQL for the changelog table — strict-PK splicing cannot proceed.");
         }
         return spliceWithPrimaryKey(generated, "pk_" + database.getDatabaseChangeLogTableName());
     }
@@ -100,8 +98,8 @@ public class MySqlChangeLogTableWithPrimaryKeyGenerator extends CreateDatabaseCh
         if (!spliced) {
             String dump = Arrays.stream(generated).map(Sql::toSql).collect(Collectors.joining("\n  "));
             throw new IllegalStateException(
-                "Expected a CREATE TABLE statement to splice a PRIMARY KEY into; found none. " + "Upstream SQL was:\n  " + dump
-            );
+                    "Expected a CREATE TABLE statement to splice a PRIMARY KEY into; found none. "
+                            + "Upstream SQL was:\n  " + dump);
         }
         return result;
     }
@@ -118,15 +116,15 @@ public class MySqlChangeLogTableWithPrimaryKeyGenerator extends CreateDatabaseCh
         // execution time. Better to throw here with the offending SQL in the message.
         if (sql.toUpperCase(Locale.ROOT).contains("PRIMARY KEY")) {
             throw new IllegalStateException(
-                "Upstream CREATE TABLE already contains a PRIMARY KEY clause; refusing to splice another. " +
-                    "This means Liquibase changed its DDL shape and the splice is no longer needed (or needs to merge). " +
-                    "Offending SQL: " +
-                    sql
-            );
+                    "Upstream CREATE TABLE already contains a PRIMARY KEY clause; refusing to splice another. "
+                            + "This means Liquibase changed its DDL shape and the splice is no longer needed (or needs to merge). "
+                            + "Offending SQL: "
+                            + sql);
         }
         int columnListClose = findColumnListClose(sql);
         if (columnListClose < 0) {
-            throw new IllegalStateException("CREATE TABLE has no balanced column-list parentheses to splice into: " + sql);
+            throw new IllegalStateException(
+                    "CREATE TABLE has no balanced column-list parentheses to splice into: " + sql);
         }
         String pkClause = ", CONSTRAINT " + constraintName + " PRIMARY KEY (ID, AUTHOR, FILENAME)";
         String withPk = sql.substring(0, columnListClose) + pkClause + sql.substring(columnListClose);

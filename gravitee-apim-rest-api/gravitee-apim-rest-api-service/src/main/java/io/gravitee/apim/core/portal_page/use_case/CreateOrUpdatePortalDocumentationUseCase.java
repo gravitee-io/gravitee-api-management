@@ -57,23 +57,21 @@ public class CreateOrUpdatePortalDocumentationUseCase {
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
     public record Input(
-        AuditInfo auditInfo,
-        PortalPageContentId portalPageContentId,
-        PortalId portalId,
-        String name,
-        PortalPageContentType type,
-        String content,
-        String location,
-        Integer order,
-        PortalArea area,
-        PortalVisibility visibility
-    ) {}
+            AuditInfo auditInfo,
+            PortalPageContentId portalPageContentId,
+            PortalId portalId,
+            String name,
+            PortalPageContentType type,
+            String content,
+            String location,
+            Integer order,
+            PortalArea area,
+            PortalVisibility visibility) {}
 
     public record Output(PortalPageContentId id, List<Validator.Error> errors) {}
 
     public Output execute(Input input) {
-        var validation = validator.validateAndSanitize(
-            new ValidatePortalDocumentationDomainService.Input(
+        var validation = validator.validateAndSanitize(new ValidatePortalDocumentationDomainService.Input(
                 input.auditInfo(),
                 input.portalPageContentId(),
                 input.portalId(),
@@ -82,28 +80,29 @@ public class CreateOrUpdatePortalDocumentationUseCase {
                 input.content(),
                 input.location(),
                 input.order(),
-                input.area()
-            )
-        );
+                input.area()));
 
-        validation
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        validation.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(
+                    errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
+        });
 
         var warnings = validation.warning().orElseGet(List::of);
-        var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal documentation"));
+        var sanitized = validation
+                .value()
+                .orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal documentation"));
 
         if (!portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), sanitized.portalId())) {
-            throw new ValidationDomainException("the portal to attach the documentation to does not exist in this environment");
+            throw new ValidationDomainException(
+                    "the portal to attach the documentation to does not exist in this environment");
         }
 
         var meta = buildAutomationMetadata(sanitized);
         var area = resolveArea(sanitized.area());
         var existing = portalPageContentQueryService.findById(sanitized.portalPageContentId());
         var sameTypeUpdate = existing.filter(current -> current.getType() == sanitized.type());
-        var updateContent = UpdatePortalPageContent.builder().content(sanitized.content()).build();
+        var updateContent =
+                UpdatePortalPageContent.builder().content(sanitized.content()).build();
         sameTypeUpdate.ifPresent(current -> pageContentValidatorService.validateForUpdate(current, updateContent));
 
         syncDomainService.validatePlacement(input.auditInfo(), buildContent(sanitized, meta), area, input.visibility());
@@ -125,25 +124,28 @@ public class CreateOrUpdatePortalDocumentationUseCase {
 
     static AutomationMetadata buildAutomationMetadata(ValidatePortalDocumentationDomainService.Input sanitized) {
         return new AutomationMetadata(
-            AutomationMetadata.ReferenceType.PORTAL,
-            sanitized.portalId().toString(),
-            sanitized.name(),
-            Optional.ofNullable(sanitized.location()),
-            Optional.ofNullable(sanitized.order())
-        );
+                AutomationMetadata.ReferenceType.PORTAL,
+                sanitized.portalId().toString(),
+                sanitized.name(),
+                Optional.ofNullable(sanitized.location()),
+                Optional.ofNullable(sanitized.order()));
     }
 
     static PortalArea resolveArea(PortalArea area) {
         return area != null ? area : PortalArea.TOP_NAVBAR;
     }
 
-    static PortalPageContent<?> buildContent(ValidatePortalDocumentationDomainService.Input sanitized, AutomationMetadata meta) {
+    static PortalPageContent<?> buildContent(
+            ValidatePortalDocumentationDomainService.Input sanitized, AutomationMetadata meta) {
         var id = sanitized.portalPageContentId();
         var orgId = sanitized.auditInfo().organizationId();
         var envId = sanitized.auditInfo().environmentId();
         return switch (sanitized.type()) {
-            case GRAVITEE_MARKDOWN -> new GraviteeMarkdownPageContent(id, orgId, envId, GraviteeMarkdown.of(sanitized.content()), meta);
-            case OPENAPI -> new OpenApiPageContent(id, orgId, envId, OpenApi.of(sanitized.content()), new RedocConfiguration(), meta);
+            case GRAVITEE_MARKDOWN ->
+                new GraviteeMarkdownPageContent(id, orgId, envId, GraviteeMarkdown.of(sanitized.content()), meta);
+            case OPENAPI ->
+                new OpenApiPageContent(
+                        id, orgId, envId, OpenApi.of(sanitized.content()), new RedocConfiguration(), meta);
             case ASYNCAPI -> new AsyncApiPageContent(id, orgId, envId, AsyncApi.of(sanitized.content()), meta);
         };
     }

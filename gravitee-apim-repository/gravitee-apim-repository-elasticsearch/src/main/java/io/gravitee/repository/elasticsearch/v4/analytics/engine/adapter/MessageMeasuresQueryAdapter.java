@@ -74,7 +74,10 @@ public class MessageMeasuresQueryAdapter {
     }
 
     private JsonObject json(MeasuresQuery query, JsonObject boolQuery) {
-        return new JsonObject().put("size", 0).put("query", JsonObject.of("bool", boolQuery)).put("aggs", adaptMetrics(query.metrics()));
+        return new JsonObject()
+                .put("size", 0)
+                .put("query", JsonObject.of("bool", boolQuery))
+                .put("aggs", adaptMetrics(query.metrics()));
     }
 
     /**
@@ -86,7 +89,10 @@ public class MessageMeasuresQueryAdapter {
         var field = fieldResolver.fromMetric(metric.metric());
         for (var measure : metric.measures()) {
             var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
-            aggregate(aggName, field, measure).ifPresent(agg -> aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next()));
+            aggregate(aggName, field, measure)
+                    .ifPresent(agg -> aggs.put(
+                            agg.keySet().iterator().next(),
+                            agg.values().iterator().next()));
         }
         return aggs;
     }

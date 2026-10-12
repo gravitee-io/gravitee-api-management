@@ -25,11 +25,11 @@ public class StatusCreatedAtEndingAtIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("subscriptions")
-            .name("s1ca-1ea1")
-            .key("status", ascending())
-            .key("createdAt", descending())
-            .key("endingAt", ascending())
-            .build();
+                .collection("subscriptions")
+                .name("s1ca-1ea1")
+                .key("status", ascending())
+                .key("createdAt", descending())
+                .key("endingAt", ascending())
+                .build();
     }
 }

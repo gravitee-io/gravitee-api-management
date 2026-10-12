@@ -36,7 +36,8 @@ public class InvalidHttpMethodGatewayTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void shouldRespondWithNotImplemented() throws Exception {
-        wireMockRule.stubFor(any(urlEqualTo("/team/my_team")).willReturn(aResponse().withStatus(HttpStatus.SC_NOT_IMPLEMENTED)));
+        wireMockRule.stubFor(
+                any(urlEqualTo("/team/my_team")).willReturn(aResponse().withStatus(HttpStatus.SC_NOT_IMPLEMENTED)));
 
         Request request = Request.Get("http://localhost:8082/test/my_team");
 
@@ -50,7 +51,8 @@ public class InvalidHttpMethodGatewayTest extends AbstractWiremockGatewayTest {
         Response response = execute(request);
         HttpResponse returnResponse = response.returnResponse();
 
-        assertEquals(HttpStatus.SC_NOT_IMPLEMENTED, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(
+                HttpStatus.SC_NOT_IMPLEMENTED, returnResponse.getStatusLine().getStatusCode());
 
         wireMockRule.verify(anyRequestedFor(urlPathEqualTo("/team/my_team")));
     }

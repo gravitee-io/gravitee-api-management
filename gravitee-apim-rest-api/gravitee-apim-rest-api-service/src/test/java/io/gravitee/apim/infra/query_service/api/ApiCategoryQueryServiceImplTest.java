@@ -46,11 +46,10 @@ class ApiCategoryQueryServiceImplTest {
     private static final String CATEGORY_ID_2 = "category2";
     private static final String CATEGORY_ID_1 = "category1";
     private static final String ENVIRONMENT_ID = "environment-id";
-    private static final Api API = ApiFixtures.aProxyApiV4()
-        .toBuilder()
-        .environmentId(ENVIRONMENT_ID)
-        .categories(Set.of(CATEGORY_ID_1, CATEGORY_ID_2))
-        .build();
+    private static final Api API = ApiFixtures.aProxyApiV4().toBuilder()
+            .environmentId(ENVIRONMENT_ID)
+            .categories(Set.of(CATEGORY_ID_1, CATEGORY_ID_2))
+            .build();
 
     @Mock
     CategoryRepository categoryRepository;
@@ -86,15 +85,21 @@ class ApiCategoryQueryServiceImplTest {
             //
             //                    return categoryIds
             //                        .stream()
-            //                        .map(categoryId -> Category.builder().id(categoryId).key("key-" + categoryId).build())
+            //                        .map(categoryId -> Category.builder().id(categoryId).key("key-" +
+            // categoryId).build())
             //                        .collect(Collectors.toSet());
             //                });
 
             when(categoryRepository.findAllByEnvironment(ENVIRONMENT_ID)).thenAnswer(invocation -> {
                 return Set.of(
-                    Category.builder().id(CATEGORY_ID_1).key("key-" + CATEGORY_ID_1).build(),
-                    Category.builder().id(CATEGORY_ID_2).key("key-" + CATEGORY_ID_2).build()
-                );
+                        Category.builder()
+                                .id(CATEGORY_ID_1)
+                                .key("key-" + CATEGORY_ID_1)
+                                .build(),
+                        Category.builder()
+                                .id(CATEGORY_ID_2)
+                                .key("key-" + CATEGORY_ID_2)
+                                .build());
             });
 
             // when
@@ -110,7 +115,8 @@ class ApiCategoryQueryServiceImplTest {
         @SneakyThrows
         void should_return_empty_list_when_api_has_no_category_defined(Set<String> categoryIds) {
             // when
-            var categories = service.findApiCategoryKeys(API.toBuilder().categories(categoryIds).build());
+            var categories = service.findApiCategoryKeys(
+                    API.toBuilder().categories(categoryIds).build());
 
             // then
             assertThat(categories).isEmpty();
@@ -126,10 +132,10 @@ class ApiCategoryQueryServiceImplTest {
             Throwable throwable = catchThrowable(() -> service.findApiCategoryKeys(API));
 
             assertThat(throwable)
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessageContaining("An error occurs while trying to find Categories for the api: " + API.getId())
-                .hasCauseInstanceOf(TechnicalException.class)
-                .hasRootCauseMessage("error");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessageContaining("An error occurs while trying to find Categories for the api: " + API.getId())
+                    .hasCauseInstanceOf(TechnicalException.class)
+                    .hasRootCauseMessage("error");
         }
     }
 
@@ -139,16 +145,20 @@ class ApiCategoryQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_categories() {
-            when(categoryRepository.findAllByEnvironment(ENVIRONMENT_ID)).thenReturn(
-                Set.of(
-                    Category.builder().id(CATEGORY_ID_1).key("key-" + CATEGORY_ID_1).build(),
-                    Category.builder().id(CATEGORY_ID_2).key("key-" + CATEGORY_ID_2).build()
-                )
-            );
+            when(categoryRepository.findAllByEnvironment(ENVIRONMENT_ID))
+                    .thenReturn(Set.of(
+                            Category.builder()
+                                    .id(CATEGORY_ID_1)
+                                    .key("key-" + CATEGORY_ID_1)
+                                    .build(),
+                            Category.builder()
+                                    .id(CATEGORY_ID_2)
+                                    .key("key-" + CATEGORY_ID_2)
+                                    .build()));
 
             assertThat(service.findByEnvironmentId(ENVIRONMENT_ID))
-                .extracting("id")
-                .containsExactlyInAnyOrder(CATEGORY_ID_1, CATEGORY_ID_2);
+                    .extracting("id")
+                    .containsExactlyInAnyOrder(CATEGORY_ID_1, CATEGORY_ID_2);
         }
 
         @Test
@@ -157,10 +167,10 @@ class ApiCategoryQueryServiceImplTest {
             when(categoryRepository.findAllByEnvironment(any())).thenThrow(new TechnicalException("error"));
 
             assertThat(catchThrowable(() -> service.findByEnvironmentId(ENVIRONMENT_ID)))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessageContaining("Cannot find categories for environment environment-id")
-                .hasCauseInstanceOf(TechnicalException.class)
-                .hasRootCauseMessage("error");
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessageContaining("Cannot find categories for environment environment-id")
+                    .hasCauseInstanceOf(TechnicalException.class)
+                    .hasRootCauseMessage("error");
         }
     }
 }

@@ -41,7 +41,6 @@ import javax.wsdl.*;
 import javax.wsdl.extensions.schema.Schema;
 import javax.xml.namespace.QName;
 import lombok.CustomLog;
-import org.apache.xmlbeans.SchemaType;
 import org.apache.xmlbeans.SchemaTypeSystem;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -118,12 +117,12 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
         }
 
         if (definition.getImports() != null && !definition.getImports().isEmpty()) {
-            ((Map<String, List<Import>>) definition.getImports()).values()
-                .stream()
-                .flatMap(Collection::stream)
-                .map(Import::getDefinition)
-                .filter(Objects::nonNull)
-                .forEach(this::createSchemaObjects);
+            ((Map<String, List<Import>>) definition.getImports())
+                    .values().stream()
+                            .flatMap(Collection::stream)
+                            .map(Import::getDefinition)
+                            .filter(Objects::nonNull)
+                            .forEach(this::createSchemaObjects);
         }
     }
 
@@ -146,9 +145,11 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
             // create Server section for the given port
             createServer(openAPI, portDefinition);
 
-            final Binding binding = wsdlDefinition.getBinding(portDefinition.getBinding().getQName());
+            final Binding binding =
+                    wsdlDefinition.getBinding(portDefinition.getBinding().getQName());
             for (int i = 0; i < binding.getBindingOperations().size(); ++i) {
-                final BindingOperation bindingOperation = (BindingOperation) binding.getBindingOperations().get(i);
+                final BindingOperation bindingOperation =
+                        (BindingOperation) binding.getBindingOperations().get(i);
                 final Operation operation = bindingOperation.getOperation();
                 final String operationName = operation.getName();
 
@@ -156,15 +157,17 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
                 io.swagger.v3.oas.models.Operation openApiOperation = new io.swagger.v3.oas.models.Operation();
                 openApiOperation.operationId(String.join("_", binding.getQName().getLocalPart(), operationName));
                 if (operation.getDocumentationElement() != null) {
-                    openApiOperation.description(operation.getDocumentationElement().getTextContent());
+                    openApiOperation.description(
+                            operation.getDocumentationElement().getTextContent());
                 }
 
                 Input input = operation.getInput();
                 if (input != null) {
-                    extractSOAPAction(bindingOperation).ifPresent(action -> openApiOperation.addExtension(SOAP_EXTENSION_ACTION, action));
-                    this.soapBuilder.generateSoapEnvelop(wsdlDefinition, binding, bindingOperation).ifPresent(envelope ->
-                        openApiOperation.addExtension(SOAP_EXTENSION_ENVELOPE, envelope)
-                    );
+                    extractSOAPAction(bindingOperation)
+                            .ifPresent(action -> openApiOperation.addExtension(SOAP_EXTENSION_ACTION, action));
+                    this.soapBuilder
+                            .generateSoapEnvelop(wsdlDefinition, binding, bindingOperation)
+                            .ifPresent(envelope -> openApiOperation.addExtension(SOAP_EXTENSION_ENVELOPE, envelope));
                     buildRequestBody(input).ifPresent(openApiOperation::setRequestBody);
                 }
 
@@ -184,7 +187,8 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
                     Message msg = output.getMessage();
                     if (msg != null) {
                         if (msg.getDocumentationElement() != null) {
-                            successResp.description(operation.getDocumentationElement().getTextContent());
+                            successResp.description(
+                                    operation.getDocumentationElement().getTextContent());
                         }
                     }
                 }
@@ -215,9 +219,12 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
                 }
 
                 if (singlePort) {
-                    openAPI.path(String.join("/", "", serviceDefinition.getQName().getLocalPart(), operationName), pathItem);
+                    openAPI.path(
+                            String.join("/", "", serviceDefinition.getQName().getLocalPart(), operationName), pathItem);
                 } else {
-                    openAPI.path(String.join("/", "", serviceDefinition.getQName().getLocalPart(), portName, operationName), pathItem);
+                    openAPI.path(
+                            String.join("/", "", serviceDefinition.getQName().getLocalPart(), portName, operationName),
+                            pathItem);
                 }
             }
         }
@@ -257,27 +264,30 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
             return Optional.empty();
         }
 
-        return ((Collection<Part>) input.getMessage().getParts().values()).stream()
-            .findFirst()
-            .map(Part::getElementName)
-            .flatMap(elementName -> {
-                QName rootName = new QName(elementName.getNamespaceURI(), elementName.getLocalPart());
-                return Arrays.stream(sts.documentTypes())
-                    .filter(dt -> rootName.equals(dt.getDocumentElementName()))
-                    .findFirst();
-            })
-            .map(docType -> {
-                io.swagger.v3.oas.models.media.Schema<?> jsonSchema = XsdToJsonSchemaConverter.convert(docType);
-                io.swagger.v3.oas.models.media.MediaType mediaType = new io.swagger.v3.oas.models.media.MediaType();
-                mediaType.setSchema(jsonSchema);
+        return ((Collection<Part>) input.getMessage().getParts().values())
+                .stream()
+                        .findFirst()
+                        .map(Part::getElementName)
+                        .flatMap(elementName -> {
+                            QName rootName = new QName(elementName.getNamespaceURI(), elementName.getLocalPart());
+                            return Arrays.stream(sts.documentTypes())
+                                    .filter(dt -> rootName.equals(dt.getDocumentElementName()))
+                                    .findFirst();
+                        })
+                        .map(docType -> {
+                            io.swagger.v3.oas.models.media.Schema<?> jsonSchema =
+                                    XsdToJsonSchemaConverter.convert(docType);
+                            io.swagger.v3.oas.models.media.MediaType mediaType =
+                                    new io.swagger.v3.oas.models.media.MediaType();
+                            mediaType.setSchema(jsonSchema);
 
-                Content content = new Content();
-                content.addMediaType(MediaType.APPLICATION_JSON, mediaType);
+                            Content content = new Content();
+                            content.addMediaType(MediaType.APPLICATION_JSON, mediaType);
 
-                RequestBody requestBody = new RequestBody();
-                requestBody.setRequired(true);
-                requestBody.setContent(content);
-                return requestBody;
-            });
+                            RequestBody requestBody = new RequestBody();
+                            requestBody.setRequired(true);
+                            requestBody.setContent(content);
+                            return requestBody;
+                        });
     }
 }

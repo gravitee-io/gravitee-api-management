@@ -62,24 +62,25 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
     }
 
     @Override
-    public UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
+    public UserDetails mapUserFromContext(
+            DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
         List<GrantedAuthority> mappedAuthorities = new ArrayList<>();
         try {
             for (GrantedAuthority granted : authorities) {
-                String mappedAuthority = environment.getProperty("authentication.group.role.mapper." + granted.getAuthority());
+                String mappedAuthority =
+                        environment.getProperty("authentication.group.role.mapper." + granted.getAuthority());
                 if (mappedAuthority != null && !mappedAuthority.isEmpty()) {
-                    Stream.of(mappedAuthority.split(",")).forEach(a -> mappedAuthorities.add(new SimpleGrantedAuthority(a)));
+                    Stream.of(mappedAuthority.split(","))
+                            .forEach(a -> mappedAuthorities.add(new SimpleGrantedAuthority(a)));
                 }
             }
         } catch (Exception e) {
             log.error("Failed to load mapped authorities", e);
         }
 
-        io.gravitee.rest.api.idp.api.authentication.UserDetails userDetails = new io.gravitee.rest.api.idp.api.authentication.UserDetails(
-            ctx.getStringAttribute(identifierAttribute),
-            "",
-            mappedAuthorities
-        );
+        io.gravitee.rest.api.idp.api.authentication.UserDetails userDetails =
+                new io.gravitee.rest.api.idp.api.authentication.UserDetails(
+                        ctx.getStringAttribute(identifierAttribute), "", mappedAuthorities);
 
         String userPhotoAttribute = environment.getProperty("authentication.user.photo-attribute");
         if (userPhotoAttribute == null) {
@@ -99,9 +100,8 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
     @Override
     public void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
         throw new UnsupportedOperationException(
-            "UserDetailsContextPropertiesMapper only supports reading from a context. Please" +
-                "use a subclass if mapUserToContext() is required."
-        );
+                "UserDetailsContextPropertiesMapper only supports reading from a context. Please"
+                        + "use a subclass if mapUserToContext() is required.");
     }
 
     public void setEnvironment(Environment environment) {

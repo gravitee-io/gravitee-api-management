@@ -53,14 +53,12 @@ public class SpecGenRequestUseCase {
 
     private Single<ApiSpecGenState> performRequest(String apiId, ApiSpecGenOperation operation, String userId) {
         return apiSpecGenQueryService
-            .rxFindByIdAndType(getExecutionContext(), apiId, PROXY)
-            .flatMapSingle(api ->
-                specGenProvider
-                    .performRequest(apiId, operation, userId)
-                    .map(reply -> new ApiSpecGenState(reply.requestState()))
-                    .doOnSuccess(reply -> enableLoggingIfNecessary(api, reply, userId))
-            )
-            .switchIfEmpty(Single.just(new ApiSpecGenState(UNAVAILABLE)));
+                .rxFindByIdAndType(getExecutionContext(), apiId, PROXY)
+                .flatMapSingle(api -> specGenProvider
+                        .performRequest(apiId, operation, userId)
+                        .map(reply -> new ApiSpecGenState(reply.requestState()))
+                        .doOnSuccess(reply -> enableLoggingIfNecessary(api, reply, userId)))
+                .switchIfEmpty(Single.just(new ApiSpecGenState(UNAVAILABLE)));
     }
 
     private void enableLoggingIfNecessary(ApiSpecGen api, ApiSpecGenState reply, String userId) {

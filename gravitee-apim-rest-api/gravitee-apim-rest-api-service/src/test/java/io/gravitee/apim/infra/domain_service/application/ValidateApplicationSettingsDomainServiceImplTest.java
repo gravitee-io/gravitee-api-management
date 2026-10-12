@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
 
 import inmemory.ClientCertificateCrudServiceInMemory;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
-import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
@@ -63,10 +62,11 @@ class ValidateApplicationSettingsDomainServiceImplTest {
 
     private final ApplicationTypeService applicationTypeService = new ApplicationTypeServiceImpl();
 
-    private final ClientCertificateCrudServiceInMemory clientCertificateCrudService = new ClientCertificateCrudServiceInMemory();
+    private final ClientCertificateCrudServiceInMemory clientCertificateCrudService =
+            new ClientCertificateCrudServiceInMemory();
 
     private final ClientCertificateValidationDomainService clientCertificateValidationDomainService =
-        new ClientCertificateValidationDomainServiceImpl(clientCertificateCrudService);
+            new ClientCertificateValidationDomainServiceImpl(clientCertificateCrudService);
 
     private ValidateApplicationSettingsDomainServiceImpl cut;
 
@@ -75,33 +75,34 @@ class ValidateApplicationSettingsDomainServiceImplTest {
         reset(applicationRepository, parameterService);
         clientCertificateCrudService.reset();
         cut = new ValidateApplicationSettingsDomainServiceImpl(
-            applicationRepository,
-            applicationTypeService,
-            parameterService,
-            clientCertificateValidationDomainService,
-            clientCertificateCrudService
-        );
+                applicationRepository,
+                applicationTypeService,
+                parameterService,
+                clientCertificateValidationDomainService,
+                clientCertificateCrudService);
     }
 
     @Test
     void should_replace_null_redirect_uris_with_empty_list() {
         var givenOauthSettings = OAuthClientSettings.builder()
-            .applicationType("BACKEND_TO_BACKEND")
-            .redirectUris(null)
-            .grantTypes(List.of("client_credentials"))
-            .build();
+                .applicationType("BACKEND_TO_BACKEND")
+                .redirectUris(null)
+                .grantTypes(List.of("client_credentials"))
+                .build();
 
-        var expectedOauthSettings = givenOauthSettings.toBuilder().redirectUris(List.of()).responseTypes(List.of()).build();
+        var expectedOauthSettings = givenOauthSettings.toBuilder()
+                .redirectUris(List.of())
+                .responseTypes(List.of())
+                .build();
 
-        var givenSettings = ApplicationSettings.builder().oauth(givenOauthSettings).build();
+        var givenSettings =
+                ApplicationSettings.builder().oauth(givenOauthSettings).build();
 
-        var expectedSettings = givenSettings.toBuilder().oauth(expectedOauthSettings).build();
+        var expectedSettings =
+                givenSettings.toBuilder().oauth(expectedOauthSettings).build();
 
         var input = new ValidateApplicationSettingsDomainService.Input(
-            AuditInfo.builder().organizationId("test").environmentId("test").build(),
-            "app-id",
-            givenSettings
-        );
+                AuditInfo.builder().organizationId("test").environmentId("test").build(), "app-id", givenSettings);
 
         var result = cut.validateAndSanitize(input);
 
@@ -111,22 +112,22 @@ class ValidateApplicationSettingsDomainServiceImplTest {
     @Test
     void should_set_response_types() {
         var givenOauthSettings = OAuthClientSettings.builder()
-            .applicationType("BROWSER")
-            .redirectUris(List.of("https://app.example.com"))
-            .grantTypes(List.of("authorization_code"))
-            .build();
+                .applicationType("BROWSER")
+                .redirectUris(List.of("https://app.example.com"))
+                .grantTypes(List.of("authorization_code"))
+                .build();
 
-        var expectedOauthSettings = givenOauthSettings.toBuilder().responseTypes(List.of("code")).build();
+        var expectedOauthSettings =
+                givenOauthSettings.toBuilder().responseTypes(List.of("code")).build();
 
-        var givenSettings = ApplicationSettings.builder().oauth(givenOauthSettings).build();
+        var givenSettings =
+                ApplicationSettings.builder().oauth(givenOauthSettings).build();
 
-        var expectedSettings = givenSettings.toBuilder().oauth(expectedOauthSettings).build();
+        var expectedSettings =
+                givenSettings.toBuilder().oauth(expectedOauthSettings).build();
 
         var input = new ValidateApplicationSettingsDomainService.Input(
-            AuditInfo.builder().organizationId("test").environmentId("test").build(),
-            "app-id",
-            givenSettings
-        );
+                AuditInfo.builder().organizationId("test").environmentId("test").build(), "app-id", givenSettings);
 
         var result = cut.validateAndSanitize(input);
 
@@ -209,19 +210,23 @@ class ValidateApplicationSettingsDomainServiceImplTest {
             Q6teMha+jg==
             -----END CERTIFICATE-----""";
 
-        private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId("test").environmentId("test").build();
+        private static final AuditInfo AUDIT_INFO =
+                AuditInfo.builder().organizationId("test").environmentId("test").build();
 
         private ValidateApplicationSettingsDomainService.Input inputWithTls(TlsSettings tls) {
-            var settings = ApplicationSettings.builder().app(new SimpleApplicationSettings()).tls(tls).build();
+            var settings = ApplicationSettings.builder()
+                    .app(new SimpleApplicationSettings())
+                    .tls(tls)
+                    .build();
             return new ValidateApplicationSettingsDomainService.Input(AUDIT_INFO, "app-id", settings);
         }
 
         @Test
         void should_reject_when_both_single_and_list_certificates_are_set() {
             var tls = TlsSettings.builder()
-                .clientCertificate(VALID_PEM)
-                .clientCertificates(List.of(new CreateClientCertificate("cert1", null, null, VALID_PEM)))
-                .build();
+                    .clientCertificate(VALID_PEM)
+                    .clientCertificates(List.of(new CreateClientCertificate("cert1", null, null, VALID_PEM)))
+                    .build();
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
@@ -243,104 +248,91 @@ class ValidateApplicationSettingsDomainServiceImplTest {
         @Test
         void should_reject_duplicated_certificate() {
             var tls = TlsSettings.builder()
-                .clientCertificates(
-                    List.of(
-                        new CreateClientCertificate("cert1", null, null, VALID_PEM),
-                        new CreateClientCertificate("cert2", null, null, VALID_PEM)
-                    )
-                )
-                .build();
+                    .clientCertificates(List.of(
+                            new CreateClientCertificate("cert1", null, null, VALID_PEM),
+                            new CreateClientCertificate("cert2", null, null, VALID_PEM)))
+                    .build();
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
             assertThat(result.severe()).isPresent();
             assertThat(result.severe())
-                .get()
-                .asInstanceOf(LIST)
-                .anyMatch(e -> ((Validator.Error) e).getMessage().contains("client certificate content must be unique"));
+                    .get()
+                    .asInstanceOf(LIST)
+                    .anyMatch(e ->
+                            ((Validator.Error) e).getMessage().contains("client certificate content must be unique"));
         }
 
         @Test
         void should_reject_duplicated_certificate_with_different_pem_formatting() {
             var reformattedPem = VALID_PEM.replace("-----BEGIN CERTIFICATE-----\n", "-----BEGIN CERTIFICATE-----\r\n");
             var tls = TlsSettings.builder()
-                .clientCertificates(
-                    List.of(
-                        new CreateClientCertificate("cert1", null, null, VALID_PEM),
-                        new CreateClientCertificate("cert2", null, null, reformattedPem)
-                    )
-                )
-                .build();
+                    .clientCertificates(List.of(
+                            new CreateClientCertificate("cert1", null, null, VALID_PEM),
+                            new CreateClientCertificate("cert2", null, null, reformattedPem)))
+                    .build();
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
             assertThat(result.severe()).isPresent();
-            assertThat(result.severe().get()).anyMatch(e -> e.getMessage().contains("client certificate content must be unique"));
+            assertThat(result.severe().get())
+                    .anyMatch(e -> e.getMessage().contains("client certificate content must be unique"));
         }
 
         @Test
         void should_reject_certificate_already_used_by_another_application() {
             var info = clientCertificateValidationDomainService.validate(VALID_PEM);
-            clientCertificateCrudService.initWith(
-                List.of(
-                    new ClientCertificate(
-                        "existing-id",
-                        "cross-id",
-                        "other-app-id",
-                        "Existing",
-                        null,
-                        null,
-                        new Date(),
-                        new Date(),
-                        VALID_PEM,
-                        null,
-                        null,
-                        null,
-                        info.fingerprint(),
-                        "test",
-                        ClientCertificateStatus.ACTIVE
-                    )
-                )
-            );
+            clientCertificateCrudService.initWith(List.of(new ClientCertificate(
+                    "existing-id",
+                    "cross-id",
+                    "other-app-id",
+                    "Existing",
+                    null,
+                    null,
+                    new Date(),
+                    new Date(),
+                    VALID_PEM,
+                    null,
+                    null,
+                    null,
+                    info.fingerprint(),
+                    "test",
+                    ClientCertificateStatus.ACTIVE)));
 
             var tls = TlsSettings.builder()
-                .clientCertificates(List.of(new CreateClientCertificate("cert1", null, null, VALID_PEM)))
-                .build();
+                    .clientCertificates(List.of(new CreateClientCertificate("cert1", null, null, VALID_PEM)))
+                    .build();
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
             assertThat(result.severe()).isPresent();
-            assertThat(result.severe().get()).anyMatch(e -> e.getMessage().contains("already used by another active application"));
+            assertThat(result.severe().get())
+                    .anyMatch(e -> e.getMessage().contains("already used by another active application"));
         }
 
         @Test
         void should_accept_certificate_already_present_on_same_application() {
             var info = clientCertificateValidationDomainService.validate(VALID_PEM);
-            clientCertificateCrudService.initWith(
-                List.of(
-                    new ClientCertificate(
-                        "existing-id",
-                        "cross-id",
-                        "app-id",
-                        "Existing",
-                        null,
-                        null,
-                        new Date(),
-                        new Date(),
-                        VALID_PEM,
-                        null,
-                        null,
-                        null,
-                        info.fingerprint(),
-                        "test",
-                        ClientCertificateStatus.ACTIVE
-                    )
-                )
-            );
+            clientCertificateCrudService.initWith(List.of(new ClientCertificate(
+                    "existing-id",
+                    "cross-id",
+                    "app-id",
+                    "Existing",
+                    null,
+                    null,
+                    new Date(),
+                    new Date(),
+                    VALID_PEM,
+                    null,
+                    null,
+                    null,
+                    info.fingerprint(),
+                    "test",
+                    ClientCertificateStatus.ACTIVE)));
 
             var tls = TlsSettings.builder()
-                .clientCertificates(List.of(new CreateClientCertificate("cert1", null, null, VALID_PEM)))
-                .build();
+                    .clientCertificates(List.of(new CreateClientCertificate("cert1", null, null, VALID_PEM)))
+                    .build();
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
@@ -351,38 +343,32 @@ class ValidateApplicationSettingsDomainServiceImplTest {
         void should_pass_application_id_as_exclude_when_validating_certificate_on_update() {
             var validationSpy = spy(clientCertificateValidationDomainService);
             cut = new ValidateApplicationSettingsDomainServiceImpl(
-                applicationRepository,
-                applicationTypeService,
-                parameterService,
-                validationSpy,
-                clientCertificateCrudService
-            );
+                    applicationRepository,
+                    applicationTypeService,
+                    parameterService,
+                    validationSpy,
+                    clientCertificateCrudService);
 
-            clientCertificateCrudService.initWith(
-                List.of(
-                    new ClientCertificate(
-                        "existing-id",
-                        "cross-id",
-                        "app-id",
-                        "Existing",
-                        null,
-                        null,
-                        new Date(),
-                        new Date(),
-                        VALID_PEM,
-                        null,
-                        null,
-                        null,
-                        "stale-fingerprint",
-                        "test",
-                        ClientCertificateStatus.ACTIVE
-                    )
-                )
-            );
+            clientCertificateCrudService.initWith(List.of(new ClientCertificate(
+                    "existing-id",
+                    "cross-id",
+                    "app-id",
+                    "Existing",
+                    null,
+                    null,
+                    new Date(),
+                    new Date(),
+                    VALID_PEM,
+                    null,
+                    null,
+                    null,
+                    "stale-fingerprint",
+                    "test",
+                    ClientCertificateStatus.ACTIVE)));
 
             var tls = TlsSettings.builder()
-                .clientCertificates(List.of(new CreateClientCertificate("cert1", null, null, VALID_PEM)))
-                .build();
+                    .clientCertificates(List.of(new CreateClientCertificate("cert1", null, null, VALID_PEM)))
+                    .build();
 
             cut.validateAndSanitize(inputWithTls(tls));
 
@@ -392,8 +378,8 @@ class ValidateApplicationSettingsDomainServiceImplTest {
         @Test
         void should_reject_unparsable_certificate_in_list() {
             var tls = TlsSettings.builder()
-                .clientCertificates(List.of(new CreateClientCertificate("bad", null, null, "not-a-pem")))
-                .build();
+                    .clientCertificates(List.of(new CreateClientCertificate("bad", null, null, "not-a-pem")))
+                    .build();
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
@@ -404,17 +390,12 @@ class ValidateApplicationSettingsDomainServiceImplTest {
         @Test
         void should_reject_invalid_pem_certificate_in_list() {
             var tls = TlsSettings.builder()
-                .clientCertificates(
-                    List.of(
-                        new CreateClientCertificate(
+                    .clientCertificates(List.of(new CreateClientCertificate(
                             "bad-pem",
                             null,
                             null,
-                            "-----BEGIN CERTIFICATE-----\nYmFkLWRhdGE=\n-----END CERTIFICATE-----"
-                        )
-                    )
-                )
-                .build();
+                            "-----BEGIN CERTIFICATE-----\nYmFkLWRhdGE=\n-----END CERTIFICATE-----")))
+                    .build();
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
@@ -425,8 +406,8 @@ class ValidateApplicationSettingsDomainServiceImplTest {
         @Test
         void should_reject_ca_certificate_in_list() {
             var tls = TlsSettings.builder()
-                .clientCertificates(List.of(new CreateClientCertificate("ca-cert", null, null, VALID_CA_PEM)))
-                .build();
+                    .clientCertificates(List.of(new CreateClientCertificate("ca-cert", null, null, VALID_CA_PEM)))
+                    .build();
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
@@ -440,8 +421,8 @@ class ValidateApplicationSettingsDomainServiceImplTest {
             var endsAt = new Date(System.currentTimeMillis() - 86400000L); // yesterday
 
             var tls = TlsSettings.builder()
-                .clientCertificates(List.of(new CreateClientCertificate("bad-dates", startsAt, endsAt, VALID_PEM)))
-                .build();
+                    .clientCertificates(List.of(new CreateClientCertificate("bad-dates", startsAt, endsAt, VALID_PEM)))
+                    .build();
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
@@ -455,14 +436,15 @@ class ValidateApplicationSettingsDomainServiceImplTest {
             var endsAt = new Date(5000000000000L); // year 2128
 
             var tls = TlsSettings.builder()
-                .clientCertificates(List.of(new CreateClientCertificate("late-end", null, endsAt, VALID_PEM)))
-                .build();
+                    .clientCertificates(List.of(new CreateClientCertificate("late-end", null, endsAt, VALID_PEM)))
+                    .build();
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
             assertThat(result.severe()).isEmpty();
             assertThat(result.warning()).isPresent();
-            assertThat(result.warning().get()).anyMatch(e -> e.getMessage().contains("endsAt is after certificate expiration"));
+            assertThat(result.warning().get())
+                    .anyMatch(e -> e.getMessage().contains("endsAt is after certificate expiration"));
         }
 
         @Test

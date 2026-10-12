@@ -53,17 +53,16 @@ public class ApplicationCrudServiceImpl implements ApplicationCrudService {
             Optional<Application> applicationOptional = applicationRepository.findById(applicationId);
 
             if (environmentId != null) {
-                applicationOptional = applicationOptional.filter(result -> result.getEnvironmentId().equals(environmentId));
+                applicationOptional = applicationOptional.filter(
+                        result -> result.getEnvironmentId().equals(environmentId));
             }
 
             return applicationOptional
-                .map(ApplicationAdapter.INSTANCE::toEntity)
-                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+                    .map(ApplicationAdapter.INSTANCE::toEntity)
+                    .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurred while trying to find an application using its ID " + applicationId,
-                ex
-            );
+                    "An error occurred while trying to find an application using its ID " + applicationId, ex);
         }
     }
 
@@ -72,9 +71,12 @@ public class ApplicationCrudServiceImpl implements ApplicationCrudService {
         log.debug("Find all applications by ids : {}", appIds);
 
         try {
-            return applicationRepository.findByIds(appIds).stream().map(ApplicationAdapter.INSTANCE::toEntity).toList();
+            return applicationRepository.findByIds(appIds).stream()
+                    .map(ApplicationAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurred while trying to find all applications using its IDs", e);
+            throw new TechnicalManagementException(
+                    "An error occurred while trying to find all applications using its IDs", e);
         }
     }
 }

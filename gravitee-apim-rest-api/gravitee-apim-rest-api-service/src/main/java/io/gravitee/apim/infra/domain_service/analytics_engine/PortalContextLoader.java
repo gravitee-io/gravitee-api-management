@@ -48,7 +48,8 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
 
     private static final String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
-    private static final ApiFieldFilter API_CONTEXT_FIELDS = new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build();
+    private static final ApiFieldFilter API_CONTEXT_FIELDS =
+            new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build();
 
     private final PortalNavigationApiVisibilityDomainService visibilityDomainService;
     private final ApiRepository apiRepository;
@@ -59,10 +60,9 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
         if (authentication == null || authentication.getAuthorities() == null) {
             return false;
         }
-        return authentication
-            .getAuthorities()
-            .stream()
-            .anyMatch(a -> ENVIRONMENT_ADMIN.equalsIgnoreCase(a.getAuthority()) || ORGANIZATION_ADMIN.equalsIgnoreCase(a.getAuthority()));
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> ENVIRONMENT_ADMIN.equalsIgnoreCase(a.getAuthority())
+                        || ORGANIZATION_ADMIN.equalsIgnoreCase(a.getAuthority()));
     }
 
     @Override
@@ -77,38 +77,41 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
         Map<String, String> applicationNamesById;
 
         if (isAdmin()) {
-            apis = ApiMapper.INSTANCE.map(
-                apiRepository.search(new ApiCriteria.Builder().environmentId(environmentId).build(), API_CONTEXT_FIELDS)
-            );
+            apis = ApiMapper.INSTANCE.map(apiRepository.search(
+                    new ApiCriteria.Builder().environmentId(environmentId).build(), API_CONTEXT_FIELDS));
             applicationNamesById = Map.of();
         } else if (userId == null || userId.isBlank()) {
             List<PortalNavigationApi> visibleNavApis = visibilityDomainService.resolveVisibleItems(environmentId);
             apis = fetchApisForNavItems(environmentId, visibleNavApis);
             applicationNamesById = Map.of();
         } else {
-            List<PortalNavigationApi> visibleNavApis = visibilityDomainService.resolveVisibleItems(environmentId, userId);
+            List<PortalNavigationApi> visibleNavApis =
+                    visibilityDomainService.resolveVisibleItems(environmentId, userId);
             apis = fetchApisForNavItems(environmentId, visibleNavApis);
-            applicationNamesById = applicationService
-                .findByUser(executionContext, userId)
-                .stream()
-                .collect(Collectors.toMap(ApplicationListItem::getId, ApplicationListItem::getName));
+            applicationNamesById = applicationService.findByUser(executionContext, userId).stream()
+                    .collect(Collectors.toMap(ApplicationListItem::getId, ApplicationListItem::getName));
         }
 
         var authorizedApiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
         var apiNamesById = mapApiIdsToNames(apis);
         var apiIdsByType = groupApiIdsByType(apis);
 
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
+        return new AnalyticsQueryContext(
+                auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
     }
 
     private List<Api> fetchApisForNavItems(String environmentId, List<PortalNavigationApi> navItems) {
         if (navItems.isEmpty()) {
             return List.of();
         }
-        Set<String> apiIds = navItems.stream().map(PortalNavigationApi::getApiId).collect(Collectors.toSet());
-        return ApiMapper.INSTANCE.map(
-            apiRepository.search(new ApiCriteria.Builder().environmentId(environmentId).ids(apiIds).build(), API_CONTEXT_FIELDS)
-        );
+        Set<String> apiIds =
+                navItems.stream().map(PortalNavigationApi::getApiId).collect(Collectors.toSet());
+        return ApiMapper.INSTANCE.map(apiRepository.search(
+                new ApiCriteria.Builder()
+                        .environmentId(environmentId)
+                        .ids(apiIds)
+                        .build(),
+                API_CONTEXT_FIELDS));
     }
 
     private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {
@@ -116,9 +119,8 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
     }
 
     private static Map<ApiType, Set<String>> groupApiIdsByType(Collection<Api> apis) {
-        return apis
-            .stream()
-            .filter(api -> api.getType() != null)
-            .collect(Collectors.groupingBy(Api::getType, Collectors.mapping(Api::getId, Collectors.toSet())));
+        return apis.stream()
+                .filter(api -> api.getType() != null)
+                .collect(Collectors.groupingBy(Api::getType, Collectors.mapping(Api::getId, Collectors.toSet())));
     }
 }

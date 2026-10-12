@@ -18,13 +18,7 @@ package io.gravitee.apim.core.portal_page.model;
 import java.util.List;
 
 public record PortalCatalogApiProductSummary(
-    String id,
-    String name,
-    String description,
-    String version,
-    String navigationItemId,
-    List<ApiSummary> apis
-) {
+        String id, String name, String description, String version, String navigationItemId, List<ApiSummary> apis) {
     public PortalCatalogApiProductSummary {
         apis = apis == null ? List.of() : List.copyOf(apis);
     }

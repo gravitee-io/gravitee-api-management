@@ -55,13 +55,12 @@ public class ComputeTimeSeriesUseCase {
     private final AnalyticsQueryContextLoaderResolver contextLoader;
 
     public ComputeTimeSeriesUseCase(
-        AnalyticsQueryContextProvider queryContextProvider,
-        AnalyticsQueryValidator validator,
-        List<QueryFilterTransformer> filterTransformers,
-        BucketNamesPostProcessor bucketNamesPostprocessor,
-        UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
-        AnalyticsQueryContextLoaderResolver contextLoader
-    ) {
+            AnalyticsQueryContextProvider queryContextProvider,
+            AnalyticsQueryValidator validator,
+            List<QueryFilterTransformer> filterTransformers,
+            BucketNamesPostProcessor bucketNamesPostprocessor,
+            UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
+            AnalyticsQueryContextLoaderResolver contextLoader) {
         this.queryContextProvider = queryContextProvider;
         this.validator = validator;
         this.filterTransformers = filterTransformers;
@@ -89,7 +88,8 @@ public class ComputeTimeSeriesUseCase {
 
         TimeSeriesResponse response = TimeSeriesResponse.merge(responses);
 
-        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(analyticsContext, input.request.facets(), response);
+        var mappedResponse =
+                bucketNamesPostprocessor.mapBucketNames(analyticsContext, input.request.facets(), response);
 
         var enriched = unitEnrichmentPostProcessor.enrichUnits(mappedResponse);
 
@@ -97,34 +97,27 @@ public class ComputeTimeSeriesUseCase {
     }
 
     private List<TimeSeriesResponse> executeQueries(
-        ExecutionContext executionContext,
-        AnalyticsQueryContext analyticsContext,
-        Map<AnalyticsEngineQueryService, TimeSeriesRequest> queryContext
-    ) {
+            ExecutionContext executionContext,
+            AnalyticsQueryContext analyticsContext,
+            Map<AnalyticsEngineQueryService, TimeSeriesRequest> queryContext) {
         var responses = new ArrayList<TimeSeriesResponse>();
 
         queryContext.forEach((queryService, request) -> {
             var filters = transformFilters(analyticsContext, request.filters());
-            var metrics = request
-                .metrics()
-                .stream()
-                .map(m -> transformMetricFilters(analyticsContext, m))
-                .toList();
+            var metrics = request.metrics().stream()
+                    .map(m -> transformMetricFilters(analyticsContext, m))
+                    .toList();
 
-            responses.add(
-                queryService.searchTimeSeries(
+            responses.add(queryService.searchTimeSeries(
                     executionContext,
                     new TimeSeriesRequest(
-                        request.timeRange(),
-                        request.interval(),
-                        filters,
-                        metrics,
-                        request.facets(),
-                        request.limit(),
-                        request.ranges()
-                    )
-                )
-            );
+                            request.timeRange(),
+                            request.interval(),
+                            filters,
+                            metrics,
+                            request.facets(),
+                            request.limit(),
+                            request.ranges())));
         });
         return responses;
     }
@@ -137,7 +130,8 @@ public class ComputeTimeSeriesUseCase {
         return result;
     }
 
-    private FacetMetricMeasuresRequest transformMetricFilters(AnalyticsQueryContext context, FacetMetricMeasuresRequest metric) {
+    private FacetMetricMeasuresRequest transformMetricFilters(
+            AnalyticsQueryContext context, FacetMetricMeasuresRequest metric) {
         if (metric.filters() == null || metric.filters().isEmpty()) {
             return metric;
         }

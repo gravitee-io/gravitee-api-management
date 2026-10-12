@@ -48,7 +48,10 @@ public class RepositoryConfigurationTest {
 
     @Test
     public void shouldHaveEndpoints() {
-        assertThat(configuration.getEndpoints()).hasSize(1).extracting(Endpoint::getUrl).containsExactly("http://localhost:9200");
+        assertThat(configuration.getEndpoints())
+                .hasSize(1)
+                .extracting(Endpoint::getUrl)
+                .containsExactly("http://localhost:9200");
     }
 
     @Test

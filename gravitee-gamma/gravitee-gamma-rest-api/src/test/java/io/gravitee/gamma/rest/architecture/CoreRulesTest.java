@@ -30,25 +30,26 @@ import com.tngtech.archunit.lang.ArchRule;
  * platform repository SPIs, etc. are all banned from {@code core}; they belong in
  * {@code infra} (adapters / Spring config) or in {@code resources} (JAX-RS).
  */
-@AnalyzeClasses(packages = BASE_PACKAGE, importOptions = { ImportOption.DoNotIncludeTests.class })
+@AnalyzeClasses(
+        packages = BASE_PACKAGE,
+        importOptions = {ImportOption.DoNotIncludeTests.class})
 class CoreRulesTest {
 
     @ArchTest
     static final ArchRule core_should_only_depend_on_allowed_packages = classes()
-        .that()
-        .resideInAPackage(CORE_PACKAGE)
-        .should()
-        .onlyDependOnClassesThat()
-        .resideInAnyPackage(
-            "java..",
-            "lombok..",
-            "com.fasterxml..",
-            "org.slf4j..",
-            "io.gravitee.common..",
-            "io.gravitee.apim.core",
-            "io.gravitee.apim.core.exception..",
-            // meta-annotation pulled transitively by {@code @UseCase} (accepted trade-off, AGENTS.md §5).
-            "org.springframework.transaction.annotation..",
-            CORE_PACKAGE
-        );
+            .that()
+            .resideInAPackage(CORE_PACKAGE)
+            .should()
+            .onlyDependOnClassesThat()
+            .resideInAnyPackage(
+                    "java..",
+                    "lombok..",
+                    "com.fasterxml..",
+                    "org.slf4j..",
+                    "io.gravitee.common..",
+                    "io.gravitee.apim.core",
+                    "io.gravitee.apim.core.exception..",
+                    // meta-annotation pulled transitively by {@code @UseCase} (accepted trade-off, AGENTS.md §5).
+                    "org.springframework.transaction.annotation..",
+                    CORE_PACKAGE);
 }

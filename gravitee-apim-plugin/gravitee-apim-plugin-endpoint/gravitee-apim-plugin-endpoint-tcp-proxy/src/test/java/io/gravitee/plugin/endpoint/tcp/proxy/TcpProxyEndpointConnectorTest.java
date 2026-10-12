@@ -43,7 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@ExtendWith({ MockitoExtension.class })
+@ExtendWith({MockitoExtension.class})
 class TcpProxyEndpointConnectorTest {
 
     TcpProxyEndpointConnectorFactory factory;
@@ -61,29 +61,25 @@ class TcpProxyEndpointConnectorTest {
     void before() {
         this.vertx = Vertx.vertx();
         this.factory = new TcpProxyEndpointConnectorFactory(new PluginConfigurationHelper(null, new ObjectMapper()));
-        this.server = vertx
-            .createNetServer()
-            .connectHandler(socket -> {
-                socket.rxWrite("hello!").subscribe();
-            })
-            .rxListen()
-            .blockingGet();
+        this.server = vertx.createNetServer()
+                .connectHandler(socket -> {
+                    socket.rxWrite("hello!").subscribe();
+                })
+                .rxListen()
+                .blockingGet();
     }
 
     @Test
     void should_connect_to_backend() {
-        TcpProxyEndpointConnector connector = factory.createConnector(
-            deploymentContext,
-            """
+        TcpProxyEndpointConnector connector =
+                factory.createConnector(deploymentContext, """
             {
                 "target": {
                     "host": "localhost",
                     "port": %d
                 }
             }
-            """.formatted(server.actualPort()),
-            null
-        );
+            """.formatted(server.actualPort()), null);
 
         when(proxySocket.toFlowable()).thenReturn(Flowable.empty());
         VertxTcpRequest request = new VertxTcpRequest(proxySocket, new UUID());
@@ -92,14 +88,10 @@ class TcpProxyEndpointConnectorTest {
 
         connector.connect(context).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
-        response
-            .chunks()
-            .test()
-            .awaitCount(1)
-            .assertValue(buffer -> {
-                assertThat(buffer).hasToString("hello!");
-                return true;
-            });
+        response.chunks().test().awaitCount(1).assertValue(buffer -> {
+            assertThat(buffer).hasToString("hello!");
+            return true;
+        });
     }
 
     @AfterEach
@@ -109,7 +101,8 @@ class TcpProxyEndpointConnectorTest {
         }
     }
 
-    private static DefaultExecutionContext createContext(Vertx vertx, VertxTcpRequest request, VertxTcpResponse response) {
+    private static DefaultExecutionContext createContext(
+            Vertx vertx, VertxTcpRequest request, VertxTcpResponse response) {
         DefaultExecutionContext context = new DefaultExecutionContext(request, response);
         CustomComponentProvider componentProvider = new CustomComponentProvider();
         componentProvider.add(Vertx.class, vertx);

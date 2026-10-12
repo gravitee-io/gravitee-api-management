@@ -80,9 +80,8 @@ class NativeApiLogSummaryUseCaseTest {
     void flattens_buckets_into_count_by_connection_status() {
         var request = aFacetsRequest();
         when(queryContextProvider.resolve(any(FacetsRequest.class))).thenReturn(Map.of(queryService, request));
-        when(queryService.searchFacets(eq(EXECUTION_CONTEXT), eq(request))).thenReturn(
-            facetsResponseWithStatusCounts(CONNECTION_STATUS_COUNTS)
-        );
+        when(queryService.searchFacets(eq(EXECUTION_CONTEXT), eq(request)))
+                .thenReturn(facetsResponseWithStatusCounts(CONNECTION_STATUS_COUNTS));
 
         var output = useCase.execute(new NativeApiLogSummaryUseCase.Input(EXECUTION_CONTEXT, API_ID, FROM, TO));
 
@@ -102,18 +101,12 @@ class NativeApiLogSummaryUseCaseTest {
     void ignores_buckets_without_count_measure() {
         var request = aFacetsRequest();
         when(queryContextProvider.resolve(any(FacetsRequest.class))).thenReturn(Map.of(queryService, request));
-        when(queryService.searchFacets(any(), any())).thenReturn(
-            new FacetsResponse(
-                List.of(
-                    new MetricFacetsResponse(
+        when(queryService.searchFacets(any(), any()))
+                .thenReturn(new FacetsResponse(List.of(new MetricFacetsResponse(
                         MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY,
                         null,
                         List.of(new FacetBucketResponse(STATUS_CONNECTED, STATUS_CONNECTED, List.of(), List.of())),
-                        List.of()
-                    )
-                )
-            )
-        );
+                        List.of()))));
 
         var output = useCase.execute(new NativeApiLogSummaryUseCase.Input(EXECUTION_CONTEXT, API_ID, FROM, TO));
 
@@ -121,22 +114,19 @@ class NativeApiLogSummaryUseCaseTest {
     }
 
     private static FacetsRequest aFacetsRequest() {
-        return new FacetsRequest(null, List.of(), List.of(), List.of(FacetSpec.Name.NATIVE_CONNECTION_STATUS), null, null);
+        return new FacetsRequest(
+                null, List.of(), List.of(), List.of(FacetSpec.Name.NATIVE_CONNECTION_STATUS), null, null);
     }
 
     private static FacetsResponse facetsResponseWithStatusCounts(Map<String, Long> countsByStatus) {
-        var buckets = countsByStatus
-            .entrySet()
-            .stream()
-            .map(entry ->
-                new FacetBucketResponse(
-                    entry.getKey(),
-                    entry.getKey(),
-                    List.of(),
-                    List.of(new Measure(MetricSpec.Measure.COUNT, entry.getValue()))
-                )
-            )
-            .toList();
-        return new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY, null, buckets, List.of())));
+        var buckets = countsByStatus.entrySet().stream()
+                .map(entry -> new FacetBucketResponse(
+                        entry.getKey(),
+                        entry.getKey(),
+                        List.of(),
+                        List.of(new Measure(MetricSpec.Measure.COUNT, entry.getValue()))))
+                .toList();
+        return new FacetsResponse(List.of(
+                new MetricFacetsResponse(MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY, null, buckets, List.of())));
     }
 }

@@ -27,25 +27,28 @@ public class SharedPolicyGroupFixtures {
 
     private SharedPolicyGroupFixtures() {}
 
-    private static final Supplier<CreateSharedPolicyGroup> CREATE_BASE = () ->
-        new CreateSharedPolicyGroup().name("My Shared Policy Group").apiType(ApiType.PROXY).phase(FlowPhase.REQUEST);
+    private static final Supplier<CreateSharedPolicyGroup> CREATE_BASE = () -> new CreateSharedPolicyGroup()
+            .name("My Shared Policy Group")
+            .apiType(ApiType.PROXY)
+            .phase(FlowPhase.REQUEST);
 
     public static CreateSharedPolicyGroup aCreateSharedPolicyGroup() {
         return CREATE_BASE.get();
     }
 
-    private static final Supplier<UpdateSharedPolicyGroup> UPDATE_BASE = () ->
-        new UpdateSharedPolicyGroup().name("My Shared Policy Group updated").description("My Shared Policy Group description updated");
+    private static final Supplier<UpdateSharedPolicyGroup> UPDATE_BASE = () -> new UpdateSharedPolicyGroup()
+            .name("My Shared Policy Group updated")
+            .description("My Shared Policy Group description updated");
 
     public static UpdateSharedPolicyGroup aUpdateSharedPolicyGroup() {
         return UPDATE_BASE.get();
     }
 
     private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD.builder()
-        .crossId(UUID.random().toString())
-        .name("My Shared Policy Group CRD")
-        .apiType(io.gravitee.definition.model.v4.ApiType.PROXY)
-        .phase(io.gravitee.apim.core.plugin.model.FlowPhase.REQUEST);
+            .crossId(UUID.random().toString())
+            .name("My Shared Policy Group CRD")
+            .apiType(io.gravitee.definition.model.v4.ApiType.PROXY)
+            .phase(io.gravitee.apim.core.plugin.model.FlowPhase.REQUEST);
 
     public static SharedPolicyGroupCRD aSharedPolicyGroupCRD() {
         return CRD_BASE.build();

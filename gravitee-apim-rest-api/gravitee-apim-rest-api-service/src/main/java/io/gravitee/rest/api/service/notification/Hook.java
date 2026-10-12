@@ -25,9 +25,13 @@ import io.gravitee.rest.api.service.jackson.ser.HookSerializer;
 @JsonSerialize(using = HookSerializer.class)
 public interface Hook {
     String name();
+
     String getLabel();
+
     String getDescription();
+
     String getCategory();
+
     HookScope getScope();
 
     default boolean isHidden() {

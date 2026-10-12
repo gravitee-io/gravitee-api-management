@@ -154,13 +154,15 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         }
         // Pooling
         dsConfig.setAutoCommit(readPropertyValue("jdbc.pool.autoCommit", Boolean.class, DEFAULT_AUTO_COMMIT));
-        dsConfig.setConnectionTimeout(readPropertyValue("jdbc.pool.connectionTimeout", Long.class, DEFAULT_CONNECTION_TIMEOUT));
+        dsConfig.setConnectionTimeout(
+                readPropertyValue("jdbc.pool.connectionTimeout", Long.class, DEFAULT_CONNECTION_TIMEOUT));
         dsConfig.setIdleTimeout(readPropertyValue("jdbc.pool.idleTimeout", Long.class, DEFAULT_IDLE_TIMEOUT));
         dsConfig.setMaxLifetime(readPropertyValue("jdbc.pool.maxLifetime", Long.class, DEFAULT_MAX_LIFETIME));
         dsConfig.setMinimumIdle(readPropertyValue("jdbc.pool.minIdle", Integer.class, DEFAULT_MIN_IDLE));
         dsConfig.setMaximumPoolSize(readPropertyValue("jdbc.pool.maxPoolSize", Integer.class, DEFAULT_MAX_POOL_SIZE));
         dsConfig.setKeepaliveTime(readPropertyValue("jdbc.pool.keepaliveTime", Integer.class, DEFAULT_KEEPALIVE_TIME));
-        dsConfig.setRegisterMbeans(readPropertyValue("jdbc.pool.registerMbeans", Boolean.class, DEFAULT_REGISTER_MBEANS));
+        dsConfig.setRegisterMbeans(
+                readPropertyValue("jdbc.pool.registerMbeans", Boolean.class, DEFAULT_REGISTER_MBEANS));
 
         final DataSource dataSource = new HikariDataSource(dsConfig);
 
@@ -232,10 +234,9 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
             // injects a primary key into Liquibase's own CREATE TABLE so it satisfies
             // sql_require_primary_key=ON.
             final Liquibase liquibase = new Liquibase(
-                "liquibase/master.yml",
-                new ClassLoaderResourceAccessor(this.getClass().getClassLoader()),
-                new JdbcConnection(conn)
-            );
+                    "liquibase/master.yml",
+                    new ClassLoaderResourceAccessor(this.getClass().getClassLoader()),
+                    new JdbcConnection(conn));
             liquibase.update((Contexts) null);
         } catch (Exception ex) {
             throw new DatabaseInitializationException("Failed to set up database", ex);
@@ -254,7 +255,8 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         return readPropertyValue(propertyName, propertyType, defaultValue, true);
     }
 
-    private <T> T readPropertyValue(String propertyName, Class<T> propertyType, T defaultValue, final boolean displayOnLog) {
+    private <T> T readPropertyValue(
+            String propertyName, Class<T> propertyType, T defaultValue, final boolean displayOnLog) {
         final String scope = getScope();
         final T value = env.getProperty(scope + "." + propertyName, propertyType, defaultValue);
         log.debug("Reading property {}: {}", propertyName, displayOnLog ? value : "********");

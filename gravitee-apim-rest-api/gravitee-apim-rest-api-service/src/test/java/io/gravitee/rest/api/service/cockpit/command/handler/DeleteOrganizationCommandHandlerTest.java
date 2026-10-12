@@ -192,8 +192,8 @@ public class DeleteOrganizationCommandHandlerTest {
     @BeforeEach
     void setUp() throws Exception {
         lenient()
-            .when(organizationService.findByCockpitId(NOT_FOUND_ENV_ID))
-            .thenThrow(new OrganizationNotFoundException(NOT_FOUND_ENV_ID));
+                .when(organizationService.findByCockpitId(NOT_FOUND_ENV_ID))
+                .thenThrow(new OrganizationNotFoundException(NOT_FOUND_ENV_ID));
         lenient().when(organizationService.findByCockpitId(ERROR_ENV_ID)).thenThrow(new RuntimeException(ERROR_ENV_ID));
         OrganizationEntity emptyOrganization = new OrganizationEntity();
         emptyOrganization.setId(EMPTY_ORG_ID);
@@ -204,44 +204,43 @@ public class DeleteOrganizationCommandHandlerTest {
         lenient().when(userRepository.deleteByOrganizationId(ORG_ID)).thenReturn(List.of(USER_ID, USER_ID_2));
 
         cut = new DeleteOrganizationCommandHandler(
-            accessPointRepository,
-            amConnectionRepository,
-            auditRepository,
-            commandRepository,
-            customUserFieldsRepository,
-            entrypointRepository,
-            flowRepository,
-            identityProviderActivationRepository,
-            identityProviderRepository,
-            licenseRepository,
-            mediaRepository,
-            membershipRepository,
-            metadataRepository,
-            notificationTemplateRepository,
-            parameterRepository,
-            portalNotificationRepository,
-            roleRepository,
-            tagRepository,
-            tenantRepository,
-            tokenRepository,
-            userRepository,
-            clusterRepository,
-            dashboardRepository,
-            portalListingRepository,
-            accessPointService,
-            environmentService,
-            identityProviderActivationService,
-            organizationService,
-            searchEngineService,
-            deleteEnvironmentCommandHandler
-        );
+                accessPointRepository,
+                amConnectionRepository,
+                auditRepository,
+                commandRepository,
+                customUserFieldsRepository,
+                entrypointRepository,
+                flowRepository,
+                identityProviderActivationRepository,
+                identityProviderRepository,
+                licenseRepository,
+                mediaRepository,
+                membershipRepository,
+                metadataRepository,
+                notificationTemplateRepository,
+                parameterRepository,
+                portalNotificationRepository,
+                roleRepository,
+                tagRepository,
+                tenantRepository,
+                tokenRepository,
+                userRepository,
+                clusterRepository,
+                dashboardRepository,
+                portalListingRepository,
+                accessPointService,
+                environmentService,
+                identityProviderActivationService,
+                organizationService,
+                searchEngineService,
+                deleteEnvironmentCommandHandler);
     }
 
     @Test
     public void should_delete_empty_organization() {
-        DeleteOrganizationReply reply = cut
-            .handle(new DeleteOrganizationCommand(new DeleteOrganizationCommandPayload("delete-empty-org", EMPTY_ORG_ID, USER_ID)))
-            .blockingGet();
+        DeleteOrganizationReply reply = cut.handle(new DeleteOrganizationCommand(
+                        new DeleteOrganizationCommandPayload("delete-empty-org", EMPTY_ORG_ID, USER_ID)))
+                .blockingGet();
 
         assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
         verify(organizationService).delete(EMPTY_ORG_ID);
@@ -250,16 +249,14 @@ public class DeleteOrganizationCommandHandlerTest {
     @Test
     @SneakyThrows
     public void should_delete_organization_environments() {
-        when(environmentService.findByOrganization(EMPTY_ORG_ID)).thenReturn(
-            List.of(
-                EnvironmentEntity.builder().cockpitId("cockpit-env-1").build(),
-                EnvironmentEntity.builder().cockpitId("cockpit-env-2").build()
-            )
-        );
+        when(environmentService.findByOrganization(EMPTY_ORG_ID))
+                .thenReturn(List.of(
+                        EnvironmentEntity.builder().cockpitId("cockpit-env-1").build(),
+                        EnvironmentEntity.builder().cockpitId("cockpit-env-2").build()));
 
-        DeleteOrganizationReply reply = cut
-            .handle(new DeleteOrganizationCommand(new DeleteOrganizationCommandPayload("delete-empty-org", EMPTY_ORG_ID, USER_ID)))
-            .blockingGet();
+        DeleteOrganizationReply reply = cut.handle(new DeleteOrganizationCommand(
+                        new DeleteOrganizationCommandPayload("delete-empty-org", EMPTY_ORG_ID, USER_ID)))
+                .blockingGet();
 
         assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
         verify(deleteEnvironmentCommandHandler).processDeletionWorkflow("cockpit-env-1", USER_ID);
@@ -269,26 +266,26 @@ public class DeleteOrganizationCommandHandlerTest {
     @Test
     @SneakyThrows
     public void should_reply_with_error_when_environment_deletion_fails() {
-        when(environmentService.findByOrganization(EMPTY_ORG_ID)).thenReturn(
-            List.of(
-                EnvironmentEntity.builder().cockpitId("cockpit-env-1").build(),
-                EnvironmentEntity.builder().cockpitId("cockpit-env-2").build()
-            )
-        );
-        doThrow(new TechnicalException("Failed")).when(deleteEnvironmentCommandHandler).processDeletionWorkflow(anyString(), eq(USER_ID));
+        when(environmentService.findByOrganization(EMPTY_ORG_ID))
+                .thenReturn(List.of(
+                        EnvironmentEntity.builder().cockpitId("cockpit-env-1").build(),
+                        EnvironmentEntity.builder().cockpitId("cockpit-env-2").build()));
+        doThrow(new TechnicalException("Failed"))
+                .when(deleteEnvironmentCommandHandler)
+                .processDeletionWorkflow(anyString(), eq(USER_ID));
 
-        DeleteOrganizationReply reply = cut
-            .handle(new DeleteOrganizationCommand(new DeleteOrganizationCommandPayload("delete-empty-org", EMPTY_ORG_ID, USER_ID)))
-            .blockingGet();
+        DeleteOrganizationReply reply = cut.handle(new DeleteOrganizationCommand(
+                        new DeleteOrganizationCommandPayload("delete-empty-org", EMPTY_ORG_ID, USER_ID)))
+                .blockingGet();
 
         assertEquals(CommandStatus.ERROR, reply.getCommandStatus());
     }
 
     @Test
     public void should_delete_organization() throws TechnicalException {
-        DeleteOrganizationReply reply = cut
-            .handle(new DeleteOrganizationCommand(new DeleteOrganizationCommandPayload("delete-org", ORG_ID, USER_ID)))
-            .blockingGet();
+        DeleteOrganizationReply reply = cut.handle(new DeleteOrganizationCommand(
+                        new DeleteOrganizationCommandPayload("delete-org", ORG_ID, USER_ID)))
+                .blockingGet();
 
         assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
         var context = new ExecutionContext(ORG_ID);
@@ -298,91 +295,88 @@ public class DeleteOrganizationCommandHandlerTest {
 
     @Test
     public void should_reply_succeeded_if_organization_not_found() {
-        DeleteOrganizationReply reply = cut
-            .handle(new DeleteOrganizationCommand(new DeleteOrganizationCommandPayload("delete-org", NOT_FOUND_ENV_ID, USER_ID)))
-            .blockingGet();
+        DeleteOrganizationReply reply = cut.handle(new DeleteOrganizationCommand(
+                        new DeleteOrganizationCommandPayload("delete-org", NOT_FOUND_ENV_ID, USER_ID)))
+                .blockingGet();
 
         assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
     }
 
     @Test
     public void should_reply_error_if_throw_an_error() {
-        DeleteOrganizationReply reply = cut
-            .handle(new DeleteOrganizationCommand(new DeleteOrganizationCommandPayload("delete-org", ERROR_ENV_ID, USER_ID)))
-            .blockingGet();
+        DeleteOrganizationReply reply = cut.handle(new DeleteOrganizationCommand(
+                        new DeleteOrganizationCommandPayload("delete-org", ERROR_ENV_ID, USER_ID)))
+                .blockingGet();
 
         assertEquals(CommandStatus.ERROR, reply.getCommandStatus());
     }
 
     private void verifyDeleteOrganization(ExecutionContext executionContext) throws TechnicalException {
-        verify(accessPointRepository).deleteByReferenceIdAndReferenceType(
-            executionContext.getOrganizationId(),
-            AccessPointReferenceType.ORGANIZATION
-        );
-        verify(flowRepository).deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), FlowReferenceType.ORGANIZATION);
-        verify(parameterRepository).deleteByReferenceIdAndReferenceType(
-            executionContext.getOrganizationId(),
-            ParameterReferenceType.ORGANIZATION
-        );
-        verify(auditRepository).deleteByReferenceIdAndReferenceType(
-            executionContext.getOrganizationId(),
-            Audit.AuditReferenceType.ORGANIZATION
-        );
-        verify(customUserFieldsRepository).deleteByReferenceIdAndReferenceType(
-            executionContext.getOrganizationId(),
-            CustomUserFieldReferenceType.ORGANIZATION
-        );
+        verify(accessPointRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(), AccessPointReferenceType.ORGANIZATION);
+        verify(flowRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(), FlowReferenceType.ORGANIZATION);
+        verify(parameterRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(), ParameterReferenceType.ORGANIZATION);
+        verify(auditRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(), Audit.AuditReferenceType.ORGANIZATION);
+        verify(customUserFieldsRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(), CustomUserFieldReferenceType.ORGANIZATION);
         verify(userRepository).deleteByOrganizationId(executionContext.getOrganizationId());
-        verify(searchEngineService).delete(executionContext, UserEntity.builder().id(USER_ID).build());
-        verify(searchEngineService).delete(executionContext, UserEntity.builder().id(USER_ID_2).build());
+        verify(searchEngineService)
+                .delete(executionContext, UserEntity.builder().id(USER_ID).build());
+        verify(searchEngineService)
+                .delete(executionContext, UserEntity.builder().id(USER_ID_2).build());
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(USER_ID, MetadataReferenceType.USER);
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(USER_ID_2, MetadataReferenceType.USER);
         verify(portalNotificationRepository).deleteAll(USER_ID);
         verify(portalNotificationRepository).deleteAll(USER_ID_2);
         verify(tokenRepository).deleteByReferenceIdAndReferenceType(USER_ID, TokenReferenceType.USER.name());
         verify(tokenRepository).deleteByReferenceIdAndReferenceType(USER_ID_2, TokenReferenceType.USER.name());
-        verify(tenantRepository).deleteByReferenceIdAndReferenceType(
-            executionContext.getOrganizationId(),
-            TenantReferenceType.ORGANIZATION
-        );
-        verify(roleRepository).deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), RoleReferenceType.ORGANIZATION);
-        verify(membershipRepository).deleteByReferenceIdAndReferenceType(
-            executionContext.getOrganizationId(),
-            MembershipReferenceType.ORGANIZATION
-        );
+        verify(tenantRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(), TenantReferenceType.ORGANIZATION);
+        verify(roleRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(), RoleReferenceType.ORGANIZATION);
+        verify(membershipRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(), MembershipReferenceType.ORGANIZATION);
         verify(identityProviderRepository).deleteByOrganizationId(executionContext.getOrganizationId());
-        verify(identityProviderActivationRepository).deleteByReferenceIdAndReferenceType(
-            executionContext.getOrganizationId(),
-            io.gravitee.repository.management.model.IdentityProviderActivationReferenceType.ORGANIZATION
-        );
+        verify(identityProviderActivationRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(),
+                        io.gravitee.repository.management.model.IdentityProviderActivationReferenceType.ORGANIZATION);
         verify(commandRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(licenseRepository).delete(ORG_ID, License.ReferenceType.ORGANIZATION);
         verify(tagRepository).deleteByReferenceIdAndReferenceType(ORG_ID, TagReferenceType.ORGANIZATION);
         verify(licenseRepository).delete(ORG_ID, License.ReferenceType.ORGANIZATION);
         verify(mediaRepository).deleteByOrganization(ORG_ID);
         verify(organizationService).delete(executionContext.getOrganizationId());
-        verify(notificationTemplateRepository).deleteByReferenceIdAndReferenceType(
-            executionContext.getOrganizationId(),
-            NotificationTemplateReferenceType.ORGANIZATION
-        );
-        verify(entrypointRepository).deleteByReferenceIdAndReferenceType(
-            executionContext.getOrganizationId(),
-            EntrypointReferenceType.ORGANIZATION
-        );
+        verify(notificationTemplateRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(), NotificationTemplateReferenceType.ORGANIZATION);
+        verify(entrypointRepository)
+                .deleteByReferenceIdAndReferenceType(
+                        executionContext.getOrganizationId(), EntrypointReferenceType.ORGANIZATION);
         verify(clusterRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(portalListingRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(amConnectionRepository).delete(executionContext.getOrganizationId());
     }
 
     private void verifyDisableOrganization(ExecutionContext context) {
-        verify(accessPointService).deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, context.getOrganizationId());
-        verify(identityProviderActivationService).removeAllIdpsFromTarget(
-            context,
-            new IdentityProviderActivationService.ActivationTarget(
-                context.getOrganizationId(),
-                IdentityProviderActivationReferenceType.ORGANIZATION
-            )
-        );
+        verify(accessPointService)
+                .deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, context.getOrganizationId());
+        verify(identityProviderActivationService)
+                .removeAllIdpsFromTarget(
+                        context,
+                        new IdentityProviderActivationService.ActivationTarget(
+                                context.getOrganizationId(), IdentityProviderActivationReferenceType.ORGANIZATION));
     }
 
     @Test

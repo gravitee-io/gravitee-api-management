@@ -15,23 +15,14 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
-import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
-import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
-import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
 import io.gravitee.apim.core.scoring.query_service.ScoringRulesetQueryService;
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.common.Pageable;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
-public class ScoringRulesetQueryServiceInMemory implements ScoringRulesetQueryService, InMemoryAlternative<ScoringRuleset> {
+public class ScoringRulesetQueryServiceInMemory
+        implements ScoringRulesetQueryService, InMemoryAlternative<ScoringRuleset> {
 
     private final List<ScoringRuleset> storage;
 
@@ -45,10 +36,10 @@ public class ScoringRulesetQueryServiceInMemory implements ScoringRulesetQuerySe
 
     @Override
     public List<ScoringRuleset> findByReference(String referenceId, ScoringRuleset.ReferenceType referenceType) {
-        return storage
-            .stream()
-            .filter(report -> report.referenceId().equals(referenceId) && report.referenceType().equals(referenceType))
-            .toList();
+        return storage.stream()
+                .filter(report -> report.referenceId().equals(referenceId)
+                        && report.referenceType().equals(referenceType))
+                .toList();
     }
 
     @Override

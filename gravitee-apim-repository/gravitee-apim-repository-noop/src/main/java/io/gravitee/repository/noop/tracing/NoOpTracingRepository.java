@@ -42,7 +42,8 @@ public class NoOpTracingRepository implements TracingRepository {
     }
 
     @Override
-    public Maybe<Trace> getTrace(QueryContext queryContext, String traceId, Map<String, String> resourceAttributeFilters) {
+    public Maybe<Trace> getTrace(
+            QueryContext queryContext, String traceId, Map<String, String> resourceAttributeFilters) {
         return Maybe.empty();
     }
 }

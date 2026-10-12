@@ -56,10 +56,9 @@ class KafkaExplorerResourceErrorTest {
 
     static Stream<Arguments> brokerFailures() {
         return Stream.of(
-            Arguments.of(TechnicalCode.TIMEOUT, "Connection to Kafka cluster timed out"),
-            Arguments.of(TechnicalCode.CONNECTION_FAILED, "Failed to connect to Kafka cluster"),
-            Arguments.of(TechnicalCode.AUTHENTICATION_FAILED, "Authentication against Kafka cluster failed")
-        );
+                Arguments.of(TechnicalCode.TIMEOUT, "Connection to Kafka cluster timed out"),
+                Arguments.of(TechnicalCode.CONNECTION_FAILED, "Failed to connect to Kafka cluster"),
+                Arguments.of(TechnicalCode.AUTHENTICATION_FAILED, "Authentication against Kafka cluster failed"));
     }
 
     @ParameterizedTest
@@ -72,11 +71,11 @@ class KafkaExplorerResourceErrorTest {
 
         assertThat(response.getStatus()).isEqualTo(502);
         assertThat(response.getEntity())
-            .asInstanceOf(type(KafkaExplorerError.class))
-            .satisfies(error -> {
-                assertThat(error.getTechnicalCode()).isEqualTo(technicalCode.name());
-                assertThat(error.getMessage()).isEqualTo(message);
-            });
+                .asInstanceOf(type(KafkaExplorerError.class))
+                .satisfies(error -> {
+                    assertThat(error.getTechnicalCode()).isEqualTo(technicalCode.name());
+                    assertThat(error.getMessage()).isEqualTo(message);
+                });
     }
 
     /**
@@ -98,10 +97,11 @@ class KafkaExplorerResourceErrorTest {
 
         assertThat(response.getStatus()).isEqualTo(502);
         assertThat(response.getEntity())
-            .asInstanceOf(type(KafkaExplorerError.class))
-            .satisfies(error -> {
-                assertThat(error.getTechnicalCode()).isIn(TechnicalCode.TIMEOUT.name(), TechnicalCode.CONNECTION_FAILED.name());
-            });
+                .asInstanceOf(type(KafkaExplorerError.class))
+                .satisfies(error -> {
+                    assertThat(error.getTechnicalCode())
+                            .isIn(TechnicalCode.TIMEOUT.name(), TechnicalCode.CONNECTION_FAILED.name());
+                });
     }
 
     private static KafkaExplorerResource resourceFailingWith(KafkaExplorerException failure) throws Exception {
@@ -112,13 +112,11 @@ class KafkaExplorerResourceErrorTest {
 
     private static KafkaExplorerResource resourceBackedBy(KafkaClusterDomainService clusterService) throws Exception {
         var clusters = new ClusterCrudServiceInMemory();
-        clusters.create(
-            Cluster.builder()
+        clusters.create(Cluster.builder()
                 .id(CLUSTER_ID)
                 .environmentId(ENVIRONMENT_ID)
                 .configuration(Map.of("bootstrapServers", "unreachable.invalid:9092"))
-                .build()
-        );
+                .build());
 
         var useCase = new DescribeKafkaClusterUseCase(clusters, clusterService, new ObjectMapper());
 

@@ -58,7 +58,7 @@ class HttpProxyEntrypointConnectorFactoryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "wrong", "", "  " })
+    @ValueSource(strings = {"wrong", "", "  "})
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
         HttpProxyEntrypointConnector connector = cut.createConnector(deploymentContext, configuration);
         assertThat(connector).isNull();

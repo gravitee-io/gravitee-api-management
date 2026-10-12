@@ -27,29 +27,27 @@ import java.util.List;
  * OBS-16/17 need it on the write path and reads are the only place it can be handed out.
  */
 public record DashboardDto(
-    String id,
-    String module,
-    String title,
-    String description,
-    List<DashboardFilterDto> filters,
-    DashboardTimeRangeDto timeRange,
-    JsonNode widgets,
-    Integer version,
-    Long createdAt,
-    Long updatedAt
-) {
+        String id,
+        String module,
+        String title,
+        String description,
+        List<DashboardFilterDto> filters,
+        DashboardTimeRangeDto timeRange,
+        JsonNode widgets,
+        Integer version,
+        Long createdAt,
+        Long updatedAt) {
     public static DashboardDto from(Dashboard dashboard) {
         return new DashboardDto(
-            dashboard.id(),
-            dashboard.module(),
-            dashboard.title(),
-            dashboard.description(),
-            dashboard.filters().stream().map(DashboardFilterDto::from).toList(),
-            DashboardTimeRangeDto.from(dashboard.timeRange()),
-            dashboard.widgets(),
-            dashboard.version(),
-            dashboard.createdAt() == null ? null : dashboard.createdAt().toEpochMilli(),
-            dashboard.updatedAt() == null ? null : dashboard.updatedAt().toEpochMilli()
-        );
+                dashboard.id(),
+                dashboard.module(),
+                dashboard.title(),
+                dashboard.description(),
+                dashboard.filters().stream().map(DashboardFilterDto::from).toList(),
+                DashboardTimeRangeDto.from(dashboard.timeRange()),
+                dashboard.widgets(),
+                dashboard.version(),
+                dashboard.createdAt() == null ? null : dashboard.createdAt().toEpochMilli(),
+                dashboard.updatedAt() == null ? null : dashboard.updatedAt().toEpochMilli());
     }
 }

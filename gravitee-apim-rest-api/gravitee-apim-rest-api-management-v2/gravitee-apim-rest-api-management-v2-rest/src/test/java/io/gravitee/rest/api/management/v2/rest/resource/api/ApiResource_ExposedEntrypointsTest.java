@@ -60,9 +60,8 @@ public class ApiResource_ExposedEntrypointsTest extends ApiResourceTest {
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        final List<io.gravitee.rest.api.management.v2.rest.model.ExposedEntrypoint> exposedEntrypoints = response.readEntity(
-            new GenericType<>() {}
-        );
+        final List<io.gravitee.rest.api.management.v2.rest.model.ExposedEntrypoint> exposedEntrypoints =
+                response.readEntity(new GenericType<>() {});
 
         assertNotNull(exposedEntrypoints);
         assertEquals(1, exposedEntrypoints.size());

@@ -38,7 +38,6 @@ import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.AuditService;
@@ -47,7 +46,6 @@ import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedExcept
 import io.gravitee.rest.api.service.exceptions.NativePlanAuthenticationConflictException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,29 +102,27 @@ class PlanOperationsDomainServiceTest {
     void setUp() {
         publicationsService = new PublishPlanDomainServiceImpl(planRepository, auditService);
         closePlanDomainService = new ClosePlanDomainService(
-            planCrudService,
-            subscriptionQueryService,
-            closeSubscriptionDomainService,
-            auditDomainService
-        );
+                planCrudService, subscriptionQueryService, closeSubscriptionDomainService, auditDomainService);
         deprecatePlanDomainService = new DeprecatePlanDomainService(planCrudService, auditDomainService);
     }
 
     private Plan apiProductPlanPublished() {
-        return PlanFixtures.HttpV4.anApiKey()
-            .toBuilder()
-            .id(PLAN_ID)
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.PUBLISHED).build())
-            .build();
+        return PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .id(PLAN_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.PUBLISHED)
+                        .build())
+                .build();
     }
 
     @Test
     void closePlanForApiProduct_should_close_and_create_api_product_audit() {
         Plan publishedPlan = apiProductPlanPublished();
         when(planCrudService.getById(eq(PLAN_ID))).thenReturn(publishedPlan);
-        when(subscriptionQueryService.findActiveSubscriptionsByPlan(eq(PLAN_ID))).thenReturn(Collections.emptyList());
+        when(subscriptionQueryService.findActiveSubscriptionsByPlan(eq(PLAN_ID)))
+                .thenReturn(Collections.emptyList());
         when(planCrudService.update(any(Plan.class))).thenAnswer(inv -> inv.getArgument(0));
 
         closePlanDomainService.close(PLAN_ID, auditInfo);
@@ -138,159 +134,148 @@ class PlanOperationsDomainServiceTest {
     @Test
     void publish_should_throw_when_already_published() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
-            .id(PLAN_ID)
-            .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
-            .build();
+                .id(PLAN_ID)
+                .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
+                .build();
         when(planRepository.findById(eq(PLAN_ID))).thenReturn(Optional.of(plan));
 
-        assertThatThrownBy(() -> publicationsService.publish(auditInfo, PLAN_ID)).isInstanceOf(PlanAlreadyPublishedException.class);
+        assertThatThrownBy(() -> publicationsService.publish(auditInfo, PLAN_ID))
+                .isInstanceOf(PlanAlreadyPublishedException.class);
     }
 
     @Test
     void publish_should_throw_when_keyless_already_published() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
-            .id(PLAN_ID)
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
-            .referenceId(API_ID)
-            .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS)
-            .build();
+                .id(PLAN_ID)
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
+                .referenceId(API_ID)
+                .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS)
+                .build();
         var existingKeyless = io.gravitee.repository.management.model.Plan.builder()
-            .id("existing-keyless")
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
-            .referenceId(API_ID)
-            .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS)
-            .order(1)
-            .build();
+                .id("existing-keyless")
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
+                .referenceId(API_ID)
+                .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS)
+                .order(1)
+                .build();
 
         when(planRepository.findById(eq(PLAN_ID))).thenReturn(Optional.of(plan));
-        when(
-            planRepository.findByReferenceIdAndReferenceType(
-                eq(API_ID),
-                eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
-            )
-        ).thenReturn(Set.of(existingKeyless));
+        when(planRepository.findByReferenceIdAndReferenceType(
+                        eq(API_ID), eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)))
+                .thenReturn(Set.of(existingKeyless));
 
-        assertThatThrownBy(() -> publicationsService.publish(auditInfo, PLAN_ID)).isInstanceOf(KeylessPlanAlreadyPublishedException.class);
+        assertThatThrownBy(() -> publicationsService.publish(auditInfo, PLAN_ID))
+                .isInstanceOf(KeylessPlanAlreadyPublishedException.class);
     }
 
     @Test
     void publish_should_throw_when_native_keyless_conflicts_with_deprecated_auth_plan() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
-            .id(PLAN_ID)
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
-            .referenceId(API_ID)
-            .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
-            .apiType(ApiType.NATIVE)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS)
-            .build();
+                .id(PLAN_ID)
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
+                .referenceId(API_ID)
+                .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
+                .apiType(ApiType.NATIVE)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS)
+                .build();
         var deprecatedApiKey = io.gravitee.repository.management.model.Plan.builder()
-            .id("deprecated-api-key")
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
-            .referenceId(API_ID)
-            .status(io.gravitee.repository.management.model.Plan.Status.DEPRECATED)
-            .apiType(ApiType.NATIVE)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
-            .build();
+                .id("deprecated-api-key")
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
+                .referenceId(API_ID)
+                .status(io.gravitee.repository.management.model.Plan.Status.DEPRECATED)
+                .apiType(ApiType.NATIVE)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
+                .build();
 
         when(planRepository.findById(eq(PLAN_ID))).thenReturn(Optional.of(plan));
-        when(
-            planRepository.findByReferenceIdAndReferenceType(
-                eq(API_ID),
-                eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
-            )
-        ).thenReturn(Set.of(plan, deprecatedApiKey));
+        when(planRepository.findByReferenceIdAndReferenceType(
+                        eq(API_ID), eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)))
+                .thenReturn(Set.of(plan, deprecatedApiKey));
 
-        assertThatThrownBy(() -> publicationsService.publish(auditInfo, PLAN_ID)).isInstanceOf(
-            NativePlanAuthenticationConflictException.class
-        );
+        assertThatThrownBy(() -> publicationsService.publish(auditInfo, PLAN_ID))
+                .isInstanceOf(NativePlanAuthenticationConflictException.class);
     }
 
     @Test
     void publish_should_publish_api_product_plan_and_audit() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
-            .id(PLAN_ID)
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-            .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
-            .order(0)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiType(ApiType.PROXY)
-            .build();
+                .id(PLAN_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
+                .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
+                .order(0)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.PROXY)
+                .build();
         when(planRepository.findById(eq(PLAN_ID))).thenReturn(Optional.of(plan));
-        when(
-            planRepository.findByReferenceIdAndReferenceType(
-                eq(API_PRODUCT_ID),
-                eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-            )
-        ).thenReturn(Set.of());
+        when(planRepository.findByReferenceIdAndReferenceType(
+                        eq(API_PRODUCT_ID),
+                        eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)))
+                .thenReturn(Set.of());
         when(planRepository.update(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = publicationsService.publish(auditInfo, PLAN_ID);
 
         assertThat(result.getId()).isEqualTo(PLAN_ID);
         assertThat(result.getOrder()).isEqualTo(1);
-        verify(auditService).createApiProductAuditLog(
-            any(ExecutionContext.class),
-            any(AuditService.AuditLogData.class),
-            eq(API_PRODUCT_ID)
-        );
+        verify(auditService)
+                .createApiProductAuditLog(
+                        any(ExecutionContext.class), any(AuditService.AuditLogData.class), eq(API_PRODUCT_ID));
     }
 
     @Test
     void publish_should_publish_api_plan_and_set_next_order() throws Exception {
         var plan = io.gravitee.repository.management.model.Plan.builder()
-            .id(PLAN_ID)
-            .referenceId(API_ID)
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
-            .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
-            .order(0)
-            .definitionVersion(DefinitionVersion.V4)
-            .apiType(ApiType.PROXY)
-            .build();
+                .id(PLAN_ID)
+                .referenceId(API_ID)
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
+                .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
+                .order(0)
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.PROXY)
+                .build();
         var alreadyPublished = io.gravitee.repository.management.model.Plan.builder()
-            .id("published-1")
-            .referenceId(API_ID)
-            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
-            .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
-            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
-            .order(3)
-            .build();
+                .id("published-1")
+                .referenceId(API_ID)
+                .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
+                .status(io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
+                .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
+                .order(3)
+                .build();
 
         when(planRepository.findById(eq(PLAN_ID))).thenReturn(Optional.of(plan));
-        when(
-            planRepository.findByReferenceIdAndReferenceType(
-                eq(API_ID),
-                eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
-            )
-        ).thenReturn(Set.of(alreadyPublished));
+        when(planRepository.findByReferenceIdAndReferenceType(
+                        eq(API_ID), eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)))
+                .thenReturn(Set.of(alreadyPublished));
         when(planRepository.update(any())).thenAnswer(inv -> inv.getArgument(0));
 
         var result = publicationsService.publish(auditInfo, PLAN_ID);
 
         assertThat(result.getId()).isEqualTo(PLAN_ID);
         assertThat(result.getOrder()).isEqualTo(4);
-        verify(auditService).createApiAuditLog(any(ExecutionContext.class), any(AuditService.AuditLogData.class), eq(API_ID));
+        verify(auditService)
+                .createApiAuditLog(any(ExecutionContext.class), any(AuditService.AuditLogData.class), eq(API_ID));
     }
 
     @Test
     void deprecateForApiProduct_should_throw_when_staging() {
-        Plan stagingPlan = PlanFixtures.HttpV4.anApiKey()
-            .toBuilder()
-            .id(PLAN_ID)
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.STAGING).build())
-            .build();
+        Plan stagingPlan = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .id(PLAN_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.STAGING)
+                        .build())
+                .build();
         when(planCrudService.getById(eq(PLAN_ID))).thenReturn(stagingPlan);
 
-        assertThatThrownBy(() -> deprecatePlanDomainService.deprecate(PLAN_ID, auditInfo, false)).isInstanceOf(
-            InvalidPlanStatusForDeprecationException.class
-        );
+        assertThatThrownBy(() -> deprecatePlanDomainService.deprecate(PLAN_ID, auditInfo, false))
+                .isInstanceOf(InvalidPlanStatusForDeprecationException.class);
     }
 
     @Test
@@ -306,19 +291,17 @@ class PlanOperationsDomainServiceTest {
 
     @Test
     void deprecateForApiProduct_should_throw_when_already_deprecated() {
-        Plan deprecatedPlan = PlanFixtures.HttpV4.anApiKey()
-            .toBuilder()
-            .id(PLAN_ID)
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .planDefinitionHttpV4(
-                PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.DEPRECATED).build()
-            )
-            .build();
+        Plan deprecatedPlan = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .id(PLAN_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .planDefinitionHttpV4(PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.DEPRECATED)
+                        .build())
+                .build();
         when(planCrudService.getById(eq(PLAN_ID))).thenReturn(deprecatedPlan);
 
-        assertThatThrownBy(() -> deprecatePlanDomainService.deprecate(PLAN_ID, auditInfo, false)).isInstanceOf(
-            InvalidPlanStatusForDeprecationException.class
-        );
+        assertThatThrownBy(() -> deprecatePlanDomainService.deprecate(PLAN_ID, auditInfo, false))
+                .isInstanceOf(InvalidPlanStatusForDeprecationException.class);
     }
 }

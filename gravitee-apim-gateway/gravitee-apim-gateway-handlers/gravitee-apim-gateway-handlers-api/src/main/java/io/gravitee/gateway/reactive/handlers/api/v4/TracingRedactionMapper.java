@@ -21,7 +21,6 @@ import io.gravitee.definition.model.v4.analytics.tracing.TracingRedactionRule;
 import io.gravitee.node.api.opentelemetry.redaction.MaskingStrategy;
 import io.gravitee.node.api.opentelemetry.redaction.RedactionConfig;
 import io.gravitee.node.api.opentelemetry.redaction.RedactionRule;
-import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
 
@@ -32,22 +31,22 @@ final class TracingRedactionMapper {
 
     static RedactionConfig toRedactionConfig(final Api api) {
         return Optional.ofNullable(api.getDefinition())
-            .map(definition -> definition.getAnalytics())
-            .map(analytics -> analytics.getTracing())
-            .map(tracing -> tracing.getRedaction())
-            .filter(redactionConfig -> redactionConfig.getRules() != null && !redactionConfig.getRules().isEmpty())
-            .map(redactionConfig -> {
-                var mappedRules = redactionConfig
-                    .getRules()
-                    .stream()
-                    .filter(rule -> rule.getAttributeNamePattern() != null)
-                    .map(rule -> new RedactionRule(rule.getAttributeNamePattern(), toMaskingStrategy(rule), rule.getValuePattern()))
-                    .toList();
-                return mappedRules.isEmpty()
-                    ? RedactionConfig.EMPTY
-                    : new RedactionConfig(mappedRules, redactionConfig.getDefaultReplacement());
-            })
-            .orElse(RedactionConfig.EMPTY);
+                .map(definition -> definition.getAnalytics())
+                .map(analytics -> analytics.getTracing())
+                .map(tracing -> tracing.getRedaction())
+                .filter(redactionConfig -> redactionConfig.getRules() != null
+                        && !redactionConfig.getRules().isEmpty())
+                .map(redactionConfig -> {
+                    var mappedRules = redactionConfig.getRules().stream()
+                            .filter(rule -> rule.getAttributeNamePattern() != null)
+                            .map(rule -> new RedactionRule(
+                                    rule.getAttributeNamePattern(), toMaskingStrategy(rule), rule.getValuePattern()))
+                            .toList();
+                    return mappedRules.isEmpty()
+                            ? RedactionConfig.EMPTY
+                            : new RedactionConfig(mappedRules, redactionConfig.getDefaultReplacement());
+                })
+                .orElse(RedactionConfig.EMPTY);
     }
 
     @VisibleForTesting
@@ -57,17 +56,22 @@ final class TracingRedactionMapper {
         MaskingType maskingType = maskingStrategy.getType();
         if (maskingType == null) return MaskingStrategy.DEFAULT;
         return switch (maskingType) {
-            case FULL -> maskingStrategy.getReplacement() != null
-                ? MaskingStrategy.fullMask(maskingStrategy.getReplacement())
-                : MaskingStrategy.DEFAULT;
+            case FULL ->
+                maskingStrategy.getReplacement() != null
+                        ? MaskingStrategy.fullMask(maskingStrategy.getReplacement())
+                        : MaskingStrategy.DEFAULT;
             case PARTIAL -> {
                 var maskChar = maskingStrategy.getReplacement() != null ? maskingStrategy.getReplacement() : "*";
                 if (maskChar.length() != 1) {
-                    log.warn("PARTIAL masking strategy replacement must be a single character, got '{}' — defaulting to '*'", maskChar);
+                    log.warn(
+                            "PARTIAL masking strategy replacement must be a single character, got '{}' — defaulting to '*'",
+                            maskChar);
                     maskChar = "*";
                 }
-                int prefix = Math.max(0, maskingStrategy.getPrefixLength() != null ? maskingStrategy.getPrefixLength() : 0);
-                int suffix = Math.max(0, maskingStrategy.getSuffixLength() != null ? maskingStrategy.getSuffixLength() : 0);
+                int prefix =
+                        Math.max(0, maskingStrategy.getPrefixLength() != null ? maskingStrategy.getPrefixLength() : 0);
+                int suffix =
+                        Math.max(0, maskingStrategy.getSuffixLength() != null ? maskingStrategy.getSuffixLength() : 0);
                 yield MaskingStrategy.partialMask(prefix, suffix, maskChar);
             }
         };

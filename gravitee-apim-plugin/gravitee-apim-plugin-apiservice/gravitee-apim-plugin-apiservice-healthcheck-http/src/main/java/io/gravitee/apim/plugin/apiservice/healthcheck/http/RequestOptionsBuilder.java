@@ -37,12 +37,11 @@ class RequestOptionsBuilder {
         final boolean isSsl = VertxHttpClientFactory.isSecureProtocol(target.getProtocol());
         final int targetPort = VertxHttpClientFactory.getPort(target, isSsl);
 
-        options
-            .setMethod(HttpMethod.valueOf(ctx.request().method().name()))
-            .setURI(relativeUrl(target))
-            .setPort(targetPort)
-            .setSsl(isSsl)
-            .setHost(target.getHost());
+        options.setMethod(HttpMethod.valueOf(ctx.request().method().name()))
+                .setURI(relativeUrl(target))
+                .setPort(targetPort)
+                .setSsl(isSsl)
+                .setHost(target.getHost());
 
         applyCustomHostIfPresent(options, targetPort, target);
 
@@ -63,7 +62,8 @@ class RequestOptionsBuilder {
     }
 
     private static void applyCustomHostIfPresent(RequestOptions options, int port, URL target) {
-        String customHost = options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
+        String customHost =
+                options.getHeaders() != null ? options.getHeaders().get(io.vertx.core.http.HttpHeaders.HOST) : null;
         if (customHost == null || customHost.isBlank()) {
             return;
         }

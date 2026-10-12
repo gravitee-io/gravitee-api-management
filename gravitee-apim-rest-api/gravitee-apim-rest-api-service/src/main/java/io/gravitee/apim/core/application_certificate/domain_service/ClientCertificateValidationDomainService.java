@@ -52,7 +52,8 @@ public interface ClientCertificateValidationDomainService {
      * @param excludeApplicationId application ID to exclude from duplicate fingerprint lookup, or null
      * @return extracted certificate information
      */
-    CertificateInfo validateForCreation(ClientCertificate clientCertificate, String environmentId, String excludeApplicationId);
+    CertificateInfo validateForCreation(
+            ClientCertificate clientCertificate, String environmentId, String excludeApplicationId);
 
     record CertificateInfo(Date certificateExpiration, String subject, String issuer, String fingerprint) {}
 }

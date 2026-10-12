@@ -94,26 +94,25 @@ import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
 @Mapper(
-    uses = {
-        AnalyticsMapper.class,
-        DateMapper.class,
-        DefinitionContextMapper.class,
-        OriginContextMapper.class,
-        EndpointMapper.class,
-        EntrypointMapper.class,
-        FlowMapper.class,
-        ListenerMapper.class,
-        PlanMapper.class,
-        PropertiesMapper.class,
-        ResourceMapper.class,
-        ResponseTemplateMapper.class,
-        ServiceMapper.class,
-        CorsMapper.class,
-        RequestValidationMapper.class,
-        ConfigurationSerializationMapper.class,
-        CollectionFactory.class,
-    }
-)
+        uses = {
+            AnalyticsMapper.class,
+            DateMapper.class,
+            DefinitionContextMapper.class,
+            OriginContextMapper.class,
+            EndpointMapper.class,
+            EntrypointMapper.class,
+            FlowMapper.class,
+            ListenerMapper.class,
+            PlanMapper.class,
+            PropertiesMapper.class,
+            ResourceMapper.class,
+            ResponseTemplateMapper.class,
+            ServiceMapper.class,
+            CorsMapper.class,
+            RequestValidationMapper.class,
+            ConfigurationSerializationMapper.class,
+            CollectionFactory.class,
+        })
 public interface ApiMapper {
     Logger log = NodeLoggerFactory.getLogger(ApiMapper.class);
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
@@ -123,7 +122,9 @@ public interface ApiMapper {
         GenericApi.DeploymentStateEnum state = null;
 
         if (isSynchronized != null) {
-            state = isSynchronized ? GenericApi.DeploymentStateEnum.DEPLOYED : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
+            state = isSynchronized
+                    ? GenericApi.DeploymentStateEnum.DEPLOYED
+                    : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
         }
 
         if (api != null && api.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
@@ -142,21 +143,20 @@ public interface ApiMapper {
         GenericApi.DeploymentStateEnum state = null;
 
         if (isSynchronized != null) {
-            state = isSynchronized ? GenericApi.DeploymentStateEnum.DEPLOYED : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
+            state = isSynchronized
+                    ? GenericApi.DeploymentStateEnum.DEPLOYED
+                    : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
         }
 
         Api api = switch (apiEntity) {
-            case FederatedApiAgentEntity federatedAgent -> new io.gravitee.rest.api.management.v2.rest.model.Api(
-                mapToFederatedAgent(federatedAgent, uriInfo)
-            );
-            case FederatedApiEntity federatedApi -> new io.gravitee.rest.api.management.v2.rest.model.Api(
-                mapToFederated(federatedApi, uriInfo)
-            );
+            case FederatedApiAgentEntity federatedAgent ->
+                new io.gravitee.rest.api.management.v2.rest.model.Api(mapToFederatedAgent(federatedAgent, uriInfo));
+            case FederatedApiEntity federatedApi ->
+                new io.gravitee.rest.api.management.v2.rest.model.Api(mapToFederated(federatedApi, uriInfo));
             case ApiEntity asApiEntity -> new Api(mapToV4(asApiEntity, uriInfo, state));
             case NativeApiEntity asNativeApiEntity -> new Api(mapToV4(asNativeApiEntity, uriInfo, state));
-            case io.gravitee.rest.api.model.api.ApiEntity legacy -> new io.gravitee.rest.api.management.v2.rest.model.Api(
-                mapToV2(legacy, uriInfo, state)
-            );
+            case io.gravitee.rest.api.model.api.ApiEntity legacy ->
+                new io.gravitee.rest.api.management.v2.rest.model.Api(mapToV2(legacy, uriInfo, state));
             case null, default -> null;
         };
 
@@ -167,23 +167,24 @@ public interface ApiMapper {
         return api;
     }
 
-    default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo, Function<GenericApiEntity, Boolean> isSynchronized) {
+    default List<Api> map(
+            List<GenericApiEntity> apiEntities, UriInfo uriInfo, Function<GenericApiEntity, Boolean> isSynchronized) {
         return map(apiEntities, uriInfo, isSynchronized, null);
     }
 
     default List<Api> map(
-        List<GenericApiEntity> apiEntities,
-        UriInfo uriInfo,
-        Function<GenericApiEntity, Boolean> isSynchronized,
-        Set<String> expands
-    ) {
+            List<GenericApiEntity> apiEntities,
+            UriInfo uriInfo,
+            Function<GenericApiEntity, Boolean> isSynchronized,
+            Set<String> expands) {
         var result = new ArrayList<Api>();
         apiEntities.forEach(api -> {
             try {
                 result.add(this.map(api, uriInfo, isSynchronized.apply(api), expands));
             } catch (Exception e) {
                 // Ignore APIs throwing conversion issues in the list
-                // As v4 was out there in alpha version, we still want to build the list event if some APIs cannot be converted
+                // As v4 was out there in alpha version, we still want to build the list event if some APIs cannot be
+                // converted
                 log.error("Unable to convert API {}", api.getId(), e);
             }
         });
@@ -195,13 +196,11 @@ public interface ApiMapper {
         if (!(inner instanceof GenericApi genericApi)) {
             return;
         }
-        if (
-            expands != null &&
-            expands.contains(ApiService.EXPAND_METADATA) &&
-            source != null &&
-            source.getMetadata() != null &&
-            !source.getMetadata().isEmpty()
-        ) {
+        if (expands != null
+                && expands.contains(ApiService.EXPAND_METADATA)
+                && source != null
+                && source.getMetadata() != null
+                && !source.getMetadata().isEmpty()) {
             genericApi.setMetadata(source.getMetadata());
         } else {
             // Explicitly null out the field, the generated class initializes it to new HashMap<>(),
@@ -257,7 +256,10 @@ public interface ApiMapper {
     @Mapping(target = "listeners", qualifiedByName = "fromNativeListeners")
     ApiV4 mapToV4(NativeApiEntity apiEntity);
 
-    default ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState) {
+    default ApiV4 mapToV4(
+            io.gravitee.apim.core.api.model.Api source,
+            UriInfo uriInfo,
+            GenericApi.DeploymentStateEnum deploymentState) {
         if (ApiType.NATIVE.equals(source.getType())) {
             return mapToNativeV4(source, uriInfo, deploymentState);
         }
@@ -269,10 +271,13 @@ public interface ApiMapper {
             return null;
         }
         return new PrimaryOwner()
-            .id(entity.id())
-            .email(entity.email())
-            .displayName(entity.displayName())
-            .type(entity.type() != null ? MembershipMemberType.valueOf(entity.type().name()) : null);
+                .id(entity.id())
+                .email(entity.email())
+                .displayName(entity.displayName())
+                .type(
+                        entity.type() != null
+                                ? MembershipMemberType.valueOf(entity.type().name())
+                                : null);
     }
 
     default ApiV4 mapToV4(GenericApiEntity genericApiEntity) {
@@ -287,7 +292,10 @@ public interface ApiMapper {
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
     @Mapping(target = "analytics", source = "source.apiDefinitionHttpV4.analytics")
-    @Mapping(target = "allowedInApiProducts", source = "source.apiDefinitionHttpV4.allowedInApiProducts", defaultValue = "false")
+    @Mapping(
+            target = "allowedInApiProducts",
+            source = "source.apiDefinitionHttpV4.allowedInApiProducts",
+            defaultValue = "false")
     @Mapping(target = "deploymentState", source = "deploymentState")
     @Mapping(target = "endpointGroups", source = "source.apiDefinitionHttpV4.endpointGroups")
     @Mapping(target = "failover", source = "source.apiDefinitionHttpV4.failover")
@@ -295,16 +303,22 @@ public interface ApiMapper {
     @Mapping(target = "flows", source = "source.apiDefinitionHttpV4.flows")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
-    @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(
-        target = "responseTemplates",
-        expression = "java(source != null && source.getApiDefinitionHttpV4() != null ? responseTemplateMapper.mapResponseTemplateToApiModel(source.getApiDefinitionHttpV4().getResponseTemplates()) : null)"
-    )
+            target = "listeners",
+            source = "source.apiDefinitionHttpV4.listeners",
+            qualifiedByName = "fromHttpListeners")
+    @Mapping(
+            target = "responseTemplates",
+            expression =
+                    "java(source != null && source.getApiDefinitionHttpV4() != null ? responseTemplateMapper.mapResponseTemplateToApiModel(source.getApiDefinitionHttpV4().getResponseTemplates()) : null)")
     @Mapping(target = "properties", source = "source.apiDefinitionHttpV4.properties")
     @Mapping(target = "resources", source = "source.apiDefinitionHttpV4.resources")
     @Mapping(target = "services", source = "source.apiDefinitionHttpV4.services")
     @Mapping(target = "state", source = "source.lifecycleState")
-    ApiV4 mapToHttpV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiV4 mapToHttpV4(
+            io.gravitee.apim.core.api.model.Api source,
+            UriInfo uriInfo,
+            GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
@@ -313,7 +327,10 @@ public interface ApiMapper {
     @Mapping(target = "flows", source = "source.apiDefinitionNativeV4.flows")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
-    @Mapping(target = "listeners", source = "source.apiDefinitionNativeV4.listeners", qualifiedByName = "fromNativeListeners")
+    @Mapping(
+            target = "listeners",
+            source = "source.apiDefinitionNativeV4.listeners",
+            qualifiedByName = "fromNativeListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
     @Mapping(target = "analytics", source = "source.apiDefinitionNativeV4.analytics")
     @Mapping(target = "resources", source = "source.apiDefinitionNativeV4.resources")
@@ -321,7 +338,10 @@ public interface ApiMapper {
     // AbstractApi and services on NativeApi
     @Mapping(target = "properties", source = "source.apiDefinitionNativeV4.properties")
     @Mapping(target = "services", source = "source.apiDefinitionNativeV4.services")
-    ApiV4 mapToNativeV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiV4 mapToNativeV4(
+            io.gravitee.apim.core.api.model.Api source,
+            UriInfo uriInfo,
+            GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
@@ -332,13 +352,22 @@ public interface ApiMapper {
     @Mapping(target = "flows", source = "source.flows", qualifiedByName = "mapToFlowV4List")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
-    @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
+    @Mapping(
+            target = "listeners",
+            source = "source.apiDefinitionHttpV4.listeners",
+            qualifiedByName = "fromHttpListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
-    ApiV4 mapToV4(io.gravitee.apim.core.api.model.ApiWithFlows source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiV4 mapToV4(
+            io.gravitee.apim.core.api.model.ApiWithFlows source,
+            UriInfo uriInfo,
+            GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
-    ApiV2 mapToV2(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiV2 mapToV2(
+            io.gravitee.rest.api.model.api.ApiEntity apiEntity,
+            UriInfo uriInfo,
+            GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "links", ignore = true)
@@ -376,7 +405,10 @@ public interface ApiMapper {
     NativeAnalytics map(Analytics analytics);
 
     @Mapping(target = "source.configuration", qualifiedByName = "serializeConfiguration")
-    @Mapping(target = "source.configurationMap", source = "source.configuration", qualifiedByName = "convertToMapConfiguration")
+    @Mapping(
+            target = "source.configurationMap",
+            source = "source.configuration",
+            qualifiedByName = "convertToMapConfiguration")
     io.gravitee.apim.core.api.model.crd.PageCRD map(PageCRD crd);
 
     Page map(io.gravitee.apim.core.api.model.crd.PageCRD crd);
@@ -402,7 +434,10 @@ public interface ApiMapper {
     io.gravitee.apim.core.api.model.Api mapToApiCore(UpdateApiFederated updateApiFederated, String apiId);
 
     @Mapping(target = "version", source = "apiVersion")
-    @Mapping(target = "graviteeDefinitionVersion", source = "definitionVersion", qualifiedByName = "mapFromDefinitionVersion")
+    @Mapping(
+            target = "graviteeDefinitionVersion",
+            source = "definitionVersion",
+            qualifiedByName = "mapFromDefinitionVersion")
     io.gravitee.rest.api.model.api.UpdateApiEntity map(UpdateApiV2 updateApi);
 
     // DefinitionVersion
@@ -413,14 +448,15 @@ public interface ApiMapper {
         if (Objects.isNull(definitionVersion)) {
             return null;
         }
-        return io.gravitee.definition.model.DefinitionVersion.valueOf(definitionVersion.name()).getLabel();
+        return io.gravitee.definition.model.DefinitionVersion.valueOf(definitionVersion.name())
+                .getLabel();
     }
 
     @Named("computeApiLinks")
     default ApiLinks computeApiLinks(GenericApiEntity api, UriInfo uriInfo) {
         return new ApiLinks()
-            .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
-            .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
+                .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
+                .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
     }
 
     @Named("computeCoreApiLinks")
@@ -429,23 +465,21 @@ public interface ApiMapper {
             return null;
         }
         return new ApiLinks()
-            .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
-            .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
+                .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
+                .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
     }
 
     default Map<String, io.gravitee.apim.core.api.model.crd.PlanCRD> mapPlanCRD(
-        io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec
-    ) {
-        return spec
-            .getPlans()
-            .entrySet()
-            .stream()
-            .map(entry -> {
-                String key = entry.getKey();
-                var plan = entry.getValue();
-                return Map.entry(key, PlanMapper.INSTANCE.fromPlanCRD(plan, spec.getType().name()));
-            })
-            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, LinkedHashMap::new));
+            io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec) {
+        return spec.getPlans().entrySet().stream()
+                .map(entry -> {
+                    String key = entry.getKey();
+                    var plan = entry.getValue();
+                    return Map.entry(
+                            key,
+                            PlanMapper.INSTANCE.fromPlanCRD(plan, spec.getType().name()));
+                })
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, LinkedHashMap::new));
     }
 
     default List<? extends AbstractFlow> mapApiCRDFlows(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec) {
@@ -461,8 +495,7 @@ public interface ApiMapper {
     }
 
     default List<? extends AbstractListener<? extends AbstractEntrypoint>> mapApiCRDListeners(
-        io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec
-    ) {
+            io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec) {
         if (CollectionUtils.isEmpty(spec.getListeners())) {
             return List.of();
         }
@@ -475,8 +508,7 @@ public interface ApiMapper {
     }
 
     default List<? extends AbstractEndpointGroup<? extends AbstractEndpoint>> mapApiCRDEndpointGroups(
-        io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec
-    ) {
+            io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec) {
         if (CollectionUtils.isEmpty(spec.getEndpointGroups())) {
             return List.of();
         }
@@ -538,26 +570,32 @@ public interface ApiMapper {
 
     default PatchApiUseCase.ApiV4Fields mapToCoreApi(ApiV4 apiV4) {
         List<Listener> listeners = apiV4.getListeners() == null
-            ? null
-            : rejectNulls(ListenerMapper.INSTANCE.mapToListenerEntityV4List(apiV4.getListeners()), "listeners");
+                ? null
+                : rejectNulls(ListenerMapper.INSTANCE.mapToListenerEntityV4List(apiV4.getListeners()), "listeners");
         List<EndpointGroup> endpointGroups = apiV4.getEndpointGroups() == null
-            ? null
-            : rejectNulls(EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(apiV4.getEndpointGroups()), "endpointGroups");
-        List<Flow> flows = apiV4.getFlows() == null ? null : rejectNulls(FlowMapper.INSTANCE.mapToHttpV4(apiV4.getFlows()), "flows");
+                ? null
+                : rejectNulls(
+                        EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(apiV4.getEndpointGroups()), "endpointGroups");
+        List<Flow> flows = apiV4.getFlows() == null
+                ? null
+                : rejectNulls(FlowMapper.INSTANCE.mapToHttpV4(apiV4.getFlows()), "flows");
         List<Resource> resources = apiV4.getResources() == null
-            ? null
-            : rejectNulls(apiV4.getResources().stream().map(ResourceMapper.INSTANCE::mapToV4).toList(), "resources");
+                ? null
+                : rejectNulls(
+                        apiV4.getResources().stream()
+                                .map(ResourceMapper.INSTANCE::mapToV4)
+                                .toList(),
+                        "resources");
         return new PatchApiUseCase.ApiV4Fields(listeners, endpointGroups, flows, resources);
     }
 
     private static <T> List<T> rejectNulls(List<T> list, String fieldName) {
-        return list
-            .stream()
-            .map(item -> {
-                if (item == null) throw new IllegalArgumentException(fieldName + " list contains a null element");
-                return item;
-            })
-            .toList();
+        return list.stream()
+                .map(item -> {
+                    if (item == null) throw new IllegalArgumentException(fieldName + " list contains a null element");
+                    return item;
+                })
+                .toList();
     }
 
     @Named("computeOriginContext")
@@ -575,7 +613,8 @@ public interface ApiMapper {
                 }
                 yield ctx;
             }
-            case OriginContext.Management ignored -> new ManagementOriginContext().origin(BaseOriginContext.OriginEnum.MANAGEMENT);
+            case OriginContext.Management ignored ->
+                new ManagementOriginContext().origin(BaseOriginContext.OriginEnum.MANAGEMENT);
             case OriginContext.Integration inte -> {
                 var ctx = new IntegrationOriginContext();
                 ctx.origin(BaseOriginContext.OriginEnum.INTEGRATION);
@@ -603,17 +642,16 @@ public interface ApiMapper {
         if (flows == null) {
             return null;
         }
-        return flows
-            .stream()
-            .map(flow -> {
-                if (flow instanceof io.gravitee.definition.model.v4.flow.Flow httpFlow) {
-                    return FlowMapper.INSTANCE.mapFromHttpV4(httpFlow);
-                } else if (flow instanceof io.gravitee.definition.model.v4.nativeapi.NativeFlow nativeFlow) {
-                    return FlowMapper.INSTANCE.mapFromNativeV4(nativeFlow);
-                }
-                return null;
-            })
-            .filter(Objects::nonNull)
-            .toList();
+        return flows.stream()
+                .map(flow -> {
+                    if (flow instanceof io.gravitee.definition.model.v4.flow.Flow httpFlow) {
+                        return FlowMapper.INSTANCE.mapFromHttpV4(httpFlow);
+                    } else if (flow instanceof io.gravitee.definition.model.v4.nativeapi.NativeFlow nativeFlow) {
+                        return FlowMapper.INSTANCE.mapFromNativeV4(nativeFlow);
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

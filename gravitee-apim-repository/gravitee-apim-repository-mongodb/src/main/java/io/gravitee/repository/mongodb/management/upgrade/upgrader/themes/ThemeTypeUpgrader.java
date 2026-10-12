@@ -29,7 +29,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ThemeTypeUpgrader extends MongoUpgrader {
 
-    public static final int THEME_TYPE_UPGRADER_ORDER = PlanDefinitionVersionUpgrader.PLAN_DEFINITION_VERSION_UPGRADER_ORDER + 1;
+    public static final int THEME_TYPE_UPGRADER_ORDER =
+            PlanDefinitionVersionUpgrader.PLAN_DEFINITION_VERSION_UPGRADER_ORDER + 1;
 
     @Override
     public String version() {
@@ -40,12 +41,10 @@ public class ThemeTypeUpgrader extends MongoUpgrader {
     public boolean upgrade() {
         var themeTypeNullQuery = new Document("type", null);
 
-        this.getCollection("themes")
-            .find(themeTypeNullQuery)
-            .forEach(theme -> {
-                theme.append("type", "PORTAL");
-                this.getCollection("themes").replaceOne(Filters.eq("_id", theme.getString("_id")), theme);
-            });
+        this.getCollection("themes").find(themeTypeNullQuery).forEach(theme -> {
+            theme.append("type", "PORTAL");
+            this.getCollection("themes").replaceOne(Filters.eq("_id", theme.getString("_id")), theme);
+        });
         return true;
     }
 

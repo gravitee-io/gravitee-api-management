@@ -33,18 +33,18 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class DistributedSubscriptionSynchronizer extends AbstractDistributedSynchronizer<SubscriptionDeployable, SubscriptionDeployer> {
+public class DistributedSubscriptionSynchronizer
+        extends AbstractDistributedSynchronizer<SubscriptionDeployable, SubscriptionDeployer> {
 
     private final DeployerFactory deployerFactory;
     private final SubscriptionMapper subscriptionMapper;
 
     public DistributedSubscriptionSynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final SubscriptionMapper subscriptionMapper
-    ) {
+            final DistributedEventFetcher distributedEventFetcher,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final DeployerFactory deployerFactory,
+            final SubscriptionMapper subscriptionMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.subscriptionMapper = subscriptionMapper;

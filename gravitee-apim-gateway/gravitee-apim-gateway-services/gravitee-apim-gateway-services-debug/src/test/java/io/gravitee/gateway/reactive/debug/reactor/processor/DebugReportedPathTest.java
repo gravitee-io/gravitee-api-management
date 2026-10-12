@@ -170,10 +170,10 @@ class DebugReportedPathTest {
         when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
 
         new DebugCompletionProcessor(eventRepository, objectMapper)
-            .execute(debugCtx)
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete();
+                .execute(debugCtx)
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
 
         ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
         verify(eventRepository).update(captor.capture());
@@ -181,6 +181,10 @@ class DebugReportedPathTest {
     }
 
     private String pathIn(final String payload) throws Exception {
-        return objectMapper.readTree(payload).path("preprocessorStep").path("path").asText(null);
+        return objectMapper
+                .readTree(payload)
+                .path("preprocessorStep")
+                .path("path")
+                .asText(null);
     }
 }

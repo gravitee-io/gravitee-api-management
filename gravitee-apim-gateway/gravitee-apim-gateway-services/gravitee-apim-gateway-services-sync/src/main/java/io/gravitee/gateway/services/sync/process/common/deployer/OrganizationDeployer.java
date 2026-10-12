@@ -44,13 +44,10 @@ public class OrganizationDeployer implements Deployer<OrganizationDeployable> {
                 log.debug("Organization [{}] deployed ", deployable.id());
             } catch (Exception e) {
                 throw new SyncException(
-                    String.format(
-                        "An error occurred when trying to deploy organization %s [%s].",
-                        reactableOrganization.getName(),
-                        reactableOrganization.getId()
-                    ),
-                    e
-                );
+                        String.format(
+                                "An error occurred when trying to deploy organization %s [%s].",
+                                reactableOrganization.getName(), reactableOrganization.getId()),
+                        e);
             }
         });
     }

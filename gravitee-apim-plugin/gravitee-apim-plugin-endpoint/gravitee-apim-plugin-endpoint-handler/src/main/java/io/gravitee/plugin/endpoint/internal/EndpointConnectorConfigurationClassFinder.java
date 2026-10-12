@@ -24,7 +24,8 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class EndpointConnectorConfigurationClassFinder extends AbstractSingleSubTypesFinder<EndpointConnectorConfiguration> {
+public class EndpointConnectorConfigurationClassFinder
+        extends AbstractSingleSubTypesFinder<EndpointConnectorConfiguration> {
 
     public EndpointConnectorConfigurationClassFinder() {
         super(EndpointConnectorConfiguration.class);
@@ -32,7 +33,10 @@ public class EndpointConnectorConfigurationClassFinder extends AbstractSingleSub
 
     @Override
     public Collection<Class<? extends EndpointConnectorConfiguration>> lookup(Class<?> clazz, ClassLoader classLoader) {
-        log.debug("Looking for a configuration class for endpoint {} in package {}", clazz.getName(), clazz.getPackage().getName());
+        log.debug(
+                "Looking for a configuration class for endpoint {} in package {}",
+                clazz.getName(),
+                clazz.getPackage().getName());
         Collection<Class<? extends EndpointConnectorConfiguration>> configurations = super.lookup(clazz, classLoader);
 
         if (configurations.isEmpty()) {

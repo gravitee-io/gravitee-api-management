@@ -28,12 +28,12 @@ public class UserReferenceIdReferenceTypeIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("portalnotificationconfigs")
-            .name("iu1iri1irt1")
-            .key("_id.user", ascending())
-            .key("_id.referenceId", ascending())
-            .key("_id.referenceType", ascending())
-            .unique(true)
-            .build();
+                .collection("portalnotificationconfigs")
+                .name("iu1iri1irt1")
+                .key("_id.user", ascending())
+                .key("_id.referenceId", ascending())
+                .key("_id.referenceType", ascending())
+                .unique(true)
+                .build();
     }
 }

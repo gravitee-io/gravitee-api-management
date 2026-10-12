@@ -68,13 +68,16 @@ public class GroupsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_GROUP,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(
-        @Valid @NotNull GroupSpec spec,
-        @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
-        @QueryParam("ignoreMembers") boolean ignoreMembers
-    ) {
+            @Valid @NotNull GroupSpec spec,
+            @QueryParam("dryRun") boolean dryRun,
+            @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+            @QueryParam("ignoreMembers") boolean ignoreMembers) {
         var auditInfo = getAuditInfo();
 
         var groupCRDSpec = GroupMapper.INSTANCE.groupSpecToGroupCRDSpec(spec);
@@ -91,19 +94,23 @@ public class GroupsResource extends AbstractResource {
         groupCRDSpec.setIgnoreMembers(ignoreMembers);
 
         if (dryRun) {
-            var status = validateGroupCRDUseCase.execute(new ImportGroupCRDUseCase.Input(auditInfo, groupCRDSpec)).status();
+            var status = validateGroupCRDUseCase
+                    .execute(new ImportGroupCRDUseCase.Input(auditInfo, groupCRDSpec))
+                    .status();
 
-            return Response.ok(GroupMapper.INSTANCE.groupSpecAndStatusToGroupState(spec, status, executionContext)).build();
+            return Response.ok(GroupMapper.INSTANCE.groupSpecAndStatusToGroupState(spec, status, executionContext))
+                    .build();
         }
 
-        var status = importGroupCRDUseCase.execute(new ImportGroupCRDUseCase.Input(auditInfo, groupCRDSpec)).status();
+        var status = importGroupCRDUseCase
+                .execute(new ImportGroupCRDUseCase.Input(auditInfo, groupCRDSpec))
+                .status();
 
         var state = GroupMapper.INSTANCE.groupSpecAndStatusToGroupState(spec, status, executionContext);
         // The group's defaults as stored, not the request's: an omitted object leaves them as they were, and an
         // unknown role name leaves its scope without a default.
-        state.setDefaultMemberRoles(
-            GroupMapper.INSTANCE.groupEntityToDefaultMemberRoles(groupService.findById(executionContext, status.getId()))
-        );
+        state.setDefaultMemberRoles(GroupMapper.INSTANCE.groupEntityToDefaultMemberRoles(
+                groupService.findById(executionContext, status.getId())));
         return Response.ok(state).build();
     }
 }

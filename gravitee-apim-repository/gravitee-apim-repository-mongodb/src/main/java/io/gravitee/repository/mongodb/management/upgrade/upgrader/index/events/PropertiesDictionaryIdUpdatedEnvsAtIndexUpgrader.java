@@ -28,11 +28,11 @@ public class PropertiesDictionaryIdUpdatedEnvsAtIndexUpgrader extends IndexUpgra
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("events")
-            .name("pdi1u1e1")
-            .key("properties.dictionary_id", ascending())
-            .key("updatedAt", descending())
-            .key("environments", ascending())
-            .build();
+                .collection("events")
+                .name("pdi1u1e1")
+                .key("properties.dictionary_id", ascending())
+                .key("updatedAt", descending())
+                .key("environments", ascending())
+                .build();
     }
 }

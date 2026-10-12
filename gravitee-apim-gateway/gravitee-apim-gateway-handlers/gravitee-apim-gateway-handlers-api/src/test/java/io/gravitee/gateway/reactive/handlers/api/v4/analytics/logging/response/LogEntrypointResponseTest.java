@@ -134,7 +134,8 @@ class LogEntrypointResponseTest {
         when(response.headers()).thenReturn(headers);
         when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
         when(loggingContext.entrypointResponsePayload()).thenReturn(true);
-        when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any())).thenReturn(false);
+        when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any()))
+                .thenReturn(false);
 
         final var logResponse = new LogEntrypointResponse(loggingContext, response);
         logResponse.capture(ctx);
@@ -172,7 +173,8 @@ class LogEntrypointResponseTest {
     void should_use_failure_status_when_execution_failure_is_present() {
         when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
         when(loggingContext.entrypointResponsePayload()).thenReturn(false);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(new ExecutionFailure(400));
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE))
+                .thenReturn(new ExecutionFailure(400));
 
         final var logResponse = new LogEntrypointResponse(loggingContext, response);
         logResponse.capture(ctx);
@@ -189,9 +191,8 @@ class LogEntrypointResponseTest {
         when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.isBodyLoggable()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(false);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(
-            new ExecutionFailure(400).message(errorMessage)
-        );
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE))
+                .thenReturn(new ExecutionFailure(400).message(errorMessage));
 
         final var logResponse = new LogEntrypointResponse(loggingContext, response);
         logResponse.capture(ctx);

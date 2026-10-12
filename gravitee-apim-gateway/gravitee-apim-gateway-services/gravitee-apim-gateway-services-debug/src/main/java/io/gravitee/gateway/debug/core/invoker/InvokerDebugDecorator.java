@@ -35,7 +35,8 @@ public class InvokerDebugDecorator implements Invoker {
     }
 
     @Override
-    public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
+    public void invoke(
+            ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
         Handler<ProxyConnection> handler = proxyConnection -> {
             connectionHandler.handle(DebugProxyConnectionDecorator.decorate(proxyConnection, context));
         };

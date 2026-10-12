@@ -27,9 +27,11 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface NotificationTemplateService {
-    NotificationTemplateEntity create(ExecutionContext executionContext, NotificationTemplateEntity newNotificationTemplate);
+    NotificationTemplateEntity create(
+            ExecutionContext executionContext, NotificationTemplateEntity newNotificationTemplate);
 
-    NotificationTemplateEntity update(ExecutionContext executionContext, NotificationTemplateEntity updatingNotificationTemplate);
+    NotificationTemplateEntity update(
+            ExecutionContext executionContext, NotificationTemplateEntity updatingNotificationTemplate);
 
     NotificationTemplateEntity findById(String organizationId, String id);
 
@@ -49,7 +51,8 @@ public interface NotificationTemplateService {
      * @param params
      * @return
      */
-    default String resolveInlineTemplateWithParam(String organizationId, String name, String inlineTemplate, Object params) {
+    default String resolveInlineTemplateWithParam(
+            String organizationId, String name, String inlineTemplate, Object params) {
         return resolveInlineTemplateWithParam(organizationId, name, inlineTemplate, params, true);
     }
 
@@ -62,13 +65,9 @@ public interface NotificationTemplateService {
      * @return
      */
     default String resolveInlineTemplateWithParam(
-        String organizationId,
-        String name,
-        String inlineTemplate,
-        Object params,
-        boolean ignoreTplException
-    ) {
-        return resolveInlineTemplateWithParam(organizationId, name, new StringReader(inlineTemplate), params, ignoreTplException);
+            String organizationId, String name, String inlineTemplate, Object params, boolean ignoreTplException) {
+        return resolveInlineTemplateWithParam(
+                organizationId, name, new StringReader(inlineTemplate), params, ignoreTplException);
     }
 
     /**
@@ -79,7 +78,8 @@ public interface NotificationTemplateService {
      * @param params
      * @return
      */
-    default String resolveInlineTemplateWithParam(String organizationId, String name, Reader inlineTemplateReader, Object params) {
+    default String resolveInlineTemplateWithParam(
+            String organizationId, String name, Reader inlineTemplateReader, Object params) {
         return resolveInlineTemplateWithParam(organizationId, name, inlineTemplateReader, params, true);
     }
 
@@ -93,12 +93,7 @@ public interface NotificationTemplateService {
      * @return
      */
     String resolveInlineTemplateWithParam(
-        String organizationId,
-        String name,
-        Reader inlineTemplateReader,
-        Object params,
-        boolean ignoreTplException
-    );
+            String organizationId, String name, Reader inlineTemplateReader, Object params, boolean ignoreTplException);
 
     void updateFreemarkerCache(NotificationTemplateEntity notificationTemplate, String organization);
 }

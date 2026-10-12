@@ -41,15 +41,13 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
 
         if (proxy.getVirtualHosts() != null) {
             jgen.writeArrayFieldStart("virtual_hosts");
-            proxy
-                .getVirtualHosts()
-                .forEach(vhost -> {
-                    try {
-                        jgen.writeObject(vhost);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            proxy.getVirtualHosts().forEach(vhost -> {
+                try {
+                    jgen.writeObject(vhost);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
             jgen.writeEndArray();
         }
 
@@ -85,15 +83,13 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
 
         if (proxy.getServers() != null && !proxy.getServers().isEmpty()) {
             jgen.writeArrayFieldStart("servers");
-            proxy
-                .getServers()
-                .forEach(server -> {
-                    try {
-                        jgen.writeObject(server);
-                    } catch (IOException e) {
-                        log.warn("An error occurred while serializing api proxy servers.", e);
-                    }
-                });
+            proxy.getServers().forEach(server -> {
+                try {
+                    jgen.writeObject(server);
+                } catch (IOException e) {
+                    log.warn("An error occurred while serializing api proxy servers.", e);
+                }
+            });
             jgen.writeEndArray();
         }
 

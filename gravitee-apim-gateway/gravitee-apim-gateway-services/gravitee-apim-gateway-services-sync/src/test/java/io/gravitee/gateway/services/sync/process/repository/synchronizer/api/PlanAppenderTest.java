@@ -30,7 +30,6 @@ import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.NativeApi;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,9 +84,13 @@ class PlanAppenderTest {
             plan.setSecurity(OAUTH2.name());
             plan2.setStatus("CLOSED");
             apiV2.setPlans(List.of(plan, plan2));
-            io.gravitee.gateway.handlers.api.definition.Api reactableApi = new io.gravitee.gateway.handlers.api.definition.Api(apiV2);
+            io.gravitee.gateway.handlers.api.definition.Api reactableApi =
+                    new io.gravitee.gateway.handlers.api.definition.Api(apiV2);
 
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+                    .apiId("apiId")
+                    .reactableApi(reactableApi)
+                    .build();
             List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).hasSize(1);
             assertThat(appends.get(0).subscribablePlans()).hasSize(1);
@@ -98,9 +101,13 @@ class PlanAppenderTest {
             io.gravitee.definition.model.Api apiV2 = new io.gravitee.definition.model.Api();
             apiV2.setId("apiId");
             apiV2.setDefinitionVersion(DefinitionVersion.V2);
-            io.gravitee.gateway.handlers.api.definition.Api reactableApi = new io.gravitee.gateway.handlers.api.definition.Api(apiV2);
+            io.gravitee.gateway.handlers.api.definition.Api reactableApi =
+                    new io.gravitee.gateway.handlers.api.definition.Api(apiV2);
 
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+                    .apiId("apiId")
+                    .reactableApi(reactableApi)
+                    .build();
             List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).isEmpty();
         }
@@ -117,19 +124,22 @@ class PlanAppenderTest {
             PlanSecurity planSecurity = new PlanSecurity();
             planSecurity.setType("api-key");
             io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan.builder()
-                .id("planId")
-                .security(planSecurity)
-                .status(PlanStatus.PUBLISHED)
-                .build();
+                    .id("planId")
+                    .security(planSecurity)
+                    .status(PlanStatus.PUBLISHED)
+                    .build();
             io.gravitee.definition.model.v4.plan.Plan plan2 = io.gravitee.definition.model.v4.plan.Plan.builder()
-                .id("planId2")
-                .security(planSecurity)
-                .status(PlanStatus.CLOSED)
-                .build();
+                    .id("planId2")
+                    .security(planSecurity)
+                    .status(PlanStatus.CLOSED)
+                    .build();
             apiV4.setPlans(List.of(plan, plan2));
             Api reactableApi = new Api(apiV4);
 
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+                    .apiId("apiId")
+                    .reactableApi(reactableApi)
+                    .build();
             List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).hasSize(1);
             assertThat(appends.get(0).subscribablePlans()).hasSize(1);
@@ -142,7 +152,10 @@ class PlanAppenderTest {
             apiV4.setDefinitionVersion(DefinitionVersion.V4);
             Api reactableApi = new Api(apiV4);
 
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+                    .apiId("apiId")
+                    .reactableApi(reactableApi)
+                    .build();
             List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).isEmpty();
         }
@@ -155,72 +168,88 @@ class PlanAppenderTest {
         void should_return_v4_native_apis_with_plans() {
             when(gatewayConfiguration.hasMatchingTags(Set.of("matching"))).thenReturn(true);
             when(gatewayConfiguration.hasMatchingTags(Set.of("unmatching"))).thenReturn(false);
-            final NativePlan.NativePlanBuilder<?, ?> securedPlanBuilder = NativePlan.builder().security(
-                PlanSecurity.builder().type("api-key").build()
-            );
+            final NativePlan.NativePlanBuilder<?, ?> securedPlanBuilder = NativePlan.builder()
+                    .security(PlanSecurity.builder().type("api-key").build());
             final NativePlan publishedPlanWithMatchingTag = securedPlanBuilder
-                .id("plan-published-matching-tag")
-                .status(PlanStatus.PUBLISHED)
-                .tags(Set.of("matching"))
-                .build();
+                    .id("plan-published-matching-tag")
+                    .status(PlanStatus.PUBLISHED)
+                    .tags(Set.of("matching"))
+                    .build();
             final NativePlan deprecatedPlanWithMatchingTag = securedPlanBuilder
-                .id("plan-deprecated-matching-tag")
-                .status(PlanStatus.DEPRECATED)
-                .tags(Set.of("matching"))
-                .build();
-            final NativePlan publishedPlanWithNoTag = securedPlanBuilder.id("plan-published-no-tag").status(PlanStatus.PUBLISHED).build();
+                    .id("plan-deprecated-matching-tag")
+                    .status(PlanStatus.DEPRECATED)
+                    .tags(Set.of("matching"))
+                    .build();
+            final NativePlan publishedPlanWithNoTag = securedPlanBuilder
+                    .id("plan-published-no-tag")
+                    .status(PlanStatus.PUBLISHED)
+                    .build();
             final NativePlan deprecatedPlanWithNoTag = securedPlanBuilder
-                .id("plan-deprecated-no-tag")
-                .status(PlanStatus.DEPRECATED)
-                .build();
-            final NativeApi nativeApi = new NativeApi(
-                io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
-                    .plans(
-                        Map.of(
+                    .id("plan-deprecated-no-tag")
+                    .status(PlanStatus.DEPRECATED)
+                    .build();
+            final NativeApi nativeApi = new NativeApi(io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
+                    .plans(Map.of(
                             "plan-without-status-no-tag",
-                            securedPlanBuilder.id("plan-without-status-no-tag").status(null).build(),
+                            securedPlanBuilder
+                                    .id("plan-without-status-no-tag")
+                                    .status(null)
+                                    .build(),
                             "plan-staging-no-tag",
-                            securedPlanBuilder.id("plan-staging-no-tag").status(PlanStatus.STAGING).build(),
+                            securedPlanBuilder
+                                    .id("plan-staging-no-tag")
+                                    .status(PlanStatus.STAGING)
+                                    .build(),
                             "plan-published-no-tag",
                             publishedPlanWithNoTag,
                             "plan-deprecated-no-tag",
                             deprecatedPlanWithNoTag,
                             "plan-closed-no-tag",
-                            securedPlanBuilder.id("plan-closed-no-tag").status(PlanStatus.CLOSED).build(),
+                            securedPlanBuilder
+                                    .id("plan-closed-no-tag")
+                                    .status(PlanStatus.CLOSED)
+                                    .build(),
                             "plan-published-matching-tag",
                             publishedPlanWithMatchingTag,
                             "plan-deprecated-matching-tag",
                             deprecatedPlanWithMatchingTag,
                             "plan-published-invalid-matching-tag",
-                            publishedPlanWithMatchingTag.toBuilder().tags(Set.of("unmatching")).build(),
+                            publishedPlanWithMatchingTag.toBuilder()
+                                    .tags(Set.of("unmatching"))
+                                    .build(),
                             "plan-deprecated-invalid-matching-tag",
-                            deprecatedPlanWithMatchingTag.toBuilder().tags(Set.of("unmatching")).build()
-                        )
-                    )
-                    .build()
-            );
+                            deprecatedPlanWithMatchingTag.toBuilder()
+                                    .tags(Set.of("unmatching"))
+                                    .build()))
+                    .build());
 
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(nativeApi).build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+                    .apiId("apiId")
+                    .reactableApi(nativeApi)
+                    .build();
             List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).hasSize(1);
             assertThat(appends.get(0).subscribablePlans())
-                .hasSize(4)
-                .contains(
-                    publishedPlanWithMatchingTag.getId(),
-                    deprecatedPlanWithMatchingTag.getId(),
-                    publishedPlanWithNoTag.getId(),
-                    deprecatedPlanWithNoTag.getId()
-                );
+                    .hasSize(4)
+                    .contains(
+                            publishedPlanWithMatchingTag.getId(),
+                            deprecatedPlanWithMatchingTag.getId(),
+                            publishedPlanWithNoTag.getId(),
+                            deprecatedPlanWithNoTag.getId());
         }
 
         @Test
         void should_filter_v4_native_apis_without_plans() {
-            io.gravitee.definition.model.v4.nativeapi.NativeApi apiV4 = new io.gravitee.definition.model.v4.nativeapi.NativeApi();
+            io.gravitee.definition.model.v4.nativeapi.NativeApi apiV4 =
+                    new io.gravitee.definition.model.v4.nativeapi.NativeApi();
             apiV4.setId("apiId");
             apiV4.setDefinitionVersion(DefinitionVersion.V4);
             NativeApi reactableApi = new NativeApi(apiV4);
 
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+                    .apiId("apiId")
+                    .reactableApi(reactableApi)
+                    .build();
             List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));
             assertThat(appends).isEmpty();
         }

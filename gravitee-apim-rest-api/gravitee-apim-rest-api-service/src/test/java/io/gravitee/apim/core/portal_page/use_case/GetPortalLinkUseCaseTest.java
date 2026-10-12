@@ -39,17 +39,20 @@ import org.junit.jupiter.api.Test;
 class GetPortalLinkUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String PORTAL_ID = "11111111-1111-1111-1111-111111111111";
     private static final String LINK_HRID = "external-docs";
-    private static final PortalNavigationItemId LINK_ID = PortalNavigationItemId.of(
-        HRIDToUUID.portalLink().context(AUDIT_INFO).portal(PORTAL_ID).hrid(LINK_HRID).id()
-    );
+    private static final PortalNavigationItemId LINK_ID = PortalNavigationItemId.of(HRIDToUUID.portalLink()
+            .context(AUDIT_INFO)
+            .portal(PORTAL_ID)
+            .hrid(LINK_HRID)
+            .id());
 
-    private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory queryService =
+            new PortalNavigationItemsQueryServiceInMemory();
     private GetPortalLinkUseCase useCase;
 
     @BeforeEach
@@ -82,21 +85,17 @@ class GetPortalLinkUseCaseTest {
 
     @Test
     void should_throw_when_the_id_resolves_to_a_foreign_non_link_item() {
-        queryService.initWith(
-            List.of(
-                PortalNavigationFolder.builder()
-                    .id(LINK_ID)
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("external-docs")
-                    .segment("external-docs")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .published(true)
-                    .visibility(PortalVisibility.PUBLIC)
-                    .build()
-            )
-        );
+        queryService.initWith(List.of(PortalNavigationFolder.builder()
+                .id(LINK_ID)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("external-docs")
+                .segment("external-docs")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build()));
 
         var throwable = catchThrowable(() -> useCase.execute(new GetPortalLinkUseCase.Input(AUDIT_INFO, LINK_ID)));
 
@@ -105,16 +104,16 @@ class GetPortalLinkUseCaseTest {
 
     private static PortalNavigationLink aLink() {
         return PortalNavigationLink.builder()
-            .id(LINK_ID)
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title("External Docs")
-            .segment(LINK_HRID)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(3)
-            .url("https://docs.example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(LINK_ID)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("External Docs")
+                .segment(LINK_HRID)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(3)
+                .url("https://docs.example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 }

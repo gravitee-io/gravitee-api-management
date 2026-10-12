@@ -56,7 +56,8 @@ class ValidatePortalNotificationDomainServiceTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String ACTOR_USER_ID = "actor-user-id";
 
-    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
 
     ValidatePortalNotificationDomainService underTest;
 
@@ -104,15 +105,16 @@ class ValidatePortalNotificationDomainServiceTest {
         assertThat(result.value()).isPresent();
         assertThat(result.errors()).isPresent();
         assertThat(result.severe())
-            .get()
-            .asInstanceOf(LIST)
-            .hasSize(1)
-            .allMatch(e -> ((Validator.Error) e).getMessage().contains("'PORTAL'"));
+                .get()
+                .asInstanceOf(LIST)
+                .hasSize(1)
+                .allMatch(e -> ((Validator.Error) e).getMessage().contains("'PORTAL'"));
     }
 
     @Test
     void should_not_validate_when_groups_invalid() {
-        when(groupValidator.validateAndSanitize(any())).thenReturn(Validator.Result.ofErrors(List.of(Validator.Error.severe("failed!"))));
+        when(groupValidator.validateAndSanitize(any()))
+                .thenReturn(Validator.Result.ofErrors(List.of(Validator.Error.severe("failed!"))));
 
         PortalNotificationConfigEntity notification = portalNotification(NotificationConfigType.PORTAL);
         var input = new ValidatePortalNotificationDomainService.Input(notification, "4.0.0", null, null, AUDIT_INFO);
@@ -121,32 +123,38 @@ class ValidatePortalNotificationDomainServiceTest {
 
         assertThat(result.value()).isPresent();
         assertThat(result.errors()).isPresent();
-        assertThat(result.severe()).get().asInstanceOf(LIST).extracting("message").containsExactly("failed!");
+        assertThat(result.severe())
+                .get()
+                .asInstanceOf(LIST)
+                .extracting("message")
+                .containsExactly("failed!");
     }
 
     public static Stream<Arguments> notificationGroups() {
         return Stream.of(
-            arguments(Set.of(), Set.of("group-1"), true),
-            arguments(null, Set.of("group-1"), true),
-            arguments(Set.of("group-2"), Set.of("group-1"), true),
-            arguments(Set.of("group-2"), Set.of("group-1", "group-2"), true),
-            arguments(Set.of(), Set.of(), false),
-            arguments(Set.of(), null, false),
-            arguments(null, Set.of(), false),
-            arguments(null, null, false),
-            arguments(Set.of("group-1"), Set.of(), false),
-            arguments(Set.of("group-1"), null, false)
-        );
+                arguments(Set.of(), Set.of("group-1"), true),
+                arguments(null, Set.of("group-1"), true),
+                arguments(Set.of("group-2"), Set.of("group-1"), true),
+                arguments(Set.of("group-2"), Set.of("group-1", "group-2"), true),
+                arguments(Set.of(), Set.of(), false),
+                arguments(Set.of(), null, false),
+                arguments(null, Set.of(), false),
+                arguments(null, null, false),
+                arguments(Set.of("group-1"), Set.of(), false),
+                arguments(Set.of("group-1"), null, false));
     }
 
     @MethodSource("notificationGroups")
     @ParameterizedTest
-    void should_validate_with_allowed_groups(Set<String> allowedGroups, Set<String> consoleNotificationGroup, boolean expectErrors) {
-        when(groupValidator.validateAndSanitize(any())).thenReturn(Validator.Result.ofValue(groupInput(consoleNotificationGroup)));
+    void should_validate_with_allowed_groups(
+            Set<String> allowedGroups, Set<String> consoleNotificationGroup, boolean expectErrors) {
+        when(groupValidator.validateAndSanitize(any()))
+                .thenReturn(Validator.Result.ofValue(groupInput(consoleNotificationGroup)));
 
         PortalNotificationConfigEntity notification = portalNotification(NotificationConfigType.PORTAL);
         notification.setGroups(CollectionUtils.stream(consoleNotificationGroup).toList());
-        var input = new ValidatePortalNotificationDomainService.Input(notification, "4.0.0", null, allowedGroups, AUDIT_INFO);
+        var input = new ValidatePortalNotificationDomainService.Input(
+                notification, "4.0.0", null, allowedGroups, AUDIT_INFO);
 
         var result = underTest.validateAndSanitize(input);
 
@@ -154,12 +162,12 @@ class ValidatePortalNotificationDomainServiceTest {
             assertThat(result.value()).isPresent();
             assertThat(result.errors()).isPresent();
             assertThat(result.severe())
-                .get()
-                .asInstanceOf(InstanceOfAssertFactories.list(Validator.Error.class))
-                .extracting(Validator.Error::getMessage)
-                .singleElement()
-                .asInstanceOf(STRING)
-                .contains("where only those are allowed %s".formatted(allowedGroups));
+                    .get()
+                    .asInstanceOf(InstanceOfAssertFactories.list(Validator.Error.class))
+                    .extracting(Validator.Error::getMessage)
+                    .singleElement()
+                    .asInstanceOf(STRING)
+                    .contains("where only those are allowed %s".formatted(allowedGroups));
         } else {
             assertThat(result.value()).isPresent();
             assertThat(result.errors()).isEmpty();

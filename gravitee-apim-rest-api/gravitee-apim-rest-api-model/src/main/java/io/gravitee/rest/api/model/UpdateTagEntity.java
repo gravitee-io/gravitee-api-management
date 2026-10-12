@@ -65,11 +65,9 @@ public class UpdateTagEntity {
         if (this == o) return true;
         if (!(o instanceof UpdateTagEntity)) return false;
         UpdateTagEntity that = (UpdateTagEntity) o;
-        return (
-            Objects.equals(name, that.name) &&
-            Objects.equals(description, that.description) &&
-            Objects.equals(restrictedGroups, that.restrictedGroups)
-        );
+        return (Objects.equals(name, that.name)
+                && Objects.equals(description, that.description)
+                && Objects.equals(restrictedGroups, that.restrictedGroups));
     }
 
     @Override
@@ -79,17 +77,14 @@ public class UpdateTagEntity {
 
     @Override
     public String toString() {
-        return (
-            "UpdateTagEntity{" +
-            "name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", restrictedGroups=" +
-            restrictedGroups +
-            '}'
-        );
+        return ("UpdateTagEntity{" + "name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", restrictedGroups="
+                + restrictedGroups
+                + '}');
     }
 }

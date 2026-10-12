@@ -72,31 +72,29 @@ public abstract class PolicyStep<T> {
 
     public Completable pre(final T source, final Map<String, Object> attributes) {
         return saveInputState(source, AttributeHelper.filterAndSerializeAttributes(attributes))
-            .doOnSuccess(policyStepState -> {
-                this.inputState = policyStepState;
-                starTimeWatch();
-            })
-            .ignoreElement();
+                .doOnSuccess(policyStepState -> {
+                    this.inputState = policyStepState;
+                    starTimeWatch();
+                })
+                .ignoreElement();
     }
 
-    protected abstract Single<PolicyStepState> saveInputState(final T source, final Map<String, Serializable> inputAttributes);
+    protected abstract Single<PolicyStepState> saveInputState(
+            final T source, final Map<String, Serializable> inputAttributes);
 
     public Completable post(final T source, final Map<String, Object> attributes) {
         return Completable.fromRunnable(this::stopTimeWatch)
-            .andThen(computeDiff(source, this.inputState, AttributeHelper.filterAndSerializeAttributes(attributes)))
-            .doOnSuccess(computedDiffMap -> {
-                this.diffMap = computedDiffMap;
-                this.inputState = null;
-                this.status = this.status == null ? DebugStepStatus.COMPLETED : this.status;
-            })
-            .ignoreElement();
+                .andThen(computeDiff(source, this.inputState, AttributeHelper.filterAndSerializeAttributes(attributes)))
+                .doOnSuccess(computedDiffMap -> {
+                    this.diffMap = computedDiffMap;
+                    this.inputState = null;
+                    this.status = this.status == null ? DebugStepStatus.COMPLETED : this.status;
+                })
+                .ignoreElement();
     }
 
     protected abstract Single<Map<String, Object>> computeDiff(
-        final T source,
-        final PolicyStepState inputState,
-        final Map<String, Serializable> outputAttributes
-    );
+            final T source, final PolicyStepState inputState, final Map<String, Serializable> outputAttributes);
 
     public Map<String, Object> getDiff() {
         if (diffMap == null) {
@@ -194,46 +192,52 @@ public abstract class PolicyStep<T> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PolicyStep<?> that = (PolicyStep<?>) o;
-        return (
-            ended == that.ended &&
-            Objects.equals(id, that.id) &&
-            Objects.equals(policyId, that.policyId) &&
-            executionPhase == that.executionPhase &&
-            Objects.equals(flowPhase, that.flowPhase) &&
-            Objects.equals(stopwatch, that.stopwatch) &&
-            status == that.status &&
-            Objects.equals(condition, that.condition) &&
-            Objects.equals(error, that.error) &&
-            Objects.equals(inputState, that.inputState) &&
-            Objects.equals(diffMap, that.diffMap)
-        );
+        return (ended == that.ended
+                && Objects.equals(id, that.id)
+                && Objects.equals(policyId, that.policyId)
+                && executionPhase == that.executionPhase
+                && Objects.equals(flowPhase, that.flowPhase)
+                && Objects.equals(stopwatch, that.stopwatch)
+                && status == that.status
+                && Objects.equals(condition, that.condition)
+                && Objects.equals(error, that.error)
+                && Objects.equals(inputState, that.inputState)
+                && Objects.equals(diffMap, that.diffMap));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policyId, executionPhase, flowPhase, stopwatch, status, condition, error, ended, inputState, diffMap);
+        return Objects.hash(
+                id,
+                policyId,
+                executionPhase,
+                flowPhase,
+                stopwatch,
+                status,
+                condition,
+                error,
+                ended,
+                inputState,
+                diffMap);
     }
 
     @Override
     public String toString() {
-        return (
-            getClass().getSimpleName() +
-            "{" +
-            "id='" +
-            id +
-            '\'' +
-            "policyId='" +
-            policyId +
-            '\'' +
-            ", executionPhase=" +
-            executionPhase +
-            ", stopwatch=" +
-            stopwatch.elapsed(TimeUnit.NANOSECONDS) +
-            " ns" +
-            ", diffMap='" +
-            diffMap +
-            '\'' +
-            '}'
-        );
+        return (getClass().getSimpleName() + "{"
+                + "id='"
+                + id
+                + '\''
+                + "policyId='"
+                + policyId
+                + '\''
+                + ", executionPhase="
+                + executionPhase
+                + ", stopwatch="
+                + stopwatch.elapsed(TimeUnit.NANOSECONDS)
+                + " ns"
+                + ", diffMap='"
+                + diffMap
+                + '\''
+                + '}');
     }
 }

@@ -29,31 +29,29 @@ import lombok.Builder;
 
 public interface ApiHealthQueryService {
     Maybe<AverageHealthCheckResponseTime> averageResponseTime(ApiFieldPeriodQuery query);
+
     Maybe<AvailabilityHealthCheck> availability(ApiFieldPeriodQuery query);
-    Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(AverageHealthCheckResponseTimeOvertimeQuery query);
+
+    Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(
+            AverageHealthCheckResponseTimeOvertimeQuery query);
+
     Maybe<Page<HealthCheckLog>> searchLogs(SearchLogsQuery query);
 
     @Builder(toBuilder = true)
-    record ApiFieldPeriodQuery(String organizationId, String environmentId, String apiId, String field, Instant from, Instant to) {}
+    record ApiFieldPeriodQuery(
+            String organizationId, String environmentId, String apiId, String field, Instant from, Instant to) {}
 
     @Builder(toBuilder = true)
     record AverageHealthCheckResponseTimeOvertimeQuery(
-        String organizationId,
-        String environmentId,
-        String apiId,
-        Instant from,
-        Instant to,
-        Duration interval
-    ) {}
+            String organizationId, String environmentId, String apiId, Instant from, Instant to, Duration interval) {}
 
     @Builder(toBuilder = true)
     record SearchLogsQuery(
-        String organizationId,
-        String environmentId,
-        String apiId,
-        Instant from,
-        Instant to,
-        Optional<Boolean> success,
-        Pageable pageable
-    ) {}
+            String organizationId,
+            String environmentId,
+            String apiId,
+            Instant from,
+            Instant to,
+            Optional<Boolean> success,
+            Pageable pageable) {}
 }

@@ -48,18 +48,16 @@ public class PortalListingCrudServiceInMemory implements PortalListingCrudServic
 
     @Override
     public Optional<PortalListing> findByIdAndEnvironmentId(PortalListingId portalListingId, String environmentId) {
-        return storage
-            .stream()
-            .filter(p -> portalListingId.equals(p.getId()) && environmentId.equals(p.getEnvironmentId()))
-            .findFirst();
+        return storage.stream()
+                .filter(p -> portalListingId.equals(p.getId()) && environmentId.equals(p.getEnvironmentId()))
+                .findFirst();
     }
 
     @Override
     public List<PortalListing> findAllByPortalIdAndEnvironmentId(PortalId portalId, String environmentId) {
-        return storage
-            .stream()
-            .filter(p -> portalId.equals(p.getPortalId()) && environmentId.equals(p.getEnvironmentId()))
-            .toList();
+        return storage.stream()
+                .filter(p -> portalId.equals(p.getPortalId()) && environmentId.equals(p.getEnvironmentId()))
+                .toList();
     }
 
     @Override

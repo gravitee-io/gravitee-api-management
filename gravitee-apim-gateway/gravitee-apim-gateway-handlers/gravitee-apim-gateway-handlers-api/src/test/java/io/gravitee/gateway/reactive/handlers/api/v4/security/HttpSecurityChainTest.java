@@ -65,13 +65,7 @@ class HttpSecurityChainTest {
         Api api = createMinimalApi();
 
         HttpSecurityChain chain = new HttpSecurityChain(
-            api,
-            policyManager,
-            ExecutionPhase.REQUEST,
-            "env-1",
-            null,
-            apiProductPlanPolicyManager
-        );
+                api, policyManager, ExecutionPhase.REQUEST, "env-1", null, apiProductPlanPolicyManager);
 
         assertThat(chain).isNotNull();
     }
@@ -81,13 +75,7 @@ class HttpSecurityChainTest {
         Api api = createMinimalApi();
 
         HttpSecurityChain chain = new HttpSecurityChain(
-            api,
-            policyManager,
-            ExecutionPhase.REQUEST,
-            "env-1",
-            null,
-            apiProductPlanPolicyManager
-        );
+                api, policyManager, ExecutionPhase.REQUEST, "env-1", null, apiProductPlanPolicyManager);
 
         HttpSecurityChain refreshed = chain.refresh();
 

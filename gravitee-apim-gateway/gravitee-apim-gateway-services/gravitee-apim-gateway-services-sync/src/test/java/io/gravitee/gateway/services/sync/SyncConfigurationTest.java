@@ -39,13 +39,15 @@ class SyncConfigurationTest {
 
     @Test
     void should_provide_subscription_dispatcher() {
-        final Supplier<SubscriptionDispatcher> supplier = cut.provideSubscriptionDispatcher(new DummySubscriptionDispatcher(false));
+        final Supplier<SubscriptionDispatcher> supplier =
+                cut.provideSubscriptionDispatcher(new DummySubscriptionDispatcher(false));
         Assertions.assertThat(supplier.get()).isInstanceOf(DummySubscriptionDispatcher.class);
     }
 
     @Test
     void should_provide_noop_subscription_dispatcher() {
-        final Supplier<SubscriptionDispatcher> supplier = cut.provideSubscriptionDispatcher(new DummySubscriptionDispatcher(true));
+        final Supplier<SubscriptionDispatcher> supplier =
+                cut.provideSubscriptionDispatcher(new DummySubscriptionDispatcher(true));
         Assertions.assertThat(supplier.get()).isInstanceOf(NoOpSubscriptionDispatcher.class);
     }
 

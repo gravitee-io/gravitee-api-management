@@ -28,12 +28,12 @@ class CredentialWireTest {
     @Test
     void should_round_trip_through_json() throws Exception {
         Credential c = Credential.builder()
-            .id("credential-1")
-            .environmentId("env-1")
-            .encryptedSecret("ciphertext")
-            .updatedAt("2026-09-14T00:00:00Z")
-            .allowedApiIds(Set.of("api-1", "api-2"))
-            .build();
+                .id("credential-1")
+                .environmentId("env-1")
+                .encryptedSecret("ciphertext")
+                .updatedAt("2026-09-14T00:00:00Z")
+                .allowedApiIds(Set.of("api-1", "api-2"))
+                .build();
 
         Credential back = om.readValue(om.writeValueAsString(c), Credential.class);
 
@@ -42,7 +42,11 @@ class CredentialWireTest {
 
     @Test
     void should_keep_the_encrypted_secret_out_of_toString() {
-        Credential c = Credential.builder().id("credential-1").environmentId("env-1").encryptedSecret("ciphertext").build();
+        Credential c = Credential.builder()
+                .id("credential-1")
+                .environmentId("env-1")
+                .encryptedSecret("ciphertext")
+                .build();
 
         assertThat(c.toString()).contains("credential-1").doesNotContain("ciphertext");
     }

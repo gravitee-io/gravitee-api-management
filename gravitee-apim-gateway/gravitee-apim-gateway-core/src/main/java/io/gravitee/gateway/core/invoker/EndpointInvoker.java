@@ -46,71 +46,70 @@ public class EndpointInvoker implements Invoker {
     }
 
     @Override
-    public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
+    public void invoke(
+            ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
         // Look at the request context attribute to retrieve the final target (which could be overridden by a policy)
-        final ProxyEndpoint endpoint = endpointResolver.resolve((String) context.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT));
+        final ProxyEndpoint endpoint =
+                endpointResolver.resolve((String) context.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT));
 
         // Endpoint can be null if none endpoint can be selected or if the selected endpoint is unavailable
         if (endpoint == null) {
             context.request().metrics().setMessage("No endpoint could be resolved for this request");
-            DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+            DirectProxyConnection statusOnlyConnection =
+                    new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
             connectionHandler.handle(statusOnlyConnection);
             statusOnlyConnection.sendResponse();
         } else if (!endpoint.available()) {
-            context
-                .request()
-                .metrics()
-                .setMessage("Endpoint '" + endpoint.name() + "' (" + endpoint.target() + ") is currently unavailable");
-            DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+            context.request()
+                    .metrics()
+                    .setMessage(
+                            "Endpoint '" + endpoint.name() + "' (" + endpoint.target() + ") is currently unavailable");
+            DirectProxyConnection statusOnlyConnection =
+                    new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
             connectionHandler.handle(statusOnlyConnection);
             statusOnlyConnection.sendResponse();
         } else {
             try {
-                final ProxyRequest proxyRequest = endpoint.createProxyRequest(context.request(), proxyRequestBuilder ->
-                    proxyRequestBuilder.method(getHttpMethod(context))
-                );
+                final ProxyRequest proxyRequest = endpoint.createProxyRequest(
+                        context.request(), proxyRequestBuilder -> proxyRequestBuilder.method(getHttpMethod(context)));
 
                 // HTTP/2 inbound requests may lack Content-Length and Transfer-Encoding headers.
                 // The legacy connector needs one of these to stream the body to the backend over HTTP/1.1.
                 // We skip gRPC requests (application/grpc) as they use HTTP/2 end-to-end.
-                if (
-                    context.request().version() == HttpVersion.HTTP_2 &&
-                    proxyRequest.headers().get(HttpHeaderNames.CONTENT_LENGTH) == null &&
-                    proxyRequest.headers().get(HttpHeaderNames.TRANSFER_ENCODING) == null &&
-                    !isGrpcRequest(proxyRequest)
-                ) {
+                if (context.request().version() == HttpVersion.HTTP_2
+                        && proxyRequest.headers().get(HttpHeaderNames.CONTENT_LENGTH) == null
+                        && proxyRequest.headers().get(HttpHeaderNames.TRANSFER_ENCODING) == null
+                        && !isGrpcRequest(proxyRequest)) {
                     proxyRequest.headers().set(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
                 }
 
-                endpoint
-                    .connector()
-                    .request(proxyRequest, context, proxyConnection -> {
-                        final ProxyConnection decoratedProxyConnection = LoggableProxyConnectionDecorator.decorate(
-                            proxyConnection,
-                            proxyRequest,
-                            context
-                        );
+                endpoint.connector().request(proxyRequest, context, proxyConnection -> {
+                    final ProxyConnection decoratedProxyConnection =
+                            LoggableProxyConnectionDecorator.decorate(proxyConnection, proxyRequest, context);
 
-                        // Plug underlying stream to connection stream
-                        stream
-                            .bodyHandler(buffer -> {
+                    // Plug underlying stream to connection stream
+                    stream.bodyHandler(buffer -> {
                                 decoratedProxyConnection.write(buffer);
 
                                 if (decoratedProxyConnection.writeQueueFull()) {
                                     context.request().pause();
-                                    decoratedProxyConnection.drainHandler(aVoid -> context.request().resume());
+                                    decoratedProxyConnection.drainHandler(
+                                            aVoid -> context.request().resume());
                                 }
                             })
                             .endHandler(aVoid -> decoratedProxyConnection.end());
 
-                        connectionHandler.handle(decoratedProxyConnection);
+                    connectionHandler.handle(decoratedProxyConnection);
 
-                        // Inbound request could only be resume once we succeed to connect to the underlying backend
-                        // otherwise, the endHandler will be called first (seems to be a breaking change since Vert.x 4.x)
-                        context.request().resume();
-                    });
+                    // Inbound request could only be resume once we succeed to connect to the underlying backend
+                    // otherwise, the endHandler will be called first (seems to be a breaking change since Vert.x 4.x)
+                    context.request().resume();
+                });
             } catch (Exception ex) {
-                context.request().metrics().setMessage(NestedExceptionUtils.getMostSpecificCause(ex).getMessage());
+                context.request()
+                        .metrics()
+                        .setMessage(
+                                NestedExceptionUtils.getMostSpecificCause(ex).getMessage());
 
                 // Request URI is not correct nor correctly encoded, returning a bad request
                 DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.BAD_REQUEST_400);
@@ -121,9 +120,8 @@ public class EndpointInvoker implements Invoker {
     }
 
     private HttpMethod getHttpMethod(ExecutionContext context) {
-        io.gravitee.common.http.HttpMethod overrideMethod = (io.gravitee.common.http.HttpMethod) context.getAttribute(
-            ExecutionContext.ATTR_REQUEST_METHOD
-        );
+        io.gravitee.common.http.HttpMethod overrideMethod =
+                (io.gravitee.common.http.HttpMethod) context.getAttribute(ExecutionContext.ATTR_REQUEST_METHOD);
         return (overrideMethod == null) ? context.request().method() : overrideMethod;
     }
 

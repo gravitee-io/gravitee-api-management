@@ -78,7 +78,10 @@ public abstract class AbstractEndpointGroup<E extends AbstractEndpoint> implemen
     @JsonIgnore
     public List<Plugin> getPlugins() {
         return Optional.ofNullable(this.endpoints)
-            .map(e -> e.stream().map(AbstractEndpoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-            .orElse(List.of());
+                .map(e -> e.stream()
+                        .map(AbstractEndpoint::getPlugins)
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList()))
+                .orElse(List.of());
     }
 }

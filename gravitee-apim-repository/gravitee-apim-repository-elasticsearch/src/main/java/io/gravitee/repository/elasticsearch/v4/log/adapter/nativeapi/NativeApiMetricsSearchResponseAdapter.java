@@ -31,12 +31,9 @@ public final class NativeApiMetricsSearchResponseAdapter {
         }
         var total = hits.getTotal() == null ? 0 : (int) hits.getTotal().getValue();
         return new LogResponse<>(
-            total,
-            hits
-                .getHits()
-                .stream()
-                .map(h -> NativeApiMetricsSourceMapper.from(h.getSource()))
-                .toList()
-        );
+                total,
+                hits.getHits().stream()
+                        .map(h -> NativeApiMetricsSourceMapper.from(h.getSource()))
+                        .toList());
     }
 }

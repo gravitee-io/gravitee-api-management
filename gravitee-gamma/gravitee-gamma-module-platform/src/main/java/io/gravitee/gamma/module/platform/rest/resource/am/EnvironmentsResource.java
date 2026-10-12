@@ -41,14 +41,10 @@ public class EnvironmentsResource {
 
     @GET
     public List<EnvironmentResponse> list(@PathParam("orgId") String orgId) {
-        return AmCalls.run(() ->
-            listEnvironmentsUseCase
-                .execute(new ListEnvironmentsUseCase.Input(orgId))
-                .environments()
-                .stream()
-                .map(AmDtoMapper::toDto)
-                .toList()
-        );
+        return AmCalls.run(
+                () -> listEnvironmentsUseCase.execute(new ListEnvironmentsUseCase.Input(orgId)).environments().stream()
+                        .map(AmDtoMapper::toDto)
+                        .toList());
     }
 
     // amEnvId, not envId: the module is mounted under /organizations/{orgId}/environments/{envId},

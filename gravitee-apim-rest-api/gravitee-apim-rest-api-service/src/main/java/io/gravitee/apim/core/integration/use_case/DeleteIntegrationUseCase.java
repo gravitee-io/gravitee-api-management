@@ -35,10 +35,9 @@ public class DeleteIntegrationUseCase {
     ApiQueryService apiQueryService;
 
     public DeleteIntegrationUseCase(
-        IntegrationCrudService integrationCrudService,
-        ApiQueryService apiQueryService,
-        DeleteMembershipDomainService deleteMembershipDomainService
-    ) {
+            IntegrationCrudService integrationCrudService,
+            ApiQueryService apiQueryService,
+            DeleteMembershipDomainService deleteMembershipDomainService) {
         this.integrationCrudService = integrationCrudService;
         this.apiQueryService = apiQueryService;
         this.deleteMembershipDomainService = deleteMembershipDomainService;
@@ -46,29 +45,31 @@ public class DeleteIntegrationUseCase {
 
     public void execute(Input input) {
         apiQueryService
-            .search(
-                ApiSearchCriteria.builder().integrationId(input.integrationId).build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .findAny()
-            .ifPresentOrElse(
-                api -> {
-                    throw new AssociatedApisFoundException(input.integrationId);
-                },
-                () ->
-                    integrationCrudService
-                        .findApiIntegrationById(input.integrationId)
-                        .ifPresentOrElse(
-                            integration -> {
-                                deleteMembershipDomainService.deleteIntegrationMemberships(input.integrationId);
-                                integrationCrudService.delete(integration.id());
-                            },
-                            () -> {
-                                throw new IntegrationNotFoundException(input.integrationId);
-                            }
-                        )
-            );
+                .search(
+                        ApiSearchCriteria.builder()
+                                .integrationId(input.integrationId)
+                                .build(),
+                        null,
+                        ApiFieldFilter.builder()
+                                .pictureExcluded(true)
+                                .definitionExcluded(true)
+                                .build())
+                .findAny()
+                .ifPresentOrElse(
+                        api -> {
+                            throw new AssociatedApisFoundException(input.integrationId);
+                        },
+                        () -> integrationCrudService
+                                .findApiIntegrationById(input.integrationId)
+                                .ifPresentOrElse(
+                                        integration -> {
+                                            deleteMembershipDomainService.deleteIntegrationMemberships(
+                                                    input.integrationId);
+                                            integrationCrudService.delete(integration.id());
+                                        },
+                                        () -> {
+                                            throw new IntegrationNotFoundException(input.integrationId);
+                                        }));
     }
 
     @Builder

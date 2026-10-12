@@ -89,14 +89,14 @@ class PageSourceDomainServiceImplTest {
     @Test
     @SuppressWarnings("unchecked")
     void should_read_content_and_close_stream() throws Exception {
-        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(
-            mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class)
-        );
+        when(applicationContext.getAutowireCapableBeanFactory())
+                .thenReturn(mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class));
         when(fetcherPlugin.fetcher()).thenReturn(DummyFetcher.class);
         when(fetcherPlugin.configuration()).thenReturn(DummyFetcherConfiguration.class);
         when(fetcherPlugin.clazz()).thenReturn("io.gravitee.apim.infra.domain_service.documentation.DummyFetcher");
         when(pluginManager.get("dummy-fetcher")).thenReturn(fetcherPlugin);
-        when(fetcherConfigurationFactory.create(any(), any())).thenReturn(new DummyFetcherConfiguration("data", "secret"));
+        when(fetcherConfigurationFactory.create(any(), any()))
+                .thenReturn(new DummyFetcherConfiguration("data", "secret"));
 
         var trackingStream = new TrackingInputStream(new ByteArrayInputStream("dummy content".getBytes()));
         DummyFetcher.nextStream.set(trackingStream);
@@ -110,20 +110,20 @@ class PageSourceDomainServiceImplTest {
 
     @Test
     void should_remove_sensitive_data() throws JsonProcessingException {
-        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(
-            mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class)
-        );
+        when(applicationContext.getAutowireCapableBeanFactory())
+                .thenReturn(mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class));
         when(fetcherPlugin.fetcher()).thenReturn(DummyFetcher.class);
         when(fetcherPlugin.configuration()).thenReturn(DummyFetcherConfiguration.class);
         when(fetcherPlugin.clazz()).thenReturn("io.gravitee.apim.infra.domain_service.documentation.DummyFetcher");
         when(pluginManager.get("dummy-fetcher")).thenReturn(fetcherPlugin);
-        when(fetcherConfigurationFactory.create(any(), any())).thenReturn(
-            new DummyFetcherConfiguration("I'm not a sensitive data", "I'm a sensitive data, I should be masked")
-        );
+        when(fetcherConfigurationFactory.create(any(), any()))
+                .thenReturn(new DummyFetcherConfiguration(
+                        "I'm not a sensitive data", "I'm a sensitive data, I should be masked"));
         Page page = Page.builder().source(dummySource()).build();
         cut.removeSensitiveData(page);
         JsonNode configuration = new ObjectMapper().readTree(page.getSource().getConfiguration());
-        assertThat(configuration.get("sensitiveData").textValue()).isEqualTo(PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT);
+        assertThat(configuration.get("sensitiveData").textValue())
+                .isEqualTo(PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT);
         assertThat(configuration.get("nonSensitiveData").textValue()).isEqualTo("I'm not a sensitive data");
     }
 
@@ -141,9 +141,8 @@ class PageSourceDomainServiceImplTest {
         Page oldPage = Page.builder().source(oldPageSource).build();
         Page newPage = Page.builder().source(newPageSource).build();
 
-        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(
-            mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class)
-        );
+        when(applicationContext.getAutowireCapableBeanFactory())
+                .thenReturn(mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class));
         when(fetcherPlugin.fetcher()).thenReturn(DummyFetcher.class);
         when(fetcherPlugin.configuration()).thenReturn(DummyFetcherConfiguration.class);
         when(fetcherPlugin.clazz()).thenReturn("io.gravitee.apim.infra.domain_service.documentation.DummyFetcher");
@@ -152,8 +151,8 @@ class PageSourceDomainServiceImplTest {
         // Mock fetcher configuration factory to return appropriate configurations
         // First call for old page, second call for new page
         when(fetcherConfigurationFactory.create(any(), any()))
-            .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, originalSensitiveData))
-            .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, maskedSensitiveData));
+                .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, originalSensitiveData))
+                .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, maskedSensitiveData));
 
         // Act
         cut.mergeSensitiveData(oldPage, newPage);
@@ -197,9 +196,8 @@ class PageSourceDomainServiceImplTest {
         Page oldPage = Page.builder().source(oldPageSource).build();
         Page newPage = Page.builder().source(newPageSource).build();
 
-        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(
-            mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class)
-        );
+        when(applicationContext.getAutowireCapableBeanFactory())
+                .thenReturn(mock(org.springframework.beans.factory.config.AutowireCapableBeanFactory.class));
         when(fetcherPlugin.fetcher()).thenReturn(DummyFetcher.class);
         when(fetcherPlugin.configuration()).thenReturn(DummyFetcherConfiguration.class);
         when(fetcherPlugin.clazz()).thenReturn("io.gravitee.apim.infra.domain_service.documentation.DummyFetcher");
@@ -208,8 +206,8 @@ class PageSourceDomainServiceImplTest {
         // Mock fetcher configuration factory to return appropriate configurations
         // First call for old page, second call for new page
         when(fetcherConfigurationFactory.create(any(), any()))
-            .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, originalSensitiveData))
-            .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, newSensitiveData));
+                .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, originalSensitiveData))
+                .thenReturn(new DummyFetcherConfiguration(nonSensitiveData, newSensitiveData));
 
         // Act
         cut.mergeSensitiveData(oldPage, newPage);
@@ -222,37 +220,32 @@ class PageSourceDomainServiceImplTest {
 
     @Test
     void should_reject_a_masked_secret_when_the_address_changes() {
-        var oldPage = pageWithSource("{\"url\":\"https://a.example/doc.md\",\"sensitiveData\":\"original-secret-token\"}");
-        var newPage = pageWithSource(
-            "{\"url\":\"https://b.example/doc.md\",\"sensitiveData\":\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"}"
-        );
+        var oldPage =
+                pageWithSource("{\"url\":\"https://a.example/doc.md\",\"sensitiveData\":\"original-secret-token\"}");
+        var newPage = pageWithSource("{\"url\":\"https://b.example/doc.md\",\"sensitiveData\":\""
+                + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"}");
         mockDummyFetcherPlugin(
-            new DummyFetcherConfiguration(null, "original-secret-token"),
-            new DummyFetcherConfiguration(null, PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT)
-        );
+                new DummyFetcherConfiguration(null, "original-secret-token"),
+                new DummyFetcherConfiguration(null, PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT));
 
         assertThatThrownBy(() -> cut.mergeSensitiveData(oldPage, newPage))
-            .isInstanceOf(InvalidPageSourceException.class)
-            .hasMessageContaining("sensitiveData")
-            .hasMessageContaining("actual value")
-            .hasMessageNotContaining("b.example")
-            .hasMessageNotContaining("original-secret-token");
+                .isInstanceOf(InvalidPageSourceException.class)
+                .hasMessageContaining("sensitiveData")
+                .hasMessageContaining("actual value")
+                .hasMessageNotContaining("b.example")
+                .hasMessageNotContaining("original-secret-token");
     }
 
     @Test
     void should_merge_sensitive_data_when_only_non_address_fields_change() throws JsonProcessingException {
         var oldPage = pageWithSource(
-            "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"main\",\"sensitiveData\":\"original-secret-token\"}"
-        );
-        var newPage = pageWithSource(
-            "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"dev\",\"sensitiveData\":\"" +
-                PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
-                "\"}"
-        );
+                "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"main\",\"sensitiveData\":\"original-secret-token\"}");
+        var newPage = pageWithSource("{\"url\":\"https://a.example\",\"nonSensitiveData\":\"dev\",\"sensitiveData\":\""
+                + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
+                + "\"}");
         mockDummyFetcherPlugin(
-            new DummyFetcherConfiguration("main", "original-secret-token"),
-            new DummyFetcherConfiguration("dev", PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT)
-        );
+                new DummyFetcherConfiguration("main", "original-secret-token"),
+                new DummyFetcherConfiguration("dev", PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT));
 
         cut.mergeSensitiveData(oldPage, newPage);
 
@@ -264,13 +257,11 @@ class PageSourceDomainServiceImplTest {
     void should_accept_a_masked_value_with_no_stored_secret_when_the_address_changes() throws JsonProcessingException {
         // Classic pages mask a sensitive field even when it holds nothing, so a public source comes back masked
         var oldPage = pageWithSource("{\"url\":\"https://a.example\",\"sensitiveData\":null}");
-        var newPage = pageWithSource(
-            "{\"url\":\"https://b.example\",\"sensitiveData\":\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"}"
-        );
+        var newPage = pageWithSource("{\"url\":\"https://b.example\",\"sensitiveData\":\""
+                + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"}");
         mockDummyFetcherPlugin(
-            new DummyFetcherConfiguration(null, null),
-            new DummyFetcherConfiguration(null, PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT)
-        );
+                new DummyFetcherConfiguration(null, null),
+                new DummyFetcherConfiguration(null, PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT));
 
         cut.mergeSensitiveData(oldPage, newPage);
 
@@ -284,9 +275,8 @@ class PageSourceDomainServiceImplTest {
         var newConfiguration = "{\"url\":\"https://b.example\",\"sensitiveData\":\"new-secret-token\"}";
         var newPage = pageWithSource(newConfiguration);
         mockDummyFetcherPlugin(
-            new DummyFetcherConfiguration(null, "original-secret-token"),
-            new DummyFetcherConfiguration(null, "new-secret-token")
-        );
+                new DummyFetcherConfiguration(null, "original-secret-token"),
+                new DummyFetcherConfiguration(null, "new-secret-token"));
 
         cut.mergeSensitiveData(oldPage, newPage);
 
@@ -294,17 +284,25 @@ class PageSourceDomainServiceImplTest {
     }
 
     @SuppressWarnings("unchecked")
-    private void mockDummyFetcherPlugin(DummyFetcherConfiguration oldConfiguration, DummyFetcherConfiguration newConfiguration) {
+    private void mockDummyFetcherPlugin(
+            DummyFetcherConfiguration oldConfiguration, DummyFetcherConfiguration newConfiguration) {
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mock(AutowireCapableBeanFactory.class));
         when(fetcherPlugin.fetcher()).thenReturn(DummyFetcher.class);
         when(fetcherPlugin.configuration()).thenReturn(DummyFetcherConfiguration.class);
         when(fetcherPlugin.clazz()).thenReturn("io.gravitee.apim.infra.domain_service.documentation.DummyFetcher");
         when(pluginManager.get("dummy-fetcher")).thenReturn(fetcherPlugin);
-        when(fetcherConfigurationFactory.create(any(), any())).thenReturn(oldConfiguration).thenReturn(newConfiguration);
+        when(fetcherConfigurationFactory.create(any(), any()))
+                .thenReturn(oldConfiguration)
+                .thenReturn(newConfiguration);
     }
 
     private static Page pageWithSource(String configuration) {
-        return Page.builder().source(PageSource.builder().type("dummy-fetcher").configuration(configuration).build()).build();
+        return Page.builder()
+                .source(PageSource.builder()
+                        .type("dummy-fetcher")
+                        .configuration(configuration)
+                        .build())
+                .build();
     }
 
     private static PageSource dummySource() {
@@ -313,20 +311,14 @@ class PageSourceDomainServiceImplTest {
 
     private static PageSource dummySource(String nonSensitiveData, String sensitiveData) {
         return PageSource.builder()
-            .type("dummy-fetcher")
-            .configuration(
-                String.format(
-                    """
+                .type("dummy-fetcher")
+                .configuration(String.format("""
                     {
                        "nonSensitiveData" : "%s",
                        "sensitiveData" : "%s"
                     }
-                    """,
-                    nonSensitiveData,
-                    sensitiveData
-                )
-            )
-            .build();
+                    """, nonSensitiveData, sensitiveData))
+                .build();
     }
 
     /** Wraps an InputStream and tracks whether close() was called. */

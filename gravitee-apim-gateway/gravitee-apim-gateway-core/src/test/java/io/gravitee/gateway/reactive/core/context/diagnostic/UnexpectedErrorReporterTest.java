@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,14 +63,13 @@ class UnexpectedErrorReporterTest {
         lenient().when(ctx.metrics()).thenReturn(metrics);
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(response.status()).thenReturn(502);
-        lenient()
-            .when(ctx.withLogger(any(Logger.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(ctx.withLogger(any(Logger.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
     void should_attribute_a_key_of_its_own_when_nothing_was_attributed_to_the_request() {
-        UnexpectedErrorReporter.recordAndAnswer(ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
+        UnexpectedErrorReporter.recordAndAnswer(
+                ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
 
         // Without this, the request is reported with a 500 and no error key at all, which reads as a success in any
         // dashboard counting failures by key.
@@ -87,12 +85,7 @@ class UnexpectedErrorReporterTest {
         metrics.setErrorMessage("Connection was closed");
 
         UnexpectedErrorReporter.recordAndAnswer(
-            ctx,
-            500,
-            "Internal Server Error",
-            new IllegalStateException("policy chain already stopped"),
-            LOG
-        );
+                ctx, 500, "Internal Server Error", new IllegalStateException("policy chain already stopped"), LOG);
 
         // The failure keeps naming the original cause, so without this warning the exception that actually broke the
         // error handling exists nowhere but the gateway's log file — invisible to whoever reads the analytics.
@@ -105,12 +98,15 @@ class UnexpectedErrorReporterTest {
 
     @Test
     void should_describe_the_most_specific_cause_rather_than_the_wrapper() {
-        final Throwable wrapped = new RuntimeException("handling failed", new IllegalStateException("endpoint manager stopped"));
+        final Throwable wrapped =
+                new RuntimeException("handling failed", new IllegalStateException("endpoint manager stopped"));
 
         UnexpectedErrorReporter.recordAndAnswer(ctx, 500, "Internal Server Error", wrapped, LOG);
 
         // Wrapper messages are generic by nature; the innermost one is the only one naming the actual fault.
-        assertThat(metrics.getErrorMessage()).contains("endpoint manager stopped").doesNotContain("handling failed");
+        assertThat(metrics.getErrorMessage())
+                .contains("endpoint manager stopped")
+                .doesNotContain("handling failed");
     }
 
     @Test
@@ -118,7 +114,8 @@ class UnexpectedErrorReporterTest {
         metrics.setErrorKey("GATEWAY_CLIENT_CONNECTION_CLOSED");
         metrics.setErrorMessage("Connection was closed");
 
-        UnexpectedErrorReporter.recordAndAnswer(ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
+        UnexpectedErrorReporter.recordAndAnswer(
+                ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
 
         // The recorded key names what actually went wrong; reaching this path only says the gateway could not handle
         // the consequence of it.
@@ -130,9 +127,11 @@ class UnexpectedErrorReporterTest {
     void should_preserve_a_failure_already_attributed_through_an_interruption() {
         // interruptWith records a failure without touching errorKey: the diagnosis lives there, and overwriting it
         // would replace a 502-worth of context with a generic one.
-        metrics.setFailure(new Diagnostic("GATEWAY_CLIENT_CONNECTION_CLOSED", "Connection was closed", "ENDPOINT", "https://backend"));
+        metrics.setFailure(new Diagnostic(
+                "GATEWAY_CLIENT_CONNECTION_CLOSED", "Connection was closed", "ENDPOINT", "https://backend"));
 
-        UnexpectedErrorReporter.recordAndAnswer(ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
+        UnexpectedErrorReporter.recordAndAnswer(
+                ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
 
         assertThat(metrics.getErrorKey()).isNull();
         assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_CONNECTION_CLOSED");
@@ -140,7 +139,8 @@ class UnexpectedErrorReporterTest {
 
     @Test
     void should_answer_with_the_status_it_reports() {
-        UnexpectedErrorReporter.recordAndAnswer(ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
+        UnexpectedErrorReporter.recordAndAnswer(
+                ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
 
         // Reporting and answering are done together so the two cannot drift: every message states the status the
         // request is answered with, and would describe a response that was never sent if the caller applied its own.
@@ -156,7 +156,8 @@ class UnexpectedErrorReporterTest {
         metrics.setErrorMessage("Connection was closed");
         when(response.status()).thenReturn(502);
 
-        UnexpectedErrorReporter.recordAndAnswer(ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
+        UnexpectedErrorReporter.recordAndAnswer(
+                ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
 
         // The 502 is what the failure called for; the 500 is what the caller gets. Both matter, and confusing them is
         // exactly what makes this path unreadable in analytics.
@@ -169,6 +170,7 @@ class UnexpectedErrorReporterTest {
     void should_not_fail_when_the_request_carries_no_metrics() {
         when(ctx.metrics()).thenReturn(null);
 
-        UnexpectedErrorReporter.recordAndAnswer(ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
+        UnexpectedErrorReporter.recordAndAnswer(
+                ctx, 500, "Internal Server Error", new IllegalStateException("boom"), LOG);
     }
 }

@@ -17,8 +17,6 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_CONTEXT_PATH;
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_METHOD;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_SNI;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SERVER_ID;
 
@@ -29,7 +27,6 @@ import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.api.context.tcp.TcpExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.TcpInvoker;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
@@ -59,15 +56,19 @@ import lombok.CustomLog;
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @CustomLog
 public class TcpApiReactor extends AbstractApiReactor {
 
-    // TODO: as a temporary solution, we use HttpExecutionContextInternal, but it would be better to have a TcpExecutionContextInternal someday
-    private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES = Set.of(
-        LogEntryFactory.cached("serverId", DefaultExecutionContext.class, context -> context.getInternalAttribute(ATTR_INTERNAL_SERVER_ID)),
-        LogEntryFactory.cached("sni", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_SNI))
-    );
+    // TODO: as a temporary solution, we use HttpExecutionContextInternal, but it would be better to have a
+    // TcpExecutionContextInternal someday
+    private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES =
+            Set.of(
+                    LogEntryFactory.cached(
+                            "serverId",
+                            DefaultExecutionContext.class,
+                            context -> context.getInternalAttribute(ATTR_INTERNAL_SERVER_ID)),
+                    LogEntryFactory.cached(
+                            "sni", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_SNI)));
 
     private final Node node;
     private final EndpointManager endpointManager;
@@ -78,31 +79,27 @@ public class TcpApiReactor extends AbstractApiReactor {
     private final TcpInvoker defaultInvoker;
 
     public TcpApiReactor(
-        Api api,
-        Node node,
-        Configuration configuration,
-        DeploymentContext deploymentContext,
-        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        EndpointManager endpointManager,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        TracingContext tracingContext
-    ) {
+            Api api,
+            Node node,
+            Configuration configuration,
+            DeploymentContext deploymentContext,
+            EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+            EndpointManager endpointManager,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            TracingContext tracingContext) {
         super(
-            configuration,
-            api,
-            new DefaultEntrypointConnectorResolver(api.getDefinition(), deploymentContext, entrypointConnectorPluginManager),
-            requestTimeoutConfiguration,
-            tracingContext
-        );
+                configuration,
+                api,
+                new DefaultEntrypointConnectorResolver(
+                        api.getDefinition(), deploymentContext, entrypointConnectorPluginManager),
+                requestTimeoutConfiguration,
+                tracingContext);
         this.node = node;
         this.endpointManager = endpointManager;
         this.defaultInvoker = new TcpEndpointInvoker(endpointManager);
         this.lifecycleState = Lifecycle.State.INITIALIZED;
-        this.loggingExcludedResponseType = configuration.getProperty(
-            REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY,
-            String.class,
-            null
-        );
+        this.loggingExcludedResponseType =
+                configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
         this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
     }
 
@@ -119,22 +116,24 @@ public class TcpApiReactor extends AbstractApiReactor {
     @Override
     public Completable handle(MutableExecutionContext ctx) {
         prepareCommonAttributes(ctx);
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
+        ctx.setInternalAttribute(
+                InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
+        ctx.setInternalAttribute(
+                InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
         ctx.logEntries(DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES);
 
         // TODO specific Tcp API Request processor chain factory that contains SubscriptionProcessor in beforeApi chain
         return new CompletableReactorChain(handleEntrypointRequest(ctx))
-            // configure backend call
-            .chainWith(defaultInvoker.invoke(ctx))
-            // setup timeout
-            .chainWith(upstream -> timeout(upstream, ctx))
-            // handle response
-            .chainWith(handleEntrypointResponse(ctx))
-            // hook everything up and start piping data
-            .chainWith(ctx.response().end(ctx))
-            .doOnSubscribe(disposable -> pendingRequests.incrementAndGet())
-            .doFinally(pendingRequests::decrementAndGet);
+                // configure backend call
+                .chainWith(defaultInvoker.invoke(ctx))
+                // setup timeout
+                .chainWith(upstream -> timeout(upstream, ctx))
+                // handle response
+                .chainWith(handleEntrypointResponse(ctx))
+                // hook everything up and start piping data
+                .chainWith(ctx.response().end(ctx))
+                .doOnSubscribe(disposable -> pendingRequests.incrementAndGet())
+                .doFinally(pendingRequests::decrementAndGet);
     }
 
     @Override
@@ -204,35 +203,29 @@ public class TcpApiReactor extends AbstractApiReactor {
     @Override
     @SuppressWarnings("java:S6204") // no using toList() as it messes with generics
     public List<Acceptor<?>> acceptors() {
-        return api
-            .getDefinition()
-            .getListeners()
-            .stream()
-            .filter(TcpListener.class::isInstance)
-            .map(l -> (TcpListener) l)
-            .flatMap(listener ->
-                listener
-                    .getHosts()
-                    .stream()
-                    .map(host -> new DefaultTcpAcceptor(this, host, listener.getServers()))
-            )
-            .collect(Collectors.<Acceptor<?>>toList());
+        return api.getDefinition().getListeners().stream()
+                .filter(TcpListener.class::isInstance)
+                .map(l -> (TcpListener) l)
+                .flatMap(listener -> listener.getHosts().stream()
+                        .map(host -> new DefaultTcpAcceptor(this, host, listener.getServers())))
+                .collect(Collectors.<Acceptor<?>>toList());
     }
 
     protected AnalyticsContext createAnalyticsContext() {
         LoggingContext loggingContext = Optional.ofNullable(api.getDefinition().getAnalytics())
-            .map(analytics -> {
-                var context = new LoggingContext(analytics.getLogging());
-                context.setMaxSizeLogMessage(loggingMaxSize);
-                context.setExcludedResponseTypes(loggingExcludedResponseType);
-                return context;
-            })
-            .orElse(null);
+                .map(analytics -> {
+                    var context = new LoggingContext(analytics.getLogging());
+                    context.setMaxSizeLogMessage(loggingMaxSize);
+                    context.setExcludedResponseTypes(loggingExcludedResponseType);
+                    return context;
+                })
+                .orElse(null);
         return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingContext, tracingContext);
     }
 
     @Override
     public String toString() {
-        return "TcpApiReactor API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getApiVersion() + ']';
+        return "TcpApiReactor API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getApiVersion()
+                + ']';
     }
 }

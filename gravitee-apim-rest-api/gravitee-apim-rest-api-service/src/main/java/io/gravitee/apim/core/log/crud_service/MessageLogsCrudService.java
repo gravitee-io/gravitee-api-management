@@ -27,9 +27,5 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  */
 public interface MessageLogsCrudService {
     SearchLogsResponse<MessageLog> searchApiMessageLogs(
-        ExecutionContext executionContext,
-        String apiId,
-        SearchMessageLogsFilters filters,
-        Pageable pageable
-    );
+            ExecutionContext executionContext, String apiId, SearchMessageLogsFilters filters, Pageable pageable);
 }

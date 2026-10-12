@@ -92,7 +92,9 @@ public final class DashboardWidgetRequestMapper {
         if (CollectionUtils.isEmpty(metrics)) {
             throw new InvalidQueryException("Widget request must provide at least one metric");
         }
-        return metrics.stream().map(DashboardWidgetRequestMapper::toMetricMeasuresRequest).toList();
+        return metrics.stream()
+                .map(DashboardWidgetRequestMapper::toMetricMeasuresRequest)
+                .toList();
     }
 
     private static MetricMeasuresRequest toMetricMeasuresRequest(DashboardWidget.MetricRequest m) {
@@ -105,11 +107,14 @@ public final class DashboardWidgetRequestMapper {
         return new MetricMeasuresRequest(name, measures, filters);
     }
 
-    private static List<FacetMetricMeasuresRequest> toFacetMetricMeasuresRequests(List<DashboardWidget.MetricRequest> metrics) {
+    private static List<FacetMetricMeasuresRequest> toFacetMetricMeasuresRequests(
+            List<DashboardWidget.MetricRequest> metrics) {
         if (CollectionUtils.isEmpty(metrics)) {
             throw new InvalidQueryException("Widget request must provide at least one metric");
         }
-        return metrics.stream().map(DashboardWidgetRequestMapper::toFacetMetricMeasuresRequest).toList();
+        return metrics.stream()
+                .map(DashboardWidgetRequestMapper::toFacetMetricMeasuresRequest)
+                .toList();
     }
 
     private static FacetMetricMeasuresRequest toFacetMetricMeasuresRequest(DashboardWidget.MetricRequest m) {
@@ -130,7 +135,8 @@ public final class DashboardWidgetRequestMapper {
     }
 
     private static Filter toFilter(DashboardWidget.Filter filter) {
-        return new Filter(parseFilterName(filter.getName()), parseFilterOperator(filter.getOperator()), filter.getValue());
+        return new Filter(
+                parseFilterName(filter.getName()), parseFilterOperator(filter.getOperator()), filter.getValue());
     }
 
     private static FilterSpec.Name parseFilterName(String value) {

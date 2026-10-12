@@ -55,10 +55,9 @@ public class IntegrationControllerConfiguration {
 
     @Bean("integrationWebsocketControllerAuthentication")
     public IntegrationWebsocketControllerAuthentication integrationWebsocketControllerAuthentication(
-        final TokenService tokenService,
-        final UserCrudService userCrudService,
-        final LicenseDomainService licenseDomainService
-    ) {
+            final TokenService tokenService,
+            final UserCrudService userCrudService,
+            final LicenseDomainService licenseDomainService) {
         return new IntegrationWebsocketControllerAuthentication(tokenService, userCrudService, licenseDomainService);
     }
 
@@ -74,41 +73,36 @@ public class IntegrationControllerConfiguration {
 
     @Bean("integrationControllerCommandHandlerFactory")
     public IntegrationControllerCommandHandlerFactory integrationControllerCommandHandlerFactory(
-        final CheckIntegrationUseCase checkIntegrationUseCase,
-        final @Lazy IngestFederatedApisUseCase ingestFederatedApisUseCase
-    ) {
+            final CheckIntegrationUseCase checkIntegrationUseCase,
+            final @Lazy IngestFederatedApisUseCase ingestFederatedApisUseCase) {
         return new IntegrationControllerCommandHandlerFactory(checkIntegrationUseCase, ingestFederatedApisUseCase);
     }
 
     @Bean("integrationExchangeController")
     public ExchangeController integrationExchangeController(
-        final @Lazy ClusterManager clusterManager,
-        final @Lazy CacheManager cacheManager,
-        final @Lazy ManagementEndpointManager managementEndpointManager,
-        final Vertx vertx,
-        final KeyStoreLoaderFactoryRegistry<KeyStoreLoaderOptions> keyStoreLoaderFactoryRegistry,
-        final KeyStoreLoaderFactoryRegistry<TrustStoreLoaderOptions> trustStoreLoaderFactoryRegistry,
-        final @Qualifier("integrationIdentifyConfiguration") IdentifyConfiguration identifyConfiguration,
-        final @Qualifier("integrationWebsocketControllerAuthentication") WebSocketControllerAuthentication<
-            ?
-        > integrationWebsocketControllerAuthentication,
-        final @Qualifier(
-            "integrationControllerCommandHandlerFactory"
-        ) ControllerCommandHandlersFactory integrationControllerCommandHandlerFactory,
-        final @Qualifier("integrationExchangeSerDe") ExchangeSerDe integrationExchangeSerDe
-    ) {
+            final @Lazy ClusterManager clusterManager,
+            final @Lazy CacheManager cacheManager,
+            final @Lazy ManagementEndpointManager managementEndpointManager,
+            final Vertx vertx,
+            final KeyStoreLoaderFactoryRegistry<KeyStoreLoaderOptions> keyStoreLoaderFactoryRegistry,
+            final KeyStoreLoaderFactoryRegistry<TrustStoreLoaderOptions> trustStoreLoaderFactoryRegistry,
+            final @Qualifier("integrationIdentifyConfiguration") IdentifyConfiguration identifyConfiguration,
+            final @Qualifier("integrationWebsocketControllerAuthentication") WebSocketControllerAuthentication<?>
+                            integrationWebsocketControllerAuthentication,
+            final @Qualifier("integrationControllerCommandHandlerFactory") ControllerCommandHandlersFactory
+                            integrationControllerCommandHandlerFactory,
+            final @Qualifier("integrationExchangeSerDe") ExchangeSerDe integrationExchangeSerDe) {
         return new WebSocketExchangeController(
-            identifyConfiguration,
-            clusterManager,
-            cacheManager,
-            managementEndpointManager,
-            vertx,
-            keyStoreLoaderFactoryRegistry,
-            trustStoreLoaderFactoryRegistry,
-            integrationWebsocketControllerAuthentication,
-            integrationControllerCommandHandlerFactory,
-            integrationExchangeSerDe
-        );
+                identifyConfiguration,
+                clusterManager,
+                cacheManager,
+                managementEndpointManager,
+                vertx,
+                keyStoreLoaderFactoryRegistry,
+                trustStoreLoaderFactoryRegistry,
+                integrationWebsocketControllerAuthentication,
+                integrationControllerCommandHandlerFactory,
+                integrationExchangeSerDe);
     }
 
     public ObjectMapper objectMapper() {

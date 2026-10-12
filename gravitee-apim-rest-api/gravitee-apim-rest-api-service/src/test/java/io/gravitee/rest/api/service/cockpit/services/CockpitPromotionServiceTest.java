@@ -21,19 +21,15 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.cockpit.api.command.legacy.bridge.BridgeMultiReply;
-import io.gravitee.cockpit.api.command.legacy.bridge.BridgeSimpleReply;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeReplyPayload;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
 import io.gravitee.rest.api.service.cockpit.command.CockpitCommandService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.BridgeCommandFactory;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +58,8 @@ public class CockpitPromotionServiceTest {
 
     @BeforeEach
     public void setUp() {
-        cockpitPromotionService = new CockpitPromotionServiceImpl(bridgeCommandFactory, cockpitCommandService, objectMapper);
+        cockpitPromotionService =
+                new CockpitPromotionServiceImpl(bridgeCommandFactory, cockpitCommandService, objectMapper);
     }
 
     @Test
@@ -73,10 +70,8 @@ public class CockpitPromotionServiceTest {
         when(cockpitCommandService.send(any())).thenReturn(bridgeReply);
 
         // When
-        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = cockpitPromotionService.listPromotionTargets(
-            ORGANIZATION_ID,
-            GraviteeContext.getCurrentEnvironment()
-        );
+        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply =
+                cockpitPromotionService.listPromotionTargets(ORGANIZATION_ID, GraviteeContext.getCurrentEnvironment());
 
         // Then
         assertThat(listCockpitReply).isNotNull();
@@ -95,11 +90,11 @@ public class CockpitPromotionServiceTest {
         envA.setName("ENV A");
 
         BridgeReplyPayload.BridgeReplyContent envAContent = BridgeReplyPayload.BridgeReplyContent.builder()
-            .environmentId(envA.getId())
-            .installationId(INSTALLATION_ID)
-            .organizationId(ORGANIZATION_ID)
-            .content(objectMapper.writeValueAsString(envA))
-            .build();
+                .environmentId(envA.getId())
+                .installationId(INSTALLATION_ID)
+                .organizationId(ORGANIZATION_ID)
+                .content(objectMapper.writeValueAsString(envA))
+                .build();
 
         EnvironmentEntity envB = new EnvironmentEntity();
         envB.setId("my-env-B");
@@ -107,21 +102,20 @@ public class CockpitPromotionServiceTest {
         envB.setName("ENV B");
 
         BridgeReplyPayload.BridgeReplyContent envBContent = BridgeReplyPayload.BridgeReplyContent.builder()
-            .environmentId(envB.getId())
-            .installationId(INSTALLATION_ID)
-            .organizationId(ORGANIZATION_ID)
-            .content(objectMapper.writeValueAsString(envB))
-            .build();
+                .environmentId(envB.getId())
+                .installationId(INSTALLATION_ID)
+                .organizationId(ORGANIZATION_ID)
+                .content(objectMapper.writeValueAsString(envB))
+                .build();
 
-        BridgeReply environmentsMultiReply = new BridgeReply("commandId", new BridgeReplyPayload(false, List.of(envAContent, envBContent)));
+        BridgeReply environmentsMultiReply =
+                new BridgeReply("commandId", new BridgeReplyPayload(false, List.of(envAContent, envBContent)));
 
         when(cockpitCommandService.send(any())).thenReturn(environmentsMultiReply);
 
         // When
-        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = cockpitPromotionService.listPromotionTargets(
-            ORGANIZATION_ID,
-            GraviteeContext.getCurrentEnvironment()
-        );
+        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply =
+                cockpitPromotionService.listPromotionTargets(ORGANIZATION_ID, GraviteeContext.getCurrentEnvironment());
 
         // Then
         assertThat(listCockpitReply).isNotNull();
@@ -137,10 +131,8 @@ public class CockpitPromotionServiceTest {
         BridgeReply reply = new BridgeReply("commandId", "error");
         when(cockpitCommandService.send(any())).thenReturn(reply);
 
-        final CockpitReply<PromotionEntity> result = cockpitPromotionService.processPromotion(
-            GraviteeContext.getExecutionContext(),
-            new PromotionEntity()
-        );
+        final CockpitReply<PromotionEntity> result =
+                cockpitPromotionService.processPromotion(GraviteeContext.getExecutionContext(), new PromotionEntity());
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(CockpitReplyStatus.ERROR);
@@ -155,10 +147,8 @@ public class CockpitPromotionServiceTest {
 
         final PromotionEntity promotionEntity = new PromotionEntity();
 
-        final CockpitReply<PromotionEntity> result = cockpitPromotionService.processPromotion(
-            GraviteeContext.getExecutionContext(),
-            promotionEntity
-        );
+        final CockpitReply<PromotionEntity> result =
+                cockpitPromotionService.processPromotion(GraviteeContext.getExecutionContext(), promotionEntity);
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(CockpitReplyStatus.SUCCEEDED);

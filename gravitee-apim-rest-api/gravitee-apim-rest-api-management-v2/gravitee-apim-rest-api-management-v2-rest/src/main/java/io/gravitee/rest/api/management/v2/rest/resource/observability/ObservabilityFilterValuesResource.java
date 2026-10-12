@@ -40,25 +40,23 @@ public class ObservabilityFilterValuesResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public FilterValuesResponse getFilterValues(
-        @QueryParam("from") Long from,
-        @QueryParam("to") Long to,
-        @QueryParam("page") @DefaultValue("1") int page,
-        @QueryParam("perPage") @DefaultValue("10") int perPage,
-        @QueryParam("query") String query
-    ) {
+            @QueryParam("from") Long from,
+            @QueryParam("to") Long to,
+            @QueryParam("page") @DefaultValue("1") int page,
+            @QueryParam("perPage") @DefaultValue("10") int perPage,
+            @QueryParam("query") String query) {
         if (!canReadDashboards()) {
             throw new ForbiddenAccessException();
         }
 
         var input = new GetFilterValuesUseCase.Input(
-            getAuditInfo(),
-            filterName,
-            from != null ? Instant.ofEpochMilli(from) : null,
-            to != null ? Instant.ofEpochMilli(to) : null,
-            page,
-            perPage,
-            query
-        );
+                getAuditInfo(),
+                filterName,
+                from != null ? Instant.ofEpochMilli(from) : null,
+                to != null ? Instant.ofEpochMilli(to) : null,
+                page,
+                perPage,
+                query);
 
         var output = getFilterValuesUseCase.execute(input);
 

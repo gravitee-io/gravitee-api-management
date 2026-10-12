@@ -60,10 +60,9 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
     private PolicyClassLoaderFactory policyClassLoaderFactory;
 
     public PolicyServiceImpl(
-        JsonSchemaService jsonSchemaService,
-        ConfigurablePluginManager<PolicyPlugin<?>> pluginManager,
-        PolicyClassLoaderFactory policyClassLoaderFactory
-    ) {
+            JsonSchemaService jsonSchemaService,
+            ConfigurablePluginManager<PolicyPlugin<?>> pluginManager,
+            PolicyClassLoaderFactory policyClassLoaderFactory) {
         super(jsonSchemaService, pluginManager);
         this.policyClassLoaderFactory = policyClassLoaderFactory;
     }
@@ -73,17 +72,16 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
         Stream<PolicyPlugin<?>> policies = super.list().stream();
 
         if (Boolean.FALSE.equals(withResource)) {
-            policies = policies.filter(policyPlugin -> !policyPlugin.policy().isAnnotationPresent(RequireResource.class));
+            policies =
+                    policies.filter(policyPlugin -> !policyPlugin.policy().isAnnotationPresent(RequireResource.class));
         }
 
-        return policies
-            .filter(
-                policyPlugin ->
-                    StringUtils.isEmpty(policyPlugin.manifest().properties().get("message")) ||
-                    StringUtils.isNotEmpty(policyPlugin.manifest().properties().get("proxy"))
-            )
-            .map(policyDefinition -> convert(policyDefinition, true))
-            .collect(Collectors.toSet());
+        return policies.filter(policyPlugin ->
+                        StringUtils.isEmpty(policyPlugin.manifest().properties().get("message"))
+                                || StringUtils.isNotEmpty(
+                                        policyPlugin.manifest().properties().get("proxy")))
+                .map(policyDefinition -> convert(policyDefinition, true))
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -127,7 +125,8 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
                 }
                 log.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
             } catch (IOException ioex) {
-                log.debug("Error while getting specific schema-form for this display format. Fall back on default schema-form.");
+                log.debug(
+                        "Error while getting specific schema-form for this display format. Fall back on default schema-form.");
             }
         }
         return getSchema(pluginId);
@@ -161,25 +160,23 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
     }
 
     private PolicyDevelopmentEntity loadPolicy(PolicyPlugin policy) {
-        return policies.computeIfAbsent(
-            policy.id(),
-            new Function<String, PolicyDevelopmentEntity>() {
-                @Override
-                public PolicyDevelopmentEntity apply(String s) {
-                    // Policy development information
-                    PolicyDevelopmentEntity developmentEntity = new PolicyDevelopmentEntity();
-                    developmentEntity.setClassName(policy.policy().getName());
-                    if (io.gravitee.gateway.reactive.api.policy.Policy.class.isAssignableFrom(policy.policy())) {
-                        developmentEntity.setOnRequestMethod("setOnRequestMethod");
-                        developmentEntity.setOnResponseMethod("setOnResponseMethod");
-                    } else {
-                        ScanResult scan = null;
-                        PluginClassLoader policyClassLoader = null;
+        return policies.computeIfAbsent(policy.id(), new Function<String, PolicyDevelopmentEntity>() {
+            @Override
+            public PolicyDevelopmentEntity apply(String s) {
+                // Policy development information
+                PolicyDevelopmentEntity developmentEntity = new PolicyDevelopmentEntity();
+                developmentEntity.setClassName(policy.policy().getName());
+                if (io.gravitee.gateway.reactive.api.policy.Policy.class.isAssignableFrom(policy.policy())) {
+                    developmentEntity.setOnRequestMethod("setOnRequestMethod");
+                    developmentEntity.setOnResponseMethod("setOnResponseMethod");
+                } else {
+                    ScanResult scan = null;
+                    PluginClassLoader policyClassLoader = null;
 
-                        try {
-                            policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policy);
+                    try {
+                        policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policy);
 
-                            scan = new ClassGraph()
+                        scan = new ClassGraph()
                                 .enableMethodInfo()
                                 .enableAnnotationInfo()
                                 .acceptClasses(policy.policy().getName())
@@ -187,47 +184,43 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
                                 .overrideClassLoaders(policyClassLoader)
                                 .scan(1);
 
-                            MethodInfoList methodInfo = scan.getClassInfo(policy.policy().getName()).getMethodInfo();
+                        MethodInfoList methodInfo =
+                                scan.getClassInfo(policy.policy().getName()).getMethodInfo();
 
-                            MethodInfoList filter = methodInfo.filter(
-                                methodInfo1 ->
-                                    methodInfo1.hasAnnotation(OnRequest.class.getName()) ||
-                                    methodInfo1.hasAnnotation(OnRequestContent.class.getName())
-                            );
+                        MethodInfoList filter =
+                                methodInfo.filter(methodInfo1 -> methodInfo1.hasAnnotation(OnRequest.class.getName())
+                                        || methodInfo1.hasAnnotation(OnRequestContent.class.getName()));
 
-                            if (!filter.isEmpty()) {
-                                developmentEntity.setOnRequestMethod(filter.get(0).getName());
-                            }
+                        if (!filter.isEmpty()) {
+                            developmentEntity.setOnRequestMethod(filter.get(0).getName());
+                        }
 
-                            filter = methodInfo.filter(
-                                methodInfo12 ->
-                                    methodInfo12.hasAnnotation(OnResponse.class.getName()) ||
-                                    methodInfo12.hasAnnotation(OnResponseContent.class.getName())
-                            );
+                        filter =
+                                methodInfo.filter(methodInfo12 -> methodInfo12.hasAnnotation(OnResponse.class.getName())
+                                        || methodInfo12.hasAnnotation(OnResponseContent.class.getName()));
 
-                            if (!filter.isEmpty()) {
-                                developmentEntity.setOnResponseMethod(filter.get(0).getName());
-                            }
-                        } catch (Throwable ex) {
-                            log.error("An unexpected error occurs while loading policy", ex);
-                            return null;
-                        } finally {
-                            if (policyClassLoader != null) {
-                                try {
-                                    policyClassLoader.close();
-                                } catch (IOException e) {
-                                    log.error("An error has occurred while trying to close policy class loader", e);
-                                }
-                            }
-
-                            if (scan != null) {
-                                scan.close();
+                        if (!filter.isEmpty()) {
+                            developmentEntity.setOnResponseMethod(filter.get(0).getName());
+                        }
+                    } catch (Throwable ex) {
+                        log.error("An unexpected error occurs while loading policy", ex);
+                        return null;
+                    } finally {
+                        if (policyClassLoader != null) {
+                            try {
+                                policyClassLoader.close();
+                            } catch (IOException e) {
+                                log.error("An error has occurred while trying to close policy class loader", e);
                             }
                         }
+
+                        if (scan != null) {
+                            scan.close();
+                        }
                     }
-                    return developmentEntity;
                 }
+                return developmentEntity;
             }
-        );
+        });
     }
 }

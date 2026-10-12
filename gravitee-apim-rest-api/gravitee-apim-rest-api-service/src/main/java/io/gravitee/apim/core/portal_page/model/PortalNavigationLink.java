@@ -33,16 +33,15 @@ public final class PortalNavigationLink extends PortalNavigationItem {
     private String url;
 
     PortalNavigationLink(
-        @Nonnull PortalNavigationItemId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String title,
-        @Nonnull PortalArea area,
-        @Nonnull Integer order,
-        @Nonnull String url,
-        @Nonnull Boolean published,
-        @Nonnull PortalVisibility visibility
-    ) {
+            @Nonnull PortalNavigationItemId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull String title,
+            @Nonnull PortalArea area,
+            @Nonnull Integer order,
+            @Nonnull String url,
+            @Nonnull Boolean published,
+            @Nonnull PortalVisibility visibility) {
         super(id, organizationId, environmentId, title, area, order, published, visibility);
         this.url = url;
     }

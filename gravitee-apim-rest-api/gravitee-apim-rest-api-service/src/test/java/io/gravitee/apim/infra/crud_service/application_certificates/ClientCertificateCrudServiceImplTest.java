@@ -118,11 +118,11 @@ class ClientCertificateCrudServiceImplTest {
 
     @Test
     void should_find_by_id() throws TechnicalException {
-        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate = buildRepositoryClientCertificate(
-            CERTIFICATE_ID,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
+        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate =
+                buildRepositoryClientCertificate(
+                        CERTIFICATE_ID,
+                        APPLICATION_ID,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.of(repositoryCertificate));
 
         ClientCertificate result = clientCertificateCrudService.findById(CERTIFICATE_ID);
@@ -138,8 +138,8 @@ class ClientCertificateCrudServiceImplTest {
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> clientCertificateCrudService.findById(CERTIFICATE_ID))
-            .isInstanceOf(ClientCertificateNotFoundException.class)
-            .hasMessageContaining(CERTIFICATE_ID);
+                .isInstanceOf(ClientCertificateNotFoundException.class)
+                .hasMessageContaining(CERTIFICATE_ID);
     }
 
     @Test
@@ -147,8 +147,8 @@ class ClientCertificateCrudServiceImplTest {
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenThrow(new TechnicalException("Database error"));
 
         assertThatThrownBy(() -> clientCertificateCrudService.findById(CERTIFICATE_ID))
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessageContaining(CERTIFICATE_ID);
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessageContaining(CERTIFICATE_ID);
     }
 
     @Test
@@ -156,9 +156,7 @@ class ClientCertificateCrudServiceImplTest {
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(
-            APPLICATION_ID,
-            new ClientCertificate("New Certificate", PEM_CERTIFICATE, null, null)
-        );
+                APPLICATION_ID, new ClientCertificate("New Certificate", PEM_CERTIFICATE, null, null));
 
         assertThat(created.id()).isNotNull();
         assertThat(created.crossId()).isNotNull();
@@ -167,11 +165,11 @@ class ClientCertificateCrudServiceImplTest {
         assertThat(created.createdAt()).isNotNull();
         assertThat(created.status()).isEqualTo(ClientCertificateStatus.ACTIVE);
 
-        ArgumentCaptor<io.gravitee.repository.management.model.ClientCertificate> captor = ArgumentCaptor.forClass(
-            io.gravitee.repository.management.model.ClientCertificate.class
-        );
+        ArgumentCaptor<io.gravitee.repository.management.model.ClientCertificate> captor =
+                ArgumentCaptor.forClass(io.gravitee.repository.management.model.ClientCertificate.class);
         verify(clientCertificateRepository).create(captor.capture());
-        assertThat(captor.getValue().getStatus()).isEqualTo(io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
+        assertThat(captor.getValue().getStatus())
+                .isEqualTo(io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
     }
 
     @Test
@@ -179,9 +177,12 @@ class ClientCertificateCrudServiceImplTest {
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(
-            APPLICATION_ID,
-            new ClientCertificate("Scheduled Certificate", PEM_CERTIFICATE, Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), null)
-        );
+                APPLICATION_ID,
+                new ClientCertificate(
+                        "Scheduled Certificate",
+                        PEM_CERTIFICATE,
+                        Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
+                        null));
 
         assertThat(created.status()).isEqualTo(ClientCertificateStatus.SCHEDULED);
     }
@@ -191,9 +192,12 @@ class ClientCertificateCrudServiceImplTest {
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(
-            APPLICATION_ID,
-            new ClientCertificate("Certificate with end date", PEM_CERTIFICATE, null, Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
-        );
+                APPLICATION_ID,
+                new ClientCertificate(
+                        "Certificate with end date",
+                        PEM_CERTIFICATE,
+                        null,
+                        Date.from(Instant.now().plus(1, ChronoUnit.DAYS))));
 
         assertThat(created.status()).isEqualTo(ClientCertificateStatus.ACTIVE_WITH_END);
     }
@@ -203,53 +207,56 @@ class ClientCertificateCrudServiceImplTest {
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(
-            APPLICATION_ID,
-            new ClientCertificate("Revoked Certificate", PEM_CERTIFICATE, null, Date.from(Instant.now().minus(1, ChronoUnit.DAYS)))
-        );
+                APPLICATION_ID,
+                new ClientCertificate(
+                        "Revoked Certificate",
+                        PEM_CERTIFICATE,
+                        null,
+                        Date.from(Instant.now().minus(1, ChronoUnit.DAYS))));
 
         assertThat(created.status()).isEqualTo(ClientCertificateStatus.REVOKED);
     }
 
     @Test
     void should_delegate_exists_by_fingerprint_check_to_repository() throws TechnicalException {
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID, null)).thenReturn(true);
+        when(clientCertificateRepository.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID, null))
+                .thenReturn(true);
 
-        assertThat(clientCertificateCrudService.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID)).isTrue();
+        assertThat(clientCertificateCrudService.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID))
+                .isTrue();
     }
 
     @Test
-    void should_delegate_exists_by_fingerprint_check_with_excluded_application_to_repository() throws TechnicalException {
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID, APPLICATION_ID)).thenReturn(
-            false
-        );
+    void should_delegate_exists_by_fingerprint_check_with_excluded_application_to_repository()
+            throws TechnicalException {
+        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(
+                        "fp-123", ENVIRONMENT_ID, APPLICATION_ID))
+                .thenReturn(false);
 
-        assertThat(
-            clientCertificateCrudService.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID, APPLICATION_ID)
-        ).isFalse();
+        assertThat(clientCertificateCrudService.existsByFingerprintAndActiveApplication(
+                        "fp-123", ENVIRONMENT_ID, APPLICATION_ID))
+                .isFalse();
     }
 
     @Test
     void should_throw_technical_management_exception_when_exists_by_fingerprint_fails() throws TechnicalException {
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), any(), any())).thenThrow(
-            new TechnicalException("Database error")
-        );
+        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), any(), any()))
+                .thenThrow(new TechnicalException("Database error"));
 
         assertThatThrownBy(() ->
-            clientCertificateCrudService.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID)
-        ).isInstanceOf(TechnicalManagementException.class);
+                        clientCertificateCrudService.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID))
+                .isInstanceOf(TechnicalManagementException.class);
     }
 
     @Test
     void should_update_certificate() throws TechnicalException {
         io.gravitee.repository.management.model.ClientCertificate existingCert = buildRepositoryClientCertificate(
-            CERTIFICATE_ID,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
+                CERTIFICATE_ID, APPLICATION_ID, io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.of(existingCert));
         when(clientCertificateRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ClientCertificate updated = clientCertificateCrudService.update(CERTIFICATE_ID, new ClientCertificate("Updated Name", null, null));
+        ClientCertificate updated =
+                clientCertificateCrudService.update(CERTIFICATE_ID, new ClientCertificate("Updated Name", null, null));
 
         assertThat(updated.name()).isEqualTo("Updated Name");
         assertThat(updated.updatedAt()).isNotNull();
@@ -259,17 +266,13 @@ class ClientCertificateCrudServiceImplTest {
     @Test
     void should_update_certificate_status_to_scheduled_when_starts_at_in_future() throws TechnicalException {
         io.gravitee.repository.management.model.ClientCertificate existingCert = buildRepositoryClientCertificate(
-            CERTIFICATE_ID,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
+                CERTIFICATE_ID, APPLICATION_ID, io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.of(existingCert));
         when(clientCertificateRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate updated = clientCertificateCrudService.update(
-            CERTIFICATE_ID,
-            new ClientCertificate("Updated Name", Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), null)
-        );
+                CERTIFICATE_ID,
+                new ClientCertificate("Updated Name", Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), null));
 
         assertThat(updated.status()).isEqualTo(ClientCertificateStatus.SCHEDULED);
     }
@@ -277,17 +280,14 @@ class ClientCertificateCrudServiceImplTest {
     @Test
     void should_update_certificate_status_to_active_with_end_when_ends_at_in_future() throws TechnicalException {
         io.gravitee.repository.management.model.ClientCertificate existingCert = buildRepositoryClientCertificate(
-            CERTIFICATE_ID,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
+                CERTIFICATE_ID, APPLICATION_ID, io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.of(existingCert));
         when(clientCertificateRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate updated = clientCertificateCrudService.update(
-            CERTIFICATE_ID,
-            new ClientCertificate("Updated Name", null, Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
-        );
+                CERTIFICATE_ID,
+                new ClientCertificate(
+                        "Updated Name", null, Date.from(Instant.now().plus(1, ChronoUnit.DAYS))));
 
         assertThat(updated.status()).isEqualTo(ClientCertificateStatus.ACTIVE_WITH_END);
     }
@@ -295,17 +295,14 @@ class ClientCertificateCrudServiceImplTest {
     @Test
     void should_update_certificate_status_to_revoked_when_ends_at_in_past() throws TechnicalException {
         io.gravitee.repository.management.model.ClientCertificate existingCert = buildRepositoryClientCertificate(
-            CERTIFICATE_ID,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
+                CERTIFICATE_ID, APPLICATION_ID, io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.of(existingCert));
         when(clientCertificateRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate updated = clientCertificateCrudService.update(
-            CERTIFICATE_ID,
-            new ClientCertificate("Updated Name", null, Date.from(Instant.now().minus(1, ChronoUnit.DAYS)))
-        );
+                CERTIFICATE_ID,
+                new ClientCertificate(
+                        "Updated Name", null, Date.from(Instant.now().minus(1, ChronoUnit.DAYS))));
 
         assertThat(updated.status()).isEqualTo(ClientCertificateStatus.REVOKED);
     }
@@ -315,18 +312,14 @@ class ClientCertificateCrudServiceImplTest {
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.empty());
 
         ClientCertificate udpatedName = new ClientCertificate("Udpated Name", null, null);
-        assertThatThrownBy(() -> clientCertificateCrudService.update(CERTIFICATE_ID, udpatedName)).isInstanceOf(
-            ClientCertificateNotFoundException.class
-        );
+        assertThatThrownBy(() -> clientCertificateCrudService.update(CERTIFICATE_ID, udpatedName))
+                .isInstanceOf(ClientCertificateNotFoundException.class);
     }
 
     @Test
     void should_delete_certificate() throws TechnicalException {
         io.gravitee.repository.management.model.ClientCertificate existingCert = buildRepositoryClientCertificate(
-            CERTIFICATE_ID,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
+                CERTIFICATE_ID, APPLICATION_ID, io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.of(existingCert));
 
         clientCertificateCrudService.delete(CERTIFICATE_ID);
@@ -338,25 +331,21 @@ class ClientCertificateCrudServiceImplTest {
     void should_throw_not_found_when_deleting_non_existing_certificate() throws TechnicalException {
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> clientCertificateCrudService.delete(CERTIFICATE_ID)).isInstanceOf(
-            ClientCertificateNotFoundException.class
-        );
+        assertThatThrownBy(() -> clientCertificateCrudService.delete(CERTIFICATE_ID))
+                .isInstanceOf(ClientCertificateNotFoundException.class);
     }
 
     @Test
     void should_find_by_application_id() throws TechnicalException {
-        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate = buildRepositoryClientCertificate(
-            CERTIFICATE_ID,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
-        Page<io.gravitee.repository.management.model.ClientCertificate> repositoryPage = new Page<>(
-            List.of(repositoryCertificate),
-            0,
-            1,
-            1
-        );
-        when(clientCertificateRepository.findByApplicationId(eq(APPLICATION_ID), any(Pageable.class))).thenReturn(repositoryPage);
+        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate =
+                buildRepositoryClientCertificate(
+                        CERTIFICATE_ID,
+                        APPLICATION_ID,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
+        Page<io.gravitee.repository.management.model.ClientCertificate> repositoryPage =
+                new Page<>(List.of(repositoryCertificate), 0, 1, 1);
+        when(clientCertificateRepository.findByApplicationId(eq(APPLICATION_ID), any(Pageable.class)))
+                .thenReturn(repositoryPage);
 
         io.gravitee.rest.api.model.common.Pageable pageable = new io.gravitee.rest.api.model.common.Pageable() {
             @Override
@@ -378,22 +367,18 @@ class ClientCertificateCrudServiceImplTest {
 
     @Test
     void should_find_by_application_id_and_statuses() throws TechnicalException {
-        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate = buildRepositoryClientCertificate(
-            CERTIFICATE_ID,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
-        when(
-            clientCertificateRepository.findByApplicationIdAndStatuses(
-                eq(APPLICATION_ID),
-                any(io.gravitee.repository.management.model.ClientCertificateStatus[].class)
-            )
-        ).thenReturn(List.of(repositoryCertificate));
+        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate =
+                buildRepositoryClientCertificate(
+                        CERTIFICATE_ID,
+                        APPLICATION_ID,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
+        when(clientCertificateRepository.findByApplicationIdAndStatuses(
+                        eq(APPLICATION_ID),
+                        any(io.gravitee.repository.management.model.ClientCertificateStatus[].class)))
+                .thenReturn(List.of(repositoryCertificate));
 
         List<ClientCertificate> result = clientCertificateCrudService.findByApplicationIdAndStatuses(
-            APPLICATION_ID,
-            ClientCertificateStatus.ACTIVE
-        );
+                APPLICATION_ID, ClientCertificateStatus.ACTIVE);
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().id()).isEqualTo(CERTIFICATE_ID);
@@ -403,65 +388,54 @@ class ClientCertificateCrudServiceImplTest {
     void should_find_by_application_ids_and_statuses() throws TechnicalException {
         String applicationId2 = "app-id-2";
         String certificateId2 = "cert-id-2";
-        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate1 = buildRepositoryClientCertificate(
-            CERTIFICATE_ID,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
-        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate2 = buildRepositoryClientCertificate(
-            certificateId2,
-            applicationId2,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END
-        );
-        when(
-            clientCertificateRepository.findByApplicationIdsAndStatuses(
-                eq(List.of(APPLICATION_ID, applicationId2)),
-                any(io.gravitee.repository.management.model.ClientCertificateStatus[].class)
-            )
-        ).thenReturn(List.of(repositoryCertificate1, repositoryCertificate2));
+        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate1 =
+                buildRepositoryClientCertificate(
+                        CERTIFICATE_ID,
+                        APPLICATION_ID,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
+        io.gravitee.repository.management.model.ClientCertificate repositoryCertificate2 =
+                buildRepositoryClientCertificate(
+                        certificateId2,
+                        applicationId2,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END);
+        when(clientCertificateRepository.findByApplicationIdsAndStatuses(
+                        eq(List.of(APPLICATION_ID, applicationId2)),
+                        any(io.gravitee.repository.management.model.ClientCertificateStatus[].class)))
+                .thenReturn(List.of(repositoryCertificate1, repositoryCertificate2));
 
         List<ClientCertificate> result = clientCertificateCrudService.findByApplicationIdsAndStatuses(
-            List.of(APPLICATION_ID, applicationId2),
-            ClientCertificateStatus.ACTIVE,
-            ClientCertificateStatus.ACTIVE_WITH_END
-        );
+                List.of(APPLICATION_ID, applicationId2),
+                ClientCertificateStatus.ACTIVE,
+                ClientCertificateStatus.ACTIVE_WITH_END);
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(ClientCertificate::id).containsExactlyInAnyOrder(CERTIFICATE_ID, certificateId2);
     }
 
     @Test
-    void should_throw_technical_management_exception_when_find_by_application_ids_and_statuses_fails() throws TechnicalException {
-        when(
-            clientCertificateRepository.findByApplicationIdsAndStatuses(
-                any(),
-                any(io.gravitee.repository.management.model.ClientCertificateStatus[].class)
-            )
-        ).thenThrow(new TechnicalException("Database error"));
+    void should_throw_technical_management_exception_when_find_by_application_ids_and_statuses_fails()
+            throws TechnicalException {
+        when(clientCertificateRepository.findByApplicationIdsAndStatuses(
+                        any(), any(io.gravitee.repository.management.model.ClientCertificateStatus[].class)))
+                .thenThrow(new TechnicalException("Database error"));
 
         List<String> applicationId = List.of(APPLICATION_ID);
-        assertThatThrownBy(() ->
-            clientCertificateCrudService.findByApplicationIdsAndStatuses(applicationId, ClientCertificateStatus.ACTIVE)
-        )
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessageContaining("An error occurs while trying to find client certificates by application IDs and statuses");
+        assertThatThrownBy(() -> clientCertificateCrudService.findByApplicationIdsAndStatuses(
+                        applicationId, ClientCertificateStatus.ACTIVE))
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessageContaining(
+                        "An error occurs while trying to find client certificates by application IDs and statuses");
     }
 
     @Test
     void should_find_by_statuses() throws TechnicalException {
         var repositoryCertificate1 = buildRepositoryClientCertificate(
-            CERTIFICATE_ID,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
+                CERTIFICATE_ID, APPLICATION_ID, io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
         var repositoryCertificate2 = buildRepositoryClientCertificate(
-            "cert-id-2",
-            "app-id-2",
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
-        );
-        when(
-            clientCertificateRepository.findByStatuses(any(io.gravitee.repository.management.model.ClientCertificateStatus[].class))
-        ).thenReturn(List.of(repositoryCertificate1, repositoryCertificate2));
+                "cert-id-2", "app-id-2", io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE);
+        when(clientCertificateRepository.findByStatuses(
+                        any(io.gravitee.repository.management.model.ClientCertificateStatus[].class)))
+                .thenReturn(List.of(repositoryCertificate1, repositoryCertificate2));
 
         var result = clientCertificateCrudService.findByStatuses(ClientCertificateStatus.ACTIVE);
 
@@ -471,63 +445,63 @@ class ClientCertificateCrudServiceImplTest {
 
     @Test
     void should_throw_technical_management_exception_when_find_by_statuses_fails() throws TechnicalException {
-        when(
-            clientCertificateRepository.findByStatuses(any(io.gravitee.repository.management.model.ClientCertificateStatus[].class))
-        ).thenThrow(new TechnicalException("Database error"));
+        when(clientCertificateRepository.findByStatuses(
+                        any(io.gravitee.repository.management.model.ClientCertificateStatus[].class)))
+                .thenThrow(new TechnicalException("Database error"));
 
         assertThatThrownBy(() -> clientCertificateCrudService.findByStatuses(ClientCertificateStatus.ACTIVE))
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessageContaining("An error occurs while trying to find client certificates by statuses");
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessageContaining("An error occurs while trying to find client certificates by statuses");
     }
 
     @Test
-    void should_create_certificate_with_scheduled_status_when_starts_at_and_ends_at_in_future() throws TechnicalException {
+    void should_create_certificate_with_scheduled_status_when_starts_at_and_ends_at_in_future()
+            throws TechnicalException {
         ClientCertificate domainCertificate = new ClientCertificate(
-            "Scheduled Certificate",
-            PEM_CERTIFICATE,
-            Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
-            Date.from(Instant.now().plus(2, ChronoUnit.DAYS))
-        );
+                "Scheduled Certificate",
+                PEM_CERTIFICATE,
+                Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
+                Date.from(Instant.now().plus(2, ChronoUnit.DAYS)));
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(APPLICATION_ID, domainCertificate);
 
         assertThat(created.status()).isEqualTo(ClientCertificateStatus.SCHEDULED);
 
-        ArgumentCaptor<io.gravitee.repository.management.model.ClientCertificate> captor = ArgumentCaptor.forClass(
-            io.gravitee.repository.management.model.ClientCertificate.class
-        );
+        ArgumentCaptor<io.gravitee.repository.management.model.ClientCertificate> captor =
+                ArgumentCaptor.forClass(io.gravitee.repository.management.model.ClientCertificate.class);
         verify(clientCertificateRepository).create(captor.capture());
-        assertThat(captor.getValue().getStatus()).isEqualTo(io.gravitee.repository.management.model.ClientCertificateStatus.SCHEDULED);
+        assertThat(captor.getValue().getStatus())
+                .isEqualTo(io.gravitee.repository.management.model.ClientCertificateStatus.SCHEDULED);
     }
 
     @Test
-    void should_return_most_recent_active_certificate_when_multiple_active_certificates_exist() throws TechnicalException {
+    void should_return_most_recent_active_certificate_when_multiple_active_certificates_exist()
+            throws TechnicalException {
         String oldCertificateId = "old-cert-id";
         String recentCertificateId = "recent-cert-id";
 
-        io.gravitee.repository.management.model.ClientCertificate oldCertificate = buildRepositoryClientCertificateWithCreatedAt(
-            oldCertificateId,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
-            Date.from(Instant.now().minus(2, ChronoUnit.DAYS))
-        );
-        io.gravitee.repository.management.model.ClientCertificate recentCertificate = buildRepositoryClientCertificateWithCreatedAt(
-            recentCertificateId,
-            APPLICATION_ID,
-            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END,
-            Date.from(Instant.now().minus(1, ChronoUnit.DAYS))
-        );
+        io.gravitee.repository.management.model.ClientCertificate oldCertificate =
+                buildRepositoryClientCertificateWithCreatedAt(
+                        oldCertificateId,
+                        APPLICATION_ID,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
+                        Date.from(Instant.now().minus(2, ChronoUnit.DAYS)));
+        io.gravitee.repository.management.model.ClientCertificate recentCertificate =
+                buildRepositoryClientCertificateWithCreatedAt(
+                        recentCertificateId,
+                        APPLICATION_ID,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END,
+                        Date.from(Instant.now().minus(1, ChronoUnit.DAYS)));
 
-        when(
-            clientCertificateRepository.findByApplicationIdAndStatuses(
-                APPLICATION_ID,
-                io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
-                io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END
-            )
-        ).thenReturn(List.of(oldCertificate, recentCertificate));
+        when(clientCertificateRepository.findByApplicationIdAndStatuses(
+                        APPLICATION_ID,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END))
+                .thenReturn(List.of(oldCertificate, recentCertificate));
 
-        Optional<ClientCertificate> result = clientCertificateCrudService.findMostRecentActiveByApplicationId(APPLICATION_ID);
+        Optional<ClientCertificate> result =
+                clientCertificateCrudService.findMostRecentActiveByApplicationId(APPLICATION_ID);
 
         assertThat(result).isPresent();
         assertThat(result.get().id()).isEqualTo(recentCertificateId);
@@ -535,79 +509,77 @@ class ClientCertificateCrudServiceImplTest {
 
     @Test
     void should_return_empty_when_no_active_certificates_exist() throws TechnicalException {
-        when(
-            clientCertificateRepository.findByApplicationIdAndStatuses(
-                APPLICATION_ID,
-                io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
-                io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END
-            )
-        ).thenReturn(List.of());
+        when(clientCertificateRepository.findByApplicationIdAndStatuses(
+                        APPLICATION_ID,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
+                        io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END))
+                .thenReturn(List.of());
 
-        Optional<ClientCertificate> result = clientCertificateCrudService.findMostRecentActiveByApplicationId(APPLICATION_ID);
+        Optional<ClientCertificate> result =
+                clientCertificateCrudService.findMostRecentActiveByApplicationId(APPLICATION_ID);
 
         assertThat(result).isEmpty();
     }
 
     public static Stream<Arguments> datesBounds() {
         return Stream.of(
-            arguments(null, null, true),
-            arguments(null, new Date(), true),
-            arguments(new Date(), null, true),
-            arguments(new Date(), Date.from(Instant.now().plus(1, ChronoUnit.MILLIS)), true),
-            arguments(new Date(), Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), true),
-            arguments(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)), new Date(), true),
-            arguments(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)), Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), true),
-            arguments(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), new Date(), false),
-            arguments(new Date(), Date.from(Instant.now().minus(1, ChronoUnit.DAYS)), false)
-        );
+                arguments(null, null, true),
+                arguments(null, new Date(), true),
+                arguments(new Date(), null, true),
+                arguments(new Date(), Date.from(Instant.now().plus(1, ChronoUnit.MILLIS)), true),
+                arguments(new Date(), Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), true),
+                arguments(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)), new Date(), true),
+                arguments(
+                        Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
+                        Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
+                        true),
+                arguments(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), new Date(), false),
+                arguments(new Date(), Date.from(Instant.now().minus(1, ChronoUnit.DAYS)), false));
     }
 
     @MethodSource("datesBounds")
     @ParameterizedTest
-    void should_validate_date_boundaries_on_update(Date startDate, Date endDate, boolean valid) throws TechnicalException {
-        when(clientCertificateRepository.findById(any())).thenReturn(
-            Optional.of(io.gravitee.repository.management.model.ClientCertificate.builder().build())
-        );
+    void should_validate_date_boundaries_on_update(Date startDate, Date endDate, boolean valid)
+            throws TechnicalException {
+        when(clientCertificateRepository.findById(any()))
+                .thenReturn(Optional.of(io.gravitee.repository.management.model.ClientCertificate.builder()
+                        .build()));
         ClientCertificate clientCertificate = new ClientCertificate("With dates", startDate, endDate);
         if (valid) {
-            assertThatCode(() -> clientCertificateCrudService.update(CERTIFICATE_ID, clientCertificate)).doesNotThrowAnyException();
+            assertThatCode(() -> clientCertificateCrudService.update(CERTIFICATE_ID, clientCertificate))
+                    .doesNotThrowAnyException();
         } else {
-            assertThatThrownBy(() -> clientCertificateCrudService.update(CERTIFICATE_ID, clientCertificate)).isInstanceOf(
-                ClientCertificateDateBoundsInvalidException.class
-            );
+            assertThatThrownBy(() -> clientCertificateCrudService.update(CERTIFICATE_ID, clientCertificate))
+                    .isInstanceOf(ClientCertificateDateBoundsInvalidException.class);
         }
     }
 
     private io.gravitee.repository.management.model.ClientCertificate buildRepositoryClientCertificate(
-        String id,
-        String applicationId,
-        io.gravitee.repository.management.model.ClientCertificateStatus status
-    ) {
+            String id, String applicationId, io.gravitee.repository.management.model.ClientCertificateStatus status) {
         return buildRepositoryClientCertificateWithCreatedAt(id, applicationId, status, new Date());
     }
 
     private io.gravitee.repository.management.model.ClientCertificate buildRepositoryClientCertificateWithCreatedAt(
-        String id,
-        String applicationId,
-        io.gravitee.repository.management.model.ClientCertificateStatus status,
-        Date createdAt
-    ) {
+            String id,
+            String applicationId,
+            io.gravitee.repository.management.model.ClientCertificateStatus status,
+            Date createdAt) {
         return io.gravitee.repository.management.model.ClientCertificate.builder()
-            .id(id)
-            .crossId("cross-id")
-            .applicationId(applicationId)
-            .name("Test Certificate")
-            .startsAt(null)
-            .endsAt(null)
-            .createdAt(createdAt)
-            .updatedAt(new Date())
-            .certificate(PEM_CERTIFICATE)
-            .certificateExpiration(Date.from(Instant.now().plus(365, ChronoUnit.DAYS)))
-            .subject("CN=localhost")
-            .issuer("CN=localhost")
-            .fingerprint("abc123")
-            .environmentId(ENVIRONMENT_ID)
-            .status(status)
-            .build();
+                .id(id)
+                .crossId("cross-id")
+                .applicationId(applicationId)
+                .name("Test Certificate")
+                .startsAt(null)
+                .endsAt(null)
+                .createdAt(createdAt)
+                .updatedAt(new Date())
+                .certificate(PEM_CERTIFICATE)
+                .certificateExpiration(Date.from(Instant.now().plus(365, ChronoUnit.DAYS)))
+                .subject("CN=localhost")
+                .issuer("CN=localhost")
+                .fingerprint("abc123")
+                .environmentId(ENVIRONMENT_ID)
+                .status(status)
+                .build();
     }
 }

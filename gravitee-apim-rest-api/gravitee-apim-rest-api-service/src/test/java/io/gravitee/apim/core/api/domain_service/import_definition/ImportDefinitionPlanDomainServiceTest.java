@@ -47,21 +47,21 @@ class ImportDefinitionPlanDomainServiceTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER = "user";
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId(ORGANIZATION_ID)
-        .environmentId(ENVIRONMENT_ID)
-        .actor(AuditActor.builder().userId(USER).build())
-        .build();
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .actor(AuditActor.builder().userId(USER).build())
+            .build();
     private static final String API_ID = "api-id";
     private static final String API_CROSS_ID = "api-cross-id";
-    private static final Api EXISTING_API = ApiFixtures.aMessageApiV4()
-        .toBuilder()
-        .id(API_ID)
-        .crossId(API_CROSS_ID)
-        .name("api name")
-        .environmentId(ENVIRONMENT_ID)
-        .build();
+    private static final Api EXISTING_API = ApiFixtures.aMessageApiV4().toBuilder()
+            .id(API_ID)
+            .crossId(API_CROSS_ID)
+            .name("api name")
+            .environmentId(ENVIRONMENT_ID)
+            .build();
 
-    private final ImportDefinitionPlanDomainServiceTestInitializer initializer = new ImportDefinitionPlanDomainServiceTestInitializer();
+    private final ImportDefinitionPlanDomainServiceTestInitializer initializer =
+            new ImportDefinitionPlanDomainServiceTestInitializer();
     private ImportDefinitionPlanDomainService service;
 
     @BeforeEach
@@ -77,18 +77,16 @@ class ImportDefinitionPlanDomainServiceTest {
     @Test
     @SneakyThrows
     public void should_update_api_plan() {
-        var planToUpdate = PlanFixtures.HttpV4.anApiKey()
-            .toBuilder()
-            .crossId("plan-to-update")
-            .apiId(API_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API)
-            .referenceId(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var planToUpdate = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .crossId("plan-to-update")
+                .apiId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         initializer.planCrudServiceInMemory.initWith(List.of(planToUpdate));
 
-        Set<PlanWithFlows> importDefinitionPlans = Set.of(
-            PlanWithFlows.builder()
+        Set<PlanWithFlows> importDefinitionPlans = Set.of(PlanWithFlows.builder()
                 .id(planToUpdate.getId())
                 .crossId(planToUpdate.getCrossId())
                 .apiId(planToUpdate.getApiId())
@@ -99,97 +97,87 @@ class ImportDefinitionPlanDomainServiceTest {
                 .type(planToUpdate.getType())
                 .planDefinitionHttpV4(planToUpdate.getPlanDefinitionHttpV4())
                 .name("updated plan")
-                .flows(List.of(FlowFixtures.aMessageFlowV4().toBuilder().id("updated-plan-flow").build()))
-                .build()
-        );
+                .flows(List.of(FlowFixtures.aMessageFlowV4().toBuilder()
+                        .id("updated-plan-flow")
+                        .build()))
+                .build());
 
         assertThat(initializer.flowCrudServiceInMemory.getApiV4Flows(API_ID)).isEmpty();
 
         service.upsertPlanWithFlows(EXISTING_API, importDefinitionPlans, AUDIT_INFO);
 
         var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
-        assertThat(apiPlans)
-            .hasSize(1)
-            .first()
-            .satisfies(updatedPlan -> {
-                assertThat(updatedPlan.getApiId()).isEqualTo(API_ID);
-                assertThat(updatedPlan.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-                assertThat(updatedPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-                assertThat(updatedPlan.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo("api-key");
-                assertThat(updatedPlan.getName()).isEqualTo("updated plan");
-                assertThat(updatedPlan.getCrossId()).isEqualTo("plan-to-update");
-            });
+        assertThat(apiPlans).hasSize(1).first().satisfies(updatedPlan -> {
+            assertThat(updatedPlan.getApiId()).isEqualTo(API_ID);
+            assertThat(updatedPlan.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+            assertThat(updatedPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+            assertThat(updatedPlan.getPlanDefinitionHttpV4().getSecurity().getType())
+                    .isEqualTo("api-key");
+            assertThat(updatedPlan.getName()).isEqualTo("updated plan");
+            assertThat(updatedPlan.getCrossId()).isEqualTo("plan-to-update");
+        });
 
         assertThat(initializer.flowCrudServiceInMemory.getPlanV4Flows(planToUpdate.getId()))
-            .extracting(Flow::getId)
-            .containsOnly("updated-plan-flow");
+                .extracting(Flow::getId)
+                .containsOnly("updated-plan-flow");
     }
 
     @Test
     @SneakyThrows
     public void should_create_api_plans() {
         var planToCreate = PlanWithFlows.builder()
-            .crossId("plan-to-create")
-            .name("plan to create")
-            .apiId(API_ID)
-            .type(Plan.PlanType.API)
-            .referenceType(Plan.ReferenceType.API)
-            .referenceId(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .definitionVersion(DefinitionVersion.V4)
-            .planDefinitionHttpV4(
-                io.gravitee.definition.model.v4.plan.Plan.builder()
-                    .security(PlanSecurity.builder().type("api-key").build())
-                    .mode(PlanMode.STANDARD)
-                    .build()
-            )
-            .flows(Collections.emptyList())
-            .build();
+                .crossId("plan-to-create")
+                .name("plan to create")
+                .apiId(API_ID)
+                .type(Plan.PlanType.API)
+                .referenceType(Plan.ReferenceType.API)
+                .referenceId(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .planDefinitionHttpV4(io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .security(PlanSecurity.builder().type("api-key").build())
+                        .mode(PlanMode.STANDARD)
+                        .build())
+                .flows(Collections.emptyList())
+                .build();
 
         assertThat(initializer.flowCrudServiceInMemory.getApiV4Flows(API_ID)).isEmpty();
 
         service.upsertPlanWithFlows(EXISTING_API, Set.of(planToCreate), AUDIT_INFO);
 
         var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
-        assertThat(apiPlans)
-            .hasSize(1)
-            .first()
-            .satisfies(
-                (createdPlan -> {
-                        assertThat(createdPlan.getApiId()).isEqualTo(API_ID);
-                        assertThat(createdPlan.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-                        assertThat(createdPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-                        assertThat(createdPlan.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo("api-key");
-                        assertThat(createdPlan.getPlanDefinitionHttpV4().getFlows()).isNullOrEmpty();
-                        assertThat(createdPlan.getName()).isEqualTo("plan to create");
-                        assertThat(createdPlan.getCrossId()).isEqualTo("plan-to-create");
-                    })
-            );
+        assertThat(apiPlans).hasSize(1).first().satisfies((createdPlan -> {
+            assertThat(createdPlan.getApiId()).isEqualTo(API_ID);
+            assertThat(createdPlan.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+            assertThat(createdPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+            assertThat(createdPlan.getPlanDefinitionHttpV4().getSecurity().getType())
+                    .isEqualTo("api-key");
+            assertThat(createdPlan.getPlanDefinitionHttpV4().getFlows()).isNullOrEmpty();
+            assertThat(createdPlan.getName()).isEqualTo("plan to create");
+            assertThat(createdPlan.getCrossId()).isEqualTo("plan-to-create");
+        }));
     }
 
     @Test
     @SneakyThrows
     public void should_remove_api_plans() {
-        var planToUpdate = PlanFixtures.HttpV4.anApiKey()
-            .toBuilder()
-            .crossId("plan-to-update")
-            .apiId(API_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API)
-            .referenceId(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
-        var planToRemove = PlanFixtures.HttpV4.aKeyless()
-            .toBuilder()
-            .crossId("plan-to-remove")
-            .apiId(API_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API)
-            .referenceId(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var planToUpdate = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .crossId("plan-to-update")
+                .apiId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
+        var planToRemove = PlanFixtures.HttpV4.aKeyless().toBuilder()
+                .crossId("plan-to-remove")
+                .apiId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         initializer.planCrudServiceInMemory.initWith(List.of(planToUpdate, planToRemove));
 
-        Set<PlanWithFlows> importDefinitionPlans = Set.of(
-            PlanWithFlows.builder()
+        Set<PlanWithFlows> importDefinitionPlans = Set.of(PlanWithFlows.builder()
                 .id(planToUpdate.getId())
                 .crossId(planToUpdate.getCrossId())
                 .apiId(planToUpdate.getApiId())
@@ -201,30 +189,30 @@ class ImportDefinitionPlanDomainServiceTest {
                 .planDefinitionHttpV4(planToUpdate.getPlanDefinitionHttpV4())
                 .name("updated plan")
                 .flows(Collections.emptyList())
-                .build()
-        );
+                .build());
 
         service.upsertPlanWithFlows(EXISTING_API, importDefinitionPlans, AUDIT_INFO);
 
         var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
-        assertThat(apiPlans).hasSize(1).extracting(Plan::getCrossId).containsExactlyInAnyOrder(planToUpdate.getCrossId());
+        assertThat(apiPlans)
+                .hasSize(1)
+                .extracting(Plan::getCrossId)
+                .containsExactlyInAnyOrder(planToUpdate.getCrossId());
     }
 
     @Test
     @SneakyThrows
     void should_update_api_plan_when_export_has_plan_id_but_no_cross_id() {
-        var planToUpdate = PlanFixtures.HttpV4.anApiKey()
-            .toBuilder()
-            .crossId("plan-cross-for-db-only")
-            .apiId(API_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API)
-            .referenceId(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var planToUpdate = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .crossId("plan-cross-for-db-only")
+                .apiId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         initializer.planCrudServiceInMemory.initWith(List.of(planToUpdate));
 
-        Set<PlanWithFlows> importDefinitionPlans = Set.of(
-            PlanWithFlows.builder()
+        Set<PlanWithFlows> importDefinitionPlans = Set.of(PlanWithFlows.builder()
                 .id(planToUpdate.getId())
                 .crossId(null)
                 .apiId(planToUpdate.getApiId())
@@ -235,43 +223,39 @@ class ImportDefinitionPlanDomainServiceTest {
                 .type(planToUpdate.getType())
                 .planDefinitionHttpV4(planToUpdate.getPlanDefinitionHttpV4())
                 .name("updated after re-import without crossId in export")
-                .flows(List.of(FlowFixtures.aMessageFlowV4().toBuilder().id("flow-after-reimport").build()))
-                .build()
-        );
+                .flows(List.of(FlowFixtures.aMessageFlowV4().toBuilder()
+                        .id("flow-after-reimport")
+                        .build()))
+                .build());
 
         service.upsertPlanWithFlows(EXISTING_API, importDefinitionPlans, AUDIT_INFO);
 
         var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
-        assertThat(apiPlans)
-            .hasSize(1)
-            .first()
-            .satisfies(updatedPlan -> {
-                assertThat(updatedPlan.getId()).isEqualTo(planToUpdate.getId());
-                assertThat(updatedPlan.getName()).isEqualTo("updated after re-import without crossId in export");
-                assertThat(updatedPlan.getCrossId()).isEqualTo("plan-cross-for-db-only");
-            });
+        assertThat(apiPlans).hasSize(1).first().satisfies(updatedPlan -> {
+            assertThat(updatedPlan.getId()).isEqualTo(planToUpdate.getId());
+            assertThat(updatedPlan.getName()).isEqualTo("updated after re-import without crossId in export");
+            assertThat(updatedPlan.getCrossId()).isEqualTo("plan-cross-for-db-only");
+        });
 
         assertThat(initializer.flowCrudServiceInMemory.getPlanV4Flows(planToUpdate.getId()))
-            .extracting(Flow::getId)
-            .containsOnly("flow-after-reimport");
+                .extracting(Flow::getId)
+                .containsOnly("flow-after-reimport");
     }
 
     @Test
     @SneakyThrows
     void should_preserve_reference_id_when_imported_plan_has_null_reference_fields() {
-        var planToUpdate = PlanFixtures.HttpV4.anApiKey()
-            .toBuilder()
-            .crossId("plan-cross-for-db-only")
-            .apiId(API_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API)
-            .referenceId(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var planToUpdate = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .crossId("plan-cross-for-db-only")
+                .apiId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         initializer.planCrudServiceInMemory.initWith(List.of(planToUpdate));
 
         // Simulate import payload where referenceId/referenceType are absent (as produced by toHttpPlanWithFlows)
-        Set<PlanWithFlows> importDefinitionPlans = Set.of(
-            PlanWithFlows.builder()
+        Set<PlanWithFlows> importDefinitionPlans = Set.of(PlanWithFlows.builder()
                 .id(planToUpdate.getId())
                 .crossId(null)
                 .referenceId(null)
@@ -281,41 +265,35 @@ class ImportDefinitionPlanDomainServiceTest {
                 .planDefinitionHttpV4(planToUpdate.getPlanDefinitionHttpV4())
                 .name("updated without reference fields in payload")
                 .flows(Collections.emptyList())
-                .build()
-        );
+                .build());
 
         service.upsertPlanWithFlows(EXISTING_API, importDefinitionPlans, AUDIT_INFO);
 
         // Plan must still be findable by API id (referenceId must not have been nulled out)
         var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
-        assertThat(apiPlans)
-            .hasSize(1)
-            .first()
-            .satisfies(updatedPlan -> {
-                assertThat(updatedPlan.getId()).isEqualTo(planToUpdate.getId());
-                assertThat(updatedPlan.getReferenceId()).isEqualTo(API_ID);
-                assertThat(updatedPlan.getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API);
-                assertThat(updatedPlan.getName()).isEqualTo("updated without reference fields in payload");
-            });
+        assertThat(apiPlans).hasSize(1).first().satisfies(updatedPlan -> {
+            assertThat(updatedPlan.getId()).isEqualTo(planToUpdate.getId());
+            assertThat(updatedPlan.getReferenceId()).isEqualTo(API_ID);
+            assertThat(updatedPlan.getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API);
+            assertThat(updatedPlan.getName()).isEqualTo("updated without reference fields in payload");
+        });
     }
 
     @Test
     @SneakyThrows
     void should_heal_reference_fields_for_legacy_plan_with_null_reference_id_and_type() {
         // Legacy plan in DB: created by old code that didn't set referenceId/referenceType.
-        var legacyPlan = PlanFixtures.HttpV4.anApiKey()
-            .toBuilder()
-            .crossId("legacy-plan-cross")
-            .apiId(API_ID)
-            .referenceType(null)
-            .referenceId(null)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var legacyPlan = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .crossId("legacy-plan-cross")
+                .apiId(API_ID)
+                .referenceType(null)
+                .referenceId(null)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         initializer.planCrudServiceInMemory.initWith(List.of(legacyPlan));
 
         // Incoming plan from a promotion export: id stripped, crossId preserved.
-        Set<PlanWithFlows> importDefinitionPlans = Set.of(
-            PlanWithFlows.builder()
+        Set<PlanWithFlows> importDefinitionPlans = Set.of(PlanWithFlows.builder()
                 .id(null)
                 .crossId(legacyPlan.getCrossId())
                 .referenceId(null)
@@ -325,40 +303,34 @@ class ImportDefinitionPlanDomainServiceTest {
                 .planDefinitionHttpV4(legacyPlan.getPlanDefinitionHttpV4())
                 .name("healed plan")
                 .flows(Collections.emptyList())
-                .build()
-        );
+                .build());
 
         service.upsertPlanWithFlows(EXISTING_API, importDefinitionPlans, AUDIT_INFO);
 
         // After promotion the plan must be queryable by API id (referenceId healed).
         var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
-        assertThat(apiPlans)
-            .hasSize(1)
-            .first()
-            .satisfies(p -> {
-                assertThat(p.getId()).isEqualTo(legacyPlan.getId());
-                assertThat(p.getCrossId()).isEqualTo("legacy-plan-cross");
-                assertThat(p.getReferenceId()).isEqualTo(API_ID);
-                assertThat(p.getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API);
-                assertThat(p.getName()).isEqualTo("healed plan");
-            });
+        assertThat(apiPlans).hasSize(1).first().satisfies(p -> {
+            assertThat(p.getId()).isEqualTo(legacyPlan.getId());
+            assertThat(p.getCrossId()).isEqualTo("legacy-plan-cross");
+            assertThat(p.getReferenceId()).isEqualTo(API_ID);
+            assertThat(p.getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API);
+            assertThat(p.getName()).isEqualTo("healed plan");
+        });
     }
 
     @Test
     @SneakyThrows
     void should_update_by_plan_id_when_import_cross_id_does_not_match_any_saved_plan() {
-        var planToUpdate = PlanFixtures.HttpV4.anApiKey()
-            .toBuilder()
-            .crossId("stored-cross-id")
-            .apiId(API_ID)
-            .referenceType(GenericPlanEntity.ReferenceType.API)
-            .referenceId(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+        var planToUpdate = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .crossId("stored-cross-id")
+                .apiId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
         initializer.planCrudServiceInMemory.initWith(List.of(planToUpdate));
 
-        Set<PlanWithFlows> importDefinitionPlans = Set.of(
-            PlanWithFlows.builder()
+        Set<PlanWithFlows> importDefinitionPlans = Set.of(PlanWithFlows.builder()
                 .id(planToUpdate.getId())
                 .crossId("stale-or-wrong-cross-id-from-export")
                 .apiId(planToUpdate.getApiId())
@@ -370,18 +342,14 @@ class ImportDefinitionPlanDomainServiceTest {
                 .planDefinitionHttpV4(planToUpdate.getPlanDefinitionHttpV4())
                 .name("updated via id fallback")
                 .flows(Collections.emptyList())
-                .build()
-        );
+                .build());
 
         service.upsertPlanWithFlows(EXISTING_API, importDefinitionPlans, AUDIT_INFO);
 
         var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
-        assertThat(apiPlans)
-            .hasSize(1)
-            .first()
-            .satisfies(p -> {
-                assertThat(p.getId()).isEqualTo(planToUpdate.getId());
-                assertThat(p.getName()).isEqualTo("updated via id fallback");
-            });
+        assertThat(apiPlans).hasSize(1).first().satisfies(p -> {
+            assertThat(p.getId()).isEqualTo(planToUpdate.getId());
+            assertThat(p.getName()).isEqualTo("updated via id fallback");
+        });
     }
 }

@@ -33,13 +33,12 @@ public class DeleteClusterMemberUseCase {
     public record Output() {}
 
     public Output execute(Input input) {
-        Membership membershipToDelete = membershipQueryService
-            .findByReference(Membership.ReferenceType.CLUSTER, input.clusterId)
-            .stream()
-            .filter(membership -> membership.getMemberType().equals(Membership.Type.USER))
-            .filter(membership -> membership.getMemberId().equals(input.memberId))
-            .findFirst()
-            .orElseThrow();
+        Membership membershipToDelete =
+                membershipQueryService.findByReference(Membership.ReferenceType.CLUSTER, input.clusterId).stream()
+                        .filter(membership -> membership.getMemberType().equals(Membership.Type.USER))
+                        .filter(membership -> membership.getMemberId().equals(input.memberId))
+                        .findFirst()
+                        .orElseThrow();
         membershipCrudService.delete(membershipToDelete.getId());
 
         return new Output();

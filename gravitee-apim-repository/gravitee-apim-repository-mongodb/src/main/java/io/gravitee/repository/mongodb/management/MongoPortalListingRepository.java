@@ -43,16 +43,22 @@ public class MongoPortalListingRepository implements PortalListingRepository {
     private GraviteeMapper mapper;
 
     @Override
-    public Optional<PortalListing> findByIdAndEnvironmentId(String portalListingId, String environmentId) throws TechnicalException {
+    public Optional<PortalListing> findByIdAndEnvironmentId(String portalListingId, String environmentId)
+            throws TechnicalException {
         log.debug("Find portal listing by ID [{}] and environment [{}]", portalListingId, environmentId);
-        PortalListingMongo listing = internalPortalListingRepo.findByIdAndEnvironmentId(portalListingId, environmentId).orElse(null);
+        PortalListingMongo listing = internalPortalListingRepo
+                .findByIdAndEnvironmentId(portalListingId, environmentId)
+                .orElse(null);
         return Optional.ofNullable(mapper.map(listing));
     }
 
     @Override
-    public List<PortalListing> findAllByPortalIdAndEnvironmentId(String portalId, String environmentId) throws TechnicalException {
+    public List<PortalListing> findAllByPortalIdAndEnvironmentId(String portalId, String environmentId)
+            throws TechnicalException {
         log.debug("Find portal listings by portal [{}] and environment [{}]", portalId, environmentId);
-        return internalPortalListingRepo.findAllByPortalIdAndEnvironmentId(portalId, environmentId).stream().map(mapper::map).toList();
+        return internalPortalListingRepo.findAllByPortalIdAndEnvironmentId(portalId, environmentId).stream()
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
@@ -60,7 +66,8 @@ public class MongoPortalListingRepository implements PortalListingRepository {
         try {
             internalPortalListingRepo.deleteByEnvironmentId(environmentId);
         } catch (Exception e) {
-            throw new TechnicalException("An error occurred when deleting portal listings by environment [" + environmentId + "]", e);
+            throw new TechnicalException(
+                    "An error occurred when deleting portal listings by environment [" + environmentId + "]", e);
         }
     }
 
@@ -69,14 +76,16 @@ public class MongoPortalListingRepository implements PortalListingRepository {
         try {
             internalPortalListingRepo.deleteByOrganizationId(organizationId);
         } catch (Exception e) {
-            throw new TechnicalException("An error occurred when deleting portal listings by organization [" + organizationId + "]", e);
+            throw new TechnicalException(
+                    "An error occurred when deleting portal listings by organization [" + organizationId + "]", e);
         }
     }
 
     @Override
     public Optional<PortalListing> findById(String portalListingId) throws TechnicalException {
         log.debug("Find portal listing by ID [{}]", portalListingId);
-        PortalListingMongo listing = internalPortalListingRepo.findById(portalListingId).orElse(null);
+        PortalListingMongo listing =
+                internalPortalListingRepo.findById(portalListingId).orElse(null);
         return Optional.ofNullable(mapper.map(listing));
     }
 
@@ -94,16 +103,19 @@ public class MongoPortalListingRepository implements PortalListingRepository {
             throw new IllegalStateException("Portal listing must not be null");
         }
 
-        PortalListingMongo existing = internalPortalListingRepo.findById(portalListing.getId()).orElse(null);
+        PortalListingMongo existing =
+                internalPortalListingRepo.findById(portalListing.getId()).orElse(null);
         if (existing == null) {
-            throw new IllegalStateException(String.format("No portal listing found with id [%s]", portalListing.getId()));
+            throw new IllegalStateException(
+                    String.format("No portal listing found with id [%s]", portalListing.getId()));
         }
 
         try {
             PortalListingMongo updated = internalPortalListingRepo.save(mapper.map(portalListing));
             return mapper.map(updated);
         } catch (Exception e) {
-            throw new TechnicalException("An error occurred when updating portal listing [" + portalListing.getId() + "]", e);
+            throw new TechnicalException(
+                    "An error occurred when updating portal listing [" + portalListing.getId() + "]", e);
         }
     }
 

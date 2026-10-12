@@ -23,7 +23,6 @@ import org.springframework.context.annotation.Bean;
  * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
  * @author GraviteeSource Team
  */
-
 public class FetcherConfigurationConfiguration {
 
     @Bean

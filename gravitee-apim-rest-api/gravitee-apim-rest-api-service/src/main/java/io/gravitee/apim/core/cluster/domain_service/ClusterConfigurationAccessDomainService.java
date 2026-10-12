@@ -60,6 +60,7 @@ public class ClusterConfigurationAccessDomainService {
     }
 
     private boolean can(Cluster cluster, String organizationId, String userId, RolePermissionAction action) {
-        return permissionDomainService.hasPermission(organizationId, userId, RolePermission.CLUSTER_CONFIGURATION, cluster.getId(), action);
+        return permissionDomainService.hasPermission(
+                organizationId, userId, RolePermission.CLUSTER_CONFIGURATION, cluster.getId(), action);
     }
 }

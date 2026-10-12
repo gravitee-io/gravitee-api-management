@@ -55,17 +55,7 @@ public enum PlanSecurityType {
     MTLS("mtls");
 
     private static final Map<String, PlanSecurityType> maps = Map.of(
-        KEY_LESS.label,
-        KEY_LESS,
-        API_KEY.label,
-        API_KEY,
-        OAUTH2.label,
-        OAUTH2,
-        JWT.label,
-        JWT,
-        MTLS.label,
-        MTLS
-    );
+            KEY_LESS.label, KEY_LESS, API_KEY.label, API_KEY, OAUTH2.label, OAUTH2, JWT.label, JWT, MTLS.label, MTLS);
 
     private final String label;
 

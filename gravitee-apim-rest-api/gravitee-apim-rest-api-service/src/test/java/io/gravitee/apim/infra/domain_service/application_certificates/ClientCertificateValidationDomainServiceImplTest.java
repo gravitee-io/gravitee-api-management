@@ -96,10 +96,10 @@ class ClientCertificateValidationDomainServiceImplTest {
         -----END CERTIFICATE-----
         """;
 
-    private final ClientCertificateCrudServiceInMemory clientCertificateCrudService = new ClientCertificateCrudServiceInMemory();
-    private final ClientCertificateValidationDomainServiceImpl service = new ClientCertificateValidationDomainServiceImpl(
-        clientCertificateCrudService
-    );
+    private final ClientCertificateCrudServiceInMemory clientCertificateCrudService =
+            new ClientCertificateCrudServiceInMemory();
+    private final ClientCertificateValidationDomainServiceImpl service =
+            new ClientCertificateValidationDomainServiceImpl(clientCertificateCrudService);
 
     @BeforeEach
     void setUp() {
@@ -127,19 +127,21 @@ class ClientCertificateValidationDomainServiceImplTest {
                 This one is invalid
                 -----END CERTIFICATE-----
                 """;
-            assertThatThrownBy(() -> service.validate(malformedPem)).isInstanceOf(ClientCertificateInvalidException.class);
+            assertThatThrownBy(() -> service.validate(malformedPem))
+                    .isInstanceOf(ClientCertificateInvalidException.class);
         }
 
         @Test
         void should_throw_empty_exception_when_no_certificate_can_be_extracted() {
-            assertThatThrownBy(() -> service.validate("no certificate header, so not parsed as an exception by the library.")).isInstanceOf(
-                ClientCertificateEmptyException.class
-            );
+            assertThatThrownBy(() ->
+                            service.validate("no certificate header, so not parsed as an exception by the library."))
+                    .isInstanceOf(ClientCertificateEmptyException.class);
         }
 
         @Test
         void should_throw_authority_exception_for_ca_certificate() {
-            assertThatThrownBy(() -> service.validate(CA_CERTIFICATE)).isInstanceOf(ClientCertificateAuthorityException.class);
+            assertThatThrownBy(() -> service.validate(CA_CERTIFICATE))
+                    .isInstanceOf(ClientCertificateAuthorityException.class);
         }
     }
 
@@ -162,57 +164,48 @@ class ClientCertificateValidationDomainServiceImplTest {
         @Test
         void should_throw_when_fingerprint_already_exists() {
             var info = service.validate(PEM_CERTIFICATE);
-            clientCertificateCrudService.initWith(
-                List.of(
-                    new ClientCertificate(
-                        "existing-id",
-                        "cross-id",
-                        "app-1",
-                        "Existing",
-                        null,
-                        null,
-                        new Date(),
-                        new Date(),
-                        PEM_CERTIFICATE,
-                        null,
-                        null,
-                        null,
-                        info.fingerprint(),
-                        "env-1",
-                        ClientCertificateStatus.ACTIVE
-                    )
-                )
-            );
+            clientCertificateCrudService.initWith(List.of(new ClientCertificate(
+                    "existing-id",
+                    "cross-id",
+                    "app-1",
+                    "Existing",
+                    null,
+                    null,
+                    new Date(),
+                    new Date(),
+                    PEM_CERTIFICATE,
+                    null,
+                    null,
+                    null,
+                    info.fingerprint(),
+                    "env-1",
+                    ClientCertificateStatus.ACTIVE)));
 
             var cert = new ClientCertificate("New Cert", PEM_CERTIFICATE, null, null);
 
-            assertThatThrownBy(() -> service.validateForCreation(cert, "env-1")).isInstanceOf(ClientCertificateAlreadyUsedException.class);
+            assertThatThrownBy(() -> service.validateForCreation(cert, "env-1"))
+                    .isInstanceOf(ClientCertificateAlreadyUsedException.class);
         }
 
         @Test
         void should_allow_fingerprint_when_it_belongs_to_excluded_application_on_update() {
             var info = service.validate(PEM_CERTIFICATE);
-            clientCertificateCrudService.initWith(
-                List.of(
-                    new ClientCertificate(
-                        "existing-id",
-                        "cross-id",
-                        "app-1",
-                        "Existing",
-                        null,
-                        null,
-                        new Date(),
-                        new Date(),
-                        PEM_CERTIFICATE,
-                        null,
-                        null,
-                        null,
-                        info.fingerprint(),
-                        "env-1",
-                        ClientCertificateStatus.ACTIVE
-                    )
-                )
-            );
+            clientCertificateCrudService.initWith(List.of(new ClientCertificate(
+                    "existing-id",
+                    "cross-id",
+                    "app-1",
+                    "Existing",
+                    null,
+                    null,
+                    new Date(),
+                    new Date(),
+                    PEM_CERTIFICATE,
+                    null,
+                    null,
+                    null,
+                    info.fingerprint(),
+                    "env-1",
+                    ClientCertificateStatus.ACTIVE)));
 
             var cert = new ClientCertificate("Renamed Cert", PEM_CERTIFICATE, null, null);
 
@@ -224,33 +217,27 @@ class ClientCertificateValidationDomainServiceImplTest {
         @Test
         void should_still_reject_fingerprint_used_by_another_application_when_excluding_different_application() {
             var info = service.validate(PEM_CERTIFICATE);
-            clientCertificateCrudService.initWith(
-                List.of(
-                    new ClientCertificate(
-                        "existing-id",
-                        "cross-id",
-                        "app-1",
-                        "Existing",
-                        null,
-                        null,
-                        new Date(),
-                        new Date(),
-                        PEM_CERTIFICATE,
-                        null,
-                        null,
-                        null,
-                        info.fingerprint(),
-                        "env-1",
-                        ClientCertificateStatus.ACTIVE
-                    )
-                )
-            );
+            clientCertificateCrudService.initWith(List.of(new ClientCertificate(
+                    "existing-id",
+                    "cross-id",
+                    "app-1",
+                    "Existing",
+                    null,
+                    null,
+                    new Date(),
+                    new Date(),
+                    PEM_CERTIFICATE,
+                    null,
+                    null,
+                    null,
+                    info.fingerprint(),
+                    "env-1",
+                    ClientCertificateStatus.ACTIVE)));
 
             var cert = new ClientCertificate("New Cert", PEM_CERTIFICATE, null, null);
 
-            assertThatThrownBy(() -> service.validateForCreation(cert, "env-1", "app-2")).isInstanceOf(
-                ClientCertificateAlreadyUsedException.class
-            );
+            assertThatThrownBy(() -> service.validateForCreation(cert, "env-1", "app-2"))
+                    .isInstanceOf(ClientCertificateAlreadyUsedException.class);
         }
 
         @Test
@@ -259,9 +246,8 @@ class ClientCertificateValidationDomainServiceImplTest {
             var endsAt = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
             var cert = new ClientCertificate("Bad Dates", PEM_CERTIFICATE, startsAt, endsAt);
 
-            assertThatThrownBy(() -> service.validateForCreation(cert, "env-1")).isInstanceOf(
-                ClientCertificateDateBoundsInvalidException.class
-            );
+            assertThatThrownBy(() -> service.validateForCreation(cert, "env-1"))
+                    .isInstanceOf(ClientCertificateDateBoundsInvalidException.class);
         }
 
         @Test

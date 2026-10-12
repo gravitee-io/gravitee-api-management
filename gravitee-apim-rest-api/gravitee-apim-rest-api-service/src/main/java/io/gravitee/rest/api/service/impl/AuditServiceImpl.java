@@ -64,14 +64,14 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     private static final String DEFINITION = "definition";
 
-    private static final Map<Audit.AuditReferenceType, AuditReferenceType> AUDIT_REFERENCE_TYPE_AUDIT_REFERENCE_TYPE_MAP = Map.ofEntries(
-        entry(Audit.AuditReferenceType.ORGANIZATION, AuditReferenceType.ORGANIZATION),
-        entry(Audit.AuditReferenceType.ENVIRONMENT, AuditReferenceType.ENVIRONMENT),
-        entry(Audit.AuditReferenceType.APPLICATION, AuditReferenceType.APPLICATION),
-        entry(Audit.AuditReferenceType.API, AuditReferenceType.API),
-        entry(Audit.AuditReferenceType.API_PRODUCT, AuditReferenceType.API_PRODUCT),
-        entry(Audit.AuditReferenceType.DASHBOARD, AuditReferenceType.DASHBOARD)
-    );
+    private static final Map<Audit.AuditReferenceType, AuditReferenceType>
+            AUDIT_REFERENCE_TYPE_AUDIT_REFERENCE_TYPE_MAP = Map.ofEntries(
+                    entry(Audit.AuditReferenceType.ORGANIZATION, AuditReferenceType.ORGANIZATION),
+                    entry(Audit.AuditReferenceType.ENVIRONMENT, AuditReferenceType.ENVIRONMENT),
+                    entry(Audit.AuditReferenceType.APPLICATION, AuditReferenceType.APPLICATION),
+                    entry(Audit.AuditReferenceType.API, AuditReferenceType.API),
+                    entry(Audit.AuditReferenceType.API_PRODUCT, AuditReferenceType.API_PRODUCT),
+                    entry(Audit.AuditReferenceType.DASHBOARD, AuditReferenceType.DASHBOARD));
 
     @Lazy
     @Autowired
@@ -137,31 +137,26 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             criteria.environmentIds(Collections.singletonList(executionContext.getEnvironmentId()));
         }
 
-        if (
-            permissionService.hasPermission(
-                executionContext,
-                RolePermission.ORGANIZATION_AUDIT,
-                executionContext.getOrganizationId(),
-                RolePermissionAction.READ
-            ) &&
-            query.getReferenceType() != null &&
-            query.getReferenceType().equals(AuditReferenceType.ORGANIZATION)
-        ) {
+        if (permissionService.hasPermission(
+                        executionContext,
+                        RolePermission.ORGANIZATION_AUDIT,
+                        executionContext.getOrganizationId(),
+                        RolePermissionAction.READ)
+                && query.getReferenceType() != null
+                && query.getReferenceType().equals(AuditReferenceType.ORGANIZATION)) {
             criteria.references(Audit.AuditReferenceType.ORGANIZATION, null);
-        } else if (
-            (query.getEnvironmentIds() != null && !query.getEnvironmentIds().isEmpty()) ||
-            (query.getReferenceType() != null && query.getReferenceType().equals(AuditReferenceType.ENVIRONMENT))
-        ) {
+        } else if ((query.getEnvironmentIds() != null
+                        && !query.getEnvironmentIds().isEmpty())
+                || (query.getReferenceType() != null
+                        && query.getReferenceType().equals(AuditReferenceType.ENVIRONMENT))) {
             criteria.references(Audit.AuditReferenceType.ENVIRONMENT, query.getEnvironmentIds());
-        } else if (
-            (query.getApplicationIds() != null && !query.getApplicationIds().isEmpty()) ||
-            (query.getReferenceType() != null && query.getReferenceType().equals(AuditReferenceType.APPLICATION))
-        ) {
+        } else if ((query.getApplicationIds() != null
+                        && !query.getApplicationIds().isEmpty())
+                || (query.getReferenceType() != null
+                        && query.getReferenceType().equals(AuditReferenceType.APPLICATION))) {
             criteria.references(Audit.AuditReferenceType.APPLICATION, query.getApplicationIds());
-        } else if (
-            (query.getApiIds() != null && !query.getApiIds().isEmpty()) ||
-            (query.getReferenceType() != null && query.getReferenceType().equals(AuditReferenceType.API))
-        ) {
+        } else if ((query.getApiIds() != null && !query.getApiIds().isEmpty())
+                || (query.getReferenceType() != null && query.getReferenceType().equals(AuditReferenceType.API))) {
             criteria.references(Audit.AuditReferenceType.API, query.getApiIds());
         }
 
@@ -174,25 +169,27 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         }
 
         Page<Audit> auditPage = auditRepository.search(
-            criteria.build(),
-            new PageableBuilder().pageNumber(query.getPage() - 1).pageSize(query.getSize()).build()
-        );
+                criteria.build(),
+                new PageableBuilder()
+                        .pageNumber(query.getPage() - 1)
+                        .pageSize(query.getSize())
+                        .build());
 
-        List<AuditEntity> content = auditPage.getContent().stream().map(this::convert).collect(Collectors.toList());
+        List<AuditEntity> content =
+                auditPage.getContent().stream().map(this::convert).collect(Collectors.toList());
 
         return new MetadataPage<>(
-            content,
-            query.getPage(),
-            query.getSize(),
-            auditPage.getTotalElements(),
-            getMetadata(executionContext, content)
-        );
+                content,
+                query.getPage(),
+                query.getSize(),
+                auditPage.getTotalElements(),
+                getMetadata(executionContext, content));
     }
 
     private Map<String, String> getMetadata(ExecutionContext executionContext, List<AuditEntity> content) {
         Map<String, String> metadata = new HashMap<>();
         for (AuditEntity auditEntity : content) {
-            //add user's display name
+            // add user's display name
             String metadataKey = "USER:" + auditEntity.getUser() + ":name";
             try {
                 UserEntity user = userService.findById(executionContext, auditEntity.getUser());
@@ -208,11 +205,14 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 continue;
             }
 
-            if (Audit.AuditReferenceType.ORGANIZATION.name().equals(auditEntity.getReferenceType().name())) {
+            if (Audit.AuditReferenceType.ORGANIZATION
+                    .name()
+                    .equals(auditEntity.getReferenceType().name())) {
                 metadataKey = "ORGANIZATION:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
-                        Optional<Organization> optOrganization = organizationRepository.findById(auditEntity.getReferenceId());
+                        Optional<Organization> optOrganization =
+                                organizationRepository.findById(auditEntity.getReferenceId());
                         if (optOrganization.isPresent()) {
                             metadata.put(metadataKey, optOrganization.get().getName());
                         }
@@ -221,11 +221,14 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
-            } else if (Audit.AuditReferenceType.ENVIRONMENT.name().equals(auditEntity.getReferenceType().name())) {
+            } else if (Audit.AuditReferenceType.ENVIRONMENT
+                    .name()
+                    .equals(auditEntity.getReferenceType().name())) {
                 metadataKey = "ENVIRONMENT:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
-                        Optional<Environment> optEnvironment = environmentRepository.findById(auditEntity.getReferenceId());
+                        Optional<Environment> optEnvironment =
+                                environmentRepository.findById(auditEntity.getReferenceId());
                         if (optEnvironment.isPresent()) {
                             metadata.put(metadataKey, optEnvironment.get().getName());
                         }
@@ -234,10 +237,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
-            } else if (
-                auditEntity.getReferenceId() != null &&
-                Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType().name())
-            ) {
+            } else if (auditEntity.getReferenceId() != null
+                    && Audit.AuditReferenceType.APPLICATION
+                            .name()
+                            .equals(auditEntity.getReferenceType().name())) {
                 metadataKey = "APPLICATION:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
@@ -250,9 +253,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
-            } else if (
-                auditEntity.getReferenceId() != null && Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType().name())
-            ) {
+            } else if (auditEntity.getReferenceId() != null
+                    && Audit.AuditReferenceType.API
+                            .name()
+                            .equals(auditEntity.getReferenceType().name())) {
                 metadataKey = "API:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
@@ -265,16 +269,15 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
-            } else if (
-                auditEntity.getReferenceId() != null &&
-                Audit.AuditReferenceType.API_PRODUCT.name().equals(auditEntity.getReferenceType().name())
-            ) {
+            } else if (auditEntity.getReferenceId() != null
+                    && Audit.AuditReferenceType.API_PRODUCT
+                            .name()
+                            .equals(auditEntity.getReferenceType().name())) {
                 metadataKey = "API_PRODUCT:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
-                        Optional<io.gravitee.repository.management.model.ApiProduct> optApiProduct = apiProductsRepository.findById(
-                            auditEntity.getReferenceId()
-                        );
+                        Optional<io.gravitee.repository.management.model.ApiProduct> optApiProduct =
+                                apiProductsRepository.findById(auditEntity.getReferenceId());
                         if (optApiProduct.isPresent()) {
                             metadata.put(metadataKey, optApiProduct.get().getName());
                         }
@@ -283,17 +286,17 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
-            } else if (auditEntity.getReferenceId() != null && auditEntity.getReferenceType() == AuditReferenceType.DASHBOARD) {
+            } else if (auditEntity.getReferenceId() != null
+                    && auditEntity.getReferenceType() == AuditReferenceType.DASHBOARD) {
                 metadataKey = "DASHBOARD:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
                         metadata.put(
-                            metadataKey,
-                            dashboardRepository
-                                .findById(auditEntity.getReferenceId())
-                                .map(Dashboard::getName)
-                                .orElse(auditEntity.getReferenceId())
-                        );
+                                metadataKey,
+                                dashboardRepository
+                                        .findById(auditEntity.getReferenceId())
+                                        .map(Dashboard::getName)
+                                        .orElse(auditEntity.getReferenceId()));
                     } catch (TechnicalException e) {
                         log.error("Error finding metadata {}", metadataKey);
                         metadata.put(metadataKey, auditEntity.getReferenceId());
@@ -301,11 +304,16 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 }
             }
 
-            //add property metadata
+            // add property metadata
             String name;
             if (auditEntity.getProperties() != null) {
-                for (Map.Entry<String, String> property : auditEntity.getProperties().entrySet()) {
-                    metadataKey = new StringJoiner(":").add(property.getKey()).add(property.getValue()).add("name").toString();
+                for (Map.Entry<String, String> property :
+                        auditEntity.getProperties().entrySet()) {
+                    metadataKey = new StringJoiner(":")
+                            .add(property.getKey())
+                            .add(property.getValue())
+                            .add("name")
+                            .toString();
                     if (!metadata.containsKey(metadataKey)) {
                         name = getName(property.getKey(), property.getValue(), executionContext, auditEntity);
                         metadata.put(metadataKey, name);
@@ -320,15 +328,26 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         try {
             return switch (Audit.AuditProperties.valueOf(property)) {
                 case API -> apiRepository.findById(value).map(Api::getName).orElse(value);
-                case APPLICATION -> applicationRepository.findById(value).map(Application::getName).orElse(value);
-                case PAGE -> pageRepository.findById(value).map(io.gravitee.repository.management.model.Page::getName).orElse(value);
+                case APPLICATION ->
+                    applicationRepository
+                            .findById(value)
+                            .map(Application::getName)
+                            .orElse(value);
+                case PAGE ->
+                    pageRepository
+                            .findById(value)
+                            .map(io.gravitee.repository.management.model.Page::getName)
+                            .orElse(value);
                 case PLAN -> planRepository.findById(value).map(Plan::getName).orElse(value);
                 case METADATA -> {
-                    MetadataReferenceType refType = MetadataReferenceType.parse(auditEntity.getReferenceType().name());
-                    Optional<Metadata> metadata = metadataRepository.findById(value, auditEntity.getReferenceId(), refType);
+                    MetadataReferenceType refType = MetadataReferenceType.parse(
+                            auditEntity.getReferenceType().name());
+                    Optional<Metadata> metadata =
+                            metadataRepository.findById(value, auditEntity.getReferenceId(), refType);
                     yield metadata.map(Metadata::getName).orElse(value);
                 }
-                case GROUP -> groupRepository.findById(value).map(Group::getName).orElse(value);
+                case GROUP ->
+                    groupRepository.findById(value).map(Group::getName).orElse(value);
                 case USER -> userService.findById(executionContext, value).getDisplayName();
                 default -> value;
             };
@@ -363,7 +382,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             return;
         }
         try {
-            api.put(DEFINITION, EncryptedPropertyAuditRedaction.redact(mapper.readTree(definition.textValue())).toString());
+            api.put(
+                    DEFINITION,
+                    EncryptedPropertyAuditRedaction.redact(mapper.readTree(definition.textValue()))
+                            .toString());
         } catch (JsonProcessingException e) {
             log.warn("Failed to parse the API definition for the audit log diff, leaving it out", e);
             api.remove(DEFINITION);
@@ -378,7 +400,8 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     // Synchronous on purpose: the audit user is read from the caller's security context,
     // which an async executor thread does not carry.
     @Override
-    public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String userWhenUnauthenticated) {
+    public void createAuditLog(
+            ExecutionContext executionContext, AuditLogData auditLogData, String userWhenUnauthenticated) {
         if (combinesPatchAndValuesToDiff(auditLogData)) {
             throw new IllegalArgumentException("An audit log takes either a patch or the values to diff, not both");
         }
@@ -395,15 +418,19 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         Audit audit = new Audit();
         audit.setId(UuidString.generateRandom());
         audit.setOrganizationId(executionContext.getOrganizationId());
-        if (executionContext.hasEnvironmentId() && !auditLogData.getReferenceType().equals(Audit.AuditReferenceType.ORGANIZATION)) {
+        if (executionContext.hasEnvironmentId()
+                && !auditLogData.getReferenceType().equals(Audit.AuditReferenceType.ORGANIZATION)) {
             audit.setEnvironmentId(executionContext.getEnvironmentId());
         }
         audit.setCreatedAt(auditLogData.getCreatedAt() == null ? new Date() : auditLogData.getCreatedAt());
         audit.setUser(auditUser(executionContext, userWhenUnauthenticated));
 
         if (auditLogData.getProperties() != null) {
-            Map<String, String> stringStringMap = new HashMap<>(auditLogData.getProperties().size());
-            auditLogData.getProperties().forEach((auditProperties, s) -> stringStringMap.put(auditProperties.name(), s));
+            Map<String, String> stringStringMap =
+                    new HashMap<>(auditLogData.getProperties().size());
+            auditLogData
+                    .getProperties()
+                    .forEach((auditProperties, s) -> stringStringMap.put(auditProperties.name(), s));
             audit.setProperties(stringStringMap);
         }
 
@@ -469,12 +496,11 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             return Objects.requireNonNullElse(userWhenUnauthenticated, "system");
         }
         if ("token".equals(authenticatedUser.getSource())) {
-            return (
-                userService.findById(executionContext, authenticatedUser.getUsername()).getDisplayName() +
-                " - (using token \"" +
-                authenticatedUser.getSourceId() +
-                "\")"
-            );
+            return (userService
+                            .findById(executionContext, authenticatedUser.getUsername())
+                            .getDisplayName() + " - (using token \""
+                    + authenticatedUser.getSourceId()
+                    + "\")");
         }
         return authenticatedUser.getUsername();
     }

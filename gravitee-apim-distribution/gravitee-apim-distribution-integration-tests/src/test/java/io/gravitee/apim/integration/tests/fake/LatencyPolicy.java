@@ -45,21 +45,19 @@ public class LatencyPolicy implements Policy {
 
     @OnRequest
     public void onRequest(
-        final Request request,
-        final Response response,
-        final ExecutionContext executionContext,
-        final PolicyChain policyChain
-    ) {
+            final Request request,
+            final Response response,
+            final ExecutionContext executionContext,
+            final PolicyChain policyChain) {
         executionContext.getComponent(Vertx.class).setTimer(delay, timerId -> policyChain.doNext(request, response));
     }
 
     @OnResponse
     public void onResponse(
-        final Request request,
-        final Response response,
-        final ExecutionContext executionContext,
-        final PolicyChain policyChain
-    ) {
+            final Request request,
+            final Response response,
+            final ExecutionContext executionContext,
+            final PolicyChain policyChain) {
         executionContext.getComponent(Vertx.class).setTimer(delay, timerId -> policyChain.doNext(request, response));
     }
 

@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@TemplateVariable(scopes = { TemplateVariableScope.API })
+@TemplateVariable(scopes = {TemplateVariableScope.API})
 public class DefaultReferenceRegister implements EndpointManager, ReferenceRegister, TemplateVariableProvider {
 
     private static final String TEMPLATE_VARIABLE_KEY = "endpoints";
@@ -65,19 +65,16 @@ public class DefaultReferenceRegister implements EndpointManager, ReferenceRegis
 
     @Override
     public <T extends Reference> Collection<T> referencesByType(Class<T> refClass) {
-        return references()
-            .stream()
-            .filter(reference -> reference.getClass().equals(refClass))
-            .map(reference -> (T) reference)
-            .collect(Collectors.toSet());
+        return references().stream()
+                .filter(reference -> reference.getClass().equals(refClass))
+                .map(reference -> (T) reference)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public void provide(TemplateContext context) {
-        Map<String, String> refs = references
-            .entrySet()
-            .stream()
-            .collect(Collectors.toMap(entry -> entry.getValue().name(), entry -> entry.getKey() + ':'));
+        Map<String, String> refs = references.entrySet().stream()
+                .collect(Collectors.toMap(entry -> entry.getValue().name(), entry -> entry.getKey() + ':'));
 
         context.setVariable(TEMPLATE_VARIABLE_KEY, new EndpointReferenceMap(refs));
     }
@@ -208,17 +205,22 @@ public class DefaultReferenceRegister implements EndpointManager, ReferenceRegis
         }
 
         @Override
-        public String computeIfPresent(String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+        public String computeIfPresent(
+                String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
             return wrapped.computeIfPresent(key, remappingFunction);
         }
 
         @Override
-        public String compute(String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+        public String compute(
+                String key, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
             return wrapped.compute(key, remappingFunction);
         }
 
         @Override
-        public String merge(String key, String value, BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
+        public String merge(
+                String key,
+                String value,
+                BiFunction<? super String, ? super String, ? extends String> remappingFunction) {
             return wrapped.merge(key, value, remappingFunction);
         }
     }

@@ -82,8 +82,8 @@ public class MongoPromotionRepositoryTest {
         when(internalRepository.replace(any())).thenReturn(false);
 
         assertThatThrownBy(() -> mongoPromotionRepository.update(promotion))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("unknown");
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("unknown");
     }
 
     @Test

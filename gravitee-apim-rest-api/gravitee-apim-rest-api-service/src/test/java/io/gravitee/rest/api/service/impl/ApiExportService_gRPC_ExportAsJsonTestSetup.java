@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -120,8 +119,7 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
     public void setUp() throws TechnicalException, JsonProcessingException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
+                new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
 
         // register API Entity serializers
         when(applicationContext.getBean(MembershipService.class)).thenReturn(membershipService);
@@ -158,7 +156,8 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         proxy.setLogging(logging);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
-        Endpoint endpoint = Endpoint.builder().name("default").target("http://test").build();
+        Endpoint endpoint =
+                Endpoint.builder().name("default").target("http://test").build();
         Endpoint endPointGrpc = new Endpoint("grpc", "EndPoint GRPC", "grpc://localhost:8888");
         HttpClientOptions httpClientOptions = new HttpClientOptions();
         httpClientOptions.setVersion(ProtocolVersion.HTTP_2);
@@ -182,7 +181,8 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         responseTemplate.setStatusCode(400);
         responseTemplate.setBody("{\"bad\":\"news\"}");
         responseTemplate.setPropagateErrorKeyToLogs(false);
-        apiEntity.setResponseTemplates(Collections.singletonMap("API_KEY_MISSING", Collections.singletonMap("*/*", responseTemplate)));
+        apiEntity.setResponseTemplates(
+                Collections.singletonMap("API_KEY_MISSING", Collections.singletonMap("*/*", responseTemplate)));
 
         apiEntity.setProxy(proxy);
 
@@ -192,7 +192,8 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         primaryOwnerEntity.setType(MembershipMemberType.USER.toString());
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
 
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(prepareApiEntity(apiEntity));
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(prepareApiEntity(apiEntity));
 
         PageEntity folder = new PageEntity();
         folder.setName("My Folder");
@@ -242,9 +243,16 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         asciidocPage.setType(PageType.ASCIIDOC.toString());
         asciidocPage.setContent("Read the asciidoc");
         asciidocPage.setVisibility(Visibility.PUBLIC);
-        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true))).thenReturn(
-            Arrays.asList(folder, markdownPage, swaggerPage, asideFolder, linkPage, translationPage, markdownTemplatePage, asciidocPage)
-        );
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true)))
+                .thenReturn(Arrays.asList(
+                        folder,
+                        markdownPage,
+                        swaggerPage,
+                        asideFolder,
+                        linkPage,
+                        translationPage,
+                        markdownTemplatePage,
+                        asciidocPage));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setName("PRIMARY_OWNER");
@@ -258,21 +266,23 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         memberEntity.setId(membership.getMemberId());
         memberEntity.setType(membership.getMemberType());
         memberEntity.setRoles(Collections.singletonList(poRole));
-        when(
-            membershipService.getMembersByReference(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID))
-        ).thenReturn(Collections.singleton(memberEntity));
+        when(membershipService.getMembersByReference(
+                        eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID)))
+                .thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
         userEntity.setId(memberEntity.getId());
         userEntity.setSource(userEntity.getId() + "-source");
         userEntity.setSourceId(userEntity.getId() + "-sourceId");
-        when(userService.findById(GraviteeContext.getExecutionContext(), memberEntity.getId())).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), memberEntity.getId()))
+                .thenReturn(userEntity);
 
         apiEntity.setGroups(Collections.singleton("my-group"));
         GroupEntity groupEntity = new GroupEntity();
         groupEntity.setId("my-group");
         groupEntity.setName("My Group");
         when(groupService.findByIds(apiEntity.getGroups())).thenReturn(Collections.singleton(groupEntity));
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "my-group")).thenReturn(groupEntity);
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "my-group"))
+                .thenReturn(groupEntity);
 
         PlanEntity publishedPlan = new PlanEntity();
         publishedPlan.setId("plan-id");
@@ -295,7 +305,8 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         Set<PlanEntity> set = new HashSet<>();
         set.add(publishedPlan);
         set.add(closedPlan);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(set);
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(set);
         ApiMetadataEntity apiMetadataEntity = new ApiMetadataEntity();
         apiMetadataEntity.setApiId(API_ID);
         apiMetadataEntity.setKey("metadata-key");
@@ -303,9 +314,8 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         apiMetadataEntity.setValue("metadata-value");
         apiMetadataEntity.setDefaultValue("metadata-default-value");
         apiMetadataEntity.setFormat(MetadataFormat.STRING);
-        when(apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(
-            Collections.singletonList(apiMetadataEntity)
-        );
+        when(apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(Collections.singletonList(apiMetadataEntity));
     }
 
     @AfterEach
@@ -319,17 +329,11 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
 
     protected void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws IOException {
         String jsonForExport = apiExportService.exportAsJson(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            version.getVersion(),
-            SystemRole.PRIMARY_OWNER.name()
-        );
+                GraviteeContext.getExecutionContext(), API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
 
-        URL url = Resources.getResource(
-            "io/gravitee/rest/api/management/service/export-gRPC-convertAsJsonForExport" +
-                (filename != null ? "-" + filename : "") +
-                ".json"
-        );
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-gRPC-convertAsJsonForExport"
+                + (filename != null ? "-" + filename : "")
+                + ".json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();

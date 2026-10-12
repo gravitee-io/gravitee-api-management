@@ -117,13 +117,12 @@ class ClusterResourceTest extends AbstractResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
         reset(
-            getClusterUseCase,
-            updateClusterUseCase,
-            deleteClusterUseCase,
-            getClusterPermissionsUseCase,
-            deployClusterUseCase,
-            undeployClusterUseCase
-        );
+                getClusterUseCase,
+                updateClusterUseCase,
+                deleteClusterUseCase,
+                getClusterPermissionsUseCase,
+                deployClusterUseCase,
+                undeployClusterUseCase);
     }
 
     @Nested
@@ -131,18 +130,24 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         void should_get_cluster() {
-            when(getClusterUseCase.execute(any())).thenReturn(new GetClusterUseCase.Output(Cluster.builder().id("cluster-1").build()));
+            when(getClusterUseCase.execute(any()))
+                    .thenReturn(new GetClusterUseCase.Output(
+                            Cluster.builder().id("cluster-1").build()));
 
             final Response response = rootTarget().request().get();
 
             var cluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
 
-            assertAll(() -> assertThat(response.getStatus()).isEqualTo(OK_200), () -> assertThat(cluster.getId()).isEqualTo("cluster-1"));
+            assertAll(
+                    () -> assertThat(response.getStatus()).isEqualTo(OK_200),
+                    () -> assertThat(cluster.getId()).isEqualTo("cluster-1"));
         }
 
         @Test
         void should_ask_the_use_case_for_the_cluster_as_seen_by_the_current_user() {
-            when(getClusterUseCase.execute(any())).thenReturn(new GetClusterUseCase.Output(Cluster.builder().id(CLUSTER_ID).build()));
+            when(getClusterUseCase.execute(any()))
+                    .thenReturn(new GetClusterUseCase.Output(
+                            Cluster.builder().id(CLUSTER_ID).build()));
 
             rootTarget().request().get();
 
@@ -151,23 +156,25 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
+            shouldReturn403(
                     RolePermission.CLUSTER_DEFINITION,
                     CLUSTER_ID,
-                    RolePermissionAction.READ
-                )
-            ).thenReturn(false);
+                    RolePermissionAction.READ,
+                    () -> rootTarget().request().get());
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.CLUSTER_DEFINITION,
+                            CLUSTER_ID,
+                            RolePermissionAction.READ))
+                    .thenReturn(false);
 
             final Response response = rootTarget().request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
     }
 
@@ -177,15 +184,15 @@ class ClusterResourceTest extends AbstractResourceTest {
         @Test
         void should_update_cluster() {
             Cluster updatedCluster = Cluster.builder()
-                .id(CLUSTER_ID)
-                .name("Cluster 1")
-                .createdAt(Instant.now().minus(30, ChronoUnit.MINUTES))
-                .updatedAt(Instant.now())
-                .organizationId(ORGANIZATION)
-                .environmentId(ENV_ID)
-                .description("Cluster 1 description")
-                .configuration(Map.of("bootstrapServers", "localhost:9092"))
-                .build();
+                    .id(CLUSTER_ID)
+                    .name("Cluster 1")
+                    .createdAt(Instant.now().minus(30, ChronoUnit.MINUTES))
+                    .updatedAt(Instant.now())
+                    .organizationId(ORGANIZATION)
+                    .environmentId(ENV_ID)
+                    .description("Cluster 1 description")
+                    .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                    .build();
             when(updateClusterUseCase.execute(any())).thenReturn(new UpdateClusterUseCase.Output(updatedCluster));
 
             var updateCluster = new UpdateCluster();
@@ -193,23 +200,27 @@ class ClusterResourceTest extends AbstractResourceTest {
             io.gravitee.rest.api.management.v2.rest.model.Cluster updatedClusterResponse;
             try (Response response = rootTarget().request().put(json(updateCluster))) {
                 assertThat(response.getStatus()).isEqualTo(OK_200);
-                updatedClusterResponse = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
+                updatedClusterResponse =
+                        response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
             }
 
             assertAll(
-                () -> assertThat(updatedClusterResponse.getId()).isEqualTo(updatedCluster.getId()),
-                () -> assertThat(updatedClusterResponse.getName()).isEqualTo(updatedCluster.getName()),
-                () ->
-                    assertThat(updatedClusterResponse.getCreatedAt()).isEqualTo(
-                        updatedCluster.getCreatedAt().atZone(TimeProvider.clock().getZone()).toOffsetDateTime()
-                    ),
-                () ->
-                    assertThat(updatedClusterResponse.getUpdatedAt()).isEqualTo(
-                        updatedCluster.getUpdatedAt().atZone(TimeProvider.clock().getZone()).toOffsetDateTime()
-                    ),
-                () -> assertThat(updatedClusterResponse.getDescription()).isEqualTo(updatedCluster.getDescription()),
-                () -> assertThat(updatedClusterResponse.getConfiguration()).isEqualTo(updatedCluster.getConfiguration())
-            );
+                    () -> assertThat(updatedClusterResponse.getId()).isEqualTo(updatedCluster.getId()),
+                    () -> assertThat(updatedClusterResponse.getName()).isEqualTo(updatedCluster.getName()),
+                    () -> assertThat(updatedClusterResponse.getCreatedAt())
+                            .isEqualTo(updatedCluster
+                                    .getCreatedAt()
+                                    .atZone(TimeProvider.clock().getZone())
+                                    .toOffsetDateTime()),
+                    () -> assertThat(updatedClusterResponse.getUpdatedAt())
+                            .isEqualTo(updatedCluster
+                                    .getUpdatedAt()
+                                    .atZone(TimeProvider.clock().getZone())
+                                    .toOffsetDateTime()),
+                    () -> assertThat(updatedClusterResponse.getDescription())
+                            .isEqualTo(updatedCluster.getDescription()),
+                    () -> assertThat(updatedClusterResponse.getConfiguration())
+                            .isEqualTo(updatedCluster.getConfiguration()));
 
             var captor = ArgumentCaptor.forClass(UpdateClusterUseCase.Input.class);
             verify(updateClusterUseCase).execute(captor.capture());
@@ -238,9 +249,11 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().request().put(json(""))
-            );
+            shouldReturn403(
+                    RolePermission.CLUSTER_DEFINITION,
+                    CLUSTER_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().request().put(json("")));
         }
     }
 
@@ -268,9 +281,11 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.DELETE, () ->
-                rootTarget().request().delete()
-            );
+            shouldReturn403(
+                    RolePermission.CLUSTER_DEFINITION,
+                    CLUSTER_ID,
+                    RolePermissionAction.DELETE,
+                    () -> rootTarget().request().delete());
         }
     }
 
@@ -279,14 +294,17 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("groups").request().put(json(Map.of("groups", Set.of("G1", "G2"))))
-            );
+            shouldReturn403(
+                    RolePermission.CLUSTER_MEMBER,
+                    CLUSTER_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().path("groups").request().put(json(Map.of("groups", Set.of("G1", "G2")))));
         }
 
         @Test
         void should_update_cluster_groups() {
-            when(updateClusterGroupsUseCase.execute(any())).thenReturn(new UpdateClusterGroupsUseCase.Output(Set.of("G1", "G2")));
+            when(updateClusterGroupsUseCase.execute(any()))
+                    .thenReturn(new UpdateClusterGroupsUseCase.Output(Set.of("G1", "G2")));
 
             try (Response response = rootTarget().path("groups").request().put(json(List.of("G1", "G2")))) {
                 assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -310,11 +328,11 @@ class ClusterResourceTest extends AbstractResourceTest {
         @Test
         void should_deploy_cluster() {
             Cluster deployedCluster = Cluster.builder()
-                .id(CLUSTER_ID)
-                .name("Cluster 1")
-                .lifecycleState(ClusterLifecycleState.DEPLOYED)
-                .version(1)
-                .build();
+                    .id(CLUSTER_ID)
+                    .name("Cluster 1")
+                    .lifecycleState(ClusterLifecycleState.DEPLOYED)
+                    .version(1)
+                    .build();
             when(deployClusterUseCase.execute(any())).thenReturn(new DeployClusterUseCase.Output(deployedCluster));
 
             try (Response response = rootTarget().path("_deploy").request().post(json(""))) {
@@ -334,9 +352,11 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("_deploy").request().post(json(""))
-            );
+            shouldReturn403(
+                    RolePermission.CLUSTER_DEFINITION,
+                    CLUSTER_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().path("_deploy").request().post(json("")));
         }
     }
 
@@ -346,12 +366,13 @@ class ClusterResourceTest extends AbstractResourceTest {
         @Test
         void should_undeploy_cluster() {
             Cluster undeployedCluster = Cluster.builder()
-                .id(CLUSTER_ID)
-                .name("Cluster 1")
-                .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
-                .version(1)
-                .build();
-            when(undeployClusterUseCase.execute(any())).thenReturn(new UndeployClusterUseCase.Output(undeployedCluster));
+                    .id(CLUSTER_ID)
+                    .name("Cluster 1")
+                    .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+                    .version(1)
+                    .build();
+            when(undeployClusterUseCase.execute(any()))
+                    .thenReturn(new UndeployClusterUseCase.Output(undeployedCluster));
 
             try (Response response = rootTarget().path("_undeploy").request().post(json(""))) {
                 assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -370,9 +391,11 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("_undeploy").request().post(json(""))
-            );
+            shouldReturn403(
+                    RolePermission.CLUSTER_DEFINITION,
+                    CLUSTER_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().path("_undeploy").request().post(json("")));
         }
     }
 
@@ -389,12 +412,12 @@ class ClusterResourceTest extends AbstractResourceTest {
         @Test
         void should_get_cluster_permissions() {
             var output = Map.of(
-                ClusterPermission.MEMBER.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() },
-                ClusterPermission.DEFINITION.getName(),
-                new char[] { READ.getId() }
-            );
-            when(getClusterPermissionsUseCase.execute(any())).thenReturn(new GetClusterPermissionsUseCase.Output(output));
+                    ClusterPermission.MEMBER.getName(),
+                    new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()},
+                    ClusterPermission.DEFINITION.getName(),
+                    new char[] {READ.getId()});
+            when(getClusterPermissionsUseCase.execute(any()))
+                    .thenReturn(new GetClusterPermissionsUseCase.Output(output));
 
             final Response response = target.request().get();
 
@@ -403,10 +426,11 @@ class ClusterResourceTest extends AbstractResourceTest {
             Map<String, String> permissionsResponse = (Map<String, String>) response.readEntity(Map.class);
 
             assertAll(
-                () -> assertThat(permissionsResponse.size()).isEqualTo(2),
-                () -> assertThat(permissionsResponse.get(ClusterPermission.MEMBER.getName())).isEqualTo("CRUD"),
-                () -> assertThat(permissionsResponse.get(ClusterPermission.DEFINITION.getName())).isEqualTo("R")
-            );
+                    () -> assertThat(permissionsResponse.size()).isEqualTo(2),
+                    () -> assertThat(permissionsResponse.get(ClusterPermission.MEMBER.getName()))
+                            .isEqualTo("CRUD"),
+                    () -> assertThat(permissionsResponse.get(ClusterPermission.DEFINITION.getName()))
+                            .isEqualTo("R"));
         }
     }
 }

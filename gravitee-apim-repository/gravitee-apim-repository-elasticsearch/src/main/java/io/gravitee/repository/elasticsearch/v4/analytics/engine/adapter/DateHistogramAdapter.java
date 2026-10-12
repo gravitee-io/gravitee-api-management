@@ -16,9 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.repository.analytics.engine.api.query.TimeRange;
-import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.vertx.core.json.JsonObject;
-import java.sql.Time;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -32,9 +30,10 @@ public class DateHistogramAdapter {
 
     private static JsonObject fixedDateHistogram(Long interval, TimeRange timeRange) {
         return json().put(
-            "date_histogram",
-            field().put("fixed_interval", interval + "ms").put("min_doc_count", 0).put("extended_bounds", extendedBounds(timeRange))
-        );
+                        "date_histogram",
+                        field().put("fixed_interval", interval + "ms")
+                                .put("min_doc_count", 0)
+                                .put("extended_bounds", extendedBounds(timeRange)));
     }
 
     private static JsonObject field() {

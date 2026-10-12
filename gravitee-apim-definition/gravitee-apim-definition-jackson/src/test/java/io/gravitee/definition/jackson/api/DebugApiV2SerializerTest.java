@@ -29,11 +29,10 @@ public class DebugApiV2SerializerTest extends AbstractTest {
 
     private static Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-backend-response-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-response-expected.json")
-        );
+                Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-backend-response-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error-expected.json"),
+                Arguments.of("/io/gravitee/definition/jackson/debug/debug-api-with-response-expected.json"));
     }
 
     @ParameterizedTest
@@ -45,8 +44,7 @@ public class DebugApiV2SerializerTest extends AbstractTest {
 
         Assertions.assertNotNull(generatedJsonDefinition);
         Assertions.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
+                objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+                objectMapper().readTree(generatedJsonDefinition.getBytes()));
     }
 }

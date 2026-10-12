@@ -57,7 +57,8 @@ class AsyncApiPortalPageContentValidatorServiceTest {
     @Test
     void should_validate_asyncapi_content() {
         PortalPageContent<?> content = GraviteeMarkdownPageContent.create("org", "env", "content");
-        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("asyncapi: '3.0.0'").build();
+        UpdatePortalPageContent updateContent =
+                UpdatePortalPageContent.builder().content("asyncapi: '3.0.0'").build();
 
         assertThatCode(() -> validator.validate(content, updateContent)).doesNotThrowAnyException();
     }
@@ -65,10 +66,11 @@ class AsyncApiPortalPageContentValidatorServiceTest {
     @Test
     void should_throw_when_content_is_empty() {
         PortalPageContent<?> content = GraviteeMarkdownPageContent.create("org", "env", "content");
-        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("").build();
+        UpdatePortalPageContent updateContent =
+                UpdatePortalPageContent.builder().content("").build();
 
         assertThatThrownBy(() -> validator.validate(content, updateContent))
-            .isInstanceOf(AsyncApiContentEmptyException.class)
-            .hasMessage("Content must not be null or empty");
+                .isInstanceOf(AsyncApiContentEmptyException.class)
+                .hasMessage("Content must not be null or empty");
     }
 }

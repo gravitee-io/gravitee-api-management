@@ -16,7 +16,6 @@
 package io.gravitee.plugin.apiservice.internal.fake;
 
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceConfiguration;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

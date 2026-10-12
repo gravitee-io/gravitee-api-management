@@ -35,7 +35,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(uses = { ApplicationMapper.class, DateMapper.class, PlanMapper.class })
+@Mapper(uses = {ApplicationMapper.class, DateMapper.class, PlanMapper.class})
 public interface ApiLogsMapper {
     Logger log = NodeLoggerFactory.getLogger(ApiLogsMapper.class);
     ApiLogsMapper INSTANCE = Mappers.getMapper(ApiLogsMapper.class);
@@ -54,10 +54,10 @@ public interface ApiLogsMapper {
 
     default ApiLogResponse mapFromMetricsDetail(ApiMetricsDetail metricsDetail) {
         var response = new ApiLogResponse()
-            .apiId(metricsDetail.getApiId())
-            .requestId(metricsDetail.getRequestId())
-            .transactionId(metricsDetail.getTransactionId())
-            .requestEnded(true);
+                .apiId(metricsDetail.getApiId())
+                .requestId(metricsDetail.getRequestId())
+                .transactionId(metricsDetail.getTransactionId())
+                .requestEnded(true);
 
         if (metricsDetail.getTimestamp() != null) {
             response.timestamp(OffsetDateTime.parse(metricsDetail.getTimestamp()));
@@ -66,7 +66,8 @@ public interface ApiLogsMapper {
         if (metricsDetail.getMethod() != null || metricsDetail.getUri() != null) {
             var entrypointRequest = new ApiLogRequestContent();
             if (metricsDetail.getMethod() != null) {
-                entrypointRequest.method(HttpMethod.valueOf(metricsDetail.getMethod().name()));
+                entrypointRequest.method(
+                        HttpMethod.valueOf(metricsDetail.getMethod().name()));
             }
             entrypointRequest.uri(metricsDetail.getUri());
             response.entrypointRequest(entrypointRequest);

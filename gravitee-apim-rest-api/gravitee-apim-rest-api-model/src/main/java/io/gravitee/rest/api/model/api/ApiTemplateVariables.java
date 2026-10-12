@@ -50,19 +50,15 @@ public class ApiTemplateVariables {
             if (DefinitionVersion.V4.equals(this.api.getDefinitionVersion())) {
                 var v4Api = (io.gravitee.rest.api.model.v4.api.ApiEntity) api;
                 if (v4Api.getProperties() != null) {
-                    return v4Api
-                        .getProperties()
-                        .stream()
-                        .collect(
-                            Collectors.toMap(
-                                io.gravitee.definition.model.v4.property.Property::getKey,
-                                io.gravitee.definition.model.v4.property.Property::getValue,
-                                (v1, v2) -> {
-                                    throw new IllegalArgumentException(String.format("Duplicate key for values %s and %s", v1, v2));
-                                },
-                                TemplatedValueHashMap::new
-                            )
-                        );
+                    return v4Api.getProperties().stream()
+                            .collect(Collectors.toMap(
+                                    io.gravitee.definition.model.v4.property.Property::getKey,
+                                    io.gravitee.definition.model.v4.property.Property::getValue,
+                                    (v1, v2) -> {
+                                        throw new IllegalArgumentException(
+                                                String.format("Duplicate key for values %s and %s", v1, v2));
+                                    },
+                                    TemplatedValueHashMap::new));
                 }
             } else {
                 var v2Api = (io.gravitee.rest.api.model.api.ApiEntity) api;

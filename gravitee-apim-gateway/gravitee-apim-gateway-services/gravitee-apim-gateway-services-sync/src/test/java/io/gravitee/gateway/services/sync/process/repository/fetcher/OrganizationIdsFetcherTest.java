@@ -15,16 +15,12 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.fetcher;
 
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.model.Installation;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -68,11 +64,7 @@ class OrganizationIdsFetcherTest {
     void should_fetch_organization_if_hrid_disable() throws TechnicalException {
         when(gatewayConfiguration.useLegacyEnvironmentHrids()).thenReturn(false);
         when(environmentRepository.findOrganizationIdsByEnvironments(ENVS)).thenReturn(Set.of("orga1"));
-        cut
-            .fetch(ENVS)
-            .test()
-            .assertValueCount(1)
-            .assertValue(events -> events.contains("orga1"));
+        cut.fetch(ENVS).test().assertValueCount(1).assertValue(events -> events.contains("orga1"));
     }
 
     @Test

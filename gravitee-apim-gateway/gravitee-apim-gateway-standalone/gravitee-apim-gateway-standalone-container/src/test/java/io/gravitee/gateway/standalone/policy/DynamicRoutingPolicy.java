@@ -28,7 +28,8 @@ import io.gravitee.policy.api.annotations.OnRequest;
 public class DynamicRoutingPolicy {
 
     @OnRequest
-    public void onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
+    public void onRequest(
+            Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
         String endpoint = executionContext.getTemplateEngine().getValue("{#endpoints['default']}", String.class);
         executionContext.setAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT, endpoint);
 

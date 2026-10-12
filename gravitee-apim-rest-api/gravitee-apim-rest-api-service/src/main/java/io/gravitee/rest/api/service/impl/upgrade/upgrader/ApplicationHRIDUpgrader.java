@@ -20,7 +20,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Set;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -62,14 +61,14 @@ public class ApplicationHRIDUpgrader implements Upgrader {
 
     private void setHRIDs(ExecutionContext executionContext) throws TechnicalException {
         applicationRepository
-            .findAllByEnvironment(executionContext.getEnvironmentId())
-            .forEach(application -> {
-                application.setHrid(application.getId());
-                try {
-                    applicationRepository.update(application);
-                } catch (TechnicalException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+                .findAllByEnvironment(executionContext.getEnvironmentId())
+                .forEach(application -> {
+                    application.setHrid(application.getId());
+                    try {
+                        applicationRepository.update(application);
+                    } catch (TechnicalException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 }

@@ -76,7 +76,10 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -99,26 +102,17 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
     @Test
     void should_return_the_content_of_a_page_owned_by_the_api() {
         var page = aPageOwnedBy(API_ID);
-        when(getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(page.getPortalPageContentId()))).thenReturn(
-            new GetPortalPageContentUseCase.Output(
-                PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                    page.getPortalPageContentId(),
-                    ORGANIZATION,
-                    ENVIRONMENT,
-                    ORIGINAL_CONTENT
-                )
-            )
-        );
+        when(getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(page.getPortalPageContentId())))
+                .thenReturn(
+                        new GetPortalPageContentUseCase.Output(PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                                page.getPortalPageContentId(), ORGANIZATION, ENVIRONMENT, ORIGINAL_CONTENT)));
 
         Response response = getContentOf(page.getId());
 
-        assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalPageContent.class)
-            .satisfies(content -> {
-                assertThat(content.getId()).isEqualTo(page.getPortalPageContentId().json());
-                assertThat(content.getContent()).isEqualTo(ORIGINAL_CONTENT);
-            });
+        assertThat(response).hasStatus(OK_200).asEntity(PortalPageContent.class).satisfies(content -> {
+            assertThat(content.getId()).isEqualTo(page.getPortalPageContentId().json());
+            assertThat(content.getContent()).isEqualTo(ORIGINAL_CONTENT);
+        });
     }
 
     @Test
@@ -162,14 +156,12 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
     @Test
     void should_return_403_with_environment_documentation_permission_only() {
         var page = aPageOwnedBy(API_ID);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(false);
 
         Response response = getContentOf(page.getId());
 
@@ -180,25 +172,17 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
     @Test
     void should_succeed_with_api_documentation_permission_only() {
         var page = aPageOwnedBy(API_ID);
-        when(getPortalPageContentUseCase.execute(any())).thenReturn(
-            new GetPortalPageContentUseCase.Output(
-                PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                    page.getPortalPageContentId(),
-                    ORGANIZATION,
-                    ENVIRONMENT,
-                    ORIGINAL_CONTENT
-                )
-            )
-        );
+        when(getPortalPageContentUseCase.execute(any()))
+                .thenReturn(
+                        new GetPortalPageContentUseCase.Output(PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                                page.getPortalPageContentId(), ORGANIZATION, ENVIRONMENT, ORIGINAL_CONTENT)));
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.READ)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.READ)))
+                .thenReturn(true);
 
         Response response = getContentOf(page.getId());
 
@@ -215,32 +199,31 @@ class ApiDocumentationNavigationItemResource_GetContentTest extends AbstractReso
 
     private PortalNavigationPage aPage(NavigationItemReference reference, PortalNavigationItemSource source) {
         var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-            PortalPageContentId.random(),
-            ORGANIZATION,
-            ENVIRONMENT,
-            ORIGINAL_CONTENT
-        );
+                PortalPageContentId.random(), ORGANIZATION, ENVIRONMENT, ORIGINAL_CONTENT);
         portalPageContentCrudService.create(content);
         // In this test context the content query fake does not share the crud storage
         portalPageContentQueryService.storage().add(content);
 
-        var page = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().json(), "Overview", null, content.getId())
-            .toBuilder()
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .reference(reference)
-            .source(source)
-            .build();
+        var page =
+                PortalNavigationItemFixtures.aPage(
+                                PortalNavigationItemId.random().json(), "Overview", null, content.getId())
+                        .toBuilder()
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .reference(reference)
+                        .source(source)
+                        .build();
         portalNavigationItemCrudService.create(page);
         return page;
     }
 
     private PortalNavigationFolder aFolderOwnedByTheApi() {
-        var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().json(), "Guides")
-            .toBuilder()
-            .environmentId(ENVIRONMENT)
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .build();
+        var folder = PortalNavigationItemFixtures.aFolder(
+                        PortalNavigationItemId.random().json(), "Guides")
+                .toBuilder()
+                .environmentId(ENVIRONMENT)
+                .reference(new NavigationItemReference.ApiReference(API_ID))
+                .build();
         portalNavigationItemCrudService.create(folder);
         return folder;
     }

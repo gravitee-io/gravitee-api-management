@@ -85,33 +85,45 @@ public class EnvironmentAnalyticsResource {
     @Path("/response-status-ranges")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public EnvironmentAnalyticsResponseStatusRangesResponse getResponseStatusRanges(@BeanParam @Valid TimeRangeParam timeRangeParam) {
-        var params = AnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
-        var input = new SearchEnvironmentResponseStatusRangesUseCase.Input(GraviteeContext.getExecutionContext(), params);
+    public EnvironmentAnalyticsResponseStatusRangesResponse getResponseStatusRanges(
+            @BeanParam @Valid TimeRangeParam timeRangeParam) {
+        var params = AnalyticsQueryParameters.builder()
+                .from(timeRangeParam.getFrom())
+                .to(timeRangeParam.getTo())
+                .build();
+        var input =
+                new SearchEnvironmentResponseStatusRangesUseCase.Input(GraviteeContext.getExecutionContext(), params);
 
         return searchEnvironmentResponseStatusRangesUseCase
-            .execute(input)
-            .responseStatusRanges()
-            .map(EnvironmentAnalyticsMapper.INSTANCE::map)
-            .orElse(new EnvironmentAnalyticsResponseStatusRangesResponse().ranges(Map.of()));
+                .execute(input)
+                .responseStatusRanges()
+                .map(EnvironmentAnalyticsMapper.INSTANCE::map)
+                .orElse(new EnvironmentAnalyticsResponseStatusRangesResponse().ranges(Map.of()));
     }
 
     @Path("/error-keys")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<String> getEnvironmentLogErrorKeys(@BeanParam @Valid TimeRangeParam timeRangeParam) {
-        var input = new SearchEnvironmentConnectionLogErrorKeysUseCase.Input(timeRangeParam.getFrom(), timeRangeParam.getTo());
-        return searchEnvironmentConnectionLogErrorKeysUseCase.execute(GraviteeContext.getExecutionContext(), input).errorKeys();
+        var input = new SearchEnvironmentConnectionLogErrorKeysUseCase.Input(
+                timeRangeParam.getFrom(), timeRangeParam.getTo());
+        return searchEnvironmentConnectionLogErrorKeysUseCase
+                .execute(GraviteeContext.getExecutionContext(), input)
+                .errorKeys();
     }
 
     @Path("/top-hits")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public EnvironmentAnalyticsTopHitsApisResponse getTopHitsApis(@BeanParam @Valid TimeRangeParam timeRangeParam) {
-        var params = AnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
+        var params = AnalyticsQueryParameters.builder()
+                .from(timeRangeParam.getFrom())
+                .to(timeRangeParam.getTo())
+                .build();
         var input = new SearchEnvironmentTopHitsApisCountUseCase.Input(GraviteeContext.getExecutionContext(), params);
 
-        var topHitsApis = searchEnvironmentTopHitsApisCountUseCase.execute(input).topHitsApis();
+        var topHitsApis =
+                searchEnvironmentTopHitsApisCountUseCase.execute(input).topHitsApis();
 
         if (topHitsApis == null) {
             return new EnvironmentAnalyticsTopHitsApisResponse();
@@ -123,54 +135,56 @@ public class EnvironmentAnalyticsResource {
     @Path("/request-response-time")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public EnvironmentAnalyticsRequestResponseTimeResponse getRequestResponseTime(@BeanParam @Valid TimeRangeParam timeRangeParam) {
-        var params = AnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
-        var input = new SearchEnvironmentRequestResponseTimeUseCase.Input(GraviteeContext.getExecutionContext(), params);
+    public EnvironmentAnalyticsRequestResponseTimeResponse getRequestResponseTime(
+            @BeanParam @Valid TimeRangeParam timeRangeParam) {
+        var params = AnalyticsQueryParameters.builder()
+                .from(timeRangeParam.getFrom())
+                .to(timeRangeParam.getTo())
+                .build();
+        var input =
+                new SearchEnvironmentRequestResponseTimeUseCase.Input(GraviteeContext.getExecutionContext(), params);
 
         return searchEnvironmentRequestResponseTimeUseCase
-            .execute(input)
-            .requestResponseTime()
-            .map(EnvironmentAnalyticsMapper.INSTANCE::map)
-            .orElse(new EnvironmentAnalyticsRequestResponseTimeResponse());
+                .execute(input)
+                .requestResponseTime()
+                .map(EnvironmentAnalyticsMapper.INSTANCE::map)
+                .orElse(new EnvironmentAnalyticsRequestResponseTimeResponse());
     }
 
     @Path("/response-time-over-time")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public EnvironmentAnalyticsOverPeriodResponse getResponseTimeOverTime(@QueryParam("from") Long from, @QueryParam("to") Long to) {
+    public EnvironmentAnalyticsOverPeriodResponse getResponseTimeOverTime(
+            @QueryParam("from") Long from, @QueryParam("to") Long to) {
         Instant end = to != null ? Instant.ofEpochMilli(to) : Instant.now();
         Instant start = from != null ? Instant.ofEpochMilli(from) : end.minus(Duration.ofDays(1));
-        var request = new SearchEnvironmentResponseTimeOverTimeUseCase.Input(GraviteeContext.getCurrentEnvironment(), start, end);
+        var request = new SearchEnvironmentResponseTimeOverTimeUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(), start, end);
 
         return searchEnvironmentResponseTimeOverTimeUseCase
-            .execute(GraviteeContext.getExecutionContext(), request)
-            .map(out ->
-                new EnvironmentAnalyticsOverPeriodResponse()
-                    .timeRange(
-                        new AnalyticTimeRange()
-                            .from(out.from().toEpochMilli())
-                            .to(out.to().toEpochMilli())
-                            .interval(out.interval().toMillis())
-                    )
-                    .data(out.data())
-            )
-            .blockingGet();
+                .execute(GraviteeContext.getExecutionContext(), request)
+                .map(out -> new EnvironmentAnalyticsOverPeriodResponse()
+                        .timeRange(new AnalyticTimeRange()
+                                .from(out.from().toEpochMilli())
+                                .to(out.to().toEpochMilli())
+                                .interval(out.interval().toMillis()))
+                        .data(out.data()))
+                .blockingGet();
     }
 
     @Path("/response-status-overtime")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public EnvironmentAnalyticsResponseStatusOvertimeResponse getResponseStatusOvertime(
-        @QueryParam("from") Long from,
-        @QueryParam("to") Long to
-    ) {
+            @QueryParam("from") Long from, @QueryParam("to") Long to) {
         Instant end = to != null ? Instant.ofEpochMilli(to) : Instant.now();
         Instant start = from != null ? Instant.ofEpochMilli(from) : end.minus(Duration.ofDays(1));
-        var request = new SearchEnvironmentResponseStatusOverTimeUseCase.Input(GraviteeContext.getCurrentEnvironment(), start, end);
+        var request = new SearchEnvironmentResponseStatusOverTimeUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(), start, end);
 
         var result = searchEnvironmentResponseStatusOverTimeUseCase
-            .execute(GraviteeContext.getExecutionContext(), request)
-            .responseStatusOvertime();
+                .execute(GraviteeContext.getExecutionContext(), request)
+                .responseStatusOvertime();
 
         if (result == null) {
             return new EnvironmentAnalyticsResponseStatusOvertimeResponse();
@@ -182,11 +196,17 @@ public class EnvironmentAnalyticsResource {
     @Path("/top-apps-by-request-count")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public EnvironmentAnalyticsTopAppsByRequestCountResponse getTopAppsByRequestCount(@BeanParam @Valid TimeRangeParam timeRangeParam) {
-        var params = AnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
-        var input = new SearchEnvironmentTopAppsByRequestCountUseCase.Input(GraviteeContext.getExecutionContext(), params);
+    public EnvironmentAnalyticsTopAppsByRequestCountResponse getTopAppsByRequestCount(
+            @BeanParam @Valid TimeRangeParam timeRangeParam) {
+        var params = AnalyticsQueryParameters.builder()
+                .from(timeRangeParam.getFrom())
+                .to(timeRangeParam.getTo())
+                .build();
+        var input =
+                new SearchEnvironmentTopAppsByRequestCountUseCase.Input(GraviteeContext.getExecutionContext(), params);
 
-        var topHitsApps = searchEnvironmentTopAppsByRequestCountUseCase.execute(input).topHitsApps();
+        var topHitsApps =
+                searchEnvironmentTopAppsByRequestCountUseCase.execute(input).topHitsApps();
 
         if (topHitsApps == null) {
             return new EnvironmentAnalyticsTopAppsByRequestCountResponse();
@@ -199,7 +219,10 @@ public class EnvironmentAnalyticsResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public EnvironmentAnalyticsTopFailedApisResponse getTopFailedApis(@BeanParam @Valid TimeRangeParam timeRangeParam) {
-        var params = AnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
+        var params = AnalyticsQueryParameters.builder()
+                .from(timeRangeParam.getFrom())
+                .to(timeRangeParam.getTo())
+                .build();
         var input = new SearchEnvironmentTopFailedApisUseCase.Input(GraviteeContext.getExecutionContext(), params);
 
         var topFailedApis = searchEnvironmentTopFailedApisUseCase.execute(input).topFailedApis();

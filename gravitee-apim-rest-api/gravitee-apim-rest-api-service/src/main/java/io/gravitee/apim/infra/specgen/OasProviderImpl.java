@@ -28,7 +28,6 @@ import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import lombok.CustomLog;
-import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,7 +47,10 @@ public class OasProviderImpl implements OasProvider {
             var oas = parseResult.getOpenAPI();
             if (oas == null) {
                 var messages = String.join(", ", parseResult.getMessages());
-                log.warn("Could not parse generated OpenAPI Specification for api [{}], reason: [{}]", api.id(), messages);
+                log.warn(
+                        "Could not parse generated OpenAPI Specification for api [{}], reason: [{}]",
+                        api.id(),
+                        messages);
                 return content;
             }
 

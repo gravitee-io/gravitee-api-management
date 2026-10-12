@@ -52,14 +52,14 @@ public class Workflow {
 
     public static Workflow newApiReviewWorkflow(String apiId, String userId) {
         return Workflow.builder()
-            .id(UuidString.generateRandom())
-            .referenceType(Workflow.ReferenceType.API)
-            .referenceId(apiId)
-            .type(Workflow.Type.REVIEW)
-            .state(Workflow.State.DRAFT)
-            .comment("")
-            .user(userId)
-            .createdAt(TimeProvider.now())
-            .build();
+                .id(UuidString.generateRandom())
+                .referenceType(Workflow.ReferenceType.API)
+                .referenceId(apiId)
+                .type(Workflow.Type.REVIEW)
+                .state(Workflow.State.DRAFT)
+                .comment("")
+                .user(userId)
+                .createdAt(TimeProvider.now())
+                .build();
     }
 }

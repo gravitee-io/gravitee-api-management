@@ -43,11 +43,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class EnvironmentsDefaultPortalPageUpgraderTest {
 
     private static final Environment ANOTHER_ENVIRONMENT = Environment.builder()
-        .id("ANOTHER_ENVIRONMENT")
-        .hrids(List.of("another environment"))
-        .name("another environment")
-        .organizationId("DEFAULT")
-        .build();
+            .id("ANOTHER_ENVIRONMENT")
+            .hrids(List.of("another environment"))
+            .name("another environment")
+            .organizationId("DEFAULT")
+            .build();
 
     @Mock
     EnvironmentRepository environmentRepository;

@@ -25,7 +25,8 @@ import io.gravitee.gateway.policy.StreamType;
  */
 public class DebugStepFactory {
 
-    public static DebugStep<?> createExecuteDebugStep(String policyId, StreamType streamType, String uuid, PolicyMetadata policyMetadata) {
+    public static DebugStep<?> createExecuteDebugStep(
+            String policyId, StreamType streamType, String uuid, PolicyMetadata policyMetadata) {
         if (StreamType.ON_REQUEST.equals(streamType)) {
             return new DebugRequestStep(policyId, streamType, uuid, PolicyScope.ON_REQUEST, policyMetadata);
         } else {
@@ -33,7 +34,8 @@ public class DebugStepFactory {
         }
     }
 
-    public static DebugStep<?> createStreamDebugStep(String policyId, StreamType streamType, String uuid, PolicyMetadata policyMetadata) {
+    public static DebugStep<?> createStreamDebugStep(
+            String policyId, StreamType streamType, String uuid, PolicyMetadata policyMetadata) {
         if (StreamType.ON_REQUEST.equals(streamType)) {
             return new DebugRequestStep(policyId, streamType, uuid, PolicyScope.ON_REQUEST_CONTENT, policyMetadata);
         } else {

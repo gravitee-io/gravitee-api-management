@@ -52,11 +52,10 @@ class FindApiMetricsDetailUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new FindApiMetricsDetailUseCase(
-            fakeAnalyticsQueryService,
-            applicationCrudServiceInMemory,
-            planCrudServiceInMemory,
-            instanceQueryServiceInMemory
-        );
+                fakeAnalyticsQueryService,
+                applicationCrudServiceInMemory,
+                planCrudServiceInMemory,
+                instanceQueryServiceInMemory);
     }
 
     @AfterEach
@@ -67,7 +66,8 @@ class FindApiMetricsDetailUseCaseTest {
 
     @Test
     void should_return_empty_api_analytic() {
-        var result = useCase.execute(GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
+        var result = useCase.execute(
+                GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
         assertThat(result).isNotNull();
         assertThat(result.apiMetricsDetail()).isEmpty();
     }
@@ -77,34 +77,38 @@ class FindApiMetricsDetailUseCaseTest {
         var applicationId = "unknown-app-id";
         var planId = "unknown-plan-id";
         fakeAnalyticsQueryService.apiMetricsDetail = ApiMetricsDetail.builder()
-            .apiId(API_ID)
-            .applicationId(applicationId)
-            .planId(planId)
-            .build();
+                .apiId(API_ID)
+                .applicationId(applicationId)
+                .planId(planId)
+                .build();
 
-        var result = useCase.execute(GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
+        var result = useCase.execute(
+                GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isNotNull();
         assertThat(result.apiMetricsDetail()).hasValueSatisfying(apiMetricsDetail -> {
             assertThat(apiMetricsDetail.getApplication())
-                .extracting(BaseApplicationEntity::getId, BaseApplicationEntity::getName)
-                .containsExactly(applicationId, "Unknown");
+                    .extracting(BaseApplicationEntity::getId, BaseApplicationEntity::getName)
+                    .containsExactly(applicationId, "Unknown");
 
             assertThat(apiMetricsDetail.getPlan())
-                .extracting(GenericPlanEntity::getId, GenericPlanEntity::getName)
-                .containsExactly(planId, "Unknown");
+                    .extracting(GenericPlanEntity::getId, GenericPlanEntity::getName)
+                    .containsExactly(planId, "Unknown");
         });
     }
 
     @Test
     void should_return_an_api_analytic() {
         var appName = "app-name";
-        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder().id(APP_ID).name(appName).build()));
+        applicationCrudServiceInMemory.initWith(
+                List.of(BaseApplicationEntity.builder().id(APP_ID).name(appName).build()));
 
         var planName = "plan-name";
-        planCrudServiceInMemory.initWith(
-            List.of(Plan.builder().id(PLAN_ID).definitionVersion(DefinitionVersion.V4).name(planName).build())
-        );
+        planCrudServiceInMemory.initWith(List.of(Plan.builder()
+                .id(PLAN_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .name(planName)
+                .build()));
 
         var transactionId = "transaction-id";
         var host = "request.host.example.com";
@@ -118,26 +122,27 @@ class FindApiMetricsDetailUseCaseTest {
         var remoteAddress = "192.168.1.1";
         var endpoint = "https://endpoint.example.com/foo";
         fakeAnalyticsQueryService.apiMetricsDetail = ApiMetricsDetail.builder()
-            .apiId(API_ID)
-            .requestId(REQUEST_ID)
-            .applicationId(APP_ID)
-            .planId(PLAN_ID)
-            .transactionId(transactionId)
-            .host(host)
-            .uri(uri)
-            .status(status)
-            .requestContentLength(requestContentLength)
-            .responseContentLength(responseContentLength)
-            .gatewayLatency(gatewayLatency)
-            .gatewayResponseTime(gatewayResponseTime)
-            .gateway(null)
-            .remoteAddress(remoteAddress)
-            .method(HttpMethod.GET)
-            .endpointResponseTime(endpointResponseTime)
-            .endpoint(endpoint)
-            .build();
+                .apiId(API_ID)
+                .requestId(REQUEST_ID)
+                .applicationId(APP_ID)
+                .planId(PLAN_ID)
+                .transactionId(transactionId)
+                .host(host)
+                .uri(uri)
+                .status(status)
+                .requestContentLength(requestContentLength)
+                .responseContentLength(responseContentLength)
+                .gatewayLatency(gatewayLatency)
+                .gatewayResponseTime(gatewayResponseTime)
+                .gateway(null)
+                .remoteAddress(remoteAddress)
+                .method(HttpMethod.GET)
+                .endpointResponseTime(endpointResponseTime)
+                .endpoint(endpoint)
+                .build();
 
-        var result = useCase.execute(GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
+        var result = useCase.execute(
+                GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isNotNull();
         assertThat(result.apiMetricsDetail()).hasValueSatisfying(apiMetricsDetail -> {
@@ -160,48 +165,48 @@ class FindApiMetricsDetailUseCaseTest {
             assertThat(apiMetricsDetail.getGatewayIp()).isNull();
 
             assertThat(apiMetricsDetail.getApplication())
-                .extracting(BaseApplicationEntity::getId, BaseApplicationEntity::getName)
-                .containsExactly(APP_ID, appName);
+                    .extracting(BaseApplicationEntity::getId, BaseApplicationEntity::getName)
+                    .containsExactly(APP_ID, appName);
 
             assertThat(apiMetricsDetail.getPlan())
-                .extracting(GenericPlanEntity::getId, GenericPlanEntity::getName)
-                .containsExactly(PLAN_ID, planName);
+                    .extracting(GenericPlanEntity::getId, GenericPlanEntity::getName)
+                    .containsExactly(PLAN_ID, planName);
         });
     }
 
     @Test
     void should_return_api_analytic_with_gateway_hostname_and_ip() {
         var appName = "app-name";
-        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder().id(APP_ID).name(appName).build()));
+        applicationCrudServiceInMemory.initWith(
+                List.of(BaseApplicationEntity.builder().id(APP_ID).name(appName).build()));
 
         var planName = "plan-name";
-        planCrudServiceInMemory.initWith(
-            List.of(Plan.builder().id(PLAN_ID).definitionVersion(DefinitionVersion.V4).name(planName).build())
-        );
+        planCrudServiceInMemory.initWith(List.of(Plan.builder()
+                .id(PLAN_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .name(planName)
+                .build()));
 
         var instanceId = "instance-id";
         var gatewayHostname = "gateway.example.com";
         var gatewayIp = "192.168.1.100";
-        instanceQueryServiceInMemory.initWith(
-            List.of(
-                Instance.builder()
-                    .id(instanceId)
-                    .hostname(gatewayHostname)
-                    .ip(gatewayIp)
-                    .environments(Set.of(GraviteeContext.getCurrentEnvironment()))
-                    .build()
-            )
-        );
+        instanceQueryServiceInMemory.initWith(List.of(Instance.builder()
+                .id(instanceId)
+                .hostname(gatewayHostname)
+                .ip(gatewayIp)
+                .environments(Set.of(GraviteeContext.getCurrentEnvironment()))
+                .build()));
 
         fakeAnalyticsQueryService.apiMetricsDetail = ApiMetricsDetail.builder()
-            .apiId(API_ID)
-            .requestId(REQUEST_ID)
-            .applicationId(APP_ID)
-            .planId(PLAN_ID)
-            .gateway(instanceId)
-            .build();
+                .apiId(API_ID)
+                .requestId(REQUEST_ID)
+                .applicationId(APP_ID)
+                .planId(PLAN_ID)
+                .gateway(instanceId)
+                .build();
 
-        var result = useCase.execute(GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
+        var result = useCase.execute(
+                GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isNotNull();
         assertThat(result.apiMetricsDetail()).hasValueSatisfying(apiMetricsDetail -> {
@@ -214,23 +219,27 @@ class FindApiMetricsDetailUseCaseTest {
     @Test
     void should_return_api_analytic_without_gateway_fields_when_instance_not_found() {
         var appName = "app-name";
-        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder().id(APP_ID).name(appName).build()));
+        applicationCrudServiceInMemory.initWith(
+                List.of(BaseApplicationEntity.builder().id(APP_ID).name(appName).build()));
 
         var planName = "plan-name";
-        planCrudServiceInMemory.initWith(
-            List.of(Plan.builder().id(PLAN_ID).definitionVersion(DefinitionVersion.V4).name(planName).build())
-        );
+        planCrudServiceInMemory.initWith(List.of(Plan.builder()
+                .id(PLAN_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .name(planName)
+                .build()));
 
         var instanceId = "non-existent-instance-id";
         fakeAnalyticsQueryService.apiMetricsDetail = ApiMetricsDetail.builder()
-            .apiId(API_ID)
-            .requestId(REQUEST_ID)
-            .applicationId(APP_ID)
-            .planId(PLAN_ID)
-            .gateway(instanceId)
-            .build();
+                .apiId(API_ID)
+                .requestId(REQUEST_ID)
+                .applicationId(APP_ID)
+                .planId(PLAN_ID)
+                .gateway(instanceId)
+                .build();
 
-        var result = useCase.execute(GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
+        var result = useCase.execute(
+                GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isNotNull();
         assertThat(result.apiMetricsDetail()).hasValueSatisfying(apiMetricsDetail -> {

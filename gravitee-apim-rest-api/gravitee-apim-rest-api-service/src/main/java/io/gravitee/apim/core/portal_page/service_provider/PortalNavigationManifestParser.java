@@ -35,5 +35,6 @@ public interface PortalNavigationManifestParser {
      * @param name display name; falls back to the file base name when blank
      * @param dest target folder path; falls back to the file's parent path when blank
      */
-    record ManifestPage(String src, @Nullable String name, @Nullable String dest) {}
+    record ManifestPage(
+            String src, @Nullable String name, @Nullable String dest) {}
 }

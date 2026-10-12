@@ -62,7 +62,8 @@ class MongoIntegrationRepositoryTest {
         IntegrationMongo integration = new IntegrationMongo();
         integration.setId("MyIntegration");
         Page<IntegrationMongo> foo = new Page<>(List.of(integration), 0, 0, 0);
-        given(internalRepository.findAllByEnvironmentIdAndGroups(anyString(), any(), any(), any())).willReturn(foo);
+        given(internalRepository.findAllByEnvironmentIdAndGroups(anyString(), any(), any(), any()))
+                .willReturn(foo);
 
         // When
         Page<Integration> result = sut.findAllByEnvironmentAndGroups(environmentId, Set.of(), groups, pageable);

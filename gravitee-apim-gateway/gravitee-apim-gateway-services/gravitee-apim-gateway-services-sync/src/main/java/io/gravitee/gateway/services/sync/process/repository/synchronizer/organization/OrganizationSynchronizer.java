@@ -55,60 +55,53 @@ public class OrganizationSynchronizer implements RepositorySynchronizer {
     public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
         AtomicLong launchTime = new AtomicLong();
         return eventsFetcher
-            .fetchLatest(from, to, ORGANIZATION_ID, environments, EVENT_TYPES)
-            .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            // fetch per page
-            .flatMap(events ->
-                Flowable.just(events)
-                    .flatMapIterable(e -> e)
-                    .compose(this::prepareForDeployment)
-            )
-            // per deployable
-            .compose(upstream -> {
-                OrganizationDeployer organizationDeployer = deployerFactory.createOrganizationDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> deploy(organizationDeployer, deployable))
-                    .sequential(eventsFetcher.bulkItems());
-            })
-            .count()
-            .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-            .doOnSuccess(count -> {
-                String logMsg = String.format(
-                    "%s organizations synchronized in %sms",
-                    count,
-                    (System.currentTimeMillis() - launchTime.get())
-                );
-                if (from == -1) {
-                    log.info(logMsg);
-                } else {
-                    log.debug(logMsg);
-                }
-            })
-            .ignoreElement();
+                .fetchLatest(from, to, ORGANIZATION_ID, environments, EVENT_TYPES)
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
+                // fetch per page
+                .flatMap(events -> Flowable.just(events).flatMapIterable(e -> e).compose(this::prepareForDeployment))
+                // per deployable
+                .compose(upstream -> {
+                    OrganizationDeployer organizationDeployer = deployerFactory.createOrganizationDeployer();
+                    return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                            .runOn(Schedulers.from(syncDeployerExecutor))
+                            .flatMap(deployable -> deploy(organizationDeployer, deployable))
+                            .sequential(eventsFetcher.bulkItems());
+                })
+                .count()
+                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                .doOnSuccess(count -> {
+                    String logMsg = String.format(
+                            "%s organizations synchronized in %sms",
+                            count, (System.currentTimeMillis() - launchTime.get()));
+                    if (from == -1) {
+                        log.info(logMsg);
+                    } else {
+                        log.debug(logMsg);
+                    }
+                })
+                .ignoreElement();
     }
 
     private Flowable<OrganizationDeployable> prepareForDeployment(final Flowable<Event> eventsByType) {
         return eventsByType
-            .flatMapMaybe(organizationMapper::to)
-            .map(organization -> OrganizationDeployable.builder().reactableOrganization(organization).build())
-            .map(flowAppender::appends);
+                .flatMapMaybe(organizationMapper::to)
+                .map(organization -> OrganizationDeployable.builder()
+                        .reactableOrganization(organization)
+                        .build())
+                .map(flowAppender::appends);
     }
 
     private static Flowable<OrganizationDeployable> deploy(
-        final OrganizationDeployer organizationDeployer,
-        final OrganizationDeployable deployable
-    ) {
+            final OrganizationDeployer organizationDeployer, final OrganizationDeployable deployable) {
         return organizationDeployer
-            .deploy(deployable)
-            .andThen(organizationDeployer.doAfterDeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .deploy(deployable)
+                .andThen(organizationDeployer.doAfterDeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     @Override

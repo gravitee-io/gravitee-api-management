@@ -25,8 +25,6 @@ import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -49,19 +47,18 @@ public class AlertService_FindAllTest extends AlertServiceTest {
         NewAlertTriggerEntity newAlertTriggerEntity3 = getNewAlertTriggerEntity();
 
         Set<AlertTrigger> alertTriggers = Set.of(
-            getAlertTriggerFromNew(newAlertTriggerEntity1),
-            getAlertTriggerFromNew(newAlertTriggerEntity2),
-            getAlertTriggerFromNew(newAlertTriggerEntity3)
-        );
+                getAlertTriggerFromNew(newAlertTriggerEntity1),
+                getAlertTriggerFromNew(newAlertTriggerEntity2),
+                getAlertTriggerFromNew(newAlertTriggerEntity3));
 
         when(alertTriggerRepository.findAll()).thenReturn(alertTriggers);
 
         List<AlertTriggerEntity> results = alertService.findAll();
 
-        results
-            .stream()
-            .map(AlertTriggerEntity::getId)
-            .forEach(id -> assertTrue(alertTriggers.stream().anyMatch(alertTrigger -> alertTrigger.getId().equals(id))));
+        results.stream()
+                .map(AlertTriggerEntity::getId)
+                .forEach(id -> assertTrue(alertTriggers.stream()
+                        .anyMatch(alertTrigger -> alertTrigger.getId().equals(id))));
     }
 
     @Test

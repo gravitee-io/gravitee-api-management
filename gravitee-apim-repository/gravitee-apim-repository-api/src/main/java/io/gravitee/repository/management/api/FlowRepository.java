@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api; /**
+package io.gravitee.repository.management.api;
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +29,6 @@ package io.gravitee.repository.management.api; /**
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -56,7 +56,8 @@ public interface FlowRepository extends CrudRepository<Flow, String> {
      * @return List of IDs for deleted flows
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, FlowReferenceType referenceType)
+            throws TechnicalException;
 
     List<Flow> createAll(List<Flow> flows) throws TechnicalException;
 

@@ -40,12 +40,12 @@ class PortalAdapterTest {
         @Test
         void round_trip_through_repository_and_back() {
             var portal = Portal.of(
-                PortalId.of("11111111-1111-1111-1111-111111111111"),
-                "env",
-                "org",
-                "Portal",
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", "A"), new NavigationPath("/a/b", null)))
-            );
+                    PortalId.of("11111111-1111-1111-1111-111111111111"),
+                    "env",
+                    "org",
+                    "Portal",
+                    PortalNavigationStructure.ofTopNavbar(
+                            List.of(new NavigationPath("/a", "A"), new NavigationPath("/a/b", null))));
 
             var roundTripped = adapter.toEntity(adapter.toRepository(portal));
 
@@ -57,14 +57,16 @@ class PortalAdapterTest {
 
         @Test
         void serialize_omits_absent_display_name() {
-            String json = adapter.serializePortalNavigation(PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null))));
+            String json = adapter.serializePortalNavigation(
+                    PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null))));
 
             assertThat(json).isEqualTo("{\"TOP_NAVBAR\":[{\"path\":\"/a\"}]}");
         }
 
         @Test
         void serialize_includes_display_name_when_present() {
-            String json = adapter.serializePortalNavigation(PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", "A"))));
+            String json = adapter.serializePortalNavigation(
+                    PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", "A"))));
 
             assertThat(json).isEqualTo("{\"TOP_NAVBAR\":[{\"path\":\"/a\",\"displayName\":\"A\"}]}");
         }
@@ -76,7 +78,8 @@ class PortalAdapterTest {
 
         @Test
         void serialize_null_when_input_is_empty() {
-            assertThat(adapter.serializePortalNavigation(PortalNavigationStructure.empty())).isNull();
+            assertThat(adapter.serializePortalNavigation(PortalNavigationStructure.empty()))
+                    .isNull();
         }
 
         @Test
@@ -91,7 +94,8 @@ class PortalAdapterTest {
 
         @Test
         void deserialize_legacy_bare_array_wraps_into_top_navbar() {
-            var result = adapter.deserializePortalNavigation("[{\"path\":\"/x\",\"displayName\":\"X\"},{\"path\":\"/y\"}]");
+            var result =
+                    adapter.deserializePortalNavigation("[{\"path\":\"/x\",\"displayName\":\"X\"},{\"path\":\"/y\"}]");
 
             var topNavbar = result.forArea(PortalArea.TOP_NAVBAR);
             assertThat(topNavbar).extracting(NavigationPath::path).containsExactly("/x", "/y");
@@ -102,8 +106,7 @@ class PortalAdapterTest {
         @Test
         void deserialize_structure_map_to_navigation_paths() {
             var result = adapter.deserializePortalNavigation(
-                "{\"TOP_NAVBAR\":[{\"path\":\"/x\",\"displayName\":\"X\"},{\"path\":\"/y\"}]}"
-            );
+                    "{\"TOP_NAVBAR\":[{\"path\":\"/x\",\"displayName\":\"X\"},{\"path\":\"/y\"}]}");
 
             var topNavbar = result.forArea(PortalArea.TOP_NAVBAR);
             assertThat(topNavbar).extracting(NavigationPath::path).containsExactly("/x", "/y");
@@ -121,8 +124,8 @@ class PortalAdapterTest {
         @Test
         void deserialize_malformed_json_throws() {
             assertThatThrownBy(() -> adapter.deserializePortalNavigation("{not json}"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid portal navigation JSON");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Invalid portal navigation JSON");
         }
     }
 
@@ -145,9 +148,8 @@ class PortalAdapterTest {
 
         @Test
         void to_repository_forwards_active_theme_id() {
-            var portal = Portal.of(PortalId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "env", "org", "Portal").withActiveThemeId(
-                "theme-1"
-            );
+            var portal = Portal.of(PortalId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "env", "org", "Portal")
+                    .withActiveThemeId("theme-1");
 
             var repo = adapter.toRepository(portal);
 
@@ -157,12 +159,12 @@ class PortalAdapterTest {
         @Test
         void to_entity_forwards_active_theme_id() {
             var repo = io.gravitee.repository.management.model.Portal.builder()
-                .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
-                .environmentId("env")
-                .organizationId("org")
-                .name("Portal")
-                .activeThemeId("theme-1")
-                .build();
+                    .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                    .environmentId("env")
+                    .organizationId("org")
+                    .name("Portal")
+                    .activeThemeId("theme-1")
+                    .build();
 
             var entity = adapter.toEntity(repo);
 

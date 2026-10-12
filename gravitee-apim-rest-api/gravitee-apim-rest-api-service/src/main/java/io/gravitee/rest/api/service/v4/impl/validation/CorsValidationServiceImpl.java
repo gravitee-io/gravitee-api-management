@@ -16,18 +16,12 @@
 package io.gravitee.rest.api.service.v4.impl.validation;
 
 import io.gravitee.definition.model.Cors;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.exceptions.AllowOriginNotAllowedException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -38,8 +32,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class CorsValidationServiceImpl extends TransactionalService implements CorsValidationService {
 
-    private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$");
-    private static final String[] CORS_REGEX_CHARS = new String[] { "{", "[", "(", "*" };
+    private static final Pattern CORS_REGEX_PATTERN =
+            Pattern.compile("^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$");
+    private static final String[] CORS_REGEX_CHARS = new String[] {"{", "[", "(", "*"};
 
     @Override
     public Cors validateAndSanitize(Cors cors) {
@@ -50,7 +45,7 @@ public class CorsValidationServiceImpl extends TransactionalService implements C
                     if (!CORS_REGEX_PATTERN.matcher(allowOriginItem).matches()) {
                         if (StringUtils.indexOfAny(allowOriginItem, CORS_REGEX_CHARS) >= 0) {
                             try {
-                                //the origin could be a regex
+                                // the origin could be a regex
                                 Pattern.compile(allowOriginItem);
                             } catch (PatternSyntaxException e) {
                                 throw new AllowOriginNotAllowedException(allowOriginItem);

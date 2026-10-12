@@ -127,7 +127,8 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     @Override
     public long deleteAllByApi(String apiId) {
         Query query = new Query();
-        query.addCriteria(Criteria.where("properties." + Event.EventProperties.API_ID.getValue()).is(apiId));
+        query.addCriteria(Criteria.where("properties." + Event.EventProperties.API_ID.getValue())
+                .is(apiId));
         return mongoTemplate.remove(query, EventMongo.class).getDeletedCount();
     }
 
@@ -139,20 +140,20 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         }
         if (!isEmpty(criteria.getProperties())) {
             // set criteria query
-            criteria
-                .getProperties()
-                .forEach((k, v) -> {
-                    if (v instanceof Collection) {
-                        criteriaList.add(Criteria.where("properties." + k).in((Collection<?>) v));
-                    } else {
-                        criteriaList.add(Criteria.where("properties." + k).is(v));
-                    }
-                });
+            criteria.getProperties().forEach((k, v) -> {
+                if (v instanceof Collection) {
+                    criteriaList.add(Criteria.where("properties." + k).in((Collection<?>) v));
+                } else {
+                    criteriaList.add(Criteria.where("properties." + k).is(v));
+                }
+            });
         }
 
         // set range query
         if (criteria.getFrom() > 0 && criteria.getTo() > 0) {
-            criteriaList.add(Criteria.where(UPDATED_AT_FIELD).gte(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
+            criteriaList.add(Criteria.where(UPDATED_AT_FIELD)
+                    .gte(new Date(criteria.getFrom()))
+                    .lt(new Date(criteria.getTo())));
         } else if (criteria.getFrom() > 0) {
             criteriaList.add(Criteria.where(UPDATED_AT_FIELD).gte(new Date(criteria.getFrom())));
         } else if (criteria.getTo() > 0) {
@@ -160,7 +161,8 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         }
 
         if (!isEmpty(criteria.getEnvironments()) && !isEmpty(criteria.getOrganizations())) {
-            criteriaList.add(new Criteria().andOperator(buildEnvironmentsCriteria(criteria), buildOrganizationsCriteria(criteria)));
+            criteriaList.add(new Criteria()
+                    .andOperator(buildEnvironmentsCriteria(criteria), buildOrganizationsCriteria(criteria)));
         } else if (!isEmpty(criteria.getEnvironments())) {
             criteriaList.add(buildEnvironmentsCriteria(criteria));
         } else if (!isEmpty(criteria.getOrganizations())) {
@@ -171,44 +173,42 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     }
 
     private static Criteria buildOrganizationsCriteria(EventCriteria criteria) {
-        return new Criteria().orOperator(
-            Criteria.where(ORGANIZATIONS_FIELD).exists(false),
-            Criteria.where(ORGANIZATIONS_FIELD).isNull(),
-            Criteria.where(ORGANIZATIONS_FIELD).is(Collections.emptyList()),
-            Criteria.where(ORGANIZATIONS_FIELD).in(criteria.getOrganizations())
-        );
+        return new Criteria()
+                .orOperator(
+                        Criteria.where(ORGANIZATIONS_FIELD).exists(false),
+                        Criteria.where(ORGANIZATIONS_FIELD).isNull(),
+                        Criteria.where(ORGANIZATIONS_FIELD).is(Collections.emptyList()),
+                        Criteria.where(ORGANIZATIONS_FIELD).in(criteria.getOrganizations()));
     }
 
     private static Criteria buildEnvironmentsCriteria(EventCriteria criteria) {
-        return new Criteria().orOperator(
-            Criteria.where(ENVIRONMENTS_FIELD).exists(false),
-            Criteria.where(ENVIRONMENTS_FIELD).isNull(),
-            Criteria.where(ENVIRONMENTS_FIELD).is(Collections.emptyList()),
-            Criteria.where(ENVIRONMENTS_FIELD).in(criteria.getEnvironments())
-        );
+        return new Criteria()
+                .orOperator(
+                        Criteria.where(ENVIRONMENTS_FIELD).exists(false),
+                        Criteria.where(ENVIRONMENTS_FIELD).isNull(),
+                        Criteria.where(ENVIRONMENTS_FIELD).is(Collections.emptyList()),
+                        Criteria.where(ENVIRONMENTS_FIELD).in(criteria.getEnvironments()));
     }
 
     @Override
     public Stream<EventRepository.EventToClean> findEventsToClean(String environmentId) {
-        var criteria = new Criteria().andOperator(Criteria.where(ENVIRONMENTS_FIELD).is(environmentId));
+        var criteria =
+                new Criteria().andOperator(Criteria.where(ENVIRONMENTS_FIELD).is(environmentId));
         var query = new Query(criteria).with(Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // Use MongoDB streaming to avoid loading all events into memory
-        return mongoTemplate
-            .stream(query, EventMongo.class)
-            .map(event -> {
-                // Determine the structured group based on event type and properties
-                EventType eventType = Arrays.stream(EventType.values())
-                    .filter(e -> e.name().equals(event.getType()))
-                    .findFirst()
-                    .orElse(null);
-                EventRepository.EventToCleanGroup group = EventRepository.EventGroupKeyHelper.determineGroup(
-                    eventType,
-                    event.getProperties()
-                );
-                return group != null ? new EventRepository.EventToClean(event.getId(), group) : null;
-            })
-            .filter(Objects::nonNull) // Filter out events that can't be grouped
-            .filter(eventToClean -> eventToClean.group() != null); // Filter out events that can't be grouped
+        return mongoTemplate.stream(query, EventMongo.class)
+                .map(event -> {
+                    // Determine the structured group based on event type and properties
+                    EventType eventType = Arrays.stream(EventType.values())
+                            .filter(e -> e.name().equals(event.getType()))
+                            .findFirst()
+                            .orElse(null);
+                    EventRepository.EventToCleanGroup group =
+                            EventRepository.EventGroupKeyHelper.determineGroup(eventType, event.getProperties());
+                    return group != null ? new EventRepository.EventToClean(event.getId(), group) : null;
+                })
+                .filter(Objects::nonNull) // Filter out events that can't be grouped
+                .filter(eventToClean -> eventToClean.group() != null); // Filter out events that can't be grouped
     }
 }

@@ -54,14 +54,12 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.CREATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.CREATE)))
+                .thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aVerifySubscription()));
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -73,7 +71,9 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_return_400_when_invalid_api_key_pattern() {
-        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aVerifySubscription().apiKey("###")));
+        final Response response = rootTarget()
+                .request()
+                .post(Entity.json(SubscriptionFixtures.aVerifySubscription().apiKey("###")));
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -83,7 +83,9 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_return_400_when_missing_api_key() {
-        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aVerifySubscription().apiKey(null)));
+        final Response response = rootTarget()
+                .request()
+                .post(Entity.json(SubscriptionFixtures.aVerifySubscription().apiKey(null)));
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -93,7 +95,9 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_return_400_when_missing_application() {
-        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aVerifySubscription().applicationId(null)));
+        final Response response = rootTarget()
+                .request()
+                .post(Entity.json(SubscriptionFixtures.aVerifySubscription().applicationId(null)));
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -103,19 +107,17 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_verify_subscription() {
-        when(
-            apiKeyService.canCreate(
-                GraviteeContext.getExecutionContext(),
-                "apiKey",
-                API,
-                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
-                APPLICATION
-            )
-        ).thenReturn(true);
+        when(apiKeyService.canCreate(
+                        GraviteeContext.getExecutionContext(),
+                        "apiKey",
+                        API,
+                        io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+                        APPLICATION))
+                .thenReturn(true);
 
         final VerifySubscription verifySubscription = SubscriptionFixtures.aVerifySubscription()
-            .applicationId(APPLICATION)
-            .apiKey("apiKey");
+                .applicationId(APPLICATION)
+                .apiKey("apiKey");
         final Response response = rootTarget().request().post(Entity.json(verifySubscription));
         assertEquals(OK_200, response.getStatus());
 
@@ -125,19 +127,17 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_verify_subscription_false_response() {
-        when(
-            apiKeyService.canCreate(
-                GraviteeContext.getExecutionContext(),
-                "apiKey",
-                API,
-                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
-                APPLICATION
-            )
-        ).thenReturn(false);
+        when(apiKeyService.canCreate(
+                        GraviteeContext.getExecutionContext(),
+                        "apiKey",
+                        API,
+                        io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+                        APPLICATION))
+                .thenReturn(false);
 
         final VerifySubscription verifySubscription = SubscriptionFixtures.aVerifySubscription()
-            .applicationId(APPLICATION)
-            .apiKey("apiKey");
+                .applicationId(APPLICATION)
+                .apiKey("apiKey");
         final Response response = rootTarget().request().post(Entity.json(verifySubscription));
         assertEquals(OK_200, response.getStatus());
 

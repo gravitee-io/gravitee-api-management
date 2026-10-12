@@ -52,82 +52,82 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
     @Override
     public List<Dashboard> findByEnvironmentId(String environmentId) {
         return RepositoryCalls.wrap(
-            () ->
-                gammaDashboardRepository.findByEnvironmentId(environmentId).stream().map(GammaDashboardRepositoryAdapter::toCore).toList(),
-            "Failed to list dashboards for environment '%s'".formatted(environmentId)
-        );
+                () -> gammaDashboardRepository.findByEnvironmentId(environmentId).stream()
+                        .map(GammaDashboardRepositoryAdapter::toCore)
+                        .toList(),
+                "Failed to list dashboards for environment '%s'".formatted(environmentId));
     }
 
     @Override
     public Optional<Dashboard> findByIdAndEnvironmentId(String id, String environmentId) {
         return RepositoryCalls.wrap(
-            () -> gammaDashboardRepository.findByIdAndEnvironmentId(id, environmentId).map(GammaDashboardRepositoryAdapter::toCore),
-            "Failed to fetch dashboard '%s' for environment '%s'".formatted(id, environmentId)
-        );
+                () -> gammaDashboardRepository
+                        .findByIdAndEnvironmentId(id, environmentId)
+                        .map(GammaDashboardRepositoryAdapter::toCore),
+                "Failed to fetch dashboard '%s' for environment '%s'".formatted(id, environmentId));
     }
 
     @Override
     public Dashboard create(Dashboard dashboard) {
         return RepositoryCalls.wrap(
-            () -> toCore(gammaDashboardRepository.create(toRepository(dashboard))),
-            "Failed to create dashboard '%s'".formatted(dashboard.id())
-        );
+                () -> toCore(gammaDashboardRepository.create(toRepository(dashboard))),
+                "Failed to create dashboard '%s'".formatted(dashboard.id()));
     }
 
     @Override
     public Optional<Dashboard> updateIfPresent(Dashboard dashboard) {
         return RepositoryCalls.wrap(
-            () -> gammaDashboardRepository.updateIfPresent(toRepository(dashboard)).map(GammaDashboardRepositoryAdapter::toCore),
-            "Failed to update dashboard '%s'".formatted(dashboard.id())
-        );
+                () -> gammaDashboardRepository
+                        .updateIfPresent(toRepository(dashboard))
+                        .map(GammaDashboardRepositoryAdapter::toCore),
+                "Failed to update dashboard '%s'".formatted(dashboard.id()));
     }
 
     @Override
     public Optional<Dashboard> updateIfVersionMatches(Dashboard dashboard, int expectedVersion) {
         return RepositoryCalls.wrap(
-            () ->
-                gammaDashboardRepository
-                    .updateIfVersionMatches(toRepository(dashboard), expectedVersion)
-                    .map(GammaDashboardRepositoryAdapter::toCore),
-            "Failed to update dashboard '%s' at version %d".formatted(dashboard.id(), expectedVersion)
-        );
+                () -> gammaDashboardRepository
+                        .updateIfVersionMatches(toRepository(dashboard), expectedVersion)
+                        .map(GammaDashboardRepositoryAdapter::toCore),
+                "Failed to update dashboard '%s' at version %d".formatted(dashboard.id(), expectedVersion));
     }
 
     @Override
     public void delete(String id) {
         RepositoryCalls.wrap(
-            () -> {
-                gammaDashboardRepository.delete(id);
-                return null;
-            },
-            "Failed to delete dashboard '%s'".formatted(id)
-        );
+                () -> {
+                    gammaDashboardRepository.delete(id);
+                    return null;
+                },
+                "Failed to delete dashboard '%s'".formatted(id));
     }
 
     private static Dashboard toCore(GammaDashboard source) {
         return new Dashboard(
-            source.getId(),
-            source.getEnvironmentId(),
-            source.getModule(),
-            source.getTitle(),
-            source.getDescription(),
-            source.getFilters() == null ? List.of() : source.getFilters().stream().map(GammaDashboardRepositoryAdapter::toCore).toList(),
-            toCore(source.getTimeRange()),
-            parseWidgets(source.getWidgets()),
-            source.getVersion(),
-            source.getCreatedBy(),
-            source.getCreatedAt() == null ? null : source.getCreatedAt().toInstant(),
-            source.getUpdatedAt() == null ? null : source.getUpdatedAt().toInstant()
-        );
+                source.getId(),
+                source.getEnvironmentId(),
+                source.getModule(),
+                source.getTitle(),
+                source.getDescription(),
+                source.getFilters() == null
+                        ? List.of()
+                        : source.getFilters().stream()
+                                .map(GammaDashboardRepositoryAdapter::toCore)
+                                .toList(),
+                toCore(source.getTimeRange()),
+                parseWidgets(source.getWidgets()),
+                source.getVersion(),
+                source.getCreatedBy(),
+                source.getCreatedAt() == null ? null : source.getCreatedAt().toInstant(),
+                source.getUpdatedAt() == null ? null : source.getUpdatedAt().toInstant());
     }
 
     private static DashboardFilter toCore(GammaDashboard.Filter source) {
         List<String> values = source.getValue() == null ? List.of() : List.copyOf(source.getValue());
         return new DashboardFilter(
-            new FilterCondition(source.getField(), toOperator(source.getField(), source.getOperator()), values),
-            source.getLabel(),
-            source.isEditable()
-        );
+                new FilterCondition(source.getField(), toOperator(source.getField(), source.getOperator()), values),
+                source.getLabel(),
+                source.isEditable());
     }
 
     private static FilterOperator toOperator(String field, String operator) {
@@ -135,9 +135,7 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
             return FilterOperator.valueOf(operator.toUpperCase());
         } catch (NullPointerException | IllegalArgumentException e) {
             throw new TechnicalDomainException(
-                "Persisted dashboard filter '%s' has an unsupported operator '%s'".formatted(field, operator),
-                e
-            );
+                    "Persisted dashboard filter '%s' has an unsupported operator '%s'".formatted(field, operator), e);
         }
     }
 
@@ -152,7 +150,8 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
         try {
             return TimeRangeType.valueOf(type.toUpperCase());
         } catch (NullPointerException | IllegalArgumentException e) {
-            throw new TechnicalDomainException("Persisted dashboard has an unsupported time range type '%s'".formatted(type), e);
+            throw new TechnicalDomainException(
+                    "Persisted dashboard has an unsupported time range type '%s'".formatted(type), e);
         }
     }
 
@@ -177,29 +176,31 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
      */
     private static GammaDashboard toRepository(Dashboard source) {
         return GammaDashboard.builder()
-            .id(source.id())
-            .environmentId(source.environmentId())
-            .module(source.module())
-            .title(source.title())
-            .description(source.description())
-            .filters(source.filters().stream().map(GammaDashboardRepositoryAdapter::toRepository).toList())
-            .timeRange(toRepository(source.timeRange()))
-            .widgets(serializeWidgets(source.widgets()))
-            .version(source.version())
-            .createdBy(source.createdBy())
-            .createdAt(source.createdAt() == null ? null : Date.from(source.createdAt()))
-            .updatedAt(source.updatedAt() == null ? null : Date.from(source.updatedAt()))
-            .build();
+                .id(source.id())
+                .environmentId(source.environmentId())
+                .module(source.module())
+                .title(source.title())
+                .description(source.description())
+                .filters(source.filters().stream()
+                        .map(GammaDashboardRepositoryAdapter::toRepository)
+                        .toList())
+                .timeRange(toRepository(source.timeRange()))
+                .widgets(serializeWidgets(source.widgets()))
+                .version(source.version())
+                .createdBy(source.createdBy())
+                .createdAt(source.createdAt() == null ? null : Date.from(source.createdAt()))
+                .updatedAt(source.updatedAt() == null ? null : Date.from(source.updatedAt()))
+                .build();
     }
 
     private static GammaDashboard.Filter toRepository(DashboardFilter source) {
         return GammaDashboard.Filter.builder()
-            .field(source.condition().name())
-            .label(source.label())
-            .operator(source.condition().operator().name().toLowerCase())
-            .value(source.condition().values())
-            .editable(source.editable())
-            .build();
+                .field(source.condition().name())
+                .label(source.label())
+                .operator(source.condition().operator().name().toLowerCase())
+                .value(source.condition().values())
+                .editable(source.editable())
+                .build();
     }
 
     private static GammaDashboard.TimeRange toRepository(TimeRange source) {
@@ -207,11 +208,11 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
             return null;
         }
         return GammaDashboard.TimeRange.builder()
-            .type(source.type().name().toLowerCase())
-            .period(source.period())
-            .from(source.from())
-            .to(source.to())
-            .build();
+                .type(source.type().name().toLowerCase())
+                .period(source.period())
+                .from(source.from())
+                .to(source.to())
+                .build();
     }
 
     private static String serializeWidgets(JsonNode widgets) {

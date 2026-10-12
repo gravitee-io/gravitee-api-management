@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.standalone.jetty;
 
 import io.gravitee.node.api.configuration.Configuration;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -80,9 +79,8 @@ public class JettyConfiguration {
 
     public String getAccessLogPath() {
         return configuration.getProperty(
-            "jetty.accesslog.path",
-            configuration.getProperty("gravitee.home") + "/logs/gravitee_accesslog_yyyy_mm_dd.log"
-        );
+                "jetty.accesslog.path",
+                configuration.getProperty("gravitee.home") + "/logs/gravitee_accesslog_yyyy_mm_dd.log");
     }
 
     public boolean isSecured() {

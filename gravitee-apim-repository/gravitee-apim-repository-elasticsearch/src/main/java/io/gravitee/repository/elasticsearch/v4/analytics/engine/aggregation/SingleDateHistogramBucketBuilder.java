@@ -24,7 +24,9 @@ import io.vertx.core.json.JsonObject;
 public class SingleDateHistogramBucketBuilder {
 
     public JsonObject build() {
-        return json().put("field", "@timestamp").put("fixed_interval", "999999h").put("min_doc_count", 1);
+        return json().put("field", "@timestamp")
+                .put("fixed_interval", "999999h")
+                .put("min_doc_count", 1);
     }
 
     private JsonObject json() {

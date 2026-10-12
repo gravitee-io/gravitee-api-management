@@ -66,8 +66,8 @@ public class FlowValidationServiceImplTest {
     @BeforeEach
     public void setUp() throws Exception {
         lenient()
-            .when(policyService.validatePolicyConfiguration(any(), any()))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+                .when(policyService.validatePolicyConfiguration(any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
         flowValidationService = new FlowValidationServiceImpl(policyService, entrypointConnectorPluginService);
     }
 
@@ -137,9 +137,8 @@ public class FlowValidationServiceImplTest {
         HttpSelector httpSelector = new HttpSelector();
         flow.setSelectors(List.of(httpSelector, httpSelector));
 
-        assertThatExceptionOfType(FlowSelectorsDuplicatedException.class).isThrownBy(() ->
-            flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow))
-        );
+        assertThatExceptionOfType(FlowSelectorsDuplicatedException.class)
+                .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow)));
     }
 
     @Test
@@ -152,9 +151,8 @@ public class FlowValidationServiceImplTest {
         flow.setRequest(List.of(step));
         lenient().when(policyService.validatePolicyConfiguration(any(), any())).thenThrow(InvalidDataException.class);
 
-        assertThatExceptionOfType(InvalidDataException.class).isThrownBy(() ->
-            flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow))
-        );
+        assertThatExceptionOfType(InvalidDataException.class)
+                .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow)));
     }
 
     @Test
@@ -163,9 +161,8 @@ public class FlowValidationServiceImplTest {
         ChannelSelector channelSelector = new ChannelSelector();
         flow.setSelectors(List.of(channelSelector));
 
-        assertThatExceptionOfType(FlowSelectorsInvalidException.class).isThrownBy(() ->
-            flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow))
-        );
+        assertThatExceptionOfType(FlowSelectorsInvalidException.class)
+                .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow)));
     }
 
     @Test
@@ -174,9 +171,8 @@ public class FlowValidationServiceImplTest {
         HttpSelector httpSelector = new HttpSelector();
         flow.setSelectors(List.of(httpSelector));
 
-        assertThatExceptionOfType(FlowSelectorsInvalidException.class).isThrownBy(() ->
-            flowValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(flow))
-        );
+        assertThatExceptionOfType(FlowSelectorsInvalidException.class)
+                .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(flow)));
     }
 
     @Test
@@ -185,11 +181,11 @@ public class FlowValidationServiceImplTest {
         ChannelSelector channelSelector = new ChannelSelector();
         channelSelector.setEntrypoints(Set.of("entrypoint"));
         flow.setSelectors(List.of(channelSelector));
-        when(entrypointConnectorPluginService.findBySupportedApi(ApiType.MESSAGE)).thenReturn(Set.of());
+        when(entrypointConnectorPluginService.findBySupportedApi(ApiType.MESSAGE))
+                .thenReturn(Set.of());
 
-        assertThatExceptionOfType(FlowSelectorsEntrypointInvalidException.class).isThrownBy(() ->
-            flowValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(flow))
-        );
+        assertThatExceptionOfType(FlowSelectorsEntrypointInvalidException.class)
+                .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(flow)));
     }
 
     @Test
@@ -209,13 +205,12 @@ public class FlowValidationServiceImplTest {
         step.setName("XML Validation");
         step.setPolicy("xml-validation");
         step.setConfiguration(
-            "{\"schemaSource\":\"registry\",\"registryResource\":\"sr\",\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"1\"}"
-        );
+                "{\"schemaSource\":\"registry\",\"registryResource\":\"sr\",\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"1\"}");
         flow.setRequest(List.of(step));
 
         assertThatExceptionOfType(InvalidDataException.class)
-            .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(flow)))
-            .withMessageContaining("only supported on HTTP proxy APIs");
+                .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(flow)))
+                .withMessageContaining("only supported on HTTP proxy APIs");
     }
 
     @Test
@@ -229,10 +224,10 @@ public class FlowValidationServiceImplTest {
         step.setName("XML Validation");
         step.setPolicy("xml-validation");
         step.setConfiguration(
-            "{\"schemaSource\":\"registry\",\"registryResource\":\"sr\",\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"1\"}"
-        );
+                "{\"schemaSource\":\"registry\",\"registryResource\":\"sr\",\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"1\"}");
         flow.setRequest(List.of(step));
-        when(policyService.validatePolicyConfiguration(eq("xml-validation"), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(policyService.validatePolicyConfiguration(eq("xml-validation"), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
 
         List<Flow> validated = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
         assertThat(validated).hasSize(1);

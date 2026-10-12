@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.service.notifiers;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.repository.management.model.GenericNotificationConfig;
-import io.gravitee.rest.api.service.notification.Hook;
 import java.util.Map;
 
 /**
@@ -25,5 +23,10 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface WebNotifierService {
-    void request(HttpMethod method, final String uri, final Map<String, String> headers, String body, boolean useSystemProxy);
+    void request(
+            HttpMethod method,
+            final String uri,
+            final Map<String, String> headers,
+            String body,
+            boolean useSystemProxy);
 }

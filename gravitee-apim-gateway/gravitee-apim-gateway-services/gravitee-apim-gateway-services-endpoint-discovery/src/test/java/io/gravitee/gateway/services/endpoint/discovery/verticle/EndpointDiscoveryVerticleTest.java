@@ -78,14 +78,13 @@ public class EndpointDiscoveryVerticleTest {
         String expectedConfiguration = initConfiguration(expectedServiceName, expectedServiceTarget, false);
 
         testDiscoveryVerticle(
-            serviceId,
-            serviceHost,
-            servicePort,
-            serviceScheme,
-            expectedServiceName,
-            expectedServiceTarget,
-            expectedConfiguration
-        );
+                serviceId,
+                serviceHost,
+                servicePort,
+                serviceScheme,
+                expectedServiceName,
+                expectedServiceTarget,
+                expectedConfiguration);
     }
 
     @Test
@@ -101,25 +100,23 @@ public class EndpointDiscoveryVerticleTest {
         String expectedConfiguration = initConfiguration(expectedServiceName, expectedServiceTarget, true);
 
         testDiscoveryVerticle(
-            serviceId,
-            serviceHost,
-            servicePort,
-            serviceScheme,
-            expectedServiceName,
-            expectedServiceTarget,
-            expectedConfiguration
-        );
+                serviceId,
+                serviceHost,
+                servicePort,
+                serviceScheme,
+                expectedServiceName,
+                expectedServiceTarget,
+                expectedConfiguration);
     }
 
     private void testDiscoveryVerticle(
-        String serviceId,
-        String serviceHost,
-        int servicePort,
-        String serviceScheme,
-        String expectedServiceName,
-        String expectedServiceTarget,
-        String expectedConfiguration
-    ) {
+            String serviceId,
+            String serviceHost,
+            int servicePort,
+            String serviceScheme,
+            String expectedServiceName,
+            String expectedServiceTarget,
+            String expectedConfiguration) {
         EndpointDiscoveryService endpointDiscoveryService = new EndpointDiscoveryService();
         endpointDiscoveryService.setEnabled(true);
 
@@ -158,41 +155,40 @@ public class EndpointDiscoveryVerticleTest {
         assertEquals(expectedConfiguration, discoveredEndpoint.getConfiguration());
     }
 
-    private ServiceDiscovery initServiceDiscovery(String serviceId, String serviceHost, int servicePort, String serviceScheme) {
+    private ServiceDiscovery initServiceDiscovery(
+            String serviceId, String serviceHost, int servicePort, String serviceScheme) {
         return new ServiceDiscovery() {
             @Override
             public void listen(Handler<io.gravitee.discovery.api.event.Event> handler) throws Exception {
-                handler.handle(
-                    new io.gravitee.discovery.api.event.Event() {
-                        public EventType type() {
-                            return EventType.REGISTER;
-                        }
-
-                        public Service service() {
-                            return new Service() {
-                                @Override
-                                public String id() {
-                                    return serviceId;
-                                }
-
-                                @Override
-                                public String host() {
-                                    return serviceHost;
-                                }
-
-                                @Override
-                                public int port() {
-                                    return servicePort;
-                                }
-
-                                @Override
-                                public String scheme() {
-                                    return serviceScheme;
-                                }
-                            };
-                        }
+                handler.handle(new io.gravitee.discovery.api.event.Event() {
+                    public EventType type() {
+                        return EventType.REGISTER;
                     }
-                );
+
+                    public Service service() {
+                        return new Service() {
+                            @Override
+                            public String id() {
+                                return serviceId;
+                            }
+
+                            @Override
+                            public String host() {
+                                return serviceHost;
+                            }
+
+                            @Override
+                            public int port() {
+                                return servicePort;
+                            }
+
+                            @Override
+                            public String scheme() {
+                                return serviceScheme;
+                            }
+                        };
+                    }
+                });
             }
 
             @Override
@@ -203,49 +199,46 @@ public class EndpointDiscoveryVerticleTest {
     }
 
     private String initConfiguration(String expectedServiceName, String expectedServiceTarget, boolean withSsl) {
-        String expectedConfiguration =
-            "{" +
-            "\"name\":\"" +
-            expectedServiceName +
-            "\"," +
-            "\"target\":\"" +
-            expectedServiceTarget +
-            "\"," +
-            "\"weight\":1," +
-            "\"backup\":false," +
-            "\"type\":\"http\"," +
-            (withSsl
-                    ? "\"ssl\":{" +
-                    "\"trustAll\":true," +
-                    "\"hostnameVerifier\":false," +
-                    "\"trustStore\":null," +
-                    "\"keyStore\":null" +
-                    "},"
-                    : "") +
-            "\"http\":{" +
-            "\"idleTimeout\":60000," +
-            "\"keepAliveTimeout\":30000," +
-            "\"connectTimeout\":5000," +
-            "\"keepAlive\":true," +
-            "\"readTimeout\":10000," +
-            "\"pipelining\":false," +
-            "\"maxConcurrentConnections\":100," +
-            "\"useCompression\":true," +
-            "\"propagateClientAcceptEncoding\":false," +
-            "\"followRedirects\":false," +
-            "\"clearTextUpgrade\":false," +
-            "\"version\":\"HTTP_1_1\",\"maxHeaderSize\":8192,\"maxChunkSize\":8192" +
-            "}," +
-            "\"proxy\":{" +
-            "\"enabled\":true," +
-            "\"useSystemProxy\":false," +
-            "\"host\":\"HTTP_PROXY_HOST\"," +
-            "\"port\":8181," +
-            "\"username\":null," +
-            "\"password\":null," +
-            "\"type\":\"HTTP\"" +
-            "}" +
-            "}";
+        String expectedConfiguration = "{" + "\"name\":\""
+                + expectedServiceName
+                + "\","
+                + "\"target\":\""
+                + expectedServiceTarget
+                + "\","
+                + "\"weight\":1,"
+                + "\"backup\":false,"
+                + "\"type\":\"http\","
+                + (withSsl
+                        ? "\"ssl\":{" + "\"trustAll\":true,"
+                                + "\"hostnameVerifier\":false,"
+                                + "\"trustStore\":null,"
+                                + "\"keyStore\":null"
+                                + "},"
+                        : "")
+                + "\"http\":{"
+                + "\"idleTimeout\":60000,"
+                + "\"keepAliveTimeout\":30000,"
+                + "\"connectTimeout\":5000,"
+                + "\"keepAlive\":true,"
+                + "\"readTimeout\":10000,"
+                + "\"pipelining\":false,"
+                + "\"maxConcurrentConnections\":100,"
+                + "\"useCompression\":true,"
+                + "\"propagateClientAcceptEncoding\":false,"
+                + "\"followRedirects\":false,"
+                + "\"clearTextUpgrade\":false,"
+                + "\"version\":\"HTTP_1_1\",\"maxHeaderSize\":8192,\"maxChunkSize\":8192"
+                + "},"
+                + "\"proxy\":{"
+                + "\"enabled\":true,"
+                + "\"useSystemProxy\":false,"
+                + "\"host\":\"HTTP_PROXY_HOST\","
+                + "\"port\":8181,"
+                + "\"username\":null,"
+                + "\"password\":null,"
+                + "\"type\":\"HTTP\""
+                + "}"
+                + "}";
         return expectedConfiguration;
     }
 }

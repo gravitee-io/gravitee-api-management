@@ -21,9 +21,12 @@ import io.gravitee.gateway.reactor.ReactableApi;
 
 public interface ReactableDebugApi<T> extends ReactableApi<T> {
     HttpRequest getRequest();
+
     HttpResponse getResponse();
+
     String getEventId();
 
     String extractHost();
+
     String extractUri();
 }

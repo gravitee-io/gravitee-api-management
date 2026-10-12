@@ -48,6 +48,10 @@ public class AnalyticsMessageSamplingValueInvalidException extends AbstractManag
 
     @Override
     public Map<String, String> getParameters() {
-        return Map.of("samplingType", messageSampling.getType().getLabel(), "value", String.valueOf(messageSampling.getValue()));
+        return Map.of(
+                "samplingType",
+                messageSampling.getType().getLabel(),
+                "value",
+                String.valueOf(messageSampling.getValue()));
     }
 }

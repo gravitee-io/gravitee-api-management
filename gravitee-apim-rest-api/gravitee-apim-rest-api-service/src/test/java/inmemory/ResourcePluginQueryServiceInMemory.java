@@ -22,7 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ResourcePluginQueryServiceInMemory implements ResourcePluginQueryService, InMemoryAlternative<ResourcePlugin> {
+public class ResourcePluginQueryServiceInMemory
+        implements ResourcePluginQueryService, InMemoryAlternative<ResourcePlugin> {
 
     private List<ResourcePlugin> storage = List.of();
 
@@ -33,9 +34,7 @@ public class ResourcePluginQueryServiceInMemory implements ResourcePluginQuerySe
 
     @Override
     public String getSchema(String resourceId) {
-        return (
-            String.format(
-                """
+        return (String.format("""
                   {
                   "type": "object",
                   "properties": {
@@ -44,10 +43,7 @@ public class ResourcePluginQueryServiceInMemory implements ResourcePluginQuerySe
                       "description": "This is a schema for %s resource plugin."
                     }
                   }
-                }""",
-                resourceId
-            )
-        );
+                }""", resourceId));
     }
 
     @Override

@@ -23,7 +23,8 @@ import org.springframework.context.ApplicationContext;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckTemplateVariableProviderFactory extends AbstractSpringFactoriesLoaderTemplateVariableProviderFactory {
+public class HealthCheckTemplateVariableProviderFactory
+        extends AbstractSpringFactoriesLoaderTemplateVariableProviderFactory {
 
     public HealthCheckTemplateVariableProviderFactory(ApplicationContext applicationContext) {
         super(applicationContext);

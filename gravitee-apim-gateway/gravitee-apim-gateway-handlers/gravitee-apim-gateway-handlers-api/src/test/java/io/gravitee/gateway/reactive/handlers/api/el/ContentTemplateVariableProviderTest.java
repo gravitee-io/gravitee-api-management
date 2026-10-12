@@ -109,8 +109,12 @@ class ContentTemplateVariableProviderTest {
 
         lenient().when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         lenient().when(templateEngine.getTemplateContext()).thenReturn(templateContext);
-        lenient().when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
-        lenient().when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE)).thenReturn(evaluableResponse);
+        lenient()
+                .when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST))
+                .thenReturn(evaluableRequest);
+        lenient()
+                .when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE))
+                .thenReturn(evaluableResponse);
     }
 
     @Nested
@@ -123,17 +127,22 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT), any(Completable.class));
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON), any(Completable.class));
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), any(Completable.class));
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON), any(Completable.class));
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), any(Completable.class));
         }
 
         @Test
         void should_provide_deferred_response_content_variables() {
             cut.provide(ctx);
 
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT), any(Completable.class));
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON), any(Completable.class));
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML), any(Completable.class));
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT), any(Completable.class));
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON), any(Completable.class));
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML), any(Completable.class));
         }
 
         @Test
@@ -144,7 +153,8 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -161,7 +171,8 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -182,7 +193,8 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -199,7 +211,8 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -216,7 +229,8 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -233,7 +247,8 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -254,7 +269,8 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -271,7 +287,8 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -288,7 +305,8 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -306,7 +324,8 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -328,34 +347,31 @@ class ContentTemplateVariableProviderTest {
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
-            assertTimeoutPreemptively(Duration.ofSeconds(5), () -> contentCompletable.test().assertComplete());
+            assertTimeoutPreemptively(
+                    Duration.ofSeconds(5), () -> contentCompletable.test().assertComplete());
 
             verify(evaluableRequest).setXmlContent(Collections.emptyMap());
         }
 
         @Test
         void should_provide_request_xml_content_with_mixed_content() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <root>
                            value
                            <key>1</key>
                         </root>
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -363,31 +379,26 @@ class ContentTemplateVariableProviderTest {
 
             ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
             verify(evaluableRequest).setXmlContent(captor.capture());
-            assertThat(captor.getValue()).containsExactlyInAnyOrderEntriesOf(
-                ofEntries(entry("root", ofEntries(entry("", "\n   value\n   "), entry("key", "1"))))
-            );
+            assertThat(captor.getValue())
+                    .containsExactlyInAnyOrderEntriesOf(
+                            ofEntries(entry("root", ofEntries(entry("", "\n   value\n   "), entry("key", "1")))));
         }
 
         @Test
         void should_provide_request_xml_content_with_duplicated_keys() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <root>
                            <key>1</key>
                            <key>2</key>
                         </root>
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -398,24 +409,19 @@ class ContentTemplateVariableProviderTest {
 
         @Test
         void should_provide_request_xml_content_with_xml_declaration() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <?xml version="1.0" ?>
                         <root>
                            <key>1</key>
                         </root>
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -426,224 +432,186 @@ class ContentTemplateVariableProviderTest {
 
         @Test
         void should_provide_request_xml_content_with_tag_having_attributes() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <users xmlns="http://example.com" version="1.0" from="api">
                            <user>John</user>
                         </users>
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
             obs.assertComplete();
 
-            verify(evaluableRequest).setXmlContent(
-                ofEntries(entry("users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John"))))
-            );
+            verify(evaluableRequest)
+                    .setXmlContent(ofEntries(entry(
+                            "users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John")))));
         }
 
         @Test
         void should_provide_request_xml_content_with_wrap_tag() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <wrap>
                             <user>1</user>
                         </wrap>
                         <root>ok</root>
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
             obs.assertComplete();
 
-            verify(evaluableRequest).setXmlContent(ofEntries(entry("wrap", ofEntries(entry("user", "1"))), entry("root", "ok")));
+            verify(evaluableRequest)
+                    .setXmlContent(ofEntries(entry("wrap", ofEntries(entry("user", "1"))), entry("root", "ok")));
         }
 
         @Test
         void should_provide_request_xml_content_with_multiple_key() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <root><key>1</key><key>2</key></root>
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
             obs.assertComplete();
 
-            verify(evaluableRequest).setXmlContent(ofEntries(entry("root", ofEntries(entry("key", List.of("1", "2"))))));
+            verify(evaluableRequest)
+                    .setXmlContent(ofEntries(entry("root", ofEntries(entry("key", List.of("1", "2"))))));
         }
 
         @Test
         void should_provide_request_xml_content_with_tag_having_namespaces() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <foo:users xmlns:foo="http://example.com" version="1.0" from="api">
                            <user>John</user>
                         </foo:users>
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
             obs.assertComplete();
 
-            verify(evaluableRequest).setXmlContent(
-                ofEntries(entry("users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John"))))
-            );
+            verify(evaluableRequest)
+                    .setXmlContent(ofEntries(entry(
+                            "users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John")))));
         }
 
         @Test
         void should_provide_request_xml_content_with_doctype() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "http://docs.oasis-open.org/dita/v1.1/OS/dtd/topic.dtd">
                         <users xmlns="http://example.com" version="1.0" from="api">
                            <user>John</user>
                         </users>
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
             obs.assertComplete();
 
-            verify(evaluableRequest).setXmlContent(
-                ofEntries(entry("users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John"))))
-            );
+            verify(evaluableRequest)
+                    .setXmlContent(ofEntries(entry(
+                            "users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John")))));
         }
 
         @Test
         void should_provide_request_xml_content_with_tag_having_namespaces_and_prologue() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <?xml version="1.0"?>
                         <foo:users xmlns:foo="http://example.com" version="1.0" from="api">
                            <user>John</user>
                         </foo:users>
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
             obs.assertComplete();
 
-            verify(evaluableRequest).setXmlContent(
-                ofEntries(entry("users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John"))))
-            );
+            verify(evaluableRequest)
+                    .setXmlContent(ofEntries(entry(
+                            "users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John")))));
         }
 
         @Test
         void should_provide_request_xml_content_with_doctype_and_prologue() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <?xml version="1.0"?>
                         <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "http://docs.oasis-open.org/dita/v1.1/OS/dtd/topic.dtd">
                         <users xmlns="http://example.com" version="1.0" from="api">
                            <user>John</user>
                         </users>
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
             obs.assertComplete();
 
-            verify(evaluableRequest).setXmlContent(
-                ofEntries(entry("users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John"))))
-            );
+            verify(evaluableRequest)
+                    .setXmlContent(ofEntries(entry(
+                            "users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John")))));
         }
 
         @Test
         void should_provide_empty_map_when_prolog_and_doctype_only() {
-            when(request.bodyOrEmpty()).thenReturn(
-                Single.just(
-                    Buffer.buffer(
-                        """
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("""
                         <?xml version="1.0"?>
                         <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "http://docs.oasis-open.org/dita/v1.1/OS/dtd/topic.dtd">
-                        """
-                    )
-                )
-            );
+                        """)));
             when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
 
             cut.provide(ctx);
 
             ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
-            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+            verify(templateContext)
+                    .setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
 
             final Completable contentCompletable = completableCaptor.getValue();
             final TestObserver<Void> obs = contentCompletable.test();
@@ -664,7 +632,8 @@ class ContentTemplateVariableProviderTest {
         void should_disable_external_entities_and_dtd_on_secure_xml_input_factory() {
             XMLInputFactory factory = ContentTemplateVariableProvider.createSecureXmlInputFactory();
 
-            assertThat(factory.getProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES)).isEqualTo(Boolean.FALSE);
+            assertThat(factory.getProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES))
+                    .isEqualTo(Boolean.FALSE);
             assertThat(factory.getProperty(XMLInputFactory.SUPPORT_DTD)).isEqualTo(Boolean.FALSE);
         }
 
@@ -677,7 +646,8 @@ class ContentTemplateVariableProviderTest {
     }
 
     private static String readRootText(XMLInputFactory factory, String xml) throws XMLStreamException {
-        XMLStreamReader reader = factory.createXMLStreamReader(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+        XMLStreamReader reader =
+                factory.createXMLStreamReader(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
         try {
             while (reader.hasNext()) {
                 if (reader.next() == XMLStreamConstants.START_ELEMENT) {

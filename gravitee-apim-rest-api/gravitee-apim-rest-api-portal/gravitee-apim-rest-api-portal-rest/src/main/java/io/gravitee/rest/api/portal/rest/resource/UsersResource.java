@@ -91,12 +91,12 @@ public class UsersResource extends AbstractResource {
     @Path("/registration")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response registerUser(@Valid @NotNull(message = "Input must not be null.") RegisterUserInput registerUserInput) {
+    public Response registerUser(
+            @Valid @NotNull(message = "Input must not be null.") RegisterUserInput registerUserInput) {
         UserEntity newUser = userService.register(
-            GraviteeContext.getExecutionContext(),
-            userMapper.convert(registerUserInput),
-            registerUserInput.getConfirmationPageUrl()
-        );
+                GraviteeContext.getExecutionContext(),
+                userMapper.convert(registerUserInput),
+                registerUserInput.getConfirmationPageUrl());
         if (newUser != null) {
             return Response.ok().entity(userMapper.convert(newUser)).build();
         }
@@ -109,8 +109,7 @@ public class UsersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response finalizeRegistration(
-        @Valid @NotNull(message = "Input must not be null.") FinalizeRegistrationInput finalizeRegistrationInput
-    ) {
+            @Valid @NotNull(message = "Input must not be null.") FinalizeRegistrationInput finalizeRegistrationInput) {
         var decoded = tokenService.decode(finalizeRegistrationInput.getToken());
 
         if (JWTHelper.ACTION.RESET_PASSWORD.name().equals(decoded.action())) {
@@ -118,21 +117,24 @@ public class UsersResource extends AbstractResource {
         }
 
         var executionContext = GraviteeContext.getExecutionContext();
-        var useCaseInput = finalizeRegistrationMapper.toUseCaseInput(executionContext, decoded, finalizeRegistrationInput);
+        var useCaseInput =
+                finalizeRegistrationMapper.toUseCaseInput(executionContext, decoded, finalizeRegistrationInput);
         var output = acceptUserInvitationUseCase.execute(useCaseInput);
-        return Response.ok().entity(userMapper.convert(UserAdapter.INSTANCE.toUserEntity(output.user()))).build();
+        return Response.ok()
+                .entity(userMapper.convert(UserAdapter.INSTANCE.toUserEntity(output.user())))
+                .build();
     }
 
     @POST
     @Path("_reset_password")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response resetUserPassword(@NotNull(message = "Input must not be null.") @Valid ResetUserPasswordInput resetUserPasswordInput) {
+    public Response resetUserPassword(
+            @NotNull(message = "Input must not be null.") @Valid ResetUserPasswordInput resetUserPasswordInput) {
         try {
             userService.resetPasswordFromSourceId(
-                GraviteeContext.getExecutionContext(),
-                resetUserPasswordInput.getUsername(),
-                resetUserPasswordInput.getResetPageUrl()
-            );
+                    GraviteeContext.getExecutionContext(),
+                    resetUserPasswordInput.getUsername(),
+                    resetUserPasswordInput.getResetPageUrl());
         } catch (PasswordAlreadyResetException e) {
             throw e;
         } catch (AbstractManagementException e) {
@@ -146,12 +148,9 @@ public class UsersResource extends AbstractResource {
     @Path("_change_password")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response changeUserPassword(
-        @NotNull(message = "Input must not be null.") @Valid ChangeUserPasswordInput changeUserPasswordInput
-    ) {
+            @NotNull(message = "Input must not be null.") @Valid ChangeUserPasswordInput changeUserPasswordInput) {
         UserEntity newUser = userService.finalizeResetPassword(
-            GraviteeContext.getExecutionContext(),
-            userMapper.convert(changeUserPasswordInput)
-        );
+                GraviteeContext.getExecutionContext(), userMapper.convert(changeUserPasswordInput));
         if (newUser != null) {
             return Response.ok().entity(userMapper.convert(newUser)).build();
         }
@@ -168,23 +167,22 @@ public class UsersResource extends AbstractResource {
     @Path("_search")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ) })
-    public Response getUsers(@QueryParam("q") String query, @BeanParam PaginationParam paginationParam, UsersSearchInput input) {
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ)})
+    public Response getUsers(
+            @QueryParam("q") String query, @BeanParam PaginationParam paginationParam, UsersSearchInput input) {
         var executionContext = GraviteeContext.getExecutionContext();
         var searchQuery = resolveSearchQuery(query, input);
         var applicationMembership = resolveApplicationMembership(input);
         ensureCanReadApplicationMembership(executionContext, applicationMembership);
-        var output = searchUsersUseCase.execute(new SearchUsersUseCase.Input(executionContext, searchQuery, applicationMembership));
+        var output = searchUsersUseCase.execute(
+                new SearchUsersUseCase.Input(executionContext, searchQuery, applicationMembership));
 
-        List<User> users = output
-            .data()
-            .stream()
-            .map(searchUser ->
-                userMapper
-                    .convert(searchUser)
-                    .links(userMapper.computeUserLinks(PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchUser.id()), null))
-            )
-            .toList();
+        List<User> users = output.data().stream()
+                .map(searchUser -> userMapper
+                        .convert(searchUser)
+                        .links(userMapper.computeUserLinks(
+                                PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchUser.id()), null)))
+                .toList();
 
         var metadata = createUsersSearchMetadata(output);
         return createListResponse(executionContext, users, paginationParam, metadata, false);
@@ -211,7 +209,8 @@ public class UsersResource extends AbstractResource {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(input.getIncludes().getApplicationMembership()).filter(not(String::isBlank));
+        return Optional.ofNullable(input.getIncludes().getApplicationMembership())
+                .filter(not(String::isBlank));
     }
 
     @GET
@@ -224,7 +223,8 @@ public class UsersResource extends AbstractResource {
         }
 
         if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl()))
+                    .build();
         }
 
         return createPictureResponse(request, (InlinePictureEntity) picture);
@@ -241,9 +241,8 @@ public class UsersResource extends AbstractResource {
     }
 
     private void ensureCanReadApplicationMembership(
-        io.gravitee.rest.api.service.common.ExecutionContext executionContext,
-        Optional<String> applicationMembership
-    ) {
+            io.gravitee.rest.api.service.common.ExecutionContext executionContext,
+            Optional<String> applicationMembership) {
         applicationMembership.ifPresent(applicationId -> {
             if (!hasPermission(executionContext, RolePermission.APPLICATION_MEMBER, applicationId, READ)) {
                 throw new ForbiddenAccessException();

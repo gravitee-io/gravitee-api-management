@@ -54,9 +54,12 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
 
     static {
         kafka = new ComposeContainer(new File("src/test/resources/docker/docker-compose.yml"))
-            .withExposedService(BROKER_SERVICE, PLAINTEXT_PORT, Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(60)))
-            .withExposedService(BROKER_SERVICE, SSL_PORT)
-            .withExposedService(BROKER_SERVICE, SASL_PLAINTEXT_PORT);
+                .withExposedService(
+                        BROKER_SERVICE,
+                        PLAINTEXT_PORT,
+                        Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(60)))
+                .withExposedService(BROKER_SERVICE, SSL_PORT)
+                .withExposedService(BROKER_SERVICE, SASL_PLAINTEXT_PORT);
         kafka.start();
 
         try {
@@ -65,25 +68,37 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
             var clusterService = new KafkaClusterDomainServiceImpl(5, 2);
             var objectMapper = new ObjectMapper();
             injectField(
-                resource,
-                "describeKafkaClusterUseCase",
-                new DescribeKafkaClusterUseCase(clusterCrudService, clusterService, objectMapper)
-            );
-            injectField(resource, "listTopicsUseCase", new ListTopicsUseCase(clusterCrudService, clusterService, objectMapper));
-            injectField(resource, "describeTopicUseCase", new DescribeTopicUseCase(clusterCrudService, clusterService, objectMapper));
-            injectField(resource, "describeBrokerUseCase", new DescribeBrokerUseCase(clusterCrudService, clusterService, objectMapper));
+                    resource,
+                    "describeKafkaClusterUseCase",
+                    new DescribeKafkaClusterUseCase(clusterCrudService, clusterService, objectMapper));
             injectField(
-                resource,
-                "listConsumerGroupsUseCase",
-                new ListConsumerGroupsUseCase(clusterCrudService, clusterService, objectMapper)
-            );
+                    resource,
+                    "listTopicsUseCase",
+                    new ListTopicsUseCase(clusterCrudService, clusterService, objectMapper));
             injectField(
-                resource,
-                "describeConsumerGroupUseCase",
-                new DescribeConsumerGroupUseCase(clusterCrudService, clusterService, objectMapper)
-            );
-            injectField(resource, "browseMessagesUseCase", new BrowseMessagesUseCase(clusterCrudService, clusterService, objectMapper));
-            injectField(resource, "tailMessagesUseCase", new TailMessagesUseCase(clusterCrudService, clusterService, objectMapper));
+                    resource,
+                    "describeTopicUseCase",
+                    new DescribeTopicUseCase(clusterCrudService, clusterService, objectMapper));
+            injectField(
+                    resource,
+                    "describeBrokerUseCase",
+                    new DescribeBrokerUseCase(clusterCrudService, clusterService, objectMapper));
+            injectField(
+                    resource,
+                    "listConsumerGroupsUseCase",
+                    new ListConsumerGroupsUseCase(clusterCrudService, clusterService, objectMapper));
+            injectField(
+                    resource,
+                    "describeConsumerGroupUseCase",
+                    new DescribeConsumerGroupUseCase(clusterCrudService, clusterService, objectMapper));
+            injectField(
+                    resource,
+                    "browseMessagesUseCase",
+                    new BrowseMessagesUseCase(clusterCrudService, clusterService, objectMapper));
+            injectField(
+                    resource,
+                    "tailMessagesUseCase",
+                    new TailMessagesUseCase(clusterCrudService, clusterService, objectMapper));
             injectField(resource, "objectMapper", objectMapper);
         } catch (Exception e) {
             throw new RuntimeException("Failed to set up integration test", e);
@@ -97,7 +112,8 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
     }
 
     protected static String plaintextBootstrapServers() {
-        return kafka.getServiceHost(BROKER_SERVICE, PLAINTEXT_PORT) + ":" + kafka.getServicePort(BROKER_SERVICE, PLAINTEXT_PORT);
+        return kafka.getServiceHost(BROKER_SERVICE, PLAINTEXT_PORT) + ":"
+                + kafka.getServicePort(BROKER_SERVICE, PLAINTEXT_PORT);
     }
 
     protected static String sslBootstrapServers() {
@@ -105,11 +121,16 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
     }
 
     protected static String saslBootstrapServers() {
-        return kafka.getServiceHost(BROKER_SERVICE, SASL_PLAINTEXT_PORT) + ":" + kafka.getServicePort(BROKER_SERVICE, SASL_PLAINTEXT_PORT);
+        return kafka.getServiceHost(BROKER_SERVICE, SASL_PLAINTEXT_PORT) + ":"
+                + kafka.getServicePort(BROKER_SERVICE, SASL_PLAINTEXT_PORT);
     }
 
     protected static void givenClusterWithConfig(Map<String, Object> config) {
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(config).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(config)
+                .build());
     }
 
     protected static void injectField(Object target, String fieldName, Object value) throws Exception {

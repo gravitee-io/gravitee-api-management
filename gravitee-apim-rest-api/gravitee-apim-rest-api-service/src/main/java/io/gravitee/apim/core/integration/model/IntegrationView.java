@@ -47,11 +47,10 @@ public class IntegrationView {
     }
 
     public IntegrationView(
-        Integration.ApiIntegration integration,
-        AgentStatus agentStatus,
-        AsyncJob pendingJob,
-        PrimaryOwner primaryOwner
-    ) {
+            Integration.ApiIntegration integration,
+            AgentStatus agentStatus,
+            AsyncJob pendingJob,
+            PrimaryOwner primaryOwner) {
         this.integration = integration;
         this.agentStatus = agentStatus;
         this.pendingJob = pendingJob;

@@ -54,15 +54,15 @@ import org.springframework.stereotype.Component;
  */
 @CustomLog
 @Component
-public class EndpointGroupsValidationServiceImpl extends TransactionalService implements EndpointGroupsValidationService {
+public class EndpointGroupsValidationServiceImpl extends TransactionalService
+        implements EndpointGroupsValidationService {
 
     private final EndpointConnectorPluginService endpointService;
     private final ApiServicePluginService apiServicePluginService;
 
     public EndpointGroupsValidationServiceImpl(
-        final EndpointConnectorPluginService endpointService,
-        final ApiServicePluginService apiServicePluginService
-    ) {
+            final EndpointConnectorPluginService endpointService,
+            final ApiServicePluginService apiServicePluginService) {
         this.endpointService = endpointService;
         this.apiServicePluginService = apiServicePluginService;
     }
@@ -78,9 +78,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     public <G extends AbstractEndpointGroup<? extends AbstractEndpoint>> List<G> validateAndSanitize(
-        ApiType apiType,
-        List<G> endpointGroups
-    ) {
+            ApiType apiType, List<G> endpointGroups) {
         if (endpointGroups == null || endpointGroups.isEmpty()) {
             throw new EndpointMissingException();
         }
@@ -96,26 +94,21 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
             validateServices(apiType, endpointGroup);
 
             if (endpointGroup.getSharedConfiguration() != null) {
-                endpointGroup.setSharedConfiguration(
-                    endpointService.validateSharedConfiguration(
+                endpointGroup.setSharedConfiguration(endpointService.validateSharedConfiguration(
                         endpointConnector,
-                        normalizeSharedConfiguration(endpointConnector, endpointGroup.getSharedConfiguration())
-                    )
-                );
+                        normalizeSharedConfiguration(endpointConnector, endpointGroup.getSharedConfiguration())));
             }
             if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
-                endpointGroup
-                    .getEndpoints()
-                    .forEach(endpoint -> {
-                        validateUniqueEndpointName(endpoint.getName(), names);
-                        validateEndpointWeight(endpoint);
-                        validateEndpointType(endpoint.getType());
-                        validateEndpointMatchType(endpointGroup, endpoint);
-                        validateEndpointConfiguration(endpointConnector, endpoint);
-                        validateSharedConfigurationInheritance(endpointGroup, endpoint);
-                        validateSharedConfigurationOverride(endpointConnector, endpoint);
-                        validateServices(apiType, endpointGroup, endpoint);
-                    });
+                endpointGroup.getEndpoints().forEach(endpoint -> {
+                    validateUniqueEndpointName(endpoint.getName(), names);
+                    validateEndpointWeight(endpoint);
+                    validateEndpointType(endpoint.getType());
+                    validateEndpointMatchType(endpointGroup, endpoint);
+                    validateEndpointConfiguration(endpointConnector, endpoint);
+                    validateSharedConfigurationInheritance(endpointGroup, endpoint);
+                    validateSharedConfigurationOverride(endpointConnector, endpoint);
+                    validateServices(apiType, endpointGroup, endpoint);
+                });
             }
         });
 
@@ -129,36 +122,36 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     private void validateEndpointConfiguration(ConnectorPluginEntity endpointConnector, AbstractEndpoint endpoint) {
-        endpoint.setConfiguration(endpointService.validateConnectorConfiguration(endpointConnector, endpoint.getConfiguration()));
+        endpoint.setConfiguration(
+                endpointService.validateConnectorConfiguration(endpointConnector, endpoint.getConfiguration()));
     }
 
-    private void validateSharedConfigurationOverride(ConnectorPluginEntity endpointConnector, AbstractEndpoint endpoint) {
+    private void validateSharedConfigurationOverride(
+            ConnectorPluginEntity endpointConnector, AbstractEndpoint endpoint) {
         if (!endpoint.isInheritConfiguration()) {
             if (endpoint.getSharedConfigurationOverride() == null) {
                 // If no endpoint group provided, validate with an empty object to verify required fields
                 endpointService.validateSharedConfiguration(endpointConnector, "{}");
             } else {
-                endpoint.setSharedConfigurationOverride(
-                    endpointService.validateSharedConfiguration(
+                endpoint.setSharedConfigurationOverride(endpointService.validateSharedConfiguration(
                         endpointConnector,
-                        normalizeSharedConfiguration(endpointConnector, endpoint.getSharedConfigurationOverride())
-                    )
-                );
+                        normalizeSharedConfiguration(endpointConnector, endpoint.getSharedConfigurationOverride())));
             }
         }
     }
 
     private String normalizeSharedConfiguration(ConnectorPluginEntity endpointConnector, String sharedConfiguration) {
-        return LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(endpointConnector.getId(), sharedConfiguration);
+        return LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
+                endpointConnector.getId(), sharedConfiguration);
     }
 
-    private void validateSharedConfigurationInheritance(AbstractEndpointGroup<?> endpointGroup, AbstractEndpoint endpoint) {
+    private void validateSharedConfigurationInheritance(
+            AbstractEndpointGroup<?> endpointGroup, AbstractEndpoint endpoint) {
         if (endpoint.isInheritConfiguration() && endpointGroup.getSharedConfiguration() == null) {
             // If we try to inherit shared configuration that is null
             // Shared configuration has already been validated so no need to do it again
             throw new EndpointConfigurationValidationException(
-                "Impossible to inherit from a null shared configuration for endpoint: " + endpoint.getName()
-            );
+                    "Impossible to inherit from a null shared configuration for endpoint: " + endpoint.getName());
         }
     }
 
@@ -171,12 +164,13 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     private void validateHttpEndpointsExistence(EndpointGroup endpointGroup) {
-        //Is service discovery enabled ?
-        Service endpointDiscoveryService = endpointGroup.getServices() == null ? null : endpointGroup.getServices().getDiscovery();
-        if (
-            (endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled()) &&
-            (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())
-        ) {
+        // Is service discovery enabled ?
+        Service endpointDiscoveryService = endpointGroup.getServices() == null
+                ? null
+                : endpointGroup.getServices().getDiscovery();
+        if ((endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled())
+                && (endpointGroup.getEndpoints() == null
+                        || endpointGroup.getEndpoints().isEmpty())) {
             throw new EndpointMissingException();
         }
     }
@@ -188,7 +182,8 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     private void validateDiscovery(Service discovery) {
-        // TODO FCY: Nothing is done today to validate discovery validation. Could be handled by the connector (with a JSON Schema for instance).
+        // TODO FCY: Nothing is done today to validate discovery validation. Could be handled by the connector (with a
+        // JSON Schema for instance).
     }
 
     private void validateEndpointType(final String type) {
@@ -197,7 +192,8 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateEndpointGroupType(final ApiType apiType, final String type, final ConnectorPluginEntity connectorPluginEntity) {
+    private void validateEndpointGroupType(
+            final ApiType apiType, final String type, final ConnectorPluginEntity connectorPluginEntity) {
         // AUTHZ APIs are short-circuited by the AuthZen entrypoint and never reach an endpoint, so the
         // endpoint group is a structural formality and any endpoint type is accepted
         if (apiType == ApiType.AUTHZ) {
@@ -208,7 +204,8 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateEndpointMatchType(final AbstractEndpointGroup<?> endpointGroup, final AbstractEndpoint endpoint) {
+    private void validateEndpointMatchType(
+            final AbstractEndpointGroup<?> endpointGroup, final AbstractEndpoint endpoint) {
         if (!endpointGroup.getType().equals(endpoint.getType())) {
             throw new EndpointGroupTypeMismatchInvalidException(endpointGroup.getType());
         }
@@ -220,9 +217,8 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
             throw new HealthcheckInvalidException(healthCheck.getType());
         }
 
-        healthCheck.setConfiguration(
-            this.apiServicePluginService.validateApiServiceConfiguration(healthCheck.getType(), healthCheck.getConfiguration())
-        );
+        healthCheck.setConfiguration(this.apiServicePluginService.validateApiServiceConfiguration(
+                healthCheck.getType(), healthCheck.getConfiguration()));
     }
 
     private void validateName(final String name) {
@@ -283,9 +279,9 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                     validateAndSetHealthCheckConfiguration(serviceHealthCheck);
                 }
 
-                final var hcGroupWithoutConfig = (groupServices == null ||
-                    groupServices.getHealthCheck() == null ||
-                    isBlank(groupServices.getHealthCheck().getConfiguration()));
+                final var hcGroupWithoutConfig = (groupServices == null
+                        || groupServices.getHealthCheck() == null
+                        || isBlank(groupServices.getHealthCheck().getConfiguration()));
                 if (!serviceHealthCheck.isOverrideConfiguration() && hcGroupWithoutConfig) {
                     log.debug("HealthCheck inherit from a missing configuration");
                     throw new HealthcheckInheritanceException();
@@ -296,16 +292,15 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                     throw new HealthcheckInheritanceException();
                 }
 
-                if (
-                    groupServices != null &&
-                    groupServices.getHealthCheck() != null &&
-                    !serviceHealthCheck.getType().equals(groupServices.getHealthCheck().getType())
-                ) {
+                if (groupServices != null
+                        && groupServices.getHealthCheck() != null
+                        && !serviceHealthCheck
+                                .getType()
+                                .equals(groupServices.getHealthCheck().getType())) {
                     log.debug(
-                        "HealthCheck with type [{}] inherit configuration from another HealthCheck type [{}]",
-                        serviceHealthCheck.getType(),
-                        groupServices.getHealthCheck().getType()
-                    );
+                            "HealthCheck with type [{}] inherit configuration from another HealthCheck type [{}]",
+                            serviceHealthCheck.getType(),
+                            groupServices.getHealthCheck().getType());
                     throw new HealthcheckInheritanceException();
                 }
             }

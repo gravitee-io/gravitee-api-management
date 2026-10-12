@@ -41,7 +41,8 @@ public class UserMapper {
     public static final String IDP_SOURCE_GRAVITEE = "gravitee";
     public static final String IDP_SOURCE_MEMORY = "memory";
 
-    private ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private ObjectMapper objectMapper =
+            new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public User convert(PrimaryOwnerEntity user) {
         final User userItem = new User();
@@ -54,29 +55,22 @@ public class UserMapper {
     public User convert(UserEntity user) {
         final User userItem = convertUser(user);
         if (user.getRoles() != null) {
-            Map<String, List<String>> userPermissions = user
-                .getRoles()
-                .stream()
-                .filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope()) || RoleScope.ORGANIZATION.equals(role.getScope()))
-                .map(UserRoleEntity::getPermissions)
-                .map(rolePermissions ->
-                    rolePermissions
-                        .entrySet()
-                        .stream()
-                        .collect(
-                            Collectors.toMap(Map.Entry::getKey, entry ->
-                                new String(entry.getValue())
-                                    .chars()
-                                    .mapToObj(c -> (char) c)
-                                    .map(String::valueOf)
-                                    .collect(Collectors.toList())
-                            )
-                        )
-                )
-                .reduce(new HashMap<>(), (acc, rolePermissions) -> {
-                    acc.putAll(rolePermissions);
-                    return acc;
-                });
+            Map<String, List<String>> userPermissions = user.getRoles().stream()
+                    .filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope())
+                            || RoleScope.ORGANIZATION.equals(role.getScope()))
+                    .map(UserRoleEntity::getPermissions)
+                    .map(rolePermissions -> rolePermissions.entrySet().stream()
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    entry -> new String(entry.getValue())
+                                            .chars()
+                                            .mapToObj(c -> (char) c)
+                                            .map(String::valueOf)
+                                            .collect(Collectors.toList()))))
+                    .reduce(new HashMap<>(), (acc, rolePermissions) -> {
+                        acc.putAll(rolePermissions);
+                        return acc;
+                    });
             userItem.setPermissions(objectMapper.convertValue(userPermissions, UserPermissions.class));
         }
         return userItem;
@@ -85,21 +79,16 @@ public class UserMapper {
     public User convertForEnvironment(UserEntity user, String environmentId) {
         final User userItem = convertUser(user);
         Stream<UserRoleEntity> organizationRoles = user.getRoles() == null
-            ? Stream.empty()
-            : user
-                .getRoles()
-                .stream()
-                .filter(role -> RoleScope.ORGANIZATION.equals(role.getScope()));
+                ? Stream.empty()
+                : user.getRoles().stream().filter(role -> RoleScope.ORGANIZATION.equals(role.getScope()));
 
         Set<UserRoleEntity> environmentRoles = user.getEnvRoles() == null || environmentId == null
-            ? Set.of()
-            : user.getEnvRoles().getOrDefault(environmentId, Set.of());
+                ? Set.of()
+                : user.getEnvRoles().getOrDefault(environmentId, Set.of());
 
-        userItem.setPermissions(
-            convertPermissions(
-                Stream.concat(organizationRoles, environmentRoles.stream().filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope())))
-            )
-        );
+        userItem.setPermissions(convertPermissions(Stream.concat(
+                organizationRoles,
+                environmentRoles.stream().filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope())))));
         return userItem;
     }
 
@@ -165,28 +154,27 @@ public class UserMapper {
         userItem.setLastName(user.getLastname());
         userItem.setDisplayName(user.getDisplayName());
         userItem.setId(user.getId());
-        userItem.setEditableProfile(IDP_SOURCE_GRAVITEE.equals(user.getSource()) || IDP_SOURCE_MEMORY.equalsIgnoreCase(user.getSource()));
+        userItem.setEditableProfile(
+                IDP_SOURCE_GRAVITEE.equals(user.getSource()) || IDP_SOURCE_MEMORY.equalsIgnoreCase(user.getSource()));
         userItem.setCustomFields(user.getCustomFields());
         return userItem;
     }
 
     private UserPermissions convertPermissions(Stream<UserRoleEntity> roles) {
         Map<String, Set<String>> mergedPermissions = new HashMap<>();
-        roles
-            .map(UserRoleEntity::getPermissions)
-            .flatMap(rolePermissions -> rolePermissions.entrySet().stream())
-            .forEach(permission -> {
-                Set<String> actions = mergedPermissions.computeIfAbsent(permission.getKey(), ignored -> new LinkedHashSet<>());
-                new String(permission.getValue())
-                    .chars()
-                    .mapToObj(action -> String.valueOf((char) action))
-                    .forEach(actions::add);
-            });
+        roles.map(UserRoleEntity::getPermissions)
+                .flatMap(rolePermissions -> rolePermissions.entrySet().stream())
+                .forEach(permission -> {
+                    Set<String> actions =
+                            mergedPermissions.computeIfAbsent(permission.getKey(), ignored -> new LinkedHashSet<>());
+                    new String(permission.getValue())
+                            .chars()
+                            .mapToObj(action -> String.valueOf((char) action))
+                            .forEach(actions::add);
+                });
 
-        Map<String, List<String>> userPermissions = mergedPermissions
-            .entrySet()
-            .stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, permission -> new ArrayList<>(permission.getValue())));
+        Map<String, List<String>> userPermissions = mergedPermissions.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, permission -> new ArrayList<>(permission.getValue())));
         return objectMapper.convertValue(userPermissions, UserPermissions.class);
     }
 }

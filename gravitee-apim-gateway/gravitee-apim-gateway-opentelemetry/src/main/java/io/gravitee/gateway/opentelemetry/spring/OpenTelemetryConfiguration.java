@@ -35,18 +35,17 @@ public class OpenTelemetryConfiguration {
 
     @Bean
     public TracingContext gatewayTracer(
-        final Node node,
-        final io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration openTelemetryConfiguration,
-        final OpenTelemetryFactory openTelemetryFactory,
-        @Lazy final List<InstrumenterTracerFactory> instrumenterTracerFactories
-    ) {
+            final Node node,
+            final io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration openTelemetryConfiguration,
+            final OpenTelemetryFactory openTelemetryFactory,
+            @Lazy final List<InstrumenterTracerFactory> instrumenterTracerFactories) {
         Tracer tracer = openTelemetryFactory.createTracer(
-            node.id(),
-            node.application(),
-            "gravitee",
-            Version.RUNTIME_VERSION.MAJOR_VERSION,
-            instrumenterTracerFactories
-        );
-        return new TracingContext(tracer, openTelemetryConfiguration.isTracesEnabled(), openTelemetryConfiguration.isVerboseEnabled());
+                node.id(),
+                node.application(),
+                "gravitee",
+                Version.RUNTIME_VERSION.MAJOR_VERSION,
+                instrumenterTracerFactories);
+        return new TracingContext(
+                tracer, openTelemetryConfiguration.isTracesEnabled(), openTelemetryConfiguration.isVerboseEnabled());
     }
 }

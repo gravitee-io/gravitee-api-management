@@ -28,34 +28,39 @@ import org.junit.jupiter.api.Test;
 public class WebsocketPingFrameTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
-    @DeployApi({ "/apis/v4/http/api.json" })
+    @DeployApi({"/apis/v4/http/api.json"})
     public void websocket_ping_request(VertxTestContext testContext, WebSocketClient webSocketClient) throws Throwable {
         var serverConnected = testContext.checkpoint();
         var pingReceived = testContext.checkpoint();
         var pingSent = testContext.checkpoint();
-        // use a lax checkpoint because Pong frames may be received unsolicited https://vertx.io/docs/apidocs/io/vertx/core/http/WebSocketBase.html#pongHandler-io.vertx.core.Handler-
+        // use a lax checkpoint because Pong frames may be received unsolicited
+        // https://vertx.io/docs/apidocs/io/vertx/core/http/WebSocketBase.html#pongHandler-io.vertx.core.Handler-
         var pongReceived = testContext.laxCheckpoint();
 
         websocketServerHandler = (serverWebSocket -> {
-                serverConnected.flag();
-                serverWebSocket.exceptionHandler(testContext::failNow);
-                serverWebSocket.frameHandler(frame -> {
-                    if (frame.isPing()) {
-                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                        pingReceived.flag();
-                    }
-                });
+            serverConnected.flag();
+            serverWebSocket.exceptionHandler(testContext::failNow);
+            serverWebSocket.frameHandler(frame -> {
+                if (frame.isPing()) {
+                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                    pingReceived.flag();
+                }
             });
+        });
 
         webSocketClient
-            .connect("/test")
-            .doOnSuccess(webSocket -> {
-                webSocket.exceptionHandler(testContext::failNow);
-                webSocket.pongHandler(buffer -> pongReceived.flag());
-                webSocket.writePing(Buffer.buffer("PING")).doOnComplete(pingSent::flag).doOnError(testContext::failNow).subscribe();
-            })
-            .doOnError(testContext::failNow)
-            .test()
-            .await();
+                .connect("/test")
+                .doOnSuccess(webSocket -> {
+                    webSocket.exceptionHandler(testContext::failNow);
+                    webSocket.pongHandler(buffer -> pongReceived.flag());
+                    webSocket
+                            .writePing(Buffer.buffer("PING"))
+                            .doOnComplete(pingSent::flag)
+                            .doOnError(testContext::failNow)
+                            .subscribe();
+                })
+                .doOnError(testContext::failNow)
+                .test()
+                .await();
     }
 }

@@ -24,11 +24,12 @@ import org.apache.commons.lang3.StringUtils;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NewPreRegisterUserEntityValidator implements ConstraintValidator<ValidNewPreRegisterUser, NewPreRegisterUserEntity> {
+public class NewPreRegisterUserEntityValidator
+        implements ConstraintValidator<ValidNewPreRegisterUser, NewPreRegisterUserEntity> {
 
     static final String SERVICE_ACCOUNT_FIRSTNAME_MESSAGE = "a service account must not have a firstname";
     static final String SERVICE_ACCOUNT_IDENTIFIER_MESSAGE =
-        "a service account requires a sourceId, lastname or email to derive a unique identifier";
+            "a service account requires a sourceId, lastname or email to derive a unique identifier";
     static final String EMAIL_REQUIRED_MESSAGE = "email is required";
 
     @Override
@@ -49,11 +50,9 @@ public class NewPreRegisterUserEntityValidator implements ConstraintValidator<Va
                 addViolation(context, SERVICE_ACCOUNT_FIRSTNAME_MESSAGE);
                 return false;
             }
-            if (
-                StringUtils.isBlank(value.getSourceId()) &&
-                StringUtils.isBlank(value.getLastname()) &&
-                StringUtils.isBlank(value.getEmail())
-            ) {
+            if (StringUtils.isBlank(value.getSourceId())
+                    && StringUtils.isBlank(value.getLastname())
+                    && StringUtils.isBlank(value.getEmail())) {
                 addViolation(context, SERVICE_ACCOUNT_IDENTIFIER_MESSAGE);
                 return false;
             }

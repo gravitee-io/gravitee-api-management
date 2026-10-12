@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.v4.flow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
@@ -45,27 +44,26 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
     }
 
     private List<Flow> buildFlows() {
-        return flowPaths
-            .stream()
-            .map(path -> {
-                Flow flow = new Flow();
-                // Http selector
-                HttpSelector httpSelector = new HttpSelector();
-                httpSelector.setPath(path);
-                // No need to test different operator in this test.
-                // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
-                httpSelector.setPathOperator(operator);
+        return flowPaths.stream()
+                .map(path -> {
+                    Flow flow = new Flow();
+                    // Http selector
+                    HttpSelector httpSelector = new HttpSelector();
+                    httpSelector.setPath(path);
+                    // No need to test different operator in this test.
+                    // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
+                    httpSelector.setPathOperator(operator);
 
-                // Channel selector
-                ChannelSelector channelSelector = new ChannelSelector();
-                channelSelector.setChannel(path);
-                // No need to test different operator in this test.
-                // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
-                channelSelector.setChannelOperator(operator);
-                flow.setSelectors(List.of(httpSelector, channelSelector));
-                return flow;
-            })
-            .collect(Collectors.toList());
+                    // Channel selector
+                    ChannelSelector channelSelector = new ChannelSelector();
+                    channelSelector.setChannel(path);
+                    // No need to test different operator in this test.
+                    // Input of BestMatchPolicyResolver is already filtered by PathBasedConditionEvaluator
+                    channelSelector.setChannelOperator(operator);
+                    flow.setSelectors(List.of(httpSelector, channelSelector));
+                    return flow;
+                })
+                .collect(Collectors.toList());
     }
 
     protected static class TestFlowResolver extends AbstractFlowResolver {

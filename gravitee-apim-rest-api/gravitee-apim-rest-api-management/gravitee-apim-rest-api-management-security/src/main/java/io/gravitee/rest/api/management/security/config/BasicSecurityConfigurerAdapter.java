@@ -139,12 +139,11 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         return new GraviteeUrlBasedCorsConfigurationSource(
-            environment,
-            parameterService,
-            installationAccessQueryService,
-            eventManager,
-            ParameterReferenceType.ORGANIZATION
-        );
+                environment,
+                parameterService,
+                installationAccessQueryService,
+                eventManager,
+                ParameterReferenceType.ORGANIZATION);
     }
 
     /*
@@ -159,7 +158,7 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             throw new IllegalStateException("JWT secret is mandatory");
         }
 
-        //Warning if the secret is still the default one
+        // Warning if the secret is still the default one
         if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
             log.warn("");
             log.warn("##############################################################");
@@ -182,14 +181,13 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
         configure(http, environment, cookieCsrfSignedTokenRepository());
 
         http.addFilterBefore(
-            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
-            BasicAuthenticationFilter.class
-        );
+                new TokenAuthenticationFilter(
+                        jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
+                BasicAuthenticationFilter.class);
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
         http.addFilterBefore(
-            new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
-            CorsFilter.class
-        );
+                new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
+                CorsFilter.class);
         http.addFilterAfter(new ContextualLoggingFilter(), GraviteeContextFilter.class);
         http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
 
@@ -203,11 +201,10 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
         log.info("Management API BasicSecurity Config");
         log.info("Loading authentication identity providers for Basic authentication");
 
-        List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers = authenticationProviderManager
-            .getIdentityProviders()
-            .stream()
-            .filter(authenticationProvider -> !authenticationProvider.external())
-            .collect(Collectors.toList());
+        List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers =
+                authenticationProviderManager.getIdentityProviders().stream()
+                        .filter(authenticationProvider -> !authenticationProvider.external())
+                        .collect(Collectors.toList());
 
         for (io.gravitee.rest.api.security.authentication.AuthenticationProvider provider : providers) {
             log.info("Loading authentication provider of type {} at position {}", provider.type(), provider.index());
@@ -217,17 +214,16 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             for (IdentityProvider identityProvider : identityProviders) {
                 if (identityProvider.type().equalsIgnoreCase(provider.type())) {
                     AuthenticationProvider authenticationProviderPlugin = identityProviderManager.loadIdentityProvider(
-                        identityProvider.type(),
-                        provider.configuration()
-                    );
+                            identityProvider.type(), provider.configuration());
 
                     if (authenticationProviderPlugin != null) {
                         Object authenticationProvider = authenticationProviderPlugin.configure();
 
-                        if (authenticationProvider instanceof org.springframework.security.authentication.AuthenticationProvider) {
+                        if (authenticationProvider
+                                instanceof org.springframework.security.authentication.AuthenticationProvider) {
                             auth.authenticationProvider(
-                                (org.springframework.security.authentication.AuthenticationProvider) authenticationProvider
-                            );
+                                    (org.springframework.security.authentication.AuthenticationProvider)
+                                            authenticationProvider);
                         } else if (authenticationProvider instanceof SecurityConfigurer) {
                             auth.apply((SecurityConfigurer) authenticationProvider);
                         }
@@ -245,182 +241,183 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
-        return security
-            .httpBasic()
-            .authenticationDetailsSource(authenticationDetailsSource())
-            .realmName("Gravitee.io Management API")
-            .and();
+        return security.httpBasic()
+                .authenticationDetailsSource(authenticationDetailsSource())
+                .realmName("Gravitee.io Management API")
+                .and();
     }
 
     private HttpSecurity session(HttpSecurity security) throws Exception {
-        return security.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
+        return security.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and();
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
         String uriOrgPrefix = "/organizations/*";
         String uriPrefix = uriOrgPrefix + "/environments/*";
 
-        return security
-            .authorizeHttpRequests()
-            /*
-             * Swagger
-             */
-            // ---------------------------
-            // TODO: DELETE THIS IN 3.18.0
-            .requestMatchers(HttpMethod.GET, "/swagger.json")
-            .permitAll()
-            // ---------------------------
+        return security.authorizeHttpRequests()
+                /*
+                 * Swagger
+                 */
+                // ---------------------------
+                // TODO: DELETE THIS IN 3.18.0
+                .requestMatchers(HttpMethod.GET, "/swagger.json")
+                .permitAll()
+                // ---------------------------
 
-            .requestMatchers(HttpMethod.GET, "/openapi.*")
-            .permitAll()
-            .requestMatchers(HttpMethod.OPTIONS, "**")
-            .permitAll()
-            /*
-             * Global auth resources.
-             */
-            .requestMatchers(HttpMethod.GET, "/auth/cockpit")
-            .permitAll()
-            /*
-             * Global external auth resources.
-             */
-            .requestMatchers(HttpMethod.GET, "/auth/external")
-            .permitAll()
-            /*
-             * organizations resources
-             */
-            // Console resource
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/console/**")
-            .permitAll()
-            // Auth resource
-            .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/auth/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/social-identities")
-            .permitAll()
-            // Current user
-            .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/user/login")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/user/**")
-            .authenticated()
-            // Users management
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/users/custom-fields")
-            .permitAll()
-            .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/users/*/changePassword")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/users")
-            .authenticated()
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/users/**")
-            .authenticated()
-            .requestMatchers(HttpMethod.PUT, uriOrgPrefix + "/users/**")
-            .authenticated()
-            .requestMatchers(HttpMethod.DELETE, uriOrgPrefix + "/users/**")
-            .authenticated()
-            // Organization configuration
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/rolescopes/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/custom-user-fields")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/password-policy")
-            .permitAll()
-            .requestMatchers(uriOrgPrefix + "/configuration/**")
-            .authenticated()
-            // Search for users
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/search/users")
-            .authenticated()
-            /*
-             * environments resources
-             */
-            // DEPRECATED
-            // Auth resource
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/auth/**")
-            .permitAll()
-            // DEPRECATED
-            // Current user
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/user/login")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/user/**")
-            .authenticated()
-            // DEPRECATED
-            // Users management
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/users/custom-fields")
-            .permitAll()
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/users")
-            .authenticated()
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/users/**")
-            .authenticated()
-            .requestMatchers(HttpMethod.PUT, uriPrefix + "/users/**")
-            .authenticated()
-            .requestMatchers(HttpMethod.DELETE, uriPrefix + "/users/**")
-            .authenticated()
-            // DEPRECATED
-            // configuration
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**")
-            .permitAll()
-            // DEPRECATED
-            // Search for users
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/search/users")
-            .authenticated()
-            /*
-             * environments resources
-             */
-            // API requests
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/hooks")
-            .authenticated()
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/**")
-            .authenticated()
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/apis")
-            .authenticated()
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/apis/**")
-            .authenticated()
-            .requestMatchers(HttpMethod.PUT, uriPrefix + "/apis/**")
-            .authenticated()
-            .requestMatchers(HttpMethod.DELETE, uriPrefix + "/apis/**")
-            .authenticated()
-            // Application requests
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/applications")
-            .authenticated()
-            .requestMatchers(HttpMethod.POST, uriPrefix + "/applications/**")
-            .authenticated()
-            .requestMatchers(HttpMethod.PUT, uriPrefix + "/applications/**")
-            .authenticated()
-            .requestMatchers(HttpMethod.DELETE, uriPrefix + "/applications/**")
-            .authenticated()
-            // Subscriptions
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/subscriptions/**")
-            .authenticated()
-            // Instance requests
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/instances/**")
-            .authenticated()
-            // Platform requests
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/platform/**")
-            .authenticated()
-            // Configuration Groups
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**")
-            .permitAll()
-            // Configuration Categories
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/categories/**")
-            .permitAll()
-            // Configuration Tags
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/tags/**")
-            .permitAll()
-            // Configuration Tenants
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/tenants/**")
-            .permitAll()
-            // Configuration
-            .requestMatchers(uriPrefix + "/configuration/**")
-            .authenticated()
-            // Entrypoints
-            .requestMatchers(HttpMethod.GET, uriPrefix + "/entrypoints/**")
-            .permitAll()
-            .anyRequest()
-            .authenticated()
-            .and();
+                .requestMatchers(HttpMethod.GET, "/openapi.*")
+                .permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "**")
+                .permitAll()
+                /*
+                 * Global auth resources.
+                 */
+                .requestMatchers(HttpMethod.GET, "/auth/cockpit")
+                .permitAll()
+                /*
+                 * Global external auth resources.
+                 */
+                .requestMatchers(HttpMethod.GET, "/auth/external")
+                .permitAll()
+                /*
+                 * organizations resources
+                 */
+                // Console resource
+                .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/console/**")
+                .permitAll()
+                // Auth resource
+                .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/auth/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/social-identities")
+                .permitAll()
+                // Current user
+                .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/user/login")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/user/**")
+                .authenticated()
+                // Users management
+                .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/users/custom-fields")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/users/*/changePassword")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/users")
+                .authenticated()
+                .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/users/**")
+                .authenticated()
+                .requestMatchers(HttpMethod.PUT, uriOrgPrefix + "/users/**")
+                .authenticated()
+                .requestMatchers(HttpMethod.DELETE, uriOrgPrefix + "/users/**")
+                .authenticated()
+                // Organization configuration
+                .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/rolescopes/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/custom-user-fields")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/password-policy")
+                .permitAll()
+                .requestMatchers(uriOrgPrefix + "/configuration/**")
+                .authenticated()
+                // Search for users
+                .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/search/users")
+                .authenticated()
+                /*
+                 * environments resources
+                 */
+                // DEPRECATED
+                // Auth resource
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/auth/**")
+                .permitAll()
+                // DEPRECATED
+                // Current user
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/user/login")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/user/**")
+                .authenticated()
+                // DEPRECATED
+                // Users management
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/users/custom-fields")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/users")
+                .authenticated()
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/users/**")
+                .authenticated()
+                .requestMatchers(HttpMethod.PUT, uriPrefix + "/users/**")
+                .authenticated()
+                .requestMatchers(HttpMethod.DELETE, uriPrefix + "/users/**")
+                .authenticated()
+                // DEPRECATED
+                // configuration
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**")
+                .permitAll()
+                // DEPRECATED
+                // Search for users
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/search/users")
+                .authenticated()
+                /*
+                 * environments resources
+                 */
+                // API requests
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/hooks")
+                .authenticated()
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/**")
+                .authenticated()
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/apis")
+                .authenticated()
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/apis/**")
+                .authenticated()
+                .requestMatchers(HttpMethod.PUT, uriPrefix + "/apis/**")
+                .authenticated()
+                .requestMatchers(HttpMethod.DELETE, uriPrefix + "/apis/**")
+                .authenticated()
+                // Application requests
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/applications")
+                .authenticated()
+                .requestMatchers(HttpMethod.POST, uriPrefix + "/applications/**")
+                .authenticated()
+                .requestMatchers(HttpMethod.PUT, uriPrefix + "/applications/**")
+                .authenticated()
+                .requestMatchers(HttpMethod.DELETE, uriPrefix + "/applications/**")
+                .authenticated()
+                // Subscriptions
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/subscriptions/**")
+                .authenticated()
+                // Instance requests
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/instances/**")
+                .authenticated()
+                // Platform requests
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/platform/**")
+                .authenticated()
+                // Configuration Groups
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**")
+                .permitAll()
+                // Configuration Categories
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/categories/**")
+                .permitAll()
+                // Configuration Tags
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/tags/**")
+                .permitAll()
+                // Configuration Tenants
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/tenants/**")
+                .permitAll()
+                // Configuration
+                .requestMatchers(uriPrefix + "/configuration/**")
+                .authenticated()
+                // Entrypoints
+                .requestMatchers(HttpMethod.GET, uriPrefix + "/entrypoints/**")
+                .permitAll()
+                .anyRequest()
+                .authenticated()
+                .and();
     }
 
-    private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails> authenticationDetailsSource() {
+    private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails>
+            authenticationDetailsSource() {
         return GraviteeAuthenticationDetails::new;
     }
 

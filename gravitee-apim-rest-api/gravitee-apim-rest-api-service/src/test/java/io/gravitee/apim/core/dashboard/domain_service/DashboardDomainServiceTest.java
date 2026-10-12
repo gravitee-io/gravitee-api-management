@@ -74,9 +74,21 @@ class DashboardDomainServiceTest {
 
         @Test
         void should_return_dashboards_for_environment() {
-            var dashboard1 = Dashboard.builder().id("d1").environmentId("env-1").name("D1").build();
-            var dashboard2 = Dashboard.builder().id("d2").environmentId("env-1").name("D2").build();
-            var dashboard3 = Dashboard.builder().id("d3").environmentId("other-env").name("D3").build();
+            var dashboard1 = Dashboard.builder()
+                    .id("d1")
+                    .environmentId("env-1")
+                    .name("D1")
+                    .build();
+            var dashboard2 = Dashboard.builder()
+                    .id("d2")
+                    .environmentId("env-1")
+                    .name("D2")
+                    .build();
+            var dashboard3 = Dashboard.builder()
+                    .id("d3")
+                    .environmentId("other-env")
+                    .name("D3")
+                    .build();
             dashboardCrudServiceInMemory.initWith(List.of(dashboard1, dashboard2, dashboard3));
 
             var result = domainService.findByEnvironmentId("env-1");
@@ -90,7 +102,8 @@ class DashboardDomainServiceTest {
 
         @Test
         void should_create_dashboard() {
-            var dashboard = Dashboard.builder().id("new-id").name("New").widgets(null).build();
+            var dashboard =
+                    Dashboard.builder().id("new-id").name("New").widgets(null).build();
 
             var result = domainService.create(dashboard);
 
@@ -104,10 +117,18 @@ class DashboardDomainServiceTest {
 
         @Test
         void should_update_dashboard() {
-            var dashboard = Dashboard.builder().id(DASHBOARD_ID).name("Original").widgets(null).build();
+            var dashboard = Dashboard.builder()
+                    .id(DASHBOARD_ID)
+                    .name("Original")
+                    .widgets(null)
+                    .build();
             dashboardCrudServiceInMemory.initWith(List.of(dashboard));
 
-            var updated = Dashboard.builder().id(DASHBOARD_ID).name("Updated").widgets(null).build();
+            var updated = Dashboard.builder()
+                    .id(DASHBOARD_ID)
+                    .name("Updated")
+                    .widgets(null)
+                    .build();
             var result = domainService.update(updated);
 
             assertThat(result).isEqualTo(updated);
@@ -120,7 +141,8 @@ class DashboardDomainServiceTest {
 
         @Test
         void should_delete_when_found() {
-            var dashboard = Dashboard.builder().id(DASHBOARD_ID).name("To delete").build();
+            var dashboard =
+                    Dashboard.builder().id(DASHBOARD_ID).name("To delete").build();
             dashboardCrudServiceInMemory.initWith(List.of(dashboard));
 
             domainService.delete(DASHBOARD_ID);

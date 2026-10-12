@@ -21,4 +21,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface LicenseMongoRepository extends MongoRepository<LicenseMongo, LicensePkMongo>, LicenseMongoRepositoryCustom {}
+public interface LicenseMongoRepository
+        extends MongoRepository<LicenseMongo, LicensePkMongo>, LicenseMongoRepositoryCustom {}

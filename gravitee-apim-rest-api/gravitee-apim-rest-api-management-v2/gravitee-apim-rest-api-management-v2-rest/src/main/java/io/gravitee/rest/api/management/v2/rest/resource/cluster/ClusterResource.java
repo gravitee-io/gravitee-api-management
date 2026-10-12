@@ -83,68 +83,76 @@ public class ClusterResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.CLUSTER_DEFINITION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getCluster() {
         var executionContext = GraviteeContext.getExecutionContext();
 
         var cluster = getClusterUseCase
-            .execute(
-                new GetClusterUseCase.Input(
-                    clusterId,
-                    executionContext.getEnvironmentId(),
-                    executionContext.getOrganizationId(),
-                    getAuthenticatedUser()
-                )
-            )
-            .cluster();
+                .execute(new GetClusterUseCase.Input(
+                        clusterId,
+                        executionContext.getEnvironmentId(),
+                        executionContext.getOrganizationId(),
+                        getAuthenticatedUser()))
+                .cluster();
 
-        return Response.ok(this.getLocationHeader(cluster.getId())).entity(ClusterMapper.INSTANCE.map(cluster)).build();
+        return Response.ok(this.getLocationHeader(cluster.getId()))
+                .entity(ClusterMapper.INSTANCE.map(cluster))
+                .build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.CLUSTER_DEFINITION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updateCluster(@Valid @NotNull final UpdateCluster updateCluster) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
         var output = updateClusterUseCase.execute(
-            new UpdateClusterUseCase.Input(clusterId, ClusterMapper.INSTANCE.map(updateCluster), audit)
-        );
+                new UpdateClusterUseCase.Input(clusterId, ClusterMapper.INSTANCE.map(updateCluster), audit));
 
-        return Response.ok(this.getLocationHeader(output.cluster().getId())).entity(ClusterMapper.INSTANCE.map(output.cluster())).build();
+        return Response.ok(this.getLocationHeader(output.cluster().getId()))
+                .entity(ClusterMapper.INSTANCE.map(output.cluster()))
+                .build();
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.CLUSTER_DEFINITION,
+                acls = {RolePermissionAction.DELETE})
+    })
     public Response deleteCluster() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
         deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(clusterId, audit));
 
@@ -155,28 +163,29 @@ public class ClusterResource extends AbstractResource {
     @Path("groups")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.CLUSTER_MEMBER,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updateClusterGroups(@Valid @NotNull final List<@NotNull String> groups) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
         Set<String> groupsSet = Collections.unmodifiableSet(new LinkedHashSet<>(groups));
 
-        UpdateClusterGroupsUseCase.Output output = updateClusterGroupsUseCase.execute(
-            new UpdateClusterGroupsUseCase.Input(clusterId, groupsSet, audit)
-        );
+        UpdateClusterGroupsUseCase.Output output =
+                updateClusterGroupsUseCase.execute(new UpdateClusterGroupsUseCase.Input(clusterId, groupsSet, audit));
 
         return Response.ok().entity(output.groups()).build();
     }
@@ -185,60 +194,67 @@ public class ClusterResource extends AbstractResource {
     @Path("permissions")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getClusterPermissions() {
-        var output = getClusterPermissionsUseCase.execute(
-            new GetClusterPermissionsUseCase.Input(isAuthenticated(), isAdmin(), getAuthenticatedUser(), clusterId)
-        );
+        var output = getClusterPermissionsUseCase.execute(new GetClusterPermissionsUseCase.Input(
+                isAuthenticated(), isAdmin(), getAuthenticatedUser(), clusterId));
         return Response.ok(output.permissions()).build();
     }
 
     @POST
     @Path("_deploy")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.CLUSTER_DEFINITION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response deployCluster() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
         var output = deployClusterUseCase.execute(new DeployClusterUseCase.Input(clusterId, audit));
 
-        return Response.ok().entity(ClusterMapper.INSTANCE.map(output.cluster())).build();
+        return Response.ok()
+                .entity(ClusterMapper.INSTANCE.map(output.cluster()))
+                .build();
     }
 
     @POST
     @Path("_undeploy")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.CLUSTER_DEFINITION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response undeployCluster() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
         var output = undeployClusterUseCase.execute(new UndeployClusterUseCase.Input(clusterId, audit));
 
-        return Response.ok().entity(ClusterMapper.INSTANCE.map(output.cluster())).build();
+        return Response.ok()
+                .entity(ClusterMapper.INSTANCE.map(output.cluster()))
+                .build();
     }
 
     @Path("members")

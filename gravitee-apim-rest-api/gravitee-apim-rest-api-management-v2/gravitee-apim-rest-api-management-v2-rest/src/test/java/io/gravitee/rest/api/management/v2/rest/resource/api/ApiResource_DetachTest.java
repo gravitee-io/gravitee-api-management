@@ -57,22 +57,20 @@ public class ApiResource_DetachTest extends ApiResourceTest {
 
     @Test
     public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DEFINITION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DEFINITION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         var response = rootTarget().request().post(Entity.json(""));
 
         assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 
     @Test
@@ -84,12 +82,11 @@ public class ApiResource_DetachTest extends ApiResourceTest {
 
     @Test
     public void should_detach_api_with_kubernetes_origin() {
-        var kubernetesApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(API)
-            .environmentId(ENVIRONMENT)
-            .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
-            .build();
+        var kubernetesApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API)
+                .environmentId(ENVIRONMENT)
+                .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
+                .build();
 
         apiCrudService.initWith(List.of(kubernetesApi));
 
@@ -112,22 +109,21 @@ public class ApiResource_DetachTest extends ApiResourceTest {
 
     @Test
     public void should_return_400_when_api_has_management_origin() {
-        var managementApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(API)
-            .environmentId(ENVIRONMENT)
-            .originContext(new OriginContext.Management())
-            .build();
+        var managementApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API)
+                .environmentId(ENVIRONMENT)
+                .originContext(new OriginContext.Management())
+                .build();
 
         apiCrudService.initWith(List.of(managementApi));
 
         var response = rootTarget().request().post(Entity.json(""));
 
         assertThat(response)
-            .hasStatus(BAD_REQUEST_400)
-            .asError()
-            .hasHttpStatus(BAD_REQUEST_400)
-            .hasMessage("The API must be managed by an automation tool in order to be detached.");
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("The API must be managed by an automation tool in order to be detached.");
 
         var unchangedApi = apiCrudService.get(API);
 
@@ -136,17 +132,21 @@ public class ApiResource_DetachTest extends ApiResourceTest {
 
     @Test
     public void should_return_400_when_api_has_null_origin() {
-        var nullOriginApi = ApiFixtures.aProxyApiV4().toBuilder().id(API).environmentId(ENVIRONMENT).originContext(null).build();
+        var nullOriginApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API)
+                .environmentId(ENVIRONMENT)
+                .originContext(null)
+                .build();
 
         apiCrudService.initWith(List.of(nullOriginApi));
 
         var response = rootTarget().request().post(Entity.json(""));
 
         assertThat(response)
-            .hasStatus(BAD_REQUEST_400)
-            .asError()
-            .hasHttpStatus(BAD_REQUEST_400)
-            .hasMessage("The API must be managed by an automation tool in order to be detached.");
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("The API must be managed by an automation tool in order to be detached.");
 
         var unchangedApi = apiCrudService.get(API);
 

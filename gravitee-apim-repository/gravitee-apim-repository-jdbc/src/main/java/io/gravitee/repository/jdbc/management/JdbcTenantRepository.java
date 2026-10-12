@@ -46,13 +46,13 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
     @Override
     protected JdbcObjectMapper<Tenant> buildOrm() {
         return JdbcObjectMapper.builder(Tenant.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("key", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, TenantReferenceType.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("key", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, TenantReferenceType.class)
+                .build();
     }
 
     @Override
@@ -61,67 +61,67 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
     }
 
     @Override
-    public Optional<Tenant> findByKeyAndReference(final String tenant, String referenceId, TenantReferenceType referenceType)
-        throws TechnicalException {
+    public Optional<Tenant> findByKeyAndReference(
+            final String tenant, String referenceId, TenantReferenceType referenceType) throws TechnicalException {
         try {
             return jdbcTemplate
-                .query(
-                    getOrm().getSelectAllSql() +
-                        " t where " +
-                        escapeReservedWord("key") +
-                        "= ? and reference_id = ? and reference_type = ? ",
-                    getOrm().getRowMapper(),
-                    tenant,
-                    referenceId,
-                    referenceType.name()
-                )
-                .stream()
-                .findFirst();
+                    .query(
+                            getOrm().getSelectAllSql() + " t where "
+                                    + escapeReservedWord("key")
+                                    + "= ? and reference_id = ? and reference_type = ? ",
+                            getOrm().getRowMapper(),
+                            tenant,
+                            referenceId,
+                            referenceType.name())
+                    .stream()
+                    .findFirst();
         } catch (final Exception ex) {
-            throw new TechnicalException("Failed to find tenant " + tenant + " by key, referenceId and referenceType", ex);
+            throw new TechnicalException(
+                    "Failed to find tenant " + tenant + " by key, referenceId and referenceType", ex);
         }
     }
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, TenantReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         try {
             log.debug("JdbcTenantRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_id = ? and reference_type = ? ",
-                String.class,
-                referenceId,
-                referenceType.name()
-            );
+                    "select id from " + tableName + " where reference_id = ? and reference_type = ? ",
+                    String.class,
+                    referenceId,
+                    referenceType.name());
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
-                    referenceId,
-                    referenceType.name()
-                );
+                        "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                        referenceId,
+                        referenceType.name());
             }
 
-            log.debug("JdbcTenantRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceType, referenceId);
+            log.debug(
+                    "JdbcTenantRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done",
+                    referenceType,
+                    referenceId);
             return rows;
         } catch (final Exception ex) {
-            throw new TechnicalException("Failed to delete tenants for refId: " + referenceId + "/" + referenceType, ex);
+            throw new TechnicalException(
+                    "Failed to delete tenants for refId: " + referenceId + "/" + referenceType, ex);
         }
     }
 
     @Override
-    public Set<Tenant> findByReference(String referenceId, TenantReferenceType referenceType) throws TechnicalException {
+    public Set<Tenant> findByReference(String referenceId, TenantReferenceType referenceType)
+            throws TechnicalException {
         try {
-            return new HashSet<>(
-                jdbcTemplate.query(
+            return new HashSet<>(jdbcTemplate.query(
                     getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? ",
                     getOrm().getRowMapper(),
                     referenceId,
-                    referenceType.name()
-                )
-            );
+                    referenceType.name()));
         } catch (final Exception ex) {
-            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tenants by referenceId and referenceType", ex);
+            throw new TechnicalException(
+                    "Failed to find " + getOrm().getTableName() + " tenants by referenceId and referenceType", ex);
         }
     }
 }

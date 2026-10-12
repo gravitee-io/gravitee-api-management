@@ -102,10 +102,12 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldRenewSubscription() {
-        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(SubscriptionEntity.class))).thenReturn(apiKeyEntity);
+        when(apiKeyService.renew(eq(GraviteeContext.getExecutionContext()), any(SubscriptionEntity.class)))
+                .thenReturn(apiKeyEntity);
         when(keyMapper.convert(any(ApiKeyEntity.class))).thenCallRealMethod();
 
-        final Response response = target(SUBSCRIPTION).path("keys/_renew").request().post(null);
+        final Response response =
+                target(SUBSCRIPTION).path("keys/_renew").request().post(null);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
@@ -123,24 +125,23 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         subscriptionEntity.setReferenceType("API_PRODUCT");
         reset(permissionService);
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.APPLICATION_SUBSCRIPTION,
-                APPLICATION,
-                RolePermissionAction.UPDATE
-            );
+                .when(permissionService)
+                .hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.APPLICATION_SUBSCRIPTION,
+                        APPLICATION,
+                        RolePermissionAction.UPDATE);
 
         Response response = target(SUBSCRIPTION).path("keys/_renew").request().post(null);
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
         verify(apiKeyService).renew(GraviteeContext.getExecutionContext(), subscriptionEntity);
-        verify(permissionService, never()).hasPermission(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(RolePermission.API_SUBSCRIPTION),
-            any(),
-            eq(RolePermissionAction.UPDATE)
-        );
+        verify(permissionService, never())
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        any(),
+                        eq(RolePermissionAction.UPDATE));
     }
 
     @Test
@@ -150,32 +151,30 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         subscriptionEntity.setReferenceType("API_PRODUCT");
         reset(permissionService);
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.APPLICATION_SUBSCRIPTION,
-                APPLICATION,
-                RolePermissionAction.UPDATE
-            );
+                .when(permissionService)
+                .hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.APPLICATION_SUBSCRIPTION,
+                        APPLICATION,
+                        RolePermissionAction.UPDATE);
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_SUBSCRIPTION,
-                API_PRODUCT,
-                RolePermissionAction.UPDATE
-            );
+                .when(permissionService)
+                .hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_SUBSCRIPTION,
+                        API_PRODUCT,
+                        RolePermissionAction.UPDATE);
 
         Response response = target(SUBSCRIPTION).path("keys/_renew").request().post(null);
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         verify(apiKeyService, never()).renew(any(), any(SubscriptionEntity.class));
-        verify(permissionService, never()).hasPermission(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(RolePermission.API_SUBSCRIPTION),
-            any(),
-            eq(RolePermissionAction.UPDATE)
-        );
+        verify(permissionService, never())
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        any(),
+                        eq(RolePermissionAction.UPDATE));
     }
 
     @Test
@@ -197,100 +196,100 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         reset(permissionService);
 
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE));
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.UPDATE)
-            );
-        assertEquals(HttpStatusCode.CREATED_201, target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.UPDATE));
+        assertEquals(
+                HttpStatusCode.CREATED_201,
+                target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
 
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE));
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.UPDATE)
-            );
-        assertEquals(HttpStatusCode.CREATED_201, target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.UPDATE));
+        assertEquals(
+                HttpStatusCode.CREATED_201,
+                target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
 
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE));
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.UPDATE)
-            );
-        assertEquals(HttpStatusCode.CREATED_201, target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.UPDATE));
+        assertEquals(
+                HttpStatusCode.CREATED_201,
+                target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
 
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE));
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.UPDATE)
-            );
-        assertEquals(HttpStatusCode.FORBIDDEN_403, target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.UPDATE));
+        assertEquals(
+                HttpStatusCode.FORBIDDEN_403,
+                target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
     }
 
     @Test
     public void should_revoke_key() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(
-                fixtures.core.model.SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id(SUBSCRIPTION)
-                    .apiId(API)
-                    .referenceId(API)
-                    .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API)
-                    .applicationId(APPLICATION)
-                    .build()
-            )
-        );
-        applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
-        );
-        apiKeyCrudServiceInMemory.initWith(
-            List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
-        );
+                List.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder()
+                        .id(SUBSCRIPTION)
+                        .apiId(API)
+                        .referenceId(API)
+                        .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API)
+                        .applicationId(APPLICATION)
+                        .build()));
+        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder()
+                .id(APPLICATION)
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .build()));
+        apiKeyCrudServiceInMemory.initWith(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .key(KEY)
+                .applicationId(APPLICATION)
+                .subscriptions(List.of(SUBSCRIPTION))
+                .build()));
 
-        final Response response = target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
+        final Response response =
+                target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
@@ -300,24 +299,25 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         reset(permissionService);
 
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE));
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.UPDATE)
-            );
-        assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus()).isEqualTo(
-            HttpStatusCode.FORBIDDEN_403
-        );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.UPDATE));
+        assertThat(target(SUBSCRIPTION)
+                        .path("keys/" + KEY + "/_revoke")
+                        .request()
+                        .post(null)
+                        .getStatus())
+                .isEqualTo(HttpStatusCode.FORBIDDEN_403);
     }
 
     @Test
@@ -325,44 +325,44 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         reset(permissionService);
 
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE));
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.UPDATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.UPDATE));
 
         subscriptionCrudServiceInMemory.initWith(
-            List.of(
-                fixtures.core.model.SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id(SUBSCRIPTION)
-                    .apiId(API)
-                    .referenceId(API)
-                    .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API)
-                    .applicationId(APPLICATION)
-                    .build()
-            )
-        );
-        applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
-        );
-        apiKeyCrudServiceInMemory.initWith(
-            List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
-        );
+                List.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder()
+                        .id(SUBSCRIPTION)
+                        .apiId(API)
+                        .referenceId(API)
+                        .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API)
+                        .applicationId(APPLICATION)
+                        .build()));
+        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder()
+                .id(APPLICATION)
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .build()));
+        apiKeyCrudServiceInMemory.initWith(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .key(KEY)
+                .applicationId(APPLICATION)
+                .subscriptions(List.of(SUBSCRIPTION))
+                .build()));
 
-        assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus()).isEqualTo(
-            HttpStatusCode.NO_CONTENT_204
-        );
+        assertThat(target(SUBSCRIPTION)
+                        .path("keys/" + KEY + "/_revoke")
+                        .request()
+                        .post(null)
+                        .getStatus())
+                .isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 
     @Test
@@ -370,43 +370,43 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         reset(permissionService);
 
         doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_SUBSCRIPTION),
+                        eq(API),
+                        eq(RolePermissionAction.UPDATE));
         doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.UPDATE)
-            );
+                .when(permissionService)
+                .hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                        eq(APPLICATION),
+                        eq(RolePermissionAction.UPDATE));
 
         subscriptionCrudServiceInMemory.initWith(
-            List.of(
-                fixtures.core.model.SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id(SUBSCRIPTION)
-                    .apiId(API)
-                    .referenceId(API)
-                    .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API)
-                    .applicationId(APPLICATION)
-                    .build()
-            )
-        );
-        applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
-        );
-        apiKeyCrudServiceInMemory.initWith(
-            List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
-        );
+                List.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder()
+                        .id(SUBSCRIPTION)
+                        .apiId(API)
+                        .referenceId(API)
+                        .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API)
+                        .applicationId(APPLICATION)
+                        .build()));
+        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder()
+                .id(APPLICATION)
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .build()));
+        apiKeyCrudServiceInMemory.initWith(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .key(KEY)
+                .applicationId(APPLICATION)
+                .subscriptions(List.of(SUBSCRIPTION))
+                .build()));
 
-        assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus()).isEqualTo(
-            HttpStatusCode.NO_CONTENT_204
-        );
+        assertThat(target(SUBSCRIPTION)
+                        .path("keys/" + KEY + "/_revoke")
+                        .request()
+                        .post(null)
+                        .getStatus())
+                .isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 }

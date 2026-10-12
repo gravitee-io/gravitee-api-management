@@ -48,7 +48,10 @@ class GetIngestedApisUseCaseTest {
         var output = usecase.execute(input).ingestedApis();
 
         assertThat(output).isNotNull();
-        assertThat(output.getContent()).hasSize(1).extracting(Api::getId, Api::getName).containsExactly(Tuple.tuple("my-api", "My Api"));
+        assertThat(output.getContent())
+                .hasSize(1)
+                .extracting(Api::getId, Api::getName)
+                .containsExactly(Tuple.tuple("my-api", "My Api"));
     }
 
     @Test
@@ -62,7 +65,7 @@ class GetIngestedApisUseCaseTest {
 
         AssertionsForClassTypes.assertThat(ingestedApis).isNotNull();
         AssertionsForClassTypes.assertThat(ingestedApis)
-            .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
-            .containsExactly(apis, 1, 1L, 1L);
+                .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
+                .containsExactly(apis, 1, 1L, 1L);
     }
 }

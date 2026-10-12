@@ -20,7 +20,6 @@ import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.integration.api.model.PlanSecurityType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
 import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
@@ -36,8 +35,8 @@ public interface IntegrationAdapter {
 
     default Integration toEntity(io.gravitee.repository.management.model.Integration integration) {
         return integration.isA2aIntegration()
-            ? SPECIFIC_A2A_INTEGRATION_ADAPTER.toEntity(integration)
-            : SPECIFIC_API_INTEGRATION_ADAPTER.toEntity(integration);
+                ? SPECIFIC_A2A_INTEGRATION_ADAPTER.toEntity(integration)
+                : SPECIFIC_API_INTEGRATION_ADAPTER.toEntity(integration);
     }
 
     default io.gravitee.repository.management.model.Integration toRepository(Integration integration) {
@@ -59,16 +58,18 @@ public interface IntegrationAdapter {
 
     IntegrationApi.Page map(io.gravitee.integration.api.model.Page source);
 
-    @SuppressWarnings("unchecked") //the type is safe, but it’s mandatory due to type erasure
+    @SuppressWarnings("unchecked") // the type is safe, but it’s mandatory due to type erasure
     default <T extends Integration> SpecificAdapter<T> specific(T integration) {
-        return (SpecificAdapter<T>) switch (integration) {
-            case Integration.ApiIntegration ignored -> SPECIFIC_API_INTEGRATION_ADAPTER;
-            case Integration.A2aIntegration ignored -> SPECIFIC_A2A_INTEGRATION_ADAPTER;
-        };
+        return (SpecificAdapter<T>)
+                switch (integration) {
+                    case Integration.ApiIntegration ignored -> SPECIFIC_API_INTEGRATION_ADAPTER;
+                    case Integration.A2aIntegration ignored -> SPECIFIC_A2A_INTEGRATION_ADAPTER;
+                };
     }
 
     interface SpecificAdapter<T extends Integration> {
         T toEntity(io.gravitee.repository.management.model.Integration integration);
+
         io.gravitee.repository.management.model.Integration toRepository(T integration);
     }
 

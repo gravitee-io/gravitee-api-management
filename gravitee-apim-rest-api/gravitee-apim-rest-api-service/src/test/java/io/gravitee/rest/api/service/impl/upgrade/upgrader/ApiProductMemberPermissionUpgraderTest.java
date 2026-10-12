@@ -69,13 +69,13 @@ public class ApiProductMemberPermissionUpgraderTest {
     OrganizationRepository organizationRepository;
 
     private void verifyPrimaryOwnerSyncedForOrg(String organizationId) {
-        verify(roleService).createOrUpdateSystemRole(
-            any(ExecutionContext.class),
-            eq(PRIMARY_OWNER),
-            eq(API_PRODUCT),
-            any(Permission[].class),
-            eq(organizationId)
-        );
+        verify(roleService)
+                .createOrUpdateSystemRole(
+                        any(ExecutionContext.class),
+                        eq(PRIMARY_OWNER),
+                        eq(API_PRODUCT),
+                        any(Permission[].class),
+                        eq(organizationId));
     }
 
     @Test
@@ -87,29 +87,22 @@ public class ApiProductMemberPermissionUpgraderTest {
     }
 
     @Test
-    public void should_add_member_permission_to_owner_and_user_when_missing() throws TechnicalException, UpgraderException {
+    public void should_add_member_permission_to_owner_and_user_when_missing()
+            throws TechnicalException, UpgraderException {
         String organizationId = GraviteeContext.getDefaultOrganization();
         Organization organization = mock(Organization.class);
         when(organization.getId()).thenReturn(organizationId);
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
 
         RoleEntity ownerWithoutMember = roleWithoutMember(
-            "owner-id",
-            ROLE_API_PRODUCT_OWNER.getName(),
-            ROLE_API_PRODUCT_OWNER.getPermissions()
-        );
-        RoleEntity userWithoutMember = roleWithoutMember(
-            "user-id",
-            ROLE_API_PRODUCT_USER.getName(),
-            ROLE_API_PRODUCT_USER.getPermissions()
-        );
+                "owner-id", ROLE_API_PRODUCT_OWNER.getName(), ROLE_API_PRODUCT_OWNER.getPermissions());
+        RoleEntity userWithoutMember =
+                roleWithoutMember("user-id", ROLE_API_PRODUCT_USER.getName(), ROLE_API_PRODUCT_USER.getPermissions());
 
-        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), organizationId)).thenReturn(
-            Optional.of(ownerWithoutMember)
-        );
-        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), organizationId)).thenReturn(
-            Optional.of(userWithoutMember)
-        );
+        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), organizationId))
+                .thenReturn(Optional.of(ownerWithoutMember));
+        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), organizationId))
+                .thenReturn(Optional.of(userWithoutMember));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -136,7 +129,8 @@ public class ApiProductMemberPermissionUpgraderTest {
     }
 
     @Test
-    public void should_not_call_update_when_member_already_present_on_both_roles() throws TechnicalException, UpgraderException {
+    public void should_not_call_update_when_member_already_present_on_both_roles()
+            throws TechnicalException, UpgraderException {
         String organizationId = GraviteeContext.getDefaultOrganization();
         Organization organization = mock(Organization.class);
         when(organization.getId()).thenReturn(organizationId);
@@ -152,8 +146,10 @@ public class ApiProductMemberPermissionUpgraderTest {
         user.setName(ROLE_API_PRODUCT_USER.getName());
         user.setPermissions(new HashMap<>(ROLE_API_PRODUCT_USER.getPermissions()));
 
-        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), organizationId)).thenReturn(Optional.of(owner));
-        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), organizationId)).thenReturn(Optional.of(user));
+        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), organizationId))
+                .thenReturn(Optional.of(owner));
+        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), organizationId))
+                .thenReturn(Optional.of(user));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -169,15 +165,12 @@ public class ApiProductMemberPermissionUpgraderTest {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
 
         RoleEntity ownerWithoutMember = roleWithoutMember(
-            "owner-id",
-            ROLE_API_PRODUCT_OWNER.getName(),
-            ROLE_API_PRODUCT_OWNER.getPermissions()
-        );
+                "owner-id", ROLE_API_PRODUCT_OWNER.getName(), ROLE_API_PRODUCT_OWNER.getPermissions());
 
-        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), organizationId)).thenReturn(
-            Optional.of(ownerWithoutMember)
-        );
-        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), organizationId)).thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), organizationId))
+                .thenReturn(Optional.of(ownerWithoutMember));
+        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), organizationId))
+                .thenReturn(Optional.empty());
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -202,17 +195,19 @@ public class ApiProductMemberPermissionUpgraderTest {
         owner.setName(ROLE_API_PRODUCT_OWNER.getName());
         owner.setPermissions(null);
 
-        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), organizationId)).thenReturn(Optional.of(owner));
-        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), organizationId)).thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), organizationId))
+                .thenReturn(Optional.of(owner));
+        when(roleService.findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), organizationId))
+                .thenReturn(Optional.empty());
 
         assertThat(upgrader.upgrade()).isTrue();
 
         ArgumentCaptor<UpdateRoleEntity> updateCaptor = ArgumentCaptor.forClass(UpdateRoleEntity.class);
         verify(roleService).update(any(ExecutionContext.class), updateCaptor.capture());
-        assertThat(updateCaptor.getValue().getPermissions()).containsEntry(
-            ApiProductPermission.MEMBER.getName(),
-            ROLE_API_PRODUCT_OWNER.getPermissions().get(ApiProductPermission.MEMBER.getName())
-        );
+        assertThat(updateCaptor.getValue().getPermissions())
+                .containsEntry(
+                        ApiProductPermission.MEMBER.getName(),
+                        ROLE_API_PRODUCT_OWNER.getPermissions().get(ApiProductPermission.MEMBER.getName()));
 
         verifyPrimaryOwnerSyncedForOrg(organizationId);
     }
@@ -227,29 +222,25 @@ public class ApiProductMemberPermissionUpgraderTest {
 
         for (String orgId : List.of("org-a", "org-b")) {
             RoleEntity owner = roleWithoutMember(
-                "owner-" + orgId,
-                ROLE_API_PRODUCT_OWNER.getName(),
-                ROLE_API_PRODUCT_OWNER.getPermissions()
-            );
-            RoleEntity user = roleWithoutMember("user-" + orgId, ROLE_API_PRODUCT_USER.getName(), ROLE_API_PRODUCT_USER.getPermissions());
-            when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_OWNER.getName()), eq(orgId))).thenReturn(
-                Optional.of(owner)
-            );
-            when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_USER.getName()), eq(orgId))).thenReturn(
-                Optional.of(user)
-            );
+                    "owner-" + orgId, ROLE_API_PRODUCT_OWNER.getName(), ROLE_API_PRODUCT_OWNER.getPermissions());
+            RoleEntity user = roleWithoutMember(
+                    "user-" + orgId, ROLE_API_PRODUCT_USER.getName(), ROLE_API_PRODUCT_USER.getPermissions());
+            when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_OWNER.getName()), eq(orgId)))
+                    .thenReturn(Optional.of(owner));
+            when(roleService.findByScopeAndName(eq(API_PRODUCT), eq(ROLE_API_PRODUCT_USER.getName()), eq(orgId)))
+                    .thenReturn(Optional.of(user));
         }
 
         assertThat(upgrader.upgrade()).isTrue();
 
         verify(roleService, times(4)).update(any(ExecutionContext.class), any(UpdateRoleEntity.class));
-        verify(roleService, times(2)).createOrUpdateSystemRole(
-            any(ExecutionContext.class),
-            eq(PRIMARY_OWNER),
-            eq(API_PRODUCT),
-            any(Permission[].class),
-            any(String.class)
-        );
+        verify(roleService, times(2))
+                .createOrUpdateSystemRole(
+                        any(ExecutionContext.class),
+                        eq(PRIMARY_OWNER),
+                        eq(API_PRODUCT),
+                        any(Permission[].class),
+                        any(String.class));
     }
 
     @Test

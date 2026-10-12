@@ -36,16 +36,16 @@ public abstract class AbstractResource {
     private PermissionService permissionService;
 
     protected boolean hasPermission(
-        ExecutionContext executionContext,
-        RolePermission permission,
-        String referenceId,
-        RolePermissionAction... acls
-    ) {
+            ExecutionContext executionContext,
+            RolePermission permission,
+            String referenceId,
+            RolePermissionAction... acls) {
         return permissionService.hasPermission(executionContext, permission, referenceId, acls);
     }
 
     protected UserDetails getAuthenticatedUserDetails() {
-        return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return (UserDetails)
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     protected AuditInfo getAuditInfo() {
@@ -54,15 +54,13 @@ public abstract class AbstractResource {
 
     protected static AuditInfo buildAuditInfo(ExecutionContext executionContext, UserDetails userDetails) {
         return AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
     }
 }

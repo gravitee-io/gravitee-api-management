@@ -28,9 +28,9 @@ public class FromUserCollationSimpleIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("tickets")
-            .name("fu1")
-            .key("fromUser", ascending())
-            .build();
+                .collection("tickets")
+                .name("fu1")
+                .key("fromUser", ascending())
+                .build();
     }
 }

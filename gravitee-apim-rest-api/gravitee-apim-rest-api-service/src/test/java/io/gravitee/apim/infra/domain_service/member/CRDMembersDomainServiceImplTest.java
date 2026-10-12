@@ -53,10 +53,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CRDMembersDomainServiceImplTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .actor(AuditActor.builder().userId("test").userSource("test").userSourceId("test").build())
-        .organizationId("test-org")
-        .environmentId("test-env")
-        .build();
+            .actor(AuditActor.builder()
+                    .userId("test")
+                    .userSource("test")
+                    .userSourceId("test")
+                    .build())
+            .organizationId("test-org")
+            .environmentId("test-env")
+            .build();
 
     @Mock
     MembershipService membershipService;
@@ -78,17 +82,22 @@ class CRDMembersDomainServiceImplTest {
 
         @BeforeEach
         void setUp() {
-            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(null);
+            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.API))
+                    .thenReturn(null);
         }
 
         @Test
         void should_throw_error_when_no_default_role_and_member_with_no_role() {
             Assertions.assertThrows(ValidationDomainException.class, () -> {
                 cut.updateApiMembers(
-                    AUDIT_INFO,
-                    API_ID,
-                    Set.of(MemberCRD.builder().role(null).id("id-2").sourceId("source-id-2").source("test").build())
-                );
+                        AUDIT_INFO,
+                        API_ID,
+                        Set.of(MemberCRD.builder()
+                                .role(null)
+                                .id("id-2")
+                                .sourceId("source-id-2")
+                                .source("test")
+                                .build()));
             });
         }
 
@@ -98,10 +107,14 @@ class CRDMembersDomainServiceImplTest {
 
             Assertions.assertThrows(ValidationDomainException.class, () -> {
                 cut.updateApiMembers(
-                    AUDIT_INFO,
-                    API_ID,
-                    Set.of(MemberCRD.builder().role("role-2").id("id-2").sourceId("source-id-2").source("test").build())
-                );
+                        AUDIT_INFO,
+                        API_ID,
+                        Set.of(MemberCRD.builder()
+                                .role("role-2")
+                                .id("id-2")
+                                .sourceId("source-id-2")
+                                .source("test")
+                                .build()));
             });
         }
     }
@@ -114,277 +127,299 @@ class CRDMembersDomainServiceImplTest {
         @BeforeEach
         void setUp() {
             reset(membershipService, roleService);
-            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(
-                List.of(RoleEntity.builder().id("default-api-role").build())
-            );
+            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.API))
+                    .thenReturn(
+                            List.of(RoleEntity.builder().id("default-api-role").build()));
         }
 
         @Test
         void should_set_members() {
-            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId())).thenReturn(
-                Optional.of(RoleEntity.builder().id("role-1").build())
-            );
+            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
-            when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
+            when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.empty());
 
-            when(roleService.findById("role-2")).thenReturn(RoleEntity.builder().id("role-2").build());
+            when(roleService.findById("role-2"))
+                    .thenReturn(RoleEntity.builder().id("role-2").build());
 
-            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1")).thenReturn(
-                Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.API).build())
-            );
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-1")
+                            .scope(RoleScope.API)
+                            .build()));
 
-            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2")).thenReturn(
-                Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.API).build())
-            );
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-2")
+                            .scope(RoleScope.API)
+                            .build()));
 
             cut.updateApiMembers(
-                AUDIT_INFO,
-                API_ID,
-                Set.of(
-                    MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
-                    MemberCRD.builder().role("role-2").id("id-2").sourceId("source-id-2").source("test").build()
-                )
-            );
+                    AUDIT_INFO,
+                    API_ID,
+                    Set.of(
+                            MemberCRD.builder()
+                                    .role("role-1")
+                                    .id("id-1")
+                                    .sourceId("source-id-1")
+                                    .source("test")
+                                    .build(),
+                            MemberCRD.builder()
+                                    .role("role-2")
+                                    .id("id-2")
+                                    .sourceId("source-id-2")
+                                    .source("test")
+                                    .build()));
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1", "role-1");
 
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            API_ID,
+                            MembershipMemberType.USER,
+                            "id-1",
+                            "role-1");
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-2",
-                "role-2"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2", "role-2");
 
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-2",
-                "role-2"
-            );
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            API_ID,
+                            MembershipMemberType.USER,
+                            "id-2",
+                            "role-2");
 
-            verify(membershipService).transferApiOwnership(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                API_ID,
-                new MembershipService.MembershipMember("test", null, MembershipMemberType.USER),
-                List.of()
-            );
+            verify(membershipService)
+                    .transferApiOwnership(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            API_ID,
+                            new MembershipService.MembershipMember("test", null, MembershipMemberType.USER),
+                            List.of());
         }
 
         @Test
         void should_use_default_role_when_member_with_no_role() {
-            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId())).thenReturn(
-                Optional.of(RoleEntity.builder().id("role-1").build())
-            );
+            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
-            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1")).thenReturn(
-                Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.API).build())
-            );
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-1")
+                            .scope(RoleScope.API)
+                            .build()));
 
-            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2")).thenReturn(
-                Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.API).build())
-            );
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-2")
+                            .scope(RoleScope.API)
+                            .build()));
 
             cut.updateApiMembers(
-                AUDIT_INFO,
-                API_ID,
-                Set.of(
-                    MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
-                    MemberCRD.builder().role(null).id("id-2").sourceId("source-id-2").source("test").build()
-                )
-            );
+                    AUDIT_INFO,
+                    API_ID,
+                    Set.of(
+                            MemberCRD.builder()
+                                    .role("role-1")
+                                    .id("id-1")
+                                    .sourceId("source-id-1")
+                                    .source("test")
+                                    .build(),
+                            MemberCRD.builder()
+                                    .role(null)
+                                    .id("id-2")
+                                    .sourceId("source-id-2")
+                                    .source("test")
+                                    .build()));
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1", "role-1");
 
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            API_ID,
+                            MembershipMemberType.USER,
+                            "id-1",
+                            "role-1");
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-2",
-                "role-2"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2", "role-2");
 
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-2",
-                "default-api-role"
-            );
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            API_ID,
+                            MembershipMemberType.USER,
+                            "id-2",
+                            "default-api-role");
         }
 
         @Test
         void should_use_default_role_when_member_with_unknown_role() {
-            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId())).thenReturn(
-                Optional.of(RoleEntity.builder().id("role-1").build())
-            );
+            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
-            when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
+            when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.empty());
 
             when(roleService.findById("role-2")).thenThrow(new RoleNotFoundException("role-2"));
 
-            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1")).thenReturn(
-                Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.API).build())
-            );
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-1")
+                            .scope(RoleScope.API)
+                            .build()));
 
-            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2")).thenReturn(
-                Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.API).build())
-            );
+            when(membershipService.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-2"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-2")
+                            .scope(RoleScope.API)
+                            .build()));
 
             cut.updateApiMembers(
-                AUDIT_INFO,
-                API_ID,
-                Set.of(
-                    MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
-                    MemberCRD.builder().role("role-2").id("id-2").sourceId("source-id-2").source("test").build()
-                )
-            );
+                    AUDIT_INFO,
+                    API_ID,
+                    Set.of(
+                            MemberCRD.builder()
+                                    .role("role-1")
+                                    .id("id-1")
+                                    .sourceId("source-id-1")
+                                    .source("test")
+                                    .build(),
+                            MemberCRD.builder()
+                                    .role("role-2")
+                                    .id("id-2")
+                                    .sourceId("source-id-2")
+                                    .source("test")
+                                    .build()));
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1", "role-1");
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            API_ID,
+                            MembershipMemberType.USER,
+                            "id-1",
+                            "role-1");
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, "id-1", "role-1");
 
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                "id-2",
-                "default-api-role"
-            );
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            API_ID,
+                            MembershipMemberType.USER,
+                            "id-2",
+                            "default-api-role");
         }
 
         @Test
         void should_delete_orphans() {
-            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId())).thenReturn(
-                Optional.of(RoleEntity.builder().id("role-1").build())
-            );
+            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
-            when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
+            when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.empty());
 
             when(roleService.findById("role-2")).thenThrow(new RoleNotFoundException("role-2"));
 
-            when(
-                membershipService.getMembersByReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID
-                )
-            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("role-3").build())).id("id-3").build()));
+            when(membershipService.getMembersByReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            API_ID))
+                    .thenReturn(Set.of(MemberEntity.builder()
+                            .roles(List.of(RoleEntity.builder().id("role-3").build()))
+                            .id("id-3")
+                            .build()));
 
-            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(
-                RoleEntity.builder().id("po-role-id").build()
-            );
+            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.API))
+                    .thenReturn(RoleEntity.builder().id("po-role-id").build());
 
             cut.updateApiMembers(
-                AUDIT_INFO,
-                API_ID,
-                Set.of(
-                    MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
-                    MemberCRD.builder().role("role-2").id("id-2").sourceId("source-id-2").source("test").build()
-                )
-            );
+                    AUDIT_INFO,
+                    API_ID,
+                    Set.of(
+                            MemberCRD.builder()
+                                    .role("role-1")
+                                    .id("id-1")
+                                    .sourceId("source-id-1")
+                                    .source("test")
+                                    .build(),
+                            MemberCRD.builder()
+                                    .role("role-2")
+                                    .id("id-2")
+                                    .sourceId("source-id-2")
+                                    .source("test")
+                                    .build()));
 
-            verify(membershipService, times(1)).deleteReferenceMember(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.API,
-                "api-id",
-                MembershipMemberType.USER,
-                "id-3"
-            );
+            verify(membershipService, times(1))
+                    .deleteReferenceMember(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            "api-id",
+                            MembershipMemberType.USER,
+                            "id-3");
         }
 
         @Test
         void should_not_delete_po_role() {
-            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId())).thenReturn(
-                Optional.of(RoleEntity.builder().id("role-1").build())
-            );
+            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
-            when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
+            when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.empty());
 
             when(roleService.findById("role-2")).thenThrow(new RoleNotFoundException("role-2"));
 
-            when(
-                membershipService.getMembersByReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID
-                )
-            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("po-role-id").build())).id("id-3").build()));
+            when(membershipService.getMembersByReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            API_ID))
+                    .thenReturn(Set.of(MemberEntity.builder()
+                            .roles(List.of(RoleEntity.builder().id("po-role-id").build()))
+                            .id("id-3")
+                            .build()));
 
-            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(
-                RoleEntity.builder().id("po-role-id").build()
-            );
+            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.API))
+                    .thenReturn(RoleEntity.builder().id("po-role-id").build());
 
             cut.updateApiMembers(
-                AUDIT_INFO,
-                API_ID,
-                Set.of(
-                    MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
-                    MemberCRD.builder().role("role-2").id("id-2").sourceId("source-id-2").source("test").build()
-                )
-            );
+                    AUDIT_INFO,
+                    API_ID,
+                    Set.of(
+                            MemberCRD.builder()
+                                    .role("role-1")
+                                    .id("id-1")
+                                    .sourceId("source-id-1")
+                                    .source("test")
+                                    .build(),
+                            MemberCRD.builder()
+                                    .role("role-2")
+                                    .id("id-2")
+                                    .sourceId("source-id-2")
+                                    .source("test")
+                                    .build()));
 
-            verify(membershipService, never()).deleteReferenceMember(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.API,
-                "api-id",
-                MembershipMemberType.USER,
-                "id-3"
-            );
+            verify(membershipService, never())
+                    .deleteReferenceMember(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            "api-id",
+                            MembershipMemberType.USER,
+                            "id-3");
         }
     }
 
@@ -395,270 +430,328 @@ class CRDMembersDomainServiceImplTest {
 
         @BeforeEach
         void setUp() {
-            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
-                List.of(RoleEntity.builder().id("default-app-role").build())
-            );
+            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.APPLICATION))
+                    .thenReturn(
+                            List.of(RoleEntity.builder().id("default-app-role").build()));
         }
 
         @Test
         void should_set_members() {
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId())).thenReturn(
-                Optional.of(RoleEntity.builder().id("role-1").build())
-            );
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.empty());
 
-            when(roleService.findById("role-2")).thenReturn(RoleEntity.builder().id("role-2").build());
+            when(roleService.findById("role-2"))
+                    .thenReturn(RoleEntity.builder().id("role-2").build());
 
-            when(
-                membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1")
-            ).thenReturn(Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.APPLICATION).build()));
+            when(membershipService.getRoles(
+                            MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-1")
+                            .scope(RoleScope.APPLICATION)
+                            .build()));
 
-            when(
-                membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2")
-            ).thenReturn(Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.APPLICATION).build()));
+            when(membershipService.getRoles(
+                            MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-2")
+                            .scope(RoleScope.APPLICATION)
+                            .build()));
 
             cut.updateApplicationMembers(
-                AUDIT_INFO,
-                APPLICATION_ID,
-                Set.of(
-                    MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
-                    MemberCRD.builder().role("role-2").id("id-2").sourceId("source-id-2").source("test").build()
-                )
-            );
+                    AUDIT_INFO,
+                    APPLICATION_ID,
+                    Set.of(
+                            MemberCRD.builder()
+                                    .role("role-1")
+                                    .id("id-1")
+                                    .sourceId("source-id-1")
+                                    .source("test")
+                                    .build(),
+                            MemberCRD.builder()
+                                    .role("role-2")
+                                    .id("id-2")
+                                    .sourceId("source-id-2")
+                                    .source("test")
+                                    .build()));
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-1",
+                            "role-1");
 
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-1",
+                            "role-1");
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-2",
-                "role-2"
-            );
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-2",
-                "role-2"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-2",
+                            "role-2");
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-2",
+                            "role-2");
         }
 
         @Test
         void should_use_default_role_when_member_with_no_role() {
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId())).thenReturn(
-                Optional.of(RoleEntity.builder().id("role-1").build())
-            );
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
-            when(
-                membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1")
-            ).thenReturn(Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.APPLICATION).build()));
+            when(membershipService.getRoles(
+                            MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-1")
+                            .scope(RoleScope.APPLICATION)
+                            .build()));
 
-            when(
-                membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2")
-            ).thenReturn(Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.APPLICATION).build()));
+            when(membershipService.getRoles(
+                            MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-2")
+                            .scope(RoleScope.APPLICATION)
+                            .build()));
 
             cut.updateApplicationMembers(
-                AUDIT_INFO,
-                APPLICATION_ID,
-                Set.of(
-                    MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
-                    MemberCRD.builder().role(null).id("id-2").sourceId("source-id-2").source("test").build()
-                )
-            );
+                    AUDIT_INFO,
+                    APPLICATION_ID,
+                    Set.of(
+                            MemberCRD.builder()
+                                    .role("role-1")
+                                    .id("id-1")
+                                    .sourceId("source-id-1")
+                                    .source("test")
+                                    .build(),
+                            MemberCRD.builder()
+                                    .role(null)
+                                    .id("id-2")
+                                    .sourceId("source-id-2")
+                                    .source("test")
+                                    .build()));
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-1",
+                            "role-1");
 
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-1",
+                            "role-1");
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-2",
-                "role-2"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-2",
+                            "role-2");
 
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-2",
-                "default-app-role"
-            );
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-2",
+                            "default-app-role");
         }
 
         @Test
         void should_use_default_role_when_member_with_unknown_role() {
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId())).thenReturn(
-                Optional.of(RoleEntity.builder().id("role-1").build())
-            );
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.empty());
 
             when(roleService.findById("role-2")).thenThrow(new RoleNotFoundException("role-2"));
 
-            when(
-                membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1")
-            ).thenReturn(Set.of(RoleEntity.builder().id("role-1").scope(RoleScope.APPLICATION).build()));
+            when(membershipService.getRoles(
+                            MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-1"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-1")
+                            .scope(RoleScope.APPLICATION)
+                            .build()));
 
-            when(
-                membershipService.getRoles(MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2")
-            ).thenReturn(Set.of(RoleEntity.builder().id("role-2").scope(RoleScope.APPLICATION).build()));
+            when(membershipService.getRoles(
+                            MembershipReferenceType.APPLICATION, APPLICATION_ID, MembershipMemberType.USER, "id-2"))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("role-2")
+                            .scope(RoleScope.APPLICATION)
+                            .build()));
 
             cut.updateApplicationMembers(
-                AUDIT_INFO,
-                APPLICATION_ID,
-                Set.of(
-                    MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
-                    MemberCRD.builder().role("role-2").id("id-2").sourceId("source-id-2").source("test").build()
-                )
-            );
+                    AUDIT_INFO,
+                    APPLICATION_ID,
+                    Set.of(
+                            MemberCRD.builder()
+                                    .role("role-1")
+                                    .id("id-1")
+                                    .sourceId("source-id-1")
+                                    .source("test")
+                                    .build(),
+                            MemberCRD.builder()
+                                    .role("role-2")
+                                    .id("id-2")
+                                    .sourceId("source-id-2")
+                                    .source("test")
+                                    .build()));
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-1",
+                            "role-1");
 
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-1",
+                            "role-1");
 
-            verify(membershipService, times(1)).removeRole(
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-1",
-                "role-1"
-            );
+            verify(membershipService, times(1))
+                    .removeRole(
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-1",
+                            "role-1");
 
-            verify(membershipService, times(1)).addRoleToMemberOnReference(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-2",
-                "default-app-role"
-            );
+            verify(membershipService, times(1))
+                    .addRoleToMemberOnReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-2",
+                            "default-app-role");
         }
 
         @Test
         void should_delete_orphans() {
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId())).thenReturn(
-                Optional.of(RoleEntity.builder().id("role-1").build())
-            );
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.empty());
 
             when(roleService.findById("role-2")).thenThrow(new RoleNotFoundException("role-2"));
 
-            when(
-                membershipService.getMembersByReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID
-                )
-            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("role-3").build())).id("id-3").build()));
+            when(membershipService.getMembersByReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID))
+                    .thenReturn(Set.of(MemberEntity.builder()
+                            .roles(List.of(RoleEntity.builder().id("role-3").build()))
+                            .id("id-3")
+                            .build()));
 
-            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
-                RoleEntity.builder().id("po-role-id").build()
-            );
+            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION))
+                    .thenReturn(RoleEntity.builder().id("po-role-id").build());
 
             cut.updateApplicationMembers(
-                AUDIT_INFO,
-                APPLICATION_ID,
-                Set.of(
-                    MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
-                    MemberCRD.builder().role("role-2").id("id-2").sourceId("source-id-2").source("test").build()
-                )
-            );
+                    AUDIT_INFO,
+                    APPLICATION_ID,
+                    Set.of(
+                            MemberCRD.builder()
+                                    .role("role-1")
+                                    .id("id-1")
+                                    .sourceId("source-id-1")
+                                    .source("test")
+                                    .build(),
+                            MemberCRD.builder()
+                                    .role("role-2")
+                                    .id("id-2")
+                                    .sourceId("source-id-2")
+                                    .source("test")
+                                    .build()));
 
-            verify(membershipService, times(1)).deleteReferenceMember(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-3"
-            );
+            verify(membershipService, times(1))
+                    .deleteReferenceMember(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-3");
         }
 
         @Test
         void should_not_delete_po_role() {
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId())).thenReturn(
-                Optional.of(RoleEntity.builder().id("role-1").build())
-            );
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
 
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId()))
+                    .thenReturn(Optional.empty());
 
             when(roleService.findById("role-2")).thenThrow(new RoleNotFoundException("role-2"));
 
-            when(
-                membershipService.getMembersByReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID
-                )
-            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("po-role-id").build())).id("id-3").build()));
+            when(membershipService.getMembersByReference(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID))
+                    .thenReturn(Set.of(MemberEntity.builder()
+                            .roles(List.of(RoleEntity.builder().id("po-role-id").build()))
+                            .id("id-3")
+                            .build()));
 
-            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
-                RoleEntity.builder().id("po-role-id").build()
-            );
+            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION))
+                    .thenReturn(RoleEntity.builder().id("po-role-id").build());
 
             cut.updateApplicationMembers(
-                AUDIT_INFO,
-                APPLICATION_ID,
-                Set.of(
-                    MemberCRD.builder().role("role-1").id("id-1").sourceId("source-id-1").source("test").build(),
-                    MemberCRD.builder().role("role-2").id("id-2").sourceId("source-id-2").source("test").build()
-                )
-            );
+                    AUDIT_INFO,
+                    APPLICATION_ID,
+                    Set.of(
+                            MemberCRD.builder()
+                                    .role("role-1")
+                                    .id("id-1")
+                                    .sourceId("source-id-1")
+                                    .source("test")
+                                    .build(),
+                            MemberCRD.builder()
+                                    .role("role-2")
+                                    .id("id-2")
+                                    .sourceId("source-id-2")
+                                    .source("test")
+                                    .build()));
 
-            verify(membershipService, never()).deleteReferenceMember(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                MembershipMemberType.USER,
-                "id-3"
-            );
+            verify(membershipService, never())
+                    .deleteReferenceMember(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.APPLICATION,
+                            APPLICATION_ID,
+                            MembershipMemberType.USER,
+                            "id-3");
         }
     }
 
@@ -674,130 +767,142 @@ class CRDMembersDomainServiceImplTest {
 
         @Test
         void should_converge_on_a_declared_map_setting_declared_scopes_and_clearing_the_others() {
-            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(Set.of());
-            when(membershipService.getRoles(MembershipReferenceType.APPLICATION, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(
-                Set.of(RoleEntity.builder().id("app-user-role").name("USER").scope(RoleScope.APPLICATION).build())
-            );
-            when(membershipService.getRoles(MembershipReferenceType.API_PRODUCT, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(
-                Set.of()
-            );
+            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID))
+                    .thenReturn(Set.of());
+            when(membershipService.getRoles(
+                            MembershipReferenceType.APPLICATION, null, MembershipMemberType.GROUP, GROUP_ID))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("app-user-role")
+                            .name("USER")
+                            .scope(RoleScope.APPLICATION)
+                            .build()));
+            when(membershipService.getRoles(
+                            MembershipReferenceType.API_PRODUCT, null, MembershipMemberType.GROUP, GROUP_ID))
+                    .thenReturn(Set.of());
 
-            cut.updateGroupDefaultRoles(AUDIT_INFO, GROUP_ID, java.util.Map.of(io.gravitee.apim.core.member.model.RoleScope.API, "USER"));
+            cut.updateGroupDefaultRoles(
+                    AUDIT_INFO, GROUP_ID, java.util.Map.of(io.gravitee.apim.core.member.model.RoleScope.API, "USER"));
 
             var executionContext = new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId());
-            verify(membershipService).addRoleToMemberOnReference(
-                eq(executionContext),
-                argThat(ref -> ref.getType() == MembershipReferenceType.API && ref.getId() == null),
-                eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
-                eq(new MembershipService.MembershipRole(RoleScope.API, "USER"))
-            );
-            verify(membershipService).deleteReferenceMember(
-                executionContext,
-                MembershipReferenceType.APPLICATION,
-                null,
-                MembershipMemberType.GROUP,
-                GROUP_ID
-            );
-            verify(membershipService, never()).deleteReferenceMember(
-                any(),
-                eq(MembershipReferenceType.API_PRODUCT),
-                eq(null),
-                eq(MembershipMemberType.GROUP),
-                eq(GROUP_ID)
-            );
+            verify(membershipService)
+                    .addRoleToMemberOnReference(
+                            eq(executionContext),
+                            argThat(ref -> ref.getType() == MembershipReferenceType.API && ref.getId() == null),
+                            eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
+                            eq(new MembershipService.MembershipRole(RoleScope.API, "USER")));
+            verify(membershipService)
+                    .deleteReferenceMember(
+                            executionContext,
+                            MembershipReferenceType.APPLICATION,
+                            null,
+                            MembershipMemberType.GROUP,
+                            GROUP_ID);
+            verify(membershipService, never())
+                    .deleteReferenceMember(
+                            any(),
+                            eq(MembershipReferenceType.API_PRODUCT),
+                            eq(null),
+                            eq(MembershipMemberType.GROUP),
+                            eq(GROUP_ID));
         }
 
         @Test
         void should_not_set_primary_owner_from_a_declared_map() {
             cut.updateGroupDefaultRoles(
-                AUDIT_INFO,
-                GROUP_ID,
-                java.util.Map.of(io.gravitee.apim.core.member.model.RoleScope.API, "PRIMARY_OWNER")
-            );
+                    AUDIT_INFO,
+                    GROUP_ID,
+                    java.util.Map.of(io.gravitee.apim.core.member.model.RoleScope.API, "PRIMARY_OWNER"));
 
-            verify(membershipService, never()).addRoleToMemberOnReference(
-                any(ExecutionContext.class),
-                any(MembershipService.MembershipReference.class),
-                any(MembershipService.MembershipMember.class),
-                any(MembershipService.MembershipRole.class)
-            );
+            verify(membershipService, never())
+                    .addRoleToMemberOnReference(
+                            any(ExecutionContext.class),
+                            any(MembershipService.MembershipReference.class),
+                            any(MembershipService.MembershipMember.class),
+                            any(MembershipService.MembershipRole.class));
         }
 
         @Test
         void should_set_default_roles() {
-            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(Set.of());
+            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID))
+                    .thenReturn(Set.of());
 
             cut.updateGroupDefaultRoles(AUDIT_INFO, GROUP_ID, "OWNER", null, null);
 
-            verify(membershipService).addRoleToMemberOnReference(
-                eq(new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())),
-                argThat(ref -> ref.getType() == MembershipReferenceType.API && ref.getId() == null),
-                eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
-                eq(new MembershipService.MembershipRole(RoleScope.API, "OWNER"))
-            );
+            verify(membershipService)
+                    .addRoleToMemberOnReference(
+                            eq(new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())),
+                            argThat(ref -> ref.getType() == MembershipReferenceType.API && ref.getId() == null),
+                            eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
+                            eq(new MembershipService.MembershipRole(RoleScope.API, "OWNER")));
         }
 
         @Test
         void should_replace_existing_default_role() {
-            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(
-                Set.of(RoleEntity.builder().id("api-owner-role").name("OWNER").scope(RoleScope.API).build())
-            );
+            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("api-owner-role")
+                            .name("OWNER")
+                            .scope(RoleScope.API)
+                            .build()));
 
             cut.updateGroupDefaultRoles(AUDIT_INFO, GROUP_ID, "USER", null, null);
 
-            verify(membershipService).deleteReferenceMember(
-                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                MembershipReferenceType.API,
-                null,
-                MembershipMemberType.GROUP,
-                GROUP_ID
-            );
+            verify(membershipService)
+                    .deleteReferenceMember(
+                            new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                            MembershipReferenceType.API,
+                            null,
+                            MembershipMemberType.GROUP,
+                            GROUP_ID);
 
-            verify(membershipService).addRoleToMemberOnReference(
-                eq(new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())),
-                argThat(ref -> ref.getType() == MembershipReferenceType.API && ref.getId() == null),
-                eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
-                eq(new MembershipService.MembershipRole(RoleScope.API, "USER"))
-            );
+            verify(membershipService)
+                    .addRoleToMemberOnReference(
+                            eq(new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())),
+                            argThat(ref -> ref.getType() == MembershipReferenceType.API && ref.getId() == null),
+                            eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
+                            eq(new MembershipService.MembershipRole(RoleScope.API, "USER")));
         }
 
         @Test
         void should_not_update_when_role_is_unchanged() {
-            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(
-                Set.of(RoleEntity.builder().id("api-owner-role").name("OWNER").scope(RoleScope.API).build())
-            );
+            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID))
+                    .thenReturn(Set.of(RoleEntity.builder()
+                            .id("api-owner-role")
+                            .name("OWNER")
+                            .scope(RoleScope.API)
+                            .build()));
 
             cut.updateGroupDefaultRoles(AUDIT_INFO, GROUP_ID, "OWNER", null, null);
 
-            verify(membershipService, never()).deleteReferenceMember(
-                any(),
-                eq(MembershipReferenceType.API),
-                eq(null),
-                eq(MembershipMemberType.GROUP),
-                eq(GROUP_ID)
-            );
-            verify(membershipService, never()).addRoleToMemberOnReference(
-                any(ExecutionContext.class),
-                any(MembershipService.MembershipReference.class),
-                any(MembershipService.MembershipMember.class),
-                any(MembershipService.MembershipRole.class)
-            );
+            verify(membershipService, never())
+                    .deleteReferenceMember(
+                            any(),
+                            eq(MembershipReferenceType.API),
+                            eq(null),
+                            eq(MembershipMemberType.GROUP),
+                            eq(GROUP_ID));
+            verify(membershipService, never())
+                    .addRoleToMemberOnReference(
+                            any(ExecutionContext.class),
+                            any(MembershipService.MembershipReference.class),
+                            any(MembershipService.MembershipMember.class),
+                            any(MembershipService.MembershipRole.class));
         }
 
         @Test
         void should_set_default_api_product_role() {
-            when(membershipService.getRoles(MembershipReferenceType.API_PRODUCT, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(
-                Set.of()
-            );
+            when(membershipService.getRoles(
+                            MembershipReferenceType.API_PRODUCT, null, MembershipMemberType.GROUP, GROUP_ID))
+                    .thenReturn(Set.of());
 
             cut.updateGroupDefaultRoles(AUDIT_INFO, GROUP_ID, null, null, "USER");
 
-            verify(membershipService).addRoleToMemberOnReference(
-                eq(new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())),
-                argThat(ref -> ref.getType() == MembershipReferenceType.API_PRODUCT && ref.getId() == null),
-                eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
-                eq(new MembershipService.MembershipRole(RoleScope.API_PRODUCT, "USER"))
-            );
+            verify(membershipService)
+                    .addRoleToMemberOnReference(
+                            eq(new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())),
+                            argThat(ref -> ref.getType() == MembershipReferenceType.API_PRODUCT && ref.getId() == null),
+                            eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
+                            eq(new MembershipService.MembershipRole(RoleScope.API_PRODUCT, "USER")));
         }
     }
 }

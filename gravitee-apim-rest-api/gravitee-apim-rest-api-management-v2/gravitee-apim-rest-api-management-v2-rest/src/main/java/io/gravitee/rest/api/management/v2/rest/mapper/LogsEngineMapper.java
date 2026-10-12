@@ -35,10 +35,9 @@ public interface LogsEngineMapper {
     @Mapping(target = "page", source = "page")
     @Mapping(target = "perPage", source = "perPage")
     SearchLogsRequest fromRequestEntity(
-        io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsRequest requestEntity,
-        Integer page,
-        Integer perPage
-    );
+            io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsRequest requestEntity,
+            Integer page,
+            Integer perPage);
 
     SearchLogsResponse fromResponseModel(io.gravitee.apim.core.logs_engine.model.SearchLogsResponse responseModel);
 
@@ -51,15 +50,12 @@ public interface LogsEngineMapper {
             return null;
         }
         return switch (instance) {
-            case io.gravitee.rest.api.management.v2.rest.model.logs.engine.StringFilter s -> new Filter(
-                new StringFilter(mapFilterName(s.getName()), mapOperator(s.getOperator()), s.getValue())
-            );
-            case io.gravitee.rest.api.management.v2.rest.model.logs.engine.ArrayFilter a -> new Filter(
-                new ArrayFilter(mapFilterName(a.getName()), mapOperator(a.getOperator()), a.getValue())
-            );
-            case io.gravitee.rest.api.management.v2.rest.model.logs.engine.NumericFilter n -> new Filter(
-                new NumericFilter(mapFilterName(n.getName()), mapOperator(n.getOperator()), n.getValue())
-            );
+            case io.gravitee.rest.api.management.v2.rest.model.logs.engine.StringFilter s ->
+                new Filter(new StringFilter(mapFilterName(s.getName()), mapOperator(s.getOperator()), s.getValue()));
+            case io.gravitee.rest.api.management.v2.rest.model.logs.engine.ArrayFilter a ->
+                new Filter(new ArrayFilter(mapFilterName(a.getName()), mapOperator(a.getOperator()), a.getValue()));
+            case io.gravitee.rest.api.management.v2.rest.model.logs.engine.NumericFilter n ->
+                new Filter(new NumericFilter(mapFilterName(n.getName()), mapOperator(n.getOperator()), n.getValue()));
             default -> throw new ValidationDomainException("unknown filter type");
         };
     }
@@ -86,13 +82,15 @@ public interface LogsEngineMapper {
     }
 
     default io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum mapApiType(
-        io.gravitee.definition.model.v4.ApiType apiType
-    ) {
+            io.gravitee.definition.model.v4.ApiType apiType) {
         if (apiType == null) return null;
         return switch (apiType) {
-            case PROXY -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.HTTP_PROXY;
-            case LLM_PROXY -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.LLM_PROXY;
-            case MCP_PROXY -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.MCP_PROXY;
+            case PROXY ->
+                io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.HTTP_PROXY;
+            case LLM_PROXY ->
+                io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.LLM_PROXY;
+            case MCP_PROXY ->
+                io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.MCP_PROXY;
             case A2A_PROXY, AUTHZ, EDGE, MESSAGE, NATIVE -> null;
         };
     }

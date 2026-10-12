@@ -32,55 +32,51 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SecretProviderBuilder {
 
-    public static <T extends SecretProviderFactory<C>, C extends SecretManagerConfiguration> SecretProviderPlugin<T, C> build(
-        String id,
-        Class<T> factoryClass,
-        Class<C> configurationClass
-    ) {
+    public static <T extends SecretProviderFactory<C>, C extends SecretManagerConfiguration>
+            SecretProviderPlugin<T, C> build(String id, Class<T> factoryClass, Class<C> configurationClass) {
         return new DefaultSecretProviderPlugin<>(
-            new SecretProviderPlugin<>() {
-                @Override
-                public Class<SecretManagerConfiguration> configuration() {
-                    return (Class<SecretManagerConfiguration>) configurationClass;
-                }
+                new SecretProviderPlugin<>() {
+                    @Override
+                    public Class<SecretManagerConfiguration> configuration() {
+                        return (Class<SecretManagerConfiguration>) configurationClass;
+                    }
 
-                @Override
-                public String id() {
-                    return id;
-                }
+                    @Override
+                    public String id() {
+                        return id;
+                    }
 
-                @Override
-                public Class<SecretProviderFactory> secretProviderFactory() {
-                    return null;
-                }
+                    @Override
+                    public Class<SecretProviderFactory> secretProviderFactory() {
+                        return null;
+                    }
 
-                @Override
-                public String clazz() {
-                    return factoryClass.getName();
-                }
+                    @Override
+                    public String clazz() {
+                        return factoryClass.getName();
+                    }
 
-                @Override
-                public Path path() {
-                    return null;
-                }
+                    @Override
+                    public Path path() {
+                        return null;
+                    }
 
-                @Override
-                public PluginManifest manifest() {
-                    return null;
-                }
+                    @Override
+                    public PluginManifest manifest() {
+                        return null;
+                    }
 
-                @Override
-                public URL[] dependencies() {
-                    return new URL[0];
-                }
+                    @Override
+                    public URL[] dependencies() {
+                        return new URL[0];
+                    }
 
-                @Override
-                public boolean deployed() {
-                    return true;
-                }
-            },
-            factoryClass,
-            configurationClass
-        );
+                    @Override
+                    public boolean deployed() {
+                        return true;
+                    }
+                },
+                factoryClass,
+                configurationClass);
     }
 }

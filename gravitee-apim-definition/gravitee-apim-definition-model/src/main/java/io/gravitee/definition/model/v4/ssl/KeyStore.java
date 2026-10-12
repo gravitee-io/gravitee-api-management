@@ -32,15 +32,25 @@ import lombok.Getter;
  * @deprecated since 4.10.0, use {@link io.gravitee.plugin.configurations.ssl.KeyStore} instead
  */
 @Deprecated(since = "4.10.0", forRemoval = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", defaultImpl = NoneKeyStore.class)
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(names = { "JKS", "jks" }, value = JKSKeyStore.class),
-        @JsonSubTypes.Type(names = { "PEM", "pem" }, value = PEMKeyStore.class),
-        @JsonSubTypes.Type(names = { "PKCS12", "pkcs12" }, value = PKCS12KeyStore.class),
-        @JsonSubTypes.Type(names = { "NONE", "none" }, value = NoneKeyStore.class),
-    }
-)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "type",
+        defaultImpl = NoneKeyStore.class)
+@JsonSubTypes({
+    @JsonSubTypes.Type(
+            names = {"JKS", "jks"},
+            value = JKSKeyStore.class),
+    @JsonSubTypes.Type(
+            names = {"PEM", "pem"},
+            value = PEMKeyStore.class),
+    @JsonSubTypes.Type(
+            names = {"PKCS12", "pkcs12"},
+            value = PKCS12KeyStore.class),
+    @JsonSubTypes.Type(
+            names = {"NONE", "none"},
+            value = NoneKeyStore.class),
+})
 @Getter
 @EqualsAndHashCode
 public abstract class KeyStore implements Serializable {

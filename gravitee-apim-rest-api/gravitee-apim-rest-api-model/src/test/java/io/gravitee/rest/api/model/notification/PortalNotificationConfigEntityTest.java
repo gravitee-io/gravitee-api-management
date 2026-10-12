@@ -33,21 +33,18 @@ import org.junit.jupiter.params.provider.CsvSource;
 class PortalNotificationConfigEntityTest {
 
     @ParameterizedTest
-    @CsvSource(value = { "foo,'',''", "'',foo,''", "'',foo,''", "null,'',''", "'',null,''", "'',null,''" }, nullValues = "null")
+    @CsvSource(
+            value = {"foo,'',''", "'',foo,''", "'',foo,''", "null,'',''", "'',null,''", "'',null,''"},
+            nullValues = "null")
     void should_fail_to_create_default_notification_settings(String user, String referenceType, String referenceId) {
-        assertThatThrownBy(() -> PortalNotificationConfigEntity.newDefaultEmpty(user, referenceType, referenceId, null)).isInstanceOf(
-            IllegalArgumentException.class
-        );
+        assertThatThrownBy(() -> PortalNotificationConfigEntity.newDefaultEmpty(user, referenceType, referenceId, null))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void should_create_empty_default_config() {
-        PortalNotificationConfigEntity portalNotificationConfigEntity = PortalNotificationConfigEntity.newDefaultEmpty(
-            "foo",
-            "API",
-            "bar",
-            "org1"
-        );
+        PortalNotificationConfigEntity portalNotificationConfigEntity =
+                PortalNotificationConfigEntity.newDefaultEmpty("foo", "API", "bar", "org1");
         assertThat(portalNotificationConfigEntity.isDefaultEmpty()).isTrue();
     }
 

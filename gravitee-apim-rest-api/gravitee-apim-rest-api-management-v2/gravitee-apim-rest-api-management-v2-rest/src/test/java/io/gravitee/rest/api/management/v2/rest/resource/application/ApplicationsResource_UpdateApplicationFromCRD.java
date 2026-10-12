@@ -76,20 +76,17 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
         environmentEntity.setId(ENVIRONMENT_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
         when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environmentEntity);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID))
+                .thenReturn(environmentEntity);
 
         userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_NAME).build()));
-        roleQueryService.initWith(
-            List.of(
-                Role.builder()
-                    .name(PRIMARY_OWNER.name())
-                    .referenceType(Role.ReferenceType.ORGANIZATION)
-                    .referenceId(ORGANIZATION)
-                    .id("primary_owner_id")
-                    .scope(Role.Scope.APPLICATION)
-                    .build()
-            )
-        );
+        roleQueryService.initWith(List.of(Role.builder()
+                .name(PRIMARY_OWNER.name())
+                .referenceType(Role.ReferenceType.ORGANIZATION)
+                .referenceId(ORGANIZATION)
+                .id("primary_owner_id")
+                .scope(Role.Scope.APPLICATION)
+                .build()));
     }
 
     @Nested
@@ -97,22 +94,21 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    GraviteeContext.getExecutionContext(),
-                    RolePermission.ENVIRONMENT_API,
-                    ENVIRONMENT_ID,
-                    RolePermissionAction.CREATE
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.ENVIRONMENT_API,
+                            ENVIRONMENT_ID,
+                            RolePermissionAction.CREATE))
+                    .thenReturn(false);
 
-            final Response response = rootTarget().request().put(Entity.json(ApplicationFixtures.anApplicationCRDSpec()));
+            final Response response =
+                    rootTarget().request().put(Entity.json(ApplicationFixtures.anApplicationCRDSpec()));
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
@@ -129,19 +125,18 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
             final Response response = rootTarget().request().put(Entity.json(entity));
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApplicationCRDStatus.class)
-                .satisfies(status ->
-                    SoftAssertions.assertSoftly(soft -> {
+                    .hasStatus(OK_200)
+                    .asEntity(ApplicationCRDStatus.class)
+                    .satisfies(status -> SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(status.getId()).isNotNull();
                         soft.assertThat(status.getId()).isEqualTo(baseApplicationEntity.getId());
                         soft.assertThat(status.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
                         soft.assertThat(status.getOrganizationId()).isEqualTo(ORGANIZATION);
 
-                        BaseApplicationEntity application = applicationCRDDomainService.storage().get(0);
+                        BaseApplicationEntity application =
+                                applicationCRDDomainService.storage().get(0);
                         soft.assertThat(application.getDescription()).isEqualTo(entity.getDescription());
-                    })
-                );
+                    }));
 
             // Make sure that metadata is also created
             List<ApplicationMetadataEntity> allByApplication = applicationMetadataCrudService.storage();
@@ -173,22 +168,23 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
             final Response response = rootTarget().request().put(Entity.json(entity));
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApplicationCRDStatus.class)
-                .satisfies(status ->
-                    SoftAssertions.assertSoftly(soft -> {
+                    .hasStatus(OK_200)
+                    .asEntity(ApplicationCRDStatus.class)
+                    .satisfies(status -> SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(status.getId()).isNotNull();
                         soft.assertThat(status.getId()).isEqualTo(baseApplicationEntity.getId());
                         soft.assertThat(status.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
                         soft.assertThat(status.getOrganizationId()).isEqualTo(ORGANIZATION);
 
-                        BaseApplicationEntity application = applicationCRDDomainService.storage().get(0);
+                        BaseApplicationEntity application =
+                                applicationCRDDomainService.storage().get(0);
                         soft.assertThat(application.getDescription()).isEqualTo(entity.getDescription());
 
-                        ApplicationMetadataEntity metadataEntity = applicationMetadataCrudService.storage().get(0);
-                        soft.assertThat(metadataEntity.getValue()).isEqualTo(entity.getMetadata().get(0).getValue());
-                    })
-                );
+                        ApplicationMetadataEntity metadataEntity =
+                                applicationMetadataCrudService.storage().get(0);
+                        soft.assertThat(metadataEntity.getValue())
+                                .isEqualTo(entity.getMetadata().get(0).getValue());
+                    }));
 
             // Make sure that metadata is also created
             List<ApplicationMetadataEntity> allByApplication = applicationMetadataCrudService.storage();

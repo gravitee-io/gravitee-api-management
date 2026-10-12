@@ -49,7 +49,8 @@ class EnableSubscriptionFormUseCaseTest {
         queryService.initWith(List.of(disabledForm));
 
         // When
-        var result = useCase.execute(new EnableSubscriptionFormUseCase.Input(disabledForm.getEnvironmentId(), disabledForm.getId()));
+        var result = useCase.execute(
+                new EnableSubscriptionFormUseCase.Input(disabledForm.getEnvironmentId(), disabledForm.getId()));
 
         // Then
         assertThat(result.subscriptionForm().isEnabled()).isTrue();
@@ -63,7 +64,8 @@ class EnableSubscriptionFormUseCaseTest {
         queryService.initWith(List.of(enabledForm));
 
         // When
-        var result = useCase.execute(new EnableSubscriptionFormUseCase.Input(enabledForm.getEnvironmentId(), enabledForm.getId()));
+        var result = useCase.execute(
+                new EnableSubscriptionFormUseCase.Input(enabledForm.getEnvironmentId(), enabledForm.getId()));
 
         // Then
         assertThat(result.subscriptionForm().isEnabled()).isTrue();
@@ -72,9 +74,7 @@ class EnableSubscriptionFormUseCaseTest {
     @Test
     void should_throw_exception_when_form_not_found() {
         var input = new EnableSubscriptionFormUseCase.Input(
-            "unknown-environment",
-            SubscriptionFormId.of("550e8400-e29b-41d4-a716-446655440000")
-        );
+                "unknown-environment", SubscriptionFormId.of("550e8400-e29b-41d4-a716-446655440000"));
         assertThrows(SubscriptionFormNotFoundException.class, () -> useCase.execute(input));
     }
 }

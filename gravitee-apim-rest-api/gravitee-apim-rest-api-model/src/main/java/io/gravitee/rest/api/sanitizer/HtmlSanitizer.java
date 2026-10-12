@@ -30,16 +30,15 @@ public final class HtmlSanitizer {
             return null;
         }
 
-        return content
-            .replaceAll("&lt;", "<")
-            .replaceAll("&gt;", ">")
-            .replaceAll("&amp;", "&")
-            .replaceAll("&#34;", "\"")
-            .replaceAll("&#39;", "'")
-            .replaceAll("&#43;", "+")
-            .replaceAll("&#61;", "=")
-            .replaceAll("&#96;", "`")
-            .replaceAll("&#64;", "@");
+        return content.replaceAll("&lt;", "<")
+                .replaceAll("&gt;", ">")
+                .replaceAll("&amp;", "&")
+                .replaceAll("&#34;", "\"")
+                .replaceAll("&#39;", "'")
+                .replaceAll("&#43;", "+")
+                .replaceAll("&#61;", "=")
+                .replaceAll("&#96;", "`")
+                .replaceAll("&#64;", "@");
     }
 
     public static String sanitize(String content) {

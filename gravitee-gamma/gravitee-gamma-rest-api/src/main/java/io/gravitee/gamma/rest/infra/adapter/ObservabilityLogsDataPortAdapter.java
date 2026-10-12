@@ -76,7 +76,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +112,9 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
      * so the adapter and the advertised filter range never drift apart. Used both to validate incoming
      * status values and to bound {@code GTE}/{@code LTE} range expansion.
      */
-    private static final FilterSpec.Range HTTP_STATUS_RANGE = StaticFilters.HTTP_STATUS.toSpec().range();
+    private static final FilterSpec.Range HTTP_STATUS_RANGE =
+            StaticFilters.HTTP_STATUS.toSpec().range();
+
     private static final int HTTP_STATUS_MIN = HTTP_STATUS_RANGE.min().intValue();
     private static final int HTTP_STATUS_MAX = HTTP_STATUS_RANGE.max().intValue();
 
@@ -133,12 +134,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         var auditInfo = currentAuditInfo(organizationId, environmentId);
         var userContext = userContextLoader.loadApis(new UserContext(auditInfo));
 
-        return userContext
-            .apis()
-            .orElseGet(Collections::emptyList)
-            .stream()
-            .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())))
-            .toList();
+        return userContext.apis().orElseGet(Collections::emptyList).stream()
+                .map(api ->
+                        new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())))
+                .toList();
     }
 
     @Override
@@ -146,12 +145,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         var auditInfo = currentAuditInfo(organizationId, environmentId);
         var userContext = userContextLoader.loadApi(new UserContext(auditInfo), apiId);
 
-        return userContext
-            .apis()
-            .orElseGet(Collections::emptyList)
-            .stream()
-            .findFirst()
-            .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())));
+        return userContext.apis().orElseGet(Collections::emptyList).stream()
+                .findFirst()
+                .map(api ->
+                        new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())));
     }
 
     @Override
@@ -165,25 +162,21 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
 
         var searchFilters = buildSearchFilters(query);
         var result = connectionLogsCrudService.searchApiConnectionLogs(
-            executionContext,
-            searchFilters,
-            pageable,
-            List.of(DefinitionVersion.V4)
-        );
+                executionContext, searchFilters, pageable, List.of(DefinitionVersion.V4));
 
         var rawEntries = result.logs() == null ? List.<BaseConnectionLog>of() : result.logs();
 
-        var entries = rawEntries
-            .stream()
-            .map(log -> mapToLogEntry(log, query.apisById()))
-            .toList();
+        var entries = rawEntries.stream()
+                .map(log -> mapToLogEntry(log, query.apisById()))
+                .toList();
         var enriched = enrichWithNames(executionContext, entries);
 
         return new LogsPage(enriched, result.total());
     }
 
     @Override
-    public Optional<LogDetail> getLogDetail(String organizationId, String environmentId, String apiId, String requestId) {
+    public Optional<LogDetail> getLogDetail(
+            String organizationId, String environmentId, String apiId, String requestId) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
 
         var metricsOpt = analyticsQueryService.findApiMetricsDetail(executionContext, apiId, requestId);
@@ -201,52 +194,54 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         // on this one. The environment filter is kept because the by-id read has no scope of its own,
         // and ApiTypeAdapter because the wire names differ from the definition enum (PROXY -> HTTP_PROXY).
         var api = apiCrudService.findById(apiId).filter(candidate -> candidate.belongsToEnvironment(environmentId));
-        var apiType = api
-            .map(found -> ApiTypeAdapter.toObservability(found.getType()))
-            .map(Enum::name)
-            .orElse(null);
+        var apiType = api.map(found -> ApiTypeAdapter.toObservability(found.getType()))
+                .map(Enum::name)
+                .orElse(null);
 
-        var builder = LogDetail.builder().requestId(requestId).apiId(apiId).apiName(api.map(Api::getName).orElse(null)).apiType(apiType);
+        var builder = LogDetail.builder()
+                .requestId(requestId)
+                .apiId(apiId)
+                .apiName(api.map(Api::getName).orElse(null))
+                .apiType(apiType);
 
         metricsOpt.ifPresent(metrics -> {
-            builder
-                .timestamp(parseTimestamp(metrics.getTimestamp()))
-                .transactionId(metrics.getTransactionId())
-                .method(metrics.getMethod() != null ? metrics.getMethod().name() : null)
-                .uri(metrics.getUri())
-                .status(metrics.getStatus())
-                .endpoint(metrics.getEndpoint())
-                .entrypointId(metrics.getEntrypointId())
-                .host(metrics.getHost())
-                .mcpMethod(mcpMethodOf(metrics.getAdditionalMetrics()))
-                .apiProductId(metrics.getApiProductId())
-                .apiProductName(resolveApiProductName(environmentId, metrics.getApiProductId()))
-                .planId(metrics.getPlanId())
-                .subscriptionId(metrics.getSubscriptionId())
-                .applicationId(metrics.getApplicationId())
-                .gateway(metrics.getGateway())
-                .remoteAddress(metrics.getRemoteAddress())
-                .requestContentLength(metrics.getRequestContentLength())
-                .responseContentLength(metrics.getResponseContentLength())
-                .gatewayLatency(metrics.getGatewayLatency())
-                .gatewayResponseTime(metrics.getGatewayResponseTime())
-                .endpointResponseTime(metrics.getEndpointResponseTime())
-                .message(metrics.getMessage())
-                .errorKey(metrics.getErrorKey())
-                .errorComponentName(metrics.getErrorComponentName())
-                .errorComponentType(metrics.getErrorComponentType())
-                .warnings(mapWarnings(metrics.getWarnings()))
-                .additionalMetrics(metrics.getAdditionalMetrics() != null ? metrics.getAdditionalMetrics() : Map.of());
+            builder.timestamp(parseTimestamp(metrics.getTimestamp()))
+                    .transactionId(metrics.getTransactionId())
+                    .method(metrics.getMethod() != null ? metrics.getMethod().name() : null)
+                    .uri(metrics.getUri())
+                    .status(metrics.getStatus())
+                    .endpoint(metrics.getEndpoint())
+                    .entrypointId(metrics.getEntrypointId())
+                    .host(metrics.getHost())
+                    .mcpMethod(mcpMethodOf(metrics.getAdditionalMetrics()))
+                    .apiProductId(metrics.getApiProductId())
+                    .apiProductName(resolveApiProductName(environmentId, metrics.getApiProductId()))
+                    .planId(metrics.getPlanId())
+                    .subscriptionId(metrics.getSubscriptionId())
+                    .applicationId(metrics.getApplicationId())
+                    .gateway(metrics.getGateway())
+                    .remoteAddress(metrics.getRemoteAddress())
+                    .requestContentLength(metrics.getRequestContentLength())
+                    .responseContentLength(metrics.getResponseContentLength())
+                    .gatewayLatency(metrics.getGatewayLatency())
+                    .gatewayResponseTime(metrics.getGatewayResponseTime())
+                    .endpointResponseTime(metrics.getEndpointResponseTime())
+                    .message(metrics.getMessage())
+                    .errorKey(metrics.getErrorKey())
+                    .errorComponentName(metrics.getErrorComponentName())
+                    .errorComponentType(metrics.getErrorComponentType())
+                    .warnings(mapWarnings(metrics.getWarnings()))
+                    .additionalMetrics(
+                            metrics.getAdditionalMetrics() != null ? metrics.getAdditionalMetrics() : Map.of());
 
             var nativeMetrics = NativeMetrics.from(metrics.getAdditionalMetrics());
-            builder
-                .connectionStatus(nativeMetrics.connectionStatus())
-                .failureOrigin(nativeMetrics.failureOrigin(metrics.getErrorKey()))
-                .clientId(nativeMetrics.clientId())
-                .clientSoftwareName(nativeMetrics.clientSoftwareName())
-                .clientSoftwareVersion(nativeMetrics.clientSoftwareVersion())
-                .brokerId(nativeMetrics.brokerId())
-                .connectionDurationMs(nativeMetrics.connectionDurationMs());
+            builder.connectionStatus(nativeMetrics.connectionStatus())
+                    .failureOrigin(nativeMetrics.failureOrigin(metrics.getErrorKey()))
+                    .clientId(nativeMetrics.clientId())
+                    .clientSoftwareName(nativeMetrics.clientSoftwareName())
+                    .clientSoftwareVersion(nativeMetrics.clientSoftwareVersion())
+                    .brokerId(nativeMetrics.brokerId())
+                    .connectionDurationMs(nativeMetrics.connectionDurationMs());
 
             // securityType/securityToken are ROOT document fields every API type carries, unlike the
             // native-kafka keywords above which are simply absent on an HTTP document. Two independent
@@ -266,21 +261,19 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             }
 
             var names = resolveDetailNames(executionContext, metrics);
-            builder
-                .planName(names.planName)
-                .applicationName(names.applicationName)
-                .gatewayHostname(names.gatewayHostname)
-                .gatewayIp(names.gatewayIp);
+            builder.planName(names.planName)
+                    .applicationName(names.applicationName)
+                    .gatewayHostname(names.gatewayHostname)
+                    .gatewayIp(names.gatewayIp);
         });
 
         logDetailOpt.ifPresent(log -> {
-            builder
-                .clientIdentifier(log.getClientIdentifier())
-                .requestEnded(log.isRequestEnded())
-                .entrypointRequest(mapRequest(log.getEntrypointRequest()))
-                .entrypointResponse(mapResponse(log.getEntrypointResponse()))
-                .endpointRequest(mapRequest(log.getEndpointRequest()))
-                .endpointResponse(mapResponse(log.getEndpointResponse()));
+            builder.clientIdentifier(log.getClientIdentifier())
+                    .requestEnded(log.isRequestEnded())
+                    .entrypointRequest(mapRequest(log.getEntrypointRequest()))
+                    .entrypointResponse(mapResponse(log.getEntrypointResponse()))
+                    .endpointRequest(mapRequest(log.getEndpointRequest()))
+                    .endpointResponse(mapResponse(log.getEndpointResponse()));
 
             if (metricsOpt.isEmpty()) {
                 builder.timestamp(parseTimestamp(log.getTimestamp()));
@@ -291,7 +284,9 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     }
 
     private static String mcpMethodOf(Map<String, Object> additionalMetrics) {
-        return additionalMetrics != null && additionalMetrics.get(MCP_PROXY_METHOD_KEY) instanceof String mcpMethod ? mcpMethod : null;
+        return additionalMetrics != null && additionalMetrics.get(MCP_PROXY_METHOD_KEY) instanceof String mcpMethod
+                ? mcpMethod
+                : null;
     }
 
     /**
@@ -302,21 +297,17 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         if (apiProductId == null) {
             return STANDALONE_API_PRODUCT_NAME;
         }
-        return apiProductQueryService
-            .findByEnvironmentIdAndIdIn(environmentId, Set.of(apiProductId))
-            .stream()
-            .map(ApiProduct::getName)
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse(null);
+        return apiProductQueryService.findByEnvironmentIdAndIdIn(environmentId, Set.of(apiProductId)).stream()
+                .map(ApiProduct::getName)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     private record ResolvedNames(String planName, String applicationName, String gatewayHostname, String gatewayIp) {}
 
     private ResolvedNames resolveDetailNames(
-        ExecutionContext executionContext,
-        io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail metrics
-    ) {
+            ExecutionContext executionContext, io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail metrics) {
         String planName = null;
         String applicationName = null;
         String gatewayHostname = null;
@@ -333,8 +324,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         if (metrics.getApplicationId() != null) {
             try {
                 applicationName = applicationCrudService
-                    .findById(metrics.getApplicationId(), executionContext.getEnvironmentId())
-                    .getName();
+                        .findById(metrics.getApplicationId(), executionContext.getEnvironmentId())
+                        .getName();
             } catch (ApplicationNotFoundException | TechnicalManagementException e) {
                 log.debug("Could not resolve application name for applicationId={}", metrics.getApplicationId(), e);
             }
@@ -358,18 +349,22 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             return null;
         }
         return HttpPayload.builder()
-            .method(request.getMethod())
-            .uri(request.getUri())
-            .headers(request.getHeaders())
-            .body(request.getBody())
-            .build();
+                .method(request.getMethod())
+                .uri(request.getUri())
+                .headers(request.getHeaders())
+                .body(request.getBody())
+                .build();
     }
 
     private static HttpPayload mapResponse(ConnectionLogDetail.Response response) {
         if (response == null) {
             return null;
         }
-        return HttpPayload.builder().status(response.getStatus()).headers(response.getHeaders()).body(response.getBody()).build();
+        return HttpPayload.builder()
+                .status(response.getStatus())
+                .headers(response.getHeaders())
+                .body(response.getBody())
+                .build();
     }
 
     /** The use case has already folded every ENTRYPOINT condition into the scope, so only the scope is mapped. */
@@ -423,13 +418,15 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             switch (condition.name()) {
                 case "APPLICATION" -> applicationIds.addAll(values);
                 case "PLAN" -> planIds.addAll(values);
-                case "HTTP_METHOD" -> methods.addAll(values.stream().map(this::toHttpMethod).toList());
+                case "HTTP_METHOD" ->
+                    methods.addAll(values.stream().map(this::toHttpMethod).toList());
                 case "HTTP_STATUS" -> {
                     if (!values.isEmpty()) {
                         if (condition.operator() == FilterOperator.EQ) {
                             values.forEach(value -> statuses.add(parseHttpStatus(value)));
                         } else {
-                            applyNumericBound(statusAccumulator, condition.operator(), parseHttpStatus(values.getFirst()));
+                            applyNumericBound(
+                                    statusAccumulator, condition.operator(), parseHttpStatus(values.getFirst()));
                         }
                     }
                 }
@@ -439,7 +436,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 }
                 case "HTTP_GATEWAY_RESPONSE_TIME" -> {
                     if (!values.isEmpty()) {
-                        applyNumericBound(responseTimeAccumulator, condition.operator(), parseResponseTime(values.getFirst()));
+                        applyNumericBound(
+                                responseTimeAccumulator, condition.operator(), parseResponseTime(values.getFirst()));
                     }
                 }
                 case "MCP_PROXY_METHOD" -> mcpMethods.addAll(values);
@@ -462,19 +460,22 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                     if (values.isEmpty() || values.stream().allMatch(value -> value == null || value.isBlank())) {
                         throw UnsupportedObservabilityFilterException.blankValue("PAYLOAD");
                     }
-                    bodyText = values
-                        .stream()
-                        .filter(v -> v != null && !v.isBlank())
-                        .findFirst()
-                        .orElse(null);
+                    bodyText = values.stream()
+                            .filter(v -> v != null && !v.isBlank())
+                            .findFirst()
+                            .orElse(null);
                 }
-                default -> throw UnsupportedObservabilityFilterException.searchTranslationNotSupported(condition.name());
+                default ->
+                    throw UnsupportedObservabilityFilterException.searchTranslationNotSupported(condition.name());
             }
         }
 
         if (statusAccumulator.hasValue()) {
             var b = statusAccumulator.build();
-            statusRanges.add(SearchLogsFilters.StatusRange.builder().gte(b.gte()).lte(b.lte()).build());
+            statusRanges.add(SearchLogsFilters.StatusRange.builder()
+                    .gte(b.gte())
+                    .lte(b.lte())
+                    .build());
         }
 
         if (responseTimeAccumulator.hasValue()) {
@@ -512,31 +513,30 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         return builder.build();
     }
 
-    private LogsPage searchDecisionLogs(ExecutionContext executionContext, LogsSearchQuery query, PageableImpl pageable) {
+    private LogsPage searchDecisionLogs(
+            ExecutionContext executionContext, LogsSearchQuery query, PageableImpl pageable) {
         var filters = AuthzDecisionLogFilters.builder()
-            .apiIds(query.apiIds())
-            .from(query.from())
-            .to(query.to())
-            .decisions(valuesOf(query.conditions(), StaticFilters.AUTHZ_DECISION.filterName()))
-            .subjectIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_SUBJECT_ID.filterName()))
-            .actions(valuesOf(query.conditions(), StaticFilters.AUTHZ_ACTION.filterName()))
-            .resourceIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_RESOURCE_ID.filterName()))
-            .callers(valuesOf(query.conditions(), StaticFilters.AUTHZ_CALLER.filterName()))
-            .statuses(valuesOf(query.conditions(), StaticFilters.AUTHZ_STATUS.filterName()))
-            .indeterminateCauses(valuesOf(query.conditions(), StaticFilters.AUTHZ_INDETERMINATE_CAUSE.filterName()))
-            .errorTypes(valuesOf(query.conditions(), StaticFilters.AUTHZ_ERROR_TYPE.filterName()))
-            .targetPdpIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_PDP.filterName()))
-            .matchedPolicyNames(valuesOf(query.conditions(), StaticFilters.AUTHZ_MATCHED_POLICY.filterName()))
-            .policyGenerations(valuesOf(query.conditions(), StaticFilters.AUTHZ_POLICY_VERSION.filterName()))
-            .requestIds(valuesOf(query.conditions(), StaticFilters.REQUEST_ID.filterName()))
-            .reasonContains(firstValueOf(query.conditions(), StaticFilters.AUTHZ_REASON.filterName()))
-            .build();
+                .apiIds(query.apiIds())
+                .from(query.from())
+                .to(query.to())
+                .decisions(valuesOf(query.conditions(), StaticFilters.AUTHZ_DECISION.filterName()))
+                .subjectIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_SUBJECT_ID.filterName()))
+                .actions(valuesOf(query.conditions(), StaticFilters.AUTHZ_ACTION.filterName()))
+                .resourceIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_RESOURCE_ID.filterName()))
+                .callers(valuesOf(query.conditions(), StaticFilters.AUTHZ_CALLER.filterName()))
+                .statuses(valuesOf(query.conditions(), StaticFilters.AUTHZ_STATUS.filterName()))
+                .indeterminateCauses(valuesOf(query.conditions(), StaticFilters.AUTHZ_INDETERMINATE_CAUSE.filterName()))
+                .errorTypes(valuesOf(query.conditions(), StaticFilters.AUTHZ_ERROR_TYPE.filterName()))
+                .targetPdpIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_PDP.filterName()))
+                .matchedPolicyNames(valuesOf(query.conditions(), StaticFilters.AUTHZ_MATCHED_POLICY.filterName()))
+                .policyGenerations(valuesOf(query.conditions(), StaticFilters.AUTHZ_POLICY_VERSION.filterName()))
+                .requestIds(valuesOf(query.conditions(), StaticFilters.REQUEST_ID.filterName()))
+                .reasonContains(firstValueOf(query.conditions(), StaticFilters.AUTHZ_REASON.filterName()))
+                .build();
         var result = authzDecisionLogsCrudService.searchDecisionLogs(executionContext, filters, pageable);
-        var entries = result
-            .logs()
-            .stream()
-            .map(decision -> mapDecisionToLogEntry(decision, query.apisById()))
-            .toList();
+        var entries = result.logs().stream()
+                .map(decision -> mapDecisionToLogEntry(decision, query.apisById()))
+                .toList();
         return new LogsPage(entries, result.total());
     }
 
@@ -544,27 +544,28 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     public Optional<LogEntry> getDecision(String organizationId, String environmentId, String apiId, String eventId) {
         // Resolving the api through the accessible set is what scopes this read: an api the caller
         // cannot see yields empty, which the resource collapses into the same 404 as "no such decision".
-        return loadAccessibleApi(organizationId, environmentId, apiId).flatMap(api ->
-            authzDecisionLogsCrudService
-                .findDecisionLog(new ExecutionContext(organizationId, environmentId), apiId, eventId)
-                .map(decision ->
-                    mapDecisionToLogEntry(
-                        decision,
-                        Map.of(apiId, new ApiReference(api.name(), api.type() == null ? null : api.type().name()))
-                    )
-                )
-        );
+        return loadAccessibleApi(organizationId, environmentId, apiId)
+                .flatMap(api -> authzDecisionLogsCrudService
+                        .findDecisionLog(new ExecutionContext(organizationId, environmentId), apiId, eventId)
+                        .map(decision -> mapDecisionToLogEntry(
+                                decision,
+                                Map.of(
+                                        apiId,
+                                        new ApiReference(
+                                                api.name(),
+                                                api.type() == null
+                                                        ? null
+                                                        : api.type().name())))));
     }
 
     private static Set<String> valuesOf(List<FilterCondition> conditions, String filterName) {
         if (conditions == null) {
             return Set.of();
         }
-        return conditions
-            .stream()
-            .filter(c -> filterName.equals(c.name()))
-            .flatMap(c -> c.values().stream())
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+        return conditions.stream()
+                .filter(c -> filterName.equals(c.name()))
+                .flatMap(c -> c.values().stream())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
@@ -573,99 +574,95 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
      * the clause and hand back the unfiltered set under an active filter chip.
      */
     private static String firstValueOf(List<FilterCondition> conditions, String filterName) {
-        return valuesOf(conditions, filterName)
-            .stream()
-            .filter(v -> v != null && !v.isBlank())
-            .findFirst()
-            .orElse(null);
+        return valuesOf(conditions, filterName).stream()
+                .filter(v -> v != null && !v.isBlank())
+                .findFirst()
+                .orElse(null);
     }
 
     private LogEntry mapDecisionToLogEntry(AuthzDecisionLog decision, Map<String, ApiReference> apisById) {
         var apiRef = apisById != null ? apisById.get(decision.apiId()) : null;
         return LogEntry.builder()
-            .apiId(decision.apiId())
-            .apiName(apiRef != null ? apiRef.name() : null)
-            .apiType(apiRef != null ? apiRef.apiType() : null)
-            .timestamp(decision.timestamp() == null ? null : Instant.ofEpochMilli(decision.timestamp()))
-            .requestId(decision.requestId())
-            .gateway(decision.gatewayId())
-            .authz(
-                AuthzDecision.builder()
-                    .eventId(decision.eventId())
-                    .decision(decision.decision())
-                    .outcome(decision.outcome())
-                    .enforced(decision.enforced())
-                    .indeterminateCause(decision.indeterminateCause())
-                    .status(decision.status())
-                    .caller(decision.caller())
-                    .targetPdpId(decision.targetPdpId())
-                    .policyGeneration(decision.policyGeneration())
-                    .matchedRules(matchedRulesOf(decision.matchedRules()))
-                    .reasons(decision.reasons())
-                    .subjectType(decision.subjectType())
-                    .subjectId(decision.subjectId())
-                    .action(decision.action())
-                    .resourceType(decision.resourceType())
-                    .resourceId(decision.resourceId())
-                    .batchId(decision.batchId())
-                    .batchIndex(decision.batchIndex())
-                    .batchSize(decision.batchSize())
-                    .durationNanos(decision.durationNanos())
-                    .errorType(decision.errorType())
-                    .build()
-            )
-            .build();
+                .apiId(decision.apiId())
+                .apiName(apiRef != null ? apiRef.name() : null)
+                .apiType(apiRef != null ? apiRef.apiType() : null)
+                .timestamp(decision.timestamp() == null ? null : Instant.ofEpochMilli(decision.timestamp()))
+                .requestId(decision.requestId())
+                .gateway(decision.gatewayId())
+                .authz(AuthzDecision.builder()
+                        .eventId(decision.eventId())
+                        .decision(decision.decision())
+                        .outcome(decision.outcome())
+                        .enforced(decision.enforced())
+                        .indeterminateCause(decision.indeterminateCause())
+                        .status(decision.status())
+                        .caller(decision.caller())
+                        .targetPdpId(decision.targetPdpId())
+                        .policyGeneration(decision.policyGeneration())
+                        .matchedRules(matchedRulesOf(decision.matchedRules()))
+                        .reasons(decision.reasons())
+                        .subjectType(decision.subjectType())
+                        .subjectId(decision.subjectId())
+                        .action(decision.action())
+                        .resourceType(decision.resourceType())
+                        .resourceId(decision.resourceId())
+                        .batchId(decision.batchId())
+                        .batchIndex(decision.batchIndex())
+                        .batchSize(decision.batchSize())
+                        .durationNanos(decision.durationNanos())
+                        .errorType(decision.errorType())
+                        .build())
+                .build();
     }
 
     private static List<AuthzDecision.MatchedRule> matchedRulesOf(List<AuthzDecisionLog.MatchedRule> matchedRules) {
         if (matchedRules == null) {
             return null;
         }
-        return matchedRules
-            .stream()
-            .map(rule -> new AuthzDecision.MatchedRule(rule.id(), rule.name(), rule.version(), rule.effect()))
-            .toList();
+        return matchedRules.stream()
+                .map(rule -> new AuthzDecision.MatchedRule(rule.id(), rule.name(), rule.version(), rule.effect()))
+                .toList();
     }
 
     private LogEntry mapToLogEntry(BaseConnectionLog log, Map<String, ApiReference> apisById) {
         var apiRef = apisById != null ? apisById.get(log.getApiId()) : null;
         var nativeMetrics = NativeMetrics.from(log.getAdditionalMetrics());
         return LogEntry.builder()
-            .apiId(log.getApiId())
-            .apiName(apiRef != null ? apiRef.name() : null)
-            .apiType(apiRef != null ? apiRef.apiType() : null)
-            .timestamp(parseTimestamp(log.getTimestamp()))
-            .requestId(log.getRequestId())
-            .method(log.getMethod() != null ? log.getMethod().name() : null)
-            .clientIdentifier(log.getClientIdentifier())
-            .planId(log.getPlanId())
-            .applicationId(log.getApplicationId())
-            .transactionId(log.getTransactionId())
-            .status(log.getStatus())
-            .requestEnded(log.isRequestEnded())
-            .gatewayResponseTime(safeToInteger(log.getGatewayResponseTime()))
-            .gateway(log.getGateway())
-            .uri(log.getUri())
-            .endpoint(log.getEndpoint())
-            .entrypointId(log.getEntrypointId())
-            .host(log.getHost())
-            .subscriptionId(log.getSubscriptionId())
-            .message(log.getMessage())
-            .errorKey(log.getErrorKey())
-            .errorComponentName(log.getErrorComponentName())
-            .errorComponentType(log.getErrorComponentType())
-            .warnings(mapWarnings(log.getWarnings()))
-            .additionalMetrics(log.getAdditionalMetrics() != null ? log.getAdditionalMetrics() : Map.of())
-            .mcpMethod(log.getMcpMethod())
-            .apiProductId(log.getApiProductId())
-            .connectionStatus(nativeMetrics.connectionStatus())
-            .failureOrigin(nativeMetrics.failureOrigin(log.getErrorKey()))
-            .clientId(nativeMetrics.clientId())
-            .clientSoftwareName(nativeMetrics.clientSoftwareName())
-            .clientSoftwareVersion(nativeMetrics.clientSoftwareVersion())
-            .brokerId(nativeMetrics.brokerId())
-            .connectionDurationMs(nativeMetrics.connectionDurationMs())
-            .build();
+                .apiId(log.getApiId())
+                .apiName(apiRef != null ? apiRef.name() : null)
+                .apiType(apiRef != null ? apiRef.apiType() : null)
+                .timestamp(parseTimestamp(log.getTimestamp()))
+                .requestId(log.getRequestId())
+                .method(log.getMethod() != null ? log.getMethod().name() : null)
+                .clientIdentifier(log.getClientIdentifier())
+                .planId(log.getPlanId())
+                .applicationId(log.getApplicationId())
+                .transactionId(log.getTransactionId())
+                .status(log.getStatus())
+                .requestEnded(log.isRequestEnded())
+                .gatewayResponseTime(safeToInteger(log.getGatewayResponseTime()))
+                .gateway(log.getGateway())
+                .uri(log.getUri())
+                .endpoint(log.getEndpoint())
+                .entrypointId(log.getEntrypointId())
+                .host(log.getHost())
+                .subscriptionId(log.getSubscriptionId())
+                .message(log.getMessage())
+                .errorKey(log.getErrorKey())
+                .errorComponentName(log.getErrorComponentName())
+                .errorComponentType(log.getErrorComponentType())
+                .warnings(mapWarnings(log.getWarnings()))
+                .additionalMetrics(log.getAdditionalMetrics() != null ? log.getAdditionalMetrics() : Map.of())
+                .mcpMethod(log.getMcpMethod())
+                .apiProductId(log.getApiProductId())
+                .connectionStatus(nativeMetrics.connectionStatus())
+                .failureOrigin(nativeMetrics.failureOrigin(log.getErrorKey()))
+                .clientId(nativeMetrics.clientId())
+                .clientSoftwareName(nativeMetrics.clientSoftwareName())
+                .clientSoftwareVersion(nativeMetrics.clientSoftwareVersion())
+                .brokerId(nativeMetrics.brokerId())
+                .connectionDurationMs(nativeMetrics.connectionDurationMs())
+                .build();
     }
 
     /**
@@ -682,14 +679,13 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
      * the Kafka classification table.
      */
     private record NativeMetrics(
-        String connectionStatus,
-        String clientId,
-        String clientSoftwareName,
-        String clientSoftwareVersion,
-        String brokerId,
-        Long connectionDurationMs,
-        String failureSide
-    ) {
+            String connectionStatus,
+            String clientId,
+            String clientSoftwareName,
+            String clientSoftwareVersion,
+            String brokerId,
+            Long connectionDurationMs,
+            String failureSide) {
         static NativeMetrics from(Map<String, Object> additionalMetrics) {
             if (additionalMetrics == null || additionalMetrics.isEmpty()) {
                 return new NativeMetrics(null, null, null, null, null, null, null);
@@ -699,14 +695,13 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 duration = additionalMetrics.get(LEGACY_KEYWORD_CONNECTION_DURATION_MS);
             }
             return new NativeMetrics(
-                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CONNECTION_STATUS)),
-                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_ID)),
-                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_SOFTWARE_NAME)),
-                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION)),
-                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.BROKER_ID)),
-                asLongOrNull(duration),
-                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.FAILURE_SIDE))
-            );
+                    asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CONNECTION_STATUS)),
+                    asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_ID)),
+                    asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_SOFTWARE_NAME)),
+                    asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION)),
+                    asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.BROKER_ID)),
+                    asLongOrNull(duration),
+                    asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.FAILURE_SIDE)));
         }
 
         /**
@@ -749,56 +744,63 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     }
 
     private List<LogEntry> enrichWithNames(ExecutionContext executionContext, List<LogEntry> entries) {
-        var planIds = entries.stream().map(LogEntry::planId).filter(Objects::nonNull).distinct().toList();
+        var planIds = entries.stream()
+                .map(LogEntry::planId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
         var planNameById = planIds.isEmpty()
-            ? Map.<String, String>of()
-            : planCrudService
-                .findByIds(planIds)
-                .stream()
-                .filter(p -> p.getName() != null)
-                .collect(Collectors.toMap(Plan::getId, Plan::getName, (a, b) -> a));
+                ? Map.<String, String>of()
+                : planCrudService.findByIds(planIds).stream()
+                        .filter(p -> p.getName() != null)
+                        .collect(Collectors.toMap(Plan::getId, Plan::getName, (a, b) -> a));
 
-        var appIds = entries.stream().map(LogEntry::applicationId).filter(Objects::nonNull).distinct().toList();
+        var appIds = entries.stream()
+                .map(LogEntry::applicationId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
         var appNameById = appIds.isEmpty()
-            ? Map.<String, String>of()
-            : applicationCrudService
-                .findByIds(appIds, executionContext.getEnvironmentId())
-                .stream()
-                .filter(a -> a.getName() != null)
-                .collect(Collectors.toMap(BaseApplicationEntity::getId, BaseApplicationEntity::getName, (a, b) -> a));
+                ? Map.<String, String>of()
+                : applicationCrudService.findByIds(appIds, executionContext.getEnvironmentId()).stream()
+                        .filter(a -> a.getName() != null)
+                        .collect(Collectors.toMap(
+                                BaseApplicationEntity::getId, BaseApplicationEntity::getName, (a, b) -> a));
 
-        var gatewayIds = entries.stream().map(LogEntry::gateway).filter(Objects::nonNull).distinct().toList();
+        var gatewayIds = entries.stream()
+                .map(LogEntry::gateway)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
         var gatewayHostnameById = gatewayIds.isEmpty()
-            ? Map.<String, String>of()
-            : instanceQueryService
-                .findByIds(executionContext, gatewayIds)
-                .stream()
-                .filter(i -> i.getHostname() != null)
-                .collect(Collectors.toMap(BaseInstance::getId, BaseInstance::getHostname, (a, b) -> a));
+                ? Map.<String, String>of()
+                : instanceQueryService.findByIds(executionContext, gatewayIds).stream()
+                        .filter(i -> i.getHostname() != null)
+                        .collect(Collectors.toMap(BaseInstance::getId, BaseInstance::getHostname, (a, b) -> a));
 
-        var apiProductIds = entries.stream().map(LogEntry::apiProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+        var apiProductIds = entries.stream()
+                .map(LogEntry::apiProductId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         var apiProductNameById = apiProductIds.isEmpty()
-            ? Map.<String, String>of()
-            : apiProductQueryService
-                .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), apiProductIds)
-                .stream()
-                .filter(p -> p.getName() != null)
-                .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName, (a, b) -> a));
+                ? Map.<String, String>of()
+                : apiProductQueryService
+                        .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), apiProductIds)
+                        .stream()
+                        .filter(p -> p.getName() != null)
+                        .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName, (a, b) -> a));
 
-        return entries
-            .stream()
-            .map(entry ->
-                entry
-                    .toBuilder()
-                    .planName(lookup(planNameById, entry.planId()))
-                    .applicationName(lookup(appNameById, entry.applicationId()))
-                    .gatewayHostname(lookup(gatewayHostnameById, entry.gateway()))
-                    .apiProductName(
-                        entry.apiProductId() == null ? STANDALONE_API_PRODUCT_NAME : lookup(apiProductNameById, entry.apiProductId())
-                    )
-                    .build()
-            )
-            .toList();
+        return entries.stream()
+                .map(entry -> entry.toBuilder()
+                        .planName(lookup(planNameById, entry.planId()))
+                        .applicationName(lookup(appNameById, entry.applicationId()))
+                        .gatewayHostname(lookup(gatewayHostnameById, entry.gateway()))
+                        .apiProductName(
+                                entry.apiProductId() == null
+                                        ? STANDALONE_API_PRODUCT_NAME
+                                        : lookup(apiProductNameById, entry.apiProductId()))
+                        .build())
+                .toList();
     }
 
     /**
@@ -838,17 +840,15 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         if (warnings == null) {
             return List.of();
         }
-        return warnings
-            .stream()
-            .map(w -> new LogEntryWarning(w.getComponentType(), w.getComponentName(), w.getKey(), w.getMessage()))
-            .toList();
+        return warnings.stream()
+                .map(w -> new LogEntryWarning(w.getComponentType(), w.getComponentName(), w.getKey(), w.getMessage()))
+                .toList();
     }
 
     private static void addStatusCodeGroupFilter(List<String> values, Set<String> statusCodeGroups) {
         for (String group : values) {
-            HttpStatusCodeGroups.resolve(group).orElseThrow(() ->
-                new ValidationDomainException("Unknown HTTP status code group: " + group)
-            );
+            HttpStatusCodeGroups.resolve(group)
+                    .orElseThrow(() -> new ValidationDomainException("Unknown HTTP status code group: " + group));
             statusCodeGroups.add(group.toUpperCase(java.util.Locale.ROOT));
         }
     }
@@ -875,39 +875,42 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             throw new ValidationDomainException("Invalid HTTP status code value: " + value);
         }
         if (status < HTTP_STATUS_MIN || status > HTTP_STATUS_MAX) {
-            throw new ValidationDomainException(
-                "Invalid HTTP status code: " + value + ". Must be between " + HTTP_STATUS_MIN + " and " + HTTP_STATUS_MAX + "."
-            );
+            throw new ValidationDomainException("Invalid HTTP status code: " + value + ". Must be between "
+                    + HTTP_STATUS_MIN + " and " + HTTP_STATUS_MAX + ".");
         }
         return status;
     }
 
     private static <T extends Comparable<T>> void applyNumericBound(
-        NumericRangeAccumulator<T> accumulator,
-        FilterOperator operator,
-        T value
-    ) {
+            NumericRangeAccumulator<T> accumulator, FilterOperator operator, T value) {
         switch (operator) {
             case GTE -> accumulator.setGte(value);
             case LTE -> accumulator.setLte(value);
             case EQ -> accumulator.setBoth(value);
-            default -> throw new IllegalStateException("Operator " + operator + " should have been rejected by filter validation");
+            default ->
+                throw new IllegalStateException(
+                        "Operator " + operator + " should have been rejected by filter validation");
         }
     }
 
-    private static io.gravitee.apim.core.audit.model.AuditInfo currentAuditInfo(String organizationId, String environmentId) {
+    private static io.gravitee.apim.core.audit.model.AuditInfo currentAuditInfo(
+            String organizationId, String environmentId) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         io.gravitee.apim.core.audit.model.AuditActor actor;
         if (authentication != null && authentication.getName() != null) {
-            actor = io.gravitee.apim.core.audit.model.AuditActor.builder().userId(authentication.getName()).build();
+            actor = io.gravitee.apim.core.audit.model.AuditActor.builder()
+                    .userId(authentication.getName())
+                    .build();
         } else {
-            actor = io.gravitee.apim.core.audit.model.AuditActor.builder().userId("unknown").build();
+            actor = io.gravitee.apim.core.audit.model.AuditActor.builder()
+                    .userId("unknown")
+                    .build();
         }
         return io.gravitee.apim.core.audit.model.AuditInfo.builder()
-            .organizationId(organizationId)
-            .environmentId(environmentId)
-            .actor(actor)
-            .build();
+                .organizationId(organizationId)
+                .environmentId(environmentId)
+                .actor(actor)
+                .build();
     }
 
     /**
@@ -918,40 +921,34 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
      */
     @Override
     public MessageLogsPage searchMessages(
-        String organizationId,
-        String environmentId,
-        String apiId,
-        String requestId,
-        int page,
-        int perPage
-    ) {
+            String organizationId, String environmentId, String apiId, String requestId, int page, int perPage) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
         var result = aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(
-            executionContext,
-            apiId,
-            requestId,
-            new PageableImpl(page, perPage)
-        );
+                executionContext, apiId, requestId, new PageableImpl(page, perPage));
 
         // Keep the total even when this page is empty: a page past the end is not the same as a
         // connection that recorded nothing, and the client needs the count to paginate back.
         var logs = result.logs() == null ? List.<AggregatedMessageLog>of() : result.logs();
 
-        return new MessageLogsPage(logs.stream().map(ObservabilityLogsDataPortAdapter::mapToMessageLog).toList(), result.total());
+        return new MessageLogsPage(
+                logs.stream()
+                        .map(ObservabilityLogsDataPortAdapter::mapToMessageLog)
+                        .toList(),
+                result.total());
     }
 
     private static MessageLog mapToMessageLog(AggregatedMessageLog log) {
         return MessageLog.builder()
-            .requestId(log.getRequestId())
-            .apiId(log.getApiId())
-            .timestamp(log.getTimestamp())
-            .clientIdentifier(log.getClientIdentifier())
-            .correlationId(log.getCorrelationId())
-            .parentCorrelationId(log.getParentCorrelationId())
-            .operation(log.getOperation() != null ? log.getOperation().name() : null)
-            .entrypoint(mapToMessage(log.getEntrypoint()))
-            .endpoint(mapToMessage(log.getEndpoint()))
-            .build();
+                .requestId(log.getRequestId())
+                .apiId(log.getApiId())
+                .timestamp(log.getTimestamp())
+                .clientIdentifier(log.getClientIdentifier())
+                .correlationId(log.getCorrelationId())
+                .parentCorrelationId(log.getParentCorrelationId())
+                .operation(log.getOperation() != null ? log.getOperation().name() : null)
+                .entrypoint(mapToMessage(log.getEntrypoint()))
+                .endpoint(mapToMessage(log.getEndpoint()))
+                .build();
     }
 
     private static MessageLog.Message mapToMessage(AggregatedMessageLog.Message message) {
@@ -959,13 +956,13 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             return null;
         }
         return MessageLog.Message.builder()
-            .id(message.getId())
-            .timestamp(message.getTimestamp())
-            .connectorId(message.getConnectorId())
-            .payload(message.getPayload())
-            .error(message.isError())
-            .headers(message.getHeaders())
-            .metadata(message.getMetadata())
-            .build();
+                .id(message.getId())
+                .timestamp(message.getTimestamp())
+                .connectorId(message.getConnectorId())
+                .payload(message.getPayload())
+                .error(message.isError())
+                .headers(message.getHeaders())
+                .metadata(message.getMetadata())
+                .build();
     }
 }

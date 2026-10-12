@@ -38,26 +38,31 @@ class ApiProductShardingFilterTest {
     void should_match_product_tags_via_gateway_configuration() {
         when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
 
-        assertThat(ApiProductShardingFilter.matchesProductTags(gatewayConfiguration, Set.of("internal"))).isTrue();
+        assertThat(ApiProductShardingFilter.matchesProductTags(gatewayConfiguration, Set.of("internal")))
+                .isTrue();
     }
 
     @Test
     void should_accept_plan_with_no_tags_on_any_matching_gateway() {
-        assertThat(ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, null)).isTrue();
-        assertThat(ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, Set.of())).isTrue();
+        assertThat(ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, null))
+                .isTrue();
+        assertThat(ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, Set.of()))
+                .isTrue();
     }
 
     @Test
     void should_delegate_plan_tag_matching_to_gateway_configuration() {
         when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
 
-        assertThat(ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, Set.of("external"))).isFalse();
+        assertThat(ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, Set.of("external")))
+                .isFalse();
     }
 
     @Test
     void should_match_plan_when_gateway_has_matching_tags() {
         when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
 
-        assertThat(ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, Set.of("internal"))).isTrue();
+        assertThat(ApiProductShardingFilter.matchesPlanTags(gatewayConfiguration, Set.of("internal")))
+                .isTrue();
     }
 }

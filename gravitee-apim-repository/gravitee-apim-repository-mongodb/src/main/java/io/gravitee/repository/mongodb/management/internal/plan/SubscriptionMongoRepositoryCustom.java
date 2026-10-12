@@ -52,7 +52,8 @@ public interface SubscriptionMongoRepositoryCustom {
      *       repository-bridge fallback when no plan marker is available.</li>
      * </ul>
      */
-    List<SubscriptionMongo> searchAfter(SubscriptionCriteria criteria, SubscriptionCursor after, int pageSize, SubscriptionSearchSort sort);
+    List<SubscriptionMongo> searchAfter(
+            SubscriptionCriteria criteria, SubscriptionCursor after, int pageSize, SubscriptionSearchSort sort);
 
     Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order);
 }

@@ -41,7 +41,8 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class DefaultEndpointManager extends AbstractService<EndpointManager> implements EndpointManager, TemplateVariableProvider {
+public class DefaultEndpointManager extends AbstractService<EndpointManager>
+        implements EndpointManager, TemplateVariableProvider {
 
     public static final String TEMPLATE_VARIABLE_ENDPOINTS = "endpoints";
 
@@ -57,11 +58,10 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
     private final Optional<String> tenant;
 
     public DefaultEndpointManager(
-        final Api api,
-        final EndpointConnectorPluginManager endpointConnectorPluginManager,
-        final DeploymentContext deploymentContext,
-        final GatewayConfiguration gatewayConfiguration
-    ) {
+            final Api api,
+            final EndpointConnectorPluginManager endpointConnectorPluginManager,
+            final DeploymentContext deploymentContext,
+            final GatewayConfiguration gatewayConfiguration) {
         this.api = api;
         this.endpointsByName = new ConcurrentHashMap<>(1);
         this.groupsByName = new ConcurrentHashMap<>(1);
@@ -161,7 +161,9 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
             try {
                 managedEndpoint.getConnector().preStop();
             } catch (Exception e) {
-                log.warn("An error occurred when pre-stopping endpoint connector [{}].", managedEndpoint.getDefinition().getName());
+                log.warn(
+                        "An error occurred when pre-stopping endpoint connector [{}].",
+                        managedEndpoint.getDefinition().getName());
             }
         }
 
@@ -237,24 +239,19 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
         try {
             final String configuration = getEndpointConfiguration(endpoint);
             final String sharedConfiguration = getSharedConfiguration(managedEndpointGroup.getDefinition(), endpoint);
-            final BaseEndpointConnectorFactory<BaseEndpointConnector<?>> connectorFactory = endpointConnectorPluginManager.getFactoryById(
-                endpoint.getType()
-            );
+            final BaseEndpointConnectorFactory<BaseEndpointConnector<?>> connectorFactory =
+                    endpointConnectorPluginManager.getFactoryById(endpoint.getType());
 
             if (connectorFactory == null) {
                 log.warn(
-                    "Endpoint connector {} cannot be instantiated (no factory of type [{}] found). Skipped.",
-                    endpoint.getName(),
-                    endpoint.getType()
-                );
+                        "Endpoint connector {} cannot be instantiated (no factory of type [{}] found). Skipped.",
+                        endpoint.getName(),
+                        endpoint.getType());
                 return;
             }
 
-            final BaseEndpointConnector<?> connector = connectorFactory.createConnector(
-                deploymentContext,
-                configuration,
-                sharedConfiguration
-            );
+            final BaseEndpointConnector<?> connector =
+                    connectorFactory.createConnector(deploymentContext, configuration, sharedConfiguration);
 
             if (connector == null) {
                 log.warn("Endpoint connector {} cannot be started. Skipped.", endpoint.getName());
@@ -263,15 +260,21 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
 
             connector.start();
 
-            final ManagedEndpoint managedEndpoint = new DefaultManagedEndpoint(endpoint, managedEndpointGroup, connector);
+            final ManagedEndpoint managedEndpoint =
+                    new DefaultManagedEndpoint(endpoint, managedEndpointGroup, connector);
             managedEndpointGroup.addManagedEndpoint(managedEndpoint);
             endpointsByName.put(endpoint.getName(), managedEndpoint);
             endpointVariables.put(endpoint.getName(), endpoint.getName() + ":");
-            endpointVariables.put(managedEndpointGroup.getDefinition().getName(), managedEndpointGroup.getDefinition().getName() + ":");
+            endpointVariables.put(
+                    managedEndpointGroup.getDefinition().getName(),
+                    managedEndpointGroup.getDefinition().getName() + ":");
 
             listeners.values().forEach(l -> l.accept(Event.ADD, managedEndpoint));
         } catch (Exception e) {
-            log.warn("Unable to properly start the endpoint connector {}: {}. Skipped.", endpoint.getName(), e.getMessage());
+            log.warn(
+                    "Unable to properly start the endpoint connector {}: {}. Skipped.",
+                    endpoint.getName(),
+                    e.getMessage());
         }
     }
 
@@ -280,10 +283,15 @@ public class DefaultEndpointManager extends AbstractService<EndpointManager> imp
     }
 
     private String getSharedConfiguration(EndpointGroup endpointGroup, Endpoint endpoint) {
-        return endpoint.isInheritConfiguration() ? endpointGroup.getSharedConfiguration() : endpoint.getSharedConfigurationOverride();
+        return endpoint.isInheritConfiguration()
+                ? endpointGroup.getSharedConfiguration()
+                : endpoint.getSharedConfigurationOverride();
     }
 
     private boolean isTenantApplicable(String tenant, Endpoint endpoint) {
-        return tenant == null || endpoint.getTenants() == null || endpoint.getTenants().isEmpty() || endpoint.getTenants().contains(tenant);
+        return tenant == null
+                || endpoint.getTenants() == null
+                || endpoint.getTenants().isEmpty()
+                || endpoint.getTenants().contains(tenant);
     }
 }

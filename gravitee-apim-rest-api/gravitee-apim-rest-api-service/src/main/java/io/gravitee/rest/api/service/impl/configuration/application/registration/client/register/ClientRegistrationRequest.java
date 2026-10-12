@@ -29,14 +29,13 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientRegistrationRequest {
 
-    //See https://tools.ietf.org/html/rfc6749#section-3.3
+    // See https://tools.ietf.org/html/rfc6749#section-3.3
     public static final String SCOPE_DELIMITER = " ";
 
     /*******************************************************************************
      * Metadata in same order than the openid specification
      * https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata
      ********************************************************************************/
-
     @JsonProperty("redirect_uris")
     private List<String> redirectUris;
 
@@ -130,18 +129,18 @@ public class ClientRegistrationRequest {
      * https://tools.ietf.org/html/rfc7591#section-3.1.1
      ********************************************************************************/
 
-    //https://tools.ietf.org/html/rfc7591#section-4.1.2 : scope is String space delimited
+    // https://tools.ietf.org/html/rfc7591#section-4.1.2 : scope is String space delimited
     @JsonProperty("scope")
     private String scope;
 
     @JsonProperty("software_id")
-    private String softwareId; //Should be UUID
+    private String softwareId; // Should be UUID
 
     @JsonProperty("software_version")
     private String softwareVersion;
 
     @JsonProperty("software_statement")
-    private String softwareStatement; //Should be JWT
+    private String softwareStatement; // Should be JWT
 
     // GETTER AND SETTERS //
 
@@ -378,7 +377,7 @@ public class ClientRegistrationRequest {
     }
 
     public List<String> getScope() {
-        if (this.scope == null) return null; //Keep null to avoid patch...
+        if (this.scope == null) return null; // Keep null to avoid patch...
         return Arrays.asList(scope.split(SCOPE_DELIMITER));
     }
 

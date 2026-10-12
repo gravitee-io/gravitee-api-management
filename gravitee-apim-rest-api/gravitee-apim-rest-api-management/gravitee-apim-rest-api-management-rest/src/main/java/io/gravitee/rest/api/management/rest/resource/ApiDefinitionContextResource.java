@@ -48,7 +48,7 @@ public class ApiDefinitionContextResource {
     @PUT
     @Hidden
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response updateDefinitionContext(@Valid @NotNull DefinitionContextEntity definitionContext) {
         definitionContextService.setDefinitionContext(apiId, definitionContext);
         return Response.ok().build();

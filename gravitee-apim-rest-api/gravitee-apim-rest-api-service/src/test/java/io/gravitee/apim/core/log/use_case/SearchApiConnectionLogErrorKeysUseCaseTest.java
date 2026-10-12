@@ -53,15 +53,28 @@ class SearchApiConnectionLogErrorKeysUseCaseTest {
 
     @Test
     void should_return_error_keys_of_an_api() {
-        logStorageService.initWithConnectionLogs(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().errorKey("ERROR_1").timestamp("2020-02-01T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req2").toBuilder().errorKey("ERROR_2").timestamp("2020-02-01T21:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req3").toBuilder().errorKey("ERROR_1").timestamp("2020-02-01T22:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req4").toBuilder().errorKey("ERROR_3").timestamp("2020-02-03T20:00:00.00Z").build(), // Out of range
-                connectionLogFixtures.aConnectionLog("req5").toBuilder().apiId("other-api").errorKey("ERROR_4").build() // Other API
-            )
-        );
+        logStorageService.initWithConnectionLogs(List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                        .errorKey("ERROR_1")
+                        .timestamp("2020-02-01T20:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder()
+                        .errorKey("ERROR_2")
+                        .timestamp("2020-02-01T21:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req3").toBuilder()
+                        .errorKey("ERROR_1")
+                        .timestamp("2020-02-01T22:00:00.00Z")
+                        .build(),
+                connectionLogFixtures.aConnectionLog("req4").toBuilder()
+                        .errorKey("ERROR_3")
+                        .timestamp("2020-02-03T20:00:00.00Z")
+                        .build(), // Out of range
+                connectionLogFixtures.aConnectionLog("req5").toBuilder()
+                        .apiId("other-api")
+                        .errorKey("ERROR_4")
+                        .build() // Other API
+                ));
 
         var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID, FROM, TO));
 
@@ -70,9 +83,10 @@ class SearchApiConnectionLogErrorKeysUseCaseTest {
 
     @Test
     void should_return_empty_list_if_no_error_keys() {
-        logStorageService.initWithConnectionLogs(
-            List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder().errorKey(null).timestamp("2020-02-01T20:00:00.00Z").build())
-        );
+        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder()
+                .errorKey(null)
+                .timestamp("2020-02-01T20:00:00.00Z")
+                .build()));
 
         var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID, FROM, TO));
 

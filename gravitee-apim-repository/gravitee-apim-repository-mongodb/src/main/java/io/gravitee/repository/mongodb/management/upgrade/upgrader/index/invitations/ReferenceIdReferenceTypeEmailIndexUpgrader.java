@@ -31,19 +31,19 @@ public class ReferenceIdReferenceTypeEmailIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("invitations")
-            .name("ri1rt1e1")
-            .key("referenceId", ascending())
-            .key("referenceType", ascending())
-            .key("email", ascending())
-            .collation(collation())
-            .build();
+                .collection("invitations")
+                .name("ri1rt1e1")
+                .key("referenceId", ascending())
+                .key("referenceType", ascending())
+                .key("email", ascending())
+                .collation(collation())
+                .build();
     }
 
     private static Collation collation() {
         return Collation.builder()
-            .locale(Locale.ENGLISH.getLanguage())
-            .collationStrength(CollationStrength.SECONDARY)
-            .build();
+                .locale(Locale.ENGLISH.getLanguage())
+                .collationStrength(CollationStrength.SECONDARY)
+                .build();
     }
 }

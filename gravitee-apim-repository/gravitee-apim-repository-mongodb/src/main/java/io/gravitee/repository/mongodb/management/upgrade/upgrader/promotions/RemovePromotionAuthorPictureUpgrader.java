@@ -35,7 +35,8 @@ public class RemovePromotionAuthorPictureUpgrader extends MongoUpgrader {
 
     @Override
     public boolean upgrade() {
-        var updateResult = this.getCollection("promotions").updateMany(new BsonDocument(), Updates.unset("author.picture"));
+        var updateResult =
+                this.getCollection("promotions").updateMany(new BsonDocument(), Updates.unset("author.picture"));
         return updateResult.wasAcknowledged();
     }
 

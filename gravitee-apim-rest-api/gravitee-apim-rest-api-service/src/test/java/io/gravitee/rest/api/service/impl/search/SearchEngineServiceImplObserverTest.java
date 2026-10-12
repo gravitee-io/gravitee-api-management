@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,7 +53,7 @@ class SearchEngineServiceImplObserverTest {
     private SearchEngineServiceImpl service;
 
     @BeforeEach
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     void setUp() {
         service = new SearchEngineServiceImpl();
         ReflectionTestUtils.setField(service, "indexer", luceneIndexer);
@@ -77,7 +76,9 @@ class SearchEngineServiceImplObserverTest {
     @Test
     void index_still_fires_observer_when_lucene_write_throws() throws TechnicalException {
         var source = mock(Indexable.class);
-        doThrow(new TechnicalException("simulated lucene failure")).when(luceneIndexer).index(any(), anyBoolean());
+        doThrow(new TechnicalException("simulated lucene failure"))
+                .when(luceneIndexer)
+                .index(any(), anyBoolean());
 
         service.index(new ExecutionContext("org", "env"), source, true);
 

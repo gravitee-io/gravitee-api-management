@@ -41,13 +41,10 @@ public class EnableSubscriptionFormUseCase {
 
     public Output execute(Input input) {
         var existingForm = subscriptionFormQueryService
-            .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
-            .orElseThrow(() ->
-                new SubscriptionFormNotFoundException(
-                    "Subscription form not found with id [ " + input.subscriptionFormId() + " ]",
-                    input.subscriptionFormId().toString()
-                )
-            );
+                .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
+                .orElseThrow(() -> new SubscriptionFormNotFoundException(
+                        "Subscription form not found with id [ " + input.subscriptionFormId() + " ]",
+                        input.subscriptionFormId().toString()));
 
         if (existingForm.isEnabled()) {
             return new Output(existingForm);
@@ -55,7 +52,10 @@ public class EnableSubscriptionFormUseCase {
 
         existingForm.enable();
         var savedForm = subscriptionFormCrudService.update(existingForm);
-        log.info("Enabled subscription form [{}] for environment [{}]", input.subscriptionFormId(), input.environmentId());
+        log.info(
+                "Enabled subscription form [{}] for environment [{}]",
+                input.subscriptionFormId(),
+                input.environmentId());
 
         return new Output(savedForm);
     }

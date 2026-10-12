@@ -92,14 +92,18 @@ public class TlsIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
-            entrypoints.putIfAbsent("tcp-proxy", EntrypointBuilder.build("tcp-proxy", TcpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "tcp-proxy", EntrypointBuilder.build("tcp-proxy", TcpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
-            endpoints.putIfAbsent("tcp-proxy", EndpointBuilder.build("tcp-proxy", TcpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "tcp-proxy", EndpointBuilder.build("tcp-proxy", TcpProxyEndpointConnectorFactory.class));
         }
 
         Vertx vertx() {
@@ -126,13 +130,12 @@ public class TlsIntegrationTest {
             tcpBrightCert = tcp.certs().get(BRIGHT_SIDE_FQDN).toPem();
             tcpDarkCert = tcp.certs().get(DARK_SIDE_FQDN).toPem();
             tcpKeyStoreLocation = tcp.location().toAbsolutePath();
-            config
-                .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
-                .set("http.ssl.keystore.path", httpKeyStoreLocation.toString())
-                .set("http.ssl.keystore.password", new String(PASSWORD))
-                .set("tcp.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
-                .set("tcp.ssl.keystore.path", tcpKeyStoreLocation.toString())
-                .set("tcp.ssl.keystore.password", new String(PASSWORD));
+            config.set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
+                    .set("http.ssl.keystore.path", httpKeyStoreLocation.toString())
+                    .set("http.ssl.keystore.password", new String(PASSWORD))
+                    .set("tcp.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
+                    .set("tcp.ssl.keystore.path", tcpKeyStoreLocation.toString())
+                    .set("tcp.ssl.keystore.password", new String(PASSWORD));
         }
     }
 
@@ -141,7 +144,7 @@ public class TlsIntegrationTest {
     class StaticKeyStore extends AbstractKeyStoreTLSTest {
 
         @Test
-        @DeployApi({ "/apis/v4/http/api.json" })
+        @DeployApi({"/apis/v4/http/api.json"})
         void should_connect_to_gateway_with_tls_via_http(GatewayDynamicConfig.HttpConfig httpConfig) {
             var brightHttpClient = createTrustedHttpClient(vertx(), httpBrightCert);
 
@@ -153,7 +156,7 @@ public class TlsIntegrationTest {
         }
 
         @Test
-        @DeployApi({ "/apis/v4/tcp/api-multi-domain.json" })
+        @DeployApi({"/apis/v4/tcp/api-multi-domain.json"})
         void should_connect_to_gateway_with_tls_via_tcp(GatewayDynamicConfig.TcpConfig tcpConfig) {
             var brightHttpClient = createTrustedHttpClient(vertx(), tcpBrightCert);
 
@@ -179,36 +182,36 @@ public class TlsIntegrationTest {
         }
 
         @Test
-        @DeployApi({ "/apis/v4/http/api.json" })
-        void should_not_be_able_to_call_on_removed_domains_using_http(GatewayDynamicConfig.HttpConfig httpConfig) throws Exception {
+        @DeployApi({"/apis/v4/http/api.json"})
+        void should_not_be_able_to_call_on_removed_domains_using_http(GatewayDynamicConfig.HttpConfig httpConfig)
+                throws Exception {
             var genResult = replaceKeyStore(DARK_SIDE_FQDN, httpKeyStoreLocation);
 
             // now bright side should not available anymore
-            await()
-                .atMost(5, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    assertHandshakeError(vertx(), httpBrightCert, BRIGHT_SIDE_FQDN, httpConfig.httpPort());
-                });
+            await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+                assertHandshakeError(vertx(), httpBrightCert, BRIGHT_SIDE_FQDN, httpConfig.httpPort());
+            });
 
             // call with new dark certPath
-            HttpClient darkClient = createTrustedHttpClient(vertx(), genResult.certs().get(DARK_SIDE_FQDN).toPem());
+            HttpClient darkClient = createTrustedHttpClient(
+                    vertx(), genResult.certs().get(DARK_SIDE_FQDN).toPem());
             assertApiCall(darkClient, httpConfig.httpPort(), DARK_SIDE_FQDN, GATEWAY_HTTP_API_URI);
         }
 
         @Test
-        @DeployApi({ "/apis/v4/tcp/api-multi-domain.json" })
-        void should_not_be_able_to_call_on_removed_domains_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig) throws Exception {
+        @DeployApi({"/apis/v4/tcp/api-multi-domain.json"})
+        void should_not_be_able_to_call_on_removed_domains_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig)
+                throws Exception {
             var genResult = replaceKeyStore(DARK_SIDE_FQDN, tcpKeyStoreLocation);
 
             // now bright side should not available anymore
-            await()
-                .atMost(5, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    assertHandshakeError(vertx(), tcpBrightCert, BRIGHT_SIDE_FQDN, tcpConfig.tcpPort());
-                });
+            await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+                assertHandshakeError(vertx(), tcpBrightCert, BRIGHT_SIDE_FQDN, tcpConfig.tcpPort());
+            });
 
             // call with new dark certPath
-            HttpClient darkClient = createTrustedHttpClient(vertx(), genResult.certs().get(DARK_SIDE_FQDN).toPem());
+            HttpClient darkClient = createTrustedHttpClient(
+                    vertx(), genResult.certs().get(DARK_SIDE_FQDN).toPem());
             assertApiCall(darkClient, tcpConfig.tcpPort(), DARK_SIDE_FQDN, GATEWAY_TCP_API_URI);
         }
     }
@@ -224,7 +227,7 @@ public class TlsIntegrationTest {
             super.configureGateway(config);
             config.httpSslKeystoreType(KeyStoreLoader.CERTIFICATE_FORMAT_PEM);
             config.set("tcp.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PEM);
-            String[] names = { BRIGHT_SIDE_FQDN, DARK_SIDE_FQDN };
+            String[] names = {BRIGHT_SIDE_FQDN, DARK_SIDE_FQDN};
             this.httpPems = createNewPEMs(names);
             this.tcpPems = createNewPEMs(names);
             httpBrightCert = httpPems.certificates().get(BRIGHT_SIDE_FQDN).cert();
@@ -232,10 +235,18 @@ public class TlsIntegrationTest {
             tcpBrightCert = tcpPems.certificates().get(BRIGHT_SIDE_FQDN).cert();
             tcpDarkCert = tcpPems.certificates().get(DARK_SIDE_FQDN).cert();
             for (int i = 0; i < names.length; i++) {
-                config.set("http.ssl.keystore.certificates[%d].cert".formatted(i), httpPems.locations().get(names[i]).certPath());
-                config.set("http.ssl.keystore.certificates[%d].key".formatted(i), httpPems.locations().get(names[i]).keyPath());
-                config.set("tcp.ssl.keystore.certificates[%d].cert".formatted(i), tcpPems.locations().get(names[i]).certPath());
-                config.set("tcp.ssl.keystore.certificates[%d].key".formatted(i), tcpPems.locations().get(names[i]).keyPath());
+                config.set(
+                        "http.ssl.keystore.certificates[%d].cert".formatted(i),
+                        httpPems.locations().get(names[i]).certPath());
+                config.set(
+                        "http.ssl.keystore.certificates[%d].key".formatted(i),
+                        httpPems.locations().get(names[i]).keyPath());
+                config.set(
+                        "tcp.ssl.keystore.certificates[%d].cert".formatted(i),
+                        tcpPems.locations().get(names[i]).certPath());
+                config.set(
+                        "tcp.ssl.keystore.certificates[%d].key".formatted(i),
+                        tcpPems.locations().get(names[i]).keyPath());
             }
         }
     }
@@ -245,7 +256,7 @@ public class TlsIntegrationTest {
     class StaticPem extends AbstractPemTLSTest {
 
         @Test
-        @DeployApi({ "/apis/v4/http/api.json" })
+        @DeployApi({"/apis/v4/http/api.json"})
         void should_connect_to_gateway_with_tls_using_http(GatewayDynamicConfig.HttpConfig httpConfig) {
             var brightHttpClient = createTrustedHttpClient(vertx(), httpBrightCert);
 
@@ -257,7 +268,7 @@ public class TlsIntegrationTest {
         }
 
         @Test
-        @DeployApi({ "/apis/v4/tcp/api-multi-domain.json" })
+        @DeployApi({"/apis/v4/tcp/api-multi-domain.json"})
         void should_connect_to_gateway_with_tls_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig) {
             var brightHttpClient = createTrustedHttpClient(vertx(), tcpBrightCert);
 
@@ -281,42 +292,42 @@ public class TlsIntegrationTest {
         }
 
         @Test
-        @DeployApi({ "/apis/v4/http/api.json" })
-        void should_not_be_able_to_call_on_removed_domains_using_http(GatewayDynamicConfig.HttpConfig httpConfig) throws Exception {
+        @DeployApi({"/apis/v4/http/api.json"})
+        void should_not_be_able_to_call_on_removed_domains_using_http(GatewayDynamicConfig.HttpConfig httpConfig)
+                throws Exception {
             // generate new pair for dark
             Path originalCertPath = httpPems.locations().get(DARK_SIDE_FQDN).certPath();
             Path originalKeyPath = httpPems.locations().get(DARK_SIDE_FQDN).keyPath();
             var newDark = replacePem(DARK_SIDE_FQDN, originalCertPath, originalKeyPath);
 
             // it should now fail with old one, then work with new one.
-            await()
-                .atMost(5, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    assertHandshakeError(vertx(), httpDarkCert, DARK_SIDE_FQDN, httpConfig.httpPort());
-                });
+            await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+                assertHandshakeError(vertx(), httpDarkCert, DARK_SIDE_FQDN, httpConfig.httpPort());
+            });
 
             // call with new dark certPath
-            HttpClient darkClient = createTrustedHttpClient(vertx(), newDark.certificates().get(DARK_SIDE_FQDN).cert());
+            HttpClient darkClient = createTrustedHttpClient(
+                    vertx(), newDark.certificates().get(DARK_SIDE_FQDN).cert());
             assertApiCall(darkClient, httpConfig.httpPort(), DARK_SIDE_FQDN, GATEWAY_HTTP_API_URI);
         }
 
         @Test
-        @DeployApi({ "/apis/v4/tcp/api-multi-domain.json" })
-        void should_not_be_able_to_call_on_removed_domains_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig) throws Exception {
+        @DeployApi({"/apis/v4/tcp/api-multi-domain.json"})
+        void should_not_be_able_to_call_on_removed_domains_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig)
+                throws Exception {
             // generate new pair for dark
             Path originalCertPath = tcpPems.locations().get(DARK_SIDE_FQDN).certPath();
             Path originalKeyPath = tcpPems.locations().get(DARK_SIDE_FQDN).keyPath();
             var newDark = replacePem(DARK_SIDE_FQDN, originalCertPath, originalKeyPath);
 
             // it should now fail with old one, then work with new one.
-            await()
-                .atMost(5, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    assertHandshakeError(vertx(), tcpDarkCert, DARK_SIDE_FQDN, tcpConfig.tcpPort());
-                });
+            await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+                assertHandshakeError(vertx(), tcpDarkCert, DARK_SIDE_FQDN, tcpConfig.tcpPort());
+            });
 
             // call with new dark certPath
-            HttpClient darkClient = createTrustedHttpClient(vertx(), newDark.certificates().get(DARK_SIDE_FQDN).cert());
+            HttpClient darkClient = createTrustedHttpClient(
+                    vertx(), newDark.certificates().get(DARK_SIDE_FQDN).cert());
             assertApiCall(darkClient, tcpConfig.tcpPort(), DARK_SIDE_FQDN, GATEWAY_TCP_API_URI);
         }
     }

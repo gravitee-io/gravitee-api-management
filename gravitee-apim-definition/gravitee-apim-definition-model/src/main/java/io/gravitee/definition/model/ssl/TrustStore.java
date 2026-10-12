@@ -32,26 +32,23 @@ import lombok.experimental.SuperBuilder;
  * @author GraviteeSource Team
  */
 @Schema(
-    discriminatorProperty = "type",
-    discriminatorMapping = {
-        @DiscriminatorMapping(value = "JKS", schema = JKSTrustStore.class),
-        @DiscriminatorMapping(value = "PEM", schema = PEMTrustStore.class),
-        @DiscriminatorMapping(value = "PKCS12", schema = PKCS12TrustStore.class),
-    }
-)
+        discriminatorProperty = "type",
+        discriminatorMapping = {
+            @DiscriminatorMapping(value = "JKS", schema = JKSTrustStore.class),
+            @DiscriminatorMapping(value = "PEM", schema = PEMTrustStore.class),
+            @DiscriminatorMapping(value = "PKCS12", schema = PKCS12TrustStore.class),
+        })
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(name = "JKS", value = JKSTrustStore.class),
-        @JsonSubTypes.Type(name = "PEM", value = PEMTrustStore.class),
-        @JsonSubTypes.Type(name = "PKCS12", value = PKCS12TrustStore.class),
-        @JsonSubTypes.Type(value = NoneTrustStore.class),
-        // legacy support
-        @JsonSubTypes.Type(name = "jks", value = JKSTrustStore.class),
-        @JsonSubTypes.Type(name = "pem", value = PEMTrustStore.class),
-        @JsonSubTypes.Type(name = "pkcs12", value = PKCS12TrustStore.class),
-    }
-)
+@JsonSubTypes({
+    @JsonSubTypes.Type(name = "JKS", value = JKSTrustStore.class),
+    @JsonSubTypes.Type(name = "PEM", value = PEMTrustStore.class),
+    @JsonSubTypes.Type(name = "PKCS12", value = PKCS12TrustStore.class),
+    @JsonSubTypes.Type(value = NoneTrustStore.class),
+    // legacy support
+    @JsonSubTypes.Type(name = "jks", value = JKSTrustStore.class),
+    @JsonSubTypes.Type(name = "pem", value = PEMTrustStore.class),
+    @JsonSubTypes.Type(name = "pkcs12", value = PKCS12TrustStore.class),
+})
 @SuperBuilder
 public abstract class TrustStore implements Serializable {
 

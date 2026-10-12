@@ -20,7 +20,10 @@ import java.util.Collection;
 
 public interface ClusterManager {
     boolean register(ReactableCluster cluster);
+
     void unregister(String clusterId);
+
     ReactableCluster get(String clusterId);
+
     Collection<ReactableCluster> clusters();
 }

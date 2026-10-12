@@ -59,12 +59,11 @@ public final class UnexpectedErrorReporter {
      * @param statusCode the status to answer with; the caller still decides which one, it is simply written once.
      */
     public static void recordAndAnswer(
-        final HttpPlainExecutionContext ctx,
-        final int statusCode,
-        final String reasonPhrase,
-        final Throwable throwable,
-        final Logger log
-    ) {
+            final HttpPlainExecutionContext ctx,
+            final int statusCode,
+            final String reasonPhrase,
+            final Throwable throwable,
+            final Logger log) {
         final Metrics metrics = ctx.metrics();
         final Diagnostic failure = metrics != null ? metrics.getFailure() : null;
         final String attributedKey = attributedKey(metrics, failure);
@@ -76,22 +75,20 @@ public final class UnexpectedErrorReporter {
         // is what one needs to decide whether the answered status is the real outcome or an overwrite: the status it
         // replaces, the error already attributed, where the request had got to, and the cause spelled out for the
         // cases where the stack trace is truncated by whatever collects these logs.
-        ctx
-            .withLogger(log)
-            .error(
-                "Unexpected error while handling request, answering {} [requestId={}, transactionId={}, " +
-                    "statusBeingReplaced={}, attributedErrorKey={}, attributedFailure={}, endpoint={}, elapsed={}ms]: {}",
-                statusCode,
-                metrics != null ? metrics.getRequestId() : null,
-                metrics != null ? metrics.getTransactionId() : null,
-                replacedStatus,
-                attributedKey,
-                failure != null,
-                metrics != null ? metrics.getEndpoint() : null,
-                elapsedMillis(metrics),
-                mostSpecificCause(throwable),
-                throwable
-            );
+        ctx.withLogger(log)
+                .error(
+                        "Unexpected error while handling request, answering {} [requestId={}, transactionId={}, "
+                                + "statusBeingReplaced={}, attributedErrorKey={}, attributedFailure={}, endpoint={}, elapsed={}ms]: {}",
+                        statusCode,
+                        metrics != null ? metrics.getRequestId() : null,
+                        metrics != null ? metrics.getTransactionId() : null,
+                        replacedStatus,
+                        attributedKey,
+                        failure != null,
+                        metrics != null ? metrics.getEndpoint() : null,
+                        elapsedMillis(metrics),
+                        mostSpecificCause(throwable),
+                        throwable);
 
         if (metrics != null) {
             if (attributedKey == null) {
@@ -99,26 +96,21 @@ public final class UnexpectedErrorReporter {
                 // to carry an error status.
                 metrics.setErrorKey(UNEXPECTED_ERROR_KEY);
                 metrics.setErrorMessage(
-                    "The request failed unexpectedly while being handled by the gateway, and was answered with a " +
-                        statusCode +
-                        " (" +
-                        mostSpecificCause(throwable) +
-                        ")"
-                );
+                        "The request failed unexpectedly while being handled by the gateway, and was answered with a "
+                                + statusCode
+                                + " ("
+                                + mostSpecificCause(throwable)
+                                + ")");
             } else {
                 // Something was already attributed, and it is the more precise diagnosis: it names what actually went
                 // wrong, whereas reaching this path only says the gateway could not handle the consequence. Keep it,
                 // and record the exception as a warning — otherwise it exists nowhere but the gateway's log file.
-                ctx.warnWith(
-                    new ExecutionWarn(UNEXPECTED_ERROR_KEY)
+                ctx.warnWith(new ExecutionWarn(UNEXPECTED_ERROR_KEY)
                         .message(
-                            "The gateway could not complete the handling of this request and answered " +
-                                statusCode +
-                                ", replacing status " +
-                                replacedStatus
-                        )
-                        .cause(throwable)
-                );
+                                "The gateway could not complete the handling of this request and answered " + statusCode
+                                        + ", replacing status "
+                                        + replacedStatus)
+                        .cause(throwable));
             }
         }
 
@@ -138,7 +130,9 @@ public final class UnexpectedErrorReporter {
         if (metrics.getRequestStartNs() > 0) {
             return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - metrics.getRequestStartNs());
         }
-        return metrics.timestamp() != null ? System.currentTimeMillis() - metrics.timestamp().toEpochMilli() : -1L;
+        return metrics.timestamp() != null
+                ? System.currentTimeMillis() - metrics.timestamp().toEpochMilli()
+                : -1L;
     }
 
     /**
@@ -147,7 +141,9 @@ public final class UnexpectedErrorReporter {
      */
     private static String mostSpecificCause(final Throwable throwable) {
         final Throwable cause = NestedExceptionUtils.getMostSpecificCause(throwable);
-        return cause.getMessage() != null && !cause.getMessage().isBlank() ? cause.getMessage() : cause.getClass().getSimpleName();
+        return cause.getMessage() != null && !cause.getMessage().isBlank()
+                ? cause.getMessage()
+                : cause.getClass().getSimpleName();
     }
 
     /**

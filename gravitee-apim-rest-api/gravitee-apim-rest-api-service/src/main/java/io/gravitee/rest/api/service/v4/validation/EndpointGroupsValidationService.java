@@ -26,5 +26,6 @@ import java.util.List;
  */
 public interface EndpointGroupsValidationService {
     List<EndpointGroup> validateAndSanitizeHttpV4(ApiType apiType, List<EndpointGroup> endpointGroups);
+
     List<NativeEndpointGroup> validateAndSanitizeNativeV4(List<NativeEndpointGroup> endpointGroups);
 }

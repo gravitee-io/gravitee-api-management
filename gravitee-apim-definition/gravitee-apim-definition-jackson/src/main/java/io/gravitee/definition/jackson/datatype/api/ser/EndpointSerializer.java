@@ -40,11 +40,13 @@ public class EndpointSerializer extends StdScalarSerializer<Endpoint> {
     }
 
     @Override
-    public void serializeWithType(Endpoint value, JsonGenerator g, SerializerProvider provider, TypeSerializer typeSer) throws IOException {
+    public void serializeWithType(Endpoint value, JsonGenerator g, SerializerProvider provider, TypeSerializer typeSer)
+            throws IOException {
         serialize(value, g, provider);
     }
 
-    protected void doSerialize(Endpoint endpoint, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(Endpoint endpoint, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         jgen.writeStringField("name", endpoint.getName());
         jgen.writeStringField("target", endpoint.getTarget());
         jgen.writeNumberField("weight", endpoint.getWeight());
@@ -59,15 +61,13 @@ public class EndpointSerializer extends StdScalarSerializer<Endpoint> {
 
         if (endpoint.getTenants() != null && !endpoint.getTenants().isEmpty()) {
             jgen.writeArrayFieldStart("tenants");
-            endpoint
-                .getTenants()
-                .forEach(tenant -> {
-                    try {
-                        jgen.writeString(tenant);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            endpoint.getTenants().forEach(tenant -> {
+                try {
+                    jgen.writeString(tenant);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
 
             jgen.writeEndArray();
         }

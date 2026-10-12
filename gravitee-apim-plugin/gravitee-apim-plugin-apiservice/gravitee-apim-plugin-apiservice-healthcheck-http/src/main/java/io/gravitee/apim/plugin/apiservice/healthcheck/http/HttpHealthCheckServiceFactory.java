@@ -19,7 +19,6 @@ import io.gravitee.apim.plugin.apiservice.healthcheck.http.helper.HttpHealthChec
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
-import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import lombok.AllArgsConstructor;
 
@@ -35,7 +34,8 @@ public class HttpHealthCheckServiceFactory implements ApiServiceFactory<HttpHeal
         final Api api = deploymentContext.getComponent(Api.class);
         final GatewayConfiguration gatewayConfiguration = deploymentContext.getComponent(GatewayConfiguration.class);
 
-        if (HttpHealthCheckHelper.canHandle(api.getDefinition(), gatewayConfiguration.tenant().orElse(null))) {
+        if (HttpHealthCheckHelper.canHandle(
+                api.getDefinition(), gatewayConfiguration.tenant().orElse(null))) {
             return new HttpHealthCheckService(api, deploymentContext, gatewayConfiguration);
         }
 

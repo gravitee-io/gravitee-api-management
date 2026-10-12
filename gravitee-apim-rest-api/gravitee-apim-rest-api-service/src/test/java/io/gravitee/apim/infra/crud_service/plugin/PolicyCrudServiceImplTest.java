@@ -16,13 +16,11 @@
 package io.gravitee.apim.infra.crud_service.plugin;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
-import io.gravitee.rest.api.service.exceptions.PolicyNotFoundException;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,18 +47,17 @@ public class PolicyCrudServiceImplTest {
         void should_return_policy_and_adapt_it() {
             // Given
             var policyId = "policy-id";
-            when(policyService.findById(policyId)).thenAnswer(invocation ->
-                PolicyPluginEntity.builder()
-                    .id(invocation.getArgument(0))
-                    .name("name")
-                    .description("description")
-                    .icon("icon")
-                    .feature("feature")
-                    .deployed(true)
-                    .category("category")
-                    .version("1")
-                    .build()
-            );
+            when(policyService.findById(policyId))
+                    .thenAnswer(invocation -> PolicyPluginEntity.builder()
+                            .id(invocation.getArgument(0))
+                            .name("name")
+                            .description("description")
+                            .icon("icon")
+                            .feature("feature")
+                            .deployed(true)
+                            .category("category")
+                            .version("1")
+                            .build());
 
             // When
             var policy = service.get(policyId);

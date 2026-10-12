@@ -72,9 +72,7 @@ public class InMemoryConfiguration {
 
     @Bean
     public ApiKeyQueryServiceInMemory apiKeyQueryService(
-        ApiKeyCrudServiceInMemory apiKeyCrudService,
-        SubscriptionCrudServiceInMemory subscriptionCrudService
-    ) {
+            ApiKeyCrudServiceInMemory apiKeyCrudService, SubscriptionCrudServiceInMemory subscriptionCrudService) {
         return new ApiKeyQueryServiceInMemory(apiKeyCrudService, subscriptionCrudService);
     }
 
@@ -129,7 +127,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public SubscriptionQueryServiceInMemory subscriptionQueryService(SubscriptionCrudServiceInMemory subscriptionCrudService) {
+    public SubscriptionQueryServiceInMemory subscriptionQueryService(
+            SubscriptionCrudServiceInMemory subscriptionCrudService) {
         return new SubscriptionQueryServiceInMemory(subscriptionCrudService);
     }
 
@@ -314,7 +313,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public IntegrationQueryServiceInMemory integrationQueryService(IntegrationCrudServiceInMemory integrationCrudServiceInMemory) {
+    public IntegrationQueryServiceInMemory integrationQueryService(
+            IntegrationCrudServiceInMemory integrationCrudServiceInMemory) {
         return new IntegrationQueryServiceInMemory(integrationCrudServiceInMemory);
     }
 
@@ -430,8 +430,7 @@ public class InMemoryConfiguration {
 
     @Bean
     public PortalMenuLinkQueryServiceInMemory portalMenuLinkQueryService(
-        PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudServiceInMemory
-    ) {
+            PortalMenuLinkCrudServiceInMemory portalMenuLinkCrudServiceInMemory) {
         return new PortalMenuLinkQueryServiceInMemory(portalMenuLinkCrudServiceInMemory);
     }
 
@@ -456,7 +455,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ScoringRulesetQueryServiceInMemory scoringRulesetQueryService(ScoringRulesetCrudServiceInMemory scoringRulesetCrudService) {
+    public ScoringRulesetQueryServiceInMemory scoringRulesetQueryService(
+            ScoringRulesetCrudServiceInMemory scoringRulesetCrudService) {
         return new ScoringRulesetQueryServiceInMemory(scoringRulesetCrudService);
     }
 
@@ -466,7 +466,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ScoringFunctionQueryServiceInMemory scoringFunctionQueryService(ScoringFunctionCrudServiceInMemory scoringFunctionCrudService) {
+    public ScoringFunctionQueryServiceInMemory scoringFunctionQueryService(
+            ScoringFunctionCrudServiceInMemory scoringFunctionCrudService) {
         return new ScoringFunctionQueryServiceInMemory(scoringFunctionCrudService);
     }
 
@@ -501,7 +502,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ApplicationQueryServiceInMemory applicationQueryService(ApplicationCrudServiceInMemory applicationCrudService) {
+    public ApplicationQueryServiceInMemory applicationQueryService(
+            ApplicationCrudServiceInMemory applicationCrudService) {
         return new ApplicationQueryServiceInMemory(applicationCrudService);
     }
 
@@ -552,8 +554,7 @@ public class InMemoryConfiguration {
 
     @Bean
     public PortalNavigationItemsQueryService portalNavigationItemsQueryService(
-        PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService
-    ) {
+            PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService) {
         // Shares the crud storage so items created during a request are queryable, as with a real repository
         return new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsCrudService.storage());
     }
@@ -589,7 +590,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ApiProductQueryServiceInMemory apiProductQueryService(ApiProductCrudServiceInMemory apiProductCrudServiceInMemory) {
+    public ApiProductQueryServiceInMemory apiProductQueryService(
+            ApiProductCrudServiceInMemory apiProductCrudServiceInMemory) {
         return new ApiProductQueryServiceInMemory();
     }
 
@@ -640,9 +642,8 @@ public class InMemoryConfiguration {
 
     @Bean
     public PortalCategoryDomainService portalCategoryDomainService(
-        PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory,
-        PortalCategoryQueryServiceInMemory portalCategoryQueryServiceInMemory
-    ) {
+            PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory,
+            PortalCategoryQueryServiceInMemory portalCategoryQueryServiceInMemory) {
         return new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, portalCategoryQueryServiceInMemory);
     }
 }

@@ -66,8 +66,10 @@ public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
         }
     }
 
-    private static final ApplicationMetadata UNKNOWN_APPLICATION = new ApplicationMetadata(METADATA_UNKNOWN_APPLICATION_NAME, true, false);
-    private static final ApplicationMetadata NOT_FOUND = new ApplicationMetadata(METADATA_DELETED_APPLICATION_NAME, false, true);
+    private static final ApplicationMetadata UNKNOWN_APPLICATION =
+            new ApplicationMetadata(METADATA_UNKNOWN_APPLICATION_NAME, true, false);
+    private static final ApplicationMetadata NOT_FOUND =
+            new ApplicationMetadata(METADATA_DELETED_APPLICATION_NAME, false, true);
 
     private static ApplicationMetadata ofApplication(BaseApplicationEntity app) {
         return new ApplicationMetadata(app.getName(), false, ARCHIVED.equals(app.getStatus()));
@@ -79,34 +81,29 @@ public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
         Map<String, ApplicationMetadata> metaMap = new HashMap<>();
 
         // Unknown applications
-        keys
-            .stream()
-            .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
-            .forEach(key -> metaMap.put(key, UNKNOWN_APPLICATION));
+        keys.stream()
+                .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
+                .forEach(key -> metaMap.put(key, UNKNOWN_APPLICATION));
 
         // Batch for real application ids
-        List<String> appIds = keys
-            .stream()
-            .filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key))
-            .toList();
+        List<String> appIds = keys.stream()
+                .filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key))
+                .toList();
 
         if (!appIds.isEmpty()) {
-            var applications = applicationCrudService
-                .findByIds(appIds, environmentId)
-                .stream()
-                .collect(Collectors.toMap(BaseApplicationEntity::getId, Function.identity()));
+            var applications = applicationCrudService.findByIds(appIds, environmentId).stream()
+                    .collect(Collectors.toMap(BaseApplicationEntity::getId, Function.identity()));
 
             // Found applications
             applications.forEach((id, app) -> metaMap.put(id, ofApplication(app)));
 
             // Not found applications
-            appIds
-                .stream()
-                .filter(id -> !applications.containsKey(id))
-                .forEach(id -> metaMap.put(id, NOT_FOUND));
+            appIds.stream().filter(id -> !applications.containsKey(id)).forEach(id -> metaMap.put(id, NOT_FOUND));
         }
 
         // Build output Map<String, Map<String, String>>
-        return metaMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toMap()));
+        return metaMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey, entry -> entry.getValue().toMap()));
     }
 }

@@ -45,21 +45,19 @@ public class RestrictedDomainsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the restricted domain")
     @ApiResponse(
-        responseCode = "200",
-        description = "Restricted domains for the environment",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = RestrictedDomain.class))
-    )
+            responseCode = "200",
+            description = "Restricted domains for the environment",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = RestrictedDomain.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Collection<io.gravitee.rest.api.management.rest.model.RestrictedDomain> getRestrictedDomains() {
         return installationAccessQueryService
-            .getGatewayRestrictedDomains(GraviteeContext.getCurrentEnvironment())
-            .stream()
-            .map(restrictedDomainEntity ->
-                new io.gravitee.rest.api.management.rest.model.RestrictedDomain(
-                    restrictedDomainEntity.getDomain(),
-                    restrictedDomainEntity.isSecured()
-                )
-            )
-            .toList();
+                .getGatewayRestrictedDomains(GraviteeContext.getCurrentEnvironment())
+                .stream()
+                .map(restrictedDomainEntity -> new io.gravitee.rest.api.management.rest.model.RestrictedDomain(
+                        restrictedDomainEntity.getDomain(), restrictedDomainEntity.isSecured()))
+                .toList();
     }
 }

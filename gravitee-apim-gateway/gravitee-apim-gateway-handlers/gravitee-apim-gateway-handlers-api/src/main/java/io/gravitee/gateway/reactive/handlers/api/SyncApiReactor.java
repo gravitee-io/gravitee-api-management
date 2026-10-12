@@ -105,12 +105,16 @@ import lombok.CustomLog;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor<Api> {
 
-    private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES = Set.of(
-        LogEntryFactory.refreshable("contextPath", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_CONTEXT_PATH)),
-        LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context ->
-            Objects.toString(context.getAttribute(ATTR_REQUEST_METHOD), null)
-        )
-    );
+    private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES =
+            Set.of(
+                    LogEntryFactory.refreshable(
+                            "contextPath",
+                            DefaultExecutionContext.class,
+                            context -> context.getAttribute(ATTR_CONTEXT_PATH)),
+                    LogEntryFactory.refreshable(
+                            "requestMethod",
+                            DefaultExecutionContext.class,
+                            context -> Objects.toString(context.getAttribute(ATTR_REQUEST_METHOD), null)));
 
     protected final Api api;
     protected final List<ChainHook> processorChainHooks;
@@ -147,24 +151,23 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private final LogGuardService logGuardService;
 
     public SyncApiReactor(
-        final Api api,
-        final ComponentProvider componentProvider,
-        final List<TemplateVariableProvider> templateVariableProviders,
-        final HttpInvoker defaultInvoker,
-        final ResourceLifecycleManager resourceLifecycleManager,
-        final ApiProcessorChainFactory apiProcessorChainFactory,
-        final PolicyManager policyManager,
-        final FlowChainFactory flowChainFactory,
-        final GroupLifecycleManager groupLifecycleManager,
-        final Configuration configuration,
-        final Node node,
-        final RequestTimeoutConfiguration requestTimeoutConfiguration,
-        final AccessPointManager accessPointManager,
-        final EventManager eventManager,
-        final HttpAcceptorFactory httpAcceptorFactory,
-        final TracingContext tracingContext,
-        final LogGuardService logGuardService
-    ) {
+            final Api api,
+            final ComponentProvider componentProvider,
+            final List<TemplateVariableProvider> templateVariableProviders,
+            final HttpInvoker defaultInvoker,
+            final ResourceLifecycleManager resourceLifecycleManager,
+            final ApiProcessorChainFactory apiProcessorChainFactory,
+            final PolicyManager policyManager,
+            final FlowChainFactory flowChainFactory,
+            final GroupLifecycleManager groupLifecycleManager,
+            final Configuration configuration,
+            final Node node,
+            final RequestTimeoutConfiguration requestTimeoutConfiguration,
+            final AccessPointManager accessPointManager,
+            final EventManager eventManager,
+            final HttpAcceptorFactory httpAcceptorFactory,
+            final TracingContext tracingContext,
+            final LogGuardService logGuardService) {
         this.api = api;
         this.componentProvider = componentProvider;
         this.templateVariableProviders = templateVariableProviders;
@@ -194,11 +197,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         this.configuration = configuration;
         this.pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
-        this.loggingExcludedResponseType = configuration.getProperty(
-            REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY,
-            String.class,
-            null
-        );
+        this.loggingExcludedResponseType =
+                configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
         this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
 
         this.processorChainHooks = new ArrayList<>();
@@ -233,12 +233,14 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private void prepareContextAttributes(MutableExecutionContext ctx) {
         ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, ctx.request().contextPath());
         ctx.setAttribute(ContextAttributes.ATTR_API, api.getId());
-        ctx.setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
+        ctx.setAttribute(
+                ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
         ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
         ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
         ctx.setInternalAttribute(ATTR_INTERNAL_INVOKER, defaultInvoker);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
+        ctx.setInternalAttribute(
+                InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
         ctx.logEntries(DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES);
     }
 
@@ -255,40 +257,43 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     private void setApiResponseTimeMetric(HttpExecutionContext ctx) {
         if (ctx.metrics().getEndpointResponseTimeMs() > Integer.MAX_VALUE) {
-            ctx.metrics().setEndpointResponseTimeMs(System.currentTimeMillis() - ctx.metrics().getEndpointResponseTimeMs());
+            ctx.metrics()
+                    .setEndpointResponseTimeMs(
+                            System.currentTimeMillis() - ctx.metrics().getEndpointResponseTimeMs());
         }
     }
 
     private Completable handleRequest(final MutableExecutionContext ctx) {
         // Setup all processors before handling the request (ex: logging).
         return executeProcessorChain(ctx, beforeHandleProcessors, REQUEST)
-            // Execute organization flow chain
-            .andThen(organizationFlowChain.execute(ctx, REQUEST))
-            // Before Security Chain.
-            .andThen(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
-            // Execute security chain.
-            .andThen(httpSecurityChain.execute(ctx))
-            // Execute before flows processors
-            .andThen(executeProcessorChain(ctx, beforeApiFlowsProcessors, REQUEST))
-            .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
-            .andThen(executeFlowChain(ctx, apiFlowChain, REQUEST))
-            // All request flows have been executed. Invokes backend.
-            .andThen(invokeBackend(ctx))
-            // Execute response flows (api plan, api, platform).
-            .andThen(executeFlowChain(ctx, apiPlanFlowChain, RESPONSE))
-            .andThen(executeFlowChain(ctx, apiFlowChain, RESPONSE))
-            // Execute after flows processors
-            .andThen(executeProcessorChain(ctx, afterApiFlowsProcessors, RESPONSE))
-            .onErrorResumeNext(error -> processThrowable(ctx, error))
-            .compose(upstream -> timeout(upstream, ctx))
-            // Platform post flows must always be executed
-            .andThen(executeFlowChain(ctx, organizationFlowChain, RESPONSE).compose(upstream -> timeout(upstream, ctx)))
-            .onErrorResumeNext(error -> processOrganizationFlowError(ctx, error))
-            // Catch all possible unexpected errors.
-            .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
-            .andThen(executeProcessorChain(ctx, afterHandleProcessors, RESPONSE))
-            // Finally, end the response.
-            .andThen(endResponse(ctx));
+                // Execute organization flow chain
+                .andThen(organizationFlowChain.execute(ctx, REQUEST))
+                // Before Security Chain.
+                .andThen(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
+                // Execute security chain.
+                .andThen(httpSecurityChain.execute(ctx))
+                // Execute before flows processors
+                .andThen(executeProcessorChain(ctx, beforeApiFlowsProcessors, REQUEST))
+                .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
+                .andThen(executeFlowChain(ctx, apiFlowChain, REQUEST))
+                // All request flows have been executed. Invokes backend.
+                .andThen(invokeBackend(ctx))
+                // Execute response flows (api plan, api, platform).
+                .andThen(executeFlowChain(ctx, apiPlanFlowChain, RESPONSE))
+                .andThen(executeFlowChain(ctx, apiFlowChain, RESPONSE))
+                // Execute after flows processors
+                .andThen(executeProcessorChain(ctx, afterApiFlowsProcessors, RESPONSE))
+                .onErrorResumeNext(error -> processThrowable(ctx, error))
+                .compose(upstream -> timeout(upstream, ctx))
+                // Platform post flows must always be executed
+                .andThen(executeFlowChain(ctx, organizationFlowChain, RESPONSE)
+                        .compose(upstream -> timeout(upstream, ctx)))
+                .onErrorResumeNext(error -> processOrganizationFlowError(ctx, error))
+                // Catch all possible unexpected errors.
+                .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
+                .andThen(executeProcessorChain(ctx, afterHandleProcessors, RESPONSE))
+                // Finally, end the response.
+                .andThen(endResponse(ctx));
     }
 
     /**
@@ -301,11 +306,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
      */
     private Completable executeProcessorChain(
-        final MutableExecutionContext ctx,
-        final ProcessorChain processorChain,
-        final ExecutionPhase phase
-    ) {
-        return HookHelper.hook(() -> processorChain.execute(ctx, phase), processorChain.getId(), processorChainHooks, ctx, phase);
+            final MutableExecutionContext ctx, final ProcessorChain processorChain, final ExecutionPhase phase) {
+        return HookHelper.hook(
+                () -> processorChain.execute(ctx, phase), processorChain.getId(), processorChainHooks, ctx, phase);
     }
 
     /**
@@ -318,7 +321,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      *
      * @return a {@link Completable} that will complete once the flow chain phase has been fully executed.
      */
-    private Completable executeFlowChain(final MutableExecutionContext ctx, final FlowChain flowChain, final ExecutionPhase phase) {
+    private Completable executeFlowChain(
+            final MutableExecutionContext ctx, final FlowChain flowChain, final ExecutionPhase phase) {
         return defer(() -> flowChain.execute(ctx, phase));
     }
 
@@ -331,21 +335,23 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      */
     private Completable invokeBackend(final MutableExecutionContext ctx) {
         return defer(() -> {
-            if (!Objects.equals(false, ctx.<Boolean>getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))) {
-                HttpInvoker invoker = getInvoker(ctx);
+                    if (!Objects.equals(
+                            false,
+                            ctx.<Boolean>getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))) {
+                        HttpInvoker invoker = getInvoker(ctx);
 
-                if (invoker != null) {
-                    ComponentScope.push(ctx, ComponentType.ENDPOINT, invoker.getId());
-                    return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null).doFinally(() ->
-                        ComponentScope.remove(ctx, ComponentType.ENDPOINT, invoker.getId())
-                    );
-                }
-            }
-            return Completable.complete();
-        })
-            .doOnSubscribe(disposable -> ctx.metrics().setEndpointResponseTimeMs(System.currentTimeMillis()))
-            .doOnDispose(() -> setApiResponseTimeMetric(ctx))
-            .doOnTerminate(() -> setApiResponseTimeMetric(ctx));
+                        if (invoker != null) {
+                            ComponentScope.push(ctx, ComponentType.ENDPOINT, invoker.getId());
+                            return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null)
+                                    .doFinally(
+                                            () -> ComponentScope.remove(ctx, ComponentType.ENDPOINT, invoker.getId()));
+                        }
+                    }
+                    return Completable.complete();
+                })
+                .doOnSubscribe(disposable -> ctx.metrics().setEndpointResponseTimeMs(System.currentTimeMillis()))
+                .doOnDispose(() -> setApiResponseTimeMetric(ctx))
+                .doOnTerminate(() -> setApiResponseTimeMetric(ctx));
     }
 
     /**
@@ -378,27 +384,22 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         if (requestTimeoutConfiguration.getRequestTimeout() <= 0) {
             return upstream;
         }
-        return Completable.defer(() ->
-            upstream.timeout(
+        return Completable.defer(() -> upstream.timeout(
                 Math.max(
-                    requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
-                    requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
-                ),
+                        requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
+                        requestTimeoutConfiguration.getRequestTimeout()
+                                - (System.currentTimeMillis() - ctx.request().timestamp())),
                 TimeUnit.MILLISECONDS,
                 Completable.fromRunnable(() -> {
-                    ComponentScope.push(ctx, ComponentType.SYSTEM, "request-timeout");
-                }).andThen(
-                    ctx
-                        .interruptWith(
-                            new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key("REQUEST_TIMEOUT").message("Request timeout")
-                        )
-                        .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
-                        .doFinally(() -> {
-                            ComponentScope.remove(ctx, ComponentType.SYSTEM, "request-timeout");
+                            ComponentScope.push(ctx, ComponentType.SYSTEM, "request-timeout");
                         })
-                )
-            )
-        );
+                        .andThen(ctx.interruptWith(new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504)
+                                        .key("REQUEST_TIMEOUT")
+                                        .message("Request timeout"))
+                                .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
+                                .doFinally(() -> {
+                                    ComponentScope.remove(ctx, ComponentType.SYSTEM, "request-timeout");
+                                }))));
     }
 
     /**
@@ -413,10 +414,12 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             // In case of any interruption without failure, execute api post processor chain and resume the execution
             return executeProcessorChain(ctx, afterApiFlowsProcessors, RESPONSE);
         } else if (InterruptionHelper.isInterruptionWithFailure(throwable)) {
-            // In case of any interruption with execution failure, execute api error processor chain and resume the execution
+            // In case of any interruption with execution failure, execute api error processor chain and resume the
+            // execution
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         } else {
-            // In case of any error exception, log original exception, execute api error processor chain and resume the execution
+            // In case of any error exception, log original exception, execute api error processor chain and resume the
+            // execution
             ctx.withLogger(log).error("Unexpected error while handling request", throwable);
             return executeProcessorChain(ctx, onErrorProcessors, RESPONSE);
         }
@@ -435,12 +438,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         return Completable.fromRunnable(() -> {
             // Reports the failure and answers it, so the status the reports name is the one actually sent.
             UnexpectedErrorReporter.recordAndAnswer(
-                ctx,
-                HttpResponseStatus.INTERNAL_SERVER_ERROR.code(),
-                HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(),
-                throwable,
-                log
-            );
+                    ctx,
+                    HttpResponseStatus.INTERNAL_SERVER_ERROR.code(),
+                    HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(),
+                    throwable,
+                    log);
             setApiResponseTimeMetric(ctx);
         });
     }
@@ -449,32 +451,26 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     public List<Acceptor<?>> acceptors() {
         try {
             if (acceptors == null) {
-                acceptors = api
-                    .getDefinition()
-                    .getProxy()
-                    .getVirtualHosts()
-                    .stream()
-                    .map(virtualHost -> {
-                        if (virtualHost.getHost() != null) {
-                            return httpAcceptorFactory.create(
-                                virtualHost.getHost(),
-                                virtualHost.getPath(),
-                                this,
-                                api.getDefinition().getProxy().getServers()
-                            );
-                        } else {
-                            return new AccessPointHttpAcceptor(
-                                eventManager,
-                                httpAcceptorFactory,
-                                api.getEnvironmentId(),
-                                accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
-                                virtualHost.getPath(),
-                                this,
-                                api.getDefinition().getProxy().getServers()
-                            );
-                        }
-                    })
-                    .collect(Collectors.toList());
+                acceptors = api.getDefinition().getProxy().getVirtualHosts().stream()
+                        .map(virtualHost -> {
+                            if (virtualHost.getHost() != null) {
+                                return httpAcceptorFactory.create(
+                                        virtualHost.getHost(),
+                                        virtualHost.getPath(),
+                                        this,
+                                        api.getDefinition().getProxy().getServers());
+                            } else {
+                                return new AccessPointHttpAcceptor(
+                                        eventManager,
+                                        httpAcceptorFactory,
+                                        api.getEnvironmentId(),
+                                        accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
+                                        virtualHost.getPath(),
+                                        this,
+                                        api.getDefinition().getProxy().getServers());
+                            }
+                        })
+                        .collect(Collectors.toList());
             }
 
             return acceptors;
@@ -500,12 +496,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         tracingContext.start();
         this.analyticsContext = AnalyticsUtils.createAnalyticsContext(
-            api.getDefinition(),
-            loggingMaxSize,
-            loggingExcludedResponseType,
-            tracingContext,
-            logGuardService
-        );
+                api.getDefinition(), loggingMaxSize, loggingExcludedResponseType, tracingContext, logGuardService);
         if (analyticsContext.isLoggingEnabled()) {
             invokerHooks.add(new LoggingHook());
         }
@@ -558,13 +549,12 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private void warnAboutRequestsCutShort(final int stillRunning) {
         if (stillRunning > 0) {
             log.warn(
-                "API reactor is stopping while {} request(s) are still being handled: they will be cut short and " +
-                    "reported as errors. Waited up to {} ms for them ({}). [{}]",
-                stillRunning,
-                pendingRequestsTimeout,
-                PENDING_REQUESTS_TIMEOUT_PROPERTY,
-                this
-            );
+                    "API reactor is stopping while {} request(s) are still being handled: they will be cut short and "
+                            + "reported as errors. Waited up to {} ms for them ({}). [{}]",
+                    stillRunning,
+                    pendingRequestsTimeout,
+                    PENDING_REQUESTS_TIMEOUT_PROPERTY,
+                    this);
         }
     }
 
@@ -577,23 +567,24 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final AtomicInteger lastSeenPendingRequests = new AtomicInteger();
 
         return interval(period, TimeUnit.MILLISECONDS)
-            .timestamp()
-            .observeOn(Schedulers.io())
-            .takeWhile(t -> {
-                final int stillRunning = pendingRequests.get();
-                lastSeenPendingRequests.set(stillRunning);
-                return stillRunning > 0 && (t.value() + 1) * period < timeout;
-            })
-            .onErrorComplete()
-            .doFinally(() -> {
-                warnAboutRequestsCutShort(lastSeenPendingRequests.get());
-                stopNow();
-            });
+                .timestamp()
+                .observeOn(Schedulers.io())
+                .takeWhile(t -> {
+                    final int stillRunning = pendingRequests.get();
+                    lastSeenPendingRequests.set(stillRunning);
+                    return stillRunning > 0 && (t.value() + 1) * period < timeout;
+                })
+                .onErrorComplete()
+                .doFinally(() -> {
+                    warnAboutRequestsCutShort(lastSeenPendingRequests.get());
+                    stopNow();
+                });
     }
 
     @Override
     public String toString() {
-        return "SyncApiReactor API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getApiVersion() + ']';
+        return "SyncApiReactor API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getApiVersion()
+                + ']';
     }
 
     @Override

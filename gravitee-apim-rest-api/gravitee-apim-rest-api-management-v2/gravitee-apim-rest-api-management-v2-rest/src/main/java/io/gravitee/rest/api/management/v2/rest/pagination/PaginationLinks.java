@@ -25,11 +25,10 @@ public class PaginationLinks {
     private PaginationLinks() {}
 
     public static Links computePaginationLinks(
-        URI requestUri,
-        MultivaluedMap<String, String> queryParameters,
-        long totalElements,
-        PaginationParam paginationParam
-    ) {
+            URI requestUri,
+            MultivaluedMap<String, String> queryParameters,
+            long totalElements,
+            PaginationParam paginationParam) {
         int totalPages = (int) Math.ceil((double) totalElements / paginationParam.getPerPage());
         if (totalElements == 0 || totalPages == 1) {
             return new Links().self(requestUri.toString());
@@ -51,17 +50,15 @@ public class PaginationLinks {
 
             if (queryPage != null) {
                 linkTemplate = linkTemplate.replaceFirst(
-                    PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
-                    PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken
-                );
+                        PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
+                        PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken);
             } else {
                 linkTemplate += "&" + PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken;
             }
             if (queryPerPage != null) {
                 linkTemplate = linkTemplate.replaceFirst(
-                    PaginationParam.PER_PAGE_QUERY_PARAM_NAME + "=(\\w*)",
-                    PaginationParam.PER_PAGE_QUERY_PARAM_NAME + "=" + perPageToken
-                );
+                        PaginationParam.PER_PAGE_QUERY_PARAM_NAME + "=(\\w*)",
+                        PaginationParam.PER_PAGE_QUERY_PARAM_NAME + "=" + perPageToken);
             }
         }
 
@@ -71,11 +68,15 @@ public class PaginationLinks {
         Integer prevPage = Math.max(firstPage, paginationParam.getPage() - 1);
         String perPageAsString = String.valueOf(paginationParam.getPerPage());
         Links paginatedLinks = new Links()
-            .first(linkTemplate.replace(pageToken, String.valueOf(firstPage)).replace(perPageToken, perPageAsString))
-            .last(linkTemplate.replace(pageToken, String.valueOf(lastPage)).replace(perPageToken, perPageAsString))
-            .next(linkTemplate.replace(pageToken, String.valueOf(nextPage)).replace(perPageToken, perPageAsString))
-            .previous(linkTemplate.replace(pageToken, String.valueOf(prevPage)).replace(perPageToken, perPageAsString))
-            .self(requestUri.toString());
+                .first(linkTemplate
+                        .replace(pageToken, String.valueOf(firstPage))
+                        .replace(perPageToken, perPageAsString))
+                .last(linkTemplate.replace(pageToken, String.valueOf(lastPage)).replace(perPageToken, perPageAsString))
+                .next(linkTemplate.replace(pageToken, String.valueOf(nextPage)).replace(perPageToken, perPageAsString))
+                .previous(linkTemplate
+                        .replace(pageToken, String.valueOf(prevPage))
+                        .replace(perPageToken, perPageAsString))
+                .self(requestUri.toString());
 
         if (paginationParam.getPage() == 1) {
             paginatedLinks.setPrevious(null);

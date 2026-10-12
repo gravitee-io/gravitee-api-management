@@ -69,9 +69,9 @@ public class ApiAnalyticsParam {
 
     public AnalyticsType getType() {
         return Arrays.stream(AnalyticsType.values())
-            .filter(analyticsType -> analyticsType.name().equalsIgnoreCase(type))
-            .findFirst()
-            .orElse(null);
+                .filter(analyticsType -> analyticsType.name().equalsIgnoreCase(type))
+                .findFirst()
+                .orElse(null);
     }
 
     public List<Range> getRanges() {
@@ -80,22 +80,22 @@ public class ApiAnalyticsParam {
         }
         // Split by comma, then parse each "from:to"
         return java.util.Arrays.stream(ranges.split("[;,]"))
-            .map(String::trim)
-            .map(param -> {
-                String[] bounds = param.split(":");
-                if (bounds.length == 2) {
-                    try {
-                        int from = Integer.parseInt(bounds[0]);
-                        int to = Integer.parseInt(bounds[1]);
-                        return new Range(from, to);
-                    } catch (NumberFormatException ignored) {
-                        log.debug("NumberFormatException ignored in ApiAnalyticsParam");
+                .map(String::trim)
+                .map(param -> {
+                    String[] bounds = param.split(":");
+                    if (bounds.length == 2) {
+                        try {
+                            int from = Integer.parseInt(bounds[0]);
+                            int to = Integer.parseInt(bounds[1]);
+                            return new Range(from, to);
+                        } catch (NumberFormatException ignored) {
+                            log.debug("NumberFormatException ignored in ApiAnalyticsParam");
+                        }
                     }
-                }
-                return null;
-            })
-            .filter(java.util.Objects::nonNull)
-            .toList();
+                    return null;
+                })
+                .filter(java.util.Objects::nonNull)
+                .toList();
     }
 
     public List<Aggregation> getAggregations() {
@@ -104,16 +104,16 @@ public class ApiAnalyticsParam {
         }
         // Split by comma, then parse each "type:field"
         return java.util.Arrays.stream(aggregations.split("[;,]"))
-            .map(String::trim)
-            .map(param -> {
-                String[] parts = param.split(":");
-                if (parts.length == 2) {
-                    return new Aggregation(parts[0], parts[1]);
-                }
-                return null;
-            })
-            .filter(java.util.Objects::nonNull)
-            .toList();
+                .map(String::trim)
+                .map(param -> {
+                    String[] parts = param.split(":");
+                    if (parts.length == 2) {
+                        return new Aggregation(parts[0], parts[1]);
+                    }
+                    return null;
+                })
+                .filter(java.util.Objects::nonNull)
+                .toList();
     }
 
     public List<Term> getTerms() {
@@ -121,77 +121,66 @@ public class ApiAnalyticsParam {
             return List.of();
         }
 
-        return terms
-            .stream()
-            .map(String::trim)
-            .map(t -> t.split(":", 2))
-            .filter(temp -> temp.length == 2)
-            .map(temp -> new Term(temp[0], temp[1]))
-            .toList();
+        return terms.stream()
+                .map(String::trim)
+                .map(t -> t.split(":", 2))
+                .filter(temp -> temp.length == 2)
+                .map(temp -> new Term(temp[0], temp[1]))
+                .toList();
     }
 
     public SearchHistogramAnalyticsUseCase.Input toHistogramInput(String apiId) {
         ApiAnalyticsParamSpecification.forHistogram().throwIfNotSatisfied(this);
-        var aggregations = getAggregations()
-            .stream()
-            .filter(a -> Objects.nonNull(a.getType()))
-            .map(a -> {
-                try {
-                    var type = io.gravitee.apim.core.analytics.model.Aggregation.AggregationType.valueOf(a.getType().toUpperCase());
-                    return new io.gravitee.apim.core.analytics.model.Aggregation(a.getField(), type);
-                } catch (IllegalArgumentException ex) {
-                    throw new BadRequestException("Invalid aggregation type: " + a.getType(), ex);
-                }
-            })
-            .toList();
+        var aggregations = getAggregations().stream()
+                .filter(a -> Objects.nonNull(a.getType()))
+                .map(a -> {
+                    try {
+                        var type = io.gravitee.apim.core.analytics.model.Aggregation.AggregationType.valueOf(
+                                a.getType().toUpperCase());
+                        return new io.gravitee.apim.core.analytics.model.Aggregation(a.getField(), type);
+                    } catch (IllegalArgumentException ex) {
+                        throw new BadRequestException("Invalid aggregation type: " + a.getType(), ex);
+                    }
+                })
+                .toList();
 
-        List<io.gravitee.apim.core.analytics.model.Term> appliedFilters = getTerms()
-            .stream()
-            .map(term -> new io.gravitee.apim.core.analytics.model.Term(term.getKey(), term.getValue()))
-            .toList();
+        List<io.gravitee.apim.core.analytics.model.Term> appliedFilters = getTerms().stream()
+                .map(term -> new io.gravitee.apim.core.analytics.model.Term(term.getKey(), term.getValue()))
+                .toList();
 
         return new SearchHistogramAnalyticsUseCase.Input(
-            apiId,
-            getFrom(),
-            getTo(),
-            getInterval(),
-            aggregations,
-            Optional.ofNullable(getQuery()),
-            Optional.of(appliedFilters)
-        );
+                apiId,
+                getFrom(),
+                getTo(),
+                getInterval(),
+                aggregations,
+                Optional.ofNullable(getQuery()),
+                Optional.of(appliedFilters));
     }
 
     public SearchGroupByAnalyticsUseCase.Input toGroupByInput(String apiId) {
         ApiAnalyticsParamSpecification.forGroupBy().throwIfNotSatisfied(this);
-        List<AnalyticsQueryService.GroupByQuery.Group> groups = getRanges()
-            .stream()
-            .map(r -> new AnalyticsQueryService.GroupByQuery.Group(r.getFrom(), r.getTo()))
-            .toList();
+        List<AnalyticsQueryService.GroupByQuery.Group> groups = getRanges().stream()
+                .map(r -> new AnalyticsQueryService.GroupByQuery.Group(r.getFrom(), r.getTo()))
+                .toList();
 
         var order = ofNullable(getOrder()).map(AnalyticsQueryService.GroupByQuery.Order::valueOf);
 
-        return new SearchGroupByAnalyticsUseCase.Input(apiId, getFrom(), getTo(), getField(), groups, order, ofNullable(getQuery()));
+        return new SearchGroupByAnalyticsUseCase.Input(
+                apiId, getFrom(), getTo(), getField(), groups, order, ofNullable(getQuery()));
     }
 
     public io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input toStatsInput(String apiId) {
         ApiAnalyticsParamSpecification.forStats().throwIfNotSatisfied(this);
         return new io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input(
-            apiId,
-            getFrom(),
-            getTo(),
-            getField(),
-            ofNullable(getQuery())
-        );
+                apiId, getFrom(), getTo(), getField(), ofNullable(getQuery()));
     }
 
-    public io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input toRequestsCountInput(String apiId) {
+    public io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input
+            toRequestsCountInput(String apiId) {
         ApiAnalyticsParamSpecification.forCount().throwIfNotSatisfied(this);
         return new io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input(
-            apiId,
-            getFrom(),
-            getTo(),
-            ofNullable(getQuery())
-        );
+                apiId, getFrom(), getTo(), ofNullable(getQuery()));
     }
 
     @Getter

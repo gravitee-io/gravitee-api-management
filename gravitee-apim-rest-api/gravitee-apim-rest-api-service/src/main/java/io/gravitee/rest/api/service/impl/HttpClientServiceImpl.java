@@ -65,12 +65,12 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(uriScheme);
 
         final HttpClientOptions options = new HttpClientOptions()
-            .setSsl(ssl)
-            .setTrustAll(true)
-            .setVerifyHost(false)
-            .setKeepAlive(false)
-            .setTcpKeepAlive(false)
-            .setConnectTimeout(httpClientTimeout());
+                .setSsl(ssl)
+                .setTrustAll(true)
+                .setVerifyHost(false)
+                .setKeepAlive(false)
+                .setTcpKeepAlive(false)
+                .setConnectTimeout(httpClientTimeout());
 
         final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(1);
 
@@ -95,7 +95,8 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     }
 
     @Override
-    public Buffer request(HttpMethod method, String uri, Map<String, String> headers, String body, Boolean useSystemProxy) {
+    public Buffer request(
+            HttpMethod method, String uri, Map<String, String> headers, String body, Boolean useSystemProxy) {
         if (uri == null || uri.isEmpty()) {
             log.error("HttpClient configuration is empty");
             return null;
@@ -107,16 +108,18 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
 
         final HttpClient httpClient = this.createHttpClient(requestUri.getScheme(), useSystemProxy);
 
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
+        final int port = requestUri.getPort() != -1
+                ? requestUri.getPort()
+                : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
         RequestOptions options = new RequestOptions()
-            .setMethod(io.vertx.core.http.HttpMethod.valueOf(method.name()))
-            .setHost(requestUri.getHost())
-            .setPort(port)
-            .setURI(requestUri.getPath())
-            .setTimeout(httpClientTimeout());
+                .setMethod(io.vertx.core.http.HttpMethod.valueOf(method.name()))
+                .setHost(requestUri.getHost())
+                .setPort(port)
+                .setURI(requestUri.getPath())
+                .setTimeout(httpClientTimeout());
 
-        //headers
+        // headers
         if (headers != null) {
             headers.forEach(options::putHeader);
         }
@@ -133,8 +136,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
         Future<HttpClientRequest> requestFuture = httpClient.request(options);
 
         requestFuture
-            .onFailure(
-                new Handler<Throwable>() {
+                .onFailure(new Handler<Throwable>() {
                     @Override
                     public void handle(Throwable throwable) {
                         promise.fail(throwable);
@@ -142,12 +144,9 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                         // Close client
                         httpClient.close();
                     }
-                }
-            )
-            .onSuccess(request -> {
-                request
-                    .response()
-                    .onComplete(asyncResponse -> {
+                })
+                .onSuccess(request -> {
+                    request.response().onComplete(asyncResponse -> {
                         if (asyncResponse.failed()) {
                             promise.fail(asyncResponse.cause());
 
@@ -165,29 +164,23 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                                     httpClient.close();
                                 });
                             } else {
-                                response.bodyHandler(buffer ->
-                                    promise.fail(
-                                        new TechnicalManagementException(
-                                            " Error on url '" +
-                                                uri +
-                                                "'. Status code: " +
-                                                response.statusCode() +
-                                                ". Message: " +
-                                                buffer.toString(),
-                                            null
-                                        )
-                                    )
-                                );
+                                response.bodyHandler(buffer -> promise.fail(new TechnicalManagementException(
+                                        " Error on url '" + uri
+                                                + "'. Status code: "
+                                                + response.statusCode()
+                                                + ". Message: "
+                                                + buffer.toString(),
+                                        null)));
                             }
                         }
                     });
 
-                if (body != null) {
-                    request.end(body);
-                } else {
-                    request.end();
-                }
-            });
+                    if (body != null) {
+                        request.end(body);
+                    } else {
+                        request.end();
+                    }
+                });
 
         try {
             return promise.future().toCompletionStage().toCompletableFuture().get();
@@ -208,15 +201,15 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     }
 
     private String httpClientProxyHttpHost() {
-        return configuration.getProperty("httpClient.proxy.http.host", System.getProperty("http.proxyHost", "localhost"));
+        return configuration.getProperty(
+                "httpClient.proxy.http.host", System.getProperty("http.proxyHost", "localhost"));
     }
 
     private Integer httpClientProxyHttpPort() {
         return configuration.getProperty(
-            "httpClient.proxy.http.port",
-            Integer.class,
-            Integer.valueOf(System.getProperty("http.proxyPort", "3128"))
-        );
+                "httpClient.proxy.http.port",
+                Integer.class,
+                Integer.valueOf(System.getProperty("http.proxyPort", "3128")));
     }
 
     private String httpClientProxyHttpUsername() {
@@ -228,15 +221,15 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     }
 
     private String httpClientProxyHttpsHost() {
-        return configuration.getProperty("httpClient.proxy.https.host", System.getProperty("https.proxyHost", "localhost"));
+        return configuration.getProperty(
+                "httpClient.proxy.https.host", System.getProperty("https.proxyHost", "localhost"));
     }
 
     private Integer httpClientProxyHttpsPort() {
         return configuration.getProperty(
-            "httpClient.proxy.https.port",
-            Integer.class,
-            Integer.valueOf(System.getProperty("https.proxyPort", "3128"))
-        );
+                "httpClient.proxy.https.port",
+                Integer.class,
+                Integer.valueOf(System.getProperty("https.proxyPort", "3128")));
     }
 
     private String httpClientProxyHttpsUsername() {

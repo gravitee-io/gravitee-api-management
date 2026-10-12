@@ -52,7 +52,10 @@ class ApplicationResourceTest extends AbstractResourceTest {
 
     static final String APPLICATION_ID = "application-id";
     static final String HRID = "application-hrid";
-    static final AuditInfo auditInfo = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
+    static final AuditInfo auditInfo = AuditInfo.builder()
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .build();
 
     @AfterEach
     void tearDown() {
@@ -65,10 +68,13 @@ class ApplicationResourceTest extends AbstractResourceTest {
         @Test
         void should_get_application_from_known_hrid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(applicationService.findById(any(), any())).thenReturn(
-                    ApplicationEntity.builder().id(APPLICATION_ID).hrid(HRID).build()
-                );
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(applicationService.findById(any(), any()))
+                        .thenReturn(ApplicationEntity.builder()
+                                .id(APPLICATION_ID)
+                                .hrid(HRID)
+                                .build());
                 var state = expectEntity(HRID);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(APPLICATION_ID);
@@ -82,35 +88,39 @@ class ApplicationResourceTest extends AbstractResourceTest {
         @Test
         void should_get_oauth_additional_client_metadata() {
             var oauth = OAuthClientSettings.builder()
-                .applicationType("backend_to_backend")
-                .grantTypes(List.of("client_credentials"))
-                .additionalClientMetadata(Map.of("software_id", "3d5a2f0e-1c4b-4c8a-9f7e-2b6d8e0a1c34"))
-                .build();
+                    .applicationType("backend_to_backend")
+                    .grantTypes(List.of("client_credentials"))
+                    .additionalClientMetadata(Map.of("software_id", "3d5a2f0e-1c4b-4c8a-9f7e-2b6d8e0a1c34"))
+                    .build();
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(applicationService.findById(any(), any())).thenReturn(
-                    ApplicationEntity.builder()
-                        .id(APPLICATION_ID)
-                        .hrid(HRID)
-                        .settings(ApplicationSettings.builder().oauth(oauth).build())
-                        .build()
-                );
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(applicationService.findById(any(), any()))
+                        .thenReturn(ApplicationEntity.builder()
+                                .id(APPLICATION_ID)
+                                .hrid(HRID)
+                                .settings(ApplicationSettings.builder()
+                                        .oauth(oauth)
+                                        .build())
+                                .build());
 
                 var state = expectEntity(HRID);
 
-                assertThat(state.getSettings().getOauth().getAdditionalClientMetadata()).containsExactly(
-                    Map.entry("software_id", "3d5a2f0e-1c4b-4c8a-9f7e-2b6d8e0a1c34")
-                );
+                assertThat(state.getSettings().getOauth().getAdditionalClientMetadata())
+                        .containsExactly(Map.entry("software_id", "3d5a2f0e-1c4b-4c8a-9f7e-2b6d8e0a1c34"));
             }
         }
 
         @Test
         void should_get_application_from_known_guid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
-                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(applicationService.findById(any(), any())).thenReturn(
-                    ApplicationEntity.builder().id(APPLICATION_ID).hrid(APPLICATION_ID).build()
-                );
+                ctx.when(GraviteeContext::getExecutionContext)
+                        .thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(applicationService.findById(any(), any()))
+                        .thenReturn(ApplicationEntity.builder()
+                                .id(APPLICATION_ID)
+                                .hrid(APPLICATION_ID)
+                                .build());
                 var state = expectEntity(APPLICATION_ID, true);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(APPLICATION_ID);
@@ -123,9 +133,8 @@ class ApplicationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
-            when(applicationService.findById(any(), any())).thenThrow(
-                new ApplicationNotFoundException("No Application found with hrid: unknown")
-            );
+            when(applicationService.findById(any(), any()))
+                    .thenThrow(new ApplicationNotFoundException("No Application found with hrid: unknown"));
 
             expectNotFound("unknown");
         }
@@ -141,9 +150,12 @@ class ApplicationResourceTest extends AbstractResourceTest {
         }
 
         private ApplicationState expectEntity(String hrid, boolean legacy) {
-            try (
-                var response = rootTarget().queryParam("legacy", legacy).path(hrid).request().accept(MediaType.APPLICATION_JSON_TYPE).get()
-            ) {
+            try (var response = rootTarget()
+                    .queryParam("legacy", legacy)
+                    .path(hrid)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 return response.readEntity(ApplicationState.class);
             }
         }
@@ -156,7 +168,13 @@ class ApplicationResourceTest extends AbstractResourceTest {
         void should_delete_application_and_return_no_content() {
             expectNoContent(HRID);
 
-            verify(applicationService, atLeastOnce()).archive(any(), eq(HRIDToUUID.application().context(auditInfo).hrid(HRID).id()));
+            verify(applicationService, atLeastOnce())
+                    .archive(
+                            any(),
+                            eq(HRIDToUUID.application()
+                                    .context(auditInfo)
+                                    .hrid(HRID)
+                                    .id()));
         }
 
         @Test
@@ -169,8 +187,13 @@ class ApplicationResourceTest extends AbstractResourceTest {
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
             doThrow(new ApplicationNotFoundException("unknown"))
-                .when(applicationService)
-                .archive(any(), eq(HRIDToUUID.application().context(auditInfo).hrid("unknown").id()));
+                    .when(applicationService)
+                    .archive(
+                            any(),
+                            eq(HRIDToUUID.application()
+                                    .context(auditInfo)
+                                    .hrid("unknown")
+                                    .id()));
 
             expectNotFound("unknown");
         }
@@ -180,7 +203,11 @@ class ApplicationResourceTest extends AbstractResourceTest {
         }
 
         private void expectNoContent(String hrid, boolean legacy) {
-            try (var response = rootTarget().queryParam("hridContainsUUID", legacy).path(hrid).request().delete()) {
+            try (var response = rootTarget()
+                    .queryParam("hridContainsUUID", legacy)
+                    .path(hrid)
+                    .request()
+                    .delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
         }

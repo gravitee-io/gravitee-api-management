@@ -43,21 +43,27 @@ public class CreateSubscriptionFormUseCase {
         var apiIds = definitionDomainService.validateApiIds(input.environmentId(), input.apiIds(), null);
         var definition = definitionDomainService.compile(input.gmdContent());
 
-        var created = subscriptionFormCrudService.create(
-            SubscriptionForm.builder()
+        var created = subscriptionFormCrudService.create(SubscriptionForm.builder()
                 .environmentId(input.environmentId())
                 .name(input.name().trim())
                 .gmdContent(definition.gmdContent())
                 .validationConstraints(definition.constraints())
                 .apiIds(apiIds)
                 .enabled(false)
-                .build()
-        );
-        log.info("Created subscription form [{}] '{}' for environment [{}]", created.getId(), created.getName(), input.environmentId());
+                .build());
+        log.info(
+                "Created subscription form [{}] '{}' for environment [{}]",
+                created.getId(),
+                created.getName(),
+                input.environmentId());
         return new Output(created);
     }
 
-    public record Input(String environmentId, String name, String gmdContent, @Nullable List<String> apiIds) {
+    public record Input(
+            String environmentId,
+            String name,
+            String gmdContent,
+            @Nullable List<String> apiIds) {
         public Input(String environmentId, String name, String gmdContent) {
             this(environmentId, name, gmdContent, null);
         }

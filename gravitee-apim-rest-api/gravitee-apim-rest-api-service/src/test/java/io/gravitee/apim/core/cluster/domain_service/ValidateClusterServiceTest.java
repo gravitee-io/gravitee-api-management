@@ -42,14 +42,11 @@ class ValidateClusterServiceTest {
 
     @BeforeEach
     void setUp() {
-        JsonSchemaChecker jsonSchemaChecker = new JsonSchemaCheckerImpl(new JsonSchemaServiceImpl(new JsonSchemaValidatorImpl()));
+        JsonSchemaChecker jsonSchemaChecker =
+                new JsonSchemaCheckerImpl(new JsonSchemaServiceImpl(new JsonSchemaValidatorImpl()));
         ClusterConfigurationSchemaService clusterConfigurationSchemaService = new ClusterConfigurationSchemaService();
         validateClusterService = new ValidateClusterService(
-            jsonSchemaChecker,
-            clusterConfigurationSchemaService,
-            new ObjectMapper(),
-            clusterQueryService
-        );
+                jsonSchemaChecker, clusterConfigurationSchemaService, new ObjectMapper(), clusterQueryService);
         clusterQueryService.reset();
     }
 
@@ -59,47 +56,62 @@ class ValidateClusterServiceTest {
 
     @Test
     void should_throw_when_name_is_empty() {
-        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("").configuration(validConfig()).build();
+        Cluster cluster = Cluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("")
+                .configuration(validConfig())
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessage("Name is required.");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Name is required.");
     }
 
     @Test
     void should_throw_when_name_is_null() {
-        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name(null).configuration(validConfig()).build();
+        Cluster cluster = Cluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name(null)
+                .configuration(validConfig())
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessage("Name is required.");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Name is required.");
     }
 
     @Test
     void should_throw_when_type_is_null() {
-        Cluster cluster = Cluster.builder().name("my-cluster").configuration(validConfig()).build();
+        Cluster cluster = Cluster.builder()
+                .name("my-cluster")
+                .configuration(validConfig())
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessage("Type is required.");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Type is required.");
     }
 
     @Test
     void should_throw_when_configuration_is_null() {
-        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("my-cluster").configuration(null).build();
+        Cluster cluster = Cluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("my-cluster")
+                .configuration(null)
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessage("Configuration is required.");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Configuration is required.");
     }
 
     @Test
     void should_pass_with_valid_plaintext_configuration() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("my-cluster")
-            .configuration(validConfig())
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("my-cluster")
+                .configuration(validConfig())
+                .build();
 
         assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
     }
@@ -107,10 +119,11 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_protocol_has_invalid_value() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("my-cluster")
-            .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "INVALID_PROTOCOL")))
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("my-cluster")
+                .configuration(Map.of(
+                        "bootstrapServers", "localhost:9092", "security", Map.of("protocol", "INVALID_PROTOCOL")))
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
     }
@@ -118,10 +131,10 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_bootstrap_servers_is_missing() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("my-cluster")
-            .configuration(Map.of("security", Map.of("protocol", "PLAINTEXT")))
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("my-cluster")
+                .configuration(Map.of("security", Map.of("protocol", "PLAINTEXT")))
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
     }
@@ -129,15 +142,18 @@ class ValidateClusterServiceTest {
     @Test
     void should_pass_with_valid_kafka_cluster_configuration() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER)
-            .name("my-kafka-cluster")
-            .configuration(
-                Map.of(
-                    "connections",
-                    List.of(Map.of("name", "conn-1", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")))
-                )
-            )
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("my-kafka-cluster")
+                .configuration(Map.of(
+                        "connections",
+                        List.of(Map.of(
+                                "name",
+                                "conn-1",
+                                "bootstrapServers",
+                                "kafka1:9092",
+                                "security",
+                                Map.of("protocol", "PLAINTEXT")))))
+                .build();
 
         assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
     }
@@ -145,10 +161,10 @@ class ValidateClusterServiceTest {
     @Test
     void should_pass_when_kafka_cluster_has_empty_connections() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER)
-            .name("my-kafka-cluster")
-            .configuration(Map.of("connections", List.of()))
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("my-kafka-cluster")
+                .configuration(Map.of("connections", List.of()))
+                .build();
 
         assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
     }
@@ -156,10 +172,11 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_kafka_cluster_connection_missing_bootstrap_servers() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER)
-            .name("my-kafka-cluster")
-            .configuration(Map.of("connections", List.of(Map.of("name", "conn-1", "security", Map.of("protocol", "PLAINTEXT")))))
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("my-kafka-cluster")
+                .configuration(Map.of(
+                        "connections", List.of(Map.of("name", "conn-1", "security", Map.of("protocol", "PLAINTEXT")))))
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
     }
@@ -167,12 +184,13 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_kafka_cluster_connection_missing_name() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER)
-            .name("my-kafka-cluster")
-            .configuration(
-                Map.of("connections", List.of(Map.of("bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT"))))
-            )
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("my-kafka-cluster")
+                .configuration(Map.of(
+                        "connections",
+                        List.of(Map.of(
+                                "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")))))
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
     }
@@ -180,160 +198,166 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_kafka_cluster_has_duplicate_connection_names() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER)
-            .name("my-kafka-cluster")
-            .configuration(
-                Map.of(
-                    "connections",
-                    List.of(
-                        Map.of("name", "same-name", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")),
-                        Map.of("name", "same-name", "bootstrapServers", "kafka2:9092", "security", Map.of("protocol", "PLAINTEXT"))
-                    )
-                )
-            )
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("my-kafka-cluster")
+                .configuration(Map.of(
+                        "connections",
+                        List.of(
+                                Map.of(
+                                        "name",
+                                        "same-name",
+                                        "bootstrapServers",
+                                        "kafka1:9092",
+                                        "security",
+                                        Map.of("protocol", "PLAINTEXT")),
+                                Map.of(
+                                        "name",
+                                        "same-name",
+                                        "bootstrapServers",
+                                        "kafka2:9092",
+                                        "security",
+                                        Map.of("protocol", "PLAINTEXT")))))
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("Connection names must be unique");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("Connection names must be unique");
     }
 
     @Test
     void should_throw_when_crossId_is_not_unique_in_environment() {
         Cluster existingCluster = Cluster.builder()
-            .id("existing-id")
-            .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId("env-1")
-            .configuration(validConfig())
-            .build();
+                .id("existing-id")
+                .crossId("my-cluster")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId("env-1")
+                .configuration(validConfig())
+                .build();
         clusterQueryService.initWith(List.of(existingCluster));
 
         Cluster newCluster = Cluster.builder()
-            .id("new-id")
-            .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster 2")
-            .environmentId("env-1")
-            .configuration(validConfig())
-            .build();
+                .id("new-id")
+                .crossId("my-cluster")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster 2")
+                .environmentId("env-1")
+                .configuration(validConfig())
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validateForCreate(newCluster))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("A cluster with crossId 'my-cluster' already exists");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("A cluster with crossId 'my-cluster' already exists");
     }
 
     @Test
     void should_pass_when_crossId_is_unique_in_environment() {
         Cluster existingCluster = Cluster.builder()
-            .id("existing-id")
-            .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId("env-1")
-            .configuration(validConfig())
-            .build();
+                .id("existing-id")
+                .crossId("my-cluster")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId("env-1")
+                .configuration(validConfig())
+                .build();
         clusterQueryService.initWith(List.of(existingCluster));
 
         Cluster newCluster = Cluster.builder()
-            .id("new-id")
-            .crossId("my-other-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Other Cluster")
-            .environmentId("env-1")
-            .configuration(validConfig())
-            .build();
+                .id("new-id")
+                .crossId("my-other-cluster")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Other Cluster")
+                .environmentId("env-1")
+                .configuration(validConfig())
+                .build();
 
-        assertThatCode(() -> validateClusterService.validateForCreate(newCluster)).doesNotThrowAnyException();
+        assertThatCode(() -> validateClusterService.validateForCreate(newCluster))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_pass_when_same_crossId_in_different_environment() {
         Cluster existingCluster = Cluster.builder()
-            .id("existing-id")
-            .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId("env-1")
-            .configuration(validConfig())
-            .build();
+                .id("existing-id")
+                .crossId("my-cluster")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId("env-1")
+                .configuration(validConfig())
+                .build();
         clusterQueryService.initWith(List.of(existingCluster));
 
         Cluster newCluster = Cluster.builder()
-            .id("new-id")
-            .crossId("my-cluster")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId("env-2")
-            .configuration(validConfig())
-            .build();
+                .id("new-id")
+                .crossId("my-cluster")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId("env-2")
+                .configuration(validConfig())
+                .build();
 
-        assertThatCode(() -> validateClusterService.validateForCreate(newCluster)).doesNotThrowAnyException();
+        assertThatCode(() -> validateClusterService.validateForCreate(newCluster))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_throw_when_crossId_is_empty() {
         Cluster cluster = Cluster.builder()
-            .id("new-id")
-            .crossId("")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId("env-1")
-            .configuration(validConfig())
-            .build();
+                .id("new-id")
+                .crossId("")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId("env-1")
+                .configuration(validConfig())
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validateForCreate(cluster))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("CrossId is required.");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("CrossId is required.");
     }
 
     @Test
     void should_throw_when_kafka_cluster_has_duplicate_connection_crossIds() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_CLUSTER)
-            .name("my-kafka-cluster")
-            .configuration(
-                Map.of(
-                    "connections",
-                    List.of(
-                        Map.of(
-                            "crossId",
-                            "same-cross-id",
-                            "name",
-                            "conn-1",
-                            "bootstrapServers",
-                            "kafka1:9092",
-                            "security",
-                            Map.of("protocol", "PLAINTEXT")
-                        ),
-                        Map.of(
-                            "crossId",
-                            "same-cross-id",
-                            "name",
-                            "conn-2",
-                            "bootstrapServers",
-                            "kafka2:9092",
-                            "security",
-                            Map.of("protocol", "PLAINTEXT")
-                        )
-                    )
-                )
-            )
-            .build();
+                .type(ClusterType.KAFKA_CLUSTER)
+                .name("my-kafka-cluster")
+                .configuration(Map.of(
+                        "connections",
+                        List.of(
+                                Map.of(
+                                        "crossId",
+                                        "same-cross-id",
+                                        "name",
+                                        "conn-1",
+                                        "bootstrapServers",
+                                        "kafka1:9092",
+                                        "security",
+                                        Map.of("protocol", "PLAINTEXT")),
+                                Map.of(
+                                        "crossId",
+                                        "same-cross-id",
+                                        "name",
+                                        "conn-2",
+                                        "bootstrapServers",
+                                        "kafka2:9092",
+                                        "security",
+                                        Map.of("protocol", "PLAINTEXT")))))
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("Connection crossIds must be unique within a cluster");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("Connection crossIds must be unique within a cluster");
     }
 
     @Test
     void should_pass_with_valid_kafka_virtual_cluster_configuration() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .name("my-virtual-cluster")
-            .configuration(Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1"))))
-            .build();
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name("my-virtual-cluster")
+                .configuration(Map.of(
+                        "backends",
+                        List.of(Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1"))))
+                .build();
 
         assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
     }
@@ -341,39 +365,31 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_kafka_virtual_cluster_has_duplicate_backends() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .name("my-virtual-cluster")
-            .configuration(
-                Map.of(
-                    "backends",
-                    List.of(
-                        Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1"),
-                        Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1")
-                    )
-                )
-            )
-            .build();
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name("my-virtual-cluster")
+                .configuration(Map.of(
+                        "backends",
+                        List.of(
+                                Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1"),
+                                Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1"))))
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("Backend references must be unique within a virtual cluster");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("Backend references must be unique within a virtual cluster");
     }
 
     @Test
     void should_pass_when_kafka_virtual_cluster_has_different_backends() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .name("my-virtual-cluster")
-            .configuration(
-                Map.of(
-                    "backends",
-                    List.of(
-                        Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1"),
-                        Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-2")
-                    )
-                )
-            )
-            .build();
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name("my-virtual-cluster")
+                .configuration(Map.of(
+                        "backends",
+                        List.of(
+                                Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-1"),
+                                Map.of("clusterCrossId", "kafka-cluster-1", "connectionCrossId", "conn-2"))))
+                .build();
 
         assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
     }
@@ -381,10 +397,10 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_kafka_virtual_cluster_backend_missing_clusterCrossId() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .name("my-virtual-cluster")
-            .configuration(Map.of("backends", List.of(Map.of("connectionCrossId", "conn-1"))))
-            .build();
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name("my-virtual-cluster")
+                .configuration(Map.of("backends", List.of(Map.of("connectionCrossId", "conn-1"))))
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
     }
@@ -392,10 +408,10 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_kafka_virtual_cluster_backend_missing_connectionCrossId() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .name("my-virtual-cluster")
-            .configuration(Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-cluster-1"))))
-            .build();
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name("my-virtual-cluster")
+                .configuration(Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-cluster-1"))))
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validate(cluster)).isInstanceOf(InvalidDataException.class);
     }
@@ -403,10 +419,10 @@ class ValidateClusterServiceTest {
     @Test
     void should_pass_when_kafka_virtual_cluster_has_empty_backends() {
         Cluster cluster = Cluster.builder()
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .name("my-virtual-cluster")
-            .configuration(Map.of("backends", List.of()))
-            .build();
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name("my-virtual-cluster")
+                .configuration(Map.of("backends", List.of()))
+                .build();
 
         assertThatCode(() -> validateClusterService.validate(cluster)).doesNotThrowAnyException();
     }
@@ -414,48 +430,49 @@ class ValidateClusterServiceTest {
     @Test
     void should_throw_when_crossId_is_changed_on_update() {
         Cluster existingCluster = Cluster.builder()
-            .id("cluster-id")
-            .crossId("original-cross-id")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId("env-1")
-            .configuration(validConfig())
-            .build();
+                .id("cluster-id")
+                .crossId("original-cross-id")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId("env-1")
+                .configuration(validConfig())
+                .build();
 
         Cluster updatedCluster = Cluster.builder()
-            .id("cluster-id")
-            .crossId("modified-cross-id")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId("env-1")
-            .configuration(validConfig())
-            .build();
+                .id("cluster-id")
+                .crossId("modified-cross-id")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId("env-1")
+                .configuration(validConfig())
+                .build();
 
         assertThatThrownBy(() -> validateClusterService.validateForUpdate(existingCluster, updatedCluster))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("CrossId is immutable");
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessageContaining("CrossId is immutable");
     }
 
     @Test
     void should_pass_when_crossId_is_unchanged_on_update() {
         Cluster existingCluster = Cluster.builder()
-            .id("cluster-id")
-            .crossId("my-cross-id")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("My Cluster")
-            .environmentId("env-1")
-            .configuration(validConfig())
-            .build();
+                .id("cluster-id")
+                .crossId("my-cross-id")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("My Cluster")
+                .environmentId("env-1")
+                .configuration(validConfig())
+                .build();
 
         Cluster updatedCluster = Cluster.builder()
-            .id("cluster-id")
-            .crossId("my-cross-id")
-            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
-            .name("Updated Name")
-            .environmentId("env-1")
-            .configuration(validConfig())
-            .build();
+                .id("cluster-id")
+                .crossId("my-cross-id")
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .name("Updated Name")
+                .environmentId("env-1")
+                .configuration(validConfig())
+                .build();
 
-        assertThatCode(() -> validateClusterService.validateForUpdate(existingCluster, updatedCluster)).doesNotThrowAnyException();
+        assertThatCode(() -> validateClusterService.validateForUpdate(existingCluster, updatedCluster))
+                .doesNotThrowAnyException();
     }
 }

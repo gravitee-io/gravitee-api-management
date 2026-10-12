@@ -78,9 +78,9 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @BeforeEach
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
-        when(parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_SEARCH_FUZZY), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
-            false
-        );
+        when(parameterService.findAsBoolean(
+                        any(), eq(Key.PORTAL_NEXT_SEARCH_FUZZY), eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(false);
     }
 
     @AfterEach
@@ -100,17 +100,16 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.initWith(items);
 
         // When
-        Response response = target()
-            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.HOMEPAGE)
-            .queryParam("loadChildren", true)
-            .request()
-            .get();
+        Response response = target().queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.HOMEPAGE)
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(
-            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
-        );
+                new jakarta.ws.rs.core.GenericType<
+                        List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {});
         assertThat(result).hasSize(items.size());
     }
 
@@ -118,26 +117,24 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_api_product_navigation_item() {
         var itemId = PortalNavigationFixtures.randomNavigationId();
         var apiProductId = UUID.randomUUID();
-        var apiProduct = PortalNavigationFixtures.apiProduct(itemId, "API Product", PortalArea.TOP_NAVBAR, apiProductId);
+        var apiProduct =
+                PortalNavigationFixtures.apiProduct(itemId, "API Product", PortalArea.TOP_NAVBAR, apiProductId);
         apiProduct.setEnvironmentId(ENV_ID);
         portalNavigationItemsQueryService.initWith(List.of(apiProduct));
 
-        Response response = target()
-            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.TOP_NAVBAR)
-            .queryParam("loadChildren", true)
-            .request()
-            .get();
+        Response response = target().queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.TOP_NAVBAR)
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(
-            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
-        );
-        assertThat(result)
-            .singleElement()
-            .satisfies(item -> {
-                assertThat(item.getActualInstance()).isInstanceOf(PortalNavigationApiProduct.class);
-                assertThat(item.getPortalNavigationApiProduct().getApiProductId()).isEqualTo(apiProductId);
-            });
+                new jakarta.ws.rs.core.GenericType<
+                        List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {});
+        assertThat(result).singleElement().satisfies(item -> {
+            assertThat(item.getActualInstance()).isInstanceOf(PortalNavigationApiProduct.class);
+            assertThat(item.getPortalNavigationApiProduct().getApiProductId()).isEqualTo(apiProductId);
+        });
     }
 
     @Test
@@ -149,18 +146,17 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
         // When - using a parentId that doesn't exist in the fixtures
         String parentId = PortalNavigationFixtures.randomNavigationId().toString();
-        Response response = target()
-            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.HOMEPAGE)
-            .queryParam("parentId", parentId)
-            .queryParam("loadChildren", false)
-            .request()
-            .get();
+        Response response = target().queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.HOMEPAGE)
+                .queryParam("parentId", parentId)
+                .queryParam("loadChildren", false)
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(
-            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
-        );
+                new jakarta.ws.rs.core.GenericType<
+                        List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {});
         assertThat(result).isEmpty();
     }
 
@@ -168,20 +164,18 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_only_published_navigation_items() {
         // Given
         var publishedItem = PortalNavigationFixtures.page(
-            PortalNavigationFixtures.randomNavigationId(),
-            "Published Page",
-            PortalArea.TOP_NAVBAR,
-            PortalNavigationFixtures.randomPageId()
-        );
+                PortalNavigationFixtures.randomNavigationId(),
+                "Published Page",
+                PortalArea.TOP_NAVBAR,
+                PortalNavigationFixtures.randomPageId());
         publishedItem.setEnvironmentId(ENV_ID);
         publishedItem.setPublished(true);
 
         var unpublishedItem = PortalNavigationFixtures.link(
-            PortalNavigationFixtures.randomNavigationId(),
-            "Unpublished Link",
-            PortalArea.TOP_NAVBAR,
-            "https://example.com"
-        );
+                PortalNavigationFixtures.randomNavigationId(),
+                "Unpublished Link",
+                PortalArea.TOP_NAVBAR,
+                "https://example.com");
         unpublishedItem.setEnvironmentId(ENV_ID);
         unpublishedItem.setPublished(false);
 
@@ -189,17 +183,16 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.initWith(items);
 
         // When
-        Response response = target()
-            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.TOP_NAVBAR)
-            .queryParam("loadChildren", true)
-            .request()
-            .get();
+        Response response = target().queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.TOP_NAVBAR)
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(
-            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
-        );
+                new jakarta.ws.rs.core.GenericType<
+                        List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {});
 
         // Only returns published items
         assertThat(result).hasSize(1);
@@ -209,27 +202,32 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @Test
     void should_not_show_children_of_unpublished_parent() {
         // Given
-        List<PortalNavigationItem> items = PortalNavigationFixtures.unpublishedParentHierarchy(PortalArea.TOP_NAVBAR, ENV_ID);
+        List<PortalNavigationItem> items =
+                PortalNavigationFixtures.unpublishedParentHierarchy(PortalArea.TOP_NAVBAR, ENV_ID);
         portalNavigationItemsQueryService.initWith(items);
 
         // When
-        Response response = target().queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", true).request().get();
+        Response response = target().queryParam("area", PortalArea.TOP_NAVBAR)
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
 
         var resultList = response.readEntity(
-            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
-        );
+                new jakarta.ws.rs.core.GenericType<
+                        List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {});
 
         assertThat(resultList)
-            .extracting(this::getIdFromItem)
-            .containsExactlyInAnyOrder(PortalNavigationFixtures.GRANDPARENT_ID.toString(), PortalNavigationFixtures.SIBLING_ID.toString())
-            .doesNotContain(
-                PortalNavigationFixtures.PARENT_ID.toString(),
-                PortalNavigationFixtures.CHILD1_ID.toString(),
-                PortalNavigationFixtures.CHILD2_ID.toString()
-            );
+                .extracting(this::getIdFromItem)
+                .containsExactlyInAnyOrder(
+                        PortalNavigationFixtures.GRANDPARENT_ID.toString(),
+                        PortalNavigationFixtures.SIBLING_ID.toString())
+                .doesNotContain(
+                        PortalNavigationFixtures.PARENT_ID.toString(),
+                        PortalNavigationFixtures.CHILD1_ID.toString(),
+                        PortalNavigationFixtures.CHILD2_ID.toString());
     }
 
     @Test
@@ -240,17 +238,16 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.initWith(items);
 
         // When
-        Response response = target()
-            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.HOMEPAGE)
-            .queryParam("loadChildren", true)
-            .request()
-            .get();
+        Response response = target().queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.HOMEPAGE)
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(
-            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
-        );
+                new jakarta.ws.rs.core.GenericType<
+                        List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {});
         assertThat(result).hasSize(items.size());
     }
 
@@ -258,28 +255,41 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_400_when_type_param_is_missing() {
-        Response response = target("/_search").queryParam("query", "auth").request().get();
+        Response response =
+                target("/_search").queryParam("query", "auth").request().get();
 
         assertThat(response.getStatus()).isEqualTo(400);
     }
 
     @Test
     void should_return_400_when_type_param_is_blank() {
-        Response response = target("/_search").queryParam("query", "auth").queryParam("type", "").request().get();
+        Response response = target("/_search")
+                .queryParam("query", "auth")
+                .queryParam("type", "")
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(400);
     }
 
     @Test
     void should_return_400_when_catalog_include_is_unsupported() {
-        Response response = target("/_search").queryParam("type", "catalog").queryParam("include", "unsupported").request().get();
+        Response response = target("/_search")
+                .queryParam("type", "catalog")
+                .queryParam("include", "unsupported")
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(400);
     }
 
     @Test
     void should_return_400_when_api_include_is_unsupported() {
-        Response response = target("/_search").queryParam("type", "api").queryParam("include", "unsupported").request().get();
+        Response response = target("/_search")
+                .queryParam("type", "api")
+                .queryParam("include", "unsupported")
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(400);
     }
@@ -288,28 +298,32 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_paginated_api_navigation_items() {
         // Given
         var apiItem = PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Auth API")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiId("api-uuid-1")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .segment(PortalNavigationItem.slugify("Auth API").value())
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Auth API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId("api-uuid-1")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Auth API").value())
+                .build();
         portalNavigationItemsQueryService.initWith(List.of(apiItem));
-        apiPortalSearchQueryService.initWith(List.of(Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build()));
+        apiPortalSearchQueryService.initWith(List.of(Api.builder()
+                .id("api-uuid-1")
+                .name("Auth API")
+                .environmentId(ENV_ID)
+                .build()));
 
         // When
         Response response = target("/_search")
-            .queryParam("query", "auth")
-            .queryParam("type", "api")
-            .queryParam("page", 1)
-            .queryParam("size", 10)
-            .request()
-            .get();
+                .queryParam("query", "auth")
+                .queryParam("type", "api")
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
@@ -332,21 +346,25 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_empty_results_when_query_matches_nothing() {
         // Given
         var apiItem = PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Auth API")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiId("api-uuid-1")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .segment(PortalNavigationItem.slugify("Auth API").value())
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Auth API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId("api-uuid-1")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Auth API").value())
+                .build();
         portalNavigationItemsQueryService.initWith(List.of(apiItem));
 
         // When - query that doesn't match
-        Response response = target("/_search").queryParam("query", "xyz-no-match").queryParam("type", "api").request().get();
+        Response response = target("/_search")
+                .queryParam("query", "xyz-no-match")
+                .queryParam("type", "api")
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
@@ -360,22 +378,23 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_all_api_navigation_items_when_no_category_id_param() {
         // Given
         var apiItem = PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Auth API")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiId("api-uuid-1")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .segment(PortalNavigationItem.slugify("Auth API").value())
-            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Auth API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId("api-uuid-1")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Auth API").value())
+                .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+                .build();
         portalNavigationItemsQueryService.initWith(List.of(apiItem));
 
         // When
-        Response response = target("/_search").queryParam("type", "api").request().get();
+        Response response =
+                target("/_search").queryParam("type", "api").request().get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
@@ -389,34 +408,38 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_filter_api_navigation_items_by_known_category_id() {
         // Given
         var itemInCategory = PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Auth API")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiId("api-uuid-1")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .segment(PortalNavigationItem.slugify("Auth API").value())
-            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Auth API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId("api-uuid-1")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Auth API").value())
+                .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+                .build();
         var itemOutsideCategory = PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Other API")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(2)
-            .apiId("api-uuid-2")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .segment(PortalNavigationItem.slugify("Other API").value())
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Other API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(2)
+                .apiId("api-uuid-2")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Other API").value())
+                .build();
         portalNavigationItemsQueryService.initWith(List.of(itemInCategory, itemOutsideCategory));
 
         // When
-        Response response = target("/_search").queryParam("type", "api").queryParam("categoryId", CATEGORY_ID_1).request().get();
+        Response response = target("/_search")
+                .queryParam("type", "api")
+                .queryParam("categoryId", CATEGORY_ID_1)
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
@@ -431,22 +454,26 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_empty_results_when_category_id_does_not_match() {
         // Given
         var apiItem = PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Auth API")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiId("api-uuid-1")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .segment(PortalNavigationItem.slugify("Auth API").value())
-            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Auth API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId("api-uuid-1")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Auth API").value())
+                .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+                .build();
         portalNavigationItemsQueryService.initWith(List.of(apiItem));
 
         // When
-        Response response = target("/_search").queryParam("type", "api").queryParam("categoryId", UNKNOWN_CATEGORY_ID).request().get();
+        Response response = target("/_search")
+                .queryParam("type", "api")
+                .queryParam("categoryId", UNKNOWN_CATEGORY_ID)
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
@@ -461,19 +488,20 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         // Given
         String apiId = "api-uuid-1";
         var apiItem = PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Auth API")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiId(apiId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .segment(PortalNavigationItem.slugify("Auth API").value())
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Auth API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId(apiId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Auth API").value())
+                .build();
         portalNavigationItemsQueryService.initWith(List.of(apiItem));
-        apiPortalSearchQueryService.initWith(List.of(Api.builder().id(apiId).name("Auth API").environmentId(ENV_ID).build()));
+        apiPortalSearchQueryService.initWith(List.of(
+                Api.builder().id(apiId).name("Auth API").environmentId(ENV_ID).build()));
 
         var mockApiEntity = Mockito.mock(GenericApiEntity.class);
         when(apiSearchService.findGenericByEnvironmentAndIdIn(any(), any())).thenReturn(Set.of(mockApiEntity));
@@ -484,11 +512,11 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
         // When
         Response response = target("/_search")
-            .queryParam("query", "auth")
-            .queryParam("type", "api")
-            .queryParam("include", "api")
-            .request()
-            .get();
+                .queryParam("query", "auth")
+                .queryParam("type", "api")
+                .queryParam("include", "api")
+                .request()
+                .get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);
@@ -504,23 +532,24 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_return_api_product_summary_in_catalog_search() {
         var apiProductId = UUID.fromString("00000000-0000-0000-0000-000000000101");
         var navigationItemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102");
-        var apiProductItem = PortalNavigationFixtures.apiProduct(navigationItemId, "Payments Product", PortalArea.TOP_NAVBAR, apiProductId);
+        var apiProductItem = PortalNavigationFixtures.apiProduct(
+                navigationItemId, "Payments Product", PortalArea.TOP_NAVBAR, apiProductId);
         apiProductItem.setEnvironmentId(ENV_ID);
         portalNavigationItemsQueryService.initWith(List.of(apiProductItem));
-        apiProductQueryService.initWith(
-            List.of(
-                ApiProduct.builder()
-                    .id(apiProductId.toString())
-                    .environmentId(ENV_ID)
-                    .name("Payments Product")
-                    .description("Payment APIs")
-                    .version("1.0.0")
-                    .apiIds(Set.of())
-                    .build()
-            )
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(apiProductId.toString())
+                .environmentId(ENV_ID)
+                .name("Payments Product")
+                .description("Payment APIs")
+                .version("1.0.0")
+                .apiIds(Set.of())
+                .build()));
 
-        Response response = target("/_search").queryParam("type", "catalog").queryParam("include", "api_product").request().get();
+        Response response = target("/_search")
+                .queryParam("type", "catalog")
+                .queryParam("include", "api_product")
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
@@ -529,52 +558,61 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         assertThat(data).hasSize(1);
         @SuppressWarnings("unchecked")
         var apiProducts = (List<Map<String, Object>>) result.get("apiProducts");
-        assertThat(apiProducts)
-            .singleElement()
-            .satisfies(apiProduct -> {
-                assertThat(apiProduct).containsEntry("id", apiProductId.toString());
-                assertThat(apiProduct).containsEntry("name", "Payments Product");
-                assertThat(apiProduct).containsEntry("navigationItemId", navigationItemId.json());
-                assertThat(apiProduct).containsEntry("apis", List.of());
-            });
+        assertThat(apiProducts).singleElement().satisfies(apiProduct -> {
+            assertThat(apiProduct).containsEntry("id", apiProductId.toString());
+            assertThat(apiProduct).containsEntry("name", "Payments Product");
+            assertThat(apiProduct).containsEntry("navigationItemId", navigationItemId.json());
+            assertThat(apiProduct).containsEntry("apis", List.of());
+        });
     }
 
     @Test
     void should_filter_catalog_api_items_by_known_category_id() {
         var itemInCategory = PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Auth API")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiId("api-uuid-1")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .segment(PortalNavigationItem.slugify("Auth API").value())
-            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Auth API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId("api-uuid-1")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Auth API").value())
+                .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+                .build();
         var itemOutsideCategory = PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Other API")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(2)
-            .apiId("api-uuid-2")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .segment(PortalNavigationItem.slugify("Other API").value())
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Other API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(2)
+                .apiId("api-uuid-2")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Other API").value())
+                .build();
         portalNavigationItemsQueryService.initWith(List.of(itemInCategory, itemOutsideCategory));
         var apis = List.of(
-            Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build(),
-            Api.builder().id("api-uuid-2").name("Other API").environmentId(ENV_ID).build()
-        );
+                Api.builder()
+                        .id("api-uuid-1")
+                        .name("Auth API")
+                        .environmentId(ENV_ID)
+                        .build(),
+                Api.builder()
+                        .id("api-uuid-2")
+                        .name("Other API")
+                        .environmentId(ENV_ID)
+                        .build());
         apiPortalSearchQueryService.initWith(apis);
         apiQueryService.initWith(apis);
 
-        Response response = target("/_search").queryParam("type", "catalog").queryParam("categoryId", CATEGORY_ID_1).request().get();
+        Response response = target("/_search")
+                .queryParam("type", "catalog")
+                .queryParam("categoryId", CATEGORY_ID_1)
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
@@ -587,66 +625,68 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @Test
     void should_return_api_and_api_product_assigned_to_catalog_category() {
         var apiItem = PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId("org")
-            .environmentId(ENV_ID)
-            .title("Auth API")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(1)
-            .apiId("api-uuid-1")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .segment(PortalNavigationItem.slugify("Auth API").value())
-            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId("org")
+                .environmentId(ENV_ID)
+                .title("Auth API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId("api-uuid-1")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .segment(PortalNavigationItem.slugify("Auth API").value())
+                .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+                .build();
         var apiProductId = UUID.randomUUID();
         var apiProductItem = PortalNavigationFixtures.apiProduct(
-            PortalNavigationFixtures.randomNavigationId(),
-            "Payments Product",
-            PortalArea.TOP_NAVBAR,
-            apiProductId
-        )
-            .toBuilder()
-            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
-            .build();
+                        PortalNavigationFixtures.randomNavigationId(),
+                        "Payments Product",
+                        PortalArea.TOP_NAVBAR,
+                        apiProductId)
+                .toBuilder()
+                .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+                .build();
         apiProductItem.setEnvironmentId(ENV_ID);
         portalNavigationItemsQueryService.initWith(List.of(apiItem, apiProductItem));
-        var apis = List.of(Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build());
+        var apis = List.of(Api.builder()
+                .id("api-uuid-1")
+                .name("Auth API")
+                .environmentId(ENV_ID)
+                .build());
         apiPortalSearchQueryService.initWith(apis);
         apiQueryService.initWith(apis);
-        apiProductQueryService.initWith(
-            List.of(
-                ApiProduct.builder()
-                    .id(apiProductId.toString())
-                    .environmentId(ENV_ID)
-                    .name("Payments Product")
-                    .version("1.0.0")
-                    .apiIds(Set.of())
-                    .build()
-            )
-        );
+        apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                .id(apiProductId.toString())
+                .environmentId(ENV_ID)
+                .name("Payments Product")
+                .version("1.0.0")
+                .apiIds(Set.of())
+                .build()));
 
         Response response = target("/_search")
-            .queryParam("type", "catalog")
-            .queryParam("include", "api_product")
-            .queryParam("categoryId", CATEGORY_ID_1)
-            .request()
-            .get();
+                .queryParam("type", "catalog")
+                .queryParam("include", "api_product")
+                .queryParam("categoryId", CATEGORY_ID_1)
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
         @SuppressWarnings("unchecked")
         var data = (List<Map<String, Object>>) result.get("data");
         assertThat(data).hasSize(2);
-        assertThat(data).anySatisfy(item -> assertThat(item).containsEntry("id", apiItem.getId().toString()));
-        assertThat(data).anySatisfy(item ->
-            assertThat(item).containsEntry("id", apiProductItem.getId().toString()).containsEntry("categoryIds", List.of(CATEGORY_ID_1))
-        );
+        assertThat(data)
+                .anySatisfy(item ->
+                        assertThat(item).containsEntry("id", apiItem.getId().toString()));
+        assertThat(data)
+                .anySatisfy(item -> assertThat(item)
+                        .containsEntry("id", apiProductItem.getId().toString())
+                        .containsEntry("categoryIds", List.of(CATEGORY_ID_1)));
         @SuppressWarnings("unchecked")
         var apiProducts = (List<Map<String, Object>>) result.get("apiProducts");
         assertThat(apiProducts)
-            .singleElement()
-            .satisfies(product -> assertThat(product).containsEntry("id", apiProductId.toString()));
+                .singleElement()
+                .satisfies(product -> assertThat(product).containsEntry("id", apiProductId.toString()));
     }
 
     @Test
@@ -654,40 +694,39 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         var firstApiProductId = UUID.fromString("00000000-0000-0000-0000-000000000201");
         var secondApiProductId = UUID.fromString("00000000-0000-0000-0000-000000000202");
         var firstNavigationItem = PortalNavigationFixtures.apiProduct(
-            PortalNavigationItemId.of("00000000-0000-0000-0000-000000000203"),
-            "Zebra Product",
-            PortalArea.TOP_NAVBAR,
-            firstApiProductId
-        );
+                PortalNavigationItemId.of("00000000-0000-0000-0000-000000000203"),
+                "Zebra Product",
+                PortalArea.TOP_NAVBAR,
+                firstApiProductId);
         var secondNavigationItem = PortalNavigationFixtures.apiProduct(
-            PortalNavigationItemId.of("00000000-0000-0000-0000-000000000204"),
-            "Apple Product",
-            PortalArea.TOP_NAVBAR,
-            secondApiProductId
-        );
+                PortalNavigationItemId.of("00000000-0000-0000-0000-000000000204"),
+                "Apple Product",
+                PortalArea.TOP_NAVBAR,
+                secondApiProductId);
         firstNavigationItem.setEnvironmentId(ENV_ID);
         secondNavigationItem.setEnvironmentId(ENV_ID);
         portalNavigationItemsQueryService.initWith(List.of(firstNavigationItem, secondNavigationItem));
-        apiProductQueryService.initWith(
-            List.of(
+        apiProductQueryService.initWith(List.of(
                 ApiProduct.builder()
-                    .id(firstApiProductId.toString())
-                    .environmentId(ENV_ID)
-                    .name("Zebra Product")
-                    .version("1.0.0")
-                    .apiIds(Set.of())
-                    .build(),
+                        .id(firstApiProductId.toString())
+                        .environmentId(ENV_ID)
+                        .name("Zebra Product")
+                        .version("1.0.0")
+                        .apiIds(Set.of())
+                        .build(),
                 ApiProduct.builder()
-                    .id(secondApiProductId.toString())
-                    .environmentId(ENV_ID)
-                    .name("Apple Product")
-                    .version("1.0.0")
-                    .apiIds(Set.of())
-                    .build()
-            )
-        );
+                        .id(secondApiProductId.toString())
+                        .environmentId(ENV_ID)
+                        .name("Apple Product")
+                        .version("1.0.0")
+                        .apiIds(Set.of())
+                        .build()));
 
-        Response response = target("/_search").queryParam("type", "catalog").queryParam("size", -1).request().get();
+        Response response = target("/_search")
+                .queryParam("type", "catalog")
+                .queryParam("size", -1)
+                .request()
+                .get();
 
         assertThat(response.getStatus()).isEqualTo(200);
         var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
@@ -699,12 +738,12 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         @SuppressWarnings("unchecked")
         var pagination = (Map<String, Object>) metadata.get("pagination");
         assertThat(pagination)
-            .containsEntry("total", 2)
-            .containsEntry("size", -1)
-            .containsEntry("current_page", 1)
-            .containsEntry("total_pages", 1)
-            .containsEntry("first", 1)
-            .containsEntry("last", 2);
+                .containsEntry("total", 2)
+                .containsEntry("size", -1)
+                .containsEntry("current_page", 1)
+                .containsEntry("total_pages", 1)
+                .containsEntry("first", 1)
+                .containsEntry("last", 2);
         @SuppressWarnings("unchecked")
         var links = (Map<String, Object>) result.get("links");
         assertThat(links).containsKey("self");

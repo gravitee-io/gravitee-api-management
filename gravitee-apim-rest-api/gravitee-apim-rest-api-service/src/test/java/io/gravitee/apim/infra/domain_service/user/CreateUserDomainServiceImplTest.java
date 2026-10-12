@@ -68,7 +68,8 @@ class CreateUserDomainServiceImplTest {
 
     @Test
     void should_create_external_user_with_all_fields() {
-        var result = service.createGraviteeUser(EXECUTION_CONTEXT, "jane@example.com", Optional.of("Jane"), Optional.of("Doe"));
+        var result = service.createGraviteeUser(
+                EXECUTION_CONTEXT, "jane@example.com", Optional.of("Jane"), Optional.of("Doe"));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.getId()).matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
@@ -86,7 +87,8 @@ class CreateUserDomainServiceImplTest {
 
     @Test
     void should_use_null_for_absent_firstname_and_lastname() {
-        var result = service.createGraviteeUser(EXECUTION_CONTEXT, "nofirstlast@example.com", Optional.empty(), Optional.empty());
+        var result = service.createGraviteeUser(
+                EXECUTION_CONTEXT, "nofirstlast@example.com", Optional.empty(), Optional.empty());
 
         assertThat(result.getFirstname()).isNull();
         assertThat(result.getLastname()).isNull();
@@ -96,12 +98,16 @@ class CreateUserDomainServiceImplTest {
     void should_store_user_in_crud_service() {
         service.createGraviteeUser(EXECUTION_CONTEXT, "stored@example.com", Optional.empty(), Optional.empty());
 
-        assertThat(userCrudService.storage()).hasSize(1).extracting(BaseUserEntity::getEmail).containsExactly("stored@example.com");
+        assertThat(userCrudService.storage())
+                .hasSize(1)
+                .extracting(BaseUserEntity::getEmail)
+                .containsExactly("stored@example.com");
     }
 
     @Test
     void should_assign_default_roles_to_the_created_user() {
-        var result = service.createGraviteeUser(EXECUTION_CONTEXT, "jane@example.com", Optional.of("Jane"), Optional.of("Doe"));
+        var result = service.createGraviteeUser(
+                EXECUTION_CONTEXT, "jane@example.com", Optional.of("Jane"), Optional.of("Doe"));
 
         assertThat(assignUserDefaultRoles.assignedUserIds).containsExactly(result.getId());
         assertThat(assignUserDefaultRoles.lastOrganizationId).isEqualTo("org-id");

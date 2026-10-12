@@ -35,19 +35,17 @@ public class CredentialDeployer implements Deployer<CredentialDeployable> {
     public Completable deploy(final CredentialDeployable deployable) {
         return Completable.fromRunnable(() -> {
             try {
-                credentialManager.deploy(
-                    new DeployedCredential(
+                credentialManager.deploy(new DeployedCredential(
                         deployable.credentialId(),
                         deployable.environmentId(),
                         deployable.organizationId(),
                         deployable.allowedApiIds(),
                         deployable.encryptedSecret(),
-                        deployable.updatedAt()
-                    )
-                );
+                        deployable.updatedAt()));
                 log.debug("Credential [{}] deployed", deployable.id());
             } catch (Exception e) {
-                throw new SyncException(String.format("An error occurred when trying to deploy credential [%s].", deployable.id()), e);
+                throw new SyncException(
+                        String.format("An error occurred when trying to deploy credential [%s].", deployable.id()), e);
             }
         });
     }
@@ -63,7 +61,9 @@ public class CredentialDeployer implements Deployer<CredentialDeployable> {
             try {
                 credentialManager.undeploy(deployable.environmentId(), deployable.credentialId());
             } catch (Exception e) {
-                throw new SyncException(String.format("An error occurred when trying to undeploy credential [%s].", deployable.id()), e);
+                throw new SyncException(
+                        String.format("An error occurred when trying to undeploy credential [%s].", deployable.id()),
+                        e);
             }
         });
     }

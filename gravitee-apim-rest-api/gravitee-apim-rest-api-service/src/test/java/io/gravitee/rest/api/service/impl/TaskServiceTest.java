@@ -32,7 +32,6 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiProductCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
@@ -40,7 +39,6 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -133,9 +131,9 @@ public class TaskServiceTest {
         m3.setRoleId("API_PO");
 
         Map<String, char[]> withPerm = new HashMap<>();
-        withPerm.put("SUBSCRIPTION", new char[] { 'C', 'R', 'U', 'D' });
+        withPerm.put("SUBSCRIPTION", new char[] {'C', 'R', 'U', 'D'});
         Map<String, char[]> withoutPerm = new HashMap<>();
-        withoutPerm.put("SUBSCRIPTION", new char[] { 'C', 'R', 'D' });
+        withoutPerm.put("SUBSCRIPTION", new char[] {'C', 'R', 'D'});
 
         RoleEntity roleEntityWithPerm = new RoleEntity();
         roleEntityWithPerm.setId("API_PO");
@@ -153,33 +151,32 @@ public class TaskServiceTest {
 
         when(roleService.findById("API_USER")).thenReturn(roleEntityWithoutPerm);
 
-        when(promotionTasksService.getPromotionTasks(GraviteeContext.getExecutionContext())).thenReturn(emptyList());
+        when(promotionTasksService.getPromotionTasks(GraviteeContext.getExecutionContext()))
+                .thenReturn(emptyList());
 
         Set<MembershipEntity> memberships = new HashSet<>();
         memberships.add(m1);
         memberships.add(m2);
         memberships.add(m3);
-        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(memberships);
+        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
+                .thenReturn(memberships);
 
-        when(userService.search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any())).thenReturn(
-            new Page<>(emptyList(), 1, 0, 0)
-        );
+        when(userService.search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any()))
+                .thenReturn(new Page<>(emptyList(), 1, 0, 0));
     }
 
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 
     @Test
@@ -190,10 +187,10 @@ public class TaskServiceTest {
 
         taskService.findAll(GraviteeContext.getExecutionContext(), "user");
 
-        verify(subscriptionService, times(1)).search(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2)
-        );
+        verify(subscriptionService, times(1))
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2));
         verify(promotionTasksService, times(1)).getPromotionTasks(GraviteeContext.getExecutionContext());
         verify(userService, times(0)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
     }
@@ -202,15 +199,16 @@ public class TaskServiceTest {
     public void shouldNotFindAnythingWhenUserHasNoMembership() {
         final Authentication authentication = mock(Authentication.class);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
-        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Collections.emptySet());
+        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
+                .thenReturn(Collections.emptySet());
 
         taskService.findAll(GraviteeContext.getExecutionContext(), "user");
 
         verify(userService, times(0)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
-        verify(subscriptionService, times(0)).search(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2)
-        );
+        verify(subscriptionService, times(0))
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2));
         verify(apiRepository, times(0)).searchIds(any(), any(), any());
     }
 
@@ -226,26 +224,25 @@ public class TaskServiceTest {
         final EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(GraviteeContext.getCurrentEnvironment());
 
-        when(environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())).thenReturn(List.of(environment));
-        when(
-            apiProductsRepository.searchIds(
-                argThat(
-                    (List<ApiProductCriteria> list) ->
-                        list.size() == 1 &&
-                        list.get(0).getEnvironments() != null &&
-                        list.get(0).getEnvironments().contains(environment.getId())
-                ),
-                any(Pageable.class),
-                isNull()
-            )
-        ).thenReturn(new Page<>(emptyList(), 0, 0, 0));
-        when(
-            apiRepository.searchIds(
-                List.of(new ApiCriteria.Builder().environments(List.of(environment.getId())).build()),
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build(),
-                null
-            )
-        ).thenReturn(new Page<String>(emptyList(), 1, 0, 0));
+        when(environmentService.findByOrganization(GraviteeContext.getCurrentOrganization()))
+                .thenReturn(List.of(environment));
+        when(apiProductsRepository.searchIds(
+                        argThat((List<ApiProductCriteria> list) -> list.size() == 1
+                                && list.get(0).getEnvironments() != null
+                                && list.get(0).getEnvironments().contains(environment.getId())),
+                        any(Pageable.class),
+                        isNull()))
+                .thenReturn(new Page<>(emptyList(), 0, 0, 0));
+        when(apiRepository.searchIds(
+                        List.of(new ApiCriteria.Builder()
+                                .environments(List.of(environment.getId()))
+                                .build()),
+                        new PageableBuilder()
+                                .pageNumber(0)
+                                .pageSize(Integer.MAX_VALUE)
+                                .build(),
+                        null))
+                .thenReturn(new Page<String>(emptyList(), 1, 0, 0));
 
         taskService.findAll(GraviteeContext.getExecutionContext(), "admin");
 
@@ -293,7 +290,8 @@ public class TaskServiceTest {
         workflowApi.setEnvironmentId("envId");
         when(apiRepository.findById(eq("workflowApiId"))).thenReturn(Optional.of(workflowApi));
 
-        Metadata metadata = taskService.getMetadata(GraviteeContext.getExecutionContext(), Arrays.asList(taskSubscription, taskWorkflow));
+        Metadata metadata = taskService.getMetadata(
+                GraviteeContext.getExecutionContext(), Arrays.asList(taskSubscription, taskWorkflow));
 
         Map<String, Map<String, Object>> expectedMetadata = new HashMap<>();
         // expected Metadata for Task Subscription
@@ -334,7 +332,8 @@ public class TaskServiceTest {
         workflow.setReferenceId("workflowApiId");
         when(apiRepository.findById(eq("workflowApiId"))).thenThrow(new TechnicalException());
 
-        Metadata metadata = taskService.getMetadata(GraviteeContext.getExecutionContext(), Arrays.asList(taskSubscription, taskWorkflow));
+        Metadata metadata = taskService.getMetadata(
+                GraviteeContext.getExecutionContext(), Arrays.asList(taskSubscription, taskWorkflow));
 
         assertEquals(metadata.toMap(), Collections.emptyMap());
     }

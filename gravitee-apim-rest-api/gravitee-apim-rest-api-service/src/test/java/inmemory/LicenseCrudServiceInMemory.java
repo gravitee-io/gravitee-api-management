@@ -25,22 +25,19 @@ public class LicenseCrudServiceInMemory implements LicenseCrudService, InMemoryA
 
     @Override
     public Optional<License> getOrganizationLicense(String organizationId) {
-        return storage
-            .stream()
-            .filter(
-                license ->
-                    License.ReferenceType.ORGANIZATION.equals(license.getReferenceType()) && organizationId.equals(license.getReferenceId())
-            )
-            .findFirst();
+        return storage.stream()
+                .filter(license -> License.ReferenceType.ORGANIZATION.equals(license.getReferenceType())
+                        && organizationId.equals(license.getReferenceId()))
+                .findFirst();
     }
 
     @Override
     public License createOrganizationLicense(String organizationId, String license) {
         License organizationLicense = License.builder()
-            .referenceType(License.ReferenceType.ORGANIZATION)
-            .referenceId(organizationId)
-            .license(license)
-            .build();
+                .referenceType(License.ReferenceType.ORGANIZATION)
+                .referenceId(organizationId)
+                .license(license)
+                .build();
         this.storage.add(organizationLicense);
         return organizationLicense;
     }
@@ -49,7 +46,8 @@ public class LicenseCrudServiceInMemory implements LicenseCrudService, InMemoryA
     public License updateOrganizationLicense(String organizationId, String license) {
         OptionalInt index = this.findIndex(this.storage, l -> l.getReferenceId().equals(organizationId));
         if (index.isPresent()) {
-            License newLicense = storage.get(index.getAsInt()).toBuilder().license(license).build();
+            License newLicense =
+                    storage.get(index.getAsInt()).toBuilder().license(license).build();
             storage.set(index.getAsInt(), newLicense);
             return newLicense;
         }

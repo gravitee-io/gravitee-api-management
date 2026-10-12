@@ -23,7 +23,8 @@ import java.util.Map;
  */
 public class PlanNotSubscribableWithoutClientCertificateException extends AbstractManagementException {
 
-    private final String message = "You cannot subscribe to a mTLS plan without a client_certificate configured at application level";
+    private final String message =
+            "You cannot subscribe to a mTLS plan without a client_certificate configured at application level";
 
     @Override
     public String getMessage() {

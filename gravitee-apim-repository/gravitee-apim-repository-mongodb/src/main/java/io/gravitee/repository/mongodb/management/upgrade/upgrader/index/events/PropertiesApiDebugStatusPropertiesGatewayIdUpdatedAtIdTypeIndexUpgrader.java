@@ -23,19 +23,18 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component("PropertiesApiDebugStatusPropertiesGatewayIdUpdatedAtIdTypeIndexUpgrader")
-public class PropertiesApiDebugStatusPropertiesGatewayIdUpdatedAtIdTypeIndexUpgrader
-    extends IndexUpgrader {
+public class PropertiesApiDebugStatusPropertiesGatewayIdUpdatedAtIdTypeIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("events")
-            .name("pads1pgi1ua-1i-1t1")
-            .key("properties.api_debug_status", ascending())
-            .key("properties.gateway_id", ascending())
-            .key("updatedAt", descending())
-            .key("_id", descending())
-            .key("type", ascending())
-            .build();
+                .collection("events")
+                .name("pads1pgi1ua-1i-1t1")
+                .key("properties.api_debug_status", ascending())
+                .key("properties.gateway_id", ascending())
+                .key("updatedAt", descending())
+                .key("_id", descending())
+                .key("type", ascending())
+                .build();
     }
 }

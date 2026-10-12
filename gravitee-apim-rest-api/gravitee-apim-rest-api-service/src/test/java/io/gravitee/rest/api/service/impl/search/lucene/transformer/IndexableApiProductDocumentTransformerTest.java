@@ -37,18 +37,18 @@ import org.junit.jupiter.api.Test;
 class IndexableApiProductDocumentTransformerTest {
 
     private static final String PRODUCT_ID = "api-product-id";
-    private static final PrimaryOwnerEntity PRIMARY_OWNER = new PrimaryOwnerEntity(
-        "user-id",
-        "owner@gravitee.io",
-        "Product Owner",
-        PrimaryOwnerEntity.Type.USER
-    );
+    private static final PrimaryOwnerEntity PRIMARY_OWNER =
+            new PrimaryOwnerEntity("user-id", "owner@gravitee.io", "Product Owner", PrimaryOwnerEntity.Type.USER);
 
     private final IndexableApiProductDocumentTransformer cut = new IndexableApiProductDocumentTransformer();
 
     @Test
     void should_transform_id_and_type_only_when_name_is_null() {
-        ApiProduct apiProduct = ApiProduct.builder().id(PRODUCT_ID).environmentId("env-1").name(null).build();
+        ApiProduct apiProduct = ApiProduct.builder()
+                .id(PRODUCT_ID)
+                .environmentId("env-1")
+                .name(null)
+                .build();
         IndexableApiProduct indexable = new IndexableApiProduct(apiProduct, PRIMARY_OWNER);
 
         Document result = cut.transform(indexable);
@@ -62,12 +62,12 @@ class IndexableApiProductDocumentTransformerTest {
     @Test
     void should_not_add_created_at_or_updated_at_when_dates_are_null() {
         ApiProduct apiProduct = ApiProduct.builder()
-            .id(PRODUCT_ID)
-            .environmentId("env-1")
-            .name("My Product")
-            .createdAt(null)
-            .updatedAt(null)
-            .build();
+                .id(PRODUCT_ID)
+                .environmentId("env-1")
+                .name("My Product")
+                .createdAt(null)
+                .updatedAt(null)
+                .build();
         IndexableApiProduct indexable = new IndexableApiProduct(apiProduct, null);
 
         Document result = cut.transform(indexable);
@@ -82,12 +82,12 @@ class IndexableApiProductDocumentTransformerTest {
         ZonedDateTime created = ZonedDateTime.now().minusDays(1);
         ZonedDateTime updated = ZonedDateTime.now();
         ApiProduct apiProduct = ApiProduct.builder()
-            .id(PRODUCT_ID)
-            .environmentId("env-1")
-            .name("My Product")
-            .createdAt(created)
-            .updatedAt(updated)
-            .build();
+                .id(PRODUCT_ID)
+                .environmentId("env-1")
+                .name("My Product")
+                .createdAt(created)
+                .updatedAt(updated)
+                .build();
         IndexableApiProduct indexable = new IndexableApiProduct(apiProduct, null);
 
         Document result = cut.transform(indexable);
@@ -99,7 +99,11 @@ class IndexableApiProductDocumentTransformerTest {
     @Test
     void should_strip_special_chars_in_name_sorted_for_collation() {
         // SPECIAL_CHARS pattern: [|\-+!(){}^"~*?:&/] — strip these before collation
-        ApiProduct apiProduct = ApiProduct.builder().id(PRODUCT_ID).environmentId("env-1").name("API | Product (v1)").build();
+        ApiProduct apiProduct = ApiProduct.builder()
+                .id(PRODUCT_ID)
+                .environmentId("env-1")
+                .name("API | Product (v1)")
+                .build();
         IndexableApiProduct indexable = new IndexableApiProduct(apiProduct, null);
 
         Document result = cut.transform(indexable);
@@ -113,20 +117,21 @@ class IndexableApiProductDocumentTransformerTest {
     @Test
     void should_handle_handle_for_indexable_api_product() {
         assertThat(cut.handle(IndexableApiProduct.class)).isTrue();
-        assertThat(cut.handle(io.gravitee.rest.api.model.search.Indexable.class)).isFalse();
+        assertThat(cut.handle(io.gravitee.rest.api.model.search.Indexable.class))
+                .isFalse();
     }
 
     @Test
     void should_transform_full_product_with_owner_and_description() {
         ApiProduct apiProduct = ApiProduct.builder()
-            .id(PRODUCT_ID)
-            .environmentId("env-1")
-            .name("Full Product")
-            .description("A description")
-            .apiIds(Set.of("api-1"))
-            .createdAt(ZonedDateTime.now().minusDays(1))
-            .updatedAt(ZonedDateTime.now())
-            .build();
+                .id(PRODUCT_ID)
+                .environmentId("env-1")
+                .name("Full Product")
+                .description("A description")
+                .apiIds(Set.of("api-1"))
+                .createdAt(ZonedDateTime.now().minusDays(1))
+                .updatedAt(ZonedDateTime.now())
+                .build();
         IndexableApiProduct indexable = new IndexableApiProduct(apiProduct, PRIMARY_OWNER);
 
         Document result = cut.transform(indexable);
@@ -134,6 +139,8 @@ class IndexableApiProductDocumentTransformerTest {
         assertThat(result.getField(FIELD_ID).stringValue()).isEqualTo(PRODUCT_ID);
         assertThat(result.getField(FIELD_NAME).stringValue()).isEqualTo("Full Product");
         assertThat(result.getField(FIELD_DESCRIPTION).stringValue()).isEqualTo("A description");
-        assertThat(result.getField(IndexableApiProductDocumentTransformer.FIELD_OWNER).stringValue()).isEqualTo("Product Owner");
+        assertThat(result.getField(IndexableApiProductDocumentTransformer.FIELD_OWNER)
+                        .stringValue())
+                .isEqualTo("Product Owner");
     }
 }

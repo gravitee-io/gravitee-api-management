@@ -35,9 +35,9 @@ public class VertxReadStreamUtil {
      * @param chunks the flowable to convert
      * @return the resulting read-stream of rx vertx buffer
      */
-    public static io.vertx.rxjava3.core.streams.ReadStream<io.vertx.core.buffer.Buffer> toVertxRxReadStream(final Flowable<Buffer> chunks) {
+    public static io.vertx.rxjava3.core.streams.ReadStream<io.vertx.core.buffer.Buffer> toVertxRxReadStream(
+            final Flowable<Buffer> chunks) {
         return io.vertx.rxjava3.core.streams.ReadStream.newInstance(
-            FlowableHelper.toReadStream(chunks.map(Buffer::getBytes).map(io.vertx.core.buffer.Buffer::buffer))
-        );
+                FlowableHelper.toReadStream(chunks.map(Buffer::getBytes).map(io.vertx.core.buffer.Buffer::buffer)));
     }
 }

@@ -70,10 +70,9 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
 
     @BeforeEach
     void setUpApiAndPrimaryOwner() {
-        var existingApi = ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .updatedAt(ZonedDateTime.ofInstant(updatedAt, ZoneId.systemDefault()))
-            .build();
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder()
+                .updatedAt(ZonedDateTime.ofInstant(updatedAt, ZoneId.systemDefault()))
+                .build();
         apiCrudService.initWith(List.of(existingApi));
 
         // Mock apiSearchService to return the same entity
@@ -82,46 +81,42 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setUpdatedAt(Date.from(updatedAt));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            apiEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(apiEntity);
 
         roleQueryService.resetSystemRoles(ORGANIZATION);
-        primaryOwnerDomainService.initWith(
-            List.of(Map.entry(API, PrimaryOwnerEntity.builder().id(USER_NAME).type(PrimaryOwnerEntity.Type.USER).build()))
-        );
-        membershipQueryServiceInMemory.initWith(
-            List.of(
-                Membership.builder()
-                    .memberId(USER_NAME)
-                    .referenceId(API)
-                    .roleId("api-po-id-" + ORGANIZATION)
-                    .referenceType(Membership.ReferenceType.API)
-                    .memberType(Membership.Type.USER)
-                    .build()
-            )
-        );
+        primaryOwnerDomainService.initWith(List.of(Map.entry(
+                API,
+                PrimaryOwnerEntity.builder()
+                        .id(USER_NAME)
+                        .type(PrimaryOwnerEntity.Type.USER)
+                        .build())));
+        membershipQueryServiceInMemory.initWith(List.of(Membership.builder()
+                .memberId(USER_NAME)
+                .referenceId(API)
+                .roleId("api-po-id-" + ORGANIZATION)
+                .referenceType(Membership.ReferenceType.API)
+                .memberType(Membership.Type.USER)
+                .build()));
 
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
-        doAnswer(inv -> inv.getArgument(0))
-            .when(updateApiDomainService)
-            .validateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).updateV4(any(), any());
+        doAnswer(inv -> inv.getArgument(0)).when(updateApiDomainService).validateV4(any(), any());
     }
 
     @AfterEach
     public void tearDown() {
-        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService)
+                .forEach(InMemoryAlternative::reset);
         reset(updateApiDomainService, apiSearchServiceV4);
     }
 
     @Test
     void should_succeed_when_If_Match_matches_ETag() {
         var response = rootTarget(API)
-            .request()
-            .header(HttpHeaders.IF_MATCH, updatedAtStr)
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .request()
+                .header(HttpHeaders.IF_MATCH, updatedAtStr)
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(OK_200);
     }
@@ -129,27 +124,29 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
     @Test
     void should_return_412_when_If_Match_does_not_match_ETag() {
         var response = rootTarget(API)
-            .request()
-            .header(HttpHeaders.IF_MATCH, "\"2000\"")
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"2000\"")
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(PRECONDITION_FAILED_412);
-        org.assertj.core.api.Assertions.assertThat(response.readEntity(String.class)).isEmpty();
+        org.assertj.core.api.Assertions.assertThat(response.readEntity(String.class))
+                .isEmpty();
     }
 
     @Test
     void should_return_412_when_If_Match_is_malformed() {
         var response = rootTarget(API)
-            .request()
-            .header(HttpHeaders.IF_MATCH, "not-a-number")
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .request()
+                .header(HttpHeaders.IF_MATCH, "not-a-number")
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(PRECONDITION_FAILED_412);
     }
 
     @Test
     void should_succeed_when_If_Match_is_missing() {
-        var response = rootTarget(API).request().method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+        var response =
+                rootTarget(API).request().method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(OK_200);
     }
@@ -157,9 +154,9 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
     @Test
     void should_succeed_when_If_Match_is_wildcard() {
         var response = rootTarget(API)
-            .request()
-            .header(HttpHeaders.IF_MATCH, "*")
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .request()
+                .header(HttpHeaders.IF_MATCH, "*")
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(OK_200);
     }
@@ -171,14 +168,14 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
         v2Entity.setDefinitionVersion(DefinitionVersion.V2);
         v2Entity.setType(ApiType.PROXY);
         v2Entity.setUpdatedAt(Date.from(updatedAt));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            v2Entity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(v2Entity);
 
         var response = rootTarget(API)
-            .request()
-            .header(HttpHeaders.IF_MATCH, "\"2000\"")
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"2000\"")
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(BAD_REQUEST_400);
     }
@@ -186,10 +183,10 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
     @Test
     void should_return_412_when_dryRun_with_mismatched_If_Match() {
         var response = rootTarget(API)
-            .queryParam("dryRun", true)
-            .request()
-            .header(HttpHeaders.IF_MATCH, "\"2000\"")
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .queryParam("dryRun", true)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"2000\"")
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(PRECONDITION_FAILED_412);
     }
@@ -204,14 +201,14 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setUpdatedAt(null);
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            apiEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(apiEntity);
 
         var response = rootTarget(API)
-            .request()
-            .header(HttpHeaders.IF_MATCH, "\"2000\"")
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"2000\"")
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(OK_200);
     }
@@ -219,22 +216,27 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
     @Test
     void should_return_new_ETag_and_Last_Modified_on_successful_patch() {
         var response = rootTarget(API)
-            .request()
-            .header(HttpHeaders.IF_MATCH, updatedAtStr)
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .request()
+                .header(HttpHeaders.IF_MATCH, updatedAtStr)
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(OK_200);
-        org.assertj.core.api.Assertions.assertThat(response.getHeaderString(HttpHeaders.ETAG)).isEqualTo(updatedAtStr);
-        org.assertj.core.api.Assertions.assertThat(response.getHeaderString(HttpHeaders.LAST_MODIFIED)).isNotNull();
+        org.assertj.core.api.Assertions.assertThat(response.getHeaderString(HttpHeaders.ETAG))
+                .isEqualTo(updatedAtStr);
+        org.assertj.core.api.Assertions.assertThat(response.getHeaderString(HttpHeaders.LAST_MODIFIED))
+                .isNotNull();
     }
 
     @Test
     void should_round_trip_GET_PATCH_GET_with_consistent_ETag_chain() {
-        var firstGetEntity = fixtures.ApiFixtures.aModelHttpApiV4().toBuilder().id(API).name(API).build();
+        var firstGetEntity = fixtures.ApiFixtures.aModelHttpApiV4().toBuilder()
+                .id(API)
+                .name(API)
+                .build();
         firstGetEntity.setUpdatedAt(Date.from(updatedAt));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            firstGetEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(firstGetEntity);
 
         var firstGetResponse = rootTarget(API).request().get();
         assertThat(firstGetResponse).hasStatus(OK_200);
@@ -243,27 +245,32 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
 
         var newUpdatedAt = Instant.ofEpochMilli(2000);
         doAnswer(inv -> {
-            Api input = inv.getArgument(0);
-            return input.toBuilder().updatedAt(ZonedDateTime.ofInstant(newUpdatedAt, ZoneId.systemDefault())).build();
-        })
-            .when(updateApiDomainService)
-            .updateV4(any(), any());
+                    Api input = inv.getArgument(0);
+                    return input.toBuilder()
+                            .updatedAt(ZonedDateTime.ofInstant(newUpdatedAt, ZoneId.systemDefault()))
+                            .build();
+                })
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
 
         Response patchResponse = rootTarget(API)
-            .request()
-            .header(HttpHeaders.IF_MATCH, firstEtag)
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .request()
+                .header(HttpHeaders.IF_MATCH, firstEtag)
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(patchResponse).hasStatus(OK_200);
         var patchEtag = patchResponse.getHeaderString(HttpHeaders.ETAG);
         org.assertj.core.api.Assertions.assertThat(patchEtag).isEqualTo("\"2000\"");
         org.assertj.core.api.Assertions.assertThat(patchEtag).isNotEqualTo(firstEtag);
 
-        var updatedApiEntity = fixtures.ApiFixtures.aModelHttpApiV4().toBuilder().id(API).name(API).build();
+        var updatedApiEntity = fixtures.ApiFixtures.aModelHttpApiV4().toBuilder()
+                .id(API)
+                .name(API)
+                .build();
         updatedApiEntity.setUpdatedAt(Date.from(newUpdatedAt));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            updatedApiEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(updatedApiEntity);
 
         var secondGetResponse = rootTarget(API).request().get();
         assertThat(secondGetResponse).hasStatus(OK_200);
@@ -282,11 +289,12 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setUpdatedAt(null);
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            apiEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(apiEntity);
 
-        var response = rootTarget(API).request().method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+        var response =
+                rootTarget(API).request().method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(OK_200);
         org.assertj.core.api.Assertions.assertThat(response.getEntityTag()).isNull();
@@ -296,13 +304,15 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
     @Test
     void should_have_Last_Modified_encoding_same_instant_as_ETag_on_successful_patch() {
         var response = rootTarget(API)
-            .request()
-            .header(HttpHeaders.IF_MATCH, updatedAtStr)
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .request()
+                .header(HttpHeaders.IF_MATCH, updatedAtStr)
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(OK_200);
-        org.assertj.core.api.Assertions.assertThat(response.getHeaderString(HttpHeaders.ETAG)).isEqualTo(updatedAtStr);
-        org.assertj.core.api.Assertions.assertThat(response.getLastModified().getTime()).isEqualTo(updatedAt.toEpochMilli());
+        org.assertj.core.api.Assertions.assertThat(response.getHeaderString(HttpHeaders.ETAG))
+                .isEqualTo(updatedAtStr);
+        org.assertj.core.api.Assertions.assertThat(response.getLastModified().getTime())
+                .isEqualTo(updatedAt.toEpochMilli());
     }
 
     @Test
@@ -312,14 +322,14 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
         nativeEntity.setDefinitionVersion(DefinitionVersion.V4);
         nativeEntity.setType(ApiType.NATIVE);
         nativeEntity.setUpdatedAt(Date.from(updatedAt));
-        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
-            nativeEntity
-        );
+        when(apiSearchServiceV4.findGenericById(
+                        any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class)))
+                .thenReturn(nativeEntity);
 
         var response = rootTarget(API)
-            .request()
-            .header(HttpHeaders.IF_MATCH, "\"2000\"")
-            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"2000\"")
+                .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(BAD_REQUEST_400);
     }

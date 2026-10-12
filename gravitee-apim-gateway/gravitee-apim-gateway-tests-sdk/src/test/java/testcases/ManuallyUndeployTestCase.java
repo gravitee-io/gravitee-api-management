@@ -42,7 +42,7 @@ public class ManuallyUndeployTestCase extends AbstractGatewayTest {
 
     @Test
     @DisplayName("Should undeploy one api")
-    @DeployApi({ "/apis/success-flow.json", "/apis/teams.json" })
+    @DeployApi({"/apis/success-flow.json", "/apis/teams.json"})
     void shouldUndeployOneApi() {
         assertThat(deployedApis).hasSize(2);
         undeploy("api-test");

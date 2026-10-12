@@ -49,7 +49,8 @@ import lombok.CustomLog;
  * @param <D> the scoped deployable type handled by this synchronizer
  */
 @CustomLog
-public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDeployable> implements RepositorySynchronizer {
+public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDeployable>
+        implements RepositorySynchronizer {
 
     static final int MAX_PENDING_ATTEMPTS = 10;
     static final String WILDCARD = "*";
@@ -66,12 +67,11 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
     private final AuthzResyncWindow resyncWindow = new AuthzResyncWindow();
 
     protected AbstractAuthzReactorSynchronizer(
-        LatestEventFetcher eventsFetcher,
-        AuthzEnginePort enginePort,
-        AuthzScopePlacement placement,
-        ThreadPoolExecutor syncFetcherExecutor,
-        ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            LatestEventFetcher eventsFetcher,
+            AuthzEnginePort enginePort,
+            AuthzScopePlacement placement,
+            ThreadPoolExecutor syncFetcherExecutor,
+            ThreadPoolExecutor syncDeployerExecutor) {
         this.eventsFetcher = eventsFetcher;
         this.enginePort = enginePort;
         this.placement = placement;
@@ -110,51 +110,46 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
         boolean initialSync = effectiveFrom == null || effectiveFrom.longValue() == -1L;
 
         return eventsFetcher
-            .fetchLatest(
-                effectiveFrom,
-                to,
-                eventProperty(),
-                environments,
-                initialSync ? Set.of(publishType()) : Set.of(publishType(), unpublishType())
-            )
-            .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .compose(events -> processEvents(events, attemptedThisCycle))
-            .count()
-            .doOnSubscribe(d -> launchTime.set(Instant.now().toEpochMilli()))
-            .doOnSuccess(processed::set)
-            .ignoreElement()
-            .andThen(retryPending(attemptedThisCycle))
-            .andThen(commitIfAny())
-            .doOnComplete(() -> {
-                if (resyncWindow.markSucceeded()) {
-                    log.info("{} synchronization recovered, missed window has been re-fetched", pluralLabel());
-                }
-                String msg = String.format(
-                    "%s %s synchronized in %sms",
-                    processed.get(),
-                    pluralLabel(),
-                    System.currentTimeMillis() - launchTime.get()
-                );
-                if (initialSync) {
-                    log.info(msg);
-                } else {
-                    log.debug(msg);
-                }
-            })
-            .onErrorResumeNext(t -> {
-                if (resyncWindow.markFailed(effectiveFrom)) {
-                    log.error(
-                        "{} synchronization failed; isolating from the sync cycle, window from {} will be re-fetched next cycle",
-                        pluralLabel(),
+                .fetchLatest(
                         effectiveFrom,
-                        t
-                    );
-                } else {
-                    log.warn("{} synchronization still failing: {}", pluralLabel(), t.toString());
-                }
-                return Completable.complete();
-            });
+                        to,
+                        eventProperty(),
+                        environments,
+                        initialSync ? Set.of(publishType()) : Set.of(publishType(), unpublishType()))
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
+                .compose(events -> processEvents(events, attemptedThisCycle))
+                .count()
+                .doOnSubscribe(d -> launchTime.set(Instant.now().toEpochMilli()))
+                .doOnSuccess(processed::set)
+                .ignoreElement()
+                .andThen(retryPending(attemptedThisCycle))
+                .andThen(commitIfAny())
+                .doOnComplete(() -> {
+                    if (resyncWindow.markSucceeded()) {
+                        log.info("{} synchronization recovered, missed window has been re-fetched", pluralLabel());
+                    }
+                    String msg = String.format(
+                            "%s %s synchronized in %sms",
+                            processed.get(), pluralLabel(), System.currentTimeMillis() - launchTime.get());
+                    if (initialSync) {
+                        log.info(msg);
+                    } else {
+                        log.debug(msg);
+                    }
+                })
+                .onErrorResumeNext(t -> {
+                    if (resyncWindow.markFailed(effectiveFrom)) {
+                        log.error(
+                                "{} synchronization failed; isolating from the sync cycle, window from {} will be re-fetched next cycle",
+                                pluralLabel(),
+                                effectiveFrom,
+                                t);
+                    } else {
+                        log.warn("{} synchronization still failing: {}", pluralLabel(), t.toString());
+                    }
+                    return Completable.complete();
+                });
     }
 
     private Completable commitIfAny() {
@@ -165,39 +160,36 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
 
     private Flowable<D> processEvents(Flowable<List<Event>> eventsFlowable, Set<String> attemptedThisCycle) {
         return eventsFlowable
-            .flatMap(events ->
-                Flowable.just(events)
-                    .doOnNext(e -> log.debug("New {} events fetched", singularLabel()))
-                    .flatMapIterable(e -> e)
-                    .groupBy(Event::getType)
-                    .flatMap(eventsByType -> {
-                        EventType type = eventsByType.getKey();
-                        if (type == publishType()) {
-                            return eventsByType
-                                .flatMapMaybe(this::toDeploy)
-                                .buffer(bulkEvents())
-                                .flatMapIterable(d -> d);
-                        } else if (type == unpublishType()) {
-                            return eventsByType.flatMapMaybe(this::toUndeploy);
-                        }
-                        return Flowable.empty();
-                    })
-            )
-            .compose(upstream -> {
-                Deployer<D> deployer = createDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> {
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deploy(deployer, deployable, attemptedThisCycle);
-                        } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeploy(deployer, deployable, attemptedThisCycle);
-                        }
-                        return Flowable.just(deployable);
-                    })
-                    .sequential(bulkEvents());
-            });
+                .flatMap(events -> Flowable.just(events)
+                        .doOnNext(e -> log.debug("New {} events fetched", singularLabel()))
+                        .flatMapIterable(e -> e)
+                        .groupBy(Event::getType)
+                        .flatMap(eventsByType -> {
+                            EventType type = eventsByType.getKey();
+                            if (type == publishType()) {
+                                return eventsByType
+                                        .flatMapMaybe(this::toDeploy)
+                                        .buffer(bulkEvents())
+                                        .flatMapIterable(d -> d);
+                            } else if (type == unpublishType()) {
+                                return eventsByType.flatMapMaybe(this::toUndeploy);
+                            }
+                            return Flowable.empty();
+                        }))
+                .compose(upstream -> {
+                    Deployer<D> deployer = createDeployer();
+                    return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                            .runOn(Schedulers.from(syncDeployerExecutor))
+                            .flatMap(deployable -> {
+                                if (deployable.syncAction() == SyncAction.DEPLOY) {
+                                    return deploy(deployer, deployable, attemptedThisCycle);
+                                } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                    return undeploy(deployer, deployable, attemptedThisCycle);
+                                }
+                                return Flowable.just(deployable);
+                            })
+                            .sequential(bulkEvents());
+                });
     }
 
     /**
@@ -238,20 +230,19 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
         // published to — harmless today only because the deployer evicts before it stages.
         dropped.removeIf(scope -> target.contains(scope) || target.contains(EventBusAuthzEnginePort.baseScope(scope)));
         deployable.removedTargetPdpIds(dropped);
-        return deployer
-            .deploy(deployable)
-            .andThen(deployer.doAfterDeployment(deployable))
-            .doOnComplete(() -> {
-                pendingDeploys.remove(rk);
-                pendingAttempts.remove(rk);
-                placement.replace(rk, target);
-            })
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(t -> {
-                log.error("Failed to stage {} '{}', will retry next cycle", singularLabel(), deployable.id(), t);
-                pendingDeploys.put(rk, deployable);
-                return Flowable.empty();
-            });
+        return deployer.deploy(deployable)
+                .andThen(deployer.doAfterDeployment(deployable))
+                .doOnComplete(() -> {
+                    pendingDeploys.remove(rk);
+                    pendingAttempts.remove(rk);
+                    placement.replace(rk, target);
+                })
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(t -> {
+                    log.error("Failed to stage {} '{}', will retry next cycle", singularLabel(), deployable.id(), t);
+                    pendingDeploys.put(rk, deployable);
+                    return Flowable.empty();
+                });
     }
 
     private Flowable<D> undeploy(Deployer<D> deployer, D deployable, Set<String> attemptedThisCycle) {
@@ -265,20 +256,23 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
         if (deployable.targetPdpIds().isEmpty()) {
             deployable.targetPdpIds(placement.applied(rk));
         }
-        return deployer
-            .undeploy(deployable)
-            .andThen(deployer.doAfterUndeployment(deployable))
-            .doOnComplete(() -> {
-                pendingUndeploys.remove(rk);
-                pendingAttempts.remove(rk);
-                placement.forget(rk);
-            })
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(t -> {
-                log.error("Failed to stage {} '{}' removal, will retry next cycle", singularLabel(), deployable.id(), t);
-                pendingUndeploys.put(rk, deployable);
-                return Flowable.empty();
-            });
+        return deployer.undeploy(deployable)
+                .andThen(deployer.doAfterUndeployment(deployable))
+                .doOnComplete(() -> {
+                    pendingUndeploys.remove(rk);
+                    pendingAttempts.remove(rk);
+                    placement.forget(rk);
+                })
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(t -> {
+                    log.error(
+                            "Failed to stage {} '{}' removal, will retry next cycle",
+                            singularLabel(),
+                            deployable.id(),
+                            t);
+                    pendingUndeploys.put(rk, deployable);
+                    return Flowable.empty();
+                });
     }
 
     private Completable retryPending(Set<String> attemptedThisCycle) {
@@ -288,15 +282,18 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
             if (undeploys.isEmpty() && deploys.isEmpty()) {
                 return Completable.complete();
             }
-            log.debug("Re-driving {} pending {} removal(s) and {} staging(s)", undeploys.size(), singularLabel(), deploys.size());
+            log.debug(
+                    "Re-driving {} pending {} removal(s) and {} staging(s)",
+                    undeploys.size(),
+                    singularLabel(),
+                    deploys.size());
             Deployer<D> deployer = createDeployer();
             return Flowable.fromIterable(undeploys)
-                .concatMapCompletable(deployable -> undeploy(deployer, deployable, attemptedThisCycle).ignoreElements())
-                .andThen(
-                    Flowable.fromIterable(deploys).concatMapCompletable(deployable ->
-                        deploy(deployer, deployable, attemptedThisCycle).ignoreElements()
-                    )
-                );
+                    .concatMapCompletable(deployable ->
+                            undeploy(deployer, deployable, attemptedThisCycle).ignoreElements())
+                    .andThen(Flowable.fromIterable(deploys)
+                            .concatMapCompletable(deployable -> deploy(deployer, deployable, attemptedThisCycle)
+                                    .ignoreElements()));
         });
     }
 
@@ -310,7 +307,8 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
             }
             int attempts = pendingAttempts.merge(rk, 1, Integer::sum);
             if (attempts > MAX_PENDING_ATTEMPTS) {
-                log.warn("Abandoning pending {} '{}' after {} attempts", singularLabel(), deployable.id(), attempts - 1);
+                log.warn(
+                        "Abandoning pending {} '{}' after {} attempts", singularLabel(), deployable.id(), attempts - 1);
                 pending.remove(rk);
                 pendingAttempts.remove(rk);
                 continue;
@@ -334,13 +332,13 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
             return Single.just(Map.of());
         }
         return eventsFetcher
-            .fetchLatest(-1L, null, eventProperty(), Set.of(environmentId), Set.of(publishType()))
-            .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .flatMapIterable(events -> events)
-            .flatMapMaybe(this::toDeploy)
-            .filter(deployable -> environmentId.equals(deployable.environmentId()))
-            .toList()
-            .map(docs -> groupDocs(docs, scopes));
+                .fetchLatest(-1L, null, eventProperty(), Set.of(environmentId), Set.of(publishType()))
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                .flatMapIterable(events -> events)
+                .flatMapMaybe(this::toDeploy)
+                .filter(deployable -> environmentId.equals(deployable.environmentId()))
+                .toList()
+                .map(docs -> groupDocs(docs, scopes));
     }
 
     private Map<String, List<D>> groupDocs(List<D> docs, Set<String> scopes) {

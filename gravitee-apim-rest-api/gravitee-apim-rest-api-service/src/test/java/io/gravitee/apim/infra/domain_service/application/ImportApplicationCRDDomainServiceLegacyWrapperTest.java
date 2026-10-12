@@ -58,9 +58,12 @@ class ImportApplicationCRDDomainServiceLegacyWrapperTest {
         newApplicationEntity.setName(APP_NAME);
         newApplicationEntity.setDescription(APP_DESCRIPTION);
 
-        service.create(newApplicationEntity, new AuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, new AuditActor("test_user", "test", "test")));
+        service.create(
+                newApplicationEntity,
+                new AuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, new AuditActor("test_user", "test", "test")));
 
-        verify(applicationService).create(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), newApplicationEntity, "test_user");
+        verify(applicationService)
+                .create(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), newApplicationEntity, "test_user");
     }
 
     @Test
@@ -69,19 +72,18 @@ class ImportApplicationCRDDomainServiceLegacyWrapperTest {
         updateApplicationEntity.setName(APP_NAME);
         updateApplicationEntity.setDescription(APP_DESCRIPTION);
 
-        when(applicationService.findById(any(), eq(APP_ID))).thenReturn(new io.gravitee.rest.api.model.ApplicationEntity());
+        when(applicationService.findById(any(), eq(APP_ID)))
+                .thenReturn(new io.gravitee.rest.api.model.ApplicationEntity());
 
         service.update(
-            APP_ID,
-            updateApplicationEntity,
-            new AuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, new AuditActor("test_user", "test", "test"))
-        );
+                APP_ID,
+                updateApplicationEntity,
+                new AuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, new AuditActor("test_user", "test", "test")));
 
-        verify(applicationService).update(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), APP_ID, updateApplicationEntity);
-        verify(applicationService).syncClientCertificates(
-            new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-            APP_ID,
-            updateApplicationEntity
-        );
+        verify(applicationService)
+                .update(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), APP_ID, updateApplicationEntity);
+        verify(applicationService)
+                .syncClientCertificates(
+                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), APP_ID, updateApplicationEntity);
     }
 }

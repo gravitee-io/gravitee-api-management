@@ -56,6 +56,7 @@ public class Plan {
      * Plans promoted between environments will share the same crossId.
      */
     private String crossId;
+
     private String hrid;
 
     private String name;
@@ -223,44 +224,41 @@ public class Plan {
 
     @Override
     public String toString() {
-        return (
-            "Plan{" +
-            "id='" +
-            id +
-            '\'' +
-            ", definitionVersion='" +
-            definitionVersion +
-            '\'' +
-            ", crossId='" +
-            crossId +
-            '\'' +
-            ", hrid='" +
-            hrid +
-            '\'' +
-            ", api='" +
-            api +
-            '\'' +
-            ", environmentId='" +
-            environmentId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", validation=" +
-            validation +
-            ", excludedGroups=" +
-            excludedGroups +
-            ", type=" +
-            type +
-            ", referenceId=" +
-            referenceId +
-            ", referenceType=" +
-            referenceType +
-            '}'
-        );
+        return ("Plan{" + "id='"
+                + id
+                + '\''
+                + ", definitionVersion='"
+                + definitionVersion
+                + '\''
+                + ", crossId='"
+                + crossId
+                + '\''
+                + ", hrid='"
+                + hrid
+                + '\''
+                + ", api='"
+                + api
+                + '\''
+                + ", environmentId='"
+                + environmentId
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", validation="
+                + validation
+                + ", excludedGroups="
+                + excludedGroups
+                + ", type="
+                + type
+                + ", referenceId="
+                + referenceId
+                + ", referenceType="
+                + referenceType
+                + '}');
     }
 
     public enum PlanType {

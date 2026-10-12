@@ -32,7 +32,6 @@ import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.oas.models.headers.Header;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
@@ -92,8 +91,10 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
         if (api != null) {
             return ParseOutcome.success(api);
         }
-        String messages = String.join("; ", Optional.ofNullable(parseResult.getMessages()).orElse(List.of()));
-        String key = messages.toLowerCase(Locale.ROOT).contains("$ref") ? ParseError.INVALID_REFS : ParseError.INVALID_SPEC;
+        String messages =
+                String.join("; ", Optional.ofNullable(parseResult.getMessages()).orElse(List.of()));
+        String key =
+                messages.toLowerCase(Locale.ROOT).contains("$ref") ? ParseError.INVALID_REFS : ParseError.INVALID_SPEC;
         return ParseOutcome.failure(key, messages.isBlank() ? "Invalid OpenAPI specification" : messages);
     }
 
@@ -101,46 +102,39 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
         List<McpTool> tools = new ArrayList<>();
         List<ParseError> errors = new ArrayList<>();
         Set<String> usedNames = new HashSet<>();
-        Map<String, PathItem> paths = Optional.<Map<String, PathItem>>ofNullable(api.getPaths()).orElse(Map.of());
+        Map<String, PathItem> paths =
+                Optional.<Map<String, PathItem>>ofNullable(api.getPaths()).orElse(Map.of());
         paths.forEach((path, pathItem) -> appendToolsForPath(path, pathItem, tools, errors, usedNames));
         return new OpenApiToMcpToolsResult(tools, errors, buildServerDescription(api.getInfo()));
     }
 
     private static void appendToolsForPath(
-        String path,
-        PathItem pathItem,
-        List<McpTool> tools,
-        List<ParseError> errors,
-        Set<String> usedNames
-    ) {
+            String path, PathItem pathItem, List<McpTool> tools, List<ParseError> errors, Set<String> usedNames) {
         if (pathItem == null) return;
-        List<Parameter> pathLevelParams = Optional.ofNullable(pathItem.getParameters()).orElse(List.of());
-        pathItem
-            .readOperationsMap()
-            .forEach((httpMethod, op) -> {
-                if (op == null) return;
-                String method = httpMethod.name().toLowerCase(Locale.ROOT);
-                tools.add(buildTool(path, method, op, pathLevelParams, usedNames, errors));
-            });
+        List<Parameter> pathLevelParams =
+                Optional.ofNullable(pathItem.getParameters()).orElse(List.of());
+        pathItem.readOperationsMap().forEach((httpMethod, op) -> {
+            if (op == null) return;
+            String method = httpMethod.name().toLowerCase(Locale.ROOT);
+            tools.add(buildTool(path, method, op, pathLevelParams, usedNames, errors));
+        });
     }
 
     private static McpTool buildTool(
-        String path,
-        String method,
-        Operation op,
-        List<Parameter> pathLevelParams,
-        Set<String> usedNames,
-        List<ParseError> errors
-    ) {
+            String path,
+            String method,
+            Operation op,
+            List<Parameter> pathLevelParams,
+            Set<String> usedNames,
+            List<ParseError> errors) {
         String toolName = disambiguate(computeToolName(op.getOperationId(), method, path), usedNames, errors);
         ParameterSchema paramSchema = extractParameterSchema(mergeParameters(pathLevelParams, op.getParameters()));
         var definition = new McpToolDefinition(
-            toolName,
-            buildDescription(op, method, path),
-            buildInputSchema(paramSchema, extractRequestBodySchema(op.getRequestBody())),
-            buildOutputSchema(extractResponseSchema(op.getResponses())),
-            extractAnnotations(op)
-        );
+                toolName,
+                buildDescription(op, method, path),
+                buildInputSchema(paramSchema, extractRequestBodySchema(op.getRequestBody())),
+                buildOutputSchema(extractResponseSchema(op.getResponses())),
+                extractAnnotations(op));
         return new McpTool(definition, generateGatewayMapping(op, method, path, paramSchema));
     }
 
@@ -151,12 +145,14 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
             name = baseName + "_" + suffix++;
         }
         if (!name.equals(baseName)) {
-            errors.add(new ParseError(ParseError.DUPLICATE_NAME, "Duplicate tool name '" + baseName + "' resolved to '" + name + "'"));
+            errors.add(new ParseError(
+                    ParseError.DUPLICATE_NAME, "Duplicate tool name '" + baseName + "' resolved to '" + name + "'"));
         }
         return name;
     }
 
-    private record ParseOutcome(@org.jspecify.annotations.Nullable OpenAPI openApi, String errorKey, String errorMessage) {
+    private record ParseOutcome(
+            @org.jspecify.annotations.Nullable OpenAPI openApi, String errorKey, String errorMessage) {
         static ParseOutcome success(OpenAPI api) {
             return new ParseOutcome(api, "", "");
         }
@@ -207,11 +203,10 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
     }
 
     private record ParameterSchema(
-        Map<String, JsonNode> pathParams,
-        Map<String, JsonNode> queryParams,
-        Map<String, JsonNode> headers,
-        List<String> required
-    ) {}
+            Map<String, JsonNode> pathParams,
+            Map<String, JsonNode> queryParams,
+            Map<String, JsonNode> headers,
+            List<String> required) {}
 
     private record ResponseSchema(JsonNode bodySchema, Map<String, JsonNode> headers) {}
 
@@ -286,16 +281,14 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
             return Map.of();
         }
         Map<String, JsonNode> headers = new LinkedHashMap<>();
-        response
-            .getHeaders()
-            .forEach((name, header) -> {
-                if (header == null || header.getSchema() == null) return;
-                ObjectNode property = schemaToObjectNode(header.getSchema());
-                if (header.getDescription() != null) {
-                    property.put("description", header.getDescription());
-                }
-                headers.put(name, property);
-            });
+        response.getHeaders().forEach((name, header) -> {
+            if (header == null || header.getSchema() == null) return;
+            ObjectNode property = schemaToObjectNode(header.getSchema());
+            if (header.getDescription() != null) {
+                property.put("description", header.getDescription());
+            }
+            headers.put(name, property);
+        });
         return headers;
     }
 
@@ -355,27 +348,31 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
         return removeCircularRefs(schema);
     }
 
-    private static McpToolGatewayMapping generateGatewayMapping(Operation op, String method, String path, ParameterSchema paramSchema) {
+    private static McpToolGatewayMapping generateGatewayMapping(
+            Operation op, String method, String path, ParameterSchema paramSchema) {
         Matcher m = OAS_PATH_PARAM.matcher(path);
         String transformedPath = m.replaceAll(":$1");
         String contentType = determineContentType(op);
 
         // Empty lists are serialised to null so Jackson (NON_NULL inclusion) drops the field entirely,
         // matching the front-end behaviour of omitting absent gatewayMapping fields.
-        List<String> pathParamNames = paramSchema.pathParams().isEmpty() ? null : new ArrayList<>(paramSchema.pathParams().keySet());
-        List<String> queryParamNames = paramSchema.queryParams().isEmpty() ? null : new ArrayList<>(paramSchema.queryParams().keySet());
-        List<String> headerNames = paramSchema.headers().isEmpty() ? null : new ArrayList<>(paramSchema.headers().keySet());
+        List<String> pathParamNames = paramSchema.pathParams().isEmpty()
+                ? null
+                : new ArrayList<>(paramSchema.pathParams().keySet());
+        List<String> queryParamNames = paramSchema.queryParams().isEmpty()
+                ? null
+                : new ArrayList<>(paramSchema.queryParams().keySet());
+        List<String> headerNames = paramSchema.headers().isEmpty()
+                ? null
+                : new ArrayList<>(paramSchema.headers().keySet());
 
-        return new McpToolGatewayMapping(
-            new McpToolGatewayMappingHttp(
+        return new McpToolGatewayMapping(new McpToolGatewayMappingHttp(
                 method.toUpperCase(Locale.ROOT),
                 transformedPath,
                 contentType,
                 pathParamNames,
                 queryParamNames,
-                headerNames
-            )
-        );
+                headerNames));
     }
 
     private static String determineContentType(Operation op) {

@@ -31,13 +31,12 @@ class ApplicationInvitationMapperTest {
     void should_map_application_invitation_item() {
         var invitationId = "00000000-0000-0000-0000-000000000001";
         var invitationItem = ApplicationInvitation.of(
-            InvitationId.of(invitationId),
-            "application-id",
-            "alice@example.com",
-            "USER",
-            ZonedDateTime.parse("2026-04-23T09:30:00Z"),
-            ZonedDateTime.parse("2026-04-23T09:45:00Z")
-        );
+                InvitationId.of(invitationId),
+                "application-id",
+                "alice@example.com",
+                "USER",
+                ZonedDateTime.parse("2026-04-23T09:30:00Z"),
+                ZonedDateTime.parse("2026-04-23T09:45:00Z"));
 
         var invitation = mapper.toInvitation(invitationItem);
 

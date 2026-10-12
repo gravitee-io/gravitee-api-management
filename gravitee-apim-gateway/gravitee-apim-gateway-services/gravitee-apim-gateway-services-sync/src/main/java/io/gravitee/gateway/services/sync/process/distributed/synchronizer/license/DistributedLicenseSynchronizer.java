@@ -31,18 +31,18 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DistributedLicenseSynchronizer extends AbstractDistributedSynchronizer<LicenseDeployable, LicenseDeployer> {
+public class DistributedLicenseSynchronizer
+        extends AbstractDistributedSynchronizer<LicenseDeployable, LicenseDeployer> {
 
     private final DeployerFactory deployerFactory;
     private final LicenseMapper licenseMapper;
 
     public DistributedLicenseSynchronizer(
-        DistributedEventFetcher distributedEventFetcher,
-        ThreadPoolExecutor syncFetcherExecutor,
-        ThreadPoolExecutor syncDeployerExecutor,
-        DeployerFactory deployerFactory,
-        LicenseMapper licenseMapper
-    ) {
+            DistributedEventFetcher distributedEventFetcher,
+            ThreadPoolExecutor syncFetcherExecutor,
+            ThreadPoolExecutor syncDeployerExecutor,
+            DeployerFactory deployerFactory,
+            LicenseMapper licenseMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.licenseMapper = licenseMapper;

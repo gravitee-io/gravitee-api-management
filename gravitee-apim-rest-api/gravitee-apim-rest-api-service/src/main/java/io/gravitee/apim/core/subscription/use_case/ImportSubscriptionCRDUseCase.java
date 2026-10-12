@@ -43,34 +43,30 @@ public class ImportSubscriptionCRDUseCase {
 
     public Output execute(Input input) {
         var validationResult = validateSubscriptionCRDDomainService
-            .validateAndSanitize(new ValidateSubscriptionCRDDomainService.Input(input.auditInfo(), input.spec()))
-            .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
+                .validateAndSanitize(new ValidateSubscriptionCRDDomainService.Input(input.auditInfo(), input.spec()))
+                .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(
-                    String.format(
-                        "Unable to import because of errors [%s]",
-                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
-                    )
-                );
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(String.format(
+                    "Unable to import because of errors [%s]",
+                    String.join(
+                            ",",
+                            errors.stream().map(Validator.Error::getMessage).toList())));
+        });
 
         var warnings = validationResult.warning().orElseGet(List::of);
-        var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
+        var sanitizedInput = validationResult
+                .value()
+                .orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
         var subscription = domainService.createOrUpdate(sanitizedInput.auditInfo(), sanitizedInput.spec());
-        return new Output(
-            new SubscriptionCRDStatus(
+        return new Output(new SubscriptionCRDStatus(
                 subscription.getId(),
                 subscription.getStatus().name(),
                 subscription.getStartingAt(),
                 subscription.getEndingAt(),
                 input.auditInfo().organizationId(),
                 input.auditInfo().environmentId(),
-                SubscriptionCRDStatus.Errors.fromErrorList(warnings)
-            )
-        );
+                SubscriptionCRDStatus.Errors.fromErrorList(warnings)));
     }
 }

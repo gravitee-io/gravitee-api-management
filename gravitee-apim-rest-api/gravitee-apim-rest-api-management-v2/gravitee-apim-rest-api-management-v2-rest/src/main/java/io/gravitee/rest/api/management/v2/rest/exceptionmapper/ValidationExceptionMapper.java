@@ -33,26 +33,24 @@ public class ValidationExceptionMapper extends AbstractExceptionMapper<AbstractV
     @Override
     public Response toResponse(AbstractValidationException ve) {
         return Response.status(Response.Status.fromStatusCode(ve.getHttpStatusCode()))
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(validationError(ve))
-            .build();
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(validationError(ve))
+                .build();
     }
 
     private Error validationError(AbstractValidationException ve) {
-        return new Error().httpStatus(ve.getHttpStatusCode()).message(ve.getMessage()).details(buildDetails(ve));
+        return new Error()
+                .httpStatus(ve.getHttpStatusCode())
+                .message(ve.getMessage())
+                .details(buildDetails(ve));
     }
 
     private List<ErrorDetailsInner> buildDetails(AbstractValidationException exception) {
-        return exception
-            .getConstraints()
-            .entrySet()
-            .stream()
-            .map(entry ->
-                new ErrorDetailsInner()
-                    .message(exception.getDetailMessage())
-                    .invalidValue(JsonNullable.of(entry.getKey()))
-                    .location(entry.getValue())
-            )
-            .collect(Collectors.toList());
+        return exception.getConstraints().entrySet().stream()
+                .map(entry -> new ErrorDetailsInner()
+                        .message(exception.getDetailMessage())
+                        .invalidValue(JsonNullable.of(entry.getKey()))
+                        .location(entry.getValue()))
+                .collect(Collectors.toList());
     }
 }

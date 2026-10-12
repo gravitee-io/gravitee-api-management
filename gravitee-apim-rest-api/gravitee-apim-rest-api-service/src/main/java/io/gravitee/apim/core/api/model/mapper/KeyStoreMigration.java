@@ -58,7 +58,8 @@ public final class KeyStoreMigration {
         return pemKeyStore;
     }
 
-    private static PKCS12KeyStore convertPKCS12(io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore v2Pkcs12KeyStore) {
+    private static PKCS12KeyStore convertPKCS12(
+            io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore v2Pkcs12KeyStore) {
         PKCS12KeyStore pKCS12KeyStore = new PKCS12KeyStore();
         pKCS12KeyStore.setPath(v2Pkcs12KeyStore.getPath());
         pKCS12KeyStore.setPassword(v2Pkcs12KeyStore.getPassword());

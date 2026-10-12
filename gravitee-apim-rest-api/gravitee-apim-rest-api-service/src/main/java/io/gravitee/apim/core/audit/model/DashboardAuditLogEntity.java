@@ -26,13 +26,12 @@ import lombok.Builder;
  */
 @Builder
 public record DashboardAuditLogEntity(
-    String dashboardId,
-    String organizationId,
-    String environmentId,
-    AuditActor actor,
-    Map<AuditProperties, String> properties,
-    AuditEvent event,
-    ZonedDateTime createdAt,
-    Object oldValue,
-    Object newValue
-) {}
+        String dashboardId,
+        String organizationId,
+        String environmentId,
+        AuditActor actor,
+        Map<AuditProperties, String> properties,
+        AuditEvent event,
+        ZonedDateTime createdAt,
+        Object oldValue,
+        Object newValue) {}

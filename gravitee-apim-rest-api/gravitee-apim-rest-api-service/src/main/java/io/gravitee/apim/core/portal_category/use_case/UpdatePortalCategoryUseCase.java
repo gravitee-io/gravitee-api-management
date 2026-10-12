@@ -35,7 +35,8 @@ public class UpdatePortalCategoryUseCase {
 
     public Output execute(Input input) {
         var updatePortalCategory = input.updatePortalCategory();
-        var existing = portalCategoryDomainService.findByIdAndEnvironmentId(input.environmentId(), input.portalCategoryId());
+        var existing =
+                portalCategoryDomainService.findByIdAndEnvironmentId(input.environmentId(), input.portalCategoryId());
 
         portalCategoryDomainService.validateTitle(updatePortalCategory.getTitle());
         existing.update(updatePortalCategory);
@@ -44,7 +45,8 @@ public class UpdatePortalCategoryUseCase {
         return new Output(updated);
     }
 
-    public record Input(String environmentId, PortalCategoryId portalCategoryId, UpdatePortalCategory updatePortalCategory) {}
+    public record Input(
+            String environmentId, PortalCategoryId portalCategoryId, UpdatePortalCategory updatePortalCategory) {}
 
     public record Output(PortalCategory portalCategory) {}
 }

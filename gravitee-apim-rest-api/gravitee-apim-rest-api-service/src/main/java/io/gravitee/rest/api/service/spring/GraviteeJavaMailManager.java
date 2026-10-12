@@ -48,7 +48,8 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
         eventManager.subscribeForEvents(this, Key.class);
     }
 
-    public JavaMailSender getOrCreateMailSender(ExecutionContext executionContext, String referenceId, ParameterReferenceType type) {
+    public JavaMailSender getOrCreateMailSender(
+            ExecutionContext executionContext, String referenceId, ParameterReferenceType type) {
         ReferenceContext ref = executionContext.getReferenceContext();
         JavaMailSenderImpl mailSender = this.getMailSenderByReference(ref);
         if (mailSender == null) {
@@ -80,9 +81,9 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
     @Override
     public void onEvent(Event<Key, Parameter> event) {
         JavaMailSenderImpl mailSender = this.getMailSenderByReference(
-            event.content().getReferenceId(),
-            ParameterReferenceType.valueOf(event.content().getReferenceType().name())
-        );
+                event.content().getReferenceId(),
+                ParameterReferenceType.valueOf(
+                        event.content().getReferenceType().name()));
         if (mailSender != null) {
             switch (event.type()) {
                 case EMAIL_HOST:
@@ -94,14 +95,16 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
                     }
                     break;
                 case EMAIL_USERNAME:
-                    if (event.content().getValue() != null && !event.content().getValue().isEmpty()) {
+                    if (event.content().getValue() != null
+                            && !event.content().getValue().isEmpty()) {
                         mailSender.setUsername(event.content().getValue());
                     } else {
                         mailSender.setUsername(null);
                     }
                     break;
                 case EMAIL_PASSWORD:
-                    if (event.content().getValue() != null && !event.content().getValue().isEmpty()) {
+                    if (event.content().getValue() != null
+                            && !event.content().getValue().isEmpty()) {
                         mailSender.setPassword(event.content().getValue());
                     } else {
                         mailSender.setPassword(null);
@@ -113,7 +116,11 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
                 case EMAIL_PROPERTIES_AUTH_ENABLED:
                 case EMAIL_PROPERTIES_SSL_TRUST:
                 case EMAIL_PROPERTIES_STARTTLS_ENABLE:
-                    mailSender.getJavaMailProperties().setProperty(computeMailProperty(event.type().key()), event.content().getValue());
+                    mailSender
+                            .getJavaMailProperties()
+                            .setProperty(
+                                    computeMailProperty(event.type().key()),
+                                    event.content().getValue());
                     break;
             }
         }
@@ -124,20 +131,24 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
     }
 
     JavaMailSenderImpl getMailSenderByReference(String referenceId, ParameterReferenceType referenceType) {
-        return this.getMailSenderByReference(new ReferenceContext(ReferenceContext.Type.valueOf(referenceType.name()), referenceId));
+        return this.getMailSenderByReference(
+                new ReferenceContext(ReferenceContext.Type.valueOf(referenceType.name()), referenceId));
     }
 
     private String computeMailProperty(String graviteeProperty) {
         return MAILAPI_PROPERTIES_PREFIX + graviteeProperty.substring(EMAIL_PROPERTIES_PREFIX.length() + 1);
     }
 
-    private Properties loadProperties(ExecutionContext executionContext, String referenceId, ParameterReferenceType referenceType) {
+    private Properties loadProperties(
+            ExecutionContext executionContext, String referenceId, ParameterReferenceType referenceType) {
         Map<String, List<String>> parameters = parameterService.findAll(
-            Arrays.asList(Key.EMAIL_PROPERTIES_AUTH_ENABLED, Key.EMAIL_PROPERTIES_STARTTLS_ENABLE, Key.EMAIL_PROPERTIES_SSL_TRUST),
-            referenceId,
-            referenceType,
-            executionContext
-        );
+                Arrays.asList(
+                        Key.EMAIL_PROPERTIES_AUTH_ENABLED,
+                        Key.EMAIL_PROPERTIES_STARTTLS_ENABLE,
+                        Key.EMAIL_PROPERTIES_SSL_TRUST),
+                referenceId,
+                referenceType,
+                executionContext);
 
         Properties properties = new Properties();
         parameters.forEach((key, value) -> {

@@ -37,7 +37,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcGammaDashboardRepository extends JdbcAbstractCrudRepository<GammaDashboard, String> implements GammaDashboardRepository {
+public class JdbcGammaDashboardRepository extends JdbcAbstractCrudRepository<GammaDashboard, String>
+        implements GammaDashboardRepository {
 
     /**
      * Unknown properties are ignored on purpose, but this only picks the lesser of two silent failures — it does not
@@ -53,7 +54,8 @@ public class JdbcGammaDashboardRepository extends JdbcAbstractCrudRepository<Gam
      * storing these columns opaquely, like {@code widgets}, or enforcing {@code version} before the first write
      * endpoint ships.
      */
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final ObjectMapper JSON_MAPPER =
+            new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     JdbcGammaDashboardRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "gamma_dashboards");
@@ -68,32 +70,30 @@ public class JdbcGammaDashboardRepository extends JdbcAbstractCrudRepository<Gam
     @SuppressWarnings("unchecked")
     protected JdbcObjectMapper<GammaDashboard> buildOrm() {
         return JdbcObjectMapper.builder(GammaDashboard.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("module", Types.NVARCHAR, String.class)
-            .addColumn("title", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("created_by", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("version", Types.INTEGER, Integer.class)
-            .addColumn(
-                "time_range",
-                Types.NCLOB,
-                GammaDashboard.TimeRange.class,
-                JdbcGammaDashboardRepository::serializeTimeRange,
-                JdbcGammaDashboardRepository::deserializeTimeRange
-            )
-            // Already an opaque JSON String on the model, so it needs no conversion.
-            .addColumn("widgets", Types.NCLOB, String.class)
-            .addColumn(
-                "filters",
-                Types.NCLOB,
-                List.class,
-                JdbcGammaDashboardRepository::serializeFilters,
-                JdbcGammaDashboardRepository::deserializeFilters
-            )
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("module", Types.NVARCHAR, String.class)
+                .addColumn("title", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("created_by", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("version", Types.INTEGER, Integer.class)
+                .addColumn(
+                        "time_range",
+                        Types.NCLOB,
+                        GammaDashboard.TimeRange.class,
+                        JdbcGammaDashboardRepository::serializeTimeRange,
+                        JdbcGammaDashboardRepository::deserializeTimeRange)
+                // Already an opaque JSON String on the model, so it needs no conversion.
+                .addColumn("widgets", Types.NCLOB, String.class)
+                .addColumn(
+                        "filters",
+                        Types.NCLOB,
+                        List.class,
+                        JdbcGammaDashboardRepository::serializeFilters,
+                        JdbcGammaDashboardRepository::deserializeFilters)
+                .build();
     }
 
     @Override
@@ -106,25 +106,30 @@ public class JdbcGammaDashboardRepository extends JdbcAbstractCrudRepository<Gam
         log.debug("JdbcGammaDashboardRepository.findByEnvironmentId({})", environmentId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where environment_id = ? order by created_at, id",
-                getRowMapper(),
-                environmentId
-            );
+                    getOrm().getSelectAllSql() + " where environment_id = ? order by created_at, id",
+                    getRowMapper(),
+                    environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find gamma dashboards by environment id: " + environmentId, ex);
         }
     }
 
     @Override
-    public Optional<GammaDashboard> findByIdAndEnvironmentId(String id, String environmentId) throws TechnicalException {
+    public Optional<GammaDashboard> findByIdAndEnvironmentId(String id, String environmentId)
+            throws TechnicalException {
         log.debug("JdbcGammaDashboardRepository.findByIdAndEnvironmentId({}, {})", id, environmentId);
         try {
             return jdbcTemplate
-                .query(getOrm().getSelectAllSql() + " where id = ? and environment_id = ?", getRowMapper(), id, environmentId)
-                .stream()
-                .findFirst();
+                    .query(
+                            getOrm().getSelectAllSql() + " where id = ? and environment_id = ?",
+                            getRowMapper(),
+                            id,
+                            environmentId)
+                    .stream()
+                    .findFirst();
         } catch (Exception ex) {
-            throw new TechnicalException("Failed to find gamma dashboard by id: " + id + " and environment id: " + environmentId, ex);
+            throw new TechnicalException(
+                    "Failed to find gamma dashboard by id: " + id + " and environment id: " + environmentId, ex);
         }
     }
 
@@ -134,9 +139,13 @@ public class JdbcGammaDashboardRepository extends JdbcAbstractCrudRepository<Gam
      * that same statement, so that comparing and writing cannot be interleaved with a competing write.
      */
     @Override
-    public Optional<GammaDashboard> updateIfVersionMatches(GammaDashboard gammaDashboard, int expectedVersion) throws TechnicalException {
+    public Optional<GammaDashboard> updateIfVersionMatches(GammaDashboard gammaDashboard, int expectedVersion)
+            throws TechnicalException {
         log.debug("JdbcGammaDashboardRepository.updateIfVersionMatches({}, {})", gammaDashboard, expectedVersion);
-        return replaceMatching(gammaDashboard, getOrm().getUpdateSql() + " and " + escapeReservedWord("version") + " = ?", expectedVersion);
+        return replaceMatching(
+                gammaDashboard,
+                getOrm().getUpdateSql() + " and " + escapeReservedWord("version") + " = ?",
+                expectedVersion);
     }
 
     @Override
@@ -149,8 +158,8 @@ public class JdbcGammaDashboardRepository extends JdbcAbstractCrudRepository<Gam
      * Runs {@code sql} — the ORM's update statement, optionally narrowed — binding every column, then the id, then
      * {@code extraPredicateValues} in the order the added predicates appear.
      */
-    private Optional<GammaDashboard> replaceMatching(GammaDashboard gammaDashboard, String sql, Object... extraPredicateValues)
-        throws TechnicalException {
+    private Optional<GammaDashboard> replaceMatching(
+            GammaDashboard gammaDashboard, String sql, Object... extraPredicateValues) throws TechnicalException {
         if (gammaDashboard == null) {
             throw new IllegalStateException("Unable to update a null gamma dashboard");
         }

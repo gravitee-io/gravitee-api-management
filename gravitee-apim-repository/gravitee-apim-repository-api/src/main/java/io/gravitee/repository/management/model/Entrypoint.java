@@ -108,29 +108,26 @@ public class Entrypoint {
 
     @Override
     public String toString() {
-        return (
-            "Entrypoint{" +
-            "id='" +
-            id +
-            '\'' +
-            ", target='" +
-            target +
-            '\'' +
-            ", value='" +
-            value +
-            '\'' +
-            ", tags='" +
-            tags +
-            '\'' +
-            ", environmentIds='" +
-            environmentIds +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            '}'
-        );
+        return ("Entrypoint{" + "id='"
+                + id
+                + '\''
+                + ", target='"
+                + target
+                + '\''
+                + ", value='"
+                + value
+                + '\''
+                + ", tags='"
+                + tags
+                + '\''
+                + ", environmentIds='"
+                + environmentIds
+                + '\''
+                + ", referenceId='"
+                + referenceId
+                + '\''
+                + ", referenceType="
+                + referenceType
+                + '}');
     }
 }

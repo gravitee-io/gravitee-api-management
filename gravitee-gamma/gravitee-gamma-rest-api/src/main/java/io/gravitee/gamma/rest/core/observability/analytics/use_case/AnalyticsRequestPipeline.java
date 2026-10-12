@@ -55,13 +55,12 @@ public class AnalyticsRequestPipeline {
 
     /** The metrics served from authorization decision records; pinned to the engine's routing by a test. */
     static final Set<String> AUTHZ_DECISION_METRICS = Set.of(
-        "AUTHZ_DECISIONS",
-        "AUTHZ_PERMITS",
-        "AUTHZ_FORBIDS",
-        "AUTHZ_NOT_APPLICABLE",
-        "AUTHZ_FAILURES",
-        "AUTHZ_EVAL_DURATION"
-    );
+            "AUTHZ_DECISIONS",
+            "AUTHZ_PERMITS",
+            "AUTHZ_FORBIDS",
+            "AUTHZ_NOT_APPLICABLE",
+            "AUTHZ_FAILURES",
+            "AUTHZ_EVAL_DURATION");
 
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
@@ -82,13 +81,12 @@ public class AnalyticsRequestPipeline {
     }
 
     public PreparedScope prepare(
-        String organizationId,
-        String environmentId,
-        List<FilterCondition> rawFilters,
-        Instant from,
-        Instant to,
-        ObservabilityAnalyticsDataPort analyticsDataPort
-    ) {
+            String organizationId,
+            String environmentId,
+            List<FilterCondition> rawFilters,
+            Instant from,
+            Instant to,
+            ObservabilityAnalyticsDataPort analyticsDataPort) {
         var conditions = rawFilters != null ? rawFilters : List.<FilterCondition>of();
 
         filterValidator.validate(conditions, Signal.ANALYTICS);
@@ -125,19 +123,18 @@ public class AnalyticsRequestPipeline {
      *
      * Metrics with nothing to report are left out.
      */
-    public Map<String, List<String>> conditionsNotApplied(List<FilterCondition> rawFilters, List<MetricConditions> metrics) {
+    public Map<String, List<String>> conditionsNotApplied(
+            List<FilterCondition> rawFilters, List<MetricConditions> metrics) {
         metrics.forEach(metric -> filterValidator.validate(metric.conditions(), Signal.ANALYTICS));
-        var recordTypes = (rawFilters != null ? rawFilters : List.<FilterCondition>of()).stream()
-            .filter(c -> RECORD_TYPE.equals(c.name()))
-            .toList();
+        var recordTypes = (rawFilters != null ? rawFilters : List.<FilterCondition>of())
+                .stream().filter(c -> RECORD_TYPE.equals(c.name())).toList();
 
         var notApplied = new LinkedHashMap<String, List<String>>();
         for (var metric : metrics) {
             var names = new LinkedHashSet<String>();
-            recordTypes
-                .stream()
-                .filter(condition -> !selects(condition, recordTypeOf(metric.metric())))
-                .forEach(condition -> names.add(condition.name()));
+            recordTypes.stream()
+                    .filter(condition -> !selects(condition, recordTypeOf(metric.metric())))
+                    .forEach(condition -> names.add(condition.name()));
             metric.conditions().forEach(condition -> names.add(condition.name()));
             if (!names.isEmpty()) {
                 // A metric queried twice is one entry per name in the response: it carries both lists.
@@ -157,7 +154,9 @@ public class AnalyticsRequestPipeline {
     private static boolean selects(FilterCondition recordType, RecordType kind) {
         var values = recordType.values() != null ? recordType.values() : List.<String>of();
         var named = values.stream().anyMatch(value -> RecordType.fromNameOrDefault(value) == kind);
-        return recordType.operator() == FilterOperator.NOT_IN || recordType.operator() == FilterOperator.NEQ ? !named : named;
+        return recordType.operator() == FilterOperator.NOT_IN || recordType.operator() == FilterOperator.NEQ
+                ? !named
+                : named;
     }
 
     private static List<String> union(List<String> first, List<String> second) {
@@ -179,24 +178,17 @@ public class AnalyticsRequestPipeline {
     }
 
     private static Set<String> extractApiFilter(List<FilterCondition> conditions) {
-        return conditions
-            .stream()
-            .filter(c -> "API".equals(c.name()))
-            .flatMap(c -> c.values().stream())
-            .collect(Collectors.toSet());
+        return conditions.stream()
+                .filter(c -> "API".equals(c.name()))
+                .flatMap(c -> c.values().stream())
+                .collect(Collectors.toSet());
     }
 
     private static List<FilterCondition> removeApiConditions(List<FilterCondition> conditions) {
-        return conditions
-            .stream()
-            .filter(c -> !"API".equals(c.name()))
-            .toList();
+        return conditions.stream().filter(c -> !"API".equals(c.name())).toList();
     }
 
     private static List<FilterCondition> removeRecordTypeConditions(List<FilterCondition> conditions) {
-        return conditions
-            .stream()
-            .filter(c -> !RECORD_TYPE.equals(c.name()))
-            .toList();
+        return conditions.stream().filter(c -> !RECORD_TYPE.equals(c.name())).toList();
     }
 }

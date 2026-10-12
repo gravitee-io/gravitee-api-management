@@ -37,7 +37,8 @@ class ListObservabilityDashboardUseCaseTest {
     private static final String OTHER_ENV = "env-2";
 
     private final InMemoryDashboardRepository dashboardRepository = new InMemoryDashboardRepository();
-    private final ListObservabilityDashboardUseCase useCase = new ListObservabilityDashboardUseCase(dashboardRepository);
+    private final ListObservabilityDashboardUseCase useCase =
+            new ListObservabilityDashboardUseCase(dashboardRepository);
 
     @BeforeEach
     void reset() {
@@ -78,7 +79,8 @@ class ListObservabilityDashboardUseCaseTest {
         dashboardRepository.givenDashboard(dashboard("dash-portals", ENV, "portals"));
         dashboardRepository.givenDashboard(dashboard("dash-none", ENV, null));
 
-        var output = useCase.execute(new ListObservabilityDashboardUseCase.Input(ENV, Set.of("aim", "apim"), null, null));
+        var output =
+                useCase.execute(new ListObservabilityDashboardUseCase.Input(ENV, Set.of("aim", "apim"), null, null));
 
         assertThat(output.dashboards()).extracting(Dashboard::id).containsExactly("dash-aim", "dash-apim");
         assertThat(output.totalCount()).isEqualTo(2);
@@ -109,9 +111,9 @@ class ListObservabilityDashboardUseCaseTest {
 
     @Test
     void should_reject_an_invalid_module() {
-        assertThatThrownBy(() ->
-            useCase.execute(new ListObservabilityDashboardUseCase.Input(ENV, Set.of("aim", "AIM"), null, null))
-        ).isInstanceOf(InvalidDashboardException.class);
+        assertThatThrownBy(() -> useCase.execute(
+                        new ListObservabilityDashboardUseCase.Input(ENV, Set.of("aim", "AIM"), null, null)))
+                .isInstanceOf(InvalidDashboardException.class);
     }
 
     @Test
@@ -169,18 +171,17 @@ class ListObservabilityDashboardUseCaseTest {
 
     private static Dashboard dashboard(String id, String environmentId, String module) {
         return new Dashboard(
-            id,
-            environmentId,
-            module,
-            "Performance overview",
-            null,
-            List.of(),
-            null,
-            NullNode.getInstance(),
-            1,
-            "user-1",
-            Instant.parse("2026-06-10T00:00:00Z"),
-            Instant.parse("2026-06-10T00:00:00Z")
-        );
+                id,
+                environmentId,
+                module,
+                "Performance overview",
+                null,
+                List.of(),
+                null,
+                NullNode.getInstance(),
+                1,
+                "user-1",
+                Instant.parse("2026-06-10T00:00:00Z"),
+                Instant.parse("2026-06-10T00:00:00Z"));
     }
 }

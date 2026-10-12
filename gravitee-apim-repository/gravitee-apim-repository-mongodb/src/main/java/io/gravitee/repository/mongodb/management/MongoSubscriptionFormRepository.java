@@ -48,15 +48,19 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
     @Override
     public Optional<SubscriptionForm> findById(String subscriptionFormId) throws TechnicalException {
         log.debug("Find subscription form by ID [{}]", subscriptionFormId);
-        Optional<SubscriptionForm> result = internalSubscriptionFormRepo.findById(subscriptionFormId).map(mapper::map);
+        Optional<SubscriptionForm> result =
+                internalSubscriptionFormRepo.findById(subscriptionFormId).map(mapper::map);
         log.debug("Find subscription form by ID [{}] - Done", subscriptionFormId);
         return result;
     }
 
     @Override
-    public Optional<SubscriptionForm> findByIdAndEnvironmentId(String id, String environmentId) throws TechnicalException {
+    public Optional<SubscriptionForm> findByIdAndEnvironmentId(String id, String environmentId)
+            throws TechnicalException {
         log.debug("Find subscription form by ID [{}] and environment ID [{}]", id, environmentId);
-        Optional<SubscriptionForm> result = internalSubscriptionFormRepo.findByIdAndEnvironmentId(id, environmentId).map(mapper::map);
+        Optional<SubscriptionForm> result = internalSubscriptionFormRepo
+                .findByIdAndEnvironmentId(id, environmentId)
+                .map(mapper::map);
         log.debug("Find subscription form by ID [{}] and environment ID [{}] - Done", id, environmentId);
         return result;
     }
@@ -64,19 +68,21 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
     @Override
     public List<SubscriptionForm> findAllByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Find subscription forms by environment ID [{}]", environmentId);
-        List<SubscriptionForm> result = internalSubscriptionFormRepo
-            .findAllByEnvironmentIdOrderByNameAsc(environmentId)
-            .stream()
-            .map(mapper::map)
-            .toList();
+        List<SubscriptionForm> result =
+                internalSubscriptionFormRepo.findAllByEnvironmentIdOrderByNameAsc(environmentId).stream()
+                        .map(mapper::map)
+                        .toList();
         log.debug("Find subscription forms by environment ID [{}] - Done", environmentId);
         return result;
     }
 
     @Override
-    public Optional<SubscriptionForm> findByEnvironmentIdAndApiId(String environmentId, String apiId) throws TechnicalException {
+    public Optional<SubscriptionForm> findByEnvironmentIdAndApiId(String environmentId, String apiId)
+            throws TechnicalException {
         log.debug("Find subscription form by environment ID [{}] and API ID [{}]", environmentId, apiId);
-        Optional<SubscriptionForm> result = internalSubscriptionFormRepo.findByEnvironmentIdAndApiId(environmentId, apiId).map(mapper::map);
+        Optional<SubscriptionForm> result = internalSubscriptionFormRepo
+                .findByEnvironmentIdAndApiId(environmentId, apiId)
+                .map(mapper::map);
         log.debug("Find subscription form by environment ID [{}] and API ID [{}] - Done", environmentId, apiId);
         return result;
     }
@@ -91,13 +97,11 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
             createdSubscriptionForm = internalSubscriptionFormRepo.insert(subscriptionFormMongo);
         } catch (org.springframework.dao.DuplicateKeyException e) {
             throw new DuplicateKeyException(
-                "Subscription form [" +
-                    subscriptionForm.getId() +
-                    "] collides with another form of environment [" +
-                    subscriptionForm.getEnvironmentId() +
-                    "]",
-                e
-            );
+                    "Subscription form [" + subscriptionForm.getId()
+                            + "] collides with another form of environment ["
+                            + subscriptionForm.getEnvironmentId()
+                            + "]",
+                    e);
         }
         SubscriptionForm result = mapper.map(createdSubscriptionForm);
 
@@ -111,9 +115,11 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
             throw new TechnicalException("Subscription form must not be null");
         }
 
-        SubscriptionFormMongo existingMongo = internalSubscriptionFormRepo.findById(subscriptionForm.getId()).orElse(null);
+        SubscriptionFormMongo existingMongo =
+                internalSubscriptionFormRepo.findById(subscriptionForm.getId()).orElse(null);
         if (existingMongo == null) {
-            throw new TechnicalException(String.format("Subscription form not found with id [%s]", subscriptionForm.getId()));
+            throw new TechnicalException(
+                    String.format("Subscription form not found with id [%s]", subscriptionForm.getId()));
         }
 
         try {
@@ -122,13 +128,11 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
             return mapper.map(updatedMongo);
         } catch (org.springframework.dao.DuplicateKeyException e) {
             throw new DuplicateKeyException(
-                "Subscription form [" +
-                    subscriptionForm.getId() +
-                    "] collides with another form of environment [" +
-                    subscriptionForm.getEnvironmentId() +
-                    "]",
-                e
-            );
+                    "Subscription form [" + subscriptionForm.getId()
+                            + "] collides with another form of environment ["
+                            + subscriptionForm.getEnvironmentId()
+                            + "]",
+                    e);
         } catch (Exception e) {
             log.error("An error occurred when updating subscription form [{}]", subscriptionForm.getId(), e);
             throw new TechnicalException("An error occurred when updating subscription form", e);
@@ -161,10 +165,8 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
 
     @Override
     public Set<SubscriptionForm> findAll() throws TechnicalException {
-        return internalSubscriptionFormRepo
-            .findAll()
-            .stream()
-            .map(mongo -> mapper.map(mongo))
-            .collect(Collectors.toSet());
+        return internalSubscriptionFormRepo.findAll().stream()
+                .map(mongo -> mapper.map(mongo))
+                .collect(Collectors.toSet());
     }
 }

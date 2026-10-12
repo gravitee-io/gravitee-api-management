@@ -47,18 +47,17 @@ public class TransferApiProductOwnershipUseCase {
     public record Output() {}
 
     public Output execute(Input input) {
-        membershipDomainService.transferOwnership(input.transferOwnership(), RoleScope.API_PRODUCT, input.apiProductId());
+        membershipDomainService.transferOwnership(
+                input.transferOwnership(), RoleScope.API_PRODUCT, input.apiProductId());
 
         ApiProduct apiProduct = apiProductQueryService
-            .findById(input.apiProductId())
-            .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
+                .findById(input.apiProductId())
+                .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
 
         PrimaryOwnerEntity primaryOwner = null;
         try {
             primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(
-                input.auditInfo().organizationId(),
-                apiProduct.getId()
-            );
+                    input.auditInfo().organizationId(), apiProduct.getId());
         } catch (ApiProductPrimaryOwnerNotFoundException ex) {
             log.debug("Failed to retrieve API Product primary owner, will index without primary owner", ex);
         }

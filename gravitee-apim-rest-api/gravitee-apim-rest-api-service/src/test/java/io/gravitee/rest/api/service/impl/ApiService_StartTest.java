@@ -119,9 +119,8 @@ public class ApiService_StartTest {
 
     private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
-    private ApiConverter apiConverter = Mockito.spy(
-        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
-    );
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter(
+            objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class)));
 
     private ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
@@ -129,8 +128,7 @@ public class ApiService_StartTest {
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
+                new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         UserEntity u = new UserEntity();
         when(userService.findById(eq(executionContext), any())).thenReturn(u);
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
@@ -149,23 +147,23 @@ public class ApiService_StartTest {
         query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
         query.setOrganizationIds(Set.of(executionContext.getOrganizationId()));
         when(eventService.search(executionContext, query)).thenReturn(singleton(event));
-        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class))).thenAnswer(invocation ->
-            invocation.getArgument(1)
-        );
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(1));
 
         apiService.start(executionContext, API_ID, USER_NAME);
 
         verify(api).setUpdatedAt(any());
         verify(api).setLifecycleState(LifecycleState.STARTED);
         verify(apiRepository).update(api);
-        verify(eventService).createApiEvent(
-            eq(executionContext),
-            eq(singleton(GraviteeContext.getCurrentEnvironment())),
-            eq(GraviteeContext.getCurrentOrganization()),
-            eq(EventType.START_API),
-            argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
-            argThat((Map<String, String> props) -> "myUser".equals(props.get("user")) && props.containsKey("deployment_number"))
-        );
+        verify(eventService)
+                .createApiEvent(
+                        eq(executionContext),
+                        eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                        eq(GraviteeContext.getCurrentOrganization()),
+                        eq(EventType.START_API),
+                        argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
+                        argThat((Map<String, String> props) ->
+                                "myUser".equals(props.get("user")) && props.containsKey("deployment_number")));
         verify(notifierService, times(1)).trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(API_ID), any());
     }
 

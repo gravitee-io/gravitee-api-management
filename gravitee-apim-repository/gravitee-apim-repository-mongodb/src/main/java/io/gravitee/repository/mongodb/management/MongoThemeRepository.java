@@ -85,7 +85,7 @@ public class MongoThemeRepository implements ThemeRepository {
         }
 
         try {
-            //Update
+            // Update
             themeMongo.setName(theme.getName());
             themeMongo.setDefinition(theme.getDefinition());
             themeMongo.setEnabled(theme.isEnabled());
@@ -120,20 +120,15 @@ public class MongoThemeRepository implements ThemeRepository {
     @Override
     public Set<Theme> findAll() {
         final List<ThemeMongo> themes = internalThemeRepo.findAll();
-        return themes
-            .stream()
-            .map(themeMongo -> mapper.map(themeMongo))
-            .collect(Collectors.toSet());
+        return themes.stream().map(themeMongo -> mapper.map(themeMongo)).collect(Collectors.toSet());
     }
 
     @Override
     public Set<Theme> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type)
-        throws TechnicalException {
-        final Set<ThemeMongo> themes = internalThemeRepo.findByReferenceIdAndReferenceTypeAndType(referenceId, referenceType, type);
-        return themes
-            .stream()
-            .map(themeMongo -> mapper.map(themeMongo))
-            .collect(Collectors.toSet());
+            throws TechnicalException {
+        final Set<ThemeMongo> themes =
+                internalThemeRepo.findByReferenceIdAndReferenceTypeAndType(referenceId, referenceType, type);
+        return themes.stream().map(themeMongo -> mapper.map(themeMongo)).collect(Collectors.toSet());
     }
 
     @Override
@@ -143,14 +138,13 @@ public class MongoThemeRepository implements ThemeRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, ThemeReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Delete themes by reference {}/{}", referenceId, referenceType);
         try {
-            final var res = internalThemeRepo
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .stream()
-                .map(ThemeMongo::getId)
-                .toList();
+            final var res =
+                    internalThemeRepo.deleteByReferenceIdAndReferenceType(referenceId, referenceType.name()).stream()
+                            .map(ThemeMongo::getId)
+                            .toList();
 
             log.debug("Delete themes by reference {}/{} - Done", referenceId, referenceType);
             return res;

@@ -32,76 +32,66 @@ public class PageModelFactory {
 
     public static Page fromCRDSpec(String hrid, PageCRD pageCRD) {
         return Page.builder()
-            .id(pageCRD.getId())
-            .hrid(hrid)
-            .name(pageCRD.getName())
-            .crossId(pageCRD.getCrossId())
-            .parentId(pageCRD.getParentId())
-            .parentHrid(pageCRD.getParentHrid())
-            .type(Page.Type.valueOf(pageCRD.getType().name()))
-            .visibility(Page.Visibility.valueOf(pageCRD.getVisibility().name()))
-            .order(pageCRD.getOrder())
-            .published(pageCRD.isPublished())
-            .content(pageCRD.getContent())
-            .homepage(pageCRD.isHomepage())
-            .configuration(pageCRD.getConfiguration())
-            .excludedAccessControls(pageCRD.isExcludedAccessControls())
-            .useAutoFetch(pageCRD.getUseAutoFetch())
-            .accessControls(
-                pageCRD.getAccessControls() == null
-                    ? Set.of()
-                    : pageCRD
-                        .getAccessControls()
-                        .stream()
-                        .map(ac -> new AccessControl(ac.getReferenceId(), ac.getReferenceType()))
-                        .collect(Collectors.toSet())
-            )
-            .source(
-                pageCRD.getSource() == null
-                    ? null
-                    : new PageSource(
-                        pageCRD.getSource().getType(),
-                        pageCRD.getSource().getConfiguration(),
-                        pageCRD.getSource().getConfigurationMap()
-                    )
-            )
-            .build();
+                .id(pageCRD.getId())
+                .hrid(hrid)
+                .name(pageCRD.getName())
+                .crossId(pageCRD.getCrossId())
+                .parentId(pageCRD.getParentId())
+                .parentHrid(pageCRD.getParentHrid())
+                .type(Page.Type.valueOf(pageCRD.getType().name()))
+                .visibility(Page.Visibility.valueOf(pageCRD.getVisibility().name()))
+                .order(pageCRD.getOrder())
+                .published(pageCRD.isPublished())
+                .content(pageCRD.getContent())
+                .homepage(pageCRD.isHomepage())
+                .configuration(pageCRD.getConfiguration())
+                .excludedAccessControls(pageCRD.isExcludedAccessControls())
+                .useAutoFetch(pageCRD.getUseAutoFetch())
+                .accessControls(
+                        pageCRD.getAccessControls() == null
+                                ? Set.of()
+                                : pageCRD.getAccessControls().stream()
+                                        .map(ac -> new AccessControl(ac.getReferenceId(), ac.getReferenceType()))
+                                        .collect(Collectors.toSet()))
+                .source(
+                        pageCRD.getSource() == null
+                                ? null
+                                : new PageSource(
+                                        pageCRD.getSource().getType(),
+                                        pageCRD.getSource().getConfiguration(),
+                                        pageCRD.getSource().getConfigurationMap()))
+                .build();
     }
 
     public static PageCRD toCRDSpec(Page page) {
         return PageCRD.builder()
-            .id(page.getId())
-            .name(page.getName())
-            .crossId(page.getCrossId())
-            .parentId(page.getParentId())
-            .parentHrid(page.getParentHrid())
-            .type(PageCRD.Type.valueOf(page.getType().name()))
-            .visibility(PageCRD.Visibility.valueOf(page.getVisibility().name()))
-            .order(page.getOrder())
-            .published(page.isPublished())
-            .content(page.getContent())
-            .homepage(page.isHomepage())
-            .configuration(page.getConfiguration())
-            .excludedAccessControls(page.isExcludedAccessControls())
-            .useAutoFetch(page.getUseAutoFetch())
-            .accessControls(
-                page.getAccessControls() == null
-                    ? Set.of()
-                    : page
-                        .getAccessControls()
-                        .stream()
-                        .map(ac -> new AccessControl(ac.getReferenceId(), ac.getReferenceType()))
-                        .collect(Collectors.toSet())
-            )
-            .source(
-                page.getSource() == null
-                    ? null
-                    : new PageCRD.PageSource(
-                        page.getSource().getType(),
-                        page.getSource().getConfiguration(),
-                        page.getSource().getConfigurationMap()
-                    )
-            )
-            .build();
+                .id(page.getId())
+                .name(page.getName())
+                .crossId(page.getCrossId())
+                .parentId(page.getParentId())
+                .parentHrid(page.getParentHrid())
+                .type(PageCRD.Type.valueOf(page.getType().name()))
+                .visibility(PageCRD.Visibility.valueOf(page.getVisibility().name()))
+                .order(page.getOrder())
+                .published(page.isPublished())
+                .content(page.getContent())
+                .homepage(page.isHomepage())
+                .configuration(page.getConfiguration())
+                .excludedAccessControls(page.isExcludedAccessControls())
+                .useAutoFetch(page.getUseAutoFetch())
+                .accessControls(
+                        page.getAccessControls() == null
+                                ? Set.of()
+                                : page.getAccessControls().stream()
+                                        .map(ac -> new AccessControl(ac.getReferenceId(), ac.getReferenceType()))
+                                        .collect(Collectors.toSet()))
+                .source(
+                        page.getSource() == null
+                                ? null
+                                : new PageCRD.PageSource(
+                                        page.getSource().getType(),
+                                        page.getSource().getConfiguration(),
+                                        page.getSource().getConfigurationMap()))
+                .build();
     }
 }

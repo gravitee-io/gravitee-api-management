@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.service.ApiKeyGenerator;
-import io.gravitee.rest.api.service.impl.UUIDApiKeyGenerator;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

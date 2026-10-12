@@ -51,51 +51,45 @@ class ComputeObservabilityFacetsUseCaseTest {
     @Test
     void should_reject_a_request_without_metrics_before_loading_the_accessible_apis() {
         var pipeline = new AnalyticsRequestPipeline(
-            new ObservabilityFilterValidator(filterRegistry),
-            new AccessibleApiScopeDomainService()
-        );
+                new ObservabilityFilterValidator(filterRegistry), new AccessibleApiScopeDomainService());
         var useCase = new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
         var input = new ComputeObservabilityFacetsUseCase.Input(
-            "org-1",
-            "env-1",
-            List.of(),
-            Instant.parse("2026-06-10T00:00:00Z"),
-            Instant.parse("2026-06-11T00:00:00Z"),
-            List.of(),
-            List.of("HTTP_STATUS"),
-            null,
-            List.of()
-        );
+                "org-1",
+                "env-1",
+                List.of(),
+                Instant.parse("2026-06-10T00:00:00Z"),
+                Instant.parse("2026-06-11T00:00:00Z"),
+                List.of(),
+                List.of("HTTP_STATUS"),
+                null,
+                List.of());
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(InvalidObservabilityQueryException.class)
-            .extracting("technicalCode")
-            .isEqualTo("observability.query.metrics_required");
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.metrics_required");
         verifyNoInteractions(analyticsDataPort);
     }
 
     @Test
     void should_refuse_a_malformed_query_even_when_the_caller_can_read_no_api() {
         var pipeline = new AnalyticsRequestPipeline(
-            new ObservabilityFilterValidator(filterRegistry),
-            new AccessibleApiScopeDomainService()
-        );
+                new ObservabilityFilterValidator(filterRegistry), new AccessibleApiScopeDomainService());
         var useCase = new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
         when(analyticsDataPort.loadAccessibleApis("org-1", "env-1")).thenReturn(List.of());
         doThrow(InvalidObservabilityQueryException.unknownFacet("BOGUS"))
-            .when(analyticsDataPort)
-            .validate(any(ObservabilityAnalyticsDataPort.FacetsQuery.class));
+                .when(analyticsDataPort)
+                .validate(any(ObservabilityAnalyticsDataPort.FacetsQuery.class));
         var input = new ComputeObservabilityFacetsUseCase.Input(
-            "org-1",
-            "env-1",
-            List.of(),
-            Instant.parse("2026-06-10T00:00:00Z"),
-            Instant.parse("2026-06-11T00:00:00Z"),
-            List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
-            List.of("BOGUS"),
-            null,
-            List.of()
-        );
+                "org-1",
+                "env-1",
+                List.of(),
+                Instant.parse("2026-06-10T00:00:00Z"),
+                Instant.parse("2026-06-11T00:00:00Z"),
+                List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+                List.of("BOGUS"),
+                null,
+                List.of());
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(InvalidObservabilityQueryException.class);
         verify(analyticsDataPort, never()).emptyFacetsResponse();

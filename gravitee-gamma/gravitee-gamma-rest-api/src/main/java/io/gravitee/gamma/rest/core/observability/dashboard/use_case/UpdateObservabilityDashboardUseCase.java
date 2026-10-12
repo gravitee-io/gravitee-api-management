@@ -67,13 +67,16 @@ public class UpdateObservabilityDashboardUseCase {
     private final DashboardRepository dashboardRepository;
     private final ObservabilityFilterValidator filterValidator;
 
-    public record Input(String environmentId, String dashboardId, VersionPrecondition precondition, DashboardContent content) {}
+    public record Input(
+            String environmentId, String dashboardId, VersionPrecondition precondition, DashboardContent content) {}
 
     public record Output(Dashboard dashboard) {}
 
     public Output execute(Input input) {
         input.content().validate();
-        filterValidator.validateDashboardFilters(input.content().filters().stream().map(DashboardFilter::condition).toList());
+        filterValidator.validateDashboardFilters(input.content().filters().stream()
+                .map(DashboardFilter::condition)
+                .toList());
         if (input.precondition() == null) {
             throw new InvalidDashboardException("The revision this edit is based on must be stated");
         }
@@ -88,33 +91,34 @@ public class UpdateObservabilityDashboardUseCase {
         // stored one, and OneOf is satisfied by no null.
         Optional<Dashboard> written = switch (input.precondition()) {
             case VersionPrecondition.AnyVersion ignored -> dashboardRepository.updateIfPresent(updated);
-            case VersionPrecondition.OneOf ignored -> dashboardRepository.updateIfVersionMatches(updated, existing.version());
+            case VersionPrecondition.OneOf ignored ->
+                dashboardRepository.updateIfVersionMatches(updated, existing.version());
         };
 
-        return written.map(Output::new).orElseThrow(() -> new DashboardVersionConflictException(findOrThrow(input), input.precondition()));
+        return written.map(Output::new)
+                .orElseThrow(() -> new DashboardVersionConflictException(findOrThrow(input), input.precondition()));
     }
 
     private Dashboard findOrThrow(Input input) {
         return dashboardRepository
-            .findByIdAndEnvironmentId(input.dashboardId(), input.environmentId())
-            .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
+                .findByIdAndEnvironmentId(input.dashboardId(), input.environmentId())
+                .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
     }
 
     private static Dashboard withContentOf(Input input, Dashboard existing) {
         return new Dashboard(
-            existing.id(),
-            existing.environmentId(),
-            existing.module(),
-            input.content().title(),
-            input.content().description(),
-            input.content().filters(),
-            input.content().timeRange(),
-            input.content().widgets(),
-            nextVersion(existing),
-            existing.createdBy(),
-            existing.createdAt(),
-            TimeProvider.instantNow()
-        );
+                existing.id(),
+                existing.environmentId(),
+                existing.module(),
+                input.content().title(),
+                input.content().description(),
+                input.content().filters(),
+                input.content().timeRange(),
+                input.content().widgets(),
+                nextVersion(existing),
+                existing.createdBy(),
+                existing.createdAt(),
+                TimeProvider.instantNow());
     }
 
     /**

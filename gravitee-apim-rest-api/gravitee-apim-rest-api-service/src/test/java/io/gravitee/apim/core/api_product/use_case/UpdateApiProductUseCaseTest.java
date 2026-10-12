@@ -75,12 +75,15 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     private final LicenseManager licenseManager = mock(LicenseManager.class);
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
-    private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
-    private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService = mock(ApiProductPrimaryOwnerDomainService.class);
+    private final ApiProductIndexerDomainService apiProductIndexerDomainService =
+            mock(ApiProductIndexerDomainService.class);
+    private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService =
+            mock(ApiProductPrimaryOwnerDomainService.class);
     private final TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
-        new TriggerNotificationDomainServiceInMemory();
+            new TriggerNotificationDomainServiceInMemory();
     private final ApiProductTagDomainService apiProductTagDomainService = mock(ApiProductTagDomainService.class);
-    private final DeployApiProductDomainService deployApiProductDomainService = mock(DeployApiProductDomainService.class);
+    private final DeployApiProductDomainService deployApiProductDomainService =
+            mock(DeployApiProductDomainService.class);
 
     private UpdateApiProductUseCase updateApiProductUseCase;
 
@@ -91,58 +94,58 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         triggerNotificationDomainService.reset();
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var validateApiProductService = new ValidateApiProductService(
-            apiQueryService,
-            apiCrudService,
-            planQueryService,
-            apiProductQueryService
-        );
+                apiQueryService, apiCrudService, planQueryService, apiProductQueryService);
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
         updateApiProductUseCase = new UpdateApiProductUseCase(
-            apiProductCrudService,
-            auditService,
-            apiProductQueryService,
-            validateApiProductService,
-            apiStateDomainService,
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-            apiProductIndexerDomainService,
-            apiProductPrimaryOwnerDomainService,
-            triggerNotificationDomainService,
-            planQueryService,
-            planCrudService,
-            apiProductTagDomainService,
-            deployApiProductDomainService
-        );
+                apiProductCrudService,
+                auditService,
+                apiProductQueryService,
+                validateApiProductService,
+                apiStateDomainService,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+                apiProductIndexerDomainService,
+                apiProductPrimaryOwnerDomainService,
+                triggerNotificationDomainService,
+                planQueryService,
+                planCrudService,
+                apiProductTagDomainService,
+                deployApiProductDomainService);
     }
 
     @Test
     void should_update_api_product() {
         givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("Old Name")
-            .version("1.0.0")
-            .description("desc")
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("Old Name")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
         Api api2 = createV4ProxyApi("api-2", true);
         apiCrudService.initWith(List.of(api2));
 
-        var toUpdate = UpdateApiProduct.builder().name("New Name").version("2.0.0").description("new desc").apiIds(Set.of("api-2")).build();
+        var toUpdate = UpdateApiProduct.builder()
+                .name("New Name")
+                .version("2.0.0")
+                .description("new desc")
+                .apiIds(Set.of("api-2"))
+                .build();
 
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var output = updateApiProductUseCase.execute(input);
 
         assertAll(
-            () -> assertThat(output.apiProduct().getId()).isEqualTo("api-product-id"),
-            () -> assertThat(output.apiProduct().getName()).isEqualTo("New Name"),
-            () -> assertThat(output.apiProduct().getVersion()).isEqualTo("2.0.0"),
-            () -> assertThat(output.apiProduct().getDescription()).isEqualTo("new desc"),
-            () -> assertThat(output.apiProduct().getApiIds()).containsExactly("api-2") // Replace, not merge
-        );
+                () -> assertThat(output.apiProduct().getId()).isEqualTo("api-product-id"),
+                () -> assertThat(output.apiProduct().getName()).isEqualTo("New Name"),
+                () -> assertThat(output.apiProduct().getVersion()).isEqualTo("2.0.0"),
+                () -> assertThat(output.apiProduct().getDescription()).isEqualTo("new desc"),
+                () -> assertThat(output.apiProduct().getApiIds()).containsExactly("api-2") // Replace, not merge
+                );
 
         verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
         verify(deployApiProductDomainService).deploy(AUDIT_INFO, output.apiProduct());
@@ -152,38 +155,43 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_trigger_api_product_updated_notification_after_successful_update() {
         givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("Old Name")
-            .version("1.0.0")
-            .description("desc")
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("Old Name")
+                .version("1.0.0")
+                .description("desc")
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
         Api api2 = createV4ProxyApi("api-2", true);
         apiCrudService.initWith(List.of(api2));
 
-        var toUpdate = UpdateApiProduct.builder().name("New Name").version("2.0.0").description("new desc").apiIds(Set.of("api-2")).build();
+        var toUpdate = UpdateApiProduct.builder()
+                .name("New Name")
+                .version("2.0.0")
+                .description("new desc")
+                .apiIds(Set.of("api-2"))
+                .build();
 
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var output = updateApiProductUseCase.execute(input);
 
-        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-            new ApiProductUpdatedHookContext(output.apiProduct().getId(), USER_ID)
-        );
+        assertThat(triggerNotificationDomainService.getHookNotifications())
+                .containsExactly(
+                        new ApiProductUpdatedHookContext(output.apiProduct().getId(), USER_ID));
     }
 
     @Test
     void should_not_trigger_api_product_updated_notification_when_validation_fails_before_persist() {
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
@@ -191,10 +199,13 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         Api notAllowedApi = createV4ProxyApi("api-not-allowed", false);
         apiCrudService.initWith(List.of(allowedApi, notAllowedApi));
 
-        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-allowed", "api-not-allowed")).build();
+        var toUpdate = UpdateApiProduct.builder()
+                .apiIds(Set.of("api-allowed", "api-not-allowed"))
+                .build();
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
 
-        Assertions.assertThatThrownBy(() -> updateApiProductUseCase.execute(input)).isInstanceOf(ValidationDomainException.class);
+        Assertions.assertThatThrownBy(() -> updateApiProductUseCase.execute(input))
+                .isInstanceOf(ValidationDomainException.class);
         assertThat(triggerNotificationDomainService.getHookNotifications()).isEmpty();
     }
 
@@ -202,14 +213,20 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_throw_exception_when_license_does_not_allow_api_product() {
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anOssLicense());
 
-        ApiProduct existing = ApiProduct.builder().id("api-product-id").name("API Product").version("1.0.0").environmentId(ENV_ID).build();
+        ApiProduct existing = ApiProduct.builder()
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
         var toUpdate = UpdateApiProduct.builder().name("New Name").build();
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
 
-        Assertions.assertThatThrownBy(() -> updateApiProductUseCase.execute(input)).isInstanceOf(ForbiddenFeatureException.class);
+        Assertions.assertThatThrownBy(() -> updateApiProductUseCase.execute(input))
+                .isInstanceOf(ForbiddenFeatureException.class);
     }
 
     @Test
@@ -217,35 +234,35 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         var toUpdate = UpdateApiProduct.builder().name("Name").version("1.0.0").build();
         var input = new UpdateApiProductUseCase.Input("missing-id", toUpdate, AUDIT_INFO);
         Assertions.assertThatThrownBy(() -> updateApiProductUseCase.execute(input))
-            .isInstanceOf(ApiProductNotFoundException.class)
-            .hasMessageContaining("API Product not found");
+                .isInstanceOf(ApiProductNotFoundException.class)
+                .hasMessageContaining("API Product not found");
     }
 
     @Test
     void should_throw_exception_when_product_belongs_to_different_environment() {
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .environmentId("other-env")
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .environmentId("other-env")
+                .build();
         apiProductQueryService.initWith(List.of(existing));
 
         var toUpdate = UpdateApiProduct.builder().name("Name").version("1.0.0").build();
-        Assertions.assertThatThrownBy(() ->
-            updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO))
-        ).isInstanceOf(ApiProductNotFoundException.class);
+        Assertions.assertThatThrownBy(() -> updateApiProductUseCase.execute(
+                        new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO)))
+                .isInstanceOf(ApiProductNotFoundException.class);
     }
 
     @Test
     void should_throw_exception_when_api_not_allowed_in_product() {
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
@@ -255,7 +272,9 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         apiCrudService.initWith(List.of(allowedApi, notAllowedApi, nullAllowedApi));
 
-        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-allowed", "api-not-allowed", "api-null-allowed")).build();
+        var toUpdate = UpdateApiProduct.builder()
+                .apiIds(Set.of("api-allowed", "api-not-allowed", "api-null-allowed"))
+                .build();
 
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var throwable = Assertions.catchThrowable(() -> updateApiProductUseCase.execute(input));
@@ -266,19 +285,21 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_throw_exception_when_api_does_not_exist() {
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
         Api allowedApi = createV4ProxyApi("api-allowed", true);
         apiCrudService.initWith(List.of(allowedApi));
 
-        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-allowed", "non-existent-1")).build();
+        var toUpdate = UpdateApiProduct.builder()
+                .apiIds(Set.of("api-allowed", "non-existent-1"))
+                .build();
 
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var throwable = Assertions.catchThrowable(() -> updateApiProductUseCase.execute(input));
@@ -291,12 +312,12 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_include_all_allowed_apis() {
         givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
@@ -306,7 +327,9 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         apiCrudService.initWith(List.of(api1, api2, api3));
 
-        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2", "api-3")).build();
+        var toUpdate = UpdateApiProduct.builder()
+                .apiIds(Set.of("api-1", "api-2", "api-3"))
+                .build();
 
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var output = updateApiProductUseCase.execute(input);
@@ -318,12 +341,12 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_update_product_when_api_search_returns_duplicate_records() {
         givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of())
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of())
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
@@ -342,12 +365,12 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_clear_all_apis_when_empty_apiIds_provided() {
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1", "api-2", "api-3"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1", "api-2", "api-3"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
@@ -365,17 +388,18 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_auto_undeploy_removed_deployed_api_without_plans_then_update_product() {
         givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-deployed-no-plans", "api-2"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-deployed-no-plans", "api-2"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
         Api deployedApiNoPlans = createV4ProxyApi("api-deployed-no-plans", true);
-        deployedApiNoPlans = deployedApiNoPlans.toBuilder().deployedAt(ZonedDateTime.now()).build();
+        deployedApiNoPlans =
+                deployedApiNoPlans.toBuilder().deployedAt(ZonedDateTime.now()).build();
         Api api2 = createV4ProxyApi("api-2", true);
         apiCrudService.initWith(List.of(deployedApiNoPlans, api2));
 
@@ -393,18 +417,21 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_not_call_stop_when_no_apis_removed() {
         givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
         Api api1 = createV4ProxyApi("api-1", true);
         apiCrudService.initWith(List.of(api1));
 
-        var toUpdate = UpdateApiProduct.builder().name("New Name").apiIds(Set.of("api-1")).build();
+        var toUpdate = UpdateApiProduct.builder()
+                .name("New Name")
+                .apiIds(Set.of("api-1"))
+                .build();
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
 
         var output = updateApiProductUseCase.execute(input);
@@ -417,18 +444,24 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_stop_each_removed_deployed_api_without_plan_when_multiple_removed() {
         givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1", "api-2", "api-3"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1", "api-2", "api-3"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
-        Api api1 = createV4ProxyApi("api-1", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
-        Api api2 = createV4ProxyApi("api-2", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
-        Api api3 = createV4ProxyApi("api-3", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
+        Api api1 = createV4ProxyApi("api-1", true).toBuilder()
+                .deployedAt(ZonedDateTime.now())
+                .build();
+        Api api2 = createV4ProxyApi("api-2", true).toBuilder()
+                .deployedAt(ZonedDateTime.now())
+                .build();
+        Api api3 = createV4ProxyApi("api-3", true).toBuilder()
+                .deployedAt(ZonedDateTime.now())
+                .build();
         apiCrudService.initWith(List.of(api1, api2, api3));
 
         var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-3")).build();
@@ -446,21 +479,25 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_throw_exception_when_api_is_not_v4() {
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
         Api v4Api = createV4ProxyApi("api-v4", true);
-        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder().id("api-v2").environmentId(ENV_ID).build();
+        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder()
+                .id("api-v2")
+                .environmentId(ENV_ID)
+                .build();
 
         apiCrudService.initWith(List.of(v4Api, v2Api));
 
-        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-v4", "api-v2")).build();
+        var toUpdate =
+                UpdateApiProduct.builder().apiIds(Set.of("api-v4", "api-v2")).build();
 
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var throwable = Assertions.catchThrowable(() -> updateApiProductUseCase.execute(input));
@@ -472,12 +509,12 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_throw_exception_when_all_provided_apis_are_not_allowed() {
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-existing"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-existing"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
@@ -486,7 +523,8 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         apiCrudService.initWith(List.of(api1, api2));
 
-        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2")).build();
+        var toUpdate =
+                UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2")).build();
 
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var throwable = Assertions.catchThrowable(() -> updateApiProductUseCase.execute(input));
@@ -497,24 +535,27 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_throw_exception_with_all_errors_when_multiple_validation_failures() {
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-existing"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-existing"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
         Api validApi = createV4ProxyApi("api-valid", true);
         Api notAllowedApi = createV4ProxyApi("api-not-allowed", false);
-        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder().id("api-v2").environmentId(ENV_ID).build();
+        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder()
+                .id("api-v2")
+                .environmentId(ENV_ID)
+                .build();
 
         apiCrudService.initWith(List.of(validApi, notAllowedApi, v2Api));
 
         var toUpdate = UpdateApiProduct.builder()
-            .apiIds(Set.of("api-valid", "api-not-allowed", "api-v2", "non-existent-1", "non-existent-2"))
-            .build();
+                .apiIds(Set.of("api-valid", "api-not-allowed", "api-v2", "non-existent-1", "non-existent-2"))
+                .build();
 
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var throwable = Assertions.catchThrowable(() -> updateApiProductUseCase.execute(input));
@@ -533,12 +574,12 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_persist_update_but_not_publish_deploy_when_configuration_is_not_deployable() {
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
@@ -547,7 +588,8 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         apiCrudService.initWith(List.of(api1, api2));
         // No API plans and no API Product plan — same rules as DeployApiProductUseCase
 
-        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2")).build();
+        var toUpdate =
+                UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2")).build();
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
 
         var output = updateApiProductUseCase.execute(input);
@@ -560,12 +602,12 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_deploy_to_gateway_when_api_membership_changes() {
         givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
@@ -573,8 +615,10 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         Api api2 = createV4ProxyApi("api-2", true);
         apiCrudService.initWith(List.of(api1, api2));
 
-        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2")).build();
-        var output = updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+        var toUpdate =
+                UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2")).build();
+        var output = updateApiProductUseCase.execute(
+                new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
         verify(deployApiProductDomainService).deploy(AUDIT_INFO, output.apiProduct());
     }
@@ -583,17 +627,18 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     void should_not_deploy_to_gateway_when_only_tags_change() {
         givenPublishedApiProductPlan();
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .tags(Set.of("internal"))
-            .apiIds(Set.of("api-1"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .tags(Set.of("internal"))
+                .apiIds(Set.of("api-1"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
-        var toUpdate = UpdateApiProduct.builder().tags(Set.of("internal", "external")).build();
+        var toUpdate =
+                UpdateApiProduct.builder().tags(Set.of("internal", "external")).build();
         updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
         verify(deployApiProductDomainService, never()).deploy(any(), any());
@@ -602,17 +647,19 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_update_api_product_tags() {
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .tags(Set.of("internal"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .tags(Set.of("internal"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
-        var toUpdate = UpdateApiProduct.builder().tags(Set.of("internal", "external")).build();
-        var output = updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+        var toUpdate =
+                UpdateApiProduct.builder().tags(Set.of("internal", "external")).build();
+        var output = updateApiProductUseCase.execute(
+                new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
         assertThat(output.apiProduct().getTags()).containsExactlyInAnyOrder("internal", "external");
     }
@@ -624,19 +671,23 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         planCrudService.initWith(List.of(productPlan));
 
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .tags(Set.of("internal", "external"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .tags(Set.of("internal", "external"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
         var toUpdate = UpdateApiProduct.builder().tags(Set.of("internal")).build();
         updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
-        assertThat(planCrudService.getById("product-plan-1").getPlanDefinitionHttpV4().getTags()).containsExactly("internal");
+        assertThat(planCrudService
+                        .getById("product-plan-1")
+                        .getPlanDefinitionHttpV4()
+                        .getTags())
+                .containsExactly("internal");
     }
 
     @Test
@@ -646,19 +697,24 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         planCrudService.initWith(List.of(productPlan));
 
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .tags(Set.of("internal"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .tags(Set.of("internal"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
-        var toUpdate = UpdateApiProduct.builder().tags(Set.of("internal", "external")).build();
+        var toUpdate =
+                UpdateApiProduct.builder().tags(Set.of("internal", "external")).build();
         updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
-        assertThat(planCrudService.getById("product-plan-1").getPlanDefinitionHttpV4().getTags()).containsExactly("internal");
+        assertThat(planCrudService
+                        .getById("product-plan-1")
+                        .getPlanDefinitionHttpV4()
+                        .getTags())
+                .containsExactly("internal");
     }
 
     @Test
@@ -668,89 +724,110 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         planCrudService.initWith(List.of(productPlan));
 
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .tags(Set.of("internal", "external"))
-            .environmentId(ENV_ID)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .tags(Set.of("internal", "external"))
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
         var toUpdate = UpdateApiProduct.builder().tags(Set.of()).build();
         updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
-        assertThat(planCrudService.getById("product-plan-1").getPlanDefinitionHttpV4().getTags()).isNull();
+        assertThat(planCrudService
+                        .getById("product-plan-1")
+                        .getPlanDefinitionHttpV4()
+                        .getTags())
+                .isNull();
     }
 
     @Test
     void should_set_api_product_analytics() {
-        ApiProduct existing = ApiProduct.builder().id("api-product-id").name("API Product").version("1.0.0").environmentId(ENV_ID).build();
+        ApiProduct existing = ApiProduct.builder()
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .environmentId(ENV_ID)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
-        var analytics = io.gravitee.definition.model.v4.analytics.Analytics.builder().enabled(false).build();
+        var analytics = io.gravitee.definition.model.v4.analytics.Analytics.builder()
+                .enabled(false)
+                .build();
         var toUpdate = UpdateApiProduct.builder().analytics(analytics).build();
-        var output = updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+        var output = updateApiProductUseCase.execute(
+                new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
         assertThat(output.apiProduct().getAnalytics()).isEqualTo(analytics);
     }
 
     @Test
     void should_clear_api_product_analytics_when_explicitly_set_to_null() {
-        var analytics = io.gravitee.definition.model.v4.analytics.Analytics.builder().enabled(false).build();
+        var analytics = io.gravitee.definition.model.v4.analytics.Analytics.builder()
+                .enabled(false)
+                .build();
         ApiProduct existing = ApiProduct.builder()
-            .id("api-product-id")
-            .name("API Product")
-            .version("1.0.0")
-            .environmentId(ENV_ID)
-            .analytics(analytics)
-            .build();
+                .id("api-product-id")
+                .name("API Product")
+                .version("1.0.0")
+                .environmentId(ENV_ID)
+                .analytics(analytics)
+                .build();
         apiProductCrudService.initWith(List.of(existing));
         apiProductQueryService.initWith(List.of(existing));
 
         // Same semantics as an API's own analytics field: always applied, so null clears it back to
         // "inherit from each API" rather than being ignored like the other, guarded fields.
-        var toUpdate = UpdateApiProduct.builder().name("API Product").analytics(null).build();
-        var output = updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+        var toUpdate =
+                UpdateApiProduct.builder().name("API Product").analytics(null).build();
+        var output = updateApiProductUseCase.execute(
+                new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
 
         assertThat(output.apiProduct().getAnalytics()).isNull();
     }
 
     private Plan productPlanWithTags(String planId, Set<String> tags) {
-        var planDefinition = PlanFixtures.aPlanHttpV4()
-            .getPlanDefinitionHttpV4()
-            .toBuilder()
-            .status(PlanStatus.PUBLISHED)
-            .tags(tags)
-            .build();
-        return PlanFixtures.aPlanHttpV4()
-            .toBuilder()
-            .id(planId)
-            .referenceId("api-product-id")
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .environmentId(ENV_ID)
-            .planDefinitionHttpV4(planDefinition)
-            .build();
+        var planDefinition = PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder()
+                .status(PlanStatus.PUBLISHED)
+                .tags(tags)
+                .build();
+        return PlanFixtures.aPlanHttpV4().toBuilder()
+                .id(planId)
+                .referenceId("api-product-id")
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .environmentId(ENV_ID)
+                .planDefinitionHttpV4(planDefinition)
+                .build();
     }
 
     private void givenPublishedApiProductPlan() {
-        Plan productPlan = PlanFixtures.aPlanHttpV4()
-            .toBuilder()
-            .id("api-product-deploy-plan")
-            .referenceId("api-product-id")
-            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .environmentId(ENV_ID)
-            .planDefinitionHttpV4(PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.PUBLISHED).build())
-            .build();
+        Plan productPlan = PlanFixtures.aPlanHttpV4().toBuilder()
+                .id("api-product-deploy-plan")
+                .referenceId("api-product-id")
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .environmentId(ENV_ID)
+                .planDefinitionHttpV4(PlanFixtures.aPlanHttpV4().getPlanDefinitionHttpV4().toBuilder()
+                        .status(PlanStatus.PUBLISHED)
+                        .build())
+                .build();
         planQueryService.initWith(List.of(productPlan));
     }
 
     private Api createV4ProxyApi(String id, Boolean allowedInApiProducts) {
         var apiDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionValue();
         if (apiDefinition instanceof io.gravitee.definition.model.v4.Api v4Api) {
-            var updatedApiDefinition = v4Api.toBuilder().id(id).allowedInApiProducts(allowedInApiProducts).build();
-            return ApiFixtures.aProxyApiV4().toBuilder().id(id).environmentId(ENV_ID).apiDefinitionValue(updatedApiDefinition).build();
+            var updatedApiDefinition = v4Api.toBuilder()
+                    .id(id)
+                    .allowedInApiProducts(allowedInApiProducts)
+                    .build();
+            return ApiFixtures.aProxyApiV4().toBuilder()
+                    .id(id)
+                    .environmentId(ENV_ID)
+                    .apiDefinitionValue(updatedApiDefinition)
+                    .build();
         }
         throw new IllegalStateException("Expected V4 API definition");
     }

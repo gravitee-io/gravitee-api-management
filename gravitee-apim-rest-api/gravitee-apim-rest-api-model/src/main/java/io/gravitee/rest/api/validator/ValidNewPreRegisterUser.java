@@ -28,9 +28,9 @@ import java.lang.annotation.Target;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Target({ ElementType.PARAMETER, ElementType.FIELD })
+@Target({ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RUNTIME)
-@Constraint(validatedBy = { NewPreRegisterUserEntityValidator.class })
+@Constraint(validatedBy = {NewPreRegisterUserEntityValidator.class})
 @Documented
 public @interface ValidNewPreRegisterUser {
     String message() default "Pre-registered user is not valid";

@@ -31,13 +31,13 @@ class ImportedFileContentTypeTest {
     class Importable {
 
         @ParameterizedTest
-        @ValueSource(strings = { "guide.md", "spec.yaml", "spec.yml", "spec.json", "SPEC.JSON", "docs/nested/guide.md" })
+        @ValueSource(strings = {"guide.md", "spec.yaml", "spec.yml", "spec.json", "SPEC.JSON", "docs/nested/guide.md"})
         void should_accept_the_extensions_the_portal_renders(String fileName) {
             assertThat(ImportedFileContentType.isImportable(fileName)).isTrue();
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "legacy.adoc", "logo.png", "Makefile", "archive.tar.gz" })
+        @ValueSource(strings = {"legacy.adoc", "logo.png", "Makefile", "archive.tar.gz"})
         void should_reject_any_other_extension(String fileName) {
             assertThat(ImportedFileContentType.isImportable(fileName)).isFalse();
         }
@@ -48,7 +48,8 @@ class ImportedFileContentTypeTest {
 
         @Test
         void should_map_markdown_from_its_extension_alone() {
-            assertThat(ImportedFileContentType.from("guide.md", null)).contains(PortalPageContentType.GRAVITEE_MARKDOWN);
+            assertThat(ImportedFileContentType.from("guide.md", null))
+                    .contains(PortalPageContentType.GRAVITEE_MARKDOWN);
         }
     }
 
@@ -57,31 +58,27 @@ class ImportedFileContentTypeTest {
 
         @Test
         void should_detect_openapi_from_the_root_property() {
-            assertThat(ImportedFileContentType.from("petstore.yaml", "openapi: 3.0.3\ninfo:\n  title: Petstore")).contains(
-                PortalPageContentType.OPENAPI
-            );
+            assertThat(ImportedFileContentType.from("petstore.yaml", "openapi: 3.0.3\ninfo:\n  title: Petstore"))
+                    .contains(PortalPageContentType.OPENAPI);
         }
 
         @Test
         void should_detect_swagger_from_the_root_property() {
-            assertThat(ImportedFileContentType.from("petstore.json", "{\"swagger\": \"2.0\", \"info\": {}}")).contains(
-                PortalPageContentType.OPENAPI
-            );
+            assertThat(ImportedFileContentType.from("petstore.json", "{\"swagger\": \"2.0\", \"info\": {}}"))
+                    .contains(PortalPageContentType.OPENAPI);
         }
 
         @Test
         void should_detect_asyncapi_from_the_root_property() {
-            assertThat(ImportedFileContentType.from("events.yaml", "asyncapi: 3.0.0\ninfo:\n  title: Events")).contains(
-                PortalPageContentType.ASYNCAPI
-            );
+            assertThat(ImportedFileContentType.from("events.yaml", "asyncapi: 3.0.0\ninfo:\n  title: Events"))
+                    .contains(PortalPageContentType.ASYNCAPI);
         }
 
         @Test
         void should_detect_asyncapi_in_a_compact_json_document() {
             // A single-line JSON spec: nothing puts the asyncapi key at the start of a line
-            assertThat(ImportedFileContentType.from("events.json", "{\"asyncapi\":\"3.0.0\",\"info\":{}}")).contains(
-                PortalPageContentType.ASYNCAPI
-            );
+            assertThat(ImportedFileContentType.from("events.json", "{\"asyncapi\":\"3.0.0\",\"info\":{}}"))
+                    .contains(PortalPageContentType.ASYNCAPI);
         }
 
         @Test
@@ -96,7 +93,8 @@ class ImportedFileContentTypeTest {
                       properties:
                         asyncapi: { type: string }
                 """;
-            assertThat(ImportedFileContentType.from("petstore.yaml", openApiMentioningAsyncApi)).contains(PortalPageContentType.OPENAPI);
+            assertThat(ImportedFileContentType.from("petstore.yaml", openApiMentioningAsyncApi))
+                    .contains(PortalPageContentType.OPENAPI);
         }
     }
 
@@ -106,22 +104,26 @@ class ImportedFileContentTypeTest {
         @Test
         void should_reject_a_json_file_that_is_not_a_spec() {
             // The repository file that made every mirror import create a broken OpenAPI page
-            assertThat(ImportedFileContentType.from("package.json", "{\"name\": \"docs\", \"version\": \"1.0.0\"}")).isEmpty();
+            assertThat(ImportedFileContentType.from("package.json", "{\"name\": \"docs\", \"version\": \"1.0.0\"}"))
+                    .isEmpty();
         }
 
         @Test
         void should_reject_a_yaml_file_that_is_not_a_spec() {
-            assertThat(ImportedFileContentType.from("ci.yml", "name: build\non:\n  push:\n    branches: [master]")).isEmpty();
+            assertThat(ImportedFileContentType.from("ci.yml", "name: build\non:\n  push:\n    branches: [master]"))
+                    .isEmpty();
         }
 
         @Test
         void should_reject_a_document_that_parses_to_something_else_than_an_object() {
-            assertThat(ImportedFileContentType.from("list.yaml", "- one\n- two")).isEmpty();
+            assertThat(ImportedFileContentType.from("list.yaml", "- one\n- two"))
+                    .isEmpty();
         }
 
         @Test
         void should_reject_an_unparseable_document() {
-            assertThat(ImportedFileContentType.from("broken.yaml", "openapi: [3.0.3\n  bad: {")).isEmpty();
+            assertThat(ImportedFileContentType.from("broken.yaml", "openapi: [3.0.3\n  bad: {"))
+                    .isEmpty();
         }
 
         @Test

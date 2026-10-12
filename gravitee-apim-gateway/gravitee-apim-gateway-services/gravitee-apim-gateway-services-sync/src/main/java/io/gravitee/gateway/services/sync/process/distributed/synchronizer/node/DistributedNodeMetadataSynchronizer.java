@@ -36,18 +36,18 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class DistributedNodeMetadataSynchronizer extends AbstractDistributedSynchronizer<NodeMetadataDeployable, NodeMetadataDeployer> {
+public class DistributedNodeMetadataSynchronizer
+        extends AbstractDistributedSynchronizer<NodeMetadataDeployable, NodeMetadataDeployer> {
 
     private final DeployerFactory deployerFactory;
     private final NodeMetadataMapper nodeMetadataMapper;
 
     public DistributedNodeMetadataSynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final NodeMetadataMapper nodeMetadataMapper
-    ) {
+            final DistributedEventFetcher distributedEventFetcher,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor,
+            final DeployerFactory deployerFactory,
+            final NodeMetadataMapper nodeMetadataMapper) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
         this.nodeMetadataMapper = nodeMetadataMapper;

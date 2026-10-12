@@ -63,17 +63,16 @@ public class UpdatePlanDomainService {
     private final KafkaPortRangeCrudService kafkaPortRangeCrudService;
 
     public UpdatePlanDomainService(
-        PlanQueryService planQueryService,
-        PlanCrudService planCrudService,
-        PlanValidatorDomainService planValidatorDomainService,
-        FlowValidationDomainService flowValidationDomainService,
-        FlowCrudService flowCrudService,
-        AuditDomainService auditService,
-        PlanSynchronizationService planSynchronizationService,
-        ReorderPlanDomainService reorderPlanDomainService,
-        VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService,
-        KafkaPortRangeCrudService kafkaPortRangeCrudService
-    ) {
+            PlanQueryService planQueryService,
+            PlanCrudService planCrudService,
+            PlanValidatorDomainService planValidatorDomainService,
+            FlowValidationDomainService flowValidationDomainService,
+            FlowCrudService flowCrudService,
+            AuditDomainService auditService,
+            PlanSynchronizationService planSynchronizationService,
+            ReorderPlanDomainService reorderPlanDomainService,
+            VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService,
+            KafkaPortRangeCrudService kafkaPortRangeCrudService) {
         this.planQueryService = planQueryService;
         this.planCrudService = planCrudService;
         this.planValidatorDomainService = planValidatorDomainService;
@@ -87,24 +86,23 @@ public class UpdatePlanDomainService {
     }
 
     public void bulkUpdate(
-        List<Plan> plansToUpdate,
-        Map<String, PlanStatus> existingPlanStatuses,
-        Map<String, List<? extends AbstractFlow>> flows,
-        Api api,
-        AuditInfo auditInfo
-    ) {
+            List<Plan> plansToUpdate,
+            Map<String, PlanStatus> existingPlanStatuses,
+            Map<String, List<? extends AbstractFlow>> flows,
+            Api api,
+            AuditInfo auditInfo) {
         Objects.requireNonNull(existingPlanStatuses, "existingPlanStatuses must not be null");
         Objects.requireNonNull(flows, "flows must not be null");
         for (Plan planToUpdate : plansToUpdate) {
             switch (planToUpdate.getDefinitionVersion()) {
-                case V4 -> updateV4ApiPlan(
-                    planToUpdate,
-                    flows.get(planToUpdate.getId()),
-                    existingPlanStatuses,
-                    api,
-                    auditInfo,
-                    (existing, update) -> planCrudService.update(update)
-                );
+                case V4 ->
+                    updateV4ApiPlan(
+                            planToUpdate,
+                            flows.get(planToUpdate.getId()),
+                            existingPlanStatuses,
+                            api,
+                            auditInfo,
+                            (existing, update) -> planCrudService.update(update));
                 case FEDERATED -> updateFederatedApiPlan(planToUpdate, auditInfo);
                 case V2 -> updateV2ApiPlan(planToUpdate, existingPlanStatuses, api, auditInfo);
                 default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
@@ -113,18 +111,18 @@ public class UpdatePlanDomainService {
     }
 
     public Plan update(
-        Plan planToUpdate,
-        List<? extends AbstractFlow> flows,
-        Map<String, PlanStatus> existingPlanStatuses,
-        Api api,
-        AuditInfo auditInfo
-    ) {
+            Plan planToUpdate,
+            List<? extends AbstractFlow> flows,
+            Map<String, PlanStatus> existingPlanStatuses,
+            Api api,
+            AuditInfo auditInfo) {
         return switch (planToUpdate.getDefinitionVersion()) {
             case V4 -> {
                 if (existingPlanStatuses == null) {
                     existingPlanStatuses = getPlanStatusMap(api);
                 }
-                yield updateV4ApiPlan(planToUpdate, flows, existingPlanStatuses, api, auditInfo, this::orderAwareUpdate);
+                yield updateV4ApiPlan(
+                        planToUpdate, flows, existingPlanStatuses, api, auditInfo, this::orderAwareUpdate);
             }
             case FEDERATED -> updateFederatedApiPlan(planToUpdate, auditInfo);
             case V2 -> {
@@ -155,32 +153,34 @@ public class UpdatePlanDomainService {
      * @return The updated plan
      */
     private Plan updateV4ApiPlan(
-        Plan planToUpdate,
-        List<? extends AbstractFlow> flows,
-        Map<String, PlanStatus> existingPlanStatuses,
-        Api api,
-        AuditInfo auditInfo,
-        BinaryOperator<Plan> updateFunction
-    ) {
+            Plan planToUpdate,
+            List<? extends AbstractFlow> flows,
+            Map<String, PlanStatus> existingPlanStatuses,
+            Api api,
+            AuditInfo auditInfo,
+            BinaryOperator<Plan> updateFunction) {
         updatePreFlightChecks(planToUpdate, existingPlanStatuses, api, auditInfo);
 
         Plan existingPlan = planCrudService.getById(planToUpdate.getId());
         Plan updatePlan = existingPlan.update(planToUpdate);
 
         if (api.isNative()) {
-            return updateNativeV4ApiPlan(existingPlan, updatePlan, (List<NativeFlow>) flows, api, auditInfo, updateFunction);
+            return updateNativeV4ApiPlan(
+                    existingPlan, updatePlan, (List<NativeFlow>) flows, api, auditInfo, updateFunction);
         }
 
         return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<Flow>) flows, api, auditInfo, updateFunction);
     }
 
-    private Plan updateV2ApiPlan(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
+    private Plan updateV2ApiPlan(
+            Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
         updatePreFlightChecks(planToUpdate, existingPlanStatuses, api, auditInfo);
 
         Plan existingPlan = planCrudService.getById(planToUpdate.getId());
         Plan updatePlan = existingPlan.update(planToUpdate);
 
-        if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), updatePlan, List.of() /*sanitizedFlows TODO */)) {
+        if (!planSynchronizationService.checkSynchronized(
+                existingPlan, List.of(), updatePlan, List.of() /*sanitizedFlows TODO */)) {
             updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
         }
 
@@ -193,13 +193,12 @@ public class UpdatePlanDomainService {
     }
 
     private Plan updateHttpV4ApiPlan(
-        Plan existingPlan,
-        Plan updatePlan,
-        List<Flow> flows,
-        Api api,
-        AuditInfo auditInfo,
-        BinaryOperator<Plan> updateFunction
-    ) {
+            Plan existingPlan,
+            Plan updatePlan,
+            List<Flow> flows,
+            Api api,
+            AuditInfo auditInfo,
+            BinaryOperator<Plan> updateFunction) {
         var sanitizedFlows = validateAndSanitizeHttpV4Flows(flows, api);
         var existingFlows = flowCrudService.getPlanV4Flows(existingPlan.getId());
 
@@ -216,28 +215,30 @@ public class UpdatePlanDomainService {
     }
 
     private List<Flow> validateAndSanitizeHttpV4Flows(List<Flow> flows, Api api) {
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows, ApiResourceNames.fromHttpV4(api));
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(
+                api.getType(), flows, ApiResourceNames.fromHttpV4(api));
         flowValidationDomainService.validatePathParameters(
-            api.getType(),
-            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
-            sanitizedFlows.stream()
-        );
+                api.getType(),
+                api.getApiDefinitionHttpV4().getFlows() != null
+                        ? api.getApiDefinitionHttpV4().getFlows().stream()
+                        : Stream.empty(),
+                sanitizedFlows.stream());
         return sanitizedFlows;
     }
 
     private Plan updateNativeV4ApiPlan(
-        Plan existingPlan,
-        Plan updatePlan,
-        List<NativeFlow> flows,
-        Api api,
-        AuditInfo auditInfo,
-        BinaryOperator<Plan> updateFunction
-    ) {
+            Plan existingPlan,
+            Plan updatePlan,
+            List<NativeFlow> flows,
+            Api api,
+            AuditInfo auditInfo,
+            BinaryOperator<Plan> updateFunction) {
         validatePortRoutingIfConfigured(updatePlan, api, auditInfo);
 
         var sanitizedNativeFlows = flowValidationDomainService.validateAndSanitizeNativeV4(flows);
 
-        if (!planSynchronizationService.checkNativePlanSynchronized(existingPlan, List.of(), updatePlan, sanitizedNativeFlows)) {
+        if (!planSynchronizationService.checkNativePlanSynchronized(
+                existingPlan, List.of(), updatePlan, sanitizedNativeFlows)) {
             updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
         }
 
@@ -262,12 +263,11 @@ public class UpdatePlanDomainService {
             return;
         }
         verifyPlanPortRangesDomainService.verify(
-            auditInfo.environmentId(),
-            updatePlan.getId(),
-            nativeDefinition.getBootstrapPort(),
-            nativeDefinition.getBrokerRangeStart(),
-            nativeDefinition.getBrokerRangeEnd()
-        );
+                auditInfo.environmentId(),
+                updatePlan.getId(),
+                nativeDefinition.getBootstrapPort(),
+                nativeDefinition.getBrokerRangeStart(),
+                nativeDefinition.getBrokerRangeEnd());
     }
 
     /**
@@ -285,20 +285,22 @@ public class UpdatePlanDomainService {
             return;
         }
         var row = KafkaPortRange.builder()
-            .planId(updated.getId())
-            .apiId(api.getId())
-            .environmentId(auditInfo.environmentId())
-            .bootstrapPort(nativeDefinition.getBootstrapPort())
-            .rangeStart(nativeDefinition.getBrokerRangeStart())
-            .rangeEnd(nativeDefinition.getBrokerRangeEnd())
-            .updatedAt(TimeProvider.now())
-            .build();
+                .planId(updated.getId())
+                .apiId(api.getId())
+                .environmentId(auditInfo.environmentId())
+                .bootstrapPort(nativeDefinition.getBootstrapPort())
+                .rangeStart(nativeDefinition.getBrokerRangeStart())
+                .rangeEnd(nativeDefinition.getBrokerRangeEnd())
+                .updatedAt(TimeProvider.now())
+                .build();
         kafkaPortRangeCrudService
-            .findByPlanId(updated.getId())
-            .ifPresentOrElse(
-                existing -> kafkaPortRangeCrudService.update(row.toBuilder().createdAt(existing.getCreatedAt()).build()),
-                () -> kafkaPortRangeCrudService.create(row.toBuilder().createdAt(TimeProvider.now()).build())
-            );
+                .findByPlanId(updated.getId())
+                .ifPresentOrElse(
+                        existing -> kafkaPortRangeCrudService.update(row.toBuilder()
+                                .createdAt(existing.getCreatedAt())
+                                .build()),
+                        () -> kafkaPortRangeCrudService.create(
+                                row.toBuilder().createdAt(TimeProvider.now()).build()));
     }
 
     /**
@@ -312,7 +314,8 @@ public class UpdatePlanDomainService {
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
 
         var existingPlan = planCrudService.getById(planToUpdate.getId());
-        if (existingPlan.getPlanStatus() == PlanStatus.CLOSED && existingPlan.getPlanStatus() != planToUpdate.getPlanStatus()) {
+        if (existingPlan.getPlanStatus() == PlanStatus.CLOSED
+                && existingPlan.getPlanStatus() != planToUpdate.getPlanStatus()) {
             throw new ValidationDomainException("Invalid status for planToUpdate '" + planToUpdate.getName() + "'");
         }
 
@@ -333,19 +336,20 @@ public class UpdatePlanDomainService {
         }
     }
 
-    private void updatePreFlightChecks(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
+    private void updatePreFlightChecks(
+            Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
         assertNotClosedStatus(planToUpdate, existingPlanStatuses);
-        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
+        planValidatorDomainService.validatePlanSecurity(
+                planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
         planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
     }
 
     public Plan updatePlanForApiProduct(
-        Plan planToUpdate,
-        Map<String, PlanStatus> existingPlanStatuses,
-        ApiProduct apiProduct,
-        AuditInfo auditInfo
-    ) {
+            Plan planToUpdate,
+            Map<String, PlanStatus> existingPlanStatuses,
+            ApiProduct apiProduct,
+            AuditInfo auditInfo) {
         if (existingPlanStatuses == null) {
             existingPlanStatuses = getPlanStatusMapForApiProduct(apiProduct);
         }
@@ -354,8 +358,12 @@ public class UpdatePlanDomainService {
         Plan existingPlan = planCrudService.getById(planToUpdate.getId());
         Plan updatePlan = existingPlan.update(planToUpdate);
 
-        var incomingFlows = planToUpdate.getPlanDefinitionHttpV4() != null ? planToUpdate.getPlanDefinitionHttpV4().getFlows() : null;
-        var sanitizedFlows = incomingFlows == null ? null : flowValidationDomainService.validateAndSanitizeHttpV4(null, incomingFlows);
+        var incomingFlows = planToUpdate.getPlanDefinitionHttpV4() != null
+                ? planToUpdate.getPlanDefinitionHttpV4().getFlows()
+                : null;
+        var sanitizedFlows = incomingFlows == null
+                ? null
+                : flowValidationDomainService.validateAndSanitizeHttpV4(null, incomingFlows);
         var existingFlows = flowCrudService.getPlanV4Flows(existingPlan.getId());
         var effectiveFlows = sanitizedFlows == null ? existingFlows : sanitizedFlows;
 
@@ -375,23 +383,21 @@ public class UpdatePlanDomainService {
     }
 
     private void updatePreFlightChecksForApiProduct(
-        Plan planToUpdate,
-        Map<String, PlanStatus> existingPlanStatuses,
-        ApiProduct apiProduct,
-        AuditInfo auditInfo
-    ) {
+            Plan planToUpdate,
+            Map<String, PlanStatus> existingPlanStatuses,
+            ApiProduct apiProduct,
+            AuditInfo auditInfo) {
         assertNotClosedStatus(planToUpdate, existingPlanStatuses);
-        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validatePlanSecurity(
+                planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null);
         planValidatorDomainService.validatePlanTagsAgainstApiProductTags(planToUpdate.getTags(), apiProduct.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
     }
 
     private void assertNotClosedStatus(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses) {
-        if (
-            existingPlanStatuses.containsKey(planToUpdate.getId()) &&
-            existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
-            existingPlanStatuses.get(planToUpdate.getId()) != planToUpdate.getPlanStatus()
-        ) {
+        if (existingPlanStatuses.containsKey(planToUpdate.getId())
+                && existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED
+                && existingPlanStatuses.get(planToUpdate.getId()) != planToUpdate.getPlanStatus()) {
             throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
         }
     }
@@ -400,16 +406,14 @@ public class UpdatePlanDomainService {
         return getPlanStatusMap(apiProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT);
     }
 
-    private Map<String, PlanStatus> getPlanStatusMap(String referenceId, GenericPlanEntity.ReferenceType referenceType) {
-        return planQueryService
-            .findAllByReferenceIdAndReferenceType(referenceId, referenceType)
-            .stream()
-            .collect(toMap(Plan::getId, Plan::getPlanStatus));
+    private Map<String, PlanStatus> getPlanStatusMap(
+            String referenceId, GenericPlanEntity.ReferenceType referenceType) {
+        return planQueryService.findAllByReferenceIdAndReferenceType(referenceId, referenceType).stream()
+                .collect(toMap(Plan::getId, Plan::getPlanStatus));
     }
 
     private void createAuditLog(Plan oldPlan, Plan newPlan, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(newPlan.getReferenceId())
@@ -419,13 +423,11 @@ public class UpdatePlanDomainService {
                 .newValue(newPlan)
                 .createdAt(newPlan.getUpdatedAt())
                 .properties(Map.of(AuditProperties.PLAN, newPlan.getId()))
-                .build()
-        );
+                .build());
     }
 
     private void createApiProductAuditLog(Plan oldPlan, Plan newPlan, AuditInfo auditInfo) {
-        auditService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
+        auditService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiProductId(newPlan.getReferenceId())
@@ -435,7 +437,6 @@ public class UpdatePlanDomainService {
                 .newValue(newPlan)
                 .createdAt(newPlan.getUpdatedAt())
                 .properties(Map.of(AuditProperties.PLAN, newPlan.getId()))
-                .build()
-        );
+                .build());
     }
 }

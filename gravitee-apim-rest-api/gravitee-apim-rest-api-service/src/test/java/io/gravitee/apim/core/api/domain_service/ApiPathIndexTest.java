@@ -54,7 +54,8 @@ class ApiPathIndexTest {
         };
         var index = new ApiPathIndex();
 
-        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo").build()), seeder);
+        var result = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().path("/foo").build()), seeder);
 
         assertThat(result.errors()).isEmpty();
         assertThat(calls.get()).isEqualTo(1);
@@ -133,7 +134,8 @@ class ApiPathIndexTest {
         Supplier<Stream<Api>> seeder = () -> Stream.of(self);
         var index = new ApiPathIndex();
 
-        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), seeder);
+        var result = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), seeder);
 
         assertThat(result.errors()).isEmpty();
     }
@@ -144,7 +146,8 @@ class ApiPathIndexTest {
         Supplier<Stream<Api>> seeder = () -> Stream.of(existing);
         var index = new ApiPathIndex();
 
-        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), seeder);
+        var result = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), seeder);
 
         assertThat(result.errors()).hasSize(1);
         assertThat(result.errors().get(0).getMessage()).isEqualTo("Path [/foo/] already exists");
@@ -161,7 +164,8 @@ class ApiPathIndexTest {
         index.index(ENV, "victim", mutable, T0);
         mutable.clear();
 
-        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/safe/bar").build()), Stream::empty);
+        var result = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().path("/safe/bar").build()), Stream::empty);
         assertThat(result.errors()).hasSize(1);
     }
 
@@ -175,8 +179,20 @@ class ApiPathIndexTest {
 
         index.removeForApi("shared-api");
 
-        assertThat(index.findConflicts("env-A", "x", List.of(Path.builder().path("/foo").build()), Stream::empty).errors()).isEmpty();
-        assertThat(index.findConflicts("env-B", "x", List.of(Path.builder().path("/bar").build()), Stream::empty).errors()).isEmpty();
+        assertThat(index.findConflicts(
+                                "env-A",
+                                "x",
+                                List.of(Path.builder().path("/foo").build()),
+                                Stream::empty)
+                        .errors())
+                .isEmpty();
+        assertThat(index.findConflicts(
+                                "env-B",
+                                "x",
+                                List.of(Path.builder().path("/bar").build()),
+                                Stream::empty)
+                        .errors())
+                .isEmpty();
     }
 
     @Test
@@ -201,7 +217,8 @@ class ApiPathIndexTest {
         var index = new ApiPathIndex();
         index.index(ENV, "dropped-api", List.of(Path.builder().path("/foo/").build()), T0);
 
-        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
+        var result = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
 
         assertThat(result.errors()).isEmpty();
     }
@@ -216,7 +233,8 @@ class ApiPathIndexTest {
         index.index(ENV, "new-api", List.of(Path.builder().path("/foo/").build()), T0);
 
         var seededVersion = apiWithPaths("new-api", "/foo", T0);
-        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), () -> Stream.of(seededVersion));
+        var result = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), () -> Stream.of(seededVersion));
 
         assertThat(result.errors()).hasSize(1);
         assertThat(result.conflicts().get(0).apiId()).isEqualTo("new-api");
@@ -231,7 +249,8 @@ class ApiPathIndexTest {
         org.mockito.Mockito.when(badApi.getApiDefinitionValue()).thenThrow(new IllegalStateException("boom"));
 
         var index = new ApiPathIndex();
-        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), () -> Stream.of(badApi, goodApi));
+        var result = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), () -> Stream.of(badApi, goodApi));
 
         assertThat(result.conflicts()).hasSize(1);
         assertThat(result.conflicts().get(0).apiId()).isEqualTo("good");
@@ -244,7 +263,8 @@ class ApiPathIndexTest {
 
         index.index(ENV, "new-api", List.of(Path.builder().path("/foo/").build()), T0);
 
-        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
+        var result = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
         assertThat(result.errors()).hasSize(1);
         assertThat(result.errors().get(0).getMessage()).isEqualTo("Path [/foo/] already exists");
     }
@@ -254,10 +274,13 @@ class ApiPathIndexTest {
         var existingHost = apiWithHostPath("other-api", "h1", "/foo", T0);
         var index = new ApiPathIndex();
 
-        var sameHostResult = index.findConflicts(ENV, API_ID, List.of(Path.builder().host("h1").path("/foo/bar").build()), () ->
-            Stream.of(existingHost)
-        );
-        var otherHostResult = index.findConflicts(ENV, API_ID, List.of(Path.builder().host("h2").path("/foo/bar").build()), Stream::empty);
+        var sameHostResult = index.findConflicts(
+                ENV,
+                API_ID,
+                List.of(Path.builder().host("h1").path("/foo/bar").build()),
+                () -> Stream.of(existingHost));
+        var otherHostResult = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().host("h2").path("/foo/bar").build()), Stream::empty);
 
         assertThat(sameHostResult.errors()).hasSize(1);
         assertThat(otherHostResult.errors()).isEmpty();
@@ -282,8 +305,9 @@ class ApiPathIndexTest {
         var executor = Executors.newFixedThreadPool(8);
         try {
             var futures = IntStream.range(0, 8)
-                .mapToObj(i -> executor.submit(() -> index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/x").build()), seeder)))
-                .toList();
+                    .mapToObj(i -> executor.submit(() -> index.findConflicts(
+                            ENV, API_ID, List.of(Path.builder().path("/x").build()), seeder)))
+                    .toList();
             assertThat(startedSeeding.await(5, TimeUnit.SECONDS)).isTrue();
             releaseSeed.countDown();
             for (var future : futures) {
@@ -307,11 +331,12 @@ class ApiPathIndexTest {
         };
         var index = new ApiPathIndex();
 
-        assertThatThrownBy(() -> index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo").build()), seeder)).isInstanceOf(
-            IllegalStateException.class
-        );
+        assertThatThrownBy(() -> index.findConflicts(
+                        ENV, API_ID, List.of(Path.builder().path("/foo").build()), seeder))
+                .isInstanceOf(IllegalStateException.class);
 
-        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo").build()), seeder);
+        var result = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().path("/foo").build()), seeder);
         assertThat(result.errors()).isEmpty();
         assertThat(attempts.get()).isEqualTo(2);
     }
@@ -324,7 +349,8 @@ class ApiPathIndexTest {
 
         index.remove(ENV, "to-be-removed", T0.plusSeconds(1));
 
-        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
+        var result = index.findConflicts(
+                ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
         assertThat(result.errors()).isEmpty();
     }
 
@@ -334,7 +360,8 @@ class ApiPathIndexTest {
         var index = new ApiPathIndex();
         index.findConflicts("env-1", API_ID, List.of(), () -> Stream.of(env1Api));
 
-        var result = index.findConflicts("env-2", API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
+        var result = index.findConflicts(
+                "env-2", API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
 
         assertThat(result.errors()).isEmpty();
     }
@@ -351,59 +378,58 @@ class ApiPathIndexTest {
 
     @Test
     void scanPaths_static_helper_finds_conflicts_against_arbitrary_view() {
-        var paths = java.util.Map.of("foreign", List.of(Path.builder().path("/foo/").build()));
+        var paths =
+                java.util.Map.of("foreign", List.of(Path.builder().path("/foo/").build()));
 
-        var conflicts = ApiPathIndex.scanPaths(paths, API_ID, List.of(Path.builder().path("/foo/bar").build()));
+        var conflicts = ApiPathIndex.scanPaths(
+                paths, API_ID, List.of(Path.builder().path("/foo/bar").build()));
 
         assertThat(conflicts).hasSize(1);
         assertThat(conflicts.get(0).apiId()).isEqualTo("foreign");
     }
 
     private static Api apiWithHostPath(String apiId, String host, String path, Instant updatedAt) {
-        return ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(apiId)
-            .updatedAt(ZonedDateTime.ofInstant(updatedAt, ZoneOffset.UTC))
-            .apiDefinitionValue(
-                io.gravitee.definition.model.v4.Api.builder()
-                    .id(apiId)
-                    .definitionVersion(DefinitionVersion.V4)
-                    .type(ApiType.PROXY)
-                    .listeners(
-                        List.of(
-                            HttpListener.builder()
-                                .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().host(host).path(path).build()))
-                                .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                                .build()
-                        )
-                    )
-                    .tags(Set.of())
-                    .build()
-            )
-            .build();
+        return ApiFixtures.aProxyApiV4().toBuilder()
+                .id(apiId)
+                .updatedAt(ZonedDateTime.ofInstant(updatedAt, ZoneOffset.UTC))
+                .apiDefinitionValue(io.gravitee.definition.model.v4.Api.builder()
+                        .id(apiId)
+                        .definitionVersion(DefinitionVersion.V4)
+                        .type(ApiType.PROXY)
+                        .listeners(List.of(HttpListener.builder()
+                                .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder()
+                                        .host(host)
+                                        .path(path)
+                                        .build()))
+                                .entrypoints(List.of(Entrypoint.builder()
+                                        .type("http-proxy")
+                                        .configuration("{}")
+                                        .build()))
+                                .build()))
+                        .tags(Set.of())
+                        .build())
+                .build();
     }
 
     private static Api apiWithPaths(String apiId, String path, Instant updatedAt) {
-        return ApiFixtures.aProxyApiV4()
-            .toBuilder()
-            .id(apiId)
-            .updatedAt(ZonedDateTime.ofInstant(updatedAt, ZoneOffset.UTC))
-            .apiDefinitionValue(
-                io.gravitee.definition.model.v4.Api.builder()
-                    .id(apiId)
-                    .definitionVersion(DefinitionVersion.V4)
-                    .type(ApiType.PROXY)
-                    .listeners(
-                        List.of(
-                            HttpListener.builder()
-                                .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path(path).build()))
-                                .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                                .build()
-                        )
-                    )
-                    .tags(Set.of())
-                    .build()
-            )
-            .build();
+        return ApiFixtures.aProxyApiV4().toBuilder()
+                .id(apiId)
+                .updatedAt(ZonedDateTime.ofInstant(updatedAt, ZoneOffset.UTC))
+                .apiDefinitionValue(io.gravitee.definition.model.v4.Api.builder()
+                        .id(apiId)
+                        .definitionVersion(DefinitionVersion.V4)
+                        .type(ApiType.PROXY)
+                        .listeners(List.of(HttpListener.builder()
+                                .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder()
+                                        .path(path)
+                                        .build()))
+                                .entrypoints(List.of(Entrypoint.builder()
+                                        .type("http-proxy")
+                                        .configuration("{}")
+                                        .build()))
+                                .build()))
+                        .tags(Set.of())
+                        .build())
+                .build();
     }
 }

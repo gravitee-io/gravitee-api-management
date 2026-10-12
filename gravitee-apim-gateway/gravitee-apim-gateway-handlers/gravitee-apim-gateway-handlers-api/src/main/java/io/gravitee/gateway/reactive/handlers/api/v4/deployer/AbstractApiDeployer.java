@@ -42,16 +42,18 @@ public abstract class AbstractApiDeployer<T extends ReactableApi<?>> implements 
     }
 
     protected boolean filterPlanStatus(final String planStatus) {
-        return (
-            PlanStatus.PUBLISHED.getLabel().equalsIgnoreCase(planStatus) || PlanStatus.DEPRECATED.getLabel().equalsIgnoreCase(planStatus)
-        );
+        return (PlanStatus.PUBLISHED.getLabel().equalsIgnoreCase(planStatus)
+                || PlanStatus.DEPRECATED.getLabel().equalsIgnoreCase(planStatus));
     }
 
     protected boolean filterShardingTag(final String planName, final String apiName, final Set<String> tags) {
         if (tags != null && !tags.isEmpty()) {
             boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(tags);
             if (!hasMatchingTags) {
-                log.debug("Plan name[{}] api[{}] has been ignored because not in configured sharding tags", planName, apiName);
+                log.debug(
+                        "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
+                        planName,
+                        apiName);
             }
             return hasMatchingTags;
         }

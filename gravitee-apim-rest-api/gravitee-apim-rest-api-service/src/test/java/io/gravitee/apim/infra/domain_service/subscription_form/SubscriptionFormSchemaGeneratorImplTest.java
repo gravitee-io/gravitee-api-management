@@ -43,14 +43,17 @@ class SubscriptionFormSchemaGeneratorImplTest {
 
     @ParameterizedTest(name = "content={0}")
     @NullAndEmptySource
-    @ValueSource(strings = { "   " })
+    @ValueSource(strings = {"   "})
     void should_return_empty_schema_for_blank_or_null_content(String content) {
         assertThat(generator.generate(GraviteeMarkdown.of(content)).fields()).isEmpty();
     }
 
     @Test
     void should_return_empty_schema_when_no_form_fields() {
-        assertThat(generator.generate(GraviteeMarkdown.of("<p>No form fields here</p>")).fields()).isEmpty();
+        assertThat(generator
+                        .generate(GraviteeMarkdown.of("<p>No form fields here</p>"))
+                        .fields())
+                .isEmpty();
     }
 
     @Test
@@ -62,61 +65,62 @@ class SubscriptionFormSchemaGeneratorImplTest {
         SubscriptionFormSchema schema = generator.generate(GraviteeMarkdown.of(gmd));
 
         assertThat(schema.fields()).hasSize(1);
-        assertThat(schema.fields().getFirst())
-            .isInstanceOf(InputField.class)
-            .satisfies(f -> {
-                InputField field = (InputField) f;
-                assertThat(field.fieldKey()).isEqualTo("company");
-                assertThat(field.required()).isTrue();
-                assertThat(field.minLength()).isEqualTo(2);
-                assertThat(field.maxLength()).isEqualTo(100);
-                assertThat(field.pattern()).isEqualTo("[A-Za-z]+");
-                assertThat(field.readonlyValue()).isNull();
-            });
+        assertThat(schema.fields().getFirst()).isInstanceOf(InputField.class).satisfies(f -> {
+            InputField field = (InputField) f;
+            assertThat(field.fieldKey()).isEqualTo("company");
+            assertThat(field.required()).isTrue();
+            assertThat(field.minLength()).isEqualTo(2);
+            assertThat(field.maxLength()).isEqualTo(100);
+            assertThat(field.pattern()).isEqualTo("[A-Za-z]+");
+            assertThat(field.readonlyValue()).isNull();
+        });
     }
 
     @Test
     void should_parse_gmd_input_with_missing_optional_attributes() {
-        assertThat(generator.generate(GraviteeMarkdown.of("<gmd-input fieldKey=\"email\" required=\"false\"/>")).fields().getFirst())
-            .isInstanceOf(InputField.class)
-            .satisfies(f -> {
-                InputField field = (InputField) f;
-                assertThat(field.fieldKey()).isEqualTo("email");
-                assertThat(field.required()).isFalse();
-                assertThat(field.minLength()).isNull();
-                assertThat(field.maxLength()).isNull();
-                assertThat(field.pattern()).isNull();
-                assertThat(field.readonlyValue()).isNull();
-            });
+        assertThat(generator
+                        .generate(GraviteeMarkdown.of("<gmd-input fieldKey=\"email\" required=\"false\"/>"))
+                        .fields()
+                        .getFirst())
+                .isInstanceOf(InputField.class)
+                .satisfies(f -> {
+                    InputField field = (InputField) f;
+                    assertThat(field.fieldKey()).isEqualTo("email");
+                    assertThat(field.required()).isFalse();
+                    assertThat(field.minLength()).isNull();
+                    assertThat(field.maxLength()).isNull();
+                    assertThat(field.pattern()).isNull();
+                    assertThat(field.readonlyValue()).isNull();
+                });
     }
 
     @Test
     void should_parse_gmd_textarea_with_length_constraints() {
-        assertThat(
-            generator
-                .generate(GraviteeMarkdown.of("<gmd-textarea fieldKey=\"use_case\" required=\"true\" minLength=\"20\" maxLength=\"500\"/>"))
-                .fields()
-                .getFirst()
-        )
-            .isInstanceOf(TextareaField.class)
-            .satisfies(f -> {
-                TextareaField field = (TextareaField) f;
-                assertThat(field.fieldKey()).isEqualTo("use_case");
-                assertThat(field.required()).isTrue();
-                assertThat(field.minLength()).isEqualTo(20);
-                assertThat(field.maxLength()).isEqualTo(500);
-            });
+        assertThat(generator
+                        .generate(
+                                GraviteeMarkdown.of(
+                                        "<gmd-textarea fieldKey=\"use_case\" required=\"true\" minLength=\"20\" maxLength=\"500\"/>"))
+                        .fields()
+                        .getFirst())
+                .isInstanceOf(TextareaField.class)
+                .satisfies(f -> {
+                    TextareaField field = (TextareaField) f;
+                    assertThat(field.fieldKey()).isEqualTo("use_case");
+                    assertThat(field.required()).isTrue();
+                    assertThat(field.minLength()).isEqualTo(20);
+                    assertThat(field.maxLength()).isEqualTo(500);
+                });
     }
 
     @ParameterizedTest(name = "<{0}> → {1}")
     @MethodSource("optionsBearingComponents")
     void should_parse_options_bearing_component_with_comma_separated_options(
-        String tagName,
-        Class<? extends SubscriptionFormSchema.Field> expectedType
-    ) {
-        String gmd = "<" + tagName + " fieldKey=\"field\" required=\"true\" options=\"Free Tier,Starter,Professional\"/>";
+            String tagName, Class<? extends SubscriptionFormSchema.Field> expectedType) {
+        String gmd =
+                "<" + tagName + " fieldKey=\"field\" required=\"true\" options=\"Free Tier,Starter,Professional\"/>";
 
-        SubscriptionFormSchema.Field field = generator.generate(GraviteeMarkdown.of(gmd)).fields().getFirst();
+        SubscriptionFormSchema.Field field =
+                generator.generate(GraviteeMarkdown.of(gmd)).fields().getFirst();
 
         assertThat(field).isInstanceOf(expectedType);
         assertThat(field.fieldKey()).isEqualTo("field");
@@ -126,29 +130,32 @@ class SubscriptionFormSchemaGeneratorImplTest {
 
     static Stream<Arguments> optionsBearingComponents() {
         return Stream.of(
-            Arguments.of("gmd-select", SelectField.class),
-            Arguments.of("gmd-radio", RadioField.class),
-            Arguments.of("gmd-checkbox-group", CheckboxGroupField.class)
-        );
+                Arguments.of("gmd-select", SelectField.class),
+                Arguments.of("gmd-radio", RadioField.class),
+                Arguments.of("gmd-checkbox-group", CheckboxGroupField.class));
     }
 
     @Test
     void should_parse_gmd_checkbox_as_simple_boolean_field() {
-        assertThat(generator.generate(GraviteeMarkdown.of("<gmd-checkbox fieldKey=\"terms\" required=\"true\"/>")).fields().getFirst())
-            .isInstanceOf(CheckboxField.class)
-            .satisfies(f -> {
-                CheckboxField field = (CheckboxField) f;
-                assertThat(field.fieldKey()).isEqualTo("terms");
-                assertThat(field.required()).isTrue();
-            });
+        assertThat(generator
+                        .generate(GraviteeMarkdown.of("<gmd-checkbox fieldKey=\"terms\" required=\"true\"/>"))
+                        .fields()
+                        .getFirst())
+                .isInstanceOf(CheckboxField.class)
+                .satisfies(f -> {
+                    CheckboxField field = (CheckboxField) f;
+                    assertThat(field.fieldKey()).isEqualTo("terms");
+                    assertThat(field.required()).isTrue();
+                });
     }
 
     @Test
     void should_trim_whitespace_in_options() {
         SubscriptionFormSchema.Field field = generator
-            .generate(GraviteeMarkdown.of("<gmd-select fieldKey=\"env\" options=\" Production , Staging , Development \"/>"))
-            .fields()
-            .getFirst();
+                .generate(GraviteeMarkdown.of(
+                        "<gmd-select fieldKey=\"env\" options=\" Production , Staging , Development \"/>"))
+                .fields()
+                .getFirst();
 
         assertThat(optionsOf(field)).containsExactly("Production", "Staging", "Development");
     }
@@ -156,44 +163,48 @@ class SubscriptionFormSchemaGeneratorImplTest {
     @Test
     void should_return_null_options_when_options_attribute_is_absent() {
         SubscriptionFormSchema.Field field = generator
-            .generate(GraviteeMarkdown.of("<gmd-select fieldKey=\"plan\" required=\"true\"/>"))
-            .fields()
-            .getFirst();
+                .generate(GraviteeMarkdown.of("<gmd-select fieldKey=\"plan\" required=\"true\"/>"))
+                .fields()
+                .getFirst();
 
         assertThat(optionsOf(field)).isNull();
     }
 
     @Test
     void should_capture_readonly_value() {
-        assertThat(
-            generator.generate(GraviteeMarkdown.of("<gmd-input fieldKey=\"ref\" readonly=\"true\" value=\"REF-123\"/>")).fields().getFirst()
-        )
-            .isInstanceOf(InputField.class)
-            .satisfies(f -> assertThat(((InputField) f).readonlyValue()).isEqualTo("REF-123"));
+        assertThat(generator
+                        .generate(GraviteeMarkdown.of(
+                                "<gmd-input fieldKey=\"ref\" readonly=\"true\" value=\"REF-123\"/>"))
+                        .fields()
+                        .getFirst())
+                .isInstanceOf(InputField.class)
+                .satisfies(f -> assertThat(((InputField) f).readonlyValue()).isEqualTo("REF-123"));
     }
 
     @Test
     void should_throw_when_readonly_field_has_no_value_attribute() {
-        assertThatThrownBy(() -> generator.generate(GraviteeMarkdown.of("<gmd-input fieldKey=\"ref\" readonly=\"true\"/>")))
-            .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
-            .hasMessageContaining("ref")
-            .hasMessageContaining("value");
+        assertThatThrownBy(() ->
+                        generator.generate(GraviteeMarkdown.of("<gmd-input fieldKey=\"ref\" readonly=\"true\"/>")))
+                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                .hasMessageContaining("ref")
+                .hasMessageContaining("value");
     }
 
     @Test
     void should_throw_when_fieldkey_attribute_is_absent() {
         assertThatThrownBy(() -> generator.generate(GraviteeMarkdown.of("<gmd-input required=\"true\"/>")))
-            .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
-            .hasMessageContaining("fieldkey")
-            .hasMessageContaining("gmd-input");
+                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                .hasMessageContaining("fieldkey")
+                .hasMessageContaining("gmd-input");
     }
 
     @Test
     void should_throw_when_fieldkey_attribute_is_blank() {
-        assertThatThrownBy(() -> generator.generate(GraviteeMarkdown.of("<gmd-input fieldKey=\"   \" required=\"true\"/>")))
-            .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
-            .hasMessageContaining("fieldkey")
-            .hasMessageContaining("gmd-input");
+        assertThatThrownBy(() ->
+                        generator.generate(GraviteeMarkdown.of("<gmd-input fieldKey=\"   \" required=\"true\"/>")))
+                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                .hasMessageContaining("fieldkey")
+                .hasMessageContaining("gmd-input");
     }
 
     @Test
@@ -204,10 +215,13 @@ class SubscriptionFormSchemaGeneratorImplTest {
             <gmd-checkbox fieldKey="terms" required="true"/>
             """;
 
-        List<SubscriptionFormSchema.Field> fields = generator.generate(GraviteeMarkdown.of(gmd)).fields();
+        List<SubscriptionFormSchema.Field> fields =
+                generator.generate(GraviteeMarkdown.of(gmd)).fields();
 
         assertThat(fields).hasSize(3);
-        assertThat(fields).extracting(SubscriptionFormSchema.Field::fieldKey).containsExactly("company", "plan", "terms");
+        assertThat(fields)
+                .extracting(SubscriptionFormSchema.Field::fieldKey)
+                .containsExactly("company", "plan", "terms");
     }
 
     @Test
@@ -218,7 +232,8 @@ class SubscriptionFormSchemaGeneratorImplTest {
             <div class="wrapper">text</div>
             """;
 
-        List<SubscriptionFormSchema.Field> fields = generator.generate(GraviteeMarkdown.of(gmd)).fields();
+        List<SubscriptionFormSchema.Field> fields =
+                generator.generate(GraviteeMarkdown.of(gmd)).fields();
 
         assertThat(fields).hasSize(1);
         assertThat(fields.getFirst().fieldKey()).isEqualTo("name");
@@ -227,12 +242,11 @@ class SubscriptionFormSchemaGeneratorImplTest {
     @ParameterizedTest(name = "<{0}> → dynamic options")
     @MethodSource("optionsBearingComponents")
     void should_parse_el_expression_with_fallback_as_dynamic_options(
-        String tagName,
-        Class<? extends SubscriptionFormSchema.Field> expectedType
-    ) {
+            String tagName, Class<? extends SubscriptionFormSchema.Field> expectedType) {
         String gmd = "<" + tagName + " fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>";
 
-        SubscriptionFormSchema.Field field = generator.generate(GraviteeMarkdown.of(gmd)).fields().getFirst();
+        SubscriptionFormSchema.Field field =
+                generator.generate(GraviteeMarkdown.of(gmd)).fields().getFirst();
 
         assertThat(field).isInstanceOf(expectedType);
         assertThat(dynamicOptionsOf(field)).isNotNull();
@@ -244,20 +258,19 @@ class SubscriptionFormSchemaGeneratorImplTest {
     @ParameterizedTest(name = "<{0}> → EL without fallback throws")
     @MethodSource("optionsBearingComponents")
     void should_throw_when_el_expression_has_no_fallback_separator(
-        String tagName,
-        Class<? extends SubscriptionFormSchema.Field> expectedType
-    ) {
+            String tagName, Class<? extends SubscriptionFormSchema.Field> expectedType) {
         String gmd = "<" + tagName + " fieldKey=\"env\" options=\"{#api.metadata['envs']}\"/>";
         assertThatThrownBy(() -> generator.generate(GraviteeMarkdown.of(gmd)))
-            .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
-            .hasMessageContaining("env")
-            .hasMessageContaining("fallback");
+                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                .hasMessageContaining("env")
+                .hasMessageContaining("fallback");
     }
 
     @Test
     void should_parse_el_expression_with_empty_fallback() {
         String gmd = "<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:\"/>";
-        SubscriptionFormSchema.Field field = generator.generate(GraviteeMarkdown.of(gmd)).fields().getFirst();
+        SubscriptionFormSchema.Field field =
+                generator.generate(GraviteeMarkdown.of(gmd)).fields().getFirst();
         assertThat(dynamicOptionsOf(field).fallback()).isEmpty();
     }
 
@@ -268,7 +281,9 @@ class SubscriptionFormSchemaGeneratorImplTest {
             case SelectField f -> f.options();
             case RadioField f -> f.options();
             case CheckboxGroupField f -> f.options();
-            default -> throw new IllegalArgumentException("Field type has no options: " + field.getClass().getSimpleName());
+            default ->
+                throw new IllegalArgumentException(
+                        "Field type has no options: " + field.getClass().getSimpleName());
         };
     }
 
@@ -277,7 +292,9 @@ class SubscriptionFormSchemaGeneratorImplTest {
             case SelectField f -> f.dynamicOptions();
             case RadioField f -> f.dynamicOptions();
             case CheckboxGroupField f -> f.dynamicOptions();
-            default -> throw new IllegalArgumentException("Field type has no dynamicOptions: " + field.getClass().getSimpleName());
+            default ->
+                throw new IllegalArgumentException(
+                        "Field type has no dynamicOptions: " + field.getClass().getSimpleName());
         };
     }
 }

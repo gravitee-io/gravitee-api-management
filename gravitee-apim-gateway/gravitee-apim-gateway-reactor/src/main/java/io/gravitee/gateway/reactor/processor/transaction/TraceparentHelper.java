@@ -39,20 +39,23 @@ public class TraceparentHelper {
     }
 
     public static String buildTraceparentFrom(UUID uuid) {
-        String parentId = Long.toHexString(uuid.getLeastSignificantBits()); // 8-byte array (16 hex digits) - all bytes as zero is forbidden
-        String traceId = Long.toHexString(uuid.getMostSignificantBits()) + parentId; // 16-byte array  (32 hex digits) - all bytes as zero is forbidden
+        String parentId = Long.toHexString(
+                uuid.getLeastSignificantBits()); // 8-byte array (16 hex digits) - all bytes as zero is forbidden
+        String traceId = Long.toHexString(uuid.getMostSignificantBits())
+                + parentId; // 16-byte array  (32 hex digits) - all bytes as zero is forbidden
         return VERSION + leftPad(traceId, 32) + "-" + leftPad(parentId, 16) + FLAGS;
     }
 
     public static boolean isValid(String traceparent) {
         String[] array = traceparent.split("-");
 
-        return (
-            isHexString(array[0], 2, 'f') && // 1 byte arr => 2 hex char
-            isHexString(array[1], 32, '0') && // 16 bytes arr => 32 hex char
-            isHexString(array[2], 16, '0') && // 8 bytes arr => 16 hex char
-            (array[3].length() == 2)
-        );
+        return (isHexString(array[0], 2, 'f')
+                && // 1 byte arr => 2 hex char
+                isHexString(array[1], 32, '0')
+                && // 16 bytes arr => 32 hex char
+                isHexString(array[2], 16, '0')
+                && // 8 bytes arr => 16 hex char
+                (array[3].length() == 2));
     }
 
     /**

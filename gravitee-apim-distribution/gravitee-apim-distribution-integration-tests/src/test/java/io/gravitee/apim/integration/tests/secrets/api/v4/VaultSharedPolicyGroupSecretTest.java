@@ -110,47 +110,50 @@ public class VaultSharedPolicyGroupSecretTest {
         public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
             configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "vault");
             configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
-            configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.host", vaultContainer.getHost());
-            configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.port", vaultContainer.getPort());
+            configurationBuilder.setYamlProperty(
+                    "api.secrets.providers[0].configuration.host", vaultContainer.getHost());
+            configurationBuilder.setYamlProperty(
+                    "api.secrets.providers[0].configuration.port", vaultContainer.getPort());
             configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.ssl.enabled", true);
             configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.ssl.format", "pemfile");
-            configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.ssl.file", SecuredVaultContainer.CERT_PEMFILE);
+            configurationBuilder.setYamlProperty(
+                    "api.secrets.providers[0].configuration.ssl.file", SecuredVaultContainer.CERT_PEMFILE);
             configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.auth.method", "userpass");
             configurationBuilder.setYamlProperty(
-                "api.secrets.providers[0].configuration.auth.config.username",
-                SecuredVaultContainer.USER_ID
-            );
+                    "api.secrets.providers[0].configuration.auth.config.username", SecuredVaultContainer.USER_ID);
             configurationBuilder.setYamlProperty(
-                "api.secrets.providers[0].configuration.auth.config.password",
-                SecuredVaultContainer.PASSWORD
-            );
+                    "api.secrets.providers[0].configuration.auth.config.password", SecuredVaultContainer.PASSWORD);
         }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.putIfAbsent(
-                "transform-headers",
-                PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
-            );
+                    "transform-headers",
+                    PolicyBuilder.build(
+                            "transform-headers",
+                            TransformHeadersPolicy.class,
+                            TransformHeadersPolicyConfiguration.class));
         }
 
         @Override
         public void configureSecretProviders(
-            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-        ) throws Exception {
-            secretProviderPlugins.add(
-                SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
-            );
+                Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                        secretProviderPlugins)
+                throws Exception {
+            secretProviderPlugins.add(SecretProviderBuilder.build(
+                    HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class));
             LogicalResponse write = rootVault.logical().write("secret/test", Map.of("api-key", apiKey));
             assertThat(write.getRestResponse().getStatus()).isLessThan(300);
         }
@@ -173,17 +176,20 @@ public class VaultSharedPolicyGroupSecretTest {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
-            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+            wiremock.verify(
+                    1,
+                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                            .withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
         }
     }
 
@@ -202,17 +208,20 @@ public class VaultSharedPolicyGroupSecretTest {
 
             // First call: secret is resolved correctly
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
-            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+            wiremock.verify(
+                    1,
+                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                            .withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
 
             // Redeploy SPG with version 2 (same secret reference)
             ReactableSharedPolicyGroup spgV2 = buildReactableSpg("2");
@@ -222,38 +231,37 @@ public class VaultSharedPolicyGroupSecretTest {
 
             // Second call after update: secret should still be resolved correctly
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
-            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+            wiremock.verify(
+                    1,
+                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                            .withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
         }
 
         private ReactableSharedPolicyGroup buildReactableSpg(String version) {
             return ReactableSharedPolicyGroup.builder()
-                .id("spg-secret-header-on-request")
-                .environmentId("DEFAULT")
-                .definition(
-                    SharedPolicyGroup.builder()
-                        .id("spg-secret-header-on-request")
-                        .name("spg-secret-header-on-request")
-                        .environmentId("DEFAULT")
-                        .version(version)
-                        .phase(SharedPolicyGroup.Phase.REQUEST)
-                        .policies(
-                            List.of(
-                                Step.builder()
+                    .id("spg-secret-header-on-request")
+                    .environmentId("DEFAULT")
+                    .definition(SharedPolicyGroup.builder()
+                            .id("spg-secret-header-on-request")
+                            .name("spg-secret-header-on-request")
+                            .environmentId("DEFAULT")
+                            .version(version)
+                            .phase(SharedPolicyGroup.Phase.REQUEST)
+                            .policies(List.of(Step.builder()
                                     .name("Transform headers with secret")
                                     .enabled(true)
                                     .policy("transform-headers")
-                                    .configuration(
-                                        """
+                                    .configuration("""
                                         {
                                             "scope": "REQUEST",
                                             "addHeaders": [
@@ -263,14 +271,10 @@ public class VaultSharedPolicyGroupSecretTest {
                                               }
                                             ]
                                         }
-                                        """
-                                    )
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-                .build();
+                                        """)
+                                    .build()))
+                            .build())
+                    .build();
         }
     }
 
@@ -280,51 +284,50 @@ public class VaultSharedPolicyGroupSecretTest {
 
         @Test
         @DeployApi("/apis/v4/http/secrets/vault/api-spg-secret.json")
-        void should_keep_resolving_the_first_environment_after_the_same_id_is_deployed_elsewhere(HttpClient httpClient) {
+        void should_keep_resolving_the_first_environment_after_the_same_id_is_deployed_elsewhere(
+                HttpClient httpClient) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             deploySharedPolicyGroup(sharedPolicyGroup("DEFAULT", "128"));
             deploySharedPolicyGroup(sharedPolicyGroup("other-env", "5"));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertComplete();
 
-            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+            wiremock.verify(
+                    1,
+                    getRequestedFor(urlPathEqualTo("/endpoint"))
+                            .withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
             assertThat(getBean(SharedPolicyGroupManager.class).sharedPolicyGroups())
-                .extracting(ReactableSharedPolicyGroup::getId, ReactableSharedPolicyGroup::getEnvironmentId)
-                .containsExactlyInAnyOrder(
-                    tuple("spg-secret-header-on-request", "DEFAULT"),
-                    tuple("spg-secret-header-on-request", "other-env")
-                );
+                    .extracting(ReactableSharedPolicyGroup::getId, ReactableSharedPolicyGroup::getEnvironmentId)
+                    .containsExactlyInAnyOrder(
+                            tuple("spg-secret-header-on-request", "DEFAULT"),
+                            tuple("spg-secret-header-on-request", "other-env"));
         }
 
         private ReactableSharedPolicyGroup sharedPolicyGroup(String environmentId, String version) {
             return ReactableSharedPolicyGroup.builder()
-                .id("spg-secret-header-on-request")
-                .environmentId(environmentId)
-                .definition(
-                    SharedPolicyGroup.builder()
-                        .id("spg-secret-header-on-request")
-                        .name("spg-secret-header-on-request")
-                        .environmentId(environmentId)
-                        .version(version)
-                        .phase(SharedPolicyGroup.Phase.REQUEST)
-                        .policies(
-                            List.of(
-                                Step.builder()
+                    .id("spg-secret-header-on-request")
+                    .environmentId(environmentId)
+                    .definition(SharedPolicyGroup.builder()
+                            .id("spg-secret-header-on-request")
+                            .name("spg-secret-header-on-request")
+                            .environmentId(environmentId)
+                            .version(version)
+                            .phase(SharedPolicyGroup.Phase.REQUEST)
+                            .policies(List.of(Step.builder()
                                     .name("Transform headers with secret")
                                     .enabled(true)
                                     .policy("transform-headers")
-                                    .configuration(
-                                        """
+                                    .configuration("""
                                         {
                                             "scope": "REQUEST",
                                             "addHeaders": [
@@ -334,14 +337,10 @@ public class VaultSharedPolicyGroupSecretTest {
                                               }
                                             ]
                                         }
-                                        """
-                                    )
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-                .build();
+                                        """)
+                                    .build()))
+                            .build())
+                    .build();
         }
     }
 }

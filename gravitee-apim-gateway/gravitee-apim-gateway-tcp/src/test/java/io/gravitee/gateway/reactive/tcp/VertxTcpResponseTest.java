@@ -92,13 +92,12 @@ class VertxTcpResponseTest {
 
     static Stream<Arguments> buffers() {
         return Stream.of(
-            arguments(List.of(), List.of()),
-            arguments(List.of(), List.of(RECEIVED_BUFFER_1)),
-            arguments(List.of(SENT_BUFFER_1), List.of()),
-            arguments(List.of(SENT_BUFFER_1), List.of(RECEIVED_BUFFER_1, RECEIVED_BUFFER_2)),
-            arguments(List.of(SENT_BUFFER_1, SENT_BUFFER_2), List.of(RECEIVED_BUFFER_1)),
-            arguments(List.of(SENT_BUFFER_1, SENT_BUFFER_2), List.of(RECEIVED_BUFFER_1, RECEIVED_BUFFER_2))
-        );
+                arguments(List.of(), List.of()),
+                arguments(List.of(), List.of(RECEIVED_BUFFER_1)),
+                arguments(List.of(SENT_BUFFER_1), List.of()),
+                arguments(List.of(SENT_BUFFER_1), List.of(RECEIVED_BUFFER_1, RECEIVED_BUFFER_2)),
+                arguments(List.of(SENT_BUFFER_1, SENT_BUFFER_2), List.of(RECEIVED_BUFFER_1)),
+                arguments(List.of(SENT_BUFFER_1, SENT_BUFFER_2), List.of(RECEIVED_BUFFER_1, RECEIVED_BUFFER_2)));
     }
 
     @ParameterizedTest
@@ -160,7 +159,8 @@ class VertxTcpResponseTest {
     }
 
     private void pipeUpstream(Flowable<Buffer> sent, RecordingWriteStream backendRequestStream) {
-        when(mockRequest.upstreamPipe()).thenReturn(toVertxRxReadStream(sent).rxPipeTo(WriteStream.newInstance(backendRequestStream)));
+        when(mockRequest.upstreamPipe())
+                .thenReturn(toVertxRxReadStream(sent).rxPipeTo(WriteStream.newInstance(backendRequestStream)));
     }
 
     @Test
@@ -169,7 +169,8 @@ class VertxTcpResponseTest {
         when(mockRequest.getWriteStream()).thenReturn(WriteStream.newInstance(clientResponseStream));
 
         // send one buffer and then an error
-        Flowable<Buffer> sent = Flowable.concat(List.of(Flowable.just(Buffer.buffer(SENT_BUFFER_1)), Flowable.error(err)));
+        Flowable<Buffer> sent =
+                Flowable.concat(List.of(Flowable.just(Buffer.buffer(SENT_BUFFER_1)), Flowable.error(err)));
         RecordingWriteStream backendRequestStream = new RecordingWriteStream();
         pipeUpstream(sent, backendRequestStream);
 
@@ -200,8 +201,6 @@ class VertxTcpResponseTest {
     }
 
     private void assertResponseEnded() {
-        assertThat(cut.ended())
-            .withFailMessage(() -> "response is not ended")
-            .isTrue();
+        assertThat(cut.ended()).withFailMessage(() -> "response is not ended").isTrue();
     }
 }

@@ -30,8 +30,8 @@ public class UsersSearchQueryMapperTest {
     @Test
     public void should_map_filters_query() {
         var input = new UsersSearchInput()
-            .filters(new UsersSearchFilters().query("john"))
-            .includes(new UsersSearchIncludes().applicationMembership("app-123"));
+                .filters(new UsersSearchFilters().query("john"))
+                .includes(new UsersSearchIncludes().applicationMembership("app-123"));
 
         var searchQuery = mapper.toSearchQuery(input);
 

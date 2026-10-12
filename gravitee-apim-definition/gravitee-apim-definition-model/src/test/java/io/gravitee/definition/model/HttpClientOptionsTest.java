@@ -41,7 +41,10 @@ class HttpClientOptionsTest {
         options.setVersion(ProtocolVersion.HTTP_1_1);
 
         // Default (bean) serialization is the path that leaked the invalid combo in the exported definition.
-        boolean clearTextUpgrade = objectMapper.readTree(objectMapper.writeValueAsString(options)).path("clearTextUpgrade").asBoolean();
+        boolean clearTextUpgrade = objectMapper
+                .readTree(objectMapper.writeValueAsString(options))
+                .path("clearTextUpgrade")
+                .asBoolean();
 
         assertThat(clearTextUpgrade).isFalse();
     }

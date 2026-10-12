@@ -50,11 +50,11 @@ public class AuthzPdpMapper {
                     return null;
                 }
                 return AuthzPdpProvisionDeployable.builder()
-                    .targetPdpId(wire.getTargetPdpId())
-                    .environmentId(wire.getEnvironmentId())
-                    .tag(wire.getTag())
-                    .syncAction(syncAction)
-                    .build();
+                        .targetPdpId(wire.getTargetPdpId())
+                        .environmentId(wire.getEnvironmentId())
+                        .tag(wire.getTag())
+                        .syncAction(syncAction)
+                        .build();
             } catch (Exception e) {
                 log.error("Unable to extract AuthzPdp from {} event [{}]", syncAction, event.getId(), e);
                 return null;

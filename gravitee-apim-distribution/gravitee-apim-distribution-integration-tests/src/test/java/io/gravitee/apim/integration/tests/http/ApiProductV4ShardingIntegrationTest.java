@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@DeployApi({ "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json" })
+@DeployApi({"/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json"})
 class ApiProductV4ShardingIntegrationTest extends ApiProductV4IntegrationTest.TestPreparer {
 
     private static final String SHARDING_TAGS_PROPERTY = "tags";
@@ -176,22 +176,22 @@ class ApiProductV4ShardingIntegrationTest extends ApiProductV4IntegrationTest.Te
 
     private ReactableApiProduct buildProduct(Set<String> productTags, Set<String> planTags) {
         Plan plan = Plan.builder()
-            .id(PLAN_ID)
-            .name("ShardingPlan")
-            .security(PlanSecurity.builder().type("api-key").build())
-            .status(PlanStatus.PUBLISHED)
-            .mode(PlanMode.STANDARD)
-            .tags(planTags)
-            .build();
+                .id(PLAN_ID)
+                .name("ShardingPlan")
+                .security(PlanSecurity.builder().type("api-key").build())
+                .status(PlanStatus.PUBLISHED)
+                .mode(PlanMode.STANDARD)
+                .tags(planTags)
+                .build();
 
         return ReactableApiProduct.builder()
-            .id(PRODUCT_ID)
-            .name("Sharding product")
-            .version("1.0.0")
-            .apiIds(Set.of(API_1_ID))
-            .environmentId(ENV_ID)
-            .tags(productTags)
-            .plans(List.of(plan))
-            .build();
+                .id(PRODUCT_ID)
+                .name("Sharding product")
+                .version("1.0.0")
+                .apiIds(Set.of(API_1_ID))
+                .environmentId(ENV_ID)
+                .tags(productTags)
+                .plans(List.of(plan))
+                .build();
     }
 }

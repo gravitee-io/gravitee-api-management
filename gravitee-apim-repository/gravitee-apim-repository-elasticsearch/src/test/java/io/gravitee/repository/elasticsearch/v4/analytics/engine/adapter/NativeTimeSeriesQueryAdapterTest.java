@@ -44,12 +44,11 @@ class NativeTimeSeriesQueryAdapterTest {
     @Test
     void builds_a_date_histogram_stacked_by_native_connection_status() throws Exception {
         var query = new TimeSeriesQuery(
-            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-            List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID))),
-            Duration.ofHours(1).toMillis(),
-            List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
-            List.of(Facet.NATIVE_CONNECTION_STATUS)
-        );
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID))),
+                Duration.ofHours(1).toMillis(),
+                List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
+                List.of(Facet.NATIVE_CONNECTION_STATUS));
 
         var json = JSON.readTree(adapter.adapt(query));
 
@@ -64,34 +63,37 @@ class NativeTimeSeriesQueryAdapterTest {
         assertThat(dateHistogram.isMissingNode()).isFalse();
 
         // Per-bucket terms sub-agg on the native connection status field
-        var terms = json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS/terms");
-        assertThat(terms.get("field").asText()).isEqualTo("additional-metrics." + NativeApiMetricKeys.CONNECTION_STATUS);
+        var terms = json.at(
+                "/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS/terms");
+        assertThat(terms.get("field").asText())
+                .isEqualTo("additional-metrics." + NativeApiMetricKeys.CONNECTION_STATUS);
         // The convenience constructor defaults limit to 0; TimeSeriesQuery normalises it to null so no
         // `size: 0` (which Elasticsearch rejects) is emitted here.
         assertThat(terms.get("size")).isNull();
 
         // COUNT leaf under the terms
         var countLeaf = json.at(
-            "/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS" +
-                "/aggs/NATIVE_CONNECTIONS_SUMMARY#COUNT/value_count"
-        );
+                "/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS"
+                        + "/aggs/NATIVE_CONNECTIONS_SUMMARY#COUNT/value_count");
         assertThat(countLeaf.get("field").asText()).isEqualTo("@timestamp");
     }
 
     @Test
     void falls_back_to_a_plain_count_when_no_facet_is_requested() throws Exception {
         var query = new TimeSeriesQuery(
-            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-            List.of(),
-            Duration.ofHours(1).toMillis(),
-            List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
-            List.of()
-        );
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                List.of(),
+                Duration.ofHours(1).toMillis(),
+                List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
+                List.of());
 
         var json = JSON.readTree(adapter.adapt(query));
 
-        assertThat(json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/date_histogram").isMissingNode()).isFalse();
-        var count = json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/aggs/NATIVE_CONNECTIONS_SUMMARY#COUNT/value_count");
+        assertThat(json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/date_histogram")
+                        .isMissingNode())
+                .isFalse();
+        var count = json.at(
+                "/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/aggs/NATIVE_CONNECTIONS_SUMMARY#COUNT/value_count");
         assertThat(count.get("field").asText()).isEqualTo("@timestamp");
     }
 
@@ -100,15 +102,14 @@ class NativeTimeSeriesQueryAdapterTest {
         // Native facets are not stacked recursively, so a 2nd facet (allowed by the validator's max of 2)
         // would be silently ignored. The adapter must fail loudly rather than return a wrong chart.
         var query = new TimeSeriesQuery(
-            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-            List.of(),
-            Duration.ofHours(1).toMillis(),
-            List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
-            List.of(Facet.APPLICATION, Facet.NATIVE_CONNECTION_STATUS)
-        );
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                List.of(),
+                Duration.ofHours(1).toMillis(),
+                List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
+                List.of(Facet.APPLICATION, Facet.NATIVE_CONNECTION_STATUS));
 
         assertThatThrownBy(() -> adapter.adapt(query))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("single facet");
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("single facet");
     }
 }

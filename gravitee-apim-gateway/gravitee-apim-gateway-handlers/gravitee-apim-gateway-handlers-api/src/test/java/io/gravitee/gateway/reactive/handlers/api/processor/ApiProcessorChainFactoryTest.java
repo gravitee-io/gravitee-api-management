@@ -72,10 +72,11 @@ class ApiProcessorChainFactoryTest {
 
     @BeforeEach
     public void beforeEach() {
-        when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false)).thenReturn(false);
-        when(configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER)).thenReturn(
-            DEFAULT_CLIENT_IDENTIFIER_HEADER
-        );
+        when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false))
+                .thenReturn(false);
+        when(configuration.getProperty(
+                        "handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER))
+                .thenReturn(DEFAULT_CLIENT_IDENTIFIER_HEADER);
         apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node);
     }
 
@@ -119,11 +120,11 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("before-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(2)
-            .assertValueAt(0, processor -> processor instanceof LogInitProcessor)
-            .assertValueAt(1, processor -> processor instanceof LogRequestProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(2)
+                .assertValueAt(0, processor -> processor instanceof LogInitProcessor)
+                .assertValueAt(1, processor -> processor instanceof LogRequestProcessor);
     }
 
     @Test
@@ -136,10 +137,10 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(1)
-            .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(1)
+                .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test
@@ -155,15 +156,16 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("before-security-chain");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(1)
-            .assertValueAt(0, processor -> processor instanceof CorsPreflightRequestProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(1)
+                .assertValueAt(0, processor -> processor instanceof CorsPreflightRequestProcessor);
     }
 
     @Test
     void shouldReturnXForwardedBeforeApiExecutionWithOverrideXForwarded() {
-        when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false)).thenReturn(true);
+        when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false))
+                .thenReturn(true);
         apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node);
 
         io.gravitee.definition.model.Api apiModel = new io.gravitee.definition.model.Api();
@@ -175,11 +177,11 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(2)
-            .assertValueAt(0, processor -> processor instanceof XForwardedPrefixProcessor)
-            .assertValueAt(1, processor -> processor instanceof SubscriptionProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(2)
+                .assertValueAt(0, processor -> processor instanceof XForwardedPrefixProcessor)
+                .assertValueAt(1, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test
@@ -198,11 +200,11 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(2)
-            .assertValueAt(0, processor -> processor instanceof PathParametersProcessor)
-            .assertValueAt(1, processor -> processor instanceof SubscriptionProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(2)
+                .assertValueAt(0, processor -> processor instanceof PathParametersProcessor)
+                .assertValueAt(1, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test
@@ -218,10 +220,10 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(1)
-            .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(1)
+                .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test
@@ -235,11 +237,11 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(2)
-            .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor)
-            .assertValueAt(1, processor -> processor instanceof PathMappingProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(2)
+                .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor)
+                .assertValueAt(1, processor -> processor instanceof PathMappingProcessor);
     }
 
     @Test
@@ -255,12 +257,12 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("after-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(3)
-            .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
-            .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor)
-            .assertValueAt(2, processor -> processor instanceof CorsSimpleRequestProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(3)
+                .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
+                .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor)
+                .assertValueAt(2, processor -> processor instanceof CorsSimpleRequestProcessor);
     }
 
     @Test
@@ -276,11 +278,11 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("after-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(2)
-            .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
-            .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(2)
+                .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
+                .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor);
     }
 
     @Test
@@ -294,12 +296,12 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("api-error");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(3)
-            .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
-            .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor)
-            .assertValueAt(2, processor -> processor instanceof SimpleFailureProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(3)
+                .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
+                .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor)
+                .assertValueAt(2, processor -> processor instanceof SimpleFailureProcessor);
     }
 
     @Test
@@ -342,10 +344,10 @@ class ApiProcessorChainFactoryTest {
         assertThat(processorChain.getId()).isEqualTo("after-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
-            .test()
-            .assertComplete()
-            .assertValueCount(1)
-            .assertValueAt(0, processor -> processor instanceof LogResponseProcessor);
+                .test()
+                .assertComplete()
+                .assertValueCount(1)
+                .assertValueAt(0, processor -> processor instanceof LogResponseProcessor);
     }
 
     private Flowable<Processor> extractProcessorChain(final ProcessorChain processorChain) {

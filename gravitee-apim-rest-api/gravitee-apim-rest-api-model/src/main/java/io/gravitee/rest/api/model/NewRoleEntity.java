@@ -46,7 +46,8 @@ public class NewRoleEntity {
 
     public NewRoleEntity() {}
 
-    public NewRoleEntity(String name, String description, RoleScope scope, boolean defaultRole, Map<String, char[]> permissions) {
+    public NewRoleEntity(
+            String name, String description, RoleScope scope, boolean defaultRole, Map<String, char[]> permissions) {
         this.name = name;
         this.description = description;
         this.scope = scope;

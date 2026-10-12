@@ -58,9 +58,8 @@ public class TracingConfiguration {
 
     @Bean
     public TracingRepository tracingRepository(
-        @Value("${otel-traces.elasticsearch.index:traces-apim.otel-{orgId}}") String indexTemplate,
-        Client tracingClient
-    ) {
+            @Value("${otel-traces.elasticsearch.index:traces-apim.otel-{orgId}}") String indexTemplate,
+            Client tracingClient) {
         return new ElasticsearchTracingRepository(indexTemplate, tracingClient);
     }
 }

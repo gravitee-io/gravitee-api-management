@@ -21,7 +21,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,32 +51,29 @@ public class NotificationTemplatesResource extends AbstractResource {
 
     @GET
     @Operation(
-        summary = "List all notification templates.",
-        description = "User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service"
-    )
+            summary = "List all notification templates.",
+            description = "User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Notifications templates",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = NotificationTemplateEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "Notifications templates",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = NotificationTemplateEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_NOTIFICATION_TEMPLATES, acls = RolePermissionAction.READ) })
+    @Permissions({
+        @Permission(value = RolePermission.ORGANIZATION_NOTIFICATION_TEMPLATES, acls = RolePermissionAction.READ)
+    })
     public Response getNotificationTemplates(
-        @Parameter(description = "filter by notification scope") @QueryParam("scope") String scope,
-        @Parameter(description = "filter by notification hook") @QueryParam("hook") String hook
-    ) {
+            @Parameter(description = "filter by notification scope") @QueryParam("scope") String scope,
+            @Parameter(description = "filter by notification hook") @QueryParam("hook") String hook) {
         if (hook == null || scope == null) {
-            final Set<NotificationTemplateEntity> all = notificationTemplateService.findAll(GraviteeContext.getCurrentOrganization());
+            final Set<NotificationTemplateEntity> all =
+                    notificationTemplateService.findAll(GraviteeContext.getCurrentOrganization());
             return Response.ok(all).build();
         } else {
             final Set<NotificationTemplateEntity> allByHookAndScope = notificationTemplateService.findByHookAndScope(
-                GraviteeContext.getCurrentOrganization(),
-                hook,
-                scope
-            );
+                    GraviteeContext.getCurrentOrganization(), hook, scope);
             return Response.ok(allByHookAndScope).build();
         }
     }
@@ -86,22 +82,23 @@ public class NotificationTemplatesResource extends AbstractResource {
     @Consumes(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create a notification template",
-        description = "User must have the NOTIFICATION_TEMPLATES[CREATE] permission to use this service"
-    )
+            summary = "Create a notification template",
+            description = "User must have the NOTIFICATION_TEMPLATES[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Created notification template",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = NotificationTemplateEntity.class))
-    )
+            responseCode = "200",
+            description = "Created notification template",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = NotificationTemplateEntity.class)))
     @ApiResponse(responseCode = "400", description = "There must not be any ID in the payload")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_NOTIFICATION_TEMPLATES, acls = RolePermissionAction.CREATE) })
+    @Permissions({
+        @Permission(value = RolePermission.ORGANIZATION_NOTIFICATION_TEMPLATES, acls = RolePermissionAction.CREATE)
+    })
     public Response createNotificationTemplate(@Valid NotificationTemplateEntity newNotificationTemplateEntity) {
         final NotificationTemplateEntity createdNotificationTemplate = notificationTemplateService.create(
-            GraviteeContext.getExecutionContext(),
-            newNotificationTemplateEntity
-        );
+                GraviteeContext.getExecutionContext(), newNotificationTemplateEntity);
         if (createdNotificationTemplate != null) {
             return Response.ok(createdNotificationTemplate).build();
         }
@@ -111,24 +108,25 @@ public class NotificationTemplatesResource extends AbstractResource {
     @Path("{notificationTemplateId}")
     @GET
     @Operation(
-        summary = "Get a specific notification template.",
-        description = "User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service"
-    )
+            summary = "Get a specific notification template.",
+            description = "User must have the NOTIFICATION_TEMPLATES[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Notification template found",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = NotificationTemplateEntity.class))
-    )
+            responseCode = "200",
+            description = "Notification template found",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = NotificationTemplateEntity.class)))
     @ApiResponse(responseCode = "404", description = "Notification template not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_NOTIFICATION_TEMPLATES, acls = RolePermissionAction.READ) })
+    @Permissions({
+        @Permission(value = RolePermission.ORGANIZATION_NOTIFICATION_TEMPLATES, acls = RolePermissionAction.READ)
+    })
     public Response getNotificationTemplate(
-        @Parameter(description = "ID of the notification template") @PathParam("notificationTemplateId") String notificationTemplateId
-    ) {
-        final NotificationTemplateEntity notificationTemplateEntity = notificationTemplateService.findById(
-            GraviteeContext.getCurrentOrganization(),
-            notificationTemplateId
-        );
+            @Parameter(description = "ID of the notification template") @PathParam("notificationTemplateId")
+                    String notificationTemplateId) {
+        final NotificationTemplateEntity notificationTemplateEntity =
+                notificationTemplateService.findById(GraviteeContext.getCurrentOrganization(), notificationTemplateId);
         return Response.ok(notificationTemplateEntity).build();
     }
 
@@ -137,30 +135,31 @@ public class NotificationTemplatesResource extends AbstractResource {
     @Consumes(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update an existing notification template",
-        description = "User must have the NOTIFICATION_TEMPLATES[UPDATE] permission to use this service"
-    )
+            summary = "Update an existing notification template",
+            description = "User must have the NOTIFICATION_TEMPLATES[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated notification template",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = NotificationTemplateEntity.class))
-    )
+            responseCode = "200",
+            description = "Updated notification template",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = NotificationTemplateEntity.class)))
     @ApiResponse(responseCode = "400", description = "ID in path parameter is not the same as in the payload")
     @ApiResponse(responseCode = "404", description = "Notification template not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_NOTIFICATION_TEMPLATES, acls = RolePermissionAction.UPDATE) })
+    @Permissions({
+        @Permission(value = RolePermission.ORGANIZATION_NOTIFICATION_TEMPLATES, acls = RolePermissionAction.UPDATE)
+    })
     public Response updateNotificationTemplate(
-        @Parameter(description = "ID of the notification template") @PathParam("notificationTemplateId") String notificationTemplateId,
-        @Valid NotificationTemplateEntity notificationTemplateEntityUpdate
-    ) {
+            @Parameter(description = "ID of the notification template") @PathParam("notificationTemplateId")
+                    String notificationTemplateId,
+            @Valid NotificationTemplateEntity notificationTemplateEntityUpdate) {
         if (!notificationTemplateEntityUpdate.getId().equals(notificationTemplateId)) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
         final NotificationTemplateEntity updatedNotificationTemplate = notificationTemplateService.update(
-            GraviteeContext.getExecutionContext(),
-            notificationTemplateEntityUpdate
-        );
+                GraviteeContext.getExecutionContext(), notificationTemplateEntityUpdate);
         if (updatedNotificationTemplate != null) {
             return Response.ok(updatedNotificationTemplate).build();
         }

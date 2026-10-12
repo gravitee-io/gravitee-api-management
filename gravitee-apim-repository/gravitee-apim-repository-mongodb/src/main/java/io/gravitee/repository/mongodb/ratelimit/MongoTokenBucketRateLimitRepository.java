@@ -70,102 +70,100 @@ public class MongoTokenBucketRateLimitRepository implements TokenBucketRateLimit
 
     @Override
     public Single<TokenBucketConsumeResult> refillAndTryConsume(
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        Supplier<TokenBucket> supplier
-    ) {
+            String key,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            Supplier<TokenBucket> supplier) {
         TokenBucketCalculator.requireValidArgs(tokensRequested, refillPeriodMillis, capacity);
 
         String subscription = supplier.get().getSubscription();
-        Date expireAt = new Date(System.currentTimeMillis() + TokenBucketCalculator.ttlMillis(refillRate, refillPeriodMillis, capacity));
+        Date expireAt = new Date(
+                System.currentTimeMillis() + TokenBucketCalculator.ttlMillis(refillRate, refillPeriodMillis, capacity));
         // Cap the elapsed span (a long-idle bucket never accrues past capacity) so elapsed * refillRate
         // cannot overflow a 64-bit long for huge idle gaps. A zero rate never refills.
         long maxUsefulElapsed = refillRate > 0 ? (capacity * refillPeriodMillis) / refillRate + refillPeriodMillis : 0L;
 
         // The refill anchor, defaulting to now for a missing bucket (so a fresh bucket starts full).
-        AggregationExpression anchor = ConditionalOperators.ifNull(FIELD_LAST_REFILL).then(nowMillis);
+        AggregationExpression anchor =
+                ConditionalOperators.ifNull(FIELD_LAST_REFILL).then(nowMillis);
         // elapsed = max(0, now - anchor), expressed via (anchor - now) so the document field is the
         // operand base: when anchor >= now (out-of-order / no time passed) elapsed is 0, else now - anchor.
-        AggregationExpression anchorMinusNow = ArithmeticOperators.valueOf(anchor).subtract(nowMillis);
-        AggregationExpression elapsed = ConditionalOperators.when(ComparisonOperators.valueOf(anchorMinusNow).greaterThanEqualToValue(0L))
-            .then(0L)
-            .otherwise(ArithmeticOperators.valueOf(anchorMinusNow).multiplyBy(-1));
+        AggregationExpression anchorMinusNow =
+                ArithmeticOperators.valueOf(anchor).subtract(nowMillis);
+        AggregationExpression elapsed = ConditionalOperators.when(
+                        ComparisonOperators.valueOf(anchorMinusNow).greaterThanEqualToValue(0L))
+                .then(0L)
+                .otherwise(ArithmeticOperators.valueOf(anchorMinusNow).multiplyBy(-1));
         // effectiveElapsed = min(elapsed, maxUsefulElapsed) to bound the multiplication below.
         AggregationExpression effectiveElapsed = ConditionalOperators.when(
-            ComparisonOperators.valueOf(elapsed).greaterThanValue(maxUsefulElapsed)
-        )
-            .then(maxUsefulElapsed)
-            .otherwise(elapsed);
+                        ComparisonOperators.valueOf(elapsed).greaterThanValue(maxUsefulElapsed))
+                .then(maxUsefulElapsed)
+                .otherwise(elapsed);
         // refillAmount = floor(effectiveElapsed * refillRate / refillPeriodMillis) as a long — whole tokens.
         // A zero rate yields 0 (no refill).
         AggregationExpression refillAmount = refillRate <= 0
-            ? (AggregationExpression) context -> new org.bson.Document("$literal", 0L)
-            : ConvertOperators.valueOf(
-                ArithmeticOperators.valueOf(
-                    ArithmeticOperators.valueOf(ArithmeticOperators.valueOf(effectiveElapsed).multiplyBy(refillRate)).divideBy(
-                        refillPeriodMillis
-                    )
-                ).floor()
-            ).convertToLong();
+                ? (AggregationExpression) context -> new org.bson.Document("$literal", 0L)
+                : ConvertOperators.valueOf(ArithmeticOperators.valueOf(
+                                        ArithmeticOperators.valueOf(ArithmeticOperators.valueOf(effectiveElapsed)
+                                                        .multiplyBy(refillRate))
+                                                .divideBy(refillPeriodMillis))
+                                .floor())
+                        .convertToLong();
         // refilled = min(capacity, currentTokens + refillAmount); a missing bucket defaults to full.
-        AggregationExpression currentTokens = ConditionalOperators.ifNull(FIELD_TOKENS).then(capacity);
-        AggregationExpression refilledRaw = ArithmeticOperators.valueOf(currentTokens).add(refillAmount);
-        AggregationExpression refilled = ConditionalOperators.when(ComparisonOperators.valueOf(refilledRaw).greaterThanValue(capacity))
-            .then(capacity)
-            .otherwise(refilledRaw);
+        AggregationExpression currentTokens =
+                ConditionalOperators.ifNull(FIELD_TOKENS).then(capacity);
+        AggregationExpression refilledRaw =
+                ArithmeticOperators.valueOf(currentTokens).add(refillAmount);
+        AggregationExpression refilled = ConditionalOperators.when(
+                        ComparisonOperators.valueOf(refilledRaw).greaterThanValue(capacity))
+                .then(capacity)
+                .otherwise(refilledRaw);
 
         // tokens after consume: subtract when the refilled balance covers the request, otherwise leave it.
         AggregationExpression tokensAfter = ConditionalOperators.when(
-            ComparisonOperators.valueOf(FIELD_REFILLED).greaterThanEqualToValue(tokensRequested)
-        )
-            .then(ArithmeticOperators.valueOf(FIELD_REFILLED).subtract(tokensRequested))
-            .otherwiseValueOf(FIELD_REFILLED);
+                        ComparisonOperators.valueOf(FIELD_REFILLED).greaterThanEqualToValue(tokensRequested))
+                .then(ArithmeticOperators.valueOf(FIELD_REFILLED).subtract(tokensRequested))
+                .otherwiseValueOf(FIELD_REFILLED);
         // Anchor forward to now only once a whole token is credited (refillAmount > 0); otherwise leave it
         // put so an out-of-order or sub-token elapsed keeps accumulating instead of being discarded or
         // re-credited (which would over-admit).
-        AggregationExpression nextAnchor = ConditionalOperators.when(ComparisonOperators.valueOf(refillAmount).greaterThanValue(0L))
-            .then(nowMillis)
-            .otherwise(anchor);
+        AggregationExpression nextAnchor = ConditionalOperators.when(
+                        ComparisonOperators.valueOf(refillAmount).greaterThanValue(0L))
+                .then(nowMillis)
+                .otherwise(anchor);
 
         AggregationUpdate update = AggregationUpdate.update()
-            .set(SetOperation.set(FIELD_REFILLED).toValue(refilled))
-            .set(SetOperation.set(FIELD_SUBSCRIPTION).toValue(ConditionalOperators.ifNull(FIELD_SUBSCRIPTION).then(subscription)))
-            .set(SetOperation.set(FIELD_TOKENS).toValue(tokensAfter))
-            .set(SetOperation.set(FIELD_LAST_REFILL).toValue(nextAnchor))
-            .set(SetOperation.set(FIELD_EXPIRE_AT).toValue(expireAt));
+                .set(SetOperation.set(FIELD_REFILLED).toValue(refilled))
+                .set(SetOperation.set(FIELD_SUBSCRIPTION)
+                        .toValue(ConditionalOperators.ifNull(FIELD_SUBSCRIPTION).then(subscription)))
+                .set(SetOperation.set(FIELD_TOKENS).toValue(tokensAfter))
+                .set(SetOperation.set(FIELD_LAST_REFILL).toValue(nextAnchor))
+                .set(SetOperation.set(FIELD_EXPIRE_AT).toValue(expireAt));
 
         Query query = new Query(Criteria.where(FIELD_ID).is(key));
         // A single atomic findAndModify(upsert): unlike JDBC (SELECT-then-INSERT, which retries the
         // first-insert race) there is no select/insert window here, so no E11000 retry is needed — same
         // pattern as MongoRateLimitRepository.
-        FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true).upsert(true);
+        FindAndModifyOptions options =
+                new FindAndModifyOptions().returnNew(true).upsert(true);
 
-        return RxJava3Adapter.monoToSingle(
-            mongoOperations
+        return RxJava3Adapter.monoToSingle(mongoOperations
                 .findAndModify(query, update, options, Document.class, collection)
-                .map(document -> toResult(document, tokensRequested, refillRate, refillPeriodMillis, nowMillis))
-        );
+                .map(document -> toResult(document, tokensRequested, refillRate, refillPeriodMillis, nowMillis)));
     }
 
     private static TokenBucketConsumeResult toResult(
-        Document document,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long nowMillis
-    ) {
+            Document document, long tokensRequested, long refillRate, long refillPeriodMillis, long nowMillis) {
         long refilled = asLong(document, FIELD_REFILLED);
         long tokensAfter = asLong(document, FIELD_TOKENS);
         boolean allowed = refilled >= tokensRequested;
         return new TokenBucketConsumeResult(
-            allowed,
-            tokensAfter,
-            TokenBucketCalculator.nextAvailableAtMillis(tokensAfter, refillRate, refillPeriodMillis, nowMillis)
-        );
+                allowed,
+                tokensAfter,
+                TokenBucketCalculator.nextAvailableAtMillis(tokensAfter, refillRate, refillPeriodMillis, nowMillis));
     }
 
     private static long asLong(Document document, String field) {

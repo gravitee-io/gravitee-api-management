@@ -60,15 +60,15 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         PageEntity markdownTemplate = new PageEntity();
         markdownTemplate.setType(PageType.MARKDOWN_TEMPLATE.name());
         doReturn(Arrays.asList(new PageEntity(), markdownTemplate))
-            .when(pageService)
-            .search(eq(GraviteeContext.getCurrentEnvironment()), any(), isNull());
+                .when(pageService)
+                .search(eq(GraviteeContext.getCurrentEnvironment()), any(), isNull());
 
-        when(
-            accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class))
-        ).thenAnswer(invocationOnMock -> {
-            PageEntity page = invocationOnMock.getArgument(2);
-            return !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
-        });
+        when(accessControlService.canAccessPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class)))
+                .thenAnswer(invocationOnMock -> {
+                    PageEntity page = invocationOnMock.getArgument(2);
+                    return !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
+                });
 
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
@@ -76,12 +76,13 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotFoundWhileGettingApiPages() {
-        //init
+        // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(false);
 
-        //test
+        // test
         final Response response = target(API).path("pages").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
@@ -98,7 +99,8 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApiPages() {
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(true);
 
         final Response response = target(API).path("pages").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -113,8 +115,10 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoApiPage() {
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
-        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any())).thenReturn(false);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(true);
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any()))
+                .thenReturn(false);
 
         final Builder request = target(API).path("pages").request();
 
@@ -143,17 +147,19 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         child.setParentId("parent");
 
         doReturn(Arrays.asList(emptyFolder, folderWithChild, child))
-            .when(pageService)
-            .search(eq(GraviteeContext.getCurrentEnvironment()), any(), isNull());
+                .when(pageService)
+                .search(eq(GraviteeContext.getCurrentEnvironment()), any(), isNull());
 
-        when(
-            accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class))
-        ).thenAnswer(invocationOnMock -> true);
+        when(accessControlService.canAccessPageFromPortal(
+                        eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class)))
+                .thenAnswer(invocationOnMock -> true);
 
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API))
+                .thenReturn(true);
 
         when(pageService.folderHasPublishedChildren(eq(emptyFolder.getId()))).thenReturn(false);
-        when(pageService.folderHasPublishedChildren(eq(folderWithChild.getId()))).thenReturn(true);
+        when(pageService.folderHasPublishedChildren(eq(folderWithChild.getId())))
+                .thenReturn(true);
 
         var folderWithChildMapped = new Page();
         folderWithChildMapped.setId(folderWithChild.getId());

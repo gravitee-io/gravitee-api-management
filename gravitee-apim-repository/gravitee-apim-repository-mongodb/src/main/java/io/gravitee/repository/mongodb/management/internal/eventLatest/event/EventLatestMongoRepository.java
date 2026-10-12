@@ -26,7 +26,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface EventLatestMongoRepository extends MongoRepository<EventLatestMongo, String>, EventLatestMongoRepositoryCustom {
+public interface EventLatestMongoRepository
+        extends MongoRepository<EventLatestMongo, String>, EventLatestMongoRepositoryCustom {
     List<EventLatestMongo> findByEnvironmentsIn(Set<String> environments);
 
     List<EventLatestMongo> findByOrganizationsIn(Set<String> organizations);

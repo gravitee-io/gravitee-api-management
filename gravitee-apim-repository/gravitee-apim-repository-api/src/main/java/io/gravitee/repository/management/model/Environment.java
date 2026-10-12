@@ -16,7 +16,6 @@
 package io.gravitee.repository.management.model;
 
 import java.util.List;
-import java.util.Objects;
 import lombok.*;
 
 /**
@@ -33,11 +32,11 @@ import lombok.*;
 public class Environment {
 
     public static final Environment DEFAULT = Environment.builder()
-        .id("DEFAULT")
-        .hrids(List.of("default"))
-        .name("Default")
-        .organizationId("DEFAULT")
-        .build();
+            .id("DEFAULT")
+            .hrids(List.of("default"))
+            .name("Default")
+            .organizationId("DEFAULT")
+            .build();
 
     private String id;
     private String cockpitId;

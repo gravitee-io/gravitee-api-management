@@ -53,25 +53,27 @@ public class ApiCategoryQueryServiceImpl implements ApiCategoryQueryService {
             //                .map(io.gravitee.repository.management.model.Category::getKey)
             //                .collect(Collectors.toSet());
 
-            return categoryRepository
-                .findAllByEnvironment(api.getEnvironmentId())
-                .stream()
-                .filter(category -> categoriesIds.contains(category.getId()) || categoriesIds.contains(category.getKey()))
-                .map(io.gravitee.repository.management.model.Category::getKey)
-                .collect(Collectors.toSet());
+            return categoryRepository.findAllByEnvironment(api.getEnvironmentId()).stream()
+                    .filter(category ->
+                            categoriesIds.contains(category.getId()) || categoriesIds.contains(category.getKey()))
+                    .map(io.gravitee.repository.management.model.Category::getKey)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurs while trying to find Categories for the api: " + api.getId(), e);
+            throw new TechnicalDomainException(
+                    "An error occurs while trying to find Categories for the api: " + api.getId(), e);
         }
     }
 
     @Override
     public Collection<Category> findByEnvironmentId(String environmentId) {
         try {
-            return categoryRepository
-                .findAllByEnvironment(environmentId)
-                .stream()
-                .map(category -> Category.builder().key(category.getKey()).name(category.getName()).id(category.getId()).build())
-                .toList();
+            return categoryRepository.findAllByEnvironment(environmentId).stream()
+                    .map(category -> Category.builder()
+                            .key(category.getKey())
+                            .name(category.getName())
+                            .id(category.getId())
+                            .build())
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("Cannot find categories for environment " + environmentId, e);
         }

@@ -43,21 +43,19 @@ public class UpdatePortalPageContentUseCase {
     public Output execute(Input input) {
         // Check if portal page content is existing
         PortalPageContent<?> existingContent = portalPageContentQueryService
-            .findById(PortalPageContentId.of(input.portalPageContentId()))
-            .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId()));
+                .findById(PortalPageContentId.of(input.portalPageContentId()))
+                .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId()));
 
         // Check if org id and env id are appropriate
-        if (
-            !existingContent.getOrganizationId().equals(input.organizationId()) ||
-            !existingContent.getEnvironmentId().equals(input.environmentId())
-        ) {
+        if (!existingContent.getOrganizationId().equals(input.organizationId())
+                || !existingContent.getEnvironmentId().equals(input.environmentId())) {
             throw new PageContentNotFoundException(input.portalPageContentId());
         }
 
         boolean managedByFetcher = portalNavigationItemsQueryService
-            .findNavigationPageByPortalPageContentId(input.environmentId(), existingContent.getId())
-            .filter(page -> isSourced(page, input.environmentId()))
-            .isPresent();
+                .findNavigationPageByPortalPageContentId(input.environmentId(), existingContent.getId())
+                .filter(page -> isSourced(page, input.environmentId()))
+                .isPresent();
         if (managedByFetcher) {
             throw InvalidPortalNavigationItemDataException.sourcedPageContentIsReadOnly(input.portalPageContentId());
         }
@@ -73,32 +71,34 @@ public class UpdatePortalPageContentUseCase {
     }
 
     /** File import can change the content type: rebuild the content under its new type, keeping the same id. */
-    private PortalPageContent<?> withRequestedType(PortalPageContent<?> existingContent, UpdatePortalPageContent update) {
+    private PortalPageContent<?> withRequestedType(
+            PortalPageContent<?> existingContent, UpdatePortalPageContent update) {
         var requestedType = update.getType();
         if (requestedType == null || requestedType == existingContent.getType()) {
             return existingContent;
         }
         return PortalPageContent.of(
-            requestedType,
-            existingContent.getId(),
-            existingContent.getOrganizationId(),
-            existingContent.getEnvironmentId(),
-            update.getContent(),
-            existingContent.getAutomationMetadata()
-        );
+                requestedType,
+                existingContent.getId(),
+                existingContent.getOrganizationId(),
+                existingContent.getEnvironmentId(),
+                update.getContent(),
+                existingContent.getAutomationMetadata());
     }
 
     private boolean isSourced(PortalNavigationPage page, String environmentId) {
-        return page.getSource() != null || sourcedItemsDomainService.findSourcedAncestor(environmentId, page).isPresent();
+        return page.getSource() != null
+                || sourcedItemsDomainService
+                        .findSourcedAncestor(environmentId, page)
+                        .isPresent();
     }
 
     @Builder
     public record Input(
-        String organizationId,
-        String environmentId,
-        String portalPageContentId,
-        UpdatePortalPageContent updatePortalPageContent
-    ) {}
+            String organizationId,
+            String environmentId,
+            String portalPageContentId,
+            UpdatePortalPageContent updatePortalPageContent) {}
 
     public record Output(PortalPageContent<?> portalPageContent) {}
 }

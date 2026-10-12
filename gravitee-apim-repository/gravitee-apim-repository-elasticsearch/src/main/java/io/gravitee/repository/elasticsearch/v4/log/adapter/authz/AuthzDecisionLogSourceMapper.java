@@ -33,34 +33,34 @@ final class AuthzDecisionLogSourceMapper {
 
     static AuthzDecisionLog from(JsonNode source) {
         return AuthzDecisionLog.builder()
-            .eventId(asTextOrNull(source.get(AuthzDecisionLogFields.EVENT_ID)))
-            .timestamp(epochMillis(asTextOrNull(source.get(AuthzDecisionLogFields.TIMESTAMP))))
-            .apiId(asTextOrNull(source.get(AuthzDecisionLogFields.API_ID)))
-            .organizationId(asTextOrNull(source.get(AuthzDecisionLogFields.ORG_ID)))
-            .environmentId(asTextOrNull(source.get(AuthzDecisionLogFields.ENV_ID)))
-            .gatewayId(asTextOrNull(source.get(AuthzDecisionLogFields.GW_ID)))
-            .requestId(asTextOrNull(source.get(AuthzDecisionLogFields.REQUEST_ID)))
-            .status(asTextOrNull(source.get(AuthzDecisionLogFields.STATUS)))
-            .caller(asTextOrNull(source.get(AuthzDecisionLogFields.CALLER)))
-            .targetPdpId(asTextOrNull(source.get(AuthzDecisionLogFields.TARGET_PDP_ID)))
-            .policyGeneration(asTextOrNull(source.get(AuthzDecisionLogFields.POLICY_GENERATION)))
-            .decision(asTextOrNull(source.get(AuthzDecisionLogFields.DECISION)))
-            .outcome(asTextOrNull(source.get(AuthzDecisionLogFields.OUTCOME)))
-            .enforced(asTextOrNull(source.get(AuthzDecisionLogFields.ENFORCED)))
-            .indeterminateCause(asTextOrNull(source.get(AuthzDecisionLogFields.INDETERMINATE_CAUSE)))
-            .matchedRules(matchedRules(source.get(AuthzDecisionLogFields.MATCHED_RULES)))
-            .reasons(asTextList(source.get(AuthzDecisionLogFields.REASONS)))
-            .subjectType(asTextOrNull(source.get(AuthzDecisionLogFields.SUBJECT_TYPE)))
-            .subjectId(asTextOrNull(source.get(AuthzDecisionLogFields.SUBJECT_ID)))
-            .action(asTextOrNull(source.get(AuthzDecisionLogFields.ACTION)))
-            .resourceType(asTextOrNull(source.get(AuthzDecisionLogFields.RESOURCE_TYPE)))
-            .resourceId(asTextOrNull(source.get(AuthzDecisionLogFields.RESOURCE_ID)))
-            .batchId(asTextOrNull(source.get(AuthzDecisionLogFields.BATCH_ID)))
-            .batchIndex(asIntOrNull(at(source, AuthzDecisionLogFields.BATCH_INDEX)))
-            .batchSize(asIntOrNull(at(source, AuthzDecisionLogFields.BATCH_SIZE)))
-            .durationNanos(asLongOrNull(source.get(AuthzDecisionLogFields.DURATION_NANOS)))
-            .errorType(asTextOrNull(source.get(AuthzDecisionLogFields.ERROR_TYPE)))
-            .build();
+                .eventId(asTextOrNull(source.get(AuthzDecisionLogFields.EVENT_ID)))
+                .timestamp(epochMillis(asTextOrNull(source.get(AuthzDecisionLogFields.TIMESTAMP))))
+                .apiId(asTextOrNull(source.get(AuthzDecisionLogFields.API_ID)))
+                .organizationId(asTextOrNull(source.get(AuthzDecisionLogFields.ORG_ID)))
+                .environmentId(asTextOrNull(source.get(AuthzDecisionLogFields.ENV_ID)))
+                .gatewayId(asTextOrNull(source.get(AuthzDecisionLogFields.GW_ID)))
+                .requestId(asTextOrNull(source.get(AuthzDecisionLogFields.REQUEST_ID)))
+                .status(asTextOrNull(source.get(AuthzDecisionLogFields.STATUS)))
+                .caller(asTextOrNull(source.get(AuthzDecisionLogFields.CALLER)))
+                .targetPdpId(asTextOrNull(source.get(AuthzDecisionLogFields.TARGET_PDP_ID)))
+                .policyGeneration(asTextOrNull(source.get(AuthzDecisionLogFields.POLICY_GENERATION)))
+                .decision(asTextOrNull(source.get(AuthzDecisionLogFields.DECISION)))
+                .outcome(asTextOrNull(source.get(AuthzDecisionLogFields.OUTCOME)))
+                .enforced(asTextOrNull(source.get(AuthzDecisionLogFields.ENFORCED)))
+                .indeterminateCause(asTextOrNull(source.get(AuthzDecisionLogFields.INDETERMINATE_CAUSE)))
+                .matchedRules(matchedRules(source.get(AuthzDecisionLogFields.MATCHED_RULES)))
+                .reasons(asTextList(source.get(AuthzDecisionLogFields.REASONS)))
+                .subjectType(asTextOrNull(source.get(AuthzDecisionLogFields.SUBJECT_TYPE)))
+                .subjectId(asTextOrNull(source.get(AuthzDecisionLogFields.SUBJECT_ID)))
+                .action(asTextOrNull(source.get(AuthzDecisionLogFields.ACTION)))
+                .resourceType(asTextOrNull(source.get(AuthzDecisionLogFields.RESOURCE_TYPE)))
+                .resourceId(asTextOrNull(source.get(AuthzDecisionLogFields.RESOURCE_ID)))
+                .batchId(asTextOrNull(source.get(AuthzDecisionLogFields.BATCH_ID)))
+                .batchIndex(asIntOrNull(at(source, AuthzDecisionLogFields.BATCH_INDEX)))
+                .batchSize(asIntOrNull(at(source, AuthzDecisionLogFields.BATCH_SIZE)))
+                .durationNanos(asLongOrNull(source.get(AuthzDecisionLogFields.DURATION_NANOS)))
+                .errorType(asTextOrNull(source.get(AuthzDecisionLogFields.ERROR_TYPE)))
+                .build();
     }
 
     private static JsonNode at(JsonNode source, String dottedPath) {
@@ -75,14 +75,11 @@ final class AuthzDecisionLogSourceMapper {
         node.forEach(rule -> {
             var name = asTextOrNull(rule.get(AuthzDecisionLogFields.MATCHED_RULE_NAME));
             if (name != null) {
-                rules.add(
-                    new AuthzDecisionLog.MatchedRule(
+                rules.add(new AuthzDecisionLog.MatchedRule(
                         asTextOrNull(rule.get(AuthzDecisionLogFields.MATCHED_RULE_ID)),
                         name,
                         asTextOrNull(rule.get(AuthzDecisionLogFields.MATCHED_RULE_VERSION)),
-                        asTextOrNull(rule.get(AuthzDecisionLogFields.MATCHED_RULE_EFFECT))
-                    )
-                );
+                        asTextOrNull(rule.get(AuthzDecisionLogFields.MATCHED_RULE_EFFECT))));
             }
         });
         return rules;

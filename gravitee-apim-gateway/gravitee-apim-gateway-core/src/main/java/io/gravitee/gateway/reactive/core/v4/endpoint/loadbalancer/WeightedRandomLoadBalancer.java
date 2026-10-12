@@ -35,7 +35,8 @@ import java.util.Random;
  */
 public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
 
-    private static final Random RANDOM = new Random(); // NOSONAR the random value is not used for security purposes here
+    private static final Random RANDOM =
+            new Random(); // NOSONAR the random value is not used for security purposes here
 
     public WeightedRandomLoadBalancer(final List<ManagedEndpoint> endpoints) {
         super(endpoints);

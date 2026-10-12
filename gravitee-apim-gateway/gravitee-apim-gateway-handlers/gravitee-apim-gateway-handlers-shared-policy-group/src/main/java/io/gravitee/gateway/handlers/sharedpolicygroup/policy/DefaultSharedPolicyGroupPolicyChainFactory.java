@@ -27,7 +27,6 @@ import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
-import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -44,13 +43,14 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
     protected final PolicyManager policyManager;
     protected final Cache<String, HttpPolicyChain> policyChains;
 
-    public DefaultSharedPolicyGroupPolicyChainFactory(final String id, final PolicyManager policyManager, final boolean tracing) {
+    public DefaultSharedPolicyGroupPolicyChainFactory(
+            final String id, final PolicyManager policyManager, final boolean tracing) {
         this.policyManager = policyManager;
 
         final CacheConfiguration cacheConfiguration = CacheConfiguration.builder()
-            .maxSize(CACHE_MAX_SIZE)
-            .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
-            .build();
+                .maxSize(CACHE_MAX_SIZE)
+                .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
+                .build();
 
         this.policyChains = new InMemoryCache<>(id + "-policyChainFactory", cacheConfiguration);
         initPolicyHooks(tracing);
@@ -63,7 +63,8 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
     }
 
     @Override
-    public HttpPolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase) {
+    public HttpPolicyChain create(
+            final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase) {
         final String key = getSharedPolicyGroupKey(sharedPolicyGroupPolicyId, environmentId, steps, phase);
         HttpPolicyChain policyChain = policyChains.get(key);
         if (policyChain == null) {
@@ -79,7 +80,9 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
         for (Step step : steps) {
             if (!step.isEnabled()) continue;
             if (step.getPolicy().equals(SharedPolicyGroupPolicy.POLICY_ID)) {
-                log.warn("Nested Shared Policy Group is not supported. The Shared Policy Group {} will be ignored", step.getName());
+                log.warn(
+                        "Nested Shared Policy Group is not supported. The Shared Policy Group {} will be ignored",
+                        step.getName());
             } else {
                 HttpPolicy policy = (HttpPolicy) policyManager.create(phase, buildPolicyMetadata(step));
                 if (policy != null) {
@@ -98,7 +101,8 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
     }
 
     protected PolicyMetadata buildPolicyMetadata(Step step) {
-        final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
+        final PolicyMetadata policyMetadata =
+                new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.V4_EMULATION_ENGINE);
 
         return policyMetadata;
@@ -106,11 +110,8 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
 
     @VisibleForTesting
     protected String getSharedPolicyGroupKey(
-        String sharedPolicyGroupPolicyId,
-        String environmentId,
-        List<Step> steps,
-        ExecutionPhase phase
-    ) {
-        return "shared-policy-group-" + sharedPolicyGroupPolicyId + "-" + environmentId + "-" + phase + "-" + steps.hashCode();
+            String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase) {
+        return "shared-policy-group-" + sharedPolicyGroupPolicyId + "-" + environmentId + "-" + phase + "-"
+                + steps.hashCode();
     }
 }

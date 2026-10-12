@@ -42,16 +42,20 @@ public class PageQueryServiceImpl implements PageQueryService {
 
     @Override
     public List<Page> searchByApiId(String apiId) {
-        return this.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId(apiId), apiId);
+        return this.search(
+                new PageCriteria.Builder()
+                        .referenceType(PageReferenceType.API.name())
+                        .referenceId(apiId),
+                apiId);
     }
 
     @Override
     public Optional<Page> findHomepageByApiId(String apiId) {
         PageCriteria criteria = new PageCriteria.Builder()
-            .referenceType(PageReferenceType.API.name())
-            .referenceId(apiId)
-            .homepage(true)
-            .build();
+                .referenceType(PageReferenceType.API.name())
+                .referenceId(apiId)
+                .homepage(true)
+                .build();
         try {
             return pageRepository.search(criteria).stream().findFirst().map(PageAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
@@ -71,8 +75,8 @@ public class PageQueryServiceImpl implements PageQueryService {
     @Override
     public List<Page> searchByApiIdAndParentId(String apiId, String parentId) {
         PageCriteria.Builder pageCriteriaBuilder = new PageCriteria.Builder()
-            .referenceType(PageReferenceType.API.name())
-            .referenceId(apiId);
+                .referenceType(PageReferenceType.API.name())
+                .referenceId(apiId);
 
         if (Objects.isNull(parentId)) {
             pageCriteriaBuilder.rootParent(true);
@@ -84,12 +88,13 @@ public class PageQueryServiceImpl implements PageQueryService {
     }
 
     @Override
-    public Optional<Page> findByApiIdAndParentIdAndNameAndType(String apiId, String parentId, String name, Page.Type type) {
+    public Optional<Page> findByApiIdAndParentIdAndNameAndType(
+            String apiId, String parentId, String name, Page.Type type) {
         PageCriteria.Builder pageCriteriaBuilder = new PageCriteria.Builder()
-            .referenceType(PageReferenceType.API.name())
-            .referenceId(apiId)
-            .name(name)
-            .type(type.name());
+                .referenceType(PageReferenceType.API.name())
+                .referenceId(apiId)
+                .name(name)
+                .type(type.name());
 
         if (Objects.isNull(parentId)) {
             pageCriteriaBuilder.rootParent(true);
@@ -113,7 +118,10 @@ public class PageQueryServiceImpl implements PageQueryService {
     public Optional<Page> findByNameAndReferenceId(String name, String referenceId) {
         List<io.gravitee.repository.management.model.Page> result;
         try {
-            result = pageRepository.search(new PageCriteria.Builder().name(name).referenceId(referenceId).build());
+            result = pageRepository.search(new PageCriteria.Builder()
+                    .name(name)
+                    .referenceId(referenceId)
+                    .build());
         } catch (TechnicalException e) {
             log.error("An error occurred while finding Page by name {}", name, e);
             throw new TechnicalDomainException("Error when updating Page", e);

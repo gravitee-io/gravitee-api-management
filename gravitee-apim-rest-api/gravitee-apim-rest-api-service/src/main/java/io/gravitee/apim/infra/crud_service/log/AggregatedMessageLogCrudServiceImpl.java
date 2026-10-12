@@ -46,30 +46,32 @@ class AggregatedMessageLogCrudServiceImpl implements AggregatedMessageLogCrudSer
 
     @Override
     public SearchLogsResponse<AggregatedMessageLog> searchApiAggregatedMessageLog(
-        ExecutionContext executionContext,
-        String apiId,
-        String requestId,
-        Pageable pageable
-    ) {
+            ExecutionContext executionContext, String apiId, String requestId, Pageable pageable) {
         try {
             var response = logRepository.searchAggregatedMessageLog(
-                executionContext.getQueryContext(),
-                MessageLogQuery.builder()
-                    .filter(MessageLogQuery.Filter.builder().apiId(apiId).requestId(requestId).build())
-                    .page(pageable.getPageNumber())
-                    .size(pageable.getPageSize())
-                    .build()
-            );
+                    executionContext.getQueryContext(),
+                    MessageLogQuery.builder()
+                            .filter(MessageLogQuery.Filter.builder()
+                                    .apiId(apiId)
+                                    .requestId(requestId)
+                                    .build())
+                            .page(pageable.getPageNumber())
+                            .size(pageable.getPageSize())
+                            .build());
             return mapToMessageResponse(response);
         } catch (AnalyticsException e) {
-            log.error("An error occurs while trying to search message of api [apiId={}, requestId={}]", apiId, requestId, e);
-            throw new TechnicalManagementException("Error while searching message logs of api " + apiId + " request " + requestId, e);
+            log.error(
+                    "An error occurs while trying to search message of api [apiId={}, requestId={}]",
+                    apiId,
+                    requestId,
+                    e);
+            throw new TechnicalManagementException(
+                    "Error while searching message logs of api " + apiId + " request " + requestId, e);
         }
     }
 
     private SearchLogsResponse<AggregatedMessageLog> mapToMessageResponse(
-        LogResponse<io.gravitee.repository.log.v4.model.message.AggregatedMessageLog> logs
-    ) {
+            LogResponse<io.gravitee.repository.log.v4.model.message.AggregatedMessageLog> logs) {
         var total = logs.total();
         var data = MessageLogAdapter.INSTANCE.mapToAggregatedMessageLogs(logs.data());
 

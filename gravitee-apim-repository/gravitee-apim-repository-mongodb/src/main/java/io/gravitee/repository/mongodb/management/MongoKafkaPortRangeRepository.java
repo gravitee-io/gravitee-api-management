@@ -72,23 +72,20 @@ public class MongoKafkaPortRangeRepository implements KafkaPortRangeRepository {
     }
 
     @Override
-    public List<KafkaPortRange> findConflicting(String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
-        throws TechnicalException {
+    public List<KafkaPortRange> findConflicting(
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
+            throws TechnicalException {
         return internalRepository
-            .findConflicting(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
-            .stream()
-            .map(mapper::map)
-            .toList();
+                .findConflicting(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
+                .stream()
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
     public List<KafkaPortRange> findConflictingForUpdate(
-        String environmentId,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) throws TechnicalException {
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId)
+            throws TechnicalException {
         // MongoDB row-level locks require a multi-document transaction on a replica set or sharded
         // cluster plus a ClientSession passed on every operation. Without that wiring, SELECT ...
         // FOR UPDATE has no MongoDB equivalent, so we fall back to the non-locking query. Deployments

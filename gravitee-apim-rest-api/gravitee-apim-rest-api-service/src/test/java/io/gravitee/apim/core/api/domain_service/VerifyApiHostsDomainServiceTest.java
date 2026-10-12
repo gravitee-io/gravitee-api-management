@@ -43,15 +43,22 @@ class VerifyApiHostsDomainServiceTest {
 
     private static final String API_ID = "api-id";
     private static final String ENVIRONMENT_ID = "environment-id";
-    private static final Api V4_TCP_API_1 = aTcpApiV4().toBuilder().id("tcp-1").environmentId(ENVIRONMENT_ID).build();
-    private static final Api V4_TCP_API_2 = aTcpApiV4(List.of("baz.example.com"))
-        .toBuilder()
-        .id("tcp-2")
-        .environmentId(ENVIRONMENT_ID)
-        .build();
-    private static final Api V4_HTTP_API_2 = aProxyApiV4().toBuilder().id("http-1").environmentId(ENVIRONMENT_ID).build();
-    private static final Api V4_MESSAGE_API = aMessageApiV4().toBuilder().id("message-1").environmentId(ENVIRONMENT_ID).build();
-    private static final Api V4_NATIVE_KAFKA_API = aNativeApi().toBuilder().id("native-1").environmentId(ENVIRONMENT_ID).build();
+    private static final Api V4_TCP_API_1 =
+            aTcpApiV4().toBuilder().id("tcp-1").environmentId(ENVIRONMENT_ID).build();
+    private static final Api V4_TCP_API_2 = aTcpApiV4(List.of("baz.example.com")).toBuilder()
+            .id("tcp-2")
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+    private static final Api V4_HTTP_API_2 =
+            aProxyApiV4().toBuilder().id("http-1").environmentId(ENVIRONMENT_ID).build();
+    private static final Api V4_MESSAGE_API = aMessageApiV4().toBuilder()
+            .id("message-1")
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+    private static final Api V4_NATIVE_KAFKA_API = aNativeApi().toBuilder()
+            .id("native-1")
+            .environmentId(ENVIRONMENT_ID)
+            .build();
 
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     private VerifyApiHostsDomainService verifyApiHostsDomainService;
@@ -59,7 +66,8 @@ class VerifyApiHostsDomainServiceTest {
     @BeforeEach
     void setUp() {
         verifyApiHostsDomainService = new VerifyApiHostsDomainService(apiQueryService);
-        apiQueryService.initWith(List.of(V4_TCP_API_1, V4_TCP_API_2, V4_HTTP_API_2, V4_MESSAGE_API, V4_NATIVE_KAFKA_API));
+        apiQueryService.initWith(
+                List.of(V4_TCP_API_1, V4_TCP_API_2, V4_HTTP_API_2, V4_MESSAGE_API, V4_NATIVE_KAFKA_API));
     }
 
     @AfterEach
@@ -71,77 +79,76 @@ class VerifyApiHostsDomainServiceTest {
     @NullAndEmptySource
     void should_throw_invalid_hosts_exception_when_no_host(List<String> hosts) {
         assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
-            .isInstanceOf(InvalidHostException.class)
-            .hasMessage("At least one host is required for the TCP listener.");
+                .isInstanceOf(InvalidHostException.class)
+                .hasMessage("At least one host is required for the TCP listener.");
     }
 
     @Test
     void should_throw_hosts_already_exist_exception_when_hosts_are_duplicated() {
         var hosts = List.of("foo.example.com", "bar.example.com", "foo.example.com");
         assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
-            .isInstanceOf(DuplicatedHostException.class)
-            .hasMessage("Duplicated hosts detected: 'foo.example.com'. Please ensure each host is unique.");
+                .isInstanceOf(DuplicatedHostException.class)
+                .hasMessage("Duplicated hosts detected: 'foo.example.com'. Please ensure each host is unique.");
     }
 
     @Test
     void should_throw_hosts_already_exist_exception_when_host_is_used_by_another_api() {
         var hosts = List.of("foo.example.com", "tcp.example.com");
         assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
-            .isInstanceOf(HostAlreadyExistsException.class)
-            .hasMessage("Hosts [foo.example.com] already exists");
+                .isInstanceOf(HostAlreadyExistsException.class)
+                .hasMessage("Hosts [foo.example.com] already exists");
     }
 
     @Test
     void should_throw_hosts_already_exist_exception_when_host_is_used_by_another_native_api() {
         var hosts = List.of("native.kafka");
         assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
-            .isInstanceOf(HostAlreadyExistsException.class)
-            .hasMessage("Hosts [native.kafka] already exists");
+                .isInstanceOf(HostAlreadyExistsException.class)
+                .hasMessage("Hosts [native.kafka] already exists");
     }
 
     @Test
     void should_throw_invalid_hosts_exception_when_host_is_blank() {
         var hosts = List.of("foo.example.com", "");
         assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
-            .isInstanceOf(InvalidHostException.class)
-            .hasMessage("The hosts should not be null or blank.");
+                .isInstanceOf(InvalidHostException.class)
+                .hasMessage("The hosts should not be null or blank.");
     }
 
     @ParameterizedTest
     @ValueSource(
-        strings = {
-            "thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase",
-            "host.thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase.gravitee",
-            "-simple-host",
-            "simple-host-",
-            "simple-host-.host",
-            "_simple-host",
-            "simple-host_",
-            "MiXed-C4s3.example.c0m",
-        }
-    )
+            strings = {
+                "thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase",
+                "host.thisisalonghostnamewithmorethan63charactereswhichisnotvalidinourcase.gravitee",
+                "-simple-host",
+                "simple-host-",
+                "simple-host-.host",
+                "_simple-host",
+                "simple-host_",
+                "MiXed-C4s3.example.c0m",
+            })
     void should_throw_invalid_exception_when_not_matching_rfc_pattern(String host) {
         assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, List.of(host), null))
-            .isInstanceOf(InvalidHostException.class)
-            .hasMessage("The hosts should be valid.");
+                .isInstanceOf(InvalidHostException.class)
+                .hasMessage("The hosts should be valid.");
     }
 
     @Test
     void should_throw_invalid_hosts_exception_when_host_is_too_long() {
         var hosts = List.of(
-            "a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host"
-        );
+                "a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host");
         assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null))
-            .isInstanceOf(InvalidHostException.class)
-            .hasMessage("The hosts should not be greater than 255 characters.");
+                .isInstanceOf(InvalidHostException.class)
+                .hasMessage("The hosts should not be greater than 255 characters.");
     }
 
     @Test
     void should_throw_invalid_hosts_exception_when_first_segment_too_long_for_kafka() {
         var hosts = List.of("a-valid-sub-host-a-valid-sub-host-a-valid-sub-host.dev");
-        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, ListenerType.KAFKA))
-            .isInstanceOf(InvalidHostException.class)
-            .hasMessage("The first segment must be less than 50 characters.");
+        assertThatThrownBy(() ->
+                        verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, ListenerType.KAFKA))
+                .isInstanceOf(InvalidHostException.class)
+                .hasMessage("The first segment must be less than 50 characters.");
     }
 
     @Test
@@ -157,12 +164,11 @@ class VerifyApiHostsDomainServiceTest {
     void should_validate_hosts() {
         // given
         var hosts = List.of(
-            "tcp.1.example.com",
-            "tcp.2.example.com",
-            "tcp-hyphen.example.com",
-            "tcp_underscore.example.com",
-            "mixed-c4s3.example.c0m"
-        );
+                "tcp.1.example.com",
+                "tcp.2.example.com",
+                "tcp-hyphen.example.com",
+                "tcp_underscore.example.com",
+                "mixed-c4s3.example.c0m");
 
         // when
         var result = verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts, null);

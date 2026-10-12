@@ -35,7 +35,8 @@ public class GetApiLinkUseCase {
     public record Output(PortalNavigationLink link) {}
 
     public Output execute(Input input) {
-        var item = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), input.linkId());
+        var item = navigationItemsQueryService.findByIdAndEnvironmentId(
+                input.auditInfo().environmentId(), input.linkId());
         if (!(item instanceof PortalNavigationLink link) || !isApiAttached(link)) {
             throw new PortalLinkNotFoundException(input.linkId().toString());
         }
@@ -45,6 +46,7 @@ public class GetApiLinkUseCase {
     // Scopes the read to API-attached links so an /apis/{apiHrid}/links path cannot reach a
     // portal-attached one, mirroring GetApiDocumentationUseCase's referenceType filter.
     private static boolean isApiAttached(PortalNavigationLink link) {
-        return link.getAutomationMetadata() != null && link.getAutomationMetadata().referenceType() == AutomationMetadata.ReferenceType.API;
+        return link.getAutomationMetadata() != null
+                && link.getAutomationMetadata().referenceType() == AutomationMetadata.ReferenceType.API;
     }
 }

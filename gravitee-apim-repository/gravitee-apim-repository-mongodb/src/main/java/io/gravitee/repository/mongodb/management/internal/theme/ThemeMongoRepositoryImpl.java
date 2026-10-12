@@ -49,7 +49,8 @@ public class ThemeMongoRepositoryImpl implements ThemeMongoRepositoryCustom {
 
         List<ThemeMongo> apis = mongoTemplate.find(query, ThemeMongo.class);
 
-        return new Page<>(apis, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
+        return new Page<>(
+                apis, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
     }
 
     private Query buildQuery(ThemeCriteria themeCriteria, Pageable pageable) {

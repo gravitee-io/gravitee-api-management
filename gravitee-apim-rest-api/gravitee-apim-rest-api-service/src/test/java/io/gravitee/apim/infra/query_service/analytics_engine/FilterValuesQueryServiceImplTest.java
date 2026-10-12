@@ -62,11 +62,11 @@ class FilterValuesQueryServiceImplTest {
 
     @Test
     void should_make_single_es_call_for_page_one() {
-        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(
-            new FilterValuesResult(List.of("gw-1", "gw-2"), Map.of("value", "gw-2"), 42)
-        );
+        when(analyticsRepository.searchFilterValues(any(), any()))
+                .thenReturn(new FilterValuesResult(List.of("gw-1", "gw-2"), Map.of("value", "gw-2"), 42));
 
-        var result = service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 1, 10, null, null, null);
+        var result = service.searchFilterValues(
+                ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 1, 10, null, null, null);
 
         verify(analyticsRepository, times(1)).searchFilterValues(any(), queryCaptor.capture());
         var capturedQuery = queryCaptor.getValue();
@@ -74,9 +74,7 @@ class FilterValuesQueryServiceImplTest {
         assertThat(capturedQuery.esFieldName()).isEqualTo("gateway");
         assertThat(capturedQuery.size()).isEqualTo(10);
 
-        assertThat(result.data())
-            .extracting(fv -> fv.value())
-            .containsExactly("gw-1", "gw-2");
+        assertThat(result.data()).extracting(fv -> fv.value()).containsExactly("gw-1", "gw-2");
         assertThat(result.afterKey()).containsEntry("value", "gw-2");
         assertThat(result.totalFilteredCount()).isEqualTo(42L);
     }
@@ -84,34 +82,34 @@ class FilterValuesQueryServiceImplTest {
     @Test
     void should_iterate_composite_pages_to_reach_requested_page() {
         var page1AfterKey = Map.<String, Object>of("value", "gw-10");
-        when(analyticsRepository.searchFilterValues(any(), argThat(q -> q != null && q.afterKey() == null))).thenReturn(
-            new FilterValuesResult(List.of("gw-1", "gw-2"), page1AfterKey, 25)
-        );
-        when(
-            analyticsRepository.searchFilterValues(
-                any(),
-                argThat(q -> q != null && q.afterKey() != null && q.afterKey().equals(page1AfterKey))
-            )
-        ).thenReturn(new FilterValuesResult(List.of("gw-11", "gw-12"), Map.of("value", "gw-20"), 25));
+        when(analyticsRepository.searchFilterValues(any(), argThat(q -> q != null && q.afterKey() == null)))
+                .thenReturn(new FilterValuesResult(List.of("gw-1", "gw-2"), page1AfterKey, 25));
+        when(analyticsRepository.searchFilterValues(
+                        any(),
+                        argThat(q -> q != null
+                                && q.afterKey() != null
+                                && q.afterKey().equals(page1AfterKey))))
+                .thenReturn(new FilterValuesResult(List.of("gw-11", "gw-12"), Map.of("value", "gw-20"), 25));
 
-        var result = service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 2, 10, null, null, null);
+        var result = service.searchFilterValues(
+                ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 2, 10, null, null, null);
 
         verify(analyticsRepository, times(2)).searchFilterValues(any(), queryCaptor.capture());
         var queries = queryCaptor.getAllValues();
         assertThat(queries.get(0).afterKey()).isNull();
         assertThat(queries.get(1).afterKey()).isEqualTo(page1AfterKey);
 
-        assertThat(result.data())
-            .extracting(fv -> fv.value())
-            .containsExactly("gw-11", "gw-12");
+        assertThat(result.data()).extracting(fv -> fv.value()).containsExactly("gw-11", "gw-12");
         assertThat(result.totalFilteredCount()).isEqualTo(25L);
     }
 
     @Test
     void should_return_empty_page_when_data_exhausted_before_target_page() {
-        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("gw-1"), null, 1));
+        when(analyticsRepository.searchFilterValues(any(), any()))
+                .thenReturn(new FilterValuesResult(List.of("gw-1"), null, 1));
 
-        var result = service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 3, 10, null, null, null);
+        var result = service.searchFilterValues(
+                ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 3, 10, null, null, null);
 
         verify(analyticsRepository, times(1)).searchFilterValues(any(), any());
         assertThat(result.data()).isEmpty();
@@ -120,9 +118,11 @@ class FilterValuesQueryServiceImplTest {
 
     @Test
     void should_return_empty_page_when_after_key_is_empty_map_before_target_page() {
-        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("gw-1"), Map.of(), 5));
+        when(analyticsRepository.searchFilterValues(any(), any()))
+                .thenReturn(new FilterValuesResult(List.of("gw-1"), Map.of(), 5));
 
-        var result = service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 2, 10, null, null, null);
+        var result = service.searchFilterValues(
+                ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 2, 10, null, null, null);
 
         verify(analyticsRepository, times(1)).searchFilterValues(any(), any());
         assertThat(result.data()).isEmpty();
@@ -132,14 +132,13 @@ class FilterValuesQueryServiceImplTest {
     @Test
     void should_propagate_total_count_from_first_es_response() {
         var page1AfterKey = Map.<String, Object>of("value", "gw-5");
-        when(analyticsRepository.searchFilterValues(any(), argThat(q -> q != null && q.afterKey() == null))).thenReturn(
-            new FilterValuesResult(List.of("gw-1"), page1AfterKey, 100)
-        );
-        when(analyticsRepository.searchFilterValues(any(), argThat(q -> q != null && q.afterKey() != null))).thenReturn(
-            new FilterValuesResult(List.of("gw-6"), null, 100)
-        );
+        when(analyticsRepository.searchFilterValues(any(), argThat(q -> q != null && q.afterKey() == null)))
+                .thenReturn(new FilterValuesResult(List.of("gw-1"), page1AfterKey, 100));
+        when(analyticsRepository.searchFilterValues(any(), argThat(q -> q != null && q.afterKey() != null)))
+                .thenReturn(new FilterValuesResult(List.of("gw-6"), null, 100));
 
-        var result = service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 2, 5, null, null, null);
+        var result =
+                service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 2, 5, null, null, null);
 
         assertThat(result.totalFilteredCount()).isEqualTo(100L);
     }
@@ -149,7 +148,8 @@ class FilterValuesQueryServiceImplTest {
         var from = Instant.parse("2025-01-01T00:00:00Z");
         var to = Instant.parse("2025-12-31T23:59:59Z");
 
-        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("gw-1"), null, 1));
+        when(analyticsRepository.searchFilterValues(any(), any()))
+                .thenReturn(new FilterValuesResult(List.of("gw-1"), null, 1));
 
         service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, from, to, 1, 10, null, null, null);
 
@@ -161,7 +161,8 @@ class FilterValuesQueryServiceImplTest {
 
     @Test
     void should_pass_search_pattern_to_es_query() {
-        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("gw-prod"), null, 1));
+        when(analyticsRepository.searchFilterValues(any(), any()))
+                .thenReturn(new FilterValuesResult(List.of("gw-prod"), null, 1));
 
         service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 1, 10, null, "prod", null);
 
@@ -171,7 +172,8 @@ class FilterValuesQueryServiceImplTest {
 
     @Test
     void should_resolve_es_field_name_for_api_filter() {
-        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("api-1"), null, 1));
+        when(analyticsRepository.searchFilterValues(any(), any()))
+                .thenReturn(new FilterValuesResult(List.of("api-1"), null, 1));
 
         service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.API, null, null, 1, 10, null, null, null);
 
@@ -181,7 +183,8 @@ class FilterValuesQueryServiceImplTest {
 
     @Test
     void should_resolve_es_field_name_for_api_product_filter() {
-        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("product-1"), null, 1));
+        when(analyticsRepository.searchFilterValues(any(), any()))
+                .thenReturn(new FilterValuesResult(List.of("product-1"), null, 1));
 
         service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.API_PRODUCT, null, null, 1, 10, null, null, null);
 
@@ -191,7 +194,8 @@ class FilterValuesQueryServiceImplTest {
 
     @Test
     void should_pass_authorized_api_ids_to_es_query() {
-        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("gw-1"), null, 1));
+        when(analyticsRepository.searchFilterValues(any(), any()))
+                .thenReturn(new FilterValuesResult(List.of("gw-1"), null, 1));
 
         var apiIds = Set.of("api-1", "api-2");
         service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 1, 10, null, null, apiIds);
@@ -202,7 +206,8 @@ class FilterValuesQueryServiceImplTest {
 
     @Test
     void should_leave_api_ids_null_on_query_when_authorized_api_ids_not_provided() {
-        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("gw-1"), null, 1));
+        when(analyticsRepository.searchFilterValues(any(), any()))
+                .thenReturn(new FilterValuesResult(List.of("gw-1"), null, 1));
 
         service.searchFilterValues(ORG_ID, ENV_ID, FilterSpec.Name.GATEWAY, null, null, 1, 10, null, null, null);
 
@@ -213,7 +218,8 @@ class FilterValuesQueryServiceImplTest {
     @ParameterizedTest
     @MethodSource("filterToEsFieldMappings")
     void should_resolve_es_field_name(FilterSpec.Name filterName, String expectedEsField) {
-        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("v1"), null, 1));
+        when(analyticsRepository.searchFilterValues(any(), any()))
+                .thenReturn(new FilterValuesResult(List.of("v1"), null, 1));
 
         service.searchFilterValues(ORG_ID, ENV_ID, filterName, null, null, 1, 10, null, null, null);
 
@@ -223,15 +229,14 @@ class FilterValuesQueryServiceImplTest {
 
     static Stream<Arguments> filterToEsFieldMappings() {
         return Stream.of(
-            Arguments.of(FilterSpec.Name.EDGE_PROVIDER, "additional-metrics.keyword_edge_provider"),
-            Arguments.of(FilterSpec.Name.EDGE_PROCESS, "additional-metrics.keyword_edge_process"),
-            Arguments.of(FilterSpec.Name.EDGE_CLIENT, "client-identifier"),
-            Arguments.of(FilterSpec.Name.EDGE_TYPE, "additional-metrics.keyword_edge_type"),
-            Arguments.of(FilterSpec.Name.MESSAGE_CONNECTOR_TYPE, "connector-type"),
-            Arguments.of(FilterSpec.Name.ENTRYPOINT, "entrypoint-id"),
-            Arguments.of(FilterSpec.Name.ERROR_KEY, "error-key"),
-            Arguments.of(FilterSpec.Name.REQUEST_ID, "request-id"),
-            Arguments.of(FilterSpec.Name.TRANSACTION_ID, "transaction-id")
-        );
+                Arguments.of(FilterSpec.Name.EDGE_PROVIDER, "additional-metrics.keyword_edge_provider"),
+                Arguments.of(FilterSpec.Name.EDGE_PROCESS, "additional-metrics.keyword_edge_process"),
+                Arguments.of(FilterSpec.Name.EDGE_CLIENT, "client-identifier"),
+                Arguments.of(FilterSpec.Name.EDGE_TYPE, "additional-metrics.keyword_edge_type"),
+                Arguments.of(FilterSpec.Name.MESSAGE_CONNECTOR_TYPE, "connector-type"),
+                Arguments.of(FilterSpec.Name.ENTRYPOINT, "entrypoint-id"),
+                Arguments.of(FilterSpec.Name.ERROR_KEY, "error-key"),
+                Arguments.of(FilterSpec.Name.REQUEST_ID, "request-id"),
+                Arguments.of(FilterSpec.Name.TRANSACTION_ID, "transaction-id"));
     }
 }

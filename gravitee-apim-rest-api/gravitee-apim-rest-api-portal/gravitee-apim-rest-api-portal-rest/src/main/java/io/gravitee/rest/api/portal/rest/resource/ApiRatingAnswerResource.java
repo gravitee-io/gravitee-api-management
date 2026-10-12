@@ -45,22 +45,17 @@ public class ApiRatingAnswerResource extends AbstractResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.DELETE)})
     public Response deleteApiRatingAnswer(
-        @PathParam("apiId") String apiId,
-        @PathParam("ratingId") String ratingId,
-        @PathParam("answerId") String answerId
-    ) {
+            @PathParam("apiId") String apiId,
+            @PathParam("ratingId") String ratingId,
+            @PathParam("answerId") String answerId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             RatingEntity ratingEntity = ratingService.findById(executionContext, ratingId);
             if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
-                if (
-                    ratingEntity
-                        .getAnswers()
-                        .stream()
-                        .anyMatch(answer -> answer.getId().equals(answerId))
-                ) {
+                if (ratingEntity.getAnswers().stream()
+                        .anyMatch(answer -> answer.getId().equals(answerId))) {
                     ratingService.deleteAnswer(executionContext, ratingId, answerId);
                     return Response.status(Status.NO_CONTENT).build();
                 }

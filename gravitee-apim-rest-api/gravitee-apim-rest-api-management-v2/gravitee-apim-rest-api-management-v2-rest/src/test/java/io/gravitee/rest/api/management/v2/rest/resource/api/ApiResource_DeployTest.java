@@ -56,17 +56,23 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
         deployEntity.setDeploymentLabel("label");
 
-        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().state(Lifecycle.State.STARTED).updatedAt(new Date()).build();
-        when(apiStateServiceV4.deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any())).thenReturn(apiEntity);
+        ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder()
+                .state(Lifecycle.State.STARTED)
+                .updatedAt(new Date())
+                .build();
+        when(apiStateServiceV4.deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any()))
+                .thenReturn(apiEntity);
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
 
         assertEquals(ACCEPTED_202, response.getStatus());
 
-        assertEquals(apiEntity.getUpdatedAt().toString(), response.getLastModified().toString());
+        assertEquals(
+                apiEntity.getUpdatedAt().toString(), response.getLastModified().toString());
         assertEquals(new EntityTag(Long.toString(apiEntity.getUpdatedAt().getTime())), response.getEntityTag());
 
-        verify(apiStateServiceV4, times(1)).deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any());
+        verify(apiStateServiceV4, times(1))
+                .deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any());
     }
 
     @Test
@@ -85,7 +91,9 @@ public class ApiResource_DeployTest extends ApiResourceTest {
     public void shouldDeployApiWithFailingLicenseCheck() {
         ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
         deployEntity.setDeploymentLabel("label");
-        doThrow(new ForbiddenFeatureException("apim-en-endpoint-mqtt5")).when(apiLicenseService).checkLicense(any(), anyString());
+        doThrow(new ForbiddenFeatureException("apim-en-endpoint-mqtt5"))
+                .when(apiLicenseService)
+                .checkLicense(any(), anyString());
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
 
@@ -101,9 +109,9 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
         deployEntity.setDeploymentLabel("a nice label");
 
-        when(
-            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any())
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
+                .thenReturn(false);
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());

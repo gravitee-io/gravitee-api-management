@@ -33,8 +33,9 @@ public class EndpointDiscoverySerializer extends ServiceSerializer<EndpointDisco
     }
 
     @Override
-    protected void doSerialize(EndpointDiscoveryService service, JsonGenerator jgen, SerializerProvider serializerProvider)
-        throws IOException {
+    protected void doSerialize(
+            EndpointDiscoveryService service, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         super.doSerialize(service, jgen, serializerProvider);
 
         if (service.isEnabled()) {

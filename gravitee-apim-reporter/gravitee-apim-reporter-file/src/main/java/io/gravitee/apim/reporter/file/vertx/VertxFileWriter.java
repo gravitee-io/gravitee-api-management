@@ -63,7 +63,7 @@ public class VertxFileWriter<T extends Reportable> {
      */
     private static final char CR = '\r';
 
-    private static final byte[] END_OF_LINE = new byte[] { CR, LF };
+    private static final byte[] END_OF_LINE = new byte[] {CR, LF};
 
     private final Vertx vertx;
 
@@ -91,12 +91,11 @@ public class VertxFileWriter<T extends Reportable> {
     private final Pattern rolloverFiles;
 
     public VertxFileWriter(
-        Vertx vertx,
-        MetricsType type,
-        Formatter<T> formatter,
-        String filename,
-        FileReporterConfiguration configuration
-    ) {
+            Vertx vertx,
+            MetricsType type,
+            Formatter<T> formatter,
+            String filename,
+            FileReporterConfiguration configuration) {
         this.vertx = vertx;
         this.type = type;
         this.formatter = formatter;
@@ -115,11 +114,11 @@ public class VertxFileWriter<T extends Reportable> {
 
         File file = new File(this.filename);
 
-        int datePattern = configuration.getFilename().toLowerCase(Locale.ENGLISH).indexOf(YYYY_MM_DD);
+        int datePattern =
+                configuration.getFilename().toLowerCase(Locale.ENGLISH).indexOf(YYYY_MM_DD);
         if (datePattern >= 0) {
-            rolloverFiles = Pattern.compile(
-                String.format(file.getName(), this.type.getType()).replaceFirst(YYYY_MM_DD, "([0-9]{4}_[0-9]{2}_[0-9]{2})")
-            );
+            rolloverFiles = Pattern.compile(String.format(file.getName(), this.type.getType())
+                    .replaceFirst(YYYY_MM_DD, "([0-9]{4}_[0-9]{2}_[0-9]{2})"));
         } else {
             rolloverFiles = null;
         }
@@ -130,13 +129,11 @@ public class VertxFileWriter<T extends Reportable> {
             log.debug("Flush the content to file");
 
             if (asyncFile != null) {
-                asyncFile
-                    .flush()
-                    .onComplete(event1 -> {
-                        if (event1.failed()) {
-                            log.error("An error occurs while flushing the content of the file", event1.cause());
-                        }
-                    });
+                asyncFile.flush().onComplete(event1 -> {
+                    if (event1.failed()) {
+                        log.error("An error occurs while flushing the content of the file", event1.cause());
+                    }
+                });
             }
         });
     }
@@ -174,12 +171,11 @@ public class VertxFileWriter<T extends Reportable> {
 
                 int datePattern = filename.toLowerCase(Locale.ENGLISH).indexOf(YYYY_MM_DD);
                 if (datePattern >= 0) {
-                    filename =
-                        dir.getAbsolutePath() +
-                        File.separatorChar +
-                        filename.substring(0, datePattern) +
-                        fileDateFormat.format(new Date(now.toInstant().toEpochMilli())) +
-                        filename.substring(datePattern + YYYY_MM_DD.length());
+                    filename = dir.getAbsolutePath()
+                            + File.separatorChar
+                            + filename.substring(0, datePattern)
+                            + fileDateFormat.format(new Date(now.toInstant().toEpochMilli()))
+                            + filename.substring(datePattern + YYYY_MM_DD.length());
                 }
 
                 log.info("Initializing file reporter to write into file: {}", filename);
@@ -192,28 +188,28 @@ public class VertxFileWriter<T extends Reportable> {
                     options.setDsync(true);
                 }
 
-                vertx
-                    .fileSystem()
-                    .open(filename, options)
-                    .onComplete(event -> {
-                        if (event.succeeded()) {
-                            asyncFile = event.result();
+                vertx.fileSystem().open(filename, options).onComplete(event -> {
+                    if (event.succeeded()) {
+                        asyncFile = event.result();
 
-                            if (oldAsyncFile != null) {
-                                // Now we can close previous file safely
-                                stop(oldAsyncFile).onComplete(closeEvent -> {
-                                    if (!closeEvent.succeeded()) {
-                                        log.error("An error occurs while closing file writer for type[{}]", this.type, closeEvent.cause());
-                                    }
-                                });
-                            }
-
-                            promise.complete();
-                        } else {
-                            log.error("An error occurs while starting file writer for type[{}]", this.type, event.cause());
-                            promise.fail(event.cause());
+                        if (oldAsyncFile != null) {
+                            // Now we can close previous file safely
+                            stop(oldAsyncFile).onComplete(closeEvent -> {
+                                if (!closeEvent.succeeded()) {
+                                    log.error(
+                                            "An error occurs while closing file writer for type[{}]",
+                                            this.type,
+                                            closeEvent.cause());
+                                }
+                            });
                         }
-                    });
+
+                        promise.complete();
+                    } else {
+                        log.error("An error occurs while starting file writer for type[{}]", this.type, event.cause());
+                        promise.fail(event.cause());
+                    }
+                });
             } catch (IOException ioe) {
                 promise.fail(ioe);
             }
@@ -224,20 +220,19 @@ public class VertxFileWriter<T extends Reportable> {
 
     public void write(T data) {
         if (asyncFile != null && !asyncFile.writeQueueFull()) {
-            vertx
-                .<Buffer>executeBlocking(() -> {
-                    Buffer buffer = formatter.format(data);
-                    if (buffer != null) {
-                        return buffer;
-                    } else {
-                        throw new RuntimeException("Invalid data");
-                    }
-                })
-                .onComplete(event -> {
-                    if (event.succeeded() && !asyncFile.writeQueueFull()) {
-                        asyncFile.write(event.result().appendBytes(END_OF_LINE));
-                    }
-                });
+            vertx.<Buffer>executeBlocking(() -> {
+                        Buffer buffer = formatter.format(data);
+                        if (buffer != null) {
+                            return buffer;
+                        } else {
+                            throw new RuntimeException("Invalid data");
+                        }
+                    })
+                    .onComplete(event -> {
+                        if (event.succeeded() && !asyncFile.writeQueueFull()) {
+                            asyncFile.write(event.result().appendBytes(END_OF_LINE));
+                        }
+                    });
         }
     }
 
@@ -271,20 +266,17 @@ public class VertxFileWriter<T extends Reportable> {
         if (asyncFile != null) {
             // Ensure everything has been flushed before closing the file
             asyncFile
-                .flush()
-                .onComplete(flushEvent ->
-                    asyncFile
-                        .close()
-                        .onComplete(event -> {
-                            if (event.succeeded()) {
-                                log.info("File writer is now closed for type [{}]", this.type);
-                                promise.complete();
-                            } else {
-                                log.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
-                                promise.fail(event.cause());
-                            }
-                        })
-                );
+                    .flush()
+                    .onComplete(flushEvent -> asyncFile.close().onComplete(event -> {
+                        if (event.succeeded()) {
+                            log.info("File writer is now closed for type [{}]", this.type);
+                            promise.complete();
+                        } else {
+                            log.error(
+                                    "An error occurs while closing file writer for type[{}]", this.type, event.cause());
+                            promise.fail(event.cause());
+                        }
+                    }));
         } else {
             promise.complete();
         }
@@ -321,7 +313,8 @@ public class VertxFileWriter<T extends Reportable> {
         @Override
         public void run() {
             try {
-                ZonedDateTime now = ZonedDateTime.now(fileDateFormat.getTimeZone().toZoneId());
+                ZonedDateTime now =
+                        ZonedDateTime.now(fileDateFormat.getTimeZone().toZoneId());
                 VertxFileWriter.this.setFile(now);
                 VertxFileWriter.this.scheduleNextRollover(now);
                 VertxFileWriter.this.removeOldFiles();

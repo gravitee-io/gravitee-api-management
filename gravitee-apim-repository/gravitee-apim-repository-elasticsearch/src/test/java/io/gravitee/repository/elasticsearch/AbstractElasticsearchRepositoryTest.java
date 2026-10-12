@@ -25,5 +25,5 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { TestConfiguration.class })
+@ContextConfiguration(classes = {TestConfiguration.class})
 public abstract class AbstractElasticsearchRepositoryTest {}

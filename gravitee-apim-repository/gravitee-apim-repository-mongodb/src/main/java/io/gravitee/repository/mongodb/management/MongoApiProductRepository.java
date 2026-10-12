@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,11 +47,13 @@ public class MongoApiProductRepository implements ApiProductsRepository {
     private GraviteeMapper mapper;
 
     @Override
-    public Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name) throws TechnicalException {
+    public Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name)
+            throws TechnicalException {
         log.debug("MongoApiProductRepository.findByEnvironmentIdAndName({} , {})", environmentId, name);
 
         try {
-            Optional<ApiProductMongo> apiProductMongo = internalApiProductRepo.findByEnvironmentIdAndName(environmentId, name);
+            Optional<ApiProductMongo> apiProductMongo =
+                    internalApiProductRepo.findByEnvironmentIdAndName(environmentId, name);
             return apiProductMongo.map(mapper::map);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api product by environment and name", ex);
@@ -63,7 +64,9 @@ public class MongoApiProductRepository implements ApiProductsRepository {
     public Set<ApiProduct> findByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("MongoApiProductRepository.findByEnvironmentId({})", environmentId);
         try {
-            return internalApiProductRepo.findByEnvironmentId(environmentId).stream().map(mapper::map).collect(Collectors.toSet());
+            return internalApiProductRepo.findByEnvironmentId(environmentId).stream()
+                    .map(mapper::map)
+                    .collect(Collectors.toSet());
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find api products by environment", ex);
         }
@@ -95,7 +98,9 @@ public class MongoApiProductRepository implements ApiProductsRepository {
                 throw new IllegalArgumentException("ApiProduct id is null");
             }
 
-            internalApiProductRepo.findById(apiProduct.getId()).orElseThrow(() -> new TechnicalException("ApiProduct not found"));
+            internalApiProductRepo
+                    .findById(apiProduct.getId())
+                    .orElseThrow(() -> new TechnicalException("ApiProduct not found"));
 
             ApiProductMongo apiProductMongo = mapper.map(apiProduct);
             ApiProductMongo updatedMongo = internalApiProductRepo.save(apiProductMongo);
@@ -128,18 +133,22 @@ public class MongoApiProductRepository implements ApiProductsRepository {
     public List<ApiProduct> search(ApiProductCriteria criteria) throws TechnicalException {
         log.debug("MongoApiProductRepository.search({})", criteria);
         try {
-            return internalApiProductRepo.search(criteria).stream().map(mapper::map).collect(Collectors.toList());
+            return internalApiProductRepo.search(criteria).stream()
+                    .map(mapper::map)
+                    .collect(Collectors.toList());
         } catch (Exception ex) {
             throw new TechnicalException("Failed to search api products", ex);
         }
     }
 
     @Override
-    public Page<ApiProduct> search(ApiProductCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+    public Page<ApiProduct> search(ApiProductCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
         log.debug("MongoApiProductRepository.search({}, pageable)", criteria);
         try {
             Page<ApiProductMongo> page = internalApiProductRepo.search(criteria, pageable, sortable);
-            List<ApiProduct> content = page.getContent().stream().map(mapper::map).collect(Collectors.toList());
+            List<ApiProduct> content =
+                    page.getContent().stream().map(mapper::map).collect(Collectors.toList());
             return new Page<>(content, page.getPageNumber(), content.size(), page.getTotalElements());
         } catch (Exception ex) {
             throw new TechnicalException("Failed to search api products", ex);
@@ -174,7 +183,9 @@ public class MongoApiProductRepository implements ApiProductsRepository {
         }
         log.debug("MongoApiProductRepository.findByIds({})", ids);
         try {
-            return internalApiProductRepo.findAllById(ids).stream().map(mapper::map).collect(Collectors.toSet());
+            return internalApiProductRepo.findAllById(ids).stream()
+                    .map(mapper::map)
+                    .collect(Collectors.toSet());
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find api products by ids", ex);
         }
@@ -196,7 +207,7 @@ public class MongoApiProductRepository implements ApiProductsRepository {
 
     @Override
     public Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable)
-        throws TechnicalException {
+            throws TechnicalException {
         return internalApiProductRepo.searchIds(apiProductCriteriaList, pageable, sortable);
     }
 }

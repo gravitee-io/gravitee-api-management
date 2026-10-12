@@ -49,5 +49,6 @@ public class NativeApiMetrics {
     private String securityType;
     /** Non-PII token identifying the credential; the application's OAuth client id for OAuth2/JWT plans. */
     private String securityToken;
+
     private Map<String, Object> additionalMetrics;
 }

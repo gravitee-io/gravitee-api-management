@@ -63,7 +63,10 @@ class PortalCategoriesResourceTest extends AbstractResourceTest {
         super.setUp();
         GraviteeContext.cleanContext();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
@@ -83,20 +86,27 @@ class PortalCategoriesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_portal_categories_sorted_alphabetically() {
-            portalCategoryQueryServiceInMemory.initWith(
-                List.of(
-                    PortalCategory.of(PortalCategoryId.of("f47ac10b-58cc-4372-a567-0e02b2c3d479"), ENVIRONMENT, "Weather", null, true),
-                    PortalCategory.of(PortalCategoryId.of("6ba7b810-9dad-11d1-80b4-00c04fd430c8"), ENVIRONMENT, "Analytics", null, false)
-                )
-            );
+            portalCategoryQueryServiceInMemory.initWith(List.of(
+                    PortalCategory.of(
+                            PortalCategoryId.of("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+                            ENVIRONMENT,
+                            "Weather",
+                            null,
+                            true),
+                    PortalCategory.of(
+                            PortalCategoryId.of("6ba7b810-9dad-11d1-80b4-00c04fd430c8"),
+                            ENVIRONMENT,
+                            "Analytics",
+                            null,
+                            false)));
 
             var response = rootTarget().request().get();
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalCategory[].class);
             assertThat(body)
-                .extracting(io.gravitee.rest.api.management.v2.rest.model.PortalCategory::getTitle)
-                .containsExactly("Analytics", "Weather");
+                    .extracting(io.gravitee.rest.api.management.v2.rest.model.PortalCategory::getTitle)
+                    .containsExactly("Analytics", "Weather");
         }
 
         @Test
@@ -110,9 +120,11 @@ class PortalCategoriesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.READ, () ->
-                rootTarget().request().get()
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().request().get());
         }
     }
 
@@ -121,7 +133,10 @@ class PortalCategoriesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_portal_category() {
-            var createPortalCategory = new CreatePortalCategory().title("Weather").description("Weather APIs").visible(true);
+            var createPortalCategory = new CreatePortalCategory()
+                    .title("Weather")
+                    .description("Weather APIs")
+                    .visible(true);
 
             var response = rootTarget().request().post(json(createPortalCategory));
 
@@ -133,7 +148,8 @@ class PortalCategoriesResourceTest extends AbstractResourceTest {
             assertThat(created.getVisible()).isTrue();
 
             assertThat(portalCategoryCrudServiceInMemory.storage()).hasSize(1);
-            assertThat(portalCategoryCrudServiceInMemory.storage().getFirst().getEnvironmentId()).isEqualTo(ENVIRONMENT);
+            assertThat(portalCategoryCrudServiceInMemory.storage().getFirst().getEnvironmentId())
+                    .isEqualTo(ENVIRONMENT);
         }
 
         @Test
@@ -156,9 +172,8 @@ class PortalCategoriesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_409_when_title_already_exists() {
-            portalCategoryQueryServiceInMemory.initWith(
-                List.of(PortalCategory.of(PortalCategoryId.of("f47ac10b-58cc-4372-a567-0e02b2c3d479"), ENVIRONMENT, "Weather", null, true))
-            );
+            portalCategoryQueryServiceInMemory.initWith(List.of(PortalCategory.of(
+                    PortalCategoryId.of("f47ac10b-58cc-4372-a567-0e02b2c3d479"), ENVIRONMENT, "Weather", null, true)));
             var createPortalCategory = new CreatePortalCategory().title("Weather");
 
             var response = rootTarget().request().post(json(createPortalCategory));
@@ -169,9 +184,11 @@ class PortalCategoriesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.CREATE, () ->
-                rootTarget().request().post(json(new CreatePortalCategory().title("Weather")))
-            );
+            shouldReturn403(
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.CREATE,
+                    () -> rootTarget().request().post(json(new CreatePortalCategory().title("Weather"))));
         }
     }
 }

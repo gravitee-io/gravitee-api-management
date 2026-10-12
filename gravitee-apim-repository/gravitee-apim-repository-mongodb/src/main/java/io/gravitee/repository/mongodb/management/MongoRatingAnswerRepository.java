@@ -52,9 +52,13 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
 
     @Override
     public RatingAnswer create(RatingAnswer ratingAnswer) throws TechnicalException {
-        log.debug("Create rating answer for rating [{}] by user [{}]", ratingAnswer.getRating(), ratingAnswer.getUser());
+        log.debug(
+                "Create rating answer for rating [{}] by user [{}]", ratingAnswer.getRating(), ratingAnswer.getUser());
         final RatingAnswer createdRatingAnswer = map(internalRatingAnswerRepository.insert(map(ratingAnswer)));
-        log.debug("Create rating answer for rating [{}] by user [{}] - DONE", ratingAnswer.getRating(), ratingAnswer.getUser());
+        log.debug(
+                "Create rating answer for rating [{}] by user [{}] - DONE",
+                ratingAnswer.getRating(),
+                ratingAnswer.getUser());
         return createdRatingAnswer;
     }
 
@@ -63,7 +67,8 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
         if (ratingAnswer == null || ratingAnswer.getId() == null) {
             throw new IllegalStateException("Rating answer to update must specify an id");
         }
-        final RatingAnswerMongo ratingAnswerMongo = internalRatingAnswerRepository.findById(ratingAnswer.getId()).orElse(null);
+        final RatingAnswerMongo ratingAnswerMongo =
+                internalRatingAnswerRepository.findById(ratingAnswer.getId()).orElse(null);
         if (ratingAnswerMongo == null) {
             throw new IllegalStateException(String.format("No rating answer found with id [%s]", ratingAnswer.getId()));
         }
@@ -83,7 +88,8 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
     @Override
     public Optional<RatingAnswer> findById(String id) throws TechnicalException {
         log.debug("Find rating answer by ID [{}]", id);
-        final RatingAnswerMongo ratingAnswerMongo = internalRatingAnswerRepository.findById(id).orElse(null);
+        final RatingAnswerMongo ratingAnswerMongo =
+                internalRatingAnswerRepository.findById(id).orElse(null);
         log.debug("Find rating answer by ID [{}] - internalRatingAnswerRepository", id);
         return ofNullable(map(ratingAnswerMongo));
     }
@@ -102,7 +108,9 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
     public List<String> deleteByRating(String ratingId) throws TechnicalException {
         try {
             log.debug("Delete rating answer by ratingId [{}]", ratingId);
-            return internalRatingAnswerRepository.deleteByRating(ratingId).stream().map(RatingAnswerMongo::getId).toList();
+            return internalRatingAnswerRepository.deleteByRating(ratingId).stream()
+                    .map(RatingAnswerMongo::getId)
+                    .toList();
         } catch (Exception e) {
             log.error("An error occurred while deleting rating answer by ratingId [{}]", ratingId, e);
             throw new TechnicalException("An error occurred while deleting rating answer by ratingId");

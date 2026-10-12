@@ -38,21 +38,20 @@ import org.junit.jupiter.api.Test;
 class ValidatePortalUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String PORTAL_HRID = "default-portal";
     private static final Portal PORTAL = Portal.of(
-        PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id()),
-        AUDIT_INFO.environmentId(),
-        AUDIT_INFO.organizationId(),
-        "Default Portal"
-    );
+            PortalId.of(
+                    HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id()),
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            "Default Portal");
 
     private final ValidatePortalDomainService validator = new ValidatePortalDomainService(
-        new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false)
-    );
+            new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false));
     private ValidatePortalUseCase useCase;
 
     @BeforeEach
@@ -62,15 +61,11 @@ class ValidatePortalUseCaseTest {
 
     @Test
     void should_return_portal_and_no_errors_for_well_formed_input() {
-        var output = useCase.execute(
-            new CreateOrUpdatePortalUseCase.Input(
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 PORTAL,
-                PortalNavigationStructure.ofTopNavbar(
-                    List.of(new NavigationPath("/docs", null), new NavigationPath("/docs/getting-started", null))
-                )
-            )
-        );
+                PortalNavigationStructure.ofTopNavbar(List.of(
+                        new NavigationPath("/docs", null), new NavigationPath("/docs/getting-started", null)))));
 
         assertThat(output.portal()).isEqualTo(PORTAL);
         assertThat(output.errors()).isEmpty();
@@ -78,13 +73,11 @@ class ValidatePortalUseCaseTest {
 
     @Test
     void should_surface_path_format_errors_with_indexed_field_name() {
-        var output = useCase.execute(
-            new CreateOrUpdatePortalUseCase.Input(
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 PORTAL,
-                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null)))
-            )
-        );
+                PortalNavigationStructure.ofTopNavbar(
+                        List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null)))));
 
         assertThat(output.errors()).anyMatch(e -> e.getMessage().contains("structure.topNavbar[1].path"));
     }

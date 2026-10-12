@@ -53,33 +53,26 @@ class CockpitAccessServiceImplTest {
     void should_build_access_point_template_when_installation_is_multi_tenant() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(true);
         environment.withProperty(
-            "installation.multi-tenant.accessPoints.organization.console.host",
-            "{organization}.{account}.apim-console.gravitee.io"
-        );
+                "installation.multi-tenant.accessPoints.organization.console.host",
+                "{organization}.{account}.apim-console.gravitee.io");
         environment.withProperty(
-            "installation.multi-tenant.accessPoints.organization.console-api.host",
-            "{organization}.{account}.apim-console-api.gravitee.io"
-        );
+                "installation.multi-tenant.accessPoints.organization.console-api.host",
+                "{organization}.{account}.apim-console-api.gravitee.io");
         environment.withProperty(
-            "installation.multi-tenant.accessPoints.environment.portal.host",
-            "{environment}.{organization}.{account}.apim-portal.gravitee.io"
-        );
+                "installation.multi-tenant.accessPoints.environment.portal.host",
+                "{environment}.{organization}.{account}.apim-portal.gravitee.io");
         environment.withProperty(
-            "installation.multi-tenant.accessPoints.environment.portal-api.host",
-            "{environment}.{organization}.{account}.apim-portal-api.gravitee.io"
-        );
+                "installation.multi-tenant.accessPoints.environment.portal-api.host",
+                "{environment}.{organization}.{account}.apim-portal-api.gravitee.io");
         environment.withProperty(
-            "installation.multi-tenant.accessPoints.environment.gateway.host",
-            "{environment}.{organization}.{account}.apim-gateway.gravitee.io"
-        );
+                "installation.multi-tenant.accessPoints.environment.gateway.host",
+                "{environment}.{organization}.{account}.apim-gateway.gravitee.io");
         environment.withProperty(
-            "installation.multi-tenant.accessPoints.environment.tcp-gateway.host",
-            "{environment}.{organization}.{account}.apim-tcp-gateway.gravitee.io"
-        );
+                "installation.multi-tenant.accessPoints.environment.tcp-gateway.host",
+                "{environment}.{organization}.{account}.apim-tcp-gateway.gravitee.io");
         environment.withProperty(
-            "installation.multi-tenant.accessPoints.environment.kafka-gateway.host",
-            "{environment}.{organization}.{account}.apim-kafka-gateway.gravitee.io"
-        );
+                "installation.multi-tenant.accessPoints.environment.kafka-gateway.host",
+                "{environment}.{organization}.{account}.apim-kafka-gateway.gravitee.io");
 
         cut.afterPropertiesSet();
         Map<AccessPointTemplate.Type, List<AccessPointTemplate>> accessPointsTemplate = cut.getAccessPointsTemplate();
@@ -97,9 +90,11 @@ class CockpitAccessServiceImplTest {
     }
 
     @Test
-    void should_thrown_exception_when_building_access_point_template_when_installation_is_multi_tenant_if_domain_is_invalid() {
+    void
+            should_thrown_exception_when_building_access_point_template_when_installation_is_multi_tenant_if_domain_is_invalid() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(true);
-        environment.withProperty("installation.multi-tenant.accessPoints.organization.console.host", "-INVALID-gravitee.io-");
+        environment.withProperty(
+                "installation.multi-tenant.accessPoints.organization.console.host", "-INVALID-gravitee.io-");
 
         assertThrows(CockpitAccessServiceImpl.InvalidAccessPointException.class, () -> cut.afterPropertiesSet());
     }

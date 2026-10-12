@@ -61,12 +61,10 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
             assertThat(result.getLabels()).containsEntry("team", "backend").containsEntry("category", "performance");
             assertThat(result.getWidgets()).hasSize(2);
 
-            var widget1 = result
-                .getWidgets()
-                .stream()
-                .filter(w -> "widget-1".equals(w.getId()))
-                .findFirst()
-                .orElseThrow();
+            var widget1 = result.getWidgets().stream()
+                    .filter(w -> "widget-1".equals(w.getId()))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(widget1.getTitle()).isEqualTo("Request Count");
             assertThat(widget1.getType()).isEqualTo("stats");
             assertThat(widget1.getLayout().getCols()).isEqualTo(6);
@@ -78,9 +76,9 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
             assertThat(widget1.getRequest().getTimeRange().getFrom()).isEqualTo("2025-01-01T00:00:00Z");
             assertThat(widget1.getRequest().getTimeRange().getTo()).isEqualTo("2025-01-02T00:00:00Z");
             assertThat(widget1.getRequest().getMetrics())
-                .hasSize(1)
-                .first()
-                .satisfies(m -> assertThat(m.getName()).isEqualTo("request_total_count"));
+                    .hasSize(1)
+                    .first()
+                    .satisfies(m -> assertThat(m.getName()).isEqualTo("request_total_count"));
             assertThat(widget1.getRequest().getLimit()).isEqualTo(10);
         });
     }
@@ -94,36 +92,41 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
     @Test
     public void shouldCreate() throws Exception {
         var widget = CustomDashboardWidget.builder()
-            .id("new-widget-1")
-            .title("New Widget")
-            .description("Total number of API requests")
-            .type("stats")
-            .layout(CustomDashboardWidget.Layout.builder().cols(6).rows(4).x(0).y(0).build())
-            .request(
-                CustomDashboardWidget.Request.builder()
-                    .type("measures")
-                    .timeRange(CustomDashboardWidget.TimeRange.builder().from("2025-01-01T00:00:00Z").to("2025-01-02T00:00:00Z").build())
-                    .metrics(
-                        List.of(
-                            CustomDashboardWidget.MetricRequest.builder().name("request_total_count").measures(List.of("COUNT")).build()
-                        )
-                    )
-                    .by(List.of())
-                    .limit(10)
-                    .build()
-            )
-            .build();
+                .id("new-widget-1")
+                .title("New Widget")
+                .description("Total number of API requests")
+                .type("stats")
+                .layout(CustomDashboardWidget.Layout.builder()
+                        .cols(6)
+                        .rows(4)
+                        .x(0)
+                        .y(0)
+                        .build())
+                .request(CustomDashboardWidget.Request.builder()
+                        .type("measures")
+                        .timeRange(CustomDashboardWidget.TimeRange.builder()
+                                .from("2025-01-01T00:00:00Z")
+                                .to("2025-01-02T00:00:00Z")
+                                .build())
+                        .metrics(List.of(CustomDashboardWidget.MetricRequest.builder()
+                                .name("request_total_count")
+                                .measures(List.of("COUNT"))
+                                .build()))
+                        .by(List.of())
+                        .limit(10)
+                        .build())
+                .build();
 
         var dashboard = CustomDashboard.builder()
-            .id("new-cd")
-            .environmentId("DEFAULT")
-            .name("New Dashboard")
-            .createdBy("user-new")
-            .createdAt(new Date(1000000000000L))
-            .lastModified(new Date(1111111111111L))
-            .labels(Map.of("env", "prod"))
-            .widgets(List.of(widget))
-            .build();
+                .id("new-cd")
+                .environmentId("DEFAULT")
+                .name("New Dashboard")
+                .createdBy("user-new")
+                .createdAt(new Date(1000000000000L))
+                .lastModified(new Date(1111111111111L))
+                .labels(Map.of("env", "prod"))
+                .widgets(List.of(widget))
+                .build();
 
         var nbBefore = customDashboardRepository.findByEnvironmentId("DEFAULT").size();
         customDashboardRepository.create(dashboard);
@@ -137,8 +140,10 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
             assertThat(result.getEnvironmentId()).isEqualTo("DEFAULT");
             assertThat(result.getName()).isEqualTo("New Dashboard");
             assertThat(result.getCreatedBy()).isEqualTo("user-new");
-            assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L))).isTrue();
-            assertThat(compareDate(result.getLastModified(), new Date(1111111111111L))).isTrue();
+            assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L)))
+                    .isTrue();
+            assertThat(compareDate(result.getLastModified(), new Date(1111111111111L)))
+                    .isTrue();
             assertThat(result.getLabels()).containsEntry("env", "prod");
             assertThat(result.getWidgets()).hasSize(1);
 
@@ -156,9 +161,9 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
             assertThat(savedWidget.getRequest().getTimeRange().getFrom()).isEqualTo("2025-01-01T00:00:00Z");
             assertThat(savedWidget.getRequest().getTimeRange().getTo()).isEqualTo("2025-01-02T00:00:00Z");
             assertThat(savedWidget.getRequest().getMetrics())
-                .hasSize(1)
-                .first()
-                .satisfies(m -> assertThat(m.getName()).isEqualTo("request_total_count"));
+                    .hasSize(1)
+                    .first()
+                    .satisfies(m -> assertThat(m.getName()).isEqualTo("request_total_count"));
             assertThat(savedWidget.getRequest().getBy()).isEmpty();
             assertThat(savedWidget.getRequest().getLimit()).isEqualTo(10);
         });
@@ -167,15 +172,15 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
     @Test
     public void shouldCreateWithNullOrEmptyLabelsAndWidgets() throws Exception {
         var withNull = CustomDashboard.builder()
-            .id("new-cd-null")
-            .environmentId("DEFAULT")
-            .name("Dashboard With Null")
-            .createdBy("user-new")
-            .createdAt(new Date(1000000000000L))
-            .lastModified(new Date(1111111111111L))
-            .labels(null)
-            .widgets(null)
-            .build();
+                .id("new-cd-null")
+                .environmentId("DEFAULT")
+                .name("Dashboard With Null")
+                .createdBy("user-new")
+                .createdAt(new Date(1000000000000L))
+                .lastModified(new Date(1111111111111L))
+                .labels(null)
+                .widgets(null)
+                .build();
         customDashboardRepository.create(withNull);
 
         var savedNull = customDashboardRepository.findById("new-cd-null");
@@ -185,15 +190,15 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
         });
 
         var withEmpty = CustomDashboard.builder()
-            .id("new-cd-empty")
-            .environmentId("DEFAULT")
-            .name("Dashboard With Empty")
-            .createdBy("user-new")
-            .createdAt(new Date(1000000000000L))
-            .lastModified(new Date(1111111111111L))
-            .labels(Map.of())
-            .widgets(List.of())
-            .build();
+                .id("new-cd-empty")
+                .environmentId("DEFAULT")
+                .name("Dashboard With Empty")
+                .createdBy("user-new")
+                .createdAt(new Date(1000000000000L))
+                .lastModified(new Date(1111111111111L))
+                .labels(Map.of())
+                .widgets(List.of())
+                .build();
         customDashboardRepository.create(withEmpty);
 
         var savedEmpty = customDashboardRepository.findById("new-cd-empty");
@@ -223,8 +228,10 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
             assertThat(result.getEnvironmentId()).isEqualTo("DEFAULT");
             assertThat(result.getName()).isEqualTo("Updated Dashboard");
             assertThat(result.getCreatedBy()).isEqualTo("user-2");
-            assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L))).isTrue();
-            assertThat(compareDate(result.getLastModified(), new Date(1222222222222L))).isTrue();
+            assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L)))
+                    .isTrue();
+            assertThat(compareDate(result.getLastModified(), new Date(1222222222222L)))
+                    .isTrue();
             assertThat(result.getLabels()).containsEntry("updated", "true").hasSize(1);
             assertThat(result.getWidgets()).isEmpty();
         });
@@ -238,25 +245,30 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
 
         var dashboard = optional.get();
         var newWidget = CustomDashboardWidget.builder()
-            .id("added-widget")
-            .title("Added Widget")
-            .description("Requests by API")
-            .type("doughnut")
-            .layout(CustomDashboardWidget.Layout.builder().cols(12).rows(8).x(0).y(0).build())
-            .request(
-                CustomDashboardWidget.Request.builder()
-                    .type("facets")
-                    .timeRange(CustomDashboardWidget.TimeRange.builder().from("2025-01-01T00:00:00Z").to("2025-02-01T00:00:00Z").build())
-                    .metrics(
-                        List.of(
-                            CustomDashboardWidget.MetricRequest.builder().name("request_total_count").measures(List.of("COUNT")).build()
-                        )
-                    )
-                    .by(List.of("api"))
-                    .limit(20)
-                    .build()
-            )
-            .build();
+                .id("added-widget")
+                .title("Added Widget")
+                .description("Requests by API")
+                .type("doughnut")
+                .layout(CustomDashboardWidget.Layout.builder()
+                        .cols(12)
+                        .rows(8)
+                        .x(0)
+                        .y(0)
+                        .build())
+                .request(CustomDashboardWidget.Request.builder()
+                        .type("facets")
+                        .timeRange(CustomDashboardWidget.TimeRange.builder()
+                                .from("2025-01-01T00:00:00Z")
+                                .to("2025-02-01T00:00:00Z")
+                                .build())
+                        .metrics(List.of(CustomDashboardWidget.MetricRequest.builder()
+                                .name("request_total_count")
+                                .measures(List.of("COUNT"))
+                                .build()))
+                        .by(List.of("api"))
+                        .limit(20)
+                        .build())
+                .build();
         dashboard.setWidgets(List.of(newWidget));
         dashboard.setLastModified(new Date(1333333333333L));
 

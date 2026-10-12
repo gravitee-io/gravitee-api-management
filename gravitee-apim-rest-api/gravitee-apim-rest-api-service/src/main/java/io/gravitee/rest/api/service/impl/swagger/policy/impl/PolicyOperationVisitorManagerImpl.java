@@ -37,19 +37,14 @@ public class PolicyOperationVisitorManagerImpl implements PolicyOperationVisitor
     public void add(PolicyOperationVisitor visitor) {
         policyVisitors.add(visitor);
         if (visitor.getOaiOperationVisitor() != null) {
-            oaiOperationVisitors.put(
-                visitor.getId(),
-                (OAIOperationVisitor<Optional<Policy>>) (descriptor, operation) ->
-                    visitor.getOaiOperationVisitor().visit(descriptor, operation)
-            );
+            oaiOperationVisitors.put(visitor.getId(), (OAIOperationVisitor<Optional<Policy>>)
+                    (descriptor, operation) -> visitor.getOaiOperationVisitor().visit(descriptor, operation));
         }
 
         if (visitor.getSwaggerOperationVisitor() != null) {
             swaggerOperationVisitors.put(
-                visitor.getId(),
-                (SwaggerOperationVisitor<Optional<Policy>>) (descriptor, operation) ->
-                    visitor.getSwaggerOperationVisitor().visit(descriptor, operation)
-            );
+                    visitor.getId(), (SwaggerOperationVisitor<Optional<Policy>>) (descriptor, operation) ->
+                            visitor.getSwaggerOperationVisitor().visit(descriptor, operation));
         }
     }
 

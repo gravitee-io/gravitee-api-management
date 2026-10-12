@@ -29,10 +29,9 @@ import io.gravitee.node.api.configuration.Configuration;
 public class DebugPolicyFactory extends HttpPolicyFactory {
 
     public DebugPolicyFactory(
-        Configuration configuration,
-        PolicyPluginFactory policyPluginFactory,
-        ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter
-    ) {
+            Configuration configuration,
+            PolicyPluginFactory policyPluginFactory,
+            ExpressionLanguageConditionFilter<HttpConditionalPolicy> filter) {
         super(configuration, policyPluginFactory, filter);
     }
 }

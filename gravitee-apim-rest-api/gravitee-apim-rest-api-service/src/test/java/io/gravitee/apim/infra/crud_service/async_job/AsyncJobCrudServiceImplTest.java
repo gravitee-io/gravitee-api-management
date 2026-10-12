@@ -57,14 +57,14 @@ public class AsyncJobCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_create_job() {
-            //Given
+            // Given
             var job = AsyncJobFixture.aPendingFederatedApiIngestionJob();
             when(repository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            //When
+            // When
             var created = service.create(job);
 
-            //Then
+            // Then
             assertThat(created).isEqualTo(job);
         }
 
@@ -79,8 +79,8 @@ public class AsyncJobCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when creating AsyncJob for integration: integration-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when creating AsyncJob for integration: integration-id");
         }
     }
 
@@ -90,30 +90,33 @@ public class AsyncJobCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_the_found_job() {
-            //Given
-            when(repository.findById(any())).thenAnswer(invocation ->
-                Optional.of(fixtures.repository.AsyncJobFixture.anAsyncJob().toBuilder().id(invocation.getArgument(0)).build())
-            );
+            // Given
+            when(repository.findById(any()))
+                    .thenAnswer(invocation -> Optional.of(fixtures.repository.AsyncJobFixture.anAsyncJob().toBuilder()
+                            .id(invocation.getArgument(0))
+                            .build()));
 
-            //When
+            // When
             var result = service.findById("my-id");
 
-            //Then
-            assertThat(result).contains(
-                AsyncJobFixture.aPendingFederatedApiIngestionJob().toBuilder().id("my-id").environmentId("environment-id").build()
-            );
+            // Then
+            assertThat(result)
+                    .contains(AsyncJobFixture.aPendingFederatedApiIngestionJob().toBuilder()
+                            .id("my-id")
+                            .environmentId("environment-id")
+                            .build());
         }
 
         @Test
         @SneakyThrows
         void should_return_empty_when_not_found() {
-            //Given
+            // Given
             when(repository.findById(any())).thenAnswer(invocation -> Optional.empty());
 
-            //When
+            // When
             var result = service.findById("my-id");
 
-            //Then
+            // Then
             assertThat(result).isEmpty();
         }
 
@@ -127,8 +130,8 @@ public class AsyncJobCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find the AsyncJob: my-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurs while trying to find the AsyncJob: my-id");
         }
     }
 
@@ -138,10 +141,9 @@ public class AsyncJobCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_integration() {
-            var job = AsyncJobFixture.aSuccessFederatedApiIngestionJob()
-                .toBuilder()
-                .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .build();
+            var job = AsyncJobFixture.aSuccessFederatedApiIngestionJob().toBuilder()
+                    .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .build();
             when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             service.update(job);
@@ -150,33 +152,31 @@ public class AsyncJobCrudServiceImplTest {
             verify(repository).update(captor.capture());
 
             assertThat(captor.getValue())
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    AsyncJob.builder()
-                        .id("job-id")
-                        .sourceId("integration-id")
-                        .initiatorId("initiator-id")
-                        .environmentId("my-env")
-                        .status("SUCCESS")
-                        .type("FEDERATED_APIS_INGESTION")
-                        .upperLimit(10L)
-                        .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
-                        .build()
-                );
+                    .usingRecursiveComparison()
+                    .isEqualTo(AsyncJob.builder()
+                            .id("job-id")
+                            .sourceId("integration-id")
+                            .initiatorId("initiator-id")
+                            .environmentId("my-env")
+                            .status("SUCCESS")
+                            .type("FEDERATED_APIS_INGESTION")
+                            .upperLimit(10L)
+                            .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                            .build());
         }
 
         @Test
         @SneakyThrows
         void should_return_the_updated_integration() {
-            //Given
+            // Given
             when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            //When
+            // When
             var toUpdate = AsyncJobFixture.aPendingFederatedApiIngestionJob();
             var updated = service.update(toUpdate);
 
-            //Then
+            // Then
             assertThat(updated).isEqualTo(toUpdate);
         }
 
@@ -191,8 +191,8 @@ public class AsyncJobCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurred when updating AsyncJob: job-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("An error occurred when updating AsyncJob: job-id");
         }
     }
 
@@ -209,8 +209,8 @@ public class AsyncJobCrudServiceImplTest {
         void should_throw_if_deletion_problem_occurs() throws TechnicalException {
             doThrow(new TechnicalException()).when(repository).delete("job-id");
             assertThatThrownBy(() -> service.delete("job-id"))
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when deleting AsyncJob: job-id");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessage("Error when deleting AsyncJob: job-id");
             verify(repository).delete("job-id");
         }
     }

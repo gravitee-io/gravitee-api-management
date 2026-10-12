@@ -19,7 +19,6 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
-import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
@@ -90,13 +89,16 @@ public class MongoClusterRepository implements ClusterRepository {
 
     @Override
     public Set<Cluster> findAll() throws TechnicalException {
-        return internalClusterMongoRepo.findAll().stream().map(mapper::map).collect(java.util.stream.Collectors.toSet());
+        return internalClusterMongoRepo.findAll().stream()
+                .map(mapper::map)
+                .collect(java.util.stream.Collectors.toSet());
     }
 
     @Override
     public Optional<Cluster> findByCrossIdAndEnvironmentId(String crossId, String environmentId) {
         log.debug("Find cluster by crossId [{}] and environmentId [{}]", crossId, environmentId);
-        return Optional.ofNullable(internalClusterMongoRepo.findByCrossIdAndEnvironmentId(crossId, environmentId)).map(mapper::map);
+        return Optional.ofNullable(internalClusterMongoRepo.findByCrossIdAndEnvironmentId(crossId, environmentId))
+                .map(mapper::map);
     }
 
     @Override
@@ -106,14 +108,14 @@ public class MongoClusterRepository implements ClusterRepository {
         Objects.requireNonNull(criteria.getEnvironmentId(), "ClusterCriteria.getEnvironmentId() must not be null");
         log.debug("MongoClusterRepository.search({}, {})", criteria, pageable);
 
-        Sortable sortable = sortableOpt.orElse(new SortableBuilder().field("name").setAsc(true).build());
+        Sortable sortable = sortableOpt.orElse(
+                new SortableBuilder().field("name").setAsc(true).build());
         final Sort.Direction sortOrder = Sort.Direction.valueOf(sortable.order().name());
         final String sortField = FieldUtils.toCamelCase(sortable.field());
 
-        return this.internalClusterMongoRepo.search(
-            criteria,
-            PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
-        ).map(mapper::map);
+        return this.internalClusterMongoRepo
+                .search(criteria, PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField))
+                .map(mapper::map);
     }
 
     @Override

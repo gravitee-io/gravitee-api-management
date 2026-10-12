@@ -72,15 +72,17 @@ class InvitationQueryServiceImplTest {
         var pageable = new PageableImpl(2, 10);
         var repositoryCriteria = new InvitationCriteria(APPLICATION_ID, InvitationReferenceType.APPLICATION, "JOHN");
         var sortable = new SortableBuilder().field("email").order(Order.ASC).build();
-        var repositoryPageable = new PageableBuilder().pageNumber(1).pageSize(10).build();
+        var repositoryPageable =
+                new PageableBuilder().pageNumber(1).pageSize(10).build();
 
-        when(invitationRepository.search(repositoryCriteria, sortable, repositoryPageable)).thenReturn(
-            new Page<>(List.of(alphaInvitation, zedInvitation), 1, 2, 3)
-        );
+        when(invitationRepository.search(repositoryCriteria, sortable, repositoryPageable))
+                .thenReturn(new Page<>(List.of(alphaInvitation, zedInvitation), 1, 2, 3));
 
         var result = cut.findByApplicationId(APPLICATION_ID, criteria, pageable);
-        var expectedCreatedAt = createdAt.toInstant().atZone(TimeProvider.clock().getZone());
-        var expectedUpdatedAt = updatedAt.toInstant().atZone(TimeProvider.clock().getZone());
+        var expectedCreatedAt =
+                createdAt.toInstant().atZone(TimeProvider.clock().getZone());
+        var expectedUpdatedAt =
+                updatedAt.toInstant().atZone(TimeProvider.clock().getZone());
 
         assertThat(result.getPageNumber()).isEqualTo(2);
         assertThat(result.getPageElements()).isEqualTo(2);
@@ -103,9 +105,9 @@ class InvitationQueryServiceImplTest {
     void should_find_invitations_by_reference() throws Exception {
         var createdAt = OffsetDateTime.parse("2026-04-23T09:30:00Z");
         var invitation = anInvitation(INVITATION_ID_1, "john@example.com", "USER", createdAt, createdAt);
-        when(invitationRepository.findByReferenceIdAndReferenceType(APPLICATION_ID, InvitationReferenceType.APPLICATION)).thenReturn(
-            List.of(invitation)
-        );
+        when(invitationRepository.findByReferenceIdAndReferenceType(
+                        APPLICATION_ID, InvitationReferenceType.APPLICATION))
+                .thenReturn(List.of(invitation));
 
         var result = cut.findByReference(InvitationReference.application(APPLICATION_ID));
 
@@ -114,14 +116,17 @@ class InvitationQueryServiceImplTest {
         assertThat(result.getFirst().applicationId()).isEqualTo(APPLICATION_ID);
         assertThat(result.getFirst().email()).isEqualTo("john@example.com");
         assertThat(result.getFirst().roleName()).isEqualTo("USER");
-        assertThat(result.getFirst().createdAt()).isEqualTo(createdAt.toInstant().atZone(TimeProvider.clock().getZone()));
-        verify(invitationRepository).findByReferenceIdAndReferenceType(APPLICATION_ID, InvitationReferenceType.APPLICATION);
+        assertThat(result.getFirst().createdAt())
+                .isEqualTo(createdAt.toInstant().atZone(TimeProvider.clock().getZone()));
+        verify(invitationRepository)
+                .findByReferenceIdAndReferenceType(APPLICATION_ID, InvitationReferenceType.APPLICATION);
     }
 
     @Test
     void should_find_invitations_by_api_reference() throws Exception {
         var apiId = "api-id";
-        when(invitationRepository.findByReferenceIdAndReferenceType(apiId, InvitationReferenceType.API)).thenReturn(List.of());
+        when(invitationRepository.findByReferenceIdAndReferenceType(apiId, InvitationReferenceType.API))
+                .thenReturn(List.of());
 
         var result = cut.findByReference(InvitationReference.api(apiId));
 
@@ -133,17 +138,21 @@ class InvitationQueryServiceImplTest {
     void should_wrap_technical_exception() throws Exception {
         var repositoryCriteria = new InvitationCriteria(APPLICATION_ID, InvitationReferenceType.APPLICATION, null);
         var sortable = new SortableBuilder().field("email").order(Order.ASC).build();
-        var repositoryPageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
-        when(invitationRepository.search(repositoryCriteria, sortable, repositoryPageable)).thenThrow(new TechnicalException("error"));
+        var repositoryPageable =
+                new PageableBuilder().pageNumber(0).pageSize(10).build();
+        when(invitationRepository.search(repositoryCriteria, sortable, repositoryPageable))
+                .thenThrow(new TechnicalException("error"));
 
-        assertThatThrownBy(() ->
-            cut.findByApplicationId(APPLICATION_ID, new SearchApplicationInvitationsCriteria(Optional.empty()), new PageableImpl(1, 10))
-        )
-            .isInstanceOf(TechnicalDomainException.class)
-            .hasMessage("An error occurs while trying to find application invitations");
+        assertThatThrownBy(() -> cut.findByApplicationId(
+                        APPLICATION_ID,
+                        new SearchApplicationInvitationsCriteria(Optional.empty()),
+                        new PageableImpl(1, 10)))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find application invitations");
     }
 
-    private Invitation anInvitation(String id, String email, String applicationRole, OffsetDateTime createdAt, OffsetDateTime updatedAt) {
+    private Invitation anInvitation(
+            String id, String email, String applicationRole, OffsetDateTime createdAt, OffsetDateTime updatedAt) {
         var invitation = new Invitation();
         invitation.setId(id);
         invitation.setReferenceType(InvitationReferenceType.APPLICATION.name());

@@ -62,45 +62,41 @@ public class UpdateApiProductPlanFlowsUseCase {
         rejectPlansListedTwice(input.plans());
         var apiProduct = apiProductCrudService.get(input.apiProductId());
         var productPlans = planQueryService
-            .findAllByReferenceIdAndReferenceType(input.apiProductId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
-            .stream()
-            .collect(toMap(Plan::getId, identity()));
+                .findAllByReferenceIdAndReferenceType(input.apiProductId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .stream()
+                .collect(toMap(Plan::getId, identity()));
 
-        // Every plan is resolved and its flows validated before any is written, so a refused plan leaves the others untouched.
-        var toWrite = input
-            .plans()
-            .stream()
-            .map(update ->
-                Optional.ofNullable(productPlans.get(update.planId()))
-                    .map(plan -> withFlows(plan, update))
-                    .map(plan -> {
-                        flowValidationDomainService.validateAndSanitizeHttpV4(null, update.flows());
-                        return plan;
-                    })
-                    .orElseThrow(() -> new PlanNotFoundException(update.planId()))
-            )
-            .toList();
+        // Every plan is resolved and its flows validated before any is written, so a refused plan leaves the others
+        // untouched.
+        var toWrite = input.plans().stream()
+                .map(update -> Optional.ofNullable(productPlans.get(update.planId()))
+                        .map(plan -> withFlows(plan, update))
+                        .map(plan -> {
+                            flowValidationDomainService.validateAndSanitizeHttpV4(null, update.flows());
+                            return plan;
+                        })
+                        .orElseThrow(() -> new PlanNotFoundException(update.planId())))
+                .toList();
         // The closed-plan check only reads the statuses of the plans it is given.
         var statuses = toWrite.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
 
-        var updated = toWrite
-            .stream()
-            .map(plan -> updatePlanDomainService.updatePlanForApiProduct(plan, statuses, apiProduct, input.auditInfo()))
-            .toList();
+        var updated = toWrite.stream()
+                .map(plan ->
+                        updatePlanDomainService.updatePlanForApiProduct(plan, statuses, apiProduct, input.auditInfo()))
+                .toList();
         log.debug("Updated the flows of {} plans of API Product {}", updated.size(), input.apiProductId());
         return new Output(updated);
     }
 
     private static void rejectPlansListedTwice(List<PlanFlows> plans) {
         var seen = new HashSet<String>();
-        plans
-            .stream()
-            .map(PlanFlows::planId)
-            .filter(planId -> !seen.add(planId))
-            .findFirst()
-            .ifPresent(planId -> {
-                throw new ValidationDomainException("Plan '" + planId + "' is listed more than once");
-            });
+        plans.stream()
+                .map(PlanFlows::planId)
+                .filter(planId -> !seen.add(planId))
+                .findFirst()
+                .ifPresent(planId -> {
+                    throw new ValidationDomainException("Plan '" + planId + "' is listed more than once");
+                });
     }
 
     private static Plan withFlows(Plan plan, PlanFlows update) {

@@ -36,7 +36,6 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.RoleReservedNameException;
 import java.util.Collections;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -70,14 +69,14 @@ public class RoleService_CreateTest {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("new mock role");
         when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
-        when(newRoleEntityMock.getPermissions()).thenReturn(
-            Collections.singletonMap(DOCUMENTATION.getName(), new char[] { RolePermissionAction.CREATE.getId() })
-        );
+        when(newRoleEntityMock.getPermissions())
+                .thenReturn(Collections.singletonMap(
+                        DOCUMENTATION.getName(), new char[] {RolePermissionAction.CREATE.getId()}));
         Role roleMock = mock(Role.class);
         when(roleMock.getId()).thenReturn("new_mock_role");
         when(roleMock.getName()).thenReturn("new mock role");
         when(roleMock.getScope()).thenReturn(RoleScope.ENVIRONMENT);
-        when(roleMock.getPermissions()).thenReturn(new int[] { 3008 });
+        when(roleMock.getPermissions()).thenReturn(new int[] {3008});
         when(mockRoleRepository.create(any())).thenReturn(roleMock);
 
         ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
@@ -105,7 +104,8 @@ public class RoleService_CreateTest {
             NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
             when(newRoleEntityMock.getName()).thenReturn("new mock role");
             when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
-            when(newRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] { 'X' }));
+            when(newRoleEntityMock.getPermissions())
+                    .thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] {'X'}));
 
             ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
             Management management = new Management();
@@ -124,7 +124,8 @@ public class RoleService_CreateTest {
         assertThrows(RoleReservedNameException.class, () -> {
             NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
             when(newRoleEntityMock.getName()).thenReturn("admin");
-            when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ORGANIZATION);
+            when(newRoleEntityMock.getScope())
+                    .thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ORGANIZATION);
 
             ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
             Management management = new Management();
@@ -143,14 +144,14 @@ public class RoleService_CreateTest {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("admin");
         when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
-        when(newRoleEntityMock.getPermissions()).thenReturn(
-            Collections.singletonMap(DOCUMENTATION.getName(), new char[] { RolePermissionAction.CREATE.getId() })
-        );
+        when(newRoleEntityMock.getPermissions())
+                .thenReturn(Collections.singletonMap(
+                        DOCUMENTATION.getName(), new char[] {RolePermissionAction.CREATE.getId()}));
         Role roleMock = mock(Role.class);
         when(roleMock.getId()).thenReturn("new-role");
         when(roleMock.getName()).thenReturn("admin");
         when(roleMock.getScope()).thenReturn(RoleScope.ENVIRONMENT);
-        when(roleMock.getPermissions()).thenReturn(new int[] { 3008 });
+        when(roleMock.getPermissions()).thenReturn(new int[] {3008});
         when(mockRoleRepository.create(any())).thenReturn(roleMock);
 
         ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();

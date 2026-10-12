@@ -54,12 +54,17 @@ class SearchEnvironmentResponseTimeUseCaseTest {
     @Test
     void nominal_case() {
         // Given
-        var input = new SearchEnvironmentResponseTimeOverTimeUseCase.Input(ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now());
+        var input = new SearchEnvironmentResponseTimeOverTimeUseCase.Input(
+                ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now());
         var definition = io.gravitee.definition.model.v4.Api.builder()
-            .type(ApiType.MESSAGE)
-            .definitionVersion(DefinitionVersion.V4)
-            .build();
-        apiQueryService.initWith(List.of(Api.builder().id("MyApiID").apiDefinitionHttpV4(definition).environmentId(ENV_ID).build()));
+                .type(ApiType.MESSAGE)
+                .definitionVersion(DefinitionVersion.V4)
+                .build();
+        apiQueryService.initWith(List.of(Api.builder()
+                .id("MyApiID")
+                .apiDefinitionHttpV4(definition)
+                .environmentId(ENV_ID)
+                .build()));
         // the order of keys is important
         analyticsQueryService.averageAggregate = new LinkedHashMap<>();
         analyticsQueryService.averageAggregate.put("1970-01-01T00:00:00", 1.2D);

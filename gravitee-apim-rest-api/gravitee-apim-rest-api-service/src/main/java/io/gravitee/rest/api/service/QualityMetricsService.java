@@ -25,5 +25,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  */
 public interface QualityMetricsService {
     ApiQualityMetricsEntity getMetrics(ExecutionContext executionContext, ApiEntity apiEntity);
+
     boolean isApiMetricsEnabled(ExecutionContext executionContext);
 }

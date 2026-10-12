@@ -32,8 +32,7 @@ class AuthzDecisionLogSourceMapperTest {
 
     @Test
     void carries_identity_request_verdict_and_effect_of_a_decision_report() {
-        var decision = map(
-            """
+        var decision = map("""
             {
               "@timestamp": "2026-08-05T12:03:00.123+02:00",
               "event-id": "evt-1",
@@ -63,8 +62,7 @@ class AuthzDecisionLogSourceMapperTest {
               "resource-id": "doc-1",
               "duration-nanos": 4200
             }
-            """
-        );
+            """);
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(decision.eventId()).isEqualTo("evt-1");
@@ -82,12 +80,10 @@ class AuthzDecisionLogSourceMapperTest {
             soft.assertThat(decision.outcome()).isEqualTo("DENY");
             soft.assertThat(decision.enforced()).isEqualTo("DENY");
             soft.assertThat(decision.indeterminateCause()).isNull();
-            soft
-                .assertThat(decision.matchedRules())
-                .containsExactly(
-                    new AuthzDecisionLog.MatchedRule("p1", "deny-writers", "2026-09-23T10:00:00Z", "FORBID"),
-                    new AuthzDecisionLog.MatchedRule("p2", "deny-admins", null, "FORBID")
-                );
+            soft.assertThat(decision.matchedRules())
+                    .containsExactly(
+                            new AuthzDecisionLog.MatchedRule("p1", "deny-writers", "2026-09-23T10:00:00Z", "FORBID"),
+                            new AuthzDecisionLog.MatchedRule("p2", "deny-admins", null, "FORBID"));
             soft.assertThat(decision.reasons()).containsExactly("Forbidden by policy 'deny-writers'");
             soft.assertThat(decision.subjectType()).isEqualTo("User");
             soft.assertThat(decision.subjectId()).isEqualTo("alice");
@@ -100,8 +96,7 @@ class AuthzDecisionLogSourceMapperTest {
 
     @Test
     void carries_the_cause_and_the_error_of_a_decision_the_pdp_could_not_take() {
-        var decision = map(
-            """
+        var decision = map("""
             {
               "event-id": "evt-2",
               "status": "error",
@@ -110,8 +105,7 @@ class AuthzDecisionLogSourceMapperTest {
               "indeterminate-cause": "NOT_READY",
               "error-type": "NoSnapshotException"
             }
-            """
-        );
+            """);
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(decision.status()).isEqualTo("error");
@@ -125,15 +119,13 @@ class AuthzDecisionLogSourceMapperTest {
 
     @Test
     void reads_the_batch_position_from_the_additional_metrics() {
-        var decision = map(
-            """
+        var decision = map("""
             {
               "event-id": "evt-3",
               "batch-id": "batch-1",
               "additional-metrics": { "int_authz_batch-index": 1, "int_authz_batch-size": 2 }
             }
-            """
-        );
+            """);
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(decision.batchId()).isEqualTo("batch-1");
@@ -144,11 +136,9 @@ class AuthzDecisionLogSourceMapperTest {
 
     @Test
     void leaves_absent_fields_null_and_absent_lists_empty() {
-        var decision = map(
-            """
+        var decision = map("""
             { "event-id": "evt-4" }
-            """
-        );
+            """);
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(decision.timestamp()).isNull();
@@ -163,25 +153,23 @@ class AuthzDecisionLogSourceMapperTest {
 
     @Test
     void drops_a_matched_rule_that_carries_no_name_rather_than_reporting_a_blank_row() {
-        var decision = map(
-            """
+        var decision = map("""
             {
               "event-id": "evt-5",
               "matched-rules": [{ "id": "p1" }, { "id": "p2", "name": "allow-admins" }]
             }
-            """
-        );
+            """);
 
-        assertThat(decision.matchedRules()).extracting(AuthzDecisionLog.MatchedRule::name).containsExactly("allow-admins");
+        assertThat(decision.matchedRules())
+                .extracting(AuthzDecisionLog.MatchedRule::name)
+                .containsExactly("allow-admins");
     }
 
     @Test
     void reports_no_timestamp_rather_than_failing_the_page_when_the_stamp_is_unreadable() {
-        var decision = map(
-            """
+        var decision = map("""
             { "event-id": "evt-6", "@timestamp": "not-a-date" }
-            """
-        );
+            """);
 
         assertThat(decision.timestamp()).isNull();
         assertThat(decision.eventId()).isEqualTo("evt-6");

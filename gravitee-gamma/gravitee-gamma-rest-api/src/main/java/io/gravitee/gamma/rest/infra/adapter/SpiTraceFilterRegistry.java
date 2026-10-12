@@ -43,7 +43,9 @@ public class SpiTraceFilterRegistry implements TraceFilterRegistry {
     private final List<TraceFilterContributor> contributors;
 
     public SpiTraceFilterRegistry() {
-        this(ServiceLoader.load(TraceFilterContributor.class).stream().map(ServiceLoader.Provider::get).toList());
+        this(ServiceLoader.load(TraceFilterContributor.class).stream()
+                .map(ServiceLoader.Provider::get)
+                .toList());
     }
 
     /** Test seam — lets a domain test inject a fixed contributor list without touching the classpath. */

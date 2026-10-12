@@ -34,13 +34,12 @@ public class UnrecognizedPropertyExceptionMapper extends AbstractExceptionMapper
         Status status = Response.Status.BAD_REQUEST;
 
         return Response.status(status)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(
-                new Error()
-                    .status(Integer.toString(HttpStatusCode.BAD_REQUEST_400))
-                    .message(String.format("Property [%s] is not recognized as a valid property", e.getPropertyName()))
-                    .code("unrecognizedProperty")
-            )
-            .build();
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(new Error()
+                        .status(Integer.toString(HttpStatusCode.BAD_REQUEST_400))
+                        .message(String.format(
+                                "Property [%s] is not recognized as a valid property", e.getPropertyName()))
+                        .code("unrecognizedProperty"))
+                .build();
     }
 }

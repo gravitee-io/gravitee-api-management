@@ -114,10 +114,7 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService, planCrudService);
 
         service = new MtlsSubscriptionSyncDomainServiceImpl(
-            subscriptionQueryService,
-            subscriptionCrudService,
-            clientCertificateCrudService
-        );
+                subscriptionQueryService, subscriptionCrudService, clientCertificateCrudService);
     }
 
     @AfterEach
@@ -136,7 +133,8 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate =
+                buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         // When
@@ -157,7 +155,8 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate =
+                buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         // When
@@ -168,7 +167,8 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         assertThat(result.getClientCertificate()).isNotNull();
         assertThat(result.getCreatedAt()).isNotEqualTo(result.getUpdatedAt());
 
-        String decodedCertificate = new String(Base64.getDecoder().decode(result.getClientCertificate()), StandardCharsets.UTF_8);
+        String decodedCertificate =
+                new String(Base64.getDecoder().decode(result.getClientCertificate()), StandardCharsets.UTF_8);
         assertThat(decodedCertificate).isEqualTo(PEM_CERTIFICATE_1);
     }
 
@@ -181,8 +181,10 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate certificate1 = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
-        ClientCertificate certificate2 = buildClientCertificate("cert-2", ClientCertificateStatus.ACTIVE_WITH_END, PEM_CERTIFICATE_2);
+        ClientCertificate certificate1 =
+                buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate2 =
+                buildClientCertificate("cert-2", ClientCertificateStatus.ACTIVE_WITH_END, PEM_CERTIFICATE_2);
         clientCertificateCrudService.initWith(List.of(certificate1, certificate2));
 
         // When
@@ -206,11 +208,14 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
 
-        String existingEncodedCert = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes(StandardCharsets.UTF_8));
-        SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, existingEncodedCert);
+        String existingEncodedCert =
+                Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes(StandardCharsets.UTF_8));
+        SubscriptionEntity subscription =
+                buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, existingEncodedCert);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate =
+                buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         // When
@@ -228,12 +233,15 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
 
-        String existingEncodedCert = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes(StandardCharsets.UTF_8));
-        SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, existingEncodedCert);
+        String existingEncodedCert =
+                Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes(StandardCharsets.UTF_8));
+        SubscriptionEntity subscription =
+                buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, existingEncodedCert);
         subscriptionCrudService.initWith(List.of(subscription));
 
         // No active certificates (only revoked)
-        ClientCertificate revokedCertificate = buildClientCertificate("cert-1", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_1);
+        ClientCertificate revokedCertificate =
+                buildClientCertificate("cert-1", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(revokedCertificate));
 
         // When
@@ -255,14 +263,16 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         SubscriptionEntity subscription2 = buildSubscription("sub-2", APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription1, subscription2));
 
-        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate =
+                buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         // When
         service.updateActiveMTLSSubscriptions(APPLICATION_ID);
 
         // Then: both subscriptions should be updated
-        String expectedEncodedCert = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes(StandardCharsets.UTF_8));
+        String expectedEncodedCert =
+                Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes(StandardCharsets.UTF_8));
         SubscriptionEntity sub1 = subscriptionCrudService.get("sub-1");
         assertThat(sub1.getClientCertificate()).isEqualTo(expectedEncodedCert);
         assertThat(sub1.getCreatedAt()).isNotEqualTo(sub1.getUpdatedAt());
@@ -284,8 +294,10 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         Date olderDate = Date.from(Instant.now().minus(10, ChronoUnit.DAYS));
         Date newerDate = Date.from(Instant.now());
 
-        ClientCertificate certificate1 = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1, olderDate);
-        ClientCertificate certificate2 = buildClientCertificate("cert-2", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_2, newerDate);
+        ClientCertificate certificate1 =
+                buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1, olderDate);
+        ClientCertificate certificate2 =
+                buildClientCertificate("cert-2", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_2, newerDate);
         // Add in reverse order to ensure sorting is happening
         clientCertificateCrudService.initWith(List.of(certificate1, certificate2));
 
@@ -314,7 +326,8 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         SubscriptionEntity subscription2 = buildSubscription("sub-2", APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription1, subscription2));
 
-        ClientCertificate revokedCert = buildClientCertificate("cert-1", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_1);
+        ClientCertificate revokedCert =
+                buildClientCertificate("cert-1", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(revokedCert));
 
         // When
@@ -339,9 +352,12 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         subscriptionCrudService.initWith(List.of(subscription));
 
         // Mix of certificate statuses
-        ClientCertificate activeCert = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
-        ClientCertificate scheduledCert = buildClientCertificate("cert-2", ClientCertificateStatus.SCHEDULED, PEM_CERTIFICATE_2);
-        ClientCertificate revokedCert = buildClientCertificate("cert-3", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_2);
+        ClientCertificate activeCert =
+                buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate scheduledCert =
+                buildClientCertificate("cert-2", ClientCertificateStatus.SCHEDULED, PEM_CERTIFICATE_2);
+        ClientCertificate revokedCert =
+                buildClientCertificate("cert-3", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_2);
         clientCertificateCrudService.initWith(List.of(activeCert, scheduledCert, revokedCert));
 
         // When
@@ -349,7 +365,8 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
 
         // Then: only the ACTIVE certificate should be used (single cert = base64 PEM)
         SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
-        String decodedCertificate = new String(Base64.getDecoder().decode(result.getClientCertificate()), StandardCharsets.UTF_8);
+        String decodedCertificate =
+                new String(Base64.getDecoder().decode(result.getClientCertificate()), StandardCharsets.UTF_8);
         assertThat(decodedCertificate).isEqualTo(PEM_CERTIFICATE_1);
     }
 
@@ -361,7 +378,8 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate =
+                buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         service.validateCertificateRemoval(APPLICATION_ID, "cert-1");
@@ -391,7 +409,8 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         subscriptionCrudService.initWith(List.of(subscription));
 
         ClientCertificate cert1 = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
-        ClientCertificate cert2 = buildClientCertificate("cert-2", ClientCertificateStatus.ACTIVE_WITH_END, PEM_CERTIFICATE_2);
+        ClientCertificate cert2 =
+                buildClientCertificate("cert-2", ClientCertificateStatus.ACTIVE_WITH_END, PEM_CERTIFICATE_2);
         clientCertificateCrudService.initWith(List.of(cert1, cert2));
 
         service.validateCertificateRemoval(APPLICATION_ID, "cert-1");
@@ -405,12 +424,13 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate =
+                buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         assertThatThrownBy(() -> service.validateCertificateRemoval(APPLICATION_ID, "cert-1"))
-            .isInstanceOf(ClientCertificateLastRemovalException.class)
-            .hasMessageContaining(APPLICATION_ID);
+                .isInstanceOf(ClientCertificateLastRemovalException.class)
+                .hasMessageContaining(APPLICATION_ID);
     }
 
     @Test
@@ -421,65 +441,68 @@ class MtlsSubscriptionSyncDomainServiceImplTest {
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate activeCert = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
-        ClientCertificate revokedCert = buildClientCertificate("cert-2", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_2);
+        ClientCertificate activeCert =
+                buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate revokedCert =
+                buildClientCertificate("cert-2", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_2);
         clientCertificateCrudService.initWith(List.of(activeCert, revokedCert));
 
         assertThatThrownBy(() -> service.validateCertificateRemoval(APPLICATION_ID, "cert-1"))
-            .isInstanceOf(ClientCertificateLastRemovalException.class)
-            .hasMessageContaining(APPLICATION_ID);
+                .isInstanceOf(ClientCertificateLastRemovalException.class)
+                .hasMessageContaining(APPLICATION_ID);
     }
 
     private Plan buildPlan(String securityType) {
         io.gravitee.definition.model.v4.plan.Plan planDefinition = io.gravitee.definition.model.v4.plan.Plan.builder()
-            .id(PLAN_ID)
-            .security(PlanSecurity.builder().type(securityType).build())
-            .build();
+                .id(PLAN_ID)
+                .security(PlanSecurity.builder().type(securityType).build())
+                .build();
 
         return Plan.builder()
-            .id(PLAN_ID)
-            .apiId(API_ID)
-            .definitionVersion(DefinitionVersion.V4)
-            .planDefinitionHttpV4(planDefinition)
-            .build();
+                .id(PLAN_ID)
+                .apiId(API_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .planDefinitionHttpV4(planDefinition)
+                .build();
     }
 
-    private SubscriptionEntity buildSubscription(String subscriptionId, String applicationId, String planId, String clientCertificate) {
+    private SubscriptionEntity buildSubscription(
+            String subscriptionId, String applicationId, String planId, String clientCertificate) {
         ZonedDateTime now = ZonedDateTime.now();
         return SubscriptionEntity.builder()
-            .id(subscriptionId)
-            .applicationId(applicationId)
-            .planId(planId)
-            .apiId(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .status(SubscriptionEntity.Status.ACCEPTED)
-            .clientCertificate(clientCertificate)
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
+                .id(subscriptionId)
+                .applicationId(applicationId)
+                .planId(planId)
+                .apiId(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .clientCertificate(clientCertificate)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
     }
 
     private ClientCertificate buildClientCertificate(String id, ClientCertificateStatus status, String pemCertificate) {
         return buildClientCertificate(id, status, pemCertificate, new Date());
     }
 
-    private ClientCertificate buildClientCertificate(String id, ClientCertificateStatus status, String pemCertificate, Date createdAt) {
+    private ClientCertificate buildClientCertificate(
+            String id, ClientCertificateStatus status, String pemCertificate, Date createdAt) {
         return new ClientCertificate(
-            id,
-            "cross-id-" + id,
-            APPLICATION_ID,
-            "Test Certificate " + id,
-            null,
-            null,
-            createdAt,
-            new Date(),
-            pemCertificate,
-            Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
-            "CN=localhost",
-            "CN=localhost",
-            "fingerprint-" + id,
-            ENVIRONMENT_ID,
-            status
-        );
+                id,
+                "cross-id-" + id,
+                APPLICATION_ID,
+                "Test Certificate " + id,
+                null,
+                null,
+                createdAt,
+                new Date(),
+                pemCertificate,
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                "CN=localhost",
+                "CN=localhost",
+                "fingerprint-" + id,
+                ENVIRONMENT_ID,
+                status);
     }
 }

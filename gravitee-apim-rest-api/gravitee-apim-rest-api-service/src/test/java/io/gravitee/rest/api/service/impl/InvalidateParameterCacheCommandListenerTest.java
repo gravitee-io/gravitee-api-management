@@ -57,7 +57,8 @@ class InvalidateParameterCacheCommandListenerTest {
     @Test
     void should_invalidate_parameter_cache_when_valid_event() {
         // given
-        String jsonContent = "{\"key\":\"portal.top-apis\",\"referenceId\":\"DEFAULT\",\"referenceType\":\"ENVIRONMENT\"}";
+        String jsonContent =
+                "{\"key\":\"portal.top-apis\",\"referenceId\":\"DEFAULT\",\"referenceType\":\"ENVIRONMENT\"}";
         CommandEntity commandEntity = mock(CommandEntity.class);
         when(commandEntity.getTags()).thenReturn(List.of(CommandTags.PARAMETER_CACHE_UPDATE));
         when(commandEntity.getContent()).thenReturn(jsonContent);
@@ -112,7 +113,8 @@ class InvalidateParameterCacheCommandListenerTest {
     void should_not_invalidate_cache_when_tags_do_not_match() {
         // given
         CommandEntity commandEntity = mock(CommandEntity.class);
-        when(commandEntity.getTags()).thenReturn(List.of(CommandTags.EMAIL_TEMPLATE_UPDATE)); // not PARAMETER_CACHE_UPDATE
+        when(commandEntity.getTags())
+                .thenReturn(List.of(CommandTags.EMAIL_TEMPLATE_UPDATE)); // not PARAMETER_CACHE_UPDATE
         Event<CommandEvent, CommandEntity> event = mock(Event.class);
         when(event.type()).thenReturn(CommandEvent.TO_PROCESS);
         when(event.content()).thenReturn(commandEntity);

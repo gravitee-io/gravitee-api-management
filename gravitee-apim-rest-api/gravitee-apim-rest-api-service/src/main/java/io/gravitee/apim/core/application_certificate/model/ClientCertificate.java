@@ -23,22 +23,21 @@ import java.util.Date;
  * @author GraviteeSource Team
  */
 public record ClientCertificate(
-    String id,
-    String crossId,
-    String applicationId,
-    String name,
-    Date startsAt,
-    Date endsAt,
-    Date createdAt,
-    Date updatedAt,
-    String certificate,
-    Date certificateExpiration,
-    String subject,
-    String issuer,
-    String fingerprint,
-    String environmentId,
-    ClientCertificateStatus status
-) {
+        String id,
+        String crossId,
+        String applicationId,
+        String name,
+        Date startsAt,
+        Date endsAt,
+        Date createdAt,
+        Date updatedAt,
+        String certificate,
+        Date certificateExpiration,
+        String subject,
+        String issuer,
+        String fingerprint,
+        String environmentId,
+        ClientCertificateStatus status) {
     /** For create: only the fields the caller controls */
     public ClientCertificate(String name, String certificate, Date startsAt, Date endsAt) {
         this(null, null, null, name, startsAt, endsAt, null, null, certificate, null, null, null, null, null, null);
@@ -54,21 +53,20 @@ public record ClientCertificate(
      */
     public ClientCertificate(ClientCertificate other) {
         this(
-            other.id,
-            other.crossId,
-            other.applicationId,
-            other.name,
-            other.startsAt,
-            other.endsAt,
-            other.createdAt,
-            other.updatedAt,
-            other.certificate,
-            other.certificateExpiration,
-            other.subject,
-            other.issuer,
-            other.fingerprint,
-            other.environmentId,
-            other.status
-        );
+                other.id,
+                other.crossId,
+                other.applicationId,
+                other.name,
+                other.startsAt,
+                other.endsAt,
+                other.createdAt,
+                other.updatedAt,
+                other.certificate,
+                other.certificateExpiration,
+                other.subject,
+                other.issuer,
+                other.fingerprint,
+                other.environmentId,
+                other.status);
     }
 }

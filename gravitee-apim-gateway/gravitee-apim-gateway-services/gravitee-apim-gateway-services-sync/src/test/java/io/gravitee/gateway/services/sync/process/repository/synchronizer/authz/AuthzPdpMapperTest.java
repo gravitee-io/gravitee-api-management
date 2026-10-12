@@ -29,7 +29,8 @@ class AuthzPdpMapperTest {
 
     @Test
     void publish_maps_to_DEPLOY_with_scope() {
-        Event event = event("evt-1", EventType.PUBLISH_AUTHZ_PDP, "{\"targetPdpId\":\"scope-1\",\"environmentId\":\"env-1\"}");
+        Event event = event(
+                "evt-1", EventType.PUBLISH_AUTHZ_PDP, "{\"targetPdpId\":\"scope-1\",\"environmentId\":\"env-1\"}");
 
         AuthzPdpProvisionDeployable deployable = mapper.toDeploy(event).blockingGet();
 
@@ -39,7 +40,8 @@ class AuthzPdpMapperTest {
 
     @Test
     void unpublish_maps_to_UNDEPLOY() {
-        Event event = event("evt-2", EventType.UNPUBLISH_AUTHZ_PDP, "{\"targetPdpId\":\"scope-2\",\"environmentId\":\"env-1\"}");
+        Event event = event(
+                "evt-2", EventType.UNPUBLISH_AUTHZ_PDP, "{\"targetPdpId\":\"scope-2\",\"environmentId\":\"env-1\"}");
 
         AuthzPdpProvisionDeployable deployable = mapper.toUndeploy(event).blockingGet();
 
@@ -63,14 +65,16 @@ class AuthzPdpMapperTest {
 
     @Test
     void blank_environment_is_dropped() {
-        Event event = event("evt-6", EventType.PUBLISH_AUTHZ_PDP, "{\"targetPdpId\":\"scope-1\",\"environmentId\":\"  \"}");
+        Event event =
+                event("evt-6", EventType.PUBLISH_AUTHZ_PDP, "{\"targetPdpId\":\"scope-1\",\"environmentId\":\"  \"}");
 
         assertThat(mapper.toDeploy(event).isEmpty().blockingGet()).isTrue();
     }
 
     @Test
     void valid_scope_and_environment_maps() {
-        Event event = event("evt-7", EventType.PUBLISH_AUTHZ_PDP, "{\"targetPdpId\":\"scope-1\",\"environmentId\":\"env-1\"}");
+        Event event = event(
+                "evt-7", EventType.PUBLISH_AUTHZ_PDP, "{\"targetPdpId\":\"scope-1\",\"environmentId\":\"env-1\"}");
 
         AuthzPdpProvisionDeployable deployable = mapper.toDeploy(event).blockingGet();
 

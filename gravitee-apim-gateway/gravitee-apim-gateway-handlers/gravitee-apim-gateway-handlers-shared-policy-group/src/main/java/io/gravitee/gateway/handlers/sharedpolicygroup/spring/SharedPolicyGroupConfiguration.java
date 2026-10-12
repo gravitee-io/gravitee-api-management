@@ -57,47 +57,40 @@ public class SharedPolicyGroupConfiguration {
     @PostConstruct
     void registerSharedPolicyGroupPolicyPlugin() {
         String[] beanNamesForType = applicationContext.getBeanNamesForType(
-            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
-        );
+                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
 
-        ConfigurablePluginManager<PolicyPlugin<?>> ppm = (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(
-            beanNamesForType[0]
-        );
+        ConfigurablePluginManager<PolicyPlugin<?>> ppm =
+                (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(beanNamesForType[0]);
 
         ppm.register(new SharedPolicyGroupPolicyPlugin());
     }
 
     @Bean
     public SharedPolicyGroupEventListener sharedPolicyGroupEventListener(
-        EventManager eventManager,
-        SharedPolicyGroupRegistry sharedPolicyGroupRegistry
-    ) {
+            EventManager eventManager, SharedPolicyGroupRegistry sharedPolicyGroupRegistry) {
         return new SharedPolicyGroupEventListener(eventManager, sharedPolicyGroupRegistry);
     }
 
     @Bean
     public SharedPolicyGroupReactorFactory sharedPolicyGroupReactorFactory(
-        DefaultClassLoader classLoader,
-        ApplicationContext applicationContext,
-        PolicyFactoryManager policyFactoryManager,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider,
-        OpenTelemetryConfiguration openTelemetryConfiguration
-    ) {
+            DefaultClassLoader classLoader,
+            ApplicationContext applicationContext,
+            PolicyFactoryManager policyFactoryManager,
+            PolicyClassLoaderFactory policyClassLoaderFactory,
+            ComponentProvider componentProvider,
+            OpenTelemetryConfiguration openTelemetryConfiguration) {
         return new DefaultSharedPolicyGroupReactorFactory(
-            classLoader,
-            applicationContext,
-            policyFactoryManager,
-            policyClassLoaderFactory,
-            componentProvider,
-            openTelemetryConfiguration
-        );
+                classLoader,
+                applicationContext,
+                policyFactoryManager,
+                policyClassLoaderFactory,
+                componentProvider,
+                openTelemetryConfiguration);
     }
 
     @Bean
     public SharedPolicyGroupRegistry sharedPolicyGroupRegistry(
-        SharedPolicyGroupReactorFactoryManager sharedPolicyGroupReactorFactoryManager
-    ) {
+            SharedPolicyGroupReactorFactoryManager sharedPolicyGroupReactorFactoryManager) {
         return new SharedPolicyGroupRegistry(sharedPolicyGroupReactorFactoryManager);
     }
 
@@ -108,16 +101,15 @@ public class SharedPolicyGroupConfiguration {
 
     @Bean
     public PolicyFactory sharedPolicyGroupPolicyFactory(
-        final io.gravitee.node.api.configuration.Configuration configuration,
-        final PolicyPluginFactory policyPluginFactory
-    ) {
-        return new SharedPolicyGroupPolicyFactory(configuration, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
+            final io.gravitee.node.api.configuration.Configuration configuration,
+            final PolicyPluginFactory policyPluginFactory) {
+        return new SharedPolicyGroupPolicyFactory(
+                configuration, policyPluginFactory, new ExpressionLanguageConditionFilter<>());
     }
 
     @Bean
     public SharedPolicyGroupReactorFactoryManager sharedPolicyGroupReactorFactoryManager(
-        List<SharedPolicyGroupReactorFactory> reactorFactories
-    ) {
+            List<SharedPolicyGroupReactorFactory> reactorFactories) {
         return new SharedPolicyGroupReactorFactoryManager(reactorFactories);
     }
 }

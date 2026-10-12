@@ -45,74 +45,91 @@ class StatsQueryAdapterTest {
         @Test
         void shouldGenerateCorrectQueryJson() throws Exception {
             StatsQuery query = new StatsQuery(
-                FIELD,
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
-                Optional.empty()
-            );
+                    FIELD,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
+                    Optional.empty());
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
 
             assertEquals(0, node.get("size").asInt());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
-            assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/gte").asLong());
-            assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/lte").asLong());
-            assertEquals(FIELD, node.at("/aggregations/by_response-time/stats/field").asText());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
+            assertEquals(
+                    FROM, node.at("/query/bool/filter/1/range/@timestamp/gte").asLong());
+            assertEquals(
+                    TO, node.at("/query/bool/filter/1/range/@timestamp/lte").asLong());
+            assertEquals(
+                    FIELD, node.at("/aggregations/by_response-time/stats/field").asText());
         }
 
         @Test
         void shouldIncludeQueryStringIfPresent() throws Exception {
             String queryString = "status:200 AND method:GET";
             StatsQuery query = new StatsQuery(
-                FIELD,
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
-                java.util.Optional.of(queryString)
-            );
+                    FIELD,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
+                    java.util.Optional.of(queryString));
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
-            assertEquals(queryString, node.at("/query/bool/filter/0/query_string/query").asText());
-            assertEquals(API_ID, node.at("/query/bool/filter/1/bool/should/0/term/api-id").asText());
-            assertEquals(API_ID, node.at("/query/bool/filter/1/bool/should/1/term/api").asText());
+            assertEquals(
+                    queryString,
+                    node.at("/query/bool/filter/0/query_string/query").asText());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/1/bool/should/0/term/api-id").asText());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/1/bool/should/1/term/api").asText());
         }
 
         @Test
         void shouldNotIncludeQueryStringIfEmptyOrBlank() throws Exception {
             StatsQuery query = new StatsQuery(
-                FIELD,
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
-                java.util.Optional.of("   ")
-            );
+                    FIELD,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
+                    java.util.Optional.of("   "));
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
             assertTrue(node.at("/query/bool/filter/0/query_string/query").isEmpty());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
         }
 
         @Test
         void shouldNotIncludeQueryStringIfNotPresent() throws Exception {
             StatsQuery query = new StatsQuery(
-                FIELD,
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
-                java.util.Optional.empty()
-            );
+                    FIELD,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
+                    java.util.Optional.empty());
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
             assertTrue(node.at("/query/bool/filter/0/query_string/query").isEmpty());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
+            assertEquals(
+                    API_ID,
+                    node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
         }
     }
 
@@ -121,14 +138,11 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldAdaptResponseCorrectly() {
-            cut.adapt(
-                new StatsQuery(
+            cut.adapt(new StatsQuery(
                     FIELD,
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     new TimeRange(java.time.Instant.ofEpochMilli(1L), java.time.Instant.ofEpochMilli(3601L)),
-                    Optional.empty()
-                )
-            );
+                    Optional.empty()));
 
             Aggregation agg = new Aggregation();
             agg.setCount(3600d);
@@ -159,14 +173,11 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldReturnEmptyIfNoAggregations() {
-            cut.adapt(
-                new StatsQuery(
+            cut.adapt(new StatsQuery(
                     FIELD,
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     new TimeRange(java.time.Instant.ofEpochMilli(1L), java.time.Instant.ofEpochMilli(2L)),
-                    Optional.empty()
-                )
-            );
+                    Optional.empty()));
             SearchResponse response = new SearchResponse();
             response.setAggregations(null);
             assertTrue(cut.adaptResponse(response).isEmpty());
@@ -174,14 +185,11 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldReturnEmptyIfNoMatchingAggregation() {
-            cut.adapt(
-                new StatsQuery(
+            cut.adapt(new StatsQuery(
                     FIELD,
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     new TimeRange(java.time.Instant.ofEpochMilli(1L), java.time.Instant.ofEpochMilli(2L)),
-                    Optional.empty()
-                )
-            );
+                    Optional.empty()));
             SearchResponse response = new SearchResponse();
             response.setAggregations(new HashMap<>());
             assertTrue(cut.adaptResponse(response).isEmpty());

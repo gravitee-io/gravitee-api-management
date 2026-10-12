@@ -50,7 +50,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class HttpProviderTest {
 
     @RegisterExtension
-    public WireMockExtension wireMockRule = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+    public WireMockExtension wireMockRule = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
 
     @Mock
     private HttpProviderConfiguration configuration;
@@ -66,15 +68,16 @@ public class HttpProviderTest {
 
     @BeforeEach
     public void setUp() {
-        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
+        when(httpClientService.createHttpClient(anyString(), anyBoolean()))
+                .thenReturn(Vertx.vertx().createHttpClient());
     }
 
     @Test
     public void shouldGetProperties() throws IOException {
         when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.getPort() + "/success");
-        when(configuration.getSpecification()).thenReturn(
-            IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
-        );
+        when(configuration.getSpecification())
+                .thenReturn(
+                        IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
         when(configuration.getMethod()).thenReturn(HttpMethod.GET);
 
         HttpProvider provider = new HttpProvider(configuration);
@@ -92,9 +95,9 @@ public class HttpProviderTest {
     @Test
     public void shouldGetPropertiesWithoutMethod() throws IOException {
         when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.getPort() + "/success_post");
-        when(configuration.getSpecification()).thenReturn(
-            IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
-        );
+        when(configuration.getSpecification())
+                .thenReturn(
+                        IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
         when(configuration.getBody()).thenReturn("{}");
 
         HttpProvider provider = new HttpProvider(configuration);
@@ -112,9 +115,9 @@ public class HttpProviderTest {
     @Test
     public void shouldGetPropertiesFromPOST() throws IOException {
         when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.getPort() + "/success_post");
-        when(configuration.getSpecification()).thenReturn(
-            IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
-        );
+        when(configuration.getSpecification())
+                .thenReturn(
+                        IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
         when(configuration.getMethod()).thenReturn(HttpMethod.GET);
         when(configuration.getBody()).thenReturn("{}");
 
@@ -133,9 +136,9 @@ public class HttpProviderTest {
     @Test
     public void shouldGetNullPropertiesBecauseHttpError() throws IOException {
         when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.getPort() + "/error");
-        when(configuration.getSpecification()).thenReturn(
-            IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
-        );
+        when(configuration.getSpecification())
+                .thenReturn(
+                        IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
         when(configuration.getMethod()).thenReturn(HttpMethod.GET);
 
         HttpProvider provider = new HttpProvider(configuration);
@@ -154,9 +157,9 @@ public class HttpProviderTest {
     public void shouldCallUnknownUri() throws IOException {
         assertThrows(CompletionException.class, () -> {
             when(configuration.getUrl()).thenReturn("http://unknown_host:" + wireMockRule.getPort());
-            when(configuration.getSpecification()).thenReturn(
-                IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
-            );
+            when(configuration.getSpecification())
+                    .thenReturn(IOUtils.toString(
+                            read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
             when(configuration.getMethod()).thenReturn(HttpMethod.GET);
 
             HttpProvider provider = new HttpProvider(configuration);

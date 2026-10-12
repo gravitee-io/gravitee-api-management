@@ -33,7 +33,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({ ServiceConfiguration.class, UsecaseSpringConfiguration.class })
+@Import({ServiceConfiguration.class, UsecaseSpringConfiguration.class})
 @EnableAsync
 public class RestAutomationConfiguration {
 

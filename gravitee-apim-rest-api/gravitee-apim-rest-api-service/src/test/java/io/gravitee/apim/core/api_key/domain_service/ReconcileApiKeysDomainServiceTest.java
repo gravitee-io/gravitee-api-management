@@ -63,19 +63,20 @@ class ReconcileApiKeysDomainServiceTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     private static final SubscriptionEntity SUBSCRIPTION = SubscriptionEntity.builder()
-        .id(SUBSCRIPTION_ID)
-        .applicationId(APPLICATION_ID)
-        .environmentId(ENVIRONMENT_ID)
-        .planId("plan-id")
-        .status(SubscriptionEntity.Status.ACCEPTED)
-        .build();
+            .id(SUBSCRIPTION_ID)
+            .applicationId(APPLICATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .planId("plan-id")
+            .status(SubscriptionEntity.Status.ACCEPTED)
+            .build();
 
     private final ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     private final ApiKeyQueryServiceInMemory apiKeyQueryService = new ApiKeyQueryServiceInMemory(apiKeyCrudService);
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
-    private final TriggerNotificationDomainServiceInMemory notificationService = new TriggerNotificationDomainServiceInMemory();
+    private final TriggerNotificationDomainServiceInMemory notificationService =
+            new TriggerNotificationDomainServiceInMemory();
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
 
     private ReconcileApiKeysDomainService cut;
@@ -88,32 +89,27 @@ class ReconcileApiKeysDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var generateApiKeyDomainService = new GenerateApiKeyDomainService(
-            apiKeyCrudService,
-            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
-            applicationCrudService,
-            auditDomainService,
-            new ParametersQueryServiceInMemory()
-        );
+                apiKeyCrudService,
+                new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+                applicationCrudService,
+                auditDomainService,
+                new ParametersQueryServiceInMemory());
         var revokeApiKeyDomainService = new RevokeApiKeyDomainService(
-            apiKeyCrudService,
-            apiKeyQueryService,
-            subscriptionCrudService,
-            auditDomainService,
-            notificationService
-        );
+                apiKeyCrudService,
+                apiKeyQueryService,
+                subscriptionCrudService,
+                auditDomainService,
+                notificationService);
 
         cut = new ReconcileApiKeysDomainService(
-            apiKeyQueryService,
-            apiKeyCrudService,
-            generateApiKeyDomainService,
-            revokeApiKeyDomainService
-        );
+                apiKeyQueryService, apiKeyCrudService, generateApiKeyDomainService, revokeApiKeyDomainService);
 
-        applicationCrudService.initWith(
-            List.of(fixtures.ApplicationModelFixtures.anApplicationEntity().toBuilder().id(APPLICATION_ID).build())
-        );
+        applicationCrudService.initWith(List.of(fixtures.ApplicationModelFixtures.anApplicationEntity().toBuilder()
+                .id(APPLICATION_ID)
+                .build()));
         subscriptionCrudService.initWith(List.of(SUBSCRIPTION));
     }
 
@@ -164,7 +160,8 @@ class ReconcileApiKeysDomainServiceTest {
         @Test
         void should_create_key_with_expire_at() {
             var expiry = FIXED_NOW.plusDays(30);
-            var desired = List.of(ApiKeyCRDSpec.builder().key("key-v1").expireAt(expiry).build());
+            var desired = List.of(
+                    ApiKeyCRDSpec.builder().key("key-v1").expireAt(expiry).build());
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
@@ -175,12 +172,16 @@ class ReconcileApiKeysDomainServiceTest {
 
         @Test
         void should_create_multiple_keys() {
-            var desired = List.of(ApiKeyCRDSpec.builder().key("key-v1").build(), ApiKeyCRDSpec.builder().key("key-v2").build());
+            var desired = List.of(
+                    ApiKeyCRDSpec.builder().key("key-v1").build(),
+                    ApiKeyCRDSpec.builder().key("key-v2").build());
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
             assertThat(apiKeyCrudService.storage()).hasSize(2);
-            assertThat(apiKeyCrudService.storage()).extracting(ApiKeyEntity::getKey).containsExactlyInAnyOrder("key-v1", "key-v2");
+            assertThat(apiKeyCrudService.storage())
+                    .extracting(ApiKeyEntity::getKey)
+                    .containsExactlyInAnyOrder("key-v1", "key-v2");
         }
     }
 
@@ -195,12 +196,10 @@ class ReconcileApiKeysDomainServiceTest {
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
-            var oldKey = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-old"))
-                .findFirst()
-                .orElseThrow();
+            var oldKey = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-old"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(oldKey.isRevoked()).isTrue();
             assertThat(oldKey.getRevokedAt()).isNotNull();
         }
@@ -213,12 +212,10 @@ class ReconcileApiKeysDomainServiceTest {
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
-            var oldKey = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-old"))
-                .findFirst()
-                .orElseThrow();
+            var oldKey = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-old"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(oldKey.isRevoked()).isTrue();
         }
     }
@@ -234,12 +231,10 @@ class ReconcileApiKeysDomainServiceTest {
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
-            var key = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-v1"))
-                .findFirst()
-                .orElseThrow();
+            var key = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-v1"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(key.isRevoked()).isFalse();
             assertThat(key.getRevokedAt()).isNull();
         }
@@ -249,16 +244,15 @@ class ReconcileApiKeysDomainServiceTest {
             givenExistingRevokedKey("key-v1");
 
             var expiry = FIXED_NOW.plusDays(30);
-            var desired = List.of(ApiKeyCRDSpec.builder().key("key-v1").expireAt(expiry).build());
+            var desired = List.of(
+                    ApiKeyCRDSpec.builder().key("key-v1").expireAt(expiry).build());
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
-            var key = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-v1"))
-                .findFirst()
-                .orElseThrow();
+            var key = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-v1"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(key.isRevoked()).isFalse();
             assertThat(key.getExpireAt()).isEqualTo(expiry);
         }
@@ -273,16 +267,15 @@ class ReconcileApiKeysDomainServiceTest {
             givenExistingActiveKey("key-v1", oldExpiry);
 
             var newExpiry = FIXED_NOW.plusDays(60);
-            var desired = List.of(ApiKeyCRDSpec.builder().key("key-v1").expireAt(newExpiry).build());
+            var desired = List.of(
+                    ApiKeyCRDSpec.builder().key("key-v1").expireAt(newExpiry).build());
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
-            var key = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-v1"))
-                .findFirst()
-                .orElseThrow();
+            var key = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-v1"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(key.getExpireAt()).isEqualTo(newExpiry);
         }
 
@@ -291,16 +284,15 @@ class ReconcileApiKeysDomainServiceTest {
             var expiry = FIXED_NOW.plusDays(10);
             givenExistingActiveKey("key-v1", expiry);
 
-            var desired = List.of(ApiKeyCRDSpec.builder().key("key-v1").expireAt(expiry).build());
+            var desired = List.of(
+                    ApiKeyCRDSpec.builder().key("key-v1").expireAt(expiry).build());
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
-            var key = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-v1"))
-                .findFirst()
-                .orElseThrow();
+            var key = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-v1"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(key.getExpireAt()).isEqualTo(expiry);
         }
 
@@ -309,16 +301,15 @@ class ReconcileApiKeysDomainServiceTest {
             var expiry = FIXED_NOW.plusDays(10);
             givenExistingActiveKey("key-v1", expiry);
 
-            var desired = List.of(ApiKeyCRDSpec.builder().key("key-v1").expireAt(null).build());
+            var desired =
+                    List.of(ApiKeyCRDSpec.builder().key("key-v1").expireAt(null).build());
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
-            var key = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-v1"))
-                .findFirst()
-                .orElseThrow();
+            var key = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-v1"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(key.getExpireAt()).isNull();
         }
     }
@@ -334,20 +325,16 @@ class ReconcileApiKeysDomainServiceTest {
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
-            var oldKey = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-v1"))
-                .findFirst()
-                .orElseThrow();
+            var oldKey = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-v1"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(oldKey.isRevoked()).isTrue();
 
-            var newKey = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-v2"))
-                .findFirst()
-                .orElseThrow();
+            var newKey = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-v2"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(newKey.isRevoked()).isFalse();
         }
 
@@ -356,27 +343,25 @@ class ReconcileApiKeysDomainServiceTest {
             givenExistingActiveKey("key-v1", null);
 
             var desired = List.of(
-                ApiKeyCRDSpec.builder().key("key-v1").expireAt(FIXED_NOW.plusHours(2)).build(),
-                ApiKeyCRDSpec.builder().key("key-v2").build()
-            );
+                    ApiKeyCRDSpec.builder()
+                            .key("key-v1")
+                            .expireAt(FIXED_NOW.plusHours(2))
+                            .build(),
+                    ApiKeyCRDSpec.builder().key("key-v2").build());
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
-            var oldKey = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-v1"))
-                .findFirst()
-                .orElseThrow();
+            var oldKey = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-v1"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(oldKey.isRevoked()).isFalse();
             assertThat(oldKey.getExpireAt()).isEqualTo(FIXED_NOW.plusHours(2));
 
-            var newKey = apiKeyCrudService
-                .storage()
-                .stream()
-                .filter(k -> k.getKey().equals("key-v2"))
-                .findFirst()
-                .orElseThrow();
+            var newKey = apiKeyCrudService.storage().stream()
+                    .filter(k -> k.getKey().equals("key-v2"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(newKey.isRevoked()).isFalse();
         }
 
@@ -389,33 +374,24 @@ class ReconcileApiKeysDomainServiceTest {
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
-            assertThat(
-                apiKeyCrudService
-                    .storage()
-                    .stream()
-                    .filter(k -> k.getKey().equals("key-v1"))
-                    .findFirst()
-                    .orElseThrow()
-                    .isRevoked()
-            ).isTrue();
-            assertThat(
-                apiKeyCrudService
-                    .storage()
-                    .stream()
-                    .filter(k -> k.getKey().equals("key-v2"))
-                    .findFirst()
-                    .orElseThrow()
-                    .isRevoked()
-            ).isTrue();
-            assertThat(
-                apiKeyCrudService
-                    .storage()
-                    .stream()
-                    .filter(k -> k.getKey().equals("key-v3"))
-                    .findFirst()
-                    .orElseThrow()
-                    .isRevoked()
-            ).isFalse();
+            assertThat(apiKeyCrudService.storage().stream()
+                            .filter(k -> k.getKey().equals("key-v1"))
+                            .findFirst()
+                            .orElseThrow()
+                            .isRevoked())
+                    .isTrue();
+            assertThat(apiKeyCrudService.storage().stream()
+                            .filter(k -> k.getKey().equals("key-v2"))
+                            .findFirst()
+                            .orElseThrow()
+                            .isRevoked())
+                    .isTrue();
+            assertThat(apiKeyCrudService.storage().stream()
+                            .filter(k -> k.getKey().equals("key-v3"))
+                            .findFirst()
+                            .orElseThrow()
+                            .isRevoked())
+                    .isFalse();
         }
 
         @Test
@@ -423,7 +399,9 @@ class ReconcileApiKeysDomainServiceTest {
             givenExistingActiveKey("key-v1", null);
             givenExistingActiveKey("key-v2", null);
 
-            var desired = List.of(ApiKeyCRDSpec.builder().key("key-v1").build(), ApiKeyCRDSpec.builder().key("key-v2").build());
+            var desired = List.of(
+                    ApiKeyCRDSpec.builder().key("key-v1").build(),
+                    ApiKeyCRDSpec.builder().key("key-v2").build());
 
             cut.reconcile(SUBSCRIPTION, desired, AUDIT_INFO);
 
@@ -433,8 +411,7 @@ class ReconcileApiKeysDomainServiceTest {
     }
 
     private void givenExistingActiveKey(String key, ZonedDateTime expireAt) {
-        apiKeyCrudService.create(
-            ApiKeyEntity.builder()
+        apiKeyCrudService.create(ApiKeyEntity.builder()
                 .id("id-" + key)
                 .key(key)
                 .applicationId(APPLICATION_ID)
@@ -444,13 +421,11 @@ class ReconcileApiKeysDomainServiceTest {
                 .updatedAt(FIXED_NOW)
                 .expireAt(expireAt)
                 .revoked(false)
-                .build()
-        );
+                .build());
     }
 
     private void givenExistingRevokedKey(String key) {
-        apiKeyCrudService.create(
-            ApiKeyEntity.builder()
+        apiKeyCrudService.create(ApiKeyEntity.builder()
                 .id("id-" + key)
                 .key(key)
                 .applicationId(APPLICATION_ID)
@@ -460,7 +435,6 @@ class ReconcileApiKeysDomainServiceTest {
                 .updatedAt(FIXED_NOW)
                 .revoked(true)
                 .revokedAt(FIXED_NOW)
-                .build()
-        );
+                .build());
     }
 }

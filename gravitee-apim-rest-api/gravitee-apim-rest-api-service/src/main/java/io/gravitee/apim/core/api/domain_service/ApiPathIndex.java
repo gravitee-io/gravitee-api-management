@@ -180,7 +180,8 @@ public class ApiPathIndex implements ApiPathIndexReader, ApiPathIndexWriter {
      * intended to bound a follow-up "recently updated" Mongo query (see {@code VerifyApiPathDomainService}).
      */
     @Override
-    public FindResult findConflicts(String envId, String excludeApiId, List<Path> candidatePaths, Supplier<Stream<Api>> seeder) {
+    public FindResult findConflicts(
+            String envId, String excludeApiId, List<Path> candidatePaths, Supplier<Stream<Api>> seeder) {
         var snapshot = snapshotsByEnv.computeIfAbsent(envId, key -> seedFrom(key, seeder));
         var conflicts = scanPaths(snapshot.paths, excludeApiId, candidatePaths);
         return new FindResult(conflicts, snapshot.refreshedAt.get());
@@ -207,7 +208,8 @@ public class ApiPathIndex implements ApiPathIndexReader, ApiPathIndexWriter {
      * {@code excludeApiId}. Pure function — used by {@link #findConflicts} and by callers that want to scan a merged
      * snapshot+supplementary view.
      */
-    public static List<Conflict> scanPaths(Map<String, List<Path>> pathsByApiId, String excludeApiId, List<Path> candidatePaths) {
+    public static List<Conflict> scanPaths(
+            Map<String, List<Path>> pathsByApiId, String excludeApiId, List<Path> candidatePaths) {
         var conflicts = new ArrayList<Conflict>();
         var candidateWithHost = ApiPathExtractor.getPathsWithHost(candidatePaths);
         var candidateWithoutHost = ApiPathExtractor.getPathsWithoutHost(candidatePaths);
@@ -220,17 +222,12 @@ public class ApiPathIndex implements ApiPathIndexReader, ApiPathIndexWriter {
             var existingWithoutHost = ApiPathExtractor.getPathsWithoutHost(existingPaths);
 
             candidateWithHost.forEach((host, hostPaths) ->
-                hostPaths.forEach(candidatePath ->
-                    ApiPathExtractor.findConflictingPathError(candidatePath, existingWithHost.getOrDefault(host, List.of())).ifPresent(
-                        err -> conflicts.add(new Conflict(apiId, err))
-                    )
-                )
-            );
-            candidateWithoutHost.forEach(candidatePath ->
-                ApiPathExtractor.findConflictingPathError(candidatePath, existingWithoutHost).ifPresent(err ->
-                    conflicts.add(new Conflict(apiId, err))
-                )
-            );
+                    hostPaths.forEach(candidatePath -> ApiPathExtractor.findConflictingPathError(
+                                    candidatePath, existingWithHost.getOrDefault(host, List.of()))
+                            .ifPresent(err -> conflicts.add(new Conflict(apiId, err)))));
+            candidateWithoutHost.forEach(
+                    candidatePath -> ApiPathExtractor.findConflictingPathError(candidatePath, existingWithoutHost)
+                            .ifPresent(err -> conflicts.add(new Conflict(apiId, err))));
         });
 
         return conflicts;
@@ -255,17 +252,20 @@ public class ApiPathIndex implements ApiPathIndexReader, ApiPathIndexWriter {
                     }
                 } catch (RuntimeException e) {
                     skipped.incrementAndGet();
-                    log.warn("Skipping api=[{}] during seed of env=[{}] due to extraction failure", api.getId(), envId, e);
+                    log.warn(
+                            "Skipping api=[{}] during seed of env=[{}] due to extraction failure",
+                            api.getId(),
+                            envId,
+                            e);
                 }
             });
         }
         log.info(
-            "Seeded path index env=[{}] apiCount=[{}] skipped=[{}] watermark=[{}]",
-            envId,
-            snapshot.paths.size(),
-            skipped.get(),
-            snapshot.refreshedAt.get()
-        );
+                "Seeded path index env=[{}] apiCount=[{}] skipped=[{}] watermark=[{}]",
+                envId,
+                snapshot.paths.size(),
+                skipped.get(),
+                snapshot.refreshedAt.get());
         return snapshot;
     }
 }

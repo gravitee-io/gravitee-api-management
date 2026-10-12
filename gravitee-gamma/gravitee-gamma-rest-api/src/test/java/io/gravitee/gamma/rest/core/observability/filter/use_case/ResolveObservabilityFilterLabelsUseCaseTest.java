@@ -29,24 +29,20 @@ import org.junit.jupiter.api.Test;
 class ResolveObservabilityFilterLabelsUseCaseTest {
 
     private final StubDataPort dataPort = new StubDataPort();
-    private final ResolveObservabilityFilterLabelsUseCase useCase = new ResolveObservabilityFilterLabelsUseCase(dataPort);
+    private final ResolveObservabilityFilterLabelsUseCase useCase =
+            new ResolveObservabilityFilterLabelsUseCase(dataPort);
 
     @Test
     void should_resolve_labels_grouped_by_filter_via_the_port() {
         dataPort.labelsByFilter = Map.of("API", Map.of("api-1", "Petstore"), "APPLICATION", Map.of("app-1", "Web app"));
 
-        var output = useCase.execute(
-            new ResolveObservabilityFilterLabelsUseCase.Input(
-                List.of(
-                    new ResolveObservabilityFilterLabelsUseCase.Entry("API", List.of("api-1")),
-                    new ResolveObservabilityFilterLabelsUseCase.Entry("APPLICATION", List.of("app-1"))
-                )
-            )
-        );
+        var output = useCase.execute(new ResolveObservabilityFilterLabelsUseCase.Input(List.of(
+                new ResolveObservabilityFilterLabelsUseCase.Entry("API", List.of("api-1")),
+                new ResolveObservabilityFilterLabelsUseCase.Entry("APPLICATION", List.of("app-1")))));
 
         assertThat(output.entries())
-            .extracting(ResolveObservabilityFilterLabelsUseCase.ResolvedEntry::filterName)
-            .containsExactly("API", "APPLICATION");
+                .extracting(ResolveObservabilityFilterLabelsUseCase.ResolvedEntry::filterName)
+                .containsExactly("API", "APPLICATION");
         assertThat(output.entries().get(0).labels()).containsEntry("api-1", "Petstore");
         assertThat(output.entries().get(1).labels()).containsEntry("app-1", "Web app");
     }
@@ -64,23 +60,21 @@ class ResolveObservabilityFilterLabelsUseCaseTest {
 
         @Override
         public FilterValuesPage listKeywordValues(
-            String filterName,
-            String query,
-            Long from,
-            Long to,
-            int page,
-            int perPage,
-            java.util.Set<io.gravitee.gamma.rest.core.observability.filter.model.ApiType> apiTypes
-        ) {
+                String filterName,
+                String query,
+                Long from,
+                Long to,
+                int page,
+                int perPage,
+                java.util.Set<io.gravitee.gamma.rest.core.observability.filter.model.ApiType> apiTypes) {
             return new FilterValuesPage(List.of(), 0L);
         }
 
         @Override
         public List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests) {
-            return requests
-                .stream()
-                .map(r -> new ResolvedLabels(r.filterName(), labelsByFilter.getOrDefault(r.filterName(), Map.of())))
-                .toList();
+            return requests.stream()
+                    .map(r -> new ResolvedLabels(r.filterName(), labelsByFilter.getOrDefault(r.filterName(), Map.of())))
+                    .toList();
         }
     }
 }

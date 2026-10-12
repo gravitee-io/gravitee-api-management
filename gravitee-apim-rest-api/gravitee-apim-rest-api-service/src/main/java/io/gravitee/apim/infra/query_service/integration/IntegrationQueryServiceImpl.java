@@ -41,7 +41,8 @@ public class IntegrationQueryServiceImpl extends AbstractService implements Inte
     private final IntegrationRepository integrationRepository;
     private final MembershipService membershipService;
 
-    public IntegrationQueryServiceImpl(@Lazy IntegrationRepository integrationRepository, MembershipService membershipService) {
+    public IntegrationQueryServiceImpl(
+            @Lazy IntegrationRepository integrationRepository, MembershipService membershipService) {
         this.integrationRepository = integrationRepository;
         this.membershipService = membershipService;
     }
@@ -49,42 +50,38 @@ public class IntegrationQueryServiceImpl extends AbstractService implements Inte
     @Override
     public Page<Integration> findByEnvironment(String environmentId, Pageable pageable) {
         try {
-            return integrationRepository.findAllByEnvironment(environmentId, convert(pageable)).map(IntegrationAdapter.INSTANCE::toEntity);
+            return integrationRepository
+                    .findAllByEnvironment(environmentId, convert(pageable))
+                    .map(IntegrationAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             log.error("An error occurred while finding Integrations by environment", e);
-            throw new TechnicalManagementException("An error occurred while finding Integrations by environment id: " + environmentId, e);
+            throw new TechnicalManagementException(
+                    "An error occurred while finding Integrations by environment id: " + environmentId, e);
         }
     }
 
     @Override
     public Page<Integration> findByEnvironmentAndContext(
-        String environmentId,
-        String userId,
-        Collection<String> groups,
-        boolean isAdmin,
-        Pageable pageable
-    ) {
+            String environmentId, String userId, Collection<String> groups, boolean isAdmin, Pageable pageable) {
         try {
             Page<io.gravitee.repository.management.model.Integration> integrations;
             if (isAdmin) {
                 integrations = integrationRepository.findAllByEnvironment(environmentId, convert(pageable));
             } else {
                 var integrationAccessibleDirectlyByUser = membershipService
-                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.INTEGRATION)
-                    .stream()
-                    .map(MembershipEntity::getReferenceId)
-                    .collect(Collectors.toSet());
+                        .getMembershipsByMemberAndReference(
+                                MembershipMemberType.USER, userId, MembershipReferenceType.INTEGRATION)
+                        .stream()
+                        .map(MembershipEntity::getReferenceId)
+                        .collect(Collectors.toSet());
                 integrations = integrationRepository.findAllByEnvironmentAndGroups(
-                    environmentId,
-                    integrationAccessibleDirectlyByUser,
-                    groups,
-                    convert(pageable)
-                );
+                        environmentId, integrationAccessibleDirectlyByUser, groups, convert(pageable));
             }
             return integrations.map(IntegrationAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             log.error("An error occurred while finding Integrations by environment", e);
-            throw new TechnicalManagementException("An error occurred while finding Integrations by environment id: " + environmentId, e);
+            throw new TechnicalManagementException(
+                    "An error occurred while finding Integrations by environment id: " + environmentId, e);
         }
     }
 }

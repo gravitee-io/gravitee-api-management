@@ -44,7 +44,8 @@ public class DeployApiProductUseCase {
     private final TriggerNotificationDomainService triggerNotificationDomainService;
 
     public Output execute(Input input) {
-        if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
+        if (!licenseDomainService.isApiProductDeploymentAllowed(
+                input.auditInfo().organizationId())) {
             throw new ForbiddenFeatureException("api-product");
         }
         Optional<ApiProduct> apiProductOpt = apiProductQueryService.findById(input.apiProductId());
@@ -58,10 +59,10 @@ public class DeployApiProductUseCase {
         validateApiProductService.validateForDeploy(apiProduct);
         deployApiProductDomainService.deploy(input.auditInfo(), apiProduct);
         triggerNotificationDomainService.triggerApiProductNotification(
-            input.auditInfo().organizationId(),
-            input.auditInfo().environmentId(),
-            new ApiProductDeployedHookContext(apiProduct.getId(), input.auditInfo().actor().userId())
-        );
+                input.auditInfo().organizationId(),
+                input.auditInfo().environmentId(),
+                new ApiProductDeployedHookContext(
+                        apiProduct.getId(), input.auditInfo().actor().userId()));
         return new Output(apiProduct);
     }
 

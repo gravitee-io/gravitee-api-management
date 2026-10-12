@@ -44,17 +44,19 @@ public class ExportApiUseCase {
             case GraviteeDefinition.V4 v4 -> new Output(v4);
             case GraviteeDefinition.Native nativeV4 -> new Output(nativeV4);
             case null -> throw new ApiNotFoundException(input.apiId());
-            default -> throw new ApiDefinitionVersionNotSupportedException(exported.api().definitionVersion().getLabel());
+            default ->
+                throw new ApiDefinitionVersionNotSupportedException(
+                        exported.api().definitionVersion().getLabel());
         };
     }
 
-    public record Input(String apiId, AuditInfo auditInfo, @Nullable Collection<Excludable> excluded) {
+    public record Input(
+            String apiId, AuditInfo auditInfo, @Nullable Collection<Excludable> excluded) {
         public static Input of(String apiId, AuditInfo auditInfo, @Nullable Collection<Excludable> excluded) {
             return new Input(
-                requireNonNull(apiId, "apiId should not be null"),
-                requireNonNull(auditInfo, "auditInfo should not be null"),
-                excluded == null ? List.of() : excluded
-            );
+                    requireNonNull(apiId, "apiId should not be null"),
+                    requireNonNull(auditInfo, "auditInfo should not be null"),
+                    excluded == null ? List.of() : excluded);
         }
     }
 
@@ -65,6 +67,10 @@ public class ExportApiUseCase {
     }
 
     private static String getExportFilename(ApiDescriptor api) {
-        return "%s-%s.json".formatted(api.name(), api.apiVersion()).trim().toLowerCase().replaceAll("[^\\w\\r\\n\\t\\f\\v.]+", "-");
+        return "%s-%s.json"
+                .formatted(api.name(), api.apiVersion())
+                .trim()
+                .toLowerCase()
+                .replaceAll("[^\\w\\r\\n\\t\\f\\v.]+", "-");
     }
 }

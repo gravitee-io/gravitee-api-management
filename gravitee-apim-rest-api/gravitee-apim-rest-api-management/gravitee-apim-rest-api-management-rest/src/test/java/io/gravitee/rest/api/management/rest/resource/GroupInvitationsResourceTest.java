@@ -56,7 +56,8 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
         group.setName("group1");
         group.setMaxInvitation(5);
 
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab")).thenReturn(group);
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab"))
+                .thenReturn(group);
     }
 
     @Test
@@ -65,17 +66,17 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
         newInvitation.setReferenceId("b72c4ad7-10aa-4331-ac4a-d710aad331ab");
         newInvitation.setEmail("test@test.com");
         newInvitation.setReferenceType(InvitationReferenceType.GROUP);
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_GROUP,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.CREATE,
-                RolePermissionAction.UPDATE,
-                RolePermissionAction.DELETE
-            )
-        ).thenReturn(false);
-        when(groupService.getNumberOfMembers(GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab")).thenReturn(5);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_GROUP,
+                        GraviteeContext.getCurrentEnvironment(),
+                        RolePermissionAction.CREATE,
+                        RolePermissionAction.UPDATE,
+                        RolePermissionAction.DELETE))
+                .thenReturn(false);
+        when(groupService.getNumberOfMembers(
+                        GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab"))
+                .thenReturn(5);
 
         final Response response = envTarget().request().post(Entity.json(newInvitation));
 
@@ -91,17 +92,17 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
         newInvitation.setReferenceId("b72c4ad7-10aa-4331-ac4a-d710aad331ab");
         newInvitation.setEmail("test@test.com");
         newInvitation.setReferenceType(InvitationReferenceType.GROUP);
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_GROUP,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.CREATE,
-                RolePermissionAction.UPDATE,
-                RolePermissionAction.DELETE
-            )
-        ).thenReturn(false);
-        when(groupService.getNumberOfMembers(GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab")).thenReturn(2);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_GROUP,
+                        GraviteeContext.getCurrentEnvironment(),
+                        RolePermissionAction.CREATE,
+                        RolePermissionAction.UPDATE,
+                        RolePermissionAction.DELETE))
+                .thenReturn(false);
+        when(groupService.getNumberOfMembers(
+                        GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab"))
+                .thenReturn(2);
 
         final Response response = envTarget().request().post(Entity.json(newInvitation));
 
@@ -109,9 +110,8 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
         assertEquals(404, response.getStatus());
 
         assertThat(
-            response.readEntity(String.class),
-            containsString("Invitation email is forbidden for group [b72c4ad7-10aa-4331-ac4a-d710aad331ab]")
-        );
+                response.readEntity(String.class),
+                containsString("Invitation email is forbidden for group [b72c4ad7-10aa-4331-ac4a-d710aad331ab]"));
     }
 
     @Test
@@ -125,17 +125,16 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
         user1.setEmail("test@test.com");
         UserEntity user2 = new UserEntity();
         user2.setEmail("test@test.com");
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_GROUP,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.CREATE,
-                RolePermissionAction.UPDATE,
-                RolePermissionAction.DELETE
-            )
-        ).thenReturn(true);
-        when(userService.findByEmail(GraviteeContext.getExecutionContext(), "test@test.com")).thenReturn(List.of(user1, user2));
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_GROUP,
+                        GraviteeContext.getCurrentEnvironment(),
+                        RolePermissionAction.CREATE,
+                        RolePermissionAction.UPDATE,
+                        RolePermissionAction.DELETE))
+                .thenReturn(true);
+        when(userService.findByEmail(GraviteeContext.getExecutionContext(), "test@test.com"))
+                .thenReturn(List.of(user1, user2));
 
         final Response response = envTarget().request().post(Entity.json(newInvitation));
 
@@ -158,18 +157,18 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
         invitationEntity.setReferenceType(InvitationReferenceType.GROUP);
         UserEntity user = new UserEntity();
         user.setEmail("test@test.com");
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_GROUP,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.CREATE,
-                RolePermissionAction.UPDATE,
-                RolePermissionAction.DELETE
-            )
-        ).thenReturn(true);
-        when(userService.findByEmail(GraviteeContext.getExecutionContext(), "test@test.com")).thenReturn(List.of(user));
-        when(invitationService.create(GraviteeContext.getExecutionContext(), newInvitation)).thenReturn(invitationEntity);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_GROUP,
+                        GraviteeContext.getCurrentEnvironment(),
+                        RolePermissionAction.CREATE,
+                        RolePermissionAction.UPDATE,
+                        RolePermissionAction.DELETE))
+                .thenReturn(true);
+        when(userService.findByEmail(GraviteeContext.getExecutionContext(), "test@test.com"))
+                .thenReturn(List.of(user));
+        when(invitationService.create(GraviteeContext.getExecutionContext(), newInvitation))
+                .thenReturn(invitationEntity);
         final Response response = envTarget().request().post(Entity.json(newInvitation));
 
         assertEquals(200, response.getStatus());

@@ -49,9 +49,11 @@ public class PageRevisionCrudServiceImpl implements PageRevisionCrudService {
 
         try {
             var lastPageRevision = pageRevisionRepository.findLastByPageId(page.getId());
-            pageRevisionToCreate.setRevision(lastPageRevision.map(rev -> rev.getRevision() + 1).orElse(1));
+            pageRevisionToCreate.setRevision(
+                    lastPageRevision.map(rev -> rev.getRevision() + 1).orElse(1));
 
-            var createdPageRevision = pageRevisionRepository.create(PageAdapter.INSTANCE.toPageRevisionRepository(pageRevisionToCreate));
+            var createdPageRevision =
+                    pageRevisionRepository.create(PageAdapter.INSTANCE.toPageRevisionRepository(pageRevisionToCreate));
             return PageAdapter.INSTANCE.toEntity(createdPageRevision);
         } catch (TechnicalException e) {
             log.error("An error occurred while creating {}", page, e);
@@ -74,16 +76,11 @@ public class PageRevisionCrudServiceImpl implements PageRevisionCrudService {
     private String canonicalRevision(PageRevision pageRevision) {
         StringBuilder builder = new StringBuilder();
         builder.append(
-            Optional.ofNullable(pageRevision.getName())
-                .map(c -> c.trim())
-                .orElse("")
-        );
+                Optional.ofNullable(pageRevision.getName()).map(c -> c.trim()).orElse(""));
         builder.append('\n');
-        builder.append(
-            Optional.ofNullable(pageRevision.getContent())
+        builder.append(Optional.ofNullable(pageRevision.getContent())
                 .map(c -> c.trim())
-                .orElse("")
-        );
+                .orElse(""));
         builder.append('\n');
         builder.append(pageRevision.getContributor());
         builder.append('\n');

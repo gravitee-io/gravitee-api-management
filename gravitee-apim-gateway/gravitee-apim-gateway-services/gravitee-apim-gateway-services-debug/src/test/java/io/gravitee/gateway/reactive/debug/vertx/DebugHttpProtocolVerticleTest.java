@@ -59,22 +59,20 @@ class DebugHttpProtocolVerticleTest {
         socket.close();
 
         final VertxHttpServerFactory vertxHttpServerFactory = new VertxHttpServerFactory(
-            io.vertx.rxjava3.core.Vertx.newInstance(vertx),
-            new DefaultKeyStoreLoaderFactoryRegistry<>(),
-            new DefaultKeyStoreLoaderFactoryRegistry<>()
-        );
+                io.vertx.rxjava3.core.Vertx.newInstance(vertx),
+                new DefaultKeyStoreLoaderFactoryRegistry<>(),
+                new DefaultKeyStoreLoaderFactoryRegistry<>());
         httpOptions = VertxHttpServerOptions.builder()
-            .id("UnitTest")
-            .port(randomPort)
-            .keyStoreLoaderOptions(KeyStoreLoaderOptions.builder().build())
-            .trustStoreLoaderOptions(TrustStoreLoaderOptions.builder().build())
-            .build();
+                .id("UnitTest")
+                .port(randomPort)
+                .keyStoreLoaderOptions(KeyStoreLoaderOptions.builder().build())
+                .trustStoreLoaderOptions(TrustStoreLoaderOptions.builder().build())
+                .build();
         vertxHttpServer = vertxHttpServerFactory.create(httpOptions);
 
         mockRequestDispatcher = spy(new DummyHttpRequestDispatcher());
-        vertx
-            .deployVerticle(new DebugHttpProtocolVerticle(vertxHttpServer, mockRequestDispatcher))
-            .onComplete(testContext.succeedingThenComplete());
+        vertx.deployVerticle(new DebugHttpProtocolVerticle(vertxHttpServer, mockRequestDispatcher))
+                .onComplete(testContext.succeedingThenComplete());
     }
 
     @AfterEach
@@ -86,92 +84,69 @@ class DebugHttpProtocolVerticleTest {
     @Test
     void http_server_should_listen(Vertx vertx, VertxTestContext testContext) {
         HttpClient client = vertx.createHttpClient();
-        client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
-            .compose(HttpClientRequest::send)
-            .onComplete(
-                testContext.succeeding(response ->
-                    testContext.verify(() -> {
-                        assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                        testContext.completeNow();
-                    })
-                )
-            );
+        client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+                .compose(HttpClientRequest::send)
+                .onComplete(testContext.succeeding(response -> testContext.verify(() -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    testContext.completeNow();
+                })));
     }
 
     @Test
     void http_server_should_close_and_resume_on_error(Vertx vertx, VertxTestContext testContext) {
         doReturn(Completable.error(new RuntimeException("error")))
-            .doCallRealMethod()
-            .when(mockRequestDispatcher)
-            .dispatch(any(), anyString());
+                .doCallRealMethod()
+                .when(mockRequestDispatcher)
+                .dispatch(any(), anyString());
         HttpClient client = vertx.createHttpClient();
-        client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
-            .compose(HttpClientRequest::send)
-            .onComplete(
-                testContext.succeeding(response ->
-                    testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(HttpStatusCode.INTERNAL_SERVER_ERROR_500))
-                )
-            )
-            .compose(httpClientResponse -> client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/"))
-            .compose(HttpClientRequest::send)
-            .onComplete(
-                testContext.succeeding(response ->
-                    testContext.verify(() -> {
-                        assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                        testContext.completeNow();
-                    })
-                )
-            );
+        client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+                .compose(HttpClientRequest::send)
+                .onComplete(testContext.succeeding(response -> testContext.verify(
+                        () -> assertThat(response.statusCode()).isEqualTo(HttpStatusCode.INTERNAL_SERVER_ERROR_500))))
+                .compose(httpClientResponse -> client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/"))
+                .compose(HttpClientRequest::send)
+                .onComplete(testContext.succeeding(response -> testContext.verify(() -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    testContext.completeNow();
+                })));
     }
 
     @Test
     void http_server_should_dispose_when_connection_closed(Vertx vertx, VertxTestContext testContext) {
         doReturn(Completable.timer(2, TimeUnit.SECONDS).doOnDispose(testContext::completeNow))
-            .when(mockRequestDispatcher)
-            .dispatch(any(), anyString());
+                .when(mockRequestDispatcher)
+                .dispatch(any(), anyString());
         HttpClient client = vertx.createHttpClient();
-        client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
-            .compose(request -> {
-                request.send().otherwiseEmpty();
-                return request.connection().close();
-            });
+        client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/").compose(request -> {
+            request.send().otherwiseEmpty();
+            return request.connection().close();
+        });
     }
 
     @Test
     void http_server_should_ignore_already_ended_response_on_error(Vertx vertx, VertxTestContext testContext) {
         doAnswer(invocation -> {
-            HttpServerRequest httpServerRequest = invocation.getArgument(0);
-            return httpServerRequest
-                .response()
-                .setStatusCode(SERVICE_UNAVAILABLE_503)
-                .rxEnd()
-                .andThen(Completable.error(new RuntimeException("error")));
-        })
-            .doCallRealMethod()
-            .when(mockRequestDispatcher)
-            .dispatch(any(), anyString());
+                    HttpServerRequest httpServerRequest = invocation.getArgument(0);
+                    return httpServerRequest
+                            .response()
+                            .setStatusCode(SERVICE_UNAVAILABLE_503)
+                            .rxEnd()
+                            .andThen(Completable.error(new RuntimeException("error")));
+                })
+                .doCallRealMethod()
+                .when(mockRequestDispatcher)
+                .dispatch(any(), anyString());
 
         HttpClient client = vertx.createHttpClient();
-        client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
-            .compose(HttpClientRequest::send)
-            .onComplete(
-                testContext.succeeding(response ->
-                    testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(SERVICE_UNAVAILABLE_503))
-                )
-            )
-            .compose(httpClientResponse -> client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/"))
-            .compose(HttpClientRequest::send)
-            .onComplete(
-                testContext.succeeding(response ->
-                    testContext.verify(() -> {
-                        assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                        testContext.completeNow();
-                    })
-                )
-            );
+        client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+                .compose(HttpClientRequest::send)
+                .onComplete(testContext.succeeding(response -> testContext.verify(
+                        () -> assertThat(response.statusCode()).isEqualTo(SERVICE_UNAVAILABLE_503))))
+                .compose(httpClientResponse -> client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/"))
+                .compose(HttpClientRequest::send)
+                .onComplete(testContext.succeeding(response -> testContext.verify(() -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    testContext.completeNow();
+                })));
     }
 }

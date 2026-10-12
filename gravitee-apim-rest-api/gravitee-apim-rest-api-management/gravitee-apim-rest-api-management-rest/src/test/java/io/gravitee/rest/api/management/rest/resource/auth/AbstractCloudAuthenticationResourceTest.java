@@ -105,9 +105,12 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     public void init() {
         System.setProperty(getPropertyPrefix() + ".enabled", "true");
         System.setProperty(
-            getKeystorePropertyPrefix() + ".keystore.path",
-            new File(getClass().getClassLoader().getResource("auth/keystore.p12").getFile()).getAbsolutePath()
-        );
+                getKeystorePropertyPrefix() + ".keystore.path",
+                new File(getClass()
+                                .getClassLoader()
+                                .getResource("auth/keystore.p12")
+                                .getFile())
+                        .getAbsolutePath());
         System.setProperty(getKeystorePropertyPrefix() + ".keystore.password", "keystore-secret");
         System.setProperty(getKeystorePropertyPrefix() + ".keystore.type", "PKCS12");
         System.setProperty(getKeystorePropertyPrefix() + ".keystore.key.alias", "cockpit-ca");
@@ -128,7 +131,8 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     @Test
     public void shouldNotAuthenticateIfCockpitIsNotEnabled() {
         System.clearProperty(getPropertyPrefix() + ".enabled");
-        final Response response = rootTarget(PATH).queryParam("token", "test").request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", "test").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
@@ -136,21 +140,26 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     public void shouldNotAuthenticateIfUserNotFound() {
         UserEntity userEntity = mockUserEntity();
 
-        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, null);
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenThrow(
-            new UserNotFoundException(JWT_SUBJECT)
-        );
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        String jwt =
+                this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, null);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true))
+                .thenThrow(new UserNotFoundException(JWT_SUBJECT));
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void shouldNotAuthenticateWithInvalidToken() throws JOSEException {
         UserEntity userEntity = mockUserEntity();
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
-        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
-        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(rootTarget("console").getUri().toString());
-        final Response response = rootTarget(PATH).queryParam("token", "invalid").request().get();
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true))
+                .thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID))
+                .thenReturn(Set.of());
+        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID))
+                .thenReturn(rootTarget("console").getUri().toString());
+        final Response response =
+                rootTarget(PATH).queryParam("token", "invalid").request().get();
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
     }
 
@@ -158,11 +167,16 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     public void shouldAuthenticateToConsole() {
         UserEntity userEntity = mockUserEntity();
 
-        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, null);
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
-        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
-        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(rootTarget("console").getUri().toString());
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        String jwt =
+                this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, null);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true))
+                .thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID))
+                .thenReturn(Set.of());
+        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID))
+                .thenReturn(rootTarget("console").getUri().toString());
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
         assertTrue(response.getLocation().toString().contains("/console/#!/environment-id/"));
     }
@@ -171,12 +185,18 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     public void shouldAuthenticateToConsoleAndRedirectToApi() {
         UserEntity userEntity = mockUserEntity();
 
-        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", "apiId", null, null);
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
-        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
-        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(rootTarget("console").getUri().toString());
-        when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, "apiId")).thenReturn(Optional.of("apiId"));
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        String jwt =
+                this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", "apiId", null, null);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true))
+                .thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID))
+                .thenReturn(Set.of());
+        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID))
+                .thenReturn(rootTarget("console").getUri().toString());
+        when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, "apiId"))
+                .thenReturn(Optional.of("apiId"));
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
         assertTrue(response.getLocation().toString().contains("/console/#!/environment-id/apis/apiId"));
     }
@@ -185,13 +205,19 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     public void shouldAuthenticateToPortal() {
         UserEntity userEntity = mockUserEntity();
 
-        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "portal");
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
-        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
-        when(installationAccessQueryService.getPortalAPIUrl(ENVIRONMENT_ID)).thenReturn(rootTarget("portal").getUri().toString());
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        String jwt =
+                this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "portal");
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true))
+                .thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID))
+                .thenReturn(Set.of());
+        when(installationAccessQueryService.getPortalAPIUrl(ENVIRONMENT_ID))
+                .thenReturn(rootTarget("portal").getUri().toString());
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
-        assertTrue(response.getLocation().toString().contains("/portal/environments/environment-id/auth/console?token="));
+        assertTrue(
+                response.getLocation().toString().contains("/portal/environments/environment-id/auth/console?token="));
         assertToken(response, userEntity);
     }
 
@@ -199,37 +225,48 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     public void shouldAuthenticateToGamma() {
         UserEntity userEntity = mockUserEntity();
 
-        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "gamma_console");
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
-        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        String jwt = this.generateJWT(
+                userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "gamma_console");
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true))
+                .thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID))
+                .thenReturn(Set.of());
         when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
-        assertEquals("http://localhost:4200/environments/" + ENVIRONMENT_ID, response.getLocation().toString());
+        assertEquals(
+                "http://localhost:4200/environments/" + ENVIRONMENT_ID,
+                response.getLocation().toString());
     }
 
     @Test
     public void shouldAuthenticateToPortalFromRequest() {
         UserEntity userEntity = mockUserEntity();
 
-        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "portal");
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
-        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
-        when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer(rootTarget(PATH).getUri().toString()));
+        String jwt =
+                this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "portal");
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true))
+                .thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID))
+                .thenReturn(Set.of());
+        when(httpServletRequest.getRequestURL())
+                .thenReturn(new StringBuffer(rootTarget(PATH).getUri().toString()));
 
-        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        final Response response =
+                rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
-        assertTrue(response.getLocation().toString().contains("/portal/environments/environment-id/auth/console?token="));
+        assertTrue(
+                response.getLocation().toString().contains("/portal/environments/environment-id/auth/console?token="));
         assertToken(response, userEntity);
     }
 
     private void assertToken(Response response, UserEntity userEntity) {
-        String token = URLEncodedUtils.parse(response.getLocation(), "UTF-8")
-            .stream()
-            .filter(pair -> "token".equalsIgnoreCase(pair.getName()))
-            .findFirst()
-            .get()
-            .getValue();
+        String token = URLEncodedUtils.parse(response.getLocation(), "UTF-8").stream()
+                .filter(pair -> "token".equalsIgnoreCase(pair.getName()))
+                .findFirst()
+                .get()
+                .getValue();
         Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
         JWTVerifier jwtVerifier = JWT.require(algorithm).build();
         final DecodedJWT decodedJwt = jwtVerifier.verify(token);
@@ -240,9 +277,15 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         assertNotNull(decodedJwt.getIssuer());
         assertNotNull(decodedJwt.getIssuedAt());
         assertNotNull(decodedJwt.getClaim(JWTHelper.Claims.PERMISSIONS));
-        assertEquals(userEntity.getEmail(), decodedJwt.getClaim(JWTHelper.Claims.EMAIL).asString());
-        assertEquals(userEntity.getFirstname(), decodedJwt.getClaim(JWTHelper.Claims.FIRSTNAME).asString());
-        assertEquals(userEntity.getLastname(), decodedJwt.getClaim(JWTHelper.Claims.LASTNAME).asString());
+        assertEquals(
+                userEntity.getEmail(),
+                decodedJwt.getClaim(JWTHelper.Claims.EMAIL).asString());
+        assertEquals(
+                userEntity.getFirstname(),
+                decodedJwt.getClaim(JWTHelper.Claims.FIRSTNAME).asString());
+        assertEquals(
+                userEntity.getLastname(),
+                decodedJwt.getClaim(JWTHelper.Claims.LASTNAME).asString());
         assertEquals(ORGANIZATION_ID, decodedJwt.getClaim(JWTHelper.Claims.ORG).asString());
     }
 
@@ -260,49 +303,53 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     }
 
     private String generateJWT(
-        String userId,
-        String organizationId,
-        String environmentId,
-        String audience,
-        String apiId,
-        String redirectUri,
-        String application
-    ) {
+            String userId,
+            String organizationId,
+            String environmentId,
+            String audience,
+            String apiId,
+            String redirectUri,
+            String application) {
         var issueTime = TimeProvider.now();
         var expirationTime = issueTime.plusSeconds(TTL_SECONDS);
         try {
             KeyStore keystore = this.loadKeyStore(
-                System.getProperty(getKeystorePropertyPrefix() + ".keystore.type"),
-                System.getProperty(getKeystorePropertyPrefix() + ".keystore.path"),
-                System.getProperty(getKeystorePropertyPrefix() + ".keystore.password")
-            );
+                    System.getProperty(getKeystorePropertyPrefix() + ".keystore.type"),
+                    System.getProperty(getKeystorePropertyPrefix() + ".keystore.path"),
+                    System.getProperty(getKeystorePropertyPrefix() + ".keystore.password"));
             PrivateKey privateKey = (PrivateKey) keystore.getKey(
-                System.getProperty(getKeystorePropertyPrefix() + ".keystore.key.alias"),
-                System.getProperty(getKeystorePropertyPrefix() + ".keystore.password").toCharArray()
-            );
+                    System.getProperty(getKeystorePropertyPrefix() + ".keystore.key.alias"),
+                    System.getProperty(getKeystorePropertyPrefix() + ".keystore.password")
+                            .toCharArray());
 
             JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
-                .jwtID(UUID.random().toString())
-                .issuer(ISSUER)
-                .issueTime(new Date(issueTime.toInstant().toEpochMilli()))
-                .expirationTime(new Date(expirationTime.toInstant().toEpochMilli()))
-                .subject(userId)
-                .audience(audience)
-                .claim(ORG_CLAIM, organizationId)
-                .claim(ENVIRONMENT_CLAIM, environmentId)
-                .claim(API_CLAIM, apiId)
-                .claim(APPLICATION_CLAIM, application)
-                .claim(REDIRECT_URI_CLAIM, redirectUri);
+                    .jwtID(UUID.random().toString())
+                    .issuer(ISSUER)
+                    .issueTime(new Date(issueTime.toInstant().toEpochMilli()))
+                    .expirationTime(new Date(expirationTime.toInstant().toEpochMilli()))
+                    .subject(userId)
+                    .audience(audience)
+                    .claim(ORG_CLAIM, organizationId)
+                    .claim(ENVIRONMENT_CLAIM, environmentId)
+                    .claim(API_CLAIM, apiId)
+                    .claim(APPLICATION_CLAIM, application)
+                    .claim(REDIRECT_URI_CLAIM, redirectUri);
             var claims = claimsBuilder.build();
 
             // Sign then serialize the JWT.
             var signer = new RSASSASigner(privateKey);
-            var header = new JWSHeader.Builder(new JWSAlgorithm(ALGORITHM)).keyID(KID).build();
+            var header = new JWSHeader.Builder(new JWSAlgorithm(ALGORITHM))
+                    .keyID(KID)
+                    .build();
             SignedJWT signedJWT = new SignedJWT(header, claims);
             signedJWT.sign(signer);
 
             return signedJWT.serialize();
-        } catch (CertificateException | UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException | JOSEException e) {
+        } catch (CertificateException
+                | UnrecoverableKeyException
+                | KeyStoreException
+                | NoSuchAlgorithmException
+                | JOSEException e) {
             throw new RuntimeException(e);
         }
     }

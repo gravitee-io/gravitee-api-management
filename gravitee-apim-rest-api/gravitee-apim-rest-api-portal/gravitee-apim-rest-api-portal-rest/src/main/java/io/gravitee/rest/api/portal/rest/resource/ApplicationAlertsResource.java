@@ -61,15 +61,13 @@ public class ApplicationAlertsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.READ)})
     public Response getAlertsByApplicationId(@PathParam("applicationId") String applicationId) {
         checkPlugins(GraviteeContext.getExecutionContext());
-        List<Alert> alerts = applicationAlertService
-            .findByApplication(applicationId)
-            .stream()
-            .sorted(Comparator.comparing(AlertTriggerEntity::getCreatedAt))
-            .map(alert -> alertMapper.convert(alert))
-            .collect(Collectors.toList());
+        List<Alert> alerts = applicationAlertService.findByApplication(applicationId).stream()
+                .sorted(Comparator.comparing(AlertTriggerEntity::getCreatedAt))
+                .map(alert -> alertMapper.convert(alert))
+                .collect(Collectors.toList());
 
         return Response.ok(alerts).build();
     }
@@ -77,11 +75,10 @@ public class ApplicationAlertsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.CREATE)})
     public Response createApplicationAlert(
-        @PathParam("applicationId") String applicationId,
-        @Valid @NotNull(message = "Input must not be null.") AlertInput alertInput
-    ) {
+            @PathParam("applicationId") String applicationId,
+            @Valid @NotNull(message = "Input must not be null.") AlertInput alertInput) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         alertInput.setApplication(applicationId);
@@ -94,18 +91,22 @@ public class ApplicationAlertsResource extends AbstractResource {
 
         final NewAlertTriggerEntity newAlertTriggerEntity = alertMapper.convert(alertInput);
 
-        final AlertTriggerEntity alert = applicationAlertService.create(executionContext, applicationId, newAlertTriggerEntity);
+        final AlertTriggerEntity alert =
+                applicationAlertService.create(executionContext, applicationId, newAlertTriggerEntity);
 
-        return Response.created(this.getLocationHeader(alert.getId())).entity(alertMapper.convert(alert)).build();
+        return Response.created(this.getLocationHeader(alert.getId()))
+                .entity(alertMapper.convert(alert))
+                .build();
     }
 
     @GET
     @Path("status")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_ALERT, acls = READ)})
     public Response getApplicationAlertStatus() {
-        return Response.ok(applicationAlertService.getStatus(GraviteeContext.getExecutionContext())).build();
+        return Response.ok(applicationAlertService.getStatus(GraviteeContext.getExecutionContext()))
+                .build();
     }
 
     @Path("{alertId}")

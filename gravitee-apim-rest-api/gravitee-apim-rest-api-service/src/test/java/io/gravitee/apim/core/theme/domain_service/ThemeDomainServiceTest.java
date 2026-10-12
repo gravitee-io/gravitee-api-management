@@ -58,7 +58,11 @@ public class ThemeDomainServiceTest {
         void should_create_portal_theme() {
             var portalDefinition = new ThemeDefinition();
             portalDefinition.setData(List.of());
-            var newTheme = NewTheme.builder().name("name").type(ThemeType.PORTAL).definitionPortal(portalDefinition).build();
+            var newTheme = NewTheme.builder()
+                    .name("name")
+                    .type(ThemeType.PORTAL)
+                    .definitionPortal(portalDefinition)
+                    .build();
 
             var result = cut.create(newTheme);
             assertThat(result).isNotNull();
@@ -69,10 +73,16 @@ public class ThemeDomainServiceTest {
         @Test
         void should_create_portal_next_theme() {
             var portalDefinition = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
-                .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
-                .build();
+                    .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder()
+                            .primary("#fff")
+                            .build())
+                    .build();
 
-            var newTheme = NewTheme.builder().name("name").type(ThemeType.PORTAL_NEXT).definitionPortalNext(portalDefinition).build();
+            var newTheme = NewTheme.builder()
+                    .name("name")
+                    .type(ThemeType.PORTAL_NEXT)
+                    .definitionPortalNext(portalDefinition)
+                    .build();
 
             var result = cut.create(newTheme);
             assertThat(result).isNotNull();
@@ -100,34 +110,31 @@ public class ThemeDomainServiceTest {
             themeComponentDefinition.setCss(List.of(css));
             portalThemeDefinition.setData(List.of(themeComponentDefinition));
 
-            themeCrudService.initWith(
-                List.of(
+            themeCrudService.initWith(List.of(
                     Theme.builder()
-                        .id("portal")
-                        .type(ThemeType.PORTAL)
-                        .referenceId("ref-id")
-                        .referenceType(Theme.ReferenceType.ENVIRONMENT)
-                        .definitionPortal(portalThemeDefinition)
-                        .enabled(true)
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .build(),
+                            .id("portal")
+                            .type(ThemeType.PORTAL)
+                            .referenceId("ref-id")
+                            .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                            .definitionPortal(portalThemeDefinition)
+                            .enabled(true)
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .build(),
                     Theme.builder()
-                        .id("portal-next")
-                        .type(ThemeType.PORTAL_NEXT)
-                        .referenceId("ref-id")
-                        .referenceType(Theme.ReferenceType.ENVIRONMENT)
-                        .definitionPortalNext(
-                            io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
-                                .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
-                                .build()
-                        )
-                        .enabled(true)
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .build()
-                )
-            );
+                            .id("portal-next")
+                            .type(ThemeType.PORTAL_NEXT)
+                            .referenceId("ref-id")
+                            .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                            .definitionPortalNext(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
+                                    .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder()
+                                            .primary("#fff")
+                                            .build())
+                                    .build())
+                            .enabled(true)
+                            .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .updatedAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                            .build()));
         }
 
         @Test
@@ -136,12 +143,12 @@ public class ThemeDomainServiceTest {
             portalDefinition.setData(List.of());
 
             var updateTheme = UpdateTheme.builder()
-                .id("portal")
-                .name("Portal name")
-                .type(ThemeType.PORTAL)
-                .definitionPortal(portalDefinition)
-                .enabled(false)
-                .build();
+                    .id("portal")
+                    .name("Portal name")
+                    .type(ThemeType.PORTAL)
+                    .definitionPortal(portalDefinition)
+                    .enabled(false)
+                    .build();
             var existingTheme = themeCrudService.get("portal");
 
             var result = cut.update(updateTheme, existingTheme);
@@ -163,16 +170,16 @@ public class ThemeDomainServiceTest {
             portalDefinition.setData(List.of());
 
             var updateTheme = UpdateTheme.builder()
-                .id("portal-next")
-                .name("Portal next name")
-                .type(ThemeType.PORTAL_NEXT)
-                .definitionPortalNext(
-                    io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
-                        .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#000").build())
-                        .build()
-                )
-                .enabled(true)
-                .build();
+                    .id("portal-next")
+                    .name("Portal next name")
+                    .type(ThemeType.PORTAL_NEXT)
+                    .definitionPortalNext(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
+                            .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder()
+                                    .primary("#000")
+                                    .build())
+                            .build())
+                    .enabled(true)
+                    .build();
             var existingTheme = themeCrudService.get("portal-next");
 
             var result = cut.update(updateTheme, existingTheme);
@@ -190,9 +197,9 @@ public class ThemeDomainServiceTest {
 
         @Test
         void should_throw_error_if_not_found() {
-            assertThatThrownBy(() -> cut.update(UpdateTheme.builder().build(), Theme.builder().build())).isInstanceOf(
-                TechnicalDomainException.class
-            );
+            assertThatThrownBy(() -> cut.update(
+                            UpdateTheme.builder().build(), Theme.builder().build()))
+                    .isInstanceOf(TechnicalDomainException.class);
         }
     }
 }

@@ -52,8 +52,8 @@ public class KeylessPolicy implements SecurityPolicy {
         // If it is present with a type different from NONE, then we should not execute this KeylessPlan.
         // Indeed, it means that a request was attempted with an authentication purpose, so we should not let it pass.
         return securityToken != null && !SecurityToken.TokenType.NONE.name().equals(securityToken.getTokenType())
-            ? Maybe.empty()
-            : Maybe.just(SecurityToken.none());
+                ? Maybe.empty()
+                : Maybe.just(SecurityToken.none());
     }
 
     @Override
@@ -64,7 +64,8 @@ public class KeylessPolicy implements SecurityPolicy {
     private Completable handleSecurity(final HttpExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
             ctx.setAttribute(ContextAttributes.ATTR_APPLICATION, "1");
-            ctx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, ctx.request().remoteAddress());
+            ctx.setAttribute(
+                    ContextAttributes.ATTR_SUBSCRIPTION_ID, ctx.request().remoteAddress());
         });
     }
 }

@@ -44,8 +44,12 @@ public class CsvUtils {
         // If the value contains double quotation marks, the quotation mark character is repeated twice.
         value = value.replace("\"", "\"\"");
 
-        // If the value contains the delimiter, the single-quote character, the newline character, or the carriage-return character, then the value is enclosed in double quotation marks.
-        if (value.contains(String.valueOf(delimiter)) || value.contains("'") || value.contains("\n") || value.contains("\r")) {
+        // If the value contains the delimiter, the single-quote character, the newline character, or the
+        // carriage-return character, then the value is enclosed in double quotation marks.
+        if (value.contains(String.valueOf(delimiter))
+                || value.contains("'")
+                || value.contains("\n")
+                || value.contains("\r")) {
             return "\"" + value + "\"";
         }
 

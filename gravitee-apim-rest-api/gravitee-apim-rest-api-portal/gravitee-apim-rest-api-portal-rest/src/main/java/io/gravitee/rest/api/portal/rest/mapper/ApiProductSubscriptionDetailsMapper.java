@@ -38,7 +38,8 @@ public final class ApiProductSubscriptionDetailsMapper {
         target.setId(UUID.fromString(source.id()));
         target.setName(source.name());
         target.setVersion(source.version());
-        target.setAvailability(ApiProductSubscriptionAvailability.fromValue(source.availability().name()));
+        target.setAvailability(ApiProductSubscriptionAvailability.fromValue(
+                source.availability().name()));
         target.setPlan(map(source.plan()));
         target.setApis(source.apis().stream().map(this::map).toList());
         return target;
@@ -52,7 +53,8 @@ public final class ApiProductSubscriptionDetailsMapper {
         target.setId(source.id());
         target.setName(source.name());
         if (source.security() != null) {
-            target.setSecurity(ApiProductSubscriptionPlan.SecurityEnum.fromValue(PlanSecurityType.valueOfLabel(source.security()).name()));
+            target.setSecurity(ApiProductSubscriptionPlan.SecurityEnum.fromValue(
+                    PlanSecurityType.valueOfLabel(source.security()).name()));
         }
         if (source.mode() != null) {
             target.setMode(PlanMode.fromValue(source.mode()));
@@ -68,7 +70,8 @@ public final class ApiProductSubscriptionDetailsMapper {
         if (source.type() != null) {
             target.setType(ApiType.fromValue(source.type()));
         }
-        target.setAvailability(ApiProductSubscriptionApiAvailability.fromValue(source.availability().name()));
+        target.setAvailability(ApiProductSubscriptionApiAvailability.fromValue(
+                source.availability().name()));
         target.setEntrypoints(source.entrypoints());
         target.setDocumentation(map(source.documentation()));
         return target;

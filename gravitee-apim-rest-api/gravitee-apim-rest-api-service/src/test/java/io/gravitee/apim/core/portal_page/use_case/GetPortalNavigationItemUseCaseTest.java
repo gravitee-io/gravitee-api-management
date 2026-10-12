@@ -58,22 +58,16 @@ class GetPortalNavigationItemUseCaseTest {
         queryService = new PortalNavigationItemsQueryServiceInMemory();
         membershipQueryService = new MembershipQueryServiceInMemory();
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
-            queryService,
-            new ApiPortalMembershipDomainService(
-                membershipQueryService,
-                new SubscriptionQueryServiceInMemory(),
-                new ApiQueryServiceInMemory()
-            )
-        );
+                queryService,
+                new ApiPortalMembershipDomainService(
+                        membershipQueryService, new SubscriptionQueryServiceInMemory(), new ApiQueryServiceInMemory()));
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
-            queryService,
-            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
-        );
+                queryService,
+                new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService));
         useCase = new GetPortalNavigationItemUseCase(
-            queryService,
-            List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
-            new PortalNavigationItemSourceDomainServiceInMemory()
-        );
+                queryService,
+                List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
+                new PortalNavigationItemSourceDomainServiceInMemory());
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -82,10 +76,7 @@ class GetPortalNavigationItemUseCaseTest {
     void should_return_portal_navigation_item_when_found() {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
-            PortalNavigationItemId.of(APIS_ID),
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
-        );
+                PortalNavigationItemId.of(APIS_ID), ENVIRONMENT_ID, PortalNavigationItemViewerContext.forPortal(false));
 
         // When
         final var output = useCase.execute(input);
@@ -101,113 +92,87 @@ class GetPortalNavigationItemUseCaseTest {
         // Given
         final var unknownId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000099");
         final var input = new GetPortalNavigationItemUseCase.Input(
-            unknownId,
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
-        );
+                unknownId, ENVIRONMENT_ID, PortalNavigationItemViewerContext.forPortal(false));
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 
     @Test
     void should_throw_when_item_exists_in_different_environment() {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
-            PortalNavigationItemId.of(APIS_ID),
-            "different-env",
-            PortalNavigationItemViewerContext.forPortal(false)
-        );
+                PortalNavigationItemId.of(APIS_ID),
+                "different-env",
+                PortalNavigationItemViewerContext.forPortal(false));
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 
     @Test
     void should_throw_when_item_not_visible_in_portal() {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
-            PortalNavigationItemId.of(PAGE11_ID),
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(true)
-        );
+                PortalNavigationItemId.of(PAGE11_ID),
+                ENVIRONMENT_ID,
+                PortalNavigationItemViewerContext.forPortal(true));
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 
     @Test
     void should_throw_when_item_is_private_and_user_is_not_authenticated() {
         // Given
         final var input = new GetPortalNavigationItemUseCase.Input(
-            PortalNavigationItemId.of(PAGE12_ID),
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal(false)
-        );
+                PortalNavigationItemId.of(PAGE12_ID),
+                ENVIRONMENT_ID,
+                PortalNavigationItemViewerContext.forPortal(false));
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 
     @Test
     void should_throw_when_api_product_is_private_and_user_is_not_member() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemId.random().toString(),
-            "Restricted product",
-            null,
-            "api-product-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted product", null, "api-product-id");
         apiProduct.setVisibility(PortalVisibility.PRIVATE);
         queryService.initWith(List.of(apiProduct));
 
         var input = new GetPortalNavigationItemUseCase.Input(
-            apiProduct.getId(),
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal("user-without-access")
-        );
+                apiProduct.getId(), ENVIRONMENT_ID, PortalNavigationItemViewerContext.forPortal("user-without-access"));
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 
     @Test
     void should_return_private_api_product_to_member() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemId.random().toString(),
-            "Restricted product",
-            null,
-            "api-product-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted product", null, "api-product-id");
         apiProduct.setVisibility(PortalVisibility.PRIVATE);
         queryService.initWith(List.of(apiProduct));
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("membership-id")
-                    .memberId("product-member")
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API_PRODUCT)
-                    .referenceId("api-product-id")
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("membership-id")
+                .memberId("product-member")
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId("api-product-id")
+                .build()));
 
-        var output = useCase.execute(
-            new GetPortalNavigationItemUseCase.Input(
-                apiProduct.getId(),
-                ENVIRONMENT_ID,
-                PortalNavigationItemViewerContext.forPortal("product-member")
-            )
-        );
+        var output = useCase.execute(new GetPortalNavigationItemUseCase.Input(
+                apiProduct.getId(), ENVIRONMENT_ID, PortalNavigationItemViewerContext.forPortal("product-member")));
 
         assertThat(output.portalNavigationItem()).isEqualTo(apiProduct);
     }
@@ -215,24 +180,17 @@ class GetPortalNavigationItemUseCaseTest {
     @Test
     void should_throw_when_item_has_private_api_product_ancestor_and_user_is_not_member() {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-            PortalNavigationItemId.random().toString(),
-            "Restricted product",
-            null,
-            "api-product-id"
-        );
+                PortalNavigationItemId.random().toString(), "Restricted product", null, "api-product-id");
         apiProduct.setVisibility(PortalVisibility.PRIVATE);
         var childPage = PortalNavigationItemFixtures.aPage("Product overview", apiProduct.getId());
         childPage.updateParent(apiProduct);
         queryService.initWith(List.of(apiProduct, childPage));
 
         var input = new GetPortalNavigationItemUseCase.Input(
-            childPage.getId(),
-            ENVIRONMENT_ID,
-            PortalNavigationItemViewerContext.forPortal("user-without-access")
-        );
+                childPage.getId(), ENVIRONMENT_ID, PortalNavigationItemViewerContext.forPortal("user-without-access"));
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(PortalNavigationItemNotFoundException.class)
-            .hasMessage("Portal navigation item not found");
+                .isInstanceOf(PortalNavigationItemNotFoundException.class)
+                .hasMessage("Portal navigation item not found");
     }
 }

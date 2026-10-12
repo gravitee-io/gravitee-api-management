@@ -62,19 +62,21 @@ class MongoPortalPageRepositoryTest {
 
     @Test
     void should_return_empty_list_when_ids_empty() {
-        List<PortalPage> res = repository.findByIdsWithExpand(List.of(), Collections.singletonList(ExpandsViewContext.CONTENT));
+        List<PortalPage> res =
+                repository.findByIdsWithExpand(List.of(), Collections.singletonList(ExpandsViewContext.CONTENT));
         assertThat(res).isEmpty();
     }
 
     @Test
     void should_map_projections_with_expand() {
-        when(internalRepo.findPortalPagesByIdWithExpand(eq(List.of("a", "b")), eq(List.of(ExpandsViewContext.CONTENT)))).thenReturn(
-            List.of(p1, p2)
-        );
+        when(internalRepo.findPortalPagesByIdWithExpand(eq(List.of("a", "b")), eq(List.of(ExpandsViewContext.CONTENT))))
+                .thenReturn(List.of(p1, p2));
 
-        List<PortalPage> res = repository.findByIdsWithExpand(List.of("a", "b"), Collections.singletonList(ExpandsViewContext.CONTENT));
+        List<PortalPage> res = repository.findByIdsWithExpand(
+                List.of("a", "b"), Collections.singletonList(ExpandsViewContext.CONTENT));
 
-        verify(internalRepo).findPortalPagesByIdWithExpand(eq(List.of("a", "b")), eq(List.of(ExpandsViewContext.CONTENT)));
+        verify(internalRepo)
+                .findPortalPagesByIdWithExpand(eq(List.of("a", "b")), eq(List.of(ExpandsViewContext.CONTENT)));
         assertThat(res).hasSize(2);
         PortalPage rp1 = res.get(0);
         PortalPage rp2 = res.get(1);

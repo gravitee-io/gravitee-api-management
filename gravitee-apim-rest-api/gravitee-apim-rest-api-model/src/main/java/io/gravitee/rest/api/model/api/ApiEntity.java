@@ -85,10 +85,15 @@ public class ApiEntity implements GenericApiEntity {
     @EqualsAndHashCode.Include
     private String id;
 
-    @Schema(description = "API's crossId. Identifies API across environments.", example = "df83b2a4-cc3e-3f80-9f0d-c138c106c076")
+    @Schema(
+            description = "API's crossId. Identifies API across environments.",
+            example = "df83b2a4-cc3e-3f80-9f0d-c138c106c076")
     private String crossId;
 
-    @Schema(description = "ID of the environment where the API is in.", example = "DEFAULT", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(
+            description = "ID of the environment where the API is in.",
+            example = "DEFAULT",
+            accessMode = Schema.AccessMode.READ_ONLY)
     private String environmentId;
 
     @Schema(description = "API's name. Duplicate names can exists.", example = "My Api")
@@ -99,12 +104,13 @@ public class ApiEntity implements GenericApiEntity {
     private String version;
 
     @Schema(
-        description = "API's description. A short description of your API.",
-        example = "I can use a hundred characters to describe this API."
-    )
+            description = "API's description. A short description of your API.",
+            example = "I can use a hundred characters to describe this API.")
     private String description;
 
-    @Schema(description = "API's execution mode. Define if the execution mode should use v3 or v4-emulation-engine.", example = "v3")
+    @Schema(
+            description = "API's execution mode. Define if the execution mode should use v3 or v4-emulation-engine.",
+            example = "v3")
     @DeploymentRequired
     @JsonProperty(value = "execution_mode")
     private ExecutionMode executionMode;
@@ -176,7 +182,9 @@ public class ApiEntity implements GenericApiEntity {
 
     @DeploymentRequired
     @JsonProperty(value = "services")
-    @Schema(description = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
+    @Schema(
+            description =
+                    "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
     private Services services;
 
     @DeploymentRequired
@@ -188,9 +196,8 @@ public class ApiEntity implements GenericApiEntity {
 
     @JsonProperty(value = "picture_url")
     @Schema(
-        description = "the API logo url.",
-        example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture"
-    )
+            description = "the API logo url.",
+            example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture")
     private String pictureUrl;
 
     @DeploymentRequired
@@ -207,9 +214,8 @@ public class ApiEntity implements GenericApiEntity {
     @DeploymentRequired
     @JsonProperty(value = "path_mappings")
     @Schema(
-        description = "A list of paths used to aggregate data in analytics",
-        example = "/products/:productId, /products/:productId/media"
-    )
+            description = "A list of paths used to aggregate data in analytics",
+            example = "/products/:productId, /products/:productId/media")
     private Set<String> pathMappings = new HashSet<>();
 
     @JsonIgnore
@@ -218,8 +224,8 @@ public class ApiEntity implements GenericApiEntity {
     @DeploymentRequired
     @JsonProperty(value = "response_templates")
     @Schema(
-        description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
-    )
+            description =
+                    "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ...")
     private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
     @JsonProperty(value = "lifecycle_state")
@@ -238,9 +244,8 @@ public class ApiEntity implements GenericApiEntity {
 
     @JsonProperty(value = "background_url")
     @Schema(
-        description = "the API background url.",
-        example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background"
-    )
+            description = "the API background url.",
+            example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background")
     private String backgroundUrl;
 
     @JsonIgnore
@@ -289,9 +294,9 @@ public class ApiEntity implements GenericApiEntity {
             return new OriginContext.Management();
         } else if (definitionContext.isOriginKubernetes()) {
             return new OriginContext.Kubernetes(
-                OriginContext.Kubernetes.Mode.valueOf(definitionContext.getMode().toUpperCase()),
-                definitionContext.getSyncFrom()
-            );
+                    OriginContext.Kubernetes.Mode.valueOf(
+                            definitionContext.getMode().toUpperCase()),
+                    definitionContext.getSyncFrom());
         }
         return new OriginContext.Management();
     }

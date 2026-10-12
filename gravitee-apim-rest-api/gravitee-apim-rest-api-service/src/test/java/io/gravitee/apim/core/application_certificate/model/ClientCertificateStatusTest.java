@@ -38,27 +38,26 @@ class ClientCertificateStatusTest {
         var future = Date.from(now.plus(1, ChronoUnit.DAYS));
 
         return Stream.of(
-            // endsAt in past → REVOKED regardless of startsAt
-            Arguments.of(null, past, now, ClientCertificateStatus.REVOKED),
-            Arguments.of(past, past, now, ClientCertificateStatus.REVOKED),
-            // startsAt in future (and endsAt not expired) → SCHEDULED
-            Arguments.of(future, null, now, ClientCertificateStatus.SCHEDULED),
-            Arguments.of(future, future, now, ClientCertificateStatus.SCHEDULED),
-            // endsAt in future, startsAt not in future → ACTIVE_WITH_END
-            Arguments.of(null, future, now, ClientCertificateStatus.ACTIVE_WITH_END),
-            Arguments.of(past, future, now, ClientCertificateStatus.ACTIVE_WITH_END),
-            // no endsAt, startsAt not in future → ACTIVE
-            Arguments.of(null, null, now, ClientCertificateStatus.ACTIVE),
-            Arguments.of(past, null, now, ClientCertificateStatus.ACTIVE),
-            // Boundary cases: exactly at 'now'
-            // endsAt == now → ACTIVE_WITH_END (isBefore(now) is false)
-            Arguments.of(null, Date.from(now), now, ClientCertificateStatus.ACTIVE_WITH_END),
-            Arguments.of(past, Date.from(now), now, ClientCertificateStatus.ACTIVE_WITH_END),
-            // startsAt == now → ACTIVE (isAfter(now) is false)
-            Arguments.of(Date.from(now), null, now, ClientCertificateStatus.ACTIVE),
-            // startsAt == now, endsAt in future → ACTIVE_WITH_END
-            Arguments.of(Date.from(now), future, now, ClientCertificateStatus.ACTIVE_WITH_END)
-        );
+                // endsAt in past → REVOKED regardless of startsAt
+                Arguments.of(null, past, now, ClientCertificateStatus.REVOKED),
+                Arguments.of(past, past, now, ClientCertificateStatus.REVOKED),
+                // startsAt in future (and endsAt not expired) → SCHEDULED
+                Arguments.of(future, null, now, ClientCertificateStatus.SCHEDULED),
+                Arguments.of(future, future, now, ClientCertificateStatus.SCHEDULED),
+                // endsAt in future, startsAt not in future → ACTIVE_WITH_END
+                Arguments.of(null, future, now, ClientCertificateStatus.ACTIVE_WITH_END),
+                Arguments.of(past, future, now, ClientCertificateStatus.ACTIVE_WITH_END),
+                // no endsAt, startsAt not in future → ACTIVE
+                Arguments.of(null, null, now, ClientCertificateStatus.ACTIVE),
+                Arguments.of(past, null, now, ClientCertificateStatus.ACTIVE),
+                // Boundary cases: exactly at 'now'
+                // endsAt == now → ACTIVE_WITH_END (isBefore(now) is false)
+                Arguments.of(null, Date.from(now), now, ClientCertificateStatus.ACTIVE_WITH_END),
+                Arguments.of(past, Date.from(now), now, ClientCertificateStatus.ACTIVE_WITH_END),
+                // startsAt == now → ACTIVE (isAfter(now) is false)
+                Arguments.of(Date.from(now), null, now, ClientCertificateStatus.ACTIVE),
+                // startsAt == now, endsAt in future → ACTIVE_WITH_END
+                Arguments.of(Date.from(now), future, now, ClientCertificateStatus.ACTIVE_WITH_END));
     }
 
     @ParameterizedTest
@@ -69,23 +68,25 @@ class ClientCertificateStatusTest {
 
     @Test
     void should_return_revoked_audit_event_for_revoked_status() {
-        assertThat(ClientCertificateStatus.REVOKED.toAuditEvent()).isEqualTo(ClientCertificateAuditEvent.CLIENT_CERTIFICATE_REVOKED);
+        assertThat(ClientCertificateStatus.REVOKED.toAuditEvent())
+                .isEqualTo(ClientCertificateAuditEvent.CLIENT_CERTIFICATE_REVOKED);
     }
 
     @Test
     void should_return_activated_audit_event_for_active_status() {
-        assertThat(ClientCertificateStatus.ACTIVE.toAuditEvent()).isEqualTo(ClientCertificateAuditEvent.CLIENT_CERTIFICATE_ACTIVATED);
+        assertThat(ClientCertificateStatus.ACTIVE.toAuditEvent())
+                .isEqualTo(ClientCertificateAuditEvent.CLIENT_CERTIFICATE_ACTIVATED);
     }
 
     @Test
     void should_return_activated_audit_event_for_active_with_end_status() {
-        assertThat(ClientCertificateStatus.ACTIVE_WITH_END.toAuditEvent()).isEqualTo(
-            ClientCertificateAuditEvent.CLIENT_CERTIFICATE_ACTIVATED
-        );
+        assertThat(ClientCertificateStatus.ACTIVE_WITH_END.toAuditEvent())
+                .isEqualTo(ClientCertificateAuditEvent.CLIENT_CERTIFICATE_ACTIVATED);
     }
 
     @Test
     void should_return_scheduled_audit_event_for_scheduled_status() {
-        assertThat(ClientCertificateStatus.SCHEDULED.toAuditEvent()).isEqualTo(ClientCertificateAuditEvent.CLIENT_CERTIFICATE_SCHEDULED);
+        assertThat(ClientCertificateStatus.SCHEDULED.toAuditEvent())
+                .isEqualTo(ClientCertificateAuditEvent.CLIENT_CERTIFICATE_SCHEDULED);
     }
 }

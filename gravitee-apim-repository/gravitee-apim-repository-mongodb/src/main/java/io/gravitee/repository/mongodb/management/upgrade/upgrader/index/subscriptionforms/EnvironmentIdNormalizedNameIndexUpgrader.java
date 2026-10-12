@@ -34,11 +34,11 @@ public class EnvironmentIdNormalizedNameIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("subscription_forms")
-            .name("ei1nn1_unique")
-            .key("environmentId", ascending())
-            .key("normalizedName", ascending())
-            .unique(true)
-            .build();
+                .collection("subscription_forms")
+                .name("ei1nn1_unique")
+                .key("environmentId", ascending())
+                .key("normalizedName", ascending())
+                .unique(true)
+                .build();
     }
 }

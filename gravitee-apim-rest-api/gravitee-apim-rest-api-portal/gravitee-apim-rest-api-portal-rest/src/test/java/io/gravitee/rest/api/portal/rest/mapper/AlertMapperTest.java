@@ -66,10 +66,13 @@ public class AlertMapperTest {
         assertThat(actual.getType()).isEqualTo(AlertMapper.STATUS_ALERT);
         assertThat(actual.getDescription()).isEqualTo("Description");
 
-        final RateCondition rateCondition = (RateCondition) actual.getConditions().get(0);
-        assertThat(rateCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
+        final RateCondition rateCondition =
+                (RateCondition) actual.getConditions().get(0);
+        assertThat(rateCondition.getDuration())
+                .isEqualTo(alertInput.getDuration().longValue());
         assertThat(rateCondition.getTimeUnit()).isEqualTo(TimeUnit.MINUTES);
-        assertThat(rateCondition.getThreshold()).isEqualTo(alertInput.getStatusPercent().doubleValue());
+        assertThat(rateCondition.getThreshold())
+                .isEqualTo(alertInput.getStatusPercent().doubleValue());
 
         final ThresholdRangeCondition condition = (ThresholdRangeCondition) rateCondition.getComparison();
         assertThat(condition.getProperty()).isEqualTo("response.status");
@@ -94,10 +97,13 @@ public class AlertMapperTest {
         assertThat(actual.getType()).isEqualTo(AlertMapper.STATUS_ALERT);
         assertThat(actual.getDescription()).isEqualTo("Description");
 
-        final RateCondition rateCondition = (RateCondition) actual.getConditions().get(0);
-        assertThat(rateCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
+        final RateCondition rateCondition =
+                (RateCondition) actual.getConditions().get(0);
+        assertThat(rateCondition.getDuration())
+                .isEqualTo(alertInput.getDuration().longValue());
         assertThat(rateCondition.getTimeUnit()).isEqualTo(TimeUnit.MINUTES);
-        assertThat(rateCondition.getThreshold()).isEqualTo(alertInput.getStatusPercent().doubleValue());
+        assertThat(rateCondition.getThreshold())
+                .isEqualTo(alertInput.getStatusPercent().doubleValue());
 
         final ThresholdRangeCondition condition = (ThresholdRangeCondition) rateCondition.getComparison();
         assertThat(condition.getProperty()).isEqualTo("response.status");
@@ -121,10 +127,13 @@ public class AlertMapperTest {
         assertThat(actual.getType()).isEqualTo(AlertMapper.RESPONSE_TIME_ALERT);
         assertThat(actual.getDescription()).isEqualTo("Description");
 
-        final AggregationCondition aggregationCondition = (AggregationCondition) actual.getConditions().get(0);
-        assertThat(aggregationCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
+        final AggregationCondition aggregationCondition =
+                (AggregationCondition) actual.getConditions().get(0);
+        assertThat(aggregationCondition.getDuration())
+                .isEqualTo(alertInput.getDuration().longValue());
         assertThat(aggregationCondition.getTimeUnit()).isEqualTo(TimeUnit.MINUTES);
-        assertThat(aggregationCondition.getThreshold()).isEqualTo(alertInput.getResponseTime().doubleValue());
+        assertThat(aggregationCondition.getThreshold())
+                .isEqualTo(alertInput.getResponseTime().doubleValue());
     }
 
     @Test
@@ -140,7 +149,8 @@ public class AlertMapperTest {
         final NewAlertTriggerEntity actual = alertMapper.convert(alertInput);
 
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
-        final StringCondition stringFilter = (StringCondition) actual.getFilters().get(0);
+        final StringCondition stringFilter =
+                (StringCondition) actual.getFilters().get(0);
         assertThat(stringFilter.getProperty()).isEqualTo(AlertMapper.API_FILTER_ALERT);
         assertThat(stringFilter.getPattern()).isEqualTo("apiId");
     }
@@ -161,10 +171,13 @@ public class AlertMapperTest {
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
         assertThat(actual.getDescription()).isEqualTo("Description");
 
-        final RateCondition rateCondition = (RateCondition) actual.getConditions().get(0);
-        assertThat(rateCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
+        final RateCondition rateCondition =
+                (RateCondition) actual.getConditions().get(0);
+        assertThat(rateCondition.getDuration())
+                .isEqualTo(alertInput.getDuration().longValue());
         assertThat(rateCondition.getTimeUnit()).isEqualTo(TimeUnit.MINUTES);
-        assertThat(rateCondition.getThreshold()).isEqualTo(alertInput.getStatusPercent().doubleValue());
+        assertThat(rateCondition.getThreshold())
+                .isEqualTo(alertInput.getStatusPercent().doubleValue());
 
         final ThresholdRangeCondition condition = (ThresholdRangeCondition) rateCondition.getComparison();
         assertThat(condition.getProperty()).isEqualTo("response.status");
@@ -188,10 +201,13 @@ public class AlertMapperTest {
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
         assertThat(actual.getDescription()).isEqualTo("Description");
 
-        final RateCondition rateCondition = (RateCondition) actual.getConditions().get(0);
-        assertThat(rateCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
+        final RateCondition rateCondition =
+                (RateCondition) actual.getConditions().get(0);
+        assertThat(rateCondition.getDuration())
+                .isEqualTo(alertInput.getDuration().longValue());
         assertThat(rateCondition.getTimeUnit()).isEqualTo(TimeUnit.MINUTES);
-        assertThat(rateCondition.getThreshold()).isEqualTo(alertInput.getStatusPercent().doubleValue());
+        assertThat(rateCondition.getThreshold())
+                .isEqualTo(alertInput.getStatusPercent().doubleValue());
 
         final ThresholdRangeCondition condition = (ThresholdRangeCondition) rateCondition.getComparison();
         assertThat(condition.getProperty()).isEqualTo("response.status");
@@ -214,10 +230,13 @@ public class AlertMapperTest {
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
         assertThat(actual.getDescription()).isEqualTo("Description");
 
-        final AggregationCondition aggregationCondition = (AggregationCondition) actual.getConditions().get(0);
-        assertThat(aggregationCondition.getDuration()).isEqualTo(alertInput.getDuration().longValue());
+        final AggregationCondition aggregationCondition =
+                (AggregationCondition) actual.getConditions().get(0);
+        assertThat(aggregationCondition.getDuration())
+                .isEqualTo(alertInput.getDuration().longValue());
         assertThat(aggregationCondition.getTimeUnit()).isEqualTo(TimeUnit.MINUTES);
-        assertThat(aggregationCondition.getThreshold()).isEqualTo(alertInput.getResponseTime().doubleValue());
+        assertThat(aggregationCondition.getThreshold())
+                .isEqualTo(alertInput.getResponseTime().doubleValue());
     }
 
     @Test
@@ -233,7 +252,8 @@ public class AlertMapperTest {
         final UpdateAlertTriggerEntity actual = alertMapper.convertToUpdate(alertInput);
 
         assertThat(actual.isEnabled()).isEqualTo(alertInput.getEnabled());
-        final StringCondition stringFilter = (StringCondition) actual.getFilters().get(0);
+        final StringCondition stringFilter =
+                (StringCondition) actual.getFilters().get(0);
         assertThat(stringFilter.getProperty()).isEqualTo(AlertMapper.API_FILTER_ALERT);
         assertThat(stringFilter.getPattern()).isEqualTo("apiId");
     }
@@ -305,9 +325,8 @@ public class AlertMapperTest {
 
         final NewAlertTriggerEntity newAlert = alertMapper.convert(alertInput);
         assertEquals(
-            "{\"method\":\"HEAD\",\"url\":\"http://my.url/with/final/space\",\"headers\":[],\"body\":null}",
-            newAlert.getNotifications().get(0).getConfiguration()
-        );
+                "{\"method\":\"HEAD\",\"url\":\"http://my.url/with/final/space\",\"headers\":[],\"body\":null}",
+                newAlert.getNotifications().get(0).getConfiguration());
     }
 
     @Test
@@ -380,9 +399,8 @@ public class AlertMapperTest {
         assertEquals(1, newAlert.getNotifications().size());
         assertEquals("webhook-notifier", newAlert.getNotifications().get(0).getType());
         assertEquals(
-            "{\"method\":\"HEAD\",\"url\":\"http://my.ru/test/url\",\"headers\":[],\"body\":null}",
-            newAlert.getNotifications().get(0).getConfiguration()
-        );
+                "{\"method\":\"HEAD\",\"url\":\"http://my.ru/test/url\",\"headers\":[],\"body\":null}",
+                newAlert.getNotifications().get(0).getConfiguration());
     }
 
     @Test
@@ -400,9 +418,8 @@ public class AlertMapperTest {
 
         assertEquals(1, newAlert.getNotifications().size());
         assertEquals(
-            "{\"method\":\"POST\",\"url\":\"http://my.ru/test/url\",\"headers\":[{\"name\":\"Content-Type\",\"value\":\"application/json\"}],\"body\":\"{\\\"application\\\":null,\\\"type\\\":\\\"STATUS\\\",\\\"api\\\":null,\\\"description\\\":null,\\\"status_code\\\":\\\"200\\\",\\\"status_percent\\\":20,\\\"enabled\\\":true,\\\"response_time\\\":null,\\\"duration\\\":10,\\\"time_unit\\\":\\\"MINUTES\\\",\\\"webhook\\\":{\\\"httpMethod\\\":\\\"POST\\\",\\\"url\\\":\\\"http://my.ru/test/url\\\"}}\"}",
-            newAlert.getNotifications().get(0).getConfiguration()
-        );
+                "{\"method\":\"POST\",\"url\":\"http://my.ru/test/url\",\"headers\":[{\"name\":\"Content-Type\",\"value\":\"application/json\"}],\"body\":\"{\\\"application\\\":null,\\\"type\\\":\\\"STATUS\\\",\\\"api\\\":null,\\\"description\\\":null,\\\"status_code\\\":\\\"200\\\",\\\"status_percent\\\":20,\\\"enabled\\\":true,\\\"response_time\\\":null,\\\"duration\\\":10,\\\"time_unit\\\":\\\"MINUTES\\\",\\\"webhook\\\":{\\\"httpMethod\\\":\\\"POST\\\",\\\"url\\\":\\\"http://my.ru/test/url\\\"}}\"}",
+                newAlert.getNotifications().get(0).getConfiguration());
     }
 
     @Test
@@ -420,9 +437,8 @@ public class AlertMapperTest {
 
         assertEquals(1, newAlert.getNotifications().size());
         assertEquals(
-            "{\"method\":\"GET\",\"url\":\"http://my.ru/test/url\",\"headers\":[],\"body\":null}",
-            newAlert.getNotifications().get(0).getConfiguration()
-        );
+                "{\"method\":\"GET\",\"url\":\"http://my.ru/test/url\",\"headers\":[],\"body\":null}",
+                newAlert.getNotifications().get(0).getConfiguration());
     }
 
     @Test
@@ -453,9 +469,8 @@ public class AlertMapperTest {
         assertEquals(1, updateAlert.getNotifications().size());
         assertEquals("webhook-notifier", updateAlert.getNotifications().get(0).getType());
         assertEquals(
-            "{\"method\":\"OPTIONS\",\"url\":\"http://my.ru/test/url\",\"headers\":[],\"body\":null}",
-            updateAlert.getNotifications().get(0).getConfiguration()
-        );
+                "{\"method\":\"OPTIONS\",\"url\":\"http://my.ru/test/url\",\"headers\":[],\"body\":null}",
+                updateAlert.getNotifications().get(0).getConfiguration());
     }
 
     @Test

@@ -38,17 +38,18 @@ public class AuditCrudServiceImpl implements AuditCrudService {
     @Override
     public void create(AuditEntity auditEntity) throws TechnicalManagementException {
         var entity = Audit.builder()
-            .id(auditEntity.getId())
-            .organizationId(auditEntity.getOrganizationId())
-            .environmentId(auditEntity.getEnvironmentId())
-            .createdAt(Date.from(auditEntity.getCreatedAt().toInstant()))
-            .user(auditEntity.getUser())
-            .properties(auditEntity.getProperties())
-            .referenceType(Audit.AuditReferenceType.valueOf(auditEntity.getReferenceType().name()))
-            .referenceId(auditEntity.getReferenceId())
-            .event(auditEntity.getEvent())
-            .patch(auditEntity.getPatch())
-            .build();
+                .id(auditEntity.getId())
+                .organizationId(auditEntity.getOrganizationId())
+                .environmentId(auditEntity.getEnvironmentId())
+                .createdAt(Date.from(auditEntity.getCreatedAt().toInstant()))
+                .user(auditEntity.getUser())
+                .properties(auditEntity.getProperties())
+                .referenceType(Audit.AuditReferenceType.valueOf(
+                        auditEntity.getReferenceType().name()))
+                .referenceId(auditEntity.getReferenceId())
+                .event(auditEntity.getEvent())
+                .patch(auditEntity.getPatch())
+                .build();
 
         try {
             auditRepository.create(entity);

@@ -35,19 +35,18 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public record Dashboard(
-    String id,
-    String environmentId,
-    String module,
-    String title,
-    String description,
-    List<DashboardFilter> filters,
-    TimeRange timeRange,
-    JsonNode widgets,
-    Integer version,
-    String createdBy,
-    Instant createdAt,
-    Instant updatedAt
-) {
+        String id,
+        String environmentId,
+        String module,
+        String title,
+        String description,
+        List<DashboardFilter> filters,
+        TimeRange timeRange,
+        JsonNode widgets,
+        Integer version,
+        String createdBy,
+        Instant createdAt,
+        Instant updatedAt) {
     public Dashboard {
         requireNonBlank(id, "id");
         requireNonBlank(environmentId, "environmentId");

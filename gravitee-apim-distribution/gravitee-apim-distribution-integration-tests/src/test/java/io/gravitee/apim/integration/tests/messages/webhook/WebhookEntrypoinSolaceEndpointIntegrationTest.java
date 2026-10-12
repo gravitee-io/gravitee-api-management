@@ -63,24 +63,26 @@ class WebhookEntrypoinSolaceEndpointIntegrationTest extends AbstractSolaceEndpoi
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-solace-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-solace-endpoint.json"})
     void should_receive_all_messages_without_header() throws JsonProcessingException {
         final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
 
-        Subscription subscription = webhookActions.configureSubscriptionAndCallback("webhook-entrypoint-solace-endpoint", callbackPath);
+        Subscription subscription =
+                webhookActions.configureSubscriptionAndCallback("webhook-entrypoint-solace-endpoint", callbackPath);
 
-        final Disposable disposableSubscription = webhookActions.dispatchSubscription(subscription).subscribe();
+        final Disposable disposableSubscription =
+                webhookActions.dispatchSubscription(subscription).subscribe();
 
-        // Publish several messages after a delay, to be sure the subscription has been fully dispatched and consumes message
+        // Publish several messages after a delay, to be sure the subscription has been fully dispatched and consumes
+        // message
         publishToSolace(
-            topic,
-            List.of(
-                outboundMessageBuilder.build("message1".getBytes()),
-                outboundMessageBuilder.build("message2".getBytes()),
-                outboundMessageBuilder.build("message3".getBytes())
-            ),
-            5000
-        ).blockingAwait();
+                        topic,
+                        List.of(
+                                outboundMessageBuilder.build("message1".getBytes()),
+                                outboundMessageBuilder.build("message2".getBytes()),
+                                outboundMessageBuilder.build("message3".getBytes())),
+                        5000)
+                .blockingAwait();
 
         // Wait for the webhook to have received 3 requests (message1, message2 and message3)
         webhookActions.waitForRequestsOnCallbackBlocking(3, callbackPath, disposableSubscription);
@@ -95,55 +97,54 @@ class WebhookEntrypoinSolaceEndpointIntegrationTest extends AbstractSolaceEndpoi
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-solace-endpoint.json" })
+    @DeployApi({"/apis/v4/messages/webhook/webhook-entrypoint-solace-endpoint.json"})
     void should_receive_all_messages_with_additional_headers() throws JsonProcessingException {
         final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
 
         Subscription subscription = webhookActions.configureSubscriptionAndCallback(
-            "webhook-entrypoint-solace-endpoint",
-            callbackPath,
-            List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value"))
-        );
+                "webhook-entrypoint-solace-endpoint",
+                callbackPath,
+                List.of(
+                        new HttpHeader("Header1", "my-header-1-value"),
+                        new HttpHeader("Header2", "my-header-2-value")));
 
         // Publish a first message that is retained before subscribing
-        final Disposable disposableSubscription = webhookActions.dispatchSubscription(subscription).subscribe();
+        final Disposable disposableSubscription =
+                webhookActions.dispatchSubscription(subscription).subscribe();
 
-        // Publish several messages after a delay, to be sure the subscription has been fully dispatched and consumes message
+        // Publish several messages after a delay, to be sure the subscription has been fully dispatched and consumes
+        // message
         publishToSolace(
-            topic,
-            List.of(
-                outboundMessageBuilder.build("message1".getBytes()),
-                outboundMessageBuilder.build("message2".getBytes()),
-                outboundMessageBuilder.build("message3".getBytes())
-            ),
-            5000
-        ).blockingAwait();
+                        topic,
+                        List.of(
+                                outboundMessageBuilder.build("message1".getBytes()),
+                                outboundMessageBuilder.build("message2".getBytes()),
+                                outboundMessageBuilder.build("message3".getBytes())),
+                        5000)
+                .blockingAwait();
 
         // Wait for the webhook to have received 4 requests (message, message1, message2 and message3)
         webhookActions.waitForRequestsOnCallbackBlocking(3, callbackPath, disposableSubscription);
 
         // verify requests received by wiremock
         wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message1"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
-        );
+                1,
+                postRequestedFor(urlPathEqualTo(callbackPath))
+                        .withRequestBody(equalTo("message1"))
+                        .withHeader("Header1", equalTo("my-header-1-value"))
+                        .withHeader("Header2", equalTo("my-header-2-value")));
         wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message2"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
-        );
+                1,
+                postRequestedFor(urlPathEqualTo(callbackPath))
+                        .withRequestBody(equalTo("message2"))
+                        .withHeader("Header1", equalTo("my-header-1-value"))
+                        .withHeader("Header2", equalTo("my-header-2-value")));
         wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message3"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
-        );
+                1,
+                postRequestedFor(urlPathEqualTo(callbackPath))
+                        .withRequestBody(equalTo("message3"))
+                        .withHeader("Header1", equalTo("my-header-1-value"))
+                        .withHeader("Header2", equalTo("my-header-2-value")));
 
         // close the subscription to avoid maintaining it between test methods
         webhookActions.closeSubscription(subscription);

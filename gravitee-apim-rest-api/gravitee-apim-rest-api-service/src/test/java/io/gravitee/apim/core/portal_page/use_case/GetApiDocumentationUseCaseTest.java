@@ -44,15 +44,16 @@ import org.junit.jupiter.api.Test;
 class GetApiDocumentationUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final PortalPageContentId DOC_ID = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1");
     private static final String API_ID = "00000000-0000-0000-0000-0000000000a1";
 
     private final PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService =
+            new PortalNavigationItemsQueryServiceInMemory();
     private GetApiDocumentationUseCase useCase;
 
     @BeforeEach
@@ -75,7 +76,10 @@ class GetApiDocumentationUseCaseTest {
         assertThat(output.pageContent().getId()).isEqualTo(DOC_ID);
         assertThat(meta.name()).isEqualTo("Getting Started");
         assertThat(output.pageContent().getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
-        assertThat(((GraviteeMarkdownPageContent) output.pageContent()).getContent().value()).isEqualTo("# Hello");
+        assertThat(((GraviteeMarkdownPageContent) output.pageContent())
+                        .getContent()
+                        .value())
+                .isEqualTo("# Hello");
         assertThat(meta.location()).contains("/getting-started");
         assertThat(meta.order()).contains(1);
         assertThat(meta.referenceType()).isEqualTo(AutomationMetadata.ReferenceType.API);
@@ -86,22 +90,18 @@ class GetApiDocumentationUseCaseTest {
     void should_return_visibility_from_persisted_nav_item() {
         queryService.initWith(List.of(anApiPageContent()));
         var navItemId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
-        navigationItemsQueryService.initWith(
-            List.of(
-                PortalNavigationPage.builder()
-                    .id(navItemId)
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("Getting Started")
-                    .segment("getting-started")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(1)
-                    .portalPageContentId(DOC_ID)
-                    .published(true)
-                    .visibility(PortalVisibility.PRIVATE)
-                    .build()
-            )
-        );
+        navigationItemsQueryService.initWith(List.of(PortalNavigationPage.builder()
+                .id(navItemId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("Getting Started")
+                .segment("getting-started")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .portalPageContentId(DOC_ID)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build()));
 
         var output = useCase.execute(new GetApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID));
 
@@ -127,11 +127,7 @@ class GetApiDocumentationUseCaseTest {
     @Test
     void should_throw_when_page_content_has_no_automation_metadata() {
         var pageContent = new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello")
-        );
+                DOC_ID, AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId(), GraviteeMarkdown.of("# Hello"));
         queryService.initWith(List.of(pageContent));
 
         var throwable = catchThrowable(() -> useCase.execute(new GetApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
@@ -142,19 +138,13 @@ class GetApiDocumentationUseCaseTest {
     @Test
     void should_throw_when_metadata_is_portal_reference_not_api() {
         var meta = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.PORTAL,
-            "00000000-0000-0000-0000-0000000000a2",
-            "Getting Started",
-            Optional.of("/projects/alpha"),
-            Optional.of(1)
-        );
+                AutomationMetadata.ReferenceType.PORTAL,
+                "00000000-0000-0000-0000-0000000000a2",
+                "Getting Started",
+                Optional.of("/projects/alpha"),
+                Optional.of(1));
         var pageContent = new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            meta
-        );
+                DOC_ID, AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId(), GraviteeMarkdown.of("# Hello"), meta);
         queryService.initWith(List.of(pageContent));
 
         var throwable = catchThrowable(() -> useCase.execute(new GetApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
@@ -164,18 +154,12 @@ class GetApiDocumentationUseCaseTest {
 
     private static GraviteeMarkdownPageContent anApiPageContent() {
         var meta = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            API_ID,
-            "Getting Started",
-            Optional.of("/getting-started"),
-            Optional.of(1)
-        );
+                AutomationMetadata.ReferenceType.API,
+                API_ID,
+                "Getting Started",
+                Optional.of("/getting-started"),
+                Optional.of(1));
         return new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            meta
-        );
+                DOC_ID, AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId(), GraviteeMarkdown.of("# Hello"), meta);
     }
 }

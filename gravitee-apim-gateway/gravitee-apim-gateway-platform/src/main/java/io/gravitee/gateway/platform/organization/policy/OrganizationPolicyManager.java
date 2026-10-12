@@ -37,26 +37,24 @@ public class OrganizationPolicyManager extends DefaultPolicyManager {
     private final ReactableOrganization reactableOrganization;
 
     public OrganizationPolicyManager(
-        final boolean legacyMode,
-        final DefaultClassLoader classLoader,
-        final PolicyFactory policyFactory,
-        final PolicyConfigurationFactory policyConfigurationFactory,
-        final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
-        final PolicyClassLoaderFactory policyClassLoaderFactory,
-        final ResourceLifecycleManager resourceLifecycleManager,
-        final ComponentProvider componentProvider,
-        final ReactableOrganization reactableOrganization
-    ) {
+            final boolean legacyMode,
+            final DefaultClassLoader classLoader,
+            final PolicyFactory policyFactory,
+            final PolicyConfigurationFactory policyConfigurationFactory,
+            final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+            final PolicyClassLoaderFactory policyClassLoaderFactory,
+            final ResourceLifecycleManager resourceLifecycleManager,
+            final ComponentProvider componentProvider,
+            final ReactableOrganization reactableOrganization) {
         super(
-            legacyMode,
-            classLoader,
-            policyFactory,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            resourceLifecycleManager,
-            componentProvider
-        );
+                legacyMode,
+                classLoader,
+                policyFactory,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                resourceLifecycleManager,
+                componentProvider);
         this.reactableOrganization = reactableOrganization;
     }
 

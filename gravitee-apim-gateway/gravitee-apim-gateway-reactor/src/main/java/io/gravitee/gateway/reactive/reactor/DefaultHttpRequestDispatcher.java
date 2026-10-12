@@ -111,21 +111,20 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     private final boolean warningsEnabled;
 
     public DefaultHttpRequestDispatcher(
-        GatewayConfiguration gatewayConfiguration,
-        HttpAcceptorResolver httpAcceptorResolver,
-        IdGenerator idGenerator,
-        ComponentProvider globalComponentProvider,
-        RequestProcessorChainFactory requestProcessorChainFactory,
-        ResponseProcessorChainFactory responseProcessorChainFactory,
-        DefaultPlatformProcessorChainFactory platformProcessorChainFactory,
-        NotFoundProcessorChainFactory notFoundProcessorChainFactory,
-        TracingContext gatewayTracingContext,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        RequestClientAuthConfiguration requestClientAuthConfiguration,
-        RequestPathConfiguration requestPathConfiguration,
-        Vertx vertx,
-        boolean warningsEnabled
-    ) {
+            GatewayConfiguration gatewayConfiguration,
+            HttpAcceptorResolver httpAcceptorResolver,
+            IdGenerator idGenerator,
+            ComponentProvider globalComponentProvider,
+            RequestProcessorChainFactory requestProcessorChainFactory,
+            ResponseProcessorChainFactory responseProcessorChainFactory,
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory,
+            NotFoundProcessorChainFactory notFoundProcessorChainFactory,
+            TracingContext gatewayTracingContext,
+            RequestTimeoutConfiguration requestTimeoutConfiguration,
+            RequestClientAuthConfiguration requestClientAuthConfiguration,
+            RequestPathConfiguration requestPathConfiguration,
+            Vertx vertx,
+            boolean warningsEnabled) {
         this.gatewayConfiguration = gatewayConfiguration;
         this.httpAcceptorResolver = httpAcceptorResolver;
         this.idGenerator = idGenerator;
@@ -162,8 +161,9 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         // left to its default it would be stamped when the request wrapper is built, once the work below is done.
         final long receivedAtNs = System.nanoTime();
 
-        //Keep same behavior as in Vertx4 when host was also returning the port.
-        //The authority is null when the request has no Host header (nor :authority pseudo-header), as Vertx4 host() was.
+        // Keep same behavior as in Vertx4 when host was also returning the port.
+        // The authority is null when the request has no Host header (nor :authority pseudo-header), as Vertx4 host()
+        // was.
         final HostAndPort authority = httpServerRequest.authority();
         final String host;
         if (authority == null) {
@@ -178,7 +178,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         // One scan answers what both active modes ask. REJECT needs nothing more: a path that is
         // not in the form it claims to be is refused without ever being rewritten. NORMALIZE only
         // pays for the resolution when there is something to resolve.
-        final boolean needsNormalization = requestPathConfiguration.isEnabled() && RequestPathNormalizer.needsNormalization(rawPath);
+        final boolean needsNormalization =
+                requestPathConfiguration.isEnabled() && RequestPathNormalizer.needsNormalization(rawPath);
 
         final String normalizedPath;
         if (needsNormalization) {
@@ -219,47 +220,43 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             // would send them looking for a context path the gateway never tried. Nothing is lost:
             // uri() still carries the bytes the client sent.
             MutableExecutionContext mutableCtx = prepareExecutionContext(
-                httpServerRequest,
-                serverId,
-                pathWasNormalized ? normalizedPath : null,
-                receivedAt,
-                receivedAtNs
-            );
-            mutableCtx.tracer(
-                new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer())
-            );
+                    httpServerRequest, serverId, pathWasNormalized ? normalizedPath : null, receivedAt, receivedAtNs);
+            mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(
+                    vertxContext, gatewayTracingContext.opentelemetryTracer()));
             // No route matched: bucket all of it under "/" rather than the unbounded raw request URI
             // (scanner/probe traffic on internet-facing gateways is otherwise the largest source of cardinality).
             markTracingRoute(vertxContext, "/");
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             List<ProcessorHook> processHooks = gatewayTracingContext.isVerbose() ? List.of(tracingHook) : List.of();
             Completable handleNotFoundCompletable = HookHelper.hook(
-                () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
-                preProcessorChain.getId(),
-                processHooks,
-                mutableCtx,
-                ExecutionPhase.REQUEST
-            ).andThen(handleNotFound(mutableCtx, processHooks));
+                            () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
+                            preProcessorChain.getId(),
+                            processHooks,
+                            mutableCtx,
+                            ExecutionPhase.REQUEST)
+                    .andThen(handleNotFound(mutableCtx, processHooks));
             if (gatewayTracingContext.isEnabled()) {
                 return handleNotFoundCompletable
-                    .doOnSubscribe(disposable -> {
-                        Span rootSpan = mutableCtx
-                            .getTracer()
-                            .startRootSpanFrom(new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
-                        mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
-                    })
-                    .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
-                    .doFinally(() -> {
-                        Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
-                        Throwable throwable = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
-                        mutableCtx
-                            .getTracer()
-                            .endWithResponseAndError(
-                                rootSpan,
-                                new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
-                                throwable
-                            );
-                    });
+                        .doOnSubscribe(disposable -> {
+                            Span rootSpan = mutableCtx
+                                    .getTracer()
+                                    .startRootSpanFrom(
+                                            new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
+                            mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
+                        })
+                        .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
+                        .doFinally(() -> {
+                            Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                            Throwable throwable = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
+                            mutableCtx
+                                    .getTracer()
+                                    .endWithResponseAndError(
+                                            rootSpan,
+                                            new ObservableHttpServerResponse(httpServerRequest
+                                                    .getDelegate()
+                                                    .response()),
+                                            throwable);
+                        });
             } else {
                 return handleNotFoundCompletable;
             }
@@ -270,73 +267,75 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             // parameters() keep reading the untouched native request, and MetricsProcessor reports
             // both forms from those two — received and routed — with no custom metric needed.
             MutableExecutionContext mutableCtx = prepareExecutionContext(
-                httpServerRequest,
-                serverId,
-                pathWasNormalized ? normalizedPath : null,
-                receivedAt,
-                receivedAtNs
-            );
+                    httpServerRequest, serverId, pathWasNormalized ? normalizedPath : null, receivedAt, receivedAtNs);
             mutableCtx.request().contextPath(httpAcceptor.path());
             markTracingRoute(vertxContext, httpAcceptor.path());
             TracingContext tracingContext = apiReactor.tracingContext();
-            mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, tracingContext.opentelemetryTracer()));
+            mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(
+                    vertxContext, tracingContext.opentelemetryTracer()));
             mutableCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
             registerClientCloseClassifier(httpServerRequest, mutableCtx);
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             List<ProcessorHook> processHooks = List.of();
             Completable handleCompletable = HookHelper.hook(
-                () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
-                preProcessorChain.getId(),
-                processHooks,
-                mutableCtx,
-                ExecutionPhase.REQUEST
-            ).andThen(Completable.defer(() -> apiReactor.handle(mutableCtx)));
+                            () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
+                            preProcessorChain.getId(),
+                            processHooks,
+                            mutableCtx,
+                            ExecutionPhase.REQUEST)
+                    .andThen(Completable.defer(() -> apiReactor.handle(mutableCtx)));
 
             if (tracingContext.isEnabled()) {
                 handleCompletable = handleCompletable
-                    .doOnSubscribe(disposable -> {
-                        Span rootSpan = mutableCtx
-                            .getTracer()
-                            .startRootSpanFrom(new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
-                        mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
-                    })
-                    .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable));
+                        .doOnSubscribe(disposable -> {
+                            Span rootSpan = mutableCtx
+                                    .getTracer()
+                                    .startRootSpanFrom(
+                                            new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
+                            mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
+                        })
+                        .doOnError(
+                                throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable));
             }
             return handleCompletable.doFinally(() -> {
-                // Post action are dissociated from the main execution once the request has been handled and cover all the cases (error, success, cancel).
+                // Post action are dissociated from the main execution once the request has been handled and cover all
+                // the cases (error, success, cancel).
                 ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
                 Completable postProcessCompletable = HookHelper.hook(
-                    () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
-                    postProcessorChain.getId(),
-                    processHooks,
-                    mutableCtx,
-                    ExecutionPhase.RESPONSE
-                ).subscribeOn(Schedulers.computation());
+                                () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
+                                postProcessorChain.getId(),
+                                processHooks,
+                                mutableCtx,
+                                ExecutionPhase.RESPONSE)
+                        .subscribeOn(Schedulers.computation());
 
                 if (tracingContext.isEnabled()) {
                     postProcessCompletable = postProcessCompletable
-                        .doOnError(throwable -> mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
-                        .doFinally(() -> {
-                            Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
-                            Throwable throwable = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
-                            mutableCtx
-                                .getTracer()
-                                .endWithResponseAndError(
-                                    rootSpan,
-                                    new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
-                                    throwable
-                                );
-                        });
+                            .doOnError(throwable ->
+                                    mutableCtx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
+                            .doFinally(() -> {
+                                Span rootSpan = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                                Throwable throwable = mutableCtx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
+                                mutableCtx
+                                        .getTracer()
+                                        .endWithResponseAndError(
+                                                rootSpan,
+                                                new ObservableHttpServerResponse(httpServerRequest
+                                                        .getDelegate()
+                                                        .response()),
+                                                throwable);
+                            });
                 }
                 postProcessCompletable
-                    .doOnError(error -> log.warn("Unexpected error while executing post-processor chain", error))
-                    .onErrorComplete()
-                    .subscribe();
+                        .doOnError(error -> log.warn("Unexpected error while executing post-processor chain", error))
+                        .onErrorComplete()
+                        .subscribe();
             });
         }
         // V3 execution mode.
         log.debug("Request routed to V3 handler on path [{}]", httpAcceptor.path());
-        return handleV3Request(httpServerRequest, httpAcceptor, vertxContext, pathWasNormalized ? normalizedPath : null, receivedAt);
+        return handleV3Request(
+                httpServerRequest, httpAcceptor, vertxContext, pathWasNormalized ? normalizedPath : null, receivedAt);
     }
 
     /**
@@ -357,7 +356,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      * {@code decorate}'s first-tagger-wins guard — block the real failure from being recorded. Non-close throwables are
      * left for the normal error path; we only log them.
      */
-    private void registerClientCloseClassifier(final HttpServerRequest httpServerRequest, final MutableExecutionContext ctx) {
+    private void registerClientCloseClassifier(
+            final HttpServerRequest httpServerRequest, final MutableExecutionContext ctx) {
         httpServerRequest.response().exceptionHandler(throwable -> classifyResponseStreamError(ctx, throwable));
     }
 
@@ -391,22 +391,20 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      * rejected path without losing the debug session — see {@code DebugHttpRequestDispatcher}.
      */
     protected MutableExecutionContext prepareExecutionContext(
-        final HttpServerRequest httpServerRequest,
-        String serverId,
-        final String path,
-        final long receivedAt,
-        final long receivedAtNs
-    ) {
+            final HttpServerRequest httpServerRequest,
+            String serverId,
+            final String path,
+            final long receivedAt,
+            final long receivedAtNs) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(
-            httpServerRequest,
-            idGenerator,
-            VertxHttpServerRequest.VertxHttpServerRequestOptions.builder()
-                .clientAuthHeaderName(requestClientAuthConfiguration.getHeaderName())
-                .path(path)
-                .timestamp(receivedAt)
-                .timestampNs(receivedAtNs)
-                .build()
-        );
+                httpServerRequest,
+                idGenerator,
+                VertxHttpServerRequest.VertxHttpServerRequestOptions.builder()
+                        .clientAuthHeaderName(requestClientAuthConfiguration.getHeaderName())
+                        .path(path)
+                        .timestamp(receivedAt)
+                        .timestampNs(receivedAtNs)
+                        .build());
 
         MutableExecutionContext ctx = createExecutionContext(request);
         ctx.componentProvider(globalComponentProvider);
@@ -441,18 +439,19 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      * copy silently kept neither.
      */
     private Completable handleRejectedPath(
-        final HttpServerRequest httpServerRequest,
-        final String serverId,
-        final long receivedAt,
-        final long receivedAtNs
-    ) {
+            final HttpServerRequest httpServerRequest,
+            final String serverId,
+            final long receivedAt,
+            final long receivedAtNs) {
         // Nothing is rewritten here, so the path stays the one received — which is what the report
         // has to carry for an operator to see what was actually sent.
-        final MutableExecutionContext ctx = prepareExecutionContext(httpServerRequest, serverId, null, receivedAt, receivedAtNs);
+        final MutableExecutionContext ctx =
+                prepareExecutionContext(httpServerRequest, serverId, null, receivedAt, receivedAtNs);
         ctx.request().contextPath("/");
 
         final Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
-        ctx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer()));
+        ctx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(
+                vertxContext, gatewayTracingContext.opentelemetryTracer()));
         // No route was resolved and none will be, so the span is bucketed like a not-found rather
         // than under the unbounded raw request URI a prober chose.
         markTracingRoute(vertxContext, "/");
@@ -462,46 +461,41 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final ProcessorChain rejectedChain = notFoundProcessorChainFactory.rejectedPathProcessorChain();
 
         final Completable rejected = HookHelper.hook(
-            () -> preProcessorChain.execute(ctx, ExecutionPhase.REQUEST),
-            preProcessorChain.getId(),
-            processHooks,
-            ctx,
-            ExecutionPhase.REQUEST
-        ).andThen(
-            HookHelper.hook(
-                () -> rejectedChain.execute(ctx, ExecutionPhase.RESPONSE),
-                rejectedChain.getId(),
-                processHooks,
-                ctx,
-                ExecutionPhase.RESPONSE
-            )
-        );
+                        () -> preProcessorChain.execute(ctx, ExecutionPhase.REQUEST),
+                        preProcessorChain.getId(),
+                        processHooks,
+                        ctx,
+                        ExecutionPhase.REQUEST)
+                .andThen(HookHelper.hook(
+                        () -> rejectedChain.execute(ctx, ExecutionPhase.RESPONSE),
+                        rejectedChain.getId(),
+                        processHooks,
+                        ctx,
+                        ExecutionPhase.RESPONSE));
 
         if (!gatewayTracingContext.isEnabled()) {
             return afterRejectedPath(rejected, ctx);
         }
         return afterRejectedPath(
-            rejected
-                .doOnSubscribe(disposable -> {
-                    final Span rootSpan = ctx
-                        .getTracer()
-                        .startRootSpanFrom(new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
-                    ctx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
-                })
-                .doOnError(throwable -> ctx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
-                .doFinally(() -> {
-                    final Span rootSpan = ctx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
-                    final Throwable throwable = ctx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
-                    ctx
-                        .getTracer()
-                        .endWithResponseAndError(
-                            rootSpan,
-                            new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
-                            throwable
-                        );
-                }),
-            ctx
-        );
+                rejected.doOnSubscribe(disposable -> {
+                            final Span rootSpan = ctx.getTracer()
+                                    .startRootSpanFrom(
+                                            new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
+                            ctx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
+                        })
+                        .doOnError(throwable -> ctx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
+                        .doFinally(() -> {
+                            final Span rootSpan = ctx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                            final Throwable throwable = ctx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
+                            ctx.getTracer()
+                                    .endWithResponseAndError(
+                                            rootSpan,
+                                            new ObservableHttpServerResponse(httpServerRequest
+                                                    .getDelegate()
+                                                    .response()),
+                                            throwable);
+                        }),
+                ctx);
     }
 
     /**
@@ -517,25 +511,24 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return rejection;
     }
 
-    private Completable handleNotFound(final MutableExecutionContext ctx, final List<ProcessorHook> notFoundProcessorHook) {
+    private Completable handleNotFound(
+            final MutableExecutionContext ctx, final List<ProcessorHook> notFoundProcessorHook) {
         ctx.request().contextPath("/");
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
         return HookHelper.hook(
-            () -> processorChain.execute(ctx, ExecutionPhase.RESPONSE),
-            processorChain.getId(),
-            notFoundProcessorHook,
-            ctx,
-            ExecutionPhase.RESPONSE
-        );
+                () -> processorChain.execute(ctx, ExecutionPhase.RESPONSE),
+                processorChain.getId(),
+                notFoundProcessorHook,
+                ctx,
+                ExecutionPhase.RESPONSE);
     }
 
     private Completable handleV3Request(
-        final HttpServerRequest httpServerRequest,
-        final HttpAcceptor handlerEntrypoint,
-        final Context vertxContext,
-        final String normalizedPath,
-        final long receivedAt
-    ) {
+            final HttpServerRequest httpServerRequest,
+            final HttpAcceptor handlerEntrypoint,
+            final Context vertxContext,
+            final String normalizedPath,
+            final long receivedAt) {
         final ReactorHandler reactorHandler = handlerEntrypoint.reactor();
         markTracingRoute(vertxContext, handlerEntrypoint.path());
 
@@ -543,16 +536,17 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         // derive from the path the acceptor matched rather than from the one received; and the
         // clock must have started before the dispatcher did any of that work.
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(
-            httpServerRequest,
-            idGenerator,
-            VertxHttpServerRequestOptions.builder().path(normalizedPath).timestamp(receivedAt).build()
-        );
+                httpServerRequest,
+                idGenerator,
+                VertxHttpServerRequestOptions.builder()
+                        .path(normalizedPath)
+                        .timestamp(receivedAt)
+                        .build());
 
         // Prepare invocation execution context.
         SimpleExecutionContext simpleExecutionContext = createV3ExecutionContext(httpServerRequest, request);
-        simpleExecutionContext.tracer(
-            new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, reactorHandler.tracingContext().opentelemetryTracer())
-        );
+        simpleExecutionContext.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(
+                vertxContext, reactorHandler.tracingContext().opentelemetryTracer()));
 
         // Required by the v3 execution mode.
         simpleExecutionContext.setAttribute(ATTR_ENTRYPOINT, handlerEntrypoint);
@@ -562,49 +556,51 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
         // Prepare handler chain and catch the end of the v3 request handling to complete the reactive chain.
         return Completable.create(emitter -> {
-            Handler<io.gravitee.gateway.api.ExecutionContext> endHandler = endRequestHandler(emitter, httpServerRequest);
-            requestProcessorChainFactory
-                .create()
-                .handler(ctx -> {
-                    reactorHandler.handle(ctx, executionContext ->
-                        executionContext
-                            .response()
-                            .endHandler(aVoid -> processResponse(executionContext, endHandler))
-                            .end()
-                    );
+                    Handler<io.gravitee.gateway.api.ExecutionContext> endHandler =
+                            endRequestHandler(emitter, httpServerRequest);
+                    requestProcessorChainFactory
+                            .create()
+                            .handler(ctx -> {
+                                reactorHandler.handle(
+                                        ctx,
+                                        executionContext -> executionContext
+                                                .response()
+                                                .endHandler(aVoid -> processResponse(executionContext, endHandler))
+                                                .end());
+                            })
+                            .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
+                            .exitHandler(result -> processResponse(simpleExecutionContext, endHandler))
+                            .handle(simpleExecutionContext);
                 })
-                .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
-                .exitHandler(result -> processResponse(simpleExecutionContext, endHandler))
-                .handle(simpleExecutionContext);
-        })
-            .doOnSubscribe(disposable -> {
-                Span rootSpan = simpleExecutionContext
-                    .getTracer()
-                    .startRootSpanFrom(new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
-                simpleExecutionContext.getAttributes().put(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
-            })
-            .doOnComplete(() -> {
-                Span rootSpan = (Span) simpleExecutionContext.getAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
-                simpleExecutionContext
-                    .getTracer()
-                    .endWithResponse(rootSpan, new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()));
-            })
-            .doOnError(throwable -> {
-                Span rootSpan = (Span) simpleExecutionContext.getAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
-                simpleExecutionContext
-                    .getTracer()
-                    .endWithResponseAndError(
-                        rootSpan,
-                        new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
-                        throwable
-                    );
-            });
+                .doOnSubscribe(disposable -> {
+                    Span rootSpan = simpleExecutionContext
+                            .getTracer()
+                            .startRootSpanFrom(new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
+                    simpleExecutionContext.getAttributes().put(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
+                })
+                .doOnComplete(() -> {
+                    Span rootSpan = (Span) simpleExecutionContext.getAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                    simpleExecutionContext
+                            .getTracer()
+                            .endWithResponse(
+                                    rootSpan,
+                                    new ObservableHttpServerResponse(
+                                            httpServerRequest.getDelegate().response()));
+                })
+                .doOnError(throwable -> {
+                    Span rootSpan = (Span) simpleExecutionContext.getAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                    simpleExecutionContext
+                            .getTracer()
+                            .endWithResponseAndError(
+                                    rootSpan,
+                                    new ObservableHttpServerResponse(
+                                            httpServerRequest.getDelegate().response()),
+                                    throwable);
+                });
     }
 
     private Handler<io.gravitee.gateway.api.ExecutionContext> endRequestHandler(
-        final CompletableEmitter emitter,
-        final HttpServerRequest httpServerRequest
-    ) {
+            final CompletableEmitter emitter, final HttpServerRequest httpServerRequest) {
         return context -> {
             Long vertxTimerId = (Long) context.getAttribute(ATTR_INTERNAL_VERTX_TIMER_ID);
             if (vertxTimerId != null) {
@@ -641,10 +637,11 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      */
     @Deprecated
     protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(
-        HttpServerRequest httpServerRequest,
-        IdGenerator idGenerator
-    ) {
-        return createV3Request(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+            HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
+        return createV3Request(
+                httpServerRequest,
+                idGenerator,
+                VertxHttpServerRequestOptions.builder().build());
     }
 
     /**
@@ -655,10 +652,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      * and leaves every subclass and plugin overriding it untouched.
      */
     protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(
-        HttpServerRequest httpServerRequest,
-        IdGenerator idGenerator,
-        VertxHttpServerRequestOptions options
-    ) {
+            HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request;
 
         if (isV3WebSocket(httpServerRequest)) {
@@ -671,7 +665,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                     request = new VertxHttp2ServerRequest(httpServerRequest.getDelegate(), idGenerator, options);
                 }
             } else {
-                request = new io.gravitee.gateway.http.vertx.VertxHttpServerRequest(httpServerRequest.getDelegate(), idGenerator, options);
+                request = new io.gravitee.gateway.http.vertx.VertxHttpServerRequest(
+                        httpServerRequest.getDelegate(), idGenerator, options);
             }
         }
 
@@ -679,9 +674,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     }
 
     private SimpleExecutionContext createV3ExecutionContext(
-        HttpServerRequest httpServerRequest,
-        io.gravitee.gateway.http.vertx.VertxHttpServerRequest request
-    ) {
+            HttpServerRequest httpServerRequest, io.gravitee.gateway.http.vertx.VertxHttpServerRequest request) {
         SimpleExecutionContext simpleExecutionContext = new SimpleExecutionContext(request, request.createResponse());
 
         if (requestTimeoutConfiguration.getRequestTimeout() > 0 && !isV3WebSocket(httpServerRequest)) {
@@ -709,9 +702,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     }
 
     private void processResponse(
-        io.gravitee.gateway.api.ExecutionContext context,
-        Handler<io.gravitee.gateway.api.ExecutionContext> handler
-    ) {
+            io.gravitee.gateway.api.ExecutionContext context,
+            Handler<io.gravitee.gateway.api.ExecutionContext> handler) {
         responseProcessorChainFactory.create().handler(handler).handle(context);
     }
 }

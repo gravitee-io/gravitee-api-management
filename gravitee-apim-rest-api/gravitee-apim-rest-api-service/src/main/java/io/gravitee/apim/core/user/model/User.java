@@ -21,12 +21,11 @@ import lombok.Builder;
 
 @Builder
 public record User(
-    String id,
-    String reference,
-    String firstName,
-    String lastName,
-    String displayName,
-    String email,
-    Boolean editableProfile,
-    Map<String, List<String>> permissions
-) {}
+        String id,
+        String reference,
+        String firstName,
+        String lastName,
+        String displayName,
+        String email,
+        Boolean editableProfile,
+        Map<String, List<String>> permissions) {}

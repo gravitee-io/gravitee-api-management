@@ -40,40 +40,39 @@ public class FilterAdapter {
     static final String ENTRYPOINT_FIELD = EntrypointScopeClause.FIELD;
 
     static final List<Filter.Name> HTTP_FILTER_NAMES = List.of(
-        Filter.Name.API,
-        Filter.Name.APPLICATION,
-        Filter.Name.PLAN,
-        Filter.Name.API_PRODUCT,
-        Filter.Name.GATEWAY,
-        Filter.Name.HOST,
-        Filter.Name.TENANT,
-        Filter.Name.ZONE,
-        Filter.Name.HTTP_METHOD,
-        Filter.Name.HTTP_STATUS_CODE_GROUP,
-        Filter.Name.HTTP_STATUS,
-        Filter.Name.HTTP_PATH,
-        Filter.Name.HTTP_PATH_MAPPING,
-        Filter.Name.GEO_IP_CITY,
-        Filter.Name.GEO_IP_REGION,
-        Filter.Name.GEO_IP_COUNTRY,
-        Filter.Name.GEO_IP_CONTINENT,
-        Filter.Name.CONSUMER_IP,
-        Filter.Name.HTTP_USER_AGENT_OS_NAME,
-        Filter.Name.HTTP_USER_AGENT_DEVICE,
-        Filter.Name.HTTP_ENDPOINT_RESPONSE_TIME,
-        Filter.Name.HTTP_GATEWAY_LATENCY,
-        Filter.Name.HTTP_GATEWAY_RESPONSE_TIME,
-        Filter.Name.HTTP_REQUEST_CONTENT_LENGTH,
-        Filter.Name.HTTP_RESPONSE_CONTENT_LENGTH,
-        Filter.Name.LLM_PROXY_MODEL,
-        Filter.Name.LLM_PROXY_PROVIDER,
-        Filter.Name.MCP_PROXY_METHOD,
-        Filter.Name.MCP_PROXY_TOOL,
-        Filter.Name.MCP_PROXY_RESOURCE,
-        Filter.Name.MCP_PROXY_PROMPT,
-        Filter.Name.URI,
-        Filter.Name.ENTRYPOINT
-    );
+            Filter.Name.API,
+            Filter.Name.APPLICATION,
+            Filter.Name.PLAN,
+            Filter.Name.API_PRODUCT,
+            Filter.Name.GATEWAY,
+            Filter.Name.HOST,
+            Filter.Name.TENANT,
+            Filter.Name.ZONE,
+            Filter.Name.HTTP_METHOD,
+            Filter.Name.HTTP_STATUS_CODE_GROUP,
+            Filter.Name.HTTP_STATUS,
+            Filter.Name.HTTP_PATH,
+            Filter.Name.HTTP_PATH_MAPPING,
+            Filter.Name.GEO_IP_CITY,
+            Filter.Name.GEO_IP_REGION,
+            Filter.Name.GEO_IP_COUNTRY,
+            Filter.Name.GEO_IP_CONTINENT,
+            Filter.Name.CONSUMER_IP,
+            Filter.Name.HTTP_USER_AGENT_OS_NAME,
+            Filter.Name.HTTP_USER_AGENT_DEVICE,
+            Filter.Name.HTTP_ENDPOINT_RESPONSE_TIME,
+            Filter.Name.HTTP_GATEWAY_LATENCY,
+            Filter.Name.HTTP_GATEWAY_RESPONSE_TIME,
+            Filter.Name.HTTP_REQUEST_CONTENT_LENGTH,
+            Filter.Name.HTTP_RESPONSE_CONTENT_LENGTH,
+            Filter.Name.LLM_PROXY_MODEL,
+            Filter.Name.LLM_PROXY_PROVIDER,
+            Filter.Name.MCP_PROXY_METHOD,
+            Filter.Name.MCP_PROXY_TOOL,
+            Filter.Name.MCP_PROXY_RESOURCE,
+            Filter.Name.MCP_PROXY_PROMPT,
+            Filter.Name.URI,
+            Filter.Name.ENTRYPOINT);
 
     /**
      * What a message document has carried since it existed, whatever wrote it, and therefore what the
@@ -89,14 +88,13 @@ public class FilterAdapter {
      * {@link #ENRICHED_MESSAGE_FILTER_NAMES}, which only the direct path uses.
      */
     static final List<Filter.Name> MESSAGE_FILTER_NAMES = List.of(
-        Filter.Name.API,
-        Filter.Name.MESSAGE_CONNECTOR_TYPE,
-        Filter.Name.MESSAGE_CONNECTOR_ID,
-        Filter.Name.MESSAGE_OPERATION_TYPE,
-        Filter.Name.MESSAGE_COUNT,
-        Filter.Name.MESSAGE_SIZE,
-        Filter.Name.MESSAGE_ERROR_COUNT
-    );
+            Filter.Name.API,
+            Filter.Name.MESSAGE_CONNECTOR_TYPE,
+            Filter.Name.MESSAGE_CONNECTOR_ID,
+            Filter.Name.MESSAGE_OPERATION_TYPE,
+            Filter.Name.MESSAGE_COUNT,
+            Filter.Name.MESSAGE_SIZE,
+            Filter.Name.MESSAGE_ERROR_COUNT);
 
     /**
      * Dimensions of the connection, carried on a message document only since the gateway began
@@ -109,11 +107,8 @@ public class FilterAdapter {
      * documents do not carry the field, and Elasticsearch answers a term query on a missing field
      * with no hits rather than an error, which would silently return nothing.
      */
-    public static final List<Filter.Name> CONNECTION_DIMENSION_FILTER_NAMES = List.of(
-        Filter.Name.PLAN,
-        Filter.Name.APPLICATION,
-        Filter.Name.ENTRYPOINT
-    );
+    public static final List<Filter.Name> CONNECTION_DIMENSION_FILTER_NAMES =
+            List.of(Filter.Name.PLAN, Filter.Name.APPLICATION, Filter.Name.ENTRYPOINT);
 
     /**
      * Whether this dimension is one the message documents carry only since the gateway started
@@ -131,24 +126,23 @@ public class FilterAdapter {
 
     /** The facet form of {@link #isConnectionDimension(Filter.Name)}; not every dimension has one. */
     public static boolean isConnectionDimension(Facet facet) {
-        return CONNECTION_DIMENSION_FILTER_NAMES.stream().anyMatch(name -> name.name().equals(facet.name()));
+        return CONNECTION_DIMENSION_FILTER_NAMES.stream()
+                .anyMatch(name -> name.name().equals(facet.name()));
     }
 
     /** Everything a message document carries once the gateway stamps the connection dimensions. */
     static final List<Filter.Name> ENRICHED_MESSAGE_FILTER_NAMES = Stream.concat(
-        MESSAGE_FILTER_NAMES.stream(),
-        CONNECTION_DIMENSION_FILTER_NAMES.stream()
-    ).toList();
+                    MESSAGE_FILTER_NAMES.stream(), CONNECTION_DIMENSION_FILTER_NAMES.stream())
+            .toList();
 
     static final List<Filter.Name> NATIVE_FILTER_NAMES = List.of(
-        Filter.Name.API,
-        Filter.Name.APPLICATION,
-        Filter.Name.PLAN,
-        Filter.Name.NATIVE_CONNECTION_STATUS,
-        Filter.Name.NATIVE_FAILURE_SIDE,
-        Filter.Name.NATIVE_CLIENT_ID,
-        Filter.Name.NATIVE_CLIENT_SOFTWARE_NAME
-    );
+            Filter.Name.API,
+            Filter.Name.APPLICATION,
+            Filter.Name.PLAN,
+            Filter.Name.NATIVE_CONNECTION_STATUS,
+            Filter.Name.NATIVE_FAILURE_SIDE,
+            Filter.Name.NATIVE_CLIENT_ID,
+            Filter.Name.NATIVE_CLIENT_SOFTWARE_NAME);
 
     /**
      * Native Kafka event metrics. Deliberately narrow: the `event-metrics` documents only carry the
@@ -157,49 +151,45 @@ public class FilterAdapter {
      * query, matching how the other families behave.
      */
     static final List<Filter.Name> EVENT_METRICS_FILTER_NAMES = List.of(
-        Filter.Name.API,
-        Filter.Name.APPLICATION,
-        Filter.Name.PLAN,
-        Filter.Name.NATIVE_TOPIC,
-        Filter.Name.NATIVE_OPERATION
-    );
+            Filter.Name.API,
+            Filter.Name.APPLICATION,
+            Filter.Name.PLAN,
+            Filter.Name.NATIVE_TOPIC,
+            Filter.Name.NATIVE_OPERATION);
 
     static final List<Filter.Name> EDGE_FILTER_NAMES = List.of(
-        Filter.Name.API,
-        Filter.Name.GATEWAY,
-        Filter.Name.TENANT,
-        Filter.Name.ZONE,
-        Filter.Name.EDGE_TYPE,
-        Filter.Name.EDGE_PROVIDER,
-        Filter.Name.EDGE_PROCESS,
-        Filter.Name.EDGE_CLIENT,
-        Filter.Name.EDGE_VERSION,
-        Filter.Name.EDGE_MODEL,
-        Filter.Name.EDGE_TOOL
-    );
+            Filter.Name.API,
+            Filter.Name.GATEWAY,
+            Filter.Name.TENANT,
+            Filter.Name.ZONE,
+            Filter.Name.EDGE_TYPE,
+            Filter.Name.EDGE_PROVIDER,
+            Filter.Name.EDGE_PROCESS,
+            Filter.Name.EDGE_CLIENT,
+            Filter.Name.EDGE_VERSION,
+            Filter.Name.EDGE_MODEL,
+            Filter.Name.EDGE_TOOL);
 
     static final List<Filter.Name> AUTHZ_FILTER_NAMES = List.of(
-        Filter.Name.API,
-        Filter.Name.GATEWAY,
-        Filter.Name.AUTHZ_DECISION,
-        Filter.Name.AUTHZ_STATUS,
-        Filter.Name.AUTHZ_CALLER,
-        Filter.Name.AUTHZ_SUBJECT_ID,
-        Filter.Name.AUTHZ_ACTION,
-        Filter.Name.AUTHZ_RESOURCE_ID,
-        Filter.Name.AUTHZ_REASON,
-        Filter.Name.AUTHZ_PDP
-    );
+            Filter.Name.API,
+            Filter.Name.GATEWAY,
+            Filter.Name.AUTHZ_DECISION,
+            Filter.Name.AUTHZ_STATUS,
+            Filter.Name.AUTHZ_CALLER,
+            Filter.Name.AUTHZ_SUBJECT_ID,
+            Filter.Name.AUTHZ_ACTION,
+            Filter.Name.AUTHZ_RESOURCE_ID,
+            Filter.Name.AUTHZ_REASON,
+            Filter.Name.AUTHZ_PDP);
 
     static final List<Filter.Name> AUTHZ_TRAFFIC_FILTER_NAMES = List.of(
-        Filter.Name.API,
-        Filter.Name.GATEWAY,
-        Filter.Name.AUTHZ_OPERATION,
-        Filter.Name.AUTHZ_SEARCH_TYPE,
-        Filter.Name.AUTHZ_ACTION,
-        Filter.Name.AUTHZ_SUBJECT_ID,
-        Filter.Name.AUTHZ_RESOURCE_ID
-    );
+            Filter.Name.API,
+            Filter.Name.GATEWAY,
+            Filter.Name.AUTHZ_OPERATION,
+            Filter.Name.AUTHZ_SEARCH_TYPE,
+            Filter.Name.AUTHZ_ACTION,
+            Filter.Name.AUTHZ_SUBJECT_ID,
+            Filter.Name.AUTHZ_RESOURCE_ID);
 
     /**
      * What the searches of {@code path} do with a top-level condition on {@code name}, read off the same
@@ -219,7 +209,8 @@ public class FilterAdapter {
                 if (AUTHZ_FILTER_NAMES.contains(name)) yield FilterOutcome.APPLIED;
                 yield AUTHZ_TRAFFIC_FILTER_NAMES.contains(name) ? FilterOutcome.EMPTIES : FilterOutcome.IGNORED;
             }
-            case AUTHZ_TRAFFIC -> AUTHZ_TRAFFIC_FILTER_NAMES.contains(name) ? FilterOutcome.APPLIED : FilterOutcome.EMPTIES;
+            case AUTHZ_TRAFFIC ->
+                AUTHZ_TRAFFIC_FILTER_NAMES.contains(name) ? FilterOutcome.APPLIED : FilterOutcome.EMPTIES;
         };
     }
 
@@ -342,8 +333,8 @@ public class FilterAdapter {
             }
         }
         return jsonFilters
-            .add(term(AuthzFieldResolver.DECISION_POINT_TYPE_FIELD, AuthzFieldResolver.DECISION_POINT_TYPE_AUTHZ))
-            .add(term(AuthzFieldResolver.PHASE_FIELD, AuthzFieldResolver.PHASE_RESOLVED));
+                .add(term(AuthzFieldResolver.DECISION_POINT_TYPE_FIELD, AuthzFieldResolver.DECISION_POINT_TYPE_AUTHZ))
+                .add(term(AuthzFieldResolver.PHASE_FIELD, AuthzFieldResolver.PHASE_RESOLVED));
     }
 
     public JsonArray adaptForAuthzTraffic(Query query) {
@@ -355,7 +346,8 @@ public class FilterAdapter {
             }
             jsonFilters.add(filter(filter, entityRefs));
         }
-        return jsonFilters.add(JsonObject.of("exists", JsonObject.of("field", AuthzTrafficFieldResolver.OPERATION_FIELD)));
+        return jsonFilters.add(
+                JsonObject.of("exists", JsonObject.of("field", AuthzTrafficFieldResolver.OPERATION_FIELD)));
     }
 
     private static JsonObject matchNone() {
@@ -477,15 +469,12 @@ public class FilterAdapter {
         if (filter.name() == Filter.Name.HTTP_METHOD) {
             return httpMethodFilter(filter);
         }
-        if (
-            filter.name() == Filter.Name.ENTRYPOINT && (filter.operator() == Filter.Operator.EQ || filter.operator() == Filter.Operator.IN)
-        ) {
+        if (filter.name() == Filter.Name.ENTRYPOINT
+                && (filter.operator() == Filter.Operator.EQ || filter.operator() == Filter.Operator.IN)) {
             return entrypointFilter(filter);
         }
-        if (
-            (filter.name() == Filter.Name.AUTHZ_SUBJECT_ID || filter.name() == Filter.Name.AUTHZ_RESOURCE_ID) &&
-            (filter.operator() == Filter.Operator.EQ || filter.operator() == Filter.Operator.IN)
-        ) {
+        if ((filter.name() == Filter.Name.AUTHZ_SUBJECT_ID || filter.name() == Filter.Name.AUTHZ_RESOURCE_ID)
+                && (filter.operator() == Filter.Operator.EQ || filter.operator() == Filter.Operator.IN)) {
             return entityRefFilter(filter, entityRefs);
         }
         if (filter.operator() == Filter.Operator.GTE || filter.operator() == Filter.Operator.LTE) {
@@ -505,10 +494,9 @@ public class FilterAdapter {
 
     private JsonObject entityRefFilter(Filter filter, AuthzEntityRefClauses entityRefs) {
         return entityRefs.matching(
-            fieldResolver.entityTypeFromFilter(filter),
-            fieldResolver.fromFilter(filter),
-            stringValues(filter.value())
-        );
+                fieldResolver.entityTypeFromFilter(filter),
+                fieldResolver.fromFilter(filter),
+                stringValues(filter.value()));
     }
 
     private static List<String> stringValues(Object value) {
@@ -533,7 +521,9 @@ public class FilterAdapter {
         return switch (filter.operator()) {
             case EQ -> StatusCodeGroups.rangeForGroup(field, (String) filter.value());
             case IN -> StatusCodeGroups.shouldForGroups(field, (Collection<String>) filter.value());
-            default -> throw new IllegalArgumentException("Unsupported operator for HTTP_STATUS_CODE_GROUP filter: " + filter.operator());
+            default ->
+                throw new IllegalArgumentException(
+                        "Unsupported operator for HTTP_STATUS_CODE_GROUP filter: " + filter.operator());
         };
     }
 
@@ -542,11 +532,16 @@ public class FilterAdapter {
         var field = fieldResolver.fromFilter(filter);
         return switch (filter.operator()) {
             case EQ -> JsonObject.of("term", JsonObject.of(field, httpMethodCode(filter.value())));
-            case IN -> JsonObject.of(
-                "terms",
-                JsonObject.of(field, new JsonArray(values(filter.value()).map(FilterAdapter::httpMethodCode).toList()))
-            );
-            default -> throw new IllegalArgumentException("Unsupported operator for HTTP_METHOD filter: " + filter.operator());
+            case IN ->
+                JsonObject.of(
+                        "terms",
+                        JsonObject.of(
+                                field,
+                                new JsonArray(values(filter.value())
+                                        .map(FilterAdapter::httpMethodCode)
+                                        .toList())));
+            default ->
+                throw new IllegalArgumentException("Unsupported operator for HTTP_METHOD filter: " + filter.operator());
         };
     }
 
@@ -559,21 +554,25 @@ public class FilterAdapter {
             return Integer.parseInt(code);
         }
         try {
-            return HttpMethod.valueOf(String.valueOf(value).toUpperCase(Locale.ROOT)).code();
+            return HttpMethod.valueOf(String.valueOf(value).toUpperCase(Locale.ROOT))
+                    .code();
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Unknown HTTP method: " + value, e);
         }
     }
 
     private static Stream<?> values(Object value) {
-        return Objects.requireNonNull(value) instanceof Collection<?> collection ? collection.stream() : Stream.of(value);
+        return Objects.requireNonNull(value) instanceof Collection<?> collection
+                ? collection.stream()
+                : Stream.of(value);
     }
 
     private String filterName(Filter filter) {
         return switch (filter.operator()) {
             case EQ -> "term";
             case Filter.Operator.IN -> "terms";
-            case Filter.Operator.GTE, Filter.Operator.LTE -> throw new IllegalStateException("GTE/LTE should be handled by rangeFilter()");
+            case Filter.Operator.GTE, Filter.Operator.LTE ->
+                throw new IllegalStateException("GTE/LTE should be handled by rangeFilter()");
         };
     }
 
@@ -581,7 +580,8 @@ public class FilterAdapter {
         return switch (filter.operator()) {
             case EQ -> JsonObject.of(fieldResolver.fromFilter(filter), filter.value());
             case Filter.Operator.IN -> JsonObject.of(fieldResolver.fromFilter(filter), listValue(filter.value()));
-            case Filter.Operator.GTE, Filter.Operator.LTE -> throw new IllegalStateException("GTE/LTE should be handled by rangeFilter()");
+            case Filter.Operator.GTE, Filter.Operator.LTE ->
+                throw new IllegalStateException("GTE/LTE should be handled by rangeFilter()");
         };
     }
 

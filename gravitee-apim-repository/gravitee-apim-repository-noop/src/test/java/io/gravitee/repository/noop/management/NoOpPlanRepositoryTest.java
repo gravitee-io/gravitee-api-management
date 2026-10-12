@@ -71,17 +71,15 @@ public class NoOpPlanRepositoryTest extends AbstractNoOpRepositoryTest {
     @Test
     public void findByReferenceIdsAndReferenceTypeAndEnvironment() throws TechnicalException {
         var plan = cut.findByReferenceIdsAndReferenceTypeAndEnvironment(
-            List.of("api-product-id"),
-            Plan.PlanReferenceType.API_PRODUCT,
-            Set.of("DEFAULT")
-        );
+                List.of("api-product-id"), Plan.PlanReferenceType.API_PRODUCT, Set.of("DEFAULT"));
 
         assertThat(plan).isEmpty();
     }
 
     @Test
     public void findByIdAndReferenceIdAndReferenceType() throws TechnicalException {
-        var plan = cut.findByIdAndReferenceIdAndReferenceType("plan-id", "api-product-id", Plan.PlanReferenceType.API_PRODUCT);
+        var plan = cut.findByIdAndReferenceIdAndReferenceType(
+                "plan-id", "api-product-id", Plan.PlanReferenceType.API_PRODUCT);
 
         assertThat(plan).isEmpty();
     }

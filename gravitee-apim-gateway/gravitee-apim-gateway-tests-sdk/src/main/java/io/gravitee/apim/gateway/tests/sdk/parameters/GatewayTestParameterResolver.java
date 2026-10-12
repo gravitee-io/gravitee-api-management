@@ -25,5 +25,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
  */
 public interface GatewayTestParameterResolver {
     boolean supports(ParameterContext parameterContext);
-    Object resolve(ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest);
+
+    Object resolve(
+            ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest);
 }

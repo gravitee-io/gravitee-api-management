@@ -38,11 +38,10 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
     static final String JWT_CONTEXT_ATTRIBUTE = "jwt";
 
     private static final List<AuthenticationPolicy> POLICIES = Arrays.asList(
-        // First, validate the incoming access_token thanks to an OAuth2 authorization server
-        (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME,
-        // Then, check that there is an existing valid subscription associated to the client_id
-        (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class
-    );
+            // First, validate the incoming access_token thanks to an OAuth2 authorization server
+            (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME,
+            // Then, check that there is an existing valid subscription associated to the client_id
+            (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class);
 
     @Override
     public boolean canHandle(AuthenticationContext context) {

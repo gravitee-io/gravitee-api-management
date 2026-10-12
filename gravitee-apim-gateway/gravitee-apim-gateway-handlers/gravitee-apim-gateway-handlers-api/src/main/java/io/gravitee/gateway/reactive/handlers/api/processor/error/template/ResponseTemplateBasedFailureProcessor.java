@@ -92,9 +92,7 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     private static Map<String, ResponseTemplate> parentErrorKeyTemplates(
-        final Map<String, Map<String, ResponseTemplate>> templates,
-        final ExecutionFailure executionFailure
-    ) {
+            final Map<String, Map<String, ResponseTemplate>> templates, final ExecutionFailure executionFailure) {
         if (executionFailure.parameters() == null) {
             return null;
         }
@@ -116,12 +114,12 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     private Completable handleAcceptHeader(
-        final HttpPlainExecutionContext context,
-        final Map<String, ResponseTemplate> templates,
-        final ExecutionFailure executionFailure
-    ) {
+            final HttpPlainExecutionContext context,
+            final Map<String, ResponseTemplate> templates,
+            final ExecutionFailure executionFailure) {
         // Extract the content-type from the request
-        final List<MediaType> acceptMediaTypes = MediaType.parseMediaTypes(context.request().headers().getAll(HttpHeaderNames.ACCEPT));
+        final List<MediaType> acceptMediaTypes =
+                MediaType.parseMediaTypes(context.request().headers().getAll(HttpHeaderNames.ACCEPT));
 
         // If no accept header, check if there is a template for type matching '*/*'
         if (acceptMediaTypes == null || acceptMediaTypes.isEmpty()) {
@@ -144,10 +142,9 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     private Completable handleWildcardTemplate(
-        final HttpPlainExecutionContext context,
-        final Map<String, ResponseTemplate> templates,
-        final ExecutionFailure executionFailure
-    ) {
+            final HttpPlainExecutionContext context,
+            final Map<String, ResponseTemplate> templates,
+            final ExecutionFailure executionFailure) {
         ResponseTemplate template = templates.get(WILDCARD_CONTENT_TYPE);
         if (template == null) {
             // No template associated to the error key, process the error message as usual
@@ -158,12 +155,12 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
     }
 
     private Completable handleTemplate(
-        final HttpPlainExecutionContext context,
-        final ResponseTemplate template,
-        final ExecutionFailure executionFailure
-    ) {
+            final HttpPlainExecutionContext context,
+            final ResponseTemplate template,
+            final ExecutionFailure executionFailure) {
         context.response().status(template.getStatusCode());
-        context.response().reason(HttpResponseStatus.valueOf(template.getStatusCode()).reasonPhrase());
+        context.response()
+                .reason(HttpResponseStatus.valueOf(template.getStatusCode()).reasonPhrase());
         context.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
         if (template.isPropagateErrorKeyToLogs()) {
             context.metrics().setErrorKey(executionFailure.key());
@@ -174,43 +171,55 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
         }
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
-            context.response().headers().set(HttpHeaderNames.CONTENT_TYPE, context.request().headers().get(HttpHeaderNames.ACCEPT));
+            context.response()
+                    .headers()
+                    .set(
+                            HttpHeaderNames.CONTENT_TYPE,
+                            context.request().headers().get(HttpHeaderNames.ACCEPT));
         }
 
         if (template.getHeaders() != null) {
-            template.getHeaders().forEach((name, value) -> context.response().headers().set(name, value));
+            template.getHeaders()
+                    .forEach((name, value) -> context.response().headers().set(name, value));
         }
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
             // Prepare templating context
             final TemplateEngine templateEngine = context.getTemplateEngine();
-            // Expose the cleaned-up failure detail (the Diagnostic message indexed in analytics) as {#error.cause}, so a
+            // Expose the cleaned-up failure detail (the Diagnostic message indexed in analytics) as {#error.cause}, so
+            // a
             // template can surface it even when ExecutionFailure has only a key + cause and no message (e.g. connection
             // failures towards the backend). Kept out of the default failure body to avoid leaking detail by default.
             final Diagnostic diagnostic = context.metrics().getFailure();
             final String cause = diagnostic != null ? diagnostic.getMessage() : null;
-            templateEngine.getTemplateContext().setVariable("error", new EvaluableExecutionFailure(executionFailure, cause));
+            templateEngine
+                    .getTemplateContext()
+                    .setVariable("error", new EvaluableExecutionFailure(executionFailure, cause));
 
-            if (executionFailure.parameters() != null && !executionFailure.parameters().isEmpty()) {
+            if (executionFailure.parameters() != null
+                    && !executionFailure.parameters().isEmpty()) {
                 templateEngine.getTemplateContext().setVariable("parameters", executionFailure.parameters());
             }
 
             // Apply templating
             return templateEngine
-                .eval(template.getBody(), String.class)
-                .switchIfEmpty(Single.just(""))
-                .flatMapCompletable(body -> {
-                    Buffer payload = Buffer.buffer(body);
-                    context.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
-                    context.response().body(payload);
-                    return Completable.complete();
-                });
+                    .eval(template.getBody(), String.class)
+                    .switchIfEmpty(Single.just(""))
+                    .flatMapCompletable(body -> {
+                        Buffer payload = Buffer.buffer(body);
+                        context.response()
+                                .headers()
+                                .set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
+                        context.response().body(payload);
+                        return Completable.complete();
+                    });
         }
         return Completable.complete();
     }
 
     private static class Holder {
 
-        private static final ResponseTemplateBasedFailureProcessor INSTANCE = new ResponseTemplateBasedFailureProcessor();
+        private static final ResponseTemplateBasedFailureProcessor INSTANCE =
+                new ResponseTemplateBasedFailureProcessor();
     }
 }

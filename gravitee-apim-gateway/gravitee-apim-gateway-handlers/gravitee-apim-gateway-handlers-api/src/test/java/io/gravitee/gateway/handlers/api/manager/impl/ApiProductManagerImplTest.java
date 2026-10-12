@@ -188,7 +188,8 @@ class ApiProductManagerImplTest {
             manager.unregister("product-1");
 
             inOrder.verify(apiProductRegistry).remove("product-1", "env-1");
-            inOrder.verify(eventManager).publishEvent(eq(ApiProductEventType.UNDEPLOY), any(ApiProductChangedEvent.class));
+            inOrder.verify(eventManager)
+                    .publishEvent(eq(ApiProductEventType.UNDEPLOY), any(ApiProductChangedEvent.class));
         }
 
         @Test
@@ -323,9 +324,10 @@ class ApiProductManagerImplTest {
         @Test
         void should_run_beforeEmit_callback_before_emitting_event_on_deploy() {
             ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
-            boolean[] callbackRan = { false };
+            boolean[] callbackRan = {false};
 
-            manager.register(apiProduct, Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
+            manager.register(apiProduct, Completable.fromRunnable(() -> callbackRan[0] = true))
+                    .blockingAwait();
 
             assertThat(callbackRan[0]).isTrue();
             verify(apiProductRegistry).register(apiProduct);
@@ -339,10 +341,11 @@ class ApiProductManagerImplTest {
             ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
             ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
             newProduct.setName("Updated");
-            boolean[] callbackRan = { false };
+            boolean[] callbackRan = {false};
 
             manager.register(oldProduct);
-            manager.register(newProduct, Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
+            manager.register(newProduct, Completable.fromRunnable(() -> callbackRan[0] = true))
+                    .blockingAwait();
 
             assertThat(callbackRan[0]).isTrue();
             verify(eventManager).publishEvent(eq(ApiProductEventType.UPDATE), any(ApiProductChangedEvent.class));
@@ -386,9 +389,10 @@ class ApiProductManagerImplTest {
             Date olderDate = new Date(System.currentTimeMillis() - 10000);
             ReactableApiProduct olderProduct = createApiProduct("product-1", "env-1", olderDate);
             olderProduct.setName("Older");
-            boolean[] callbackRan = { false };
+            boolean[] callbackRan = {false};
 
-            manager.register(olderProduct, Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
+            manager.register(olderProduct, Completable.fromRunnable(() -> callbackRan[0] = true))
+                    .blockingAwait();
 
             assertThat(callbackRan[0]).isFalse();
             verify(apiProductRegistry, times(1)).register(any(ReactableApiProduct.class));
@@ -410,13 +414,13 @@ class ApiProductManagerImplTest {
         @Test
         void should_handle_product_with_empty_api_ids() {
             ReactableApiProduct apiProduct = ReactableApiProduct.builder()
-                .id("product-1")
-                .name("Empty Product")
-                .version("1.0")
-                .apiIds(Set.of())
-                .environmentId("env-1")
-                .deployedAt(new Date())
-                .build();
+                    .id("product-1")
+                    .name("Empty Product")
+                    .version("1.0")
+                    .apiIds(Set.of())
+                    .environmentId("env-1")
+                    .deployedAt(new Date())
+                    .build();
 
             manager.register(apiProduct);
 
@@ -492,7 +496,8 @@ class ApiProductManagerImplTest {
             when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
             when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
 
-            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date(System.currentTimeMillis() - 10000));
+            ReactableApiProduct apiProduct =
+                    createApiProduct("product-1", "env-1", new Date(System.currentTimeMillis() - 10000));
             apiProduct.setTags(Set.of("internal"));
             manager.register(apiProduct);
             assertThat(manager.get("product-1")).isNotNull();
@@ -519,16 +524,16 @@ class ApiProductManagerImplTest {
 
     private ReactableApiProduct createApiProduct(String id, String environmentId, Date deployedAt) {
         return ReactableApiProduct.builder()
-            .id(id)
-            .name("Product " + id)
-            .version("1.0")
-            .description("Test product")
-            .apiIds(Set.of("api-1", "api-2"))
-            .environmentId(environmentId)
-            .environmentHrid("env-hrid")
-            .organizationId("org-1")
-            .organizationHrid("org-hrid")
-            .deployedAt(deployedAt)
-            .build();
+                .id(id)
+                .name("Product " + id)
+                .version("1.0")
+                .description("Test product")
+                .apiIds(Set.of("api-1", "api-2"))
+                .environmentId(environmentId)
+                .environmentHrid("env-hrid")
+                .organizationId("org-1")
+                .organizationHrid("org-hrid")
+                .deployedAt(deployedAt)
+                .build();
     }
 }

@@ -25,6 +25,8 @@ import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
  */
 public interface ApplicationMetadataCrudService {
     ApplicationMetadataEntity create(NewApplicationMetadataEntity metadata);
+
     ApplicationMetadataEntity update(UpdateApplicationMetadataEntity metadata);
+
     void delete(ApplicationMetadataEntity applicationMetadataEntity);
 }

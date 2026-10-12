@@ -31,7 +31,8 @@ public class ImportJsonNode {
     }
 
     protected boolean hasField(String fieldName) {
-        return jsonNode.hasNonNull(fieldName) && StringUtils.isNotEmpty(jsonNode.get(fieldName).asText());
+        return jsonNode.hasNonNull(fieldName)
+                && StringUtils.isNotEmpty(jsonNode.get(fieldName).asText());
     }
 
     protected boolean hasArray(String fieldName) {

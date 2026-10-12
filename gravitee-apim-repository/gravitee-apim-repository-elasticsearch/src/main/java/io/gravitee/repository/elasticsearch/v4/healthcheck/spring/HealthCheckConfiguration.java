@@ -24,7 +24,8 @@ import org.springframework.context.annotation.Configuration;
 public class HealthCheckConfiguration {
 
     @Bean
-    public HealthCheckElasticsearchRepository healthCheckElasticsearchRepository(RepositoryConfiguration configuration) {
+    public HealthCheckElasticsearchRepository healthCheckElasticsearchRepository(
+            RepositoryConfiguration configuration) {
         return new HealthCheckElasticsearchRepository(configuration);
     }
 }

@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.core.specgen.model;
 
-import io.gravitee.definition.model.v4.ApiType;
-
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team

@@ -29,20 +29,18 @@ import org.junit.jupiter.params.provider.CsvSource;
 class SlugTest {
 
     @ParameterizedTest(name = "{0} -> {1}")
-    @CsvSource(
-        {
-            "projects,           projects",
-            "My Projects,        my-projects",
-            "Getting Started,    getting-started",
-            "APIs & SDKs,        apis-sdks",
-            "My / Folder,        my-folder",
-            "my-folder,          my-folder",
-            "  leading spaces  , leading-spaces",
-            "a///b,              a-b",
-            "Questions / answers,  questions-answers",
-            "Question Answers,     question-answers",
-        }
-    )
+    @CsvSource({
+        "projects,           projects",
+        "My Projects,        my-projects",
+        "Getting Started,    getting-started",
+        "APIs & SDKs,        apis-sdks",
+        "My / Folder,        my-folder",
+        "my-folder,          my-folder",
+        "  leading spaces  , leading-spaces",
+        "a///b,              a-b",
+        "Questions / answers,  questions-answers",
+        "Question Answers,     question-answers",
+    })
     void slugifies_correctly(String input, String expected) {
         assertThat(Slug.from(input.trim()).value()).isEqualTo(expected.trim());
     }
@@ -58,9 +56,10 @@ class SlugTest {
     }
 
     @ParameterizedTest(name = "idempotent: {0}")
-    @CsvSource({ "my-folder", "getting-started", "projects" })
+    @CsvSource({"my-folder", "getting-started", "projects"})
     void is_idempotent(String alreadySlug) {
-        assertThat(Slug.from(Slug.from(alreadySlug).value()).value()).isEqualTo(Slug.from(alreadySlug).value());
+        assertThat(Slug.from(Slug.from(alreadySlug).value()).value())
+                .isEqualTo(Slug.from(alreadySlug).value());
     }
 
     @Nested

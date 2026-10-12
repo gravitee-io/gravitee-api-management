@@ -28,9 +28,9 @@ public class PlanIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("subscriptions")
-            .name("p1")
-            .key("plan", ascending())
-            .build();
+                .collection("subscriptions")
+                .name("p1")
+                .key("plan", ascending())
+                .build();
     }
 }

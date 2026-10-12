@@ -26,37 +26,36 @@ package io.gravitee.apim.plugin.gamma.api.identity;
  * AM-side coordinates, distinct from the APIM organization used as the storage key.
  */
 public record AmConnection(
-    String baseUrl,
-    String serviceAccountAccessToken,
-    String amOrganizationId,
-    String environmentId,
-    String defaultDomainId,
-    String defaultDomainHrid,
-    String gatewayUrl
-) {
+        String baseUrl,
+        String serviceAccountAccessToken,
+        String amOrganizationId,
+        String environmentId,
+        String defaultDomainId,
+        String defaultDomainHrid,
+        String gatewayUrl) {
     public boolean isConfigured() {
-        return baseUrl != null && !baseUrl.isBlank() && serviceAccountAccessToken != null && !serviceAccountAccessToken.isBlank();
+        return baseUrl != null
+                && !baseUrl.isBlank()
+                && serviceAccountAccessToken != null
+                && !serviceAccountAccessToken.isBlank();
     }
 
     // Redact the token so it never leaks into logs or exception messages via the record's toString().
     @Override
     public String toString() {
-        return (
-            "AmConnection[baseUrl=" +
-            baseUrl +
-            ", serviceAccountAccessToken=" +
-            (serviceAccountAccessToken == null ? "null" : "***") +
-            ", amOrganizationId=" +
-            amOrganizationId +
-            ", environmentId=" +
-            environmentId +
-            ", defaultDomainId=" +
-            defaultDomainId +
-            ", defaultDomainHrid=" +
-            defaultDomainHrid +
-            ", gatewayUrl=" +
-            gatewayUrl +
-            "]"
-        );
+        return ("AmConnection[baseUrl=" + baseUrl
+                + ", serviceAccountAccessToken="
+                + (serviceAccountAccessToken == null ? "null" : "***")
+                + ", amOrganizationId="
+                + amOrganizationId
+                + ", environmentId="
+                + environmentId
+                + ", defaultDomainId="
+                + defaultDomainId
+                + ", defaultDomainHrid="
+                + defaultDomainHrid
+                + ", gatewayUrl="
+                + gatewayUrl
+                + "]");
     }
 }

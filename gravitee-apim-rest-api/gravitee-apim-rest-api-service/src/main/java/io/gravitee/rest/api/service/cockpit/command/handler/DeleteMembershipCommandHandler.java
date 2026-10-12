@@ -61,41 +61,36 @@ public class DeleteMembershipCommandHandler implements CommandHandler<DeleteMemb
             }
 
             ExecutionContext executionContext = new ExecutionContext(
-                membershipPayload.organizationId(),
-                membershipReferenceType.equals(MembershipReferenceType.ENVIRONMENT) ? membershipPayload.referenceId() : null
-            );
+                    membershipPayload.organizationId(),
+                    membershipReferenceType.equals(MembershipReferenceType.ENVIRONMENT)
+                            ? membershipPayload.referenceId()
+                            : null);
 
             final UserEntity userEntity = userService.findBySource(
-                executionContext.getOrganizationId(),
-                COCKPIT_SOURCE,
-                membershipPayload.userId(),
-                false
-            );
+                    executionContext.getOrganizationId(), COCKPIT_SOURCE, membershipPayload.userId(), false);
 
             membershipService.deleteReferenceMember(
-                executionContext,
-                membershipReferenceType,
-                membershipPayload.referenceId(),
-                MembershipMemberType.USER,
-                userEntity.getId()
-            );
+                    executionContext,
+                    membershipReferenceType,
+                    membershipPayload.referenceId(),
+                    MembershipMemberType.USER,
+                    userEntity.getId());
 
             log.info(
-                "Delete reference member with organization [{}] referenceType [{}] referenceId [{}] and memberId [{}]",
-                membershipPayload.organizationId(),
-                membershipPayload.referenceType(),
-                membershipPayload.referenceId(),
-                membershipPayload.userId()
-            );
+                    "Delete reference member with organization [{}] referenceType [{}] referenceId [{}] and memberId [{}]",
+                    membershipPayload.organizationId(),
+                    membershipPayload.referenceType(),
+                    membershipPayload.referenceId(),
+                    membershipPayload.userId());
             return Single.just(new DeleteMembershipReply(command.getId()));
         } catch (Exception e) {
             String errorDetails =
-                "Error occurred when trying to delete member on %s [%s] for cockpit user [%s] and organization [%s].".formatted(
-                    membershipPayload.referenceType(),
-                    membershipPayload.referenceId(),
-                    membershipPayload.userId(),
-                    membershipPayload.organizationId()
-                );
+                    "Error occurred when trying to delete member on %s [%s] for cockpit user [%s] and organization [%s]."
+                            .formatted(
+                                    membershipPayload.referenceType(),
+                                    membershipPayload.referenceId(),
+                                    membershipPayload.userId(),
+                                    membershipPayload.organizationId());
             log.error(errorDetails, e);
             return Single.just(new DeleteMembershipReply(command.getId(), errorDetails));
         }

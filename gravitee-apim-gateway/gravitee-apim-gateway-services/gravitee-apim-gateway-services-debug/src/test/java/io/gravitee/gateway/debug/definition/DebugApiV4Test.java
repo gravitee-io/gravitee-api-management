@@ -36,9 +36,9 @@ class DebugApiV4Test {
         final DebugApiV4 result = new DebugApiV4(EVENT_ID, anApiDefinition());
 
         assertThat(((HttpListener) result.getDefinition().getListeners().getFirst()).getPaths())
-            .hasSize(2)
-            .anyMatch(path -> path.getPath().equals("/" + EVENT_ID + "-path1"))
-            .anyMatch(path -> path.getPath().equals("/" + EVENT_ID + "-path2"));
+                .hasSize(2)
+                .anyMatch(path -> path.getPath().equals("/" + EVENT_ID + "-path1"))
+                .anyMatch(path -> path.getPath().equals("/" + EVENT_ID + "-path2"));
     }
 
     @Test
@@ -72,10 +72,12 @@ class DebugApiV4Test {
 
     private static io.gravitee.definition.model.debug.DebugApiV4 anApiDefinition() {
         final Api api = Api.builder()
-            .id("api-id")
-            .name("api")
-            .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/path1"), new Path("/path2"))).build()))
-            .build();
+                .id("api-id")
+                .name("api")
+                .listeners(List.of(HttpListener.builder()
+                        .paths(List.of(new Path("/path1"), new Path("/path2")))
+                        .build()))
+                .build();
 
         return new io.gravitee.definition.model.debug.DebugApiV4(api, new HttpRequest("/path", "GET"));
     }

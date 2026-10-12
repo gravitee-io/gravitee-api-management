@@ -62,7 +62,8 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
 
         var corsConfiguration = cut.getCorsConfiguration(request);
         assertThat(cut.getCorsConfiguration(request)).isSameAs(corsConfiguration);
-        assertThat(cut.getCorsConfiguration(buildRequest("mapi.gravitee.dev", "other-referer", null))).isNotSameAs(corsConfiguration);
+        assertThat(cut.getCorsConfiguration(buildRequest("mapi.gravitee.dev", "other-referer", null)))
+                .isNotSameAs(corsConfiguration);
     }
 
     @Test
@@ -71,7 +72,8 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
 
         var corsConfiguration = cut.getCorsConfiguration(request);
         assertThat(cut.getCorsConfiguration(request)).isSameAs(corsConfiguration);
-        assertThat(cut.getCorsConfiguration(buildRequest("mapi.gravitee.dev", null, "other-origin"))).isNotSameAs(corsConfiguration);
+        assertThat(cut.getCorsConfiguration(buildRequest("mapi.gravitee.dev", null, "other-origin")))
+                .isNotSameAs(corsConfiguration);
     }
 
     @Test
@@ -80,7 +82,8 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
 
         var corsConfiguration = cut.getCorsConfiguration(request);
         assertThat(cut.getCorsConfiguration(request)).isSameAs(corsConfiguration);
-        assertThat(cut.getCorsConfiguration(buildRequest("other.gravitee.dev", null, null))).isNotSameAs(corsConfiguration);
+        assertThat(cut.getCorsConfiguration(buildRequest("other.gravitee.dev", null, null)))
+                .isNotSameAs(corsConfiguration);
     }
 
     @Test
@@ -94,22 +97,23 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
 
         var corsConfiguration = cut.getCorsConfiguration(request);
         assertThat(cut.getCorsConfiguration(request)).isSameAs(corsConfiguration);
-        assertThat(cut.getCorsConfiguration(buildRequest("other.gravitee.dev", null, null))).isNotSameAs(corsConfiguration);
+        assertThat(cut.getCorsConfiguration(buildRequest("other.gravitee.dev", null, null)))
+                .isNotSameAs(corsConfiguration);
 
         Awaitility.waitAtMost(2200, TimeUnit.MILLISECONDS)
-            .pollInterval(50, TimeUnit.MILLISECONDS)
-            .untilAsserted(() -> {
-                // Eviction only occurs on next access after TTL, so we need to call getCorsConfiguration again to trigger eviction of the expired entry.
-                cut.getCorsConfiguration(request);
-                verify(eventManager, atLeastOnce()).unsubscribeForEvents(
-                    any(GraviteeCorsConfiguration.ParameterKeyEventListener.class),
-                    eq(Key.class)
-                );
-                verify(eventManager, atLeastOnce()).unsubscribeForEvents(
-                    any(GraviteeCorsConfiguration.AccessPointEventListener.class),
-                    eq(AccessPointEvent.class)
-                );
-            });
+                .pollInterval(50, TimeUnit.MILLISECONDS)
+                .untilAsserted(() -> {
+                    // Eviction only occurs on next access after TTL, so we need to call getCorsConfiguration again to
+                    // trigger eviction of the expired entry.
+                    cut.getCorsConfiguration(request);
+                    verify(eventManager, atLeastOnce())
+                            .unsubscribeForEvents(
+                                    any(GraviteeCorsConfiguration.ParameterKeyEventListener.class), eq(Key.class));
+                    verify(eventManager, atLeastOnce())
+                            .unsubscribeForEvents(
+                                    any(GraviteeCorsConfiguration.AccessPointEventListener.class),
+                                    eq(AccessPointEvent.class));
+                });
     }
 
     MockHttpServletRequest buildRequest(String serverName, String referer, String origin) {
@@ -124,12 +128,11 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
 
     private @NonNull AbstractGraviteeUrlBasedCorsConfigurationSource buildCut() {
         return new AbstractGraviteeUrlBasedCorsConfigurationSource(
-            fakeEnvironment,
-            mock(ParameterService.class),
-            mock(InstallationAccessQueryService.class),
-            eventManager,
-            ParameterReferenceType.ENVIRONMENT
-        ) {
+                fakeEnvironment,
+                mock(ParameterService.class),
+                mock(InstallationAccessQueryService.class),
+                eventManager,
+                ParameterReferenceType.ENVIRONMENT) {
             @Override
             protected String getReferenceId() {
                 return "env-id";

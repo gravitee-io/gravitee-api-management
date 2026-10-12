@@ -85,7 +85,7 @@ class EntrypointAttributionIntegrationTest {
     private static final String API_KEY_HEADER = "X-Gravitee-Api-Key";
     private static final String MCP_ACCEPT = "application/json, text/event-stream";
     private static final String MCP_INITIALIZE =
-        "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},\"clientInfo\":{\"name\":\"attribution-test\",\"version\":\"1.0\"}}}";
+            "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},\"clientInfo\":{\"name\":\"attribution-test\",\"version\":\"1.0\"}}}";
 
     abstract static class AttributionTest extends AbstractGatewayTest {
 
@@ -115,18 +115,20 @@ class EntrypointAttributionIntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.put(
-                "api-key",
-                PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-            );
+                    "api-key",
+                    PolicyBuilder.build(
+                            "api-key",
+                            ApiKeyPolicy.class,
+                            ApiKeyPolicyConfiguration.class,
+                            ApiKeyPolicyInitializer.class));
         }
 
         /** The v4 metrics document reported for the request, identified by its URI and status. */
         Metrics reportedFor(String uri, int status) {
-            return reported
-                .filter(metrics -> uri.equals(metrics.getUri()) && metrics.getStatus() == status)
-                .firstOrError()
-                .timeout(10, SECONDS)
-                .blockingGet();
+            return reported.filter(metrics -> uri.equals(metrics.getUri()) && metrics.getStatus() == status)
+                    .firstOrError()
+                    .timeout(10, SECONDS)
+                    .blockingGet();
         }
 
         ApiKey givenAValidApiKey(String apiId) {
@@ -137,25 +139,24 @@ class EntrypointAttributionIntegrationTest {
             apiKey.setPlan(PLAN_APIKEY_ID);
             apiKey.setKey("attribution-api-key");
             when(getBean(ApiKeyService.class).getByApiAndKey(any(), any())).thenReturn(Optional.of(apiKey));
-            when(
-                getBean(SubscriptionService.class).getByApiAndSecurityToken(
-                    eq(apiId),
-                    argThat(token -> token.getTokenType().equals(API_KEY.name()) && token.getTokenValue().equals(apiKey.getKey())),
-                    eq(PLAN_APIKEY_ID)
-                )
-            ).thenReturn(Optional.of(createSubscription(apiId, PLAN_APIKEY_ID, false)));
+            when(getBean(SubscriptionService.class)
+                            .getByApiAndSecurityToken(
+                                    eq(apiId),
+                                    argThat(token -> token.getTokenType().equals(API_KEY.name())
+                                            && token.getTokenValue().equals(apiKey.getKey())),
+                                    eq(PLAN_APIKEY_ID)))
+                    .thenReturn(Optional.of(createSubscription(apiId, PLAN_APIKEY_ID, false)));
             return apiKey;
         }
 
         static int send(HttpClient client, HttpMethod method, String path, Map<String, String> headers, String body) {
-            HttpClientResponse response = client
-                .rxRequest(method, path)
-                .flatMap(request -> {
-                    headers.forEach(request::putHeader);
-                    return body == null ? request.rxSend() : request.rxSend(body);
-                })
-                .timeout(10, SECONDS)
-                .blockingGet();
+            HttpClientResponse response = client.rxRequest(method, path)
+                    .flatMap(request -> {
+                        headers.forEach(request::putHeader);
+                        return body == null ? request.rxSend() : request.rxSend(body);
+                    })
+                    .timeout(10, SECONDS)
+                    .blockingGet();
             response.rxBody().timeout(10, SECONDS).blockingGet();
             return response.statusCode();
         }
@@ -172,13 +173,15 @@ class EntrypointAttributionIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
             entrypoints.putIfAbsent("mcp", EntrypointBuilder.build("mcp", MCPEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         @Test
@@ -200,12 +203,11 @@ class EntrypointAttributionIntegrationTest {
         @Test
         void should_attribute_a_cors_preflight_to_the_entrypoint_that_would_serve_the_request(HttpClient client) {
             int status = send(
-                client,
-                HttpMethod.OPTIONS,
-                PROXY_URI,
-                Map.of("Origin", "https://mydomain.com", "Access-Control-Request-Method", "GET"),
-                null
-            );
+                    client,
+                    HttpMethod.OPTIONS,
+                    PROXY_URI,
+                    Map.of("Origin", "https://mydomain.com", "Access-Control-Request-Method", "GET"),
+                    null);
 
             assertThat(status).isEqualTo(200);
             assertThat(reportedFor(PROXY_URI, 200).getEntrypointId()).isEqualTo("http-proxy");
@@ -227,12 +229,11 @@ class EntrypointAttributionIntegrationTest {
             ApiKey apiKey = givenAValidApiKey(API_ID);
 
             int status = send(
-                client,
-                HttpMethod.POST,
-                MCP_URI,
-                Map.of("Accept", MCP_ACCEPT, API_KEY_HEADER, apiKey.getKey()),
-                MCP_INITIALIZE
-            );
+                    client,
+                    HttpMethod.POST,
+                    MCP_URI,
+                    Map.of("Accept", MCP_ACCEPT, API_KEY_HEADER, apiKey.getKey()),
+                    MCP_INITIALIZE);
 
             assertThat(status).isNotIn(401, 404);
             assertThat(reportedFor(MCP_URI, status).getEntrypointId()).isEqualTo("mcp");
@@ -253,10 +254,13 @@ class EntrypointAttributionIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
-            entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-post", EntrypointBuilder.build("http-post", HttpPostEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
             entrypoints.putIfAbsent("sse", EntrypointBuilder.build("sse", SseEntrypointConnectorFactory.class));
-            entrypoints.putIfAbsent("websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
         }
 
         @Override

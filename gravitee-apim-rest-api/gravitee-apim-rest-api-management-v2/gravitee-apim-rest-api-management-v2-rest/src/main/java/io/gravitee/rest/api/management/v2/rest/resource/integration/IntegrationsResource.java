@@ -63,53 +63,55 @@ public class IntegrationsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }))
-    public Response createIntegration(@PathParam("envId") String environmentId, @Valid @NotNull final CreateIntegration integration) {
+    @Permissions(
+            @Permission(
+                    value = RolePermission.ENVIRONMENT_INTEGRATION,
+                    acls = {RolePermissionAction.CREATE}))
+    public Response createIntegration(
+            @PathParam("envId") String environmentId, @Valid @NotNull final CreateIntegration integration) {
         var newIntegrationEntity = IntegrationMapper.INSTANCE.map(integration, environmentId);
 
         var auditInfo = getAuditInfo();
 
         var createdIntegration = createIntegrationUsecase
-            .execute(new CreateIntegrationUseCase.Input(newIntegrationEntity, auditInfo))
-            .createdIntegration();
+                .execute(new CreateIntegrationUseCase.Input(newIntegrationEntity, auditInfo))
+                .createdIntegration();
 
         return Response.created(this.getLocationHeader(createdIntegration.id()))
-            .entity(IntegrationMapper.INSTANCE.map(createdIntegration))
-            .build();
+                .entity(IntegrationMapper.INSTANCE.map(createdIntegration))
+                .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_INTEGRATION,
+                acls = {RolePermissionAction.READ})
+    })
     public IntegrationsResponse listIntegrations(
-        @PathParam("envId") String environmentId,
-        @BeanParam @Valid PaginationParam paginationParam
-    ) {
+            @PathParam("envId") String environmentId, @BeanParam @Valid PaginationParam paginationParam) {
         var integrations = getIntegrationsUsecase
-            .execute(
-                new GetIntegrationsUseCase.Input(
-                    GraviteeContext.getExecutionContext(),
-                    getAuthenticatedUser(),
-                    listGroupsOfUser(),
-                    isAdmin(),
-                    new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
-                )
-            )
-            .integrations();
+                .execute(new GetIntegrationsUseCase.Input(
+                        GraviteeContext.getExecutionContext(),
+                        getAuthenticatedUser(),
+                        listGroupsOfUser(),
+                        isAdmin(),
+                        new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())))
+                .integrations();
         var totalElements = integrations.getTotalElements();
         return new IntegrationsResponse()
-            .data(integrations.getContent().stream().map(IntegrationMapper.INSTANCE::map).toList())
-            .pagination(
-                PaginationInfo.computePaginationInfo(totalElements, Math.toIntExact(integrations.getPageElements()), paginationParam)
-            )
-            .links(computePaginationLinks(totalElements, paginationParam));
+                .data(integrations.getContent().stream()
+                        .map(IntegrationMapper.INSTANCE::map)
+                        .toList())
+                .pagination(PaginationInfo.computePaginationInfo(
+                        totalElements, Math.toIntExact(integrations.getPageElements()), paginationParam))
+                .links(computePaginationLinks(totalElements, paginationParam));
     }
 
     @Path("{integrationId}")
     public IntegrationResource getIntegrationResource(
-        @PathParam("envId") String environmentId,
-        @PathParam("integrationId") String integrationId
-    ) {
+            @PathParam("envId") String environmentId, @PathParam("integrationId") String integrationId) {
         // check if integration exists
         String orgId = GraviteeContext.getCurrentOrganization();
         getIntegrationUsecase.execute(new GetIntegrationUseCase.Input(integrationId, orgId, environmentId));

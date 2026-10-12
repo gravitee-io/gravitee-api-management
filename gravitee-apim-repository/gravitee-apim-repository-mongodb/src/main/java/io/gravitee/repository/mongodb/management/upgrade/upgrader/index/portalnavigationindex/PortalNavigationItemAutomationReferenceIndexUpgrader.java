@@ -29,11 +29,11 @@ public class PortalNavigationItemAutomationReferenceIndexUpgrader extends IndexU
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("portal_navigation_items")
-            .name("e1art1ari1")
-            .key("environmentId", ascending())
-            .key("automationMetadata.referenceType", ascending())
-            .key("automationMetadata.referenceId", ascending())
-            .build();
+                .collection("portal_navigation_items")
+                .name("e1art1ari1")
+                .key("environmentId", ascending())
+                .key("automationMetadata.referenceType", ascending())
+                .key("automationMetadata.referenceId", ascending())
+                .build();
     }
 }

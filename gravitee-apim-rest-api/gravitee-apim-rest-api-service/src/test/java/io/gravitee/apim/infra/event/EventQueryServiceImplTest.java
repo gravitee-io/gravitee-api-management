@@ -71,14 +71,13 @@ public class EventQueryServiceImplTest {
             when(eventRepository.search(any(), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
 
             var query = new EventQueryService.SearchQuery(
-                "environment-id",
-                Optional.of("id"),
-                Optional.of("api-id"),
-                Set.of(EventType.PUBLISH_API),
-                Map.of(Event.EventProperties.USER, "user-id"),
-                Optional.of(2L),
-                Optional.of(100L)
-            );
+                    "environment-id",
+                    Optional.of("id"),
+                    Optional.of("api-id"),
+                    Set.of(EventType.PUBLISH_API),
+                    Map.of(Event.EventProperties.USER, "user-id"),
+                    Optional.of(2L),
+                    Optional.of(100L));
             var pageable = new PageableImpl(0, 50);
 
             // When
@@ -90,14 +89,13 @@ public class EventQueryServiceImplTest {
             verify(eventRepository).search(queryCaptor.capture(), pageableCaptor.capture());
             assertThat(queryCaptor.getValue()).satisfies(criteria -> {
                 assertThat(criteria.getEnvironments()).isEqualTo(Set.of("environment-id"));
-                assertThat(criteria.getTypes()).isEqualTo(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API));
-                assertThat(criteria.getProperties()).containsExactlyInAnyOrderEntriesOf(
-                    Map.ofEntries(
-                        Map.entry(Event.EventProperties.ID.getLabel(), "id"),
-                        Map.entry(Event.EventProperties.API_ID.getLabel(), "api-id"),
-                        Map.entry(Event.EventProperties.USER.getLabel(), "user-id")
-                    )
-                );
+                assertThat(criteria.getTypes())
+                        .isEqualTo(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API));
+                assertThat(criteria.getProperties())
+                        .containsExactlyInAnyOrderEntriesOf(Map.ofEntries(
+                                Map.entry(Event.EventProperties.ID.getLabel(), "id"),
+                                Map.entry(Event.EventProperties.API_ID.getLabel(), "api-id"),
+                                Map.entry(Event.EventProperties.USER.getLabel(), "user-id")));
                 assertThat(criteria.getFrom()).isEqualTo(2L);
                 assertThat(criteria.getTo()).isEqualTo(100L);
             });
@@ -114,19 +112,20 @@ public class EventQueryServiceImplTest {
             // Given
             when(eventRepository.search(any(), any())).thenAnswer(invocation -> {
                 var criteria = invocation.getArgument(0, EventCriteria.class);
-                var list = List.of(anEvent().environments(new HashSet<>(criteria.getEnvironments())).build());
+                var list = List.of(anEvent()
+                        .environments(new HashSet<>(criteria.getEnvironments()))
+                        .build());
                 return new Page<>(list, 0, list.size(), list.size());
             });
 
             var query = new EventQueryService.SearchQuery(
-                "environment-id",
-                Optional.empty(),
-                Optional.empty(),
-                Set.of(EventType.PUBLISH_API),
-                Map.of(),
-                Optional.empty(),
-                Optional.empty()
-            );
+                    "environment-id",
+                    Optional.empty(),
+                    Optional.empty(),
+                    Set.of(EventType.PUBLISH_API),
+                    Map.of(),
+                    Optional.empty(),
+                    Optional.empty());
             var pageable = new PageableImpl(0, 50);
 
             // When
@@ -135,51 +134,41 @@ public class EventQueryServiceImplTest {
             // Then
             assertSoftly(softly -> {
                 softly.assertThat(result.total()).isOne();
-                softly
-                    .assertThat(result.events())
-                    .containsExactly(
-                        Event.builder()
-                            .id("event-id")
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .environments(Set.of("environment-id"))
-                            .type(EventType.PUBLISH_API)
-                            .payload("event-payload")
-                            .parentId("parent-id")
-                            .properties(
-                                new EnumMap<>(
-                                    Map.ofEntries(
+                softly.assertThat(result.events())
+                        .containsExactly(Event.builder()
+                                .id("event-id")
+                                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                                .environments(Set.of("environment-id"))
+                                .type(EventType.PUBLISH_API)
+                                .payload("event-payload")
+                                .parentId("parent-id")
+                                .properties(new EnumMap<>(Map.ofEntries(
                                         Map.entry(Event.EventProperties.API_ID, "api-id"),
-                                        Map.entry(Event.EventProperties.USER, "user-id")
-                                    )
-                                )
-                            )
-                            .build()
-                    );
+                                        Map.entry(Event.EventProperties.USER, "user-id"))))
+                                .build());
             });
         }
 
         private io.gravitee.repository.management.model.Event.EventBuilder anEvent() {
             return io.gravitee.repository.management.model.Event.builder()
-                .id("event-id")
-                .createdAt(Date.from(INSTANT_NOW))
-                .updatedAt(Date.from(INSTANT_NOW))
-                .environments(Set.of("environment-id"))
-                .type(io.gravitee.repository.management.model.EventType.PUBLISH_API)
-                .payload("event-payload")
-                .parentId("parent-id")
-                .properties(
-                    Map.ofEntries(
-                        Map.entry(Event.EventProperties.API_ID.getLabel(), "api-id"),
-                        Map.entry(Event.EventProperties.USER.getLabel(), "user-id")
-                    )
-                );
+                    .id("event-id")
+                    .createdAt(Date.from(INSTANT_NOW))
+                    .updatedAt(Date.from(INSTANT_NOW))
+                    .environments(Set.of("environment-id"))
+                    .type(io.gravitee.repository.management.model.EventType.PUBLISH_API)
+                    .payload("event-payload")
+                    .parentId("parent-id")
+                    .properties(Map.ofEntries(
+                            Map.entry(Event.EventProperties.API_ID.getLabel(), "api-id"),
+                            Map.entry(Event.EventProperties.USER.getLabel(), "user-id")));
         }
 
         @Test
         @SneakyThrows
         void should_return_event_by_id() {
-            when(eventRepository.findById(any())).thenAnswer(invocation -> Optional.of(anEvent().build()));
+            when(eventRepository.findById(any()))
+                    .thenAnswer(invocation -> Optional.of(anEvent().build()));
 
             var result = service.findByIdForEnvironmentAndApi("event-id", "environment-id", "api-id");
 

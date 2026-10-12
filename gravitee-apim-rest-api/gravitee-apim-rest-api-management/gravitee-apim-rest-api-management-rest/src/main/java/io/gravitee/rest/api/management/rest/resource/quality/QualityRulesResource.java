@@ -61,49 +61,47 @@ public class QualityRulesResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     @Operation(summary = "List quality rules")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of quality rules",
-        content = @Content(mediaType = APPLICATION_JSON, array = @ArraySchema(schema = @Schema(implementation = QualityRuleEntity.class)))
-    )
+            responseCode = "200",
+            description = "List of quality rules",
+            content =
+                    @Content(
+                            mediaType = APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = QualityRuleEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<QualityRuleEntity> getQualityRules() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            !hasPermission(
-                executionContext,
-                RolePermission.ENVIRONMENT_QUALITY_RULE,
-                executionContext.getEnvironmentId(),
-                RolePermissionAction.READ
-            ) &&
-            !canReadAPIConfiguration()
-        ) {
+        if (!hasPermission(
+                        executionContext,
+                        RolePermission.ENVIRONMENT_QUALITY_RULE,
+                        executionContext.getEnvironmentId(),
+                        RolePermissionAction.READ)
+                && !canReadAPIConfiguration()) {
             throw new ForbiddenAccessException();
         }
-        return qualityRuleService.findByReference(QualityRuleReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
+        return qualityRuleService.findByReference(
+                QualityRuleReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create a quality rule",
-        description = "User must have the MANAGEMENT_QUALITY_RULE[CREATE] permission to use this service"
-    )
+            summary = "Create a quality rule",
+            description = "User must have the MANAGEMENT_QUALITY_RULE[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Quality rule successfully created",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = QualityRuleEntity.class))
-    )
+            responseCode = "200",
+            description = "Quality rule successfully created",
+            content =
+                    @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = QualityRuleEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.CREATE)})
     public QualityRuleEntity createQualityRule(@Valid @NotNull final NewQualityRuleEntity newQualityRuleEntity) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         return qualityRuleService.create(
-            executionContext,
-            newQualityRuleEntity,
-            QualityRuleReferenceType.ENVIRONMENT,
-            executionContext.getEnvironmentId()
-        );
+                executionContext,
+                newQualityRuleEntity,
+                QualityRuleReferenceType.ENVIRONMENT,
+                executionContext.getEnvironmentId());
     }
 
     @Path("{id}")

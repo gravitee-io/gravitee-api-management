@@ -15,4 +15,5 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.domain.model;
 
-public record ConsumerGroup(String groupId, String state, int membersCount, long totalLag, int numTopics, KafkaNode coordinator) {}
+public record ConsumerGroup(
+        String groupId, String state, int membersCount, long totalLag, int numTopics, KafkaNode coordinator) {}

@@ -47,8 +47,12 @@ import org.junit.jupiter.api.Test;
 class PortalThemesResourceTest extends AbstractResourceTest {
 
     private static final String THEME_HRID = "default-theme";
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
-    private static final String THEME_ID = HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(THEME_HRID).id();
+    private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .build();
+    private static final String THEME_ID =
+            HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(THEME_HRID).id();
 
     @Inject
     private CreateOrUpdatePortalThemeUseCase createOrUpdatePortalThemeUseCase;
@@ -71,15 +75,14 @@ class PortalThemesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_populated_state_when_validation_passes() {
-            when(validatePortalThemeUseCase.execute(any())).thenReturn(new CreateOrUpdatePortalThemeUseCase.Output(aTheme(), List.of()));
+            when(validatePortalThemeUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalThemeUseCase.Output(aTheme(), List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("theme.json")))
-            ) {
+                    .put(Entity.json(readJSON("theme.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verifyNoInteractions(createOrUpdatePortalThemeUseCase);
                 verify(validatePortalThemeUseCase).execute(any());
@@ -93,24 +96,23 @@ class PortalThemesResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getId()).isEqualTo(THEME_ID);
                     soft.assertThat(state.getErrors()).isNull();
                     soft.assertThat(state.getDefinition().getCustomCss()).isEqualTo(".portal { padding: 0; }");
-                    soft.assertThat(state.getDefinition().getColor().getPrimary()).isEqualTo("#123456");
+                    soft.assertThat(state.getDefinition().getColor().getPrimary())
+                            .isEqualTo("#123456");
                 });
             }
         }
 
         @Test
         void should_return_state_with_errors_when_validation_fails() {
-            when(validatePortalThemeUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalThemeUseCase.Output(aTheme(), List.of(Validator.Error.severe("spec.name must not be blank")))
-            );
+            when(validatePortalThemeUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalThemeUseCase.Output(
+                            aTheme(), List.of(Validator.Error.severe("spec.name must not be blank"))));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("theme.json")))
-            ) {
+                    .put(Entity.json(readJSON("theme.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verifyNoInteractions(createOrUpdatePortalThemeUseCase);
 
@@ -123,13 +125,11 @@ class PortalThemesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_hrid_is_missing() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("theme-missing-hrid.json")))
-            ) {
+                    .put(Entity.json(readJSON("theme-missing-hrid.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(validatePortalThemeUseCase);
                 verifyNoInteractions(createOrUpdatePortalThemeUseCase);
@@ -142,11 +142,13 @@ class PortalThemesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_or_update_theme() {
-            when(createOrUpdatePortalThemeUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalThemeUseCase.Output(aTheme(), List.of())
-            );
+            when(createOrUpdatePortalThemeUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalThemeUseCase.Output(aTheme(), List.of()));
 
-            try (var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("theme.json")))) {
+            try (var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("theme.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdatePortalThemeUseCase).execute(any());
 
@@ -161,18 +163,18 @@ class PortalThemesResourceTest extends AbstractResourceTest {
 
     private static Theme aTheme() {
         return Theme.builder()
-            .id(THEME_ID)
-            .name("Default Theme")
-            .type(ThemeType.PORTAL_NEXT)
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .referenceId(ENVIRONMENT)
-            .enabled(true)
-            .definitionPortalNext(
-                ThemeDefinition.builder()
-                    .customCss(".portal { padding: 0; }")
-                    .color(ThemeDefinition.Color.builder().primary("#123456").build())
-                    .build()
-            )
-            .build();
+                .id(THEME_ID)
+                .name("Default Theme")
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .referenceId(ENVIRONMENT)
+                .enabled(true)
+                .definitionPortalNext(ThemeDefinition.builder()
+                        .customCss(".portal { padding: 0; }")
+                        .color(ThemeDefinition.Color.builder()
+                                .primary("#123456")
+                                .build())
+                        .build())
+                .build();
     }
 }

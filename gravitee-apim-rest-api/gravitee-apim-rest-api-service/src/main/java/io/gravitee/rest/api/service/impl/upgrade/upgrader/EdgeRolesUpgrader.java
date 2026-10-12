@@ -44,13 +44,11 @@ public class EdgeRolesUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    initializeEdgeRoles(executionContext);
-                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                initializeEdgeRoles(executionContext);
+                roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+            });
             return true;
         });
     }
@@ -64,8 +62,9 @@ public class EdgeRolesUpgrader implements Upgrader {
 
     private boolean shouldCreateEdgeManagerRole(final ExecutionContext executionContext) {
         return roleService
-            .findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_EDGE_MANAGER.getName(), executionContext.getOrganizationId())
-            .isEmpty();
+                .findByScopeAndName(
+                        ENVIRONMENT, ROLE_ENVIRONMENT_EDGE_MANAGER.getName(), executionContext.getOrganizationId())
+                .isEmpty();
     }
 
     @Override

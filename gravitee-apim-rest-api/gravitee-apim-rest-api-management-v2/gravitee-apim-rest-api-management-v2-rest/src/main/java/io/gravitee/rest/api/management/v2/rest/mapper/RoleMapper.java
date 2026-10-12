@@ -27,8 +27,10 @@ public interface RoleMapper {
     RoleMapper INSTANCE = Mappers.getMapper(RoleMapper.class);
 
     Role map(RoleEntity roleEntity);
+
     RoleEntity map(Role role);
 
     ApiMemberRole toApiMemberRole(Role role);
+
     List<ApiMemberRole> toApiMemberRoles(List<Role> roles);
 }

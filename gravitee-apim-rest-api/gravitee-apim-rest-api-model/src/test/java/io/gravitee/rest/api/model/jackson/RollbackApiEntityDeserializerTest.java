@@ -104,8 +104,9 @@ class RollbackApiEntityDeserializerTest {
             """;
 
         assertThatThrownBy(() -> mapper.readValue(json, RollbackApiEntity.class))
-            .isInstanceOf(JsonMappingException.class)
-            .hasMessageContaining("Detected a v4 API definition. Please use the migration tool instead of rollback.");
+                .isInstanceOf(JsonMappingException.class)
+                .hasMessageContaining(
+                        "Detected a v4 API definition. Please use the migration tool instead of rollback.");
     }
 
     @Test

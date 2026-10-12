@@ -55,7 +55,8 @@ class PortalListingsResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/portals/" + PORTAL_HRID + "/listings";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/portals/" + PORTAL_HRID
+                + "/listings";
     }
 
     @Nested
@@ -63,17 +64,15 @@ class PortalListingsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_populated_state_when_validation_passes() {
-            when(validatePortalListingUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalListingUseCase.Output(PortalListingId.of("00000000-0000-0000-0000-0000000000b1"), List.of())
-            );
+            when(validatePortalListingUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalListingUseCase.Output(
+                            PortalListingId.of("00000000-0000-0000-0000-0000000000b1"), List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-listing.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-listing.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(validatePortalListingUseCase).execute(any(CreateOrUpdatePortalListingUseCase.Input.class));
                 verifyNoInteractions(createOrUpdatePortalListingUseCase);
@@ -94,39 +93,35 @@ class PortalListingsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_with_errors_when_validation_fails() {
-            when(validatePortalListingUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalListingUseCase.Output(
-                    PortalListingId.of("00000000-0000-0000-0000-0000000000b1"),
-                    List.of(Validator.Error.severe("Portal [%s] does not exist", "unknown"))
-                )
-            );
+            when(validatePortalListingUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalListingUseCase.Output(
+                            PortalListingId.of("00000000-0000-0000-0000-0000000000b1"),
+                            List.of(Validator.Error.severe("Portal [%s] does not exist", "unknown"))));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-listing.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-listing.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verifyNoInteractions(createOrUpdatePortalListingUseCase);
 
                 var state = response.readEntity(PortalListingState.class);
                 assertThat(state.getErrors()).isNotNull();
                 assertThat(state.getErrors().getSevere()).hasSize(1);
-                assertThat(state.getErrors().getSevere().get(0)).contains("Portal").contains("unknown");
+                assertThat(state.getErrors().getSevere().get(0))
+                        .contains("Portal")
+                        .contains("unknown");
             }
         }
 
         @Test
         void should_return_400_when_hrid_is_missing() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("invalid-portal-listing.json")))
-            ) {
+                    .put(Entity.json(readJSON("invalid-portal-listing.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(validatePortalListingUseCase);
                 verifyNoInteractions(createOrUpdatePortalListingUseCase);
@@ -139,16 +134,14 @@ class PortalListingsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_or_update_portal_listing() {
-            when(createOrUpdatePortalListingUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalListingUseCase.Output(PortalListingId.of("00000000-0000-0000-0000-0000000000b1"), List.of())
-            );
+            when(createOrUpdatePortalListingUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalListingUseCase.Output(
+                            PortalListingId.of("00000000-0000-0000-0000-0000000000b1"), List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-listing.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-listing.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdatePortalListingUseCase).execute(any(CreateOrUpdatePortalListingUseCase.Input.class));
 
@@ -166,16 +159,13 @@ class PortalListingsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_validation_severe_error_raised() {
-            when(createOrUpdatePortalListingUseCase.execute(any())).thenThrow(
-                new ValidationDomainException("apis[0].location must start with '/'")
-            );
+            when(createOrUpdatePortalListingUseCase.execute(any()))
+                    .thenThrow(new ValidationDomainException("apis[0].location must start with '/'"));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-listing.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-listing.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
         }

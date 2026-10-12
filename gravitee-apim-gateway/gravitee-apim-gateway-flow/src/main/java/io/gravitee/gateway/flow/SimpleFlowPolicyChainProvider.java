@@ -31,12 +31,12 @@ public class SimpleFlowPolicyChainProvider extends AbstractPolicyChainProvider {
     private final FlowProvider flowProvider;
 
     public SimpleFlowPolicyChainProvider(
-        final StreamType streamType,
-        final FlowResolver flowResolver,
-        final PolicyChainFactory policyChainFactory,
-        final FlowPolicyResolverFactory flowPolicyResolverFactory
-    ) {
-        this.flowProvider = new SimpleFlowProvider(streamType, flowResolver, policyChainFactory, flowPolicyResolverFactory);
+            final StreamType streamType,
+            final FlowResolver flowResolver,
+            final PolicyChainFactory policyChainFactory,
+            final FlowPolicyResolverFactory flowPolicyResolverFactory) {
+        this.flowProvider =
+                new SimpleFlowProvider(streamType, flowResolver, policyChainFactory, flowPolicyResolverFactory);
     }
 
     @Override

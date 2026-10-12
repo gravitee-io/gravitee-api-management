@@ -79,13 +79,11 @@ public class NewTicketEntity {
         if (this == o) return true;
         if (!(o instanceof NewTicketEntity)) return false;
         NewTicketEntity that = (NewTicketEntity) o;
-        return (
-            Objects.equals(subject, that.subject) &&
-            Objects.equals(content, that.content) &&
-            Objects.equals(application, that.application) &&
-            Objects.equals(api, that.api) &&
-            Objects.equals(copyToSender, that.copyToSender)
-        );
+        return (Objects.equals(subject, that.subject)
+                && Objects.equals(content, that.content)
+                && Objects.equals(application, that.application)
+                && Objects.equals(api, that.api)
+                && Objects.equals(copyToSender, that.copyToSender));
     }
 
     @Override
@@ -95,24 +93,21 @@ public class NewTicketEntity {
 
     @Override
     public String toString() {
-        return (
-            "NewSupportEntity{" +
-            "subject='" +
-            subject +
-            '\'' +
-            ", content='" +
-            content +
-            '\'' +
-            ", application='" +
-            application +
-            '\'' +
-            ", api='" +
-            api +
-            '\'' +
-            ", copyToSender='" +
-            copyToSender +
-            '\'' +
-            '}'
-        );
+        return ("NewSupportEntity{" + "subject='"
+                + subject
+                + '\''
+                + ", content='"
+                + content
+                + '\''
+                + ", application='"
+                + application
+                + '\''
+                + ", api='"
+                + api
+                + '\''
+                + ", copyToSender='"
+                + copyToSender
+                + '\''
+                + '}');
     }
 }

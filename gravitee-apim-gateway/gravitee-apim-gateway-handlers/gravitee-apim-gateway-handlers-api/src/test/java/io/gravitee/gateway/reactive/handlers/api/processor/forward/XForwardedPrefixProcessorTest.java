@@ -43,7 +43,8 @@ public class XForwardedPrefixProcessorTest extends AbstractProcessorTest {
     public void shouldAddXForwardedPrefixHeaderWhenNoInHeader() {
         xForwardedPrefixProcessor.execute(spyCtx).test().assertResult();
 
-        assertThat(spyRequestHeaders.getAll(HttpHeaderNames.X_FORWARDED_PREFIX).size()).isEqualTo(1);
+        assertThat(spyRequestHeaders.getAll(HttpHeaderNames.X_FORWARDED_PREFIX).size())
+                .isEqualTo(1);
         assertThat(spyRequestHeaders.get(HttpHeaderNames.X_FORWARDED_PREFIX)).isEqualTo(CONTEXT_PATH);
     }
 
@@ -52,7 +53,8 @@ public class XForwardedPrefixProcessorTest extends AbstractProcessorTest {
         spyRequestHeaders.add(HttpHeaderNames.X_FORWARDED_PREFIX, "randomPrefix");
         xForwardedPrefixProcessor.execute(spyCtx).test().assertResult();
 
-        assertThat(spyRequestHeaders.getAll(HttpHeaderNames.X_FORWARDED_PREFIX).size()).isEqualTo(1);
+        assertThat(spyRequestHeaders.getAll(HttpHeaderNames.X_FORWARDED_PREFIX).size())
+                .isEqualTo(1);
         assertThat(spyRequestHeaders.get(HttpHeaderNames.X_FORWARDED_PREFIX)).isEqualTo(CONTEXT_PATH);
     }
 }

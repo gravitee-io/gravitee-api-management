@@ -44,7 +44,7 @@ public class JoltMapper {
     }
 
     public Collection<DynamicProperty> map(String source) {
-        //Default value is equal to the input json value (in case empty jolt specs)
+        // Default value is equal to the input json value (in case empty jolt specs)
         String jsonProperties = source;
         ArrayList transformed;
         if (jsonProperties != null && jsonProperties.charAt(0) == '[') {
@@ -54,19 +54,18 @@ public class JoltMapper {
         }
         jsonProperties = JsonUtils.toJsonString(transformed);
 
-        //Now ensure current json properties is well formatted.
+        // Now ensure current json properties is well formatted.
         //    if (validateJson(jsonProperties)) {
 
         List<Object> items = JsonUtils.jsonToList(jsonProperties);
-        Object collect = items
-            .stream()
-            .map(item -> {
-                Map<Object, Object> mapItem = (Map<Object, Object>) item;
-                String key = String.valueOf(mapItem.get("key"));
-                String value = String.valueOf(mapItem.get("value"));
-                return new DynamicProperty(key, value);
-            })
-            .collect(Collectors.toList());
+        Object collect = items.stream()
+                .map(item -> {
+                    Map<Object, Object> mapItem = (Map<Object, Object>) item;
+                    String key = String.valueOf(mapItem.get("key"));
+                    String value = String.valueOf(mapItem.get("value"));
+                    return new DynamicProperty(key, value);
+                })
+                .collect(Collectors.toList());
 
         return (Collection<DynamicProperty>) collect;
     }

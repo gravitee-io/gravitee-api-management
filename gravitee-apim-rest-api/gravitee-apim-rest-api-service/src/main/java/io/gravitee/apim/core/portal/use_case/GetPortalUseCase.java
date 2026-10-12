@@ -44,9 +44,10 @@ public class GetPortalUseCase {
 
     public Output execute(Input input) {
         var portal = portalCrudService
-            .findByIdAndEnvironmentId(input.portalId(), input.auditInfo().environmentId())
-            .orElseThrow(() -> new PortalNotFoundException(input.portalId().toString()));
-        var activeThemeHrid = resolveActiveThemeHrid(portal.getActiveThemeId(), input.auditInfo().environmentId());
+                .findByIdAndEnvironmentId(input.portalId(), input.auditInfo().environmentId())
+                .orElseThrow(() -> new PortalNotFoundException(input.portalId().toString()));
+        var activeThemeHrid = resolveActiveThemeHrid(
+                portal.getActiveThemeId(), input.auditInfo().environmentId());
         return new Output(portal, portal.getNavigationStructure(), activeThemeHrid);
     }
 
@@ -55,9 +56,9 @@ public class GetPortalUseCase {
             return null;
         }
         return themeCrudService
-            .findByIdAndEnvironmentId(activeThemeId, environmentId)
-            .map(Theme::getAutomationMetadata)
-            .map(ThemeAutomationMetadata::hrid)
-            .orElse(null);
+                .findByIdAndEnvironmentId(activeThemeId, environmentId)
+                .map(Theme::getAutomationMetadata)
+                .map(ThemeAutomationMetadata::hrid)
+                .orElse(null);
     }
 }

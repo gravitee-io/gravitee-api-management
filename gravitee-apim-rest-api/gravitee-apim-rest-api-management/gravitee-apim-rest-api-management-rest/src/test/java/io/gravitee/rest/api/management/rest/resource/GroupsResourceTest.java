@@ -39,19 +39,28 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
     @Test
     public void test() {
-        when(groupService.search(eq(GraviteeContext.getExecutionContext()), any(), any())).thenReturn(
-            new Page<>(List.of(GroupEntity.builder().id("gr1").build(), GroupEntity.builder().id("gr2").build()), 1, 2, 12)
-        );
-        final Response response = envTarget().path("_paged").queryParam("size", 2).queryParam("page", 1).request().get();
+        when(groupService.search(eq(GraviteeContext.getExecutionContext()), any(), any()))
+                .thenReturn(new Page<>(
+                        List.of(
+                                GroupEntity.builder().id("gr1").build(),
+                                GroupEntity.builder().id("gr2").build()),
+                        1,
+                        2,
+                        12));
+        final Response response = envTarget()
+                .path("_paged")
+                .queryParam("size", 2)
+                .queryParam("page", 1)
+                .request()
+                .get();
         Map<String, Object> responseBody = response.readEntity(new GenericType<>() {});
         Map<String, Integer> page = (Map<String, Integer>) responseBody.get("page");
         assertAll(
-            () -> assertThat(((List<?>) responseBody.get("data")).size()).isEqualTo(2),
-            () -> assertThat(page.get("current")).isEqualTo(1),
-            () -> assertThat(page.get("size")).isEqualTo(2),
-            () -> assertThat(page.get("per_page")).isEqualTo(2),
-            () -> assertThat(page.get("total_pages")).isEqualTo(6),
-            () -> assertThat(page.get("total_elements")).isEqualTo(12)
-        );
+                () -> assertThat(((List<?>) responseBody.get("data")).size()).isEqualTo(2),
+                () -> assertThat(page.get("current")).isEqualTo(1),
+                () -> assertThat(page.get("size")).isEqualTo(2),
+                () -> assertThat(page.get("per_page")).isEqualTo(2),
+                () -> assertThat(page.get("total_pages")).isEqualTo(6),
+                () -> assertThat(page.get("total_elements")).isEqualTo(12));
     }
 }

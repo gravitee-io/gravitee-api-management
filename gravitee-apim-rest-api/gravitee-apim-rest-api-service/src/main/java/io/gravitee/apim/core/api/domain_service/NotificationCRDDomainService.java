@@ -33,7 +33,8 @@ public interface NotificationCRDDomainService {
      * @param notificationConfig notification config to save.
      * @see io.gravitee.rest.api.service.PortalNotificationConfigService
      */
-    void syncApiPortalNotifications(final String apiId, final String user, final PortalNotificationConfigEntity notificationConfig);
+    void syncApiPortalNotifications(
+            final String apiId, final String user, final PortalNotificationConfigEntity notificationConfig);
 
     /**
      * Get console notification for the given API and User

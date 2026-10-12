@@ -55,12 +55,12 @@ class AccessPointFetcherTest {
     @Test
     void should_fetch_access_points() throws TechnicalException {
         AccessPoint accessPoint = new AccessPoint();
-        when(accessPointRepository.findByCriteria(any(), any(), any())).thenReturn(Collections.singletonList(accessPoint));
-        cut
-            .fetchLatest(null, null, Set.of(), AccessPointStatus.CREATED)
-            .test()
-            .assertValueCount(1)
-            .assertValue(accessPoints -> accessPoints.contains(accessPoint));
+        when(accessPointRepository.findByCriteria(any(), any(), any()))
+                .thenReturn(Collections.singletonList(accessPoint));
+        cut.fetchLatest(null, null, Set.of(), AccessPointStatus.CREATED)
+                .test()
+                .assertValueCount(1)
+                .assertValue(accessPoints -> accessPoints.contains(accessPoint));
     }
 
     @Test
@@ -69,30 +69,26 @@ class AccessPointFetcherTest {
         Instant from = to.minus(1000, ChronoUnit.MILLIS);
         AccessPoint accessPoint = new AccessPoint();
 
-        when(
-            accessPointRepository.findByCriteria(
-                argThat(
-                    arg ->
-                        arg.getStatus().equals(AccessPointStatus.CREATED) &&
-                        arg.getFrom() < from.toEpochMilli() &&
-                        arg.getTo() > to.toEpochMilli() &&
-                        arg
-                            .getTargets()
-                            .equals(List.of(AccessPointTarget.GATEWAY, AccessPointTarget.TCP_GATEWAY, AccessPointTarget.KAFKA_GATEWAY)) &&
-                        arg.getReferenceType().equals(AccessPointReferenceType.ENVIRONMENT) &&
-                        arg.getReferenceIds().containsAll(List.of("env1", "env2")) &&
-                        arg.getReferenceIds().size() == 2
-                ),
-                any(),
-                any()
-            )
-        ).thenReturn(Collections.singletonList(accessPoint));
+        when(accessPointRepository.findByCriteria(
+                        argThat(arg -> arg.getStatus().equals(AccessPointStatus.CREATED)
+                                && arg.getFrom() < from.toEpochMilli()
+                                && arg.getTo() > to.toEpochMilli()
+                                && arg.getTargets()
+                                        .equals(List.of(
+                                                AccessPointTarget.GATEWAY,
+                                                AccessPointTarget.TCP_GATEWAY,
+                                                AccessPointTarget.KAFKA_GATEWAY))
+                                && arg.getReferenceType().equals(AccessPointReferenceType.ENVIRONMENT)
+                                && arg.getReferenceIds().containsAll(List.of("env1", "env2"))
+                                && arg.getReferenceIds().size() == 2),
+                        any(),
+                        any()))
+                .thenReturn(Collections.singletonList(accessPoint));
 
-        cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env1", "env2"), AccessPointStatus.CREATED)
-            .test()
-            .assertValueCount(1)
-            .assertValue(accessPoints -> accessPoints.contains(accessPoint));
+        cut.fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env1", "env2"), AccessPointStatus.CREATED)
+                .test()
+                .assertValueCount(1)
+                .assertValue(accessPoints -> accessPoints.contains(accessPoint));
     }
 
     @Test

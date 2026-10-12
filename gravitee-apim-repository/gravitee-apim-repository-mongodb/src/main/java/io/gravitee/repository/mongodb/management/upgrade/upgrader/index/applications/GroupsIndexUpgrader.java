@@ -28,9 +28,9 @@ public class GroupsIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("applications")
-            .name("g1")
-            .key("groups", ascending())
-            .build();
+                .collection("applications")
+                .name("g1")
+                .key("groups", ascending())
+                .build();
     }
 }

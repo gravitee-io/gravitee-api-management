@@ -83,13 +83,12 @@ public class PortalApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Search for API using the search engine")
     @ApiResponse(
-        responseCode = "200",
-        description = "List accessible APIs for current user",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApiListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List accessible APIs for current user",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ApiListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response searchPortalApis(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
@@ -115,16 +114,14 @@ public class PortalApisResource extends AbstractResource {
             filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
 
             return Response.ok()
-                .entity(
-                    apiService
-                        .search(executionContext, query, filters)
-                        .stream()
-                        .map(api -> convert(executionContext, api))
-                        .collect(toList())
-                )
-                .build();
+                    .entity(apiService.search(executionContext, query, filters).stream()
+                            .map(api -> convert(executionContext, api))
+                            .collect(toList()))
+                    .build();
         } catch (TechnicalException te) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(te)
+                    .build();
         }
     }
 
@@ -151,7 +148,8 @@ public class PortalApisResource extends AbstractResource {
         apiItem.setPrimaryOwner(api.getPrimaryOwner());
 
         if (api.getVisibility() != null) {
-            apiItem.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
+            apiItem.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(
+                    api.getVisibility().toString()));
         }
 
         if (api.getState() != null) {
@@ -170,7 +168,8 @@ public class PortalApisResource extends AbstractResource {
         apiItem.setTags(api.getTags());
 
         if (api.getLifecycleState() != null) {
-            apiItem.setLifecycleState(ApiLifecycleState.valueOf(api.getLifecycleState().toString()));
+            apiItem.setLifecycleState(
+                    ApiLifecycleState.valueOf(api.getLifecycleState().toString()));
         }
 
         return apiItem;

@@ -131,7 +131,8 @@ class FlowChainTest {
         buildPolicyChain("pc-flow1", flow1, RESPONSE, policy1);
         buildPolicyChain("pc-flow2", flow2, RESPONSE, policy2);
 
-        // Any time a RESPONSE phase is executed, the response actions set during the request phase are supposed to be executed.
+        // Any time a RESPONSE phase is executed, the response actions set during the request phase are supposed to be
+        // executed.
         buildPolicyChain("pc-flow1", flow1, REQUEST);
         buildPolicyChain("pc-flow2", flow2, REQUEST);
 
@@ -216,7 +217,8 @@ class FlowChainTest {
 
         // Both flows evaluated once during the request phase, then the response phase replays what has been executed.
         assertThat(conditionEvaluations).hasValue(2);
-        assertThat(executionOrder).containsExactly("policy1-onRequest", "policy1-actionActionOnResponse", "policy2-onResponse");
+        assertThat(executionOrder)
+                .containsExactly("policy1-onRequest", "policy1-actionActionOnResponse", "policy2-onResponse");
     }
 
     private static HttpPolicy asyncPolicy(final String id, final Completable completion) {
@@ -249,7 +251,8 @@ class FlowChainTest {
 
     @Test
     void should_interrupt_when_no_current_match_and_no_previous_match() {
-        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, true, true);
+        cut = new FlowChain(
+                FLOW_CHAIN_ID, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, true, true);
         ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, false);
 
         when(flowResolver.resolve(ctx)).thenReturn(Flowable.empty());
@@ -261,7 +264,8 @@ class FlowChainTest {
 
     @Test
     void should_interrupt_when_no_current_match_and_no_previous_value() {
-        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, true, true);
+        cut = new FlowChain(
+                FLOW_CHAIN_ID, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, true, true);
         ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, null);
 
         when(flowResolver.resolve(ctx)).thenReturn(Flowable.empty());
@@ -270,12 +274,14 @@ class FlowChainTest {
 
         obs.assertError(InterruptionFailureException.class);
 
-        assertThat((boolean) ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED)).isEqualTo(false);
+        assertThat((boolean) ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))
+                .isEqualTo(false);
     }
 
     @Test
     void should_not_interrupt_when_no_match_but_previous_match() {
-        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, true, true);
+        cut = new FlowChain(
+                FLOW_CHAIN_ID, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, true, true);
         ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, true);
 
         when(flowResolver.resolve(ctx)).thenReturn(Flowable.empty());
@@ -292,7 +298,8 @@ class FlowChainTest {
         final TestObserver<Void> obs = cut.execute(ctx, REQUEST).test();
 
         obs.assertResult();
-        assertThat((Boolean) ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED)).isNull();
+        assertThat((Boolean) ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))
+                .isNull();
     }
 
     @Test
@@ -304,21 +311,23 @@ class FlowChainTest {
 
         when(flowResolver.resolve(ctx)).thenReturn(Flowable.just(flow));
 
-        final TestObserver<Void> obs = cut.execute(ctx, REQUEST).andThen(cut.execute(ctx, ExecutionPhase.RESPONSE)).test();
+        final TestObserver<Void> obs = cut.execute(ctx, REQUEST)
+                .andThen(cut.execute(ctx, ExecutionPhase.RESPONSE))
+                .test();
 
         obs.assertResult();
 
-        assertThat(executionOrder).containsExactly(
-            "policy1-onRequest",
-            "policy2-onRequest",
-            "policy3-onRequest",
-            "policy3-actionActionOnResponse",
-            "policy2-actionActionOnResponse",
-            "policy1-actionActionOnResponse",
-            "policy4-onResponse",
-            "policy5-onResponse",
-            "policy6-onResponse"
-        );
+        assertThat(executionOrder)
+                .containsExactly(
+                        "policy1-onRequest",
+                        "policy2-onRequest",
+                        "policy3-onRequest",
+                        "policy3-actionActionOnResponse",
+                        "policy2-actionActionOnResponse",
+                        "policy1-actionActionOnResponse",
+                        "policy4-onResponse",
+                        "policy5-onResponse",
+                        "policy6-onResponse");
     }
 
     private static @NonNull DefaultExecutionContext buildExecutionContext() {
@@ -363,9 +372,10 @@ class FlowChainTest {
                     return Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE));
                 }
 
-                ctx.addActionOnResponse(this, ctx1 ->
-                    Completable.complete().doOnComplete(() -> executionOrder.add(id + "-actionActionOnResponse"))
-                );
+                ctx.addActionOnResponse(
+                        this,
+                        ctx1 -> Completable.complete()
+                                .doOnComplete(() -> executionOrder.add(id + "-actionActionOnResponse")));
                 return Completable.complete();
             });
         }

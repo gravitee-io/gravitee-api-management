@@ -15,28 +15,12 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.fetcher;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InstallationRepository;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Installation;
-import io.gravitee.repository.management.model.License;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -68,11 +52,7 @@ class InstallationIdFetcherTest {
         Installation installation = new Installation();
         installation.setId("installation#id");
         when(installationRepository.find()).thenReturn(Optional.of(installation));
-        cut
-            .fetch()
-            .test()
-            .assertValueCount(1)
-            .assertValue(events -> events.contains(installation.getId()));
+        cut.fetch().test().assertValueCount(1).assertValue(events -> events.contains(installation.getId()));
     }
 
     @Test

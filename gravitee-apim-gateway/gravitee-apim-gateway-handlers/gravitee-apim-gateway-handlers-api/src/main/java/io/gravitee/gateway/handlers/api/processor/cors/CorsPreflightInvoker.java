@@ -36,7 +36,8 @@ import io.gravitee.gateway.api.stream.WriteStream;
 public class CorsPreflightInvoker implements Invoker {
 
     @Override
-    public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
+    public void invoke(
+            ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
         CorsPreflightProxyConnection connection = new CorsPreflightProxyConnection();
         connectionHandler.handle(connection);
         connection.end();

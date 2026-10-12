@@ -19,7 +19,8 @@ public record IdpSource(String value) {
     public static final IdpSource GRAVITEE = new IdpSource("gravitee");
     public static final IdpSource MEMORY = new IdpSource("memory");
 
-    private static final java.util.Map<String, IdpSource> CACHE = java.util.Map.of("gravitee", GRAVITEE, "memory", MEMORY);
+    private static final java.util.Map<String, IdpSource> CACHE =
+            java.util.Map.of("gravitee", GRAVITEE, "memory", MEMORY);
 
     public static IdpSource of(String value) {
         if (value == null) {

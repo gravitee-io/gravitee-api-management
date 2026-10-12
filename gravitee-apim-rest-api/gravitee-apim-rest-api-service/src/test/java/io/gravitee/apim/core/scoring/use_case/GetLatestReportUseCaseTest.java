@@ -38,50 +38,49 @@ class GetLatestReportUseCaseTest {
 
     private static final String REPORT_ID = "report-id";
     private static final String API_ID = "api-id";
-    private static final ZonedDateTime CREATED_AT = Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault());
+    private static final ZonedDateTime CREATED_AT =
+            Instant.parse("2023-10-22T10:15:30Z").atZone(ZoneId.systemDefault());
     private static final String PAGE_ID = "page-id";
     private static final String PAGE_NAME = "echo-oas.json";
     private static final ScoringReport.Asset ASSET = new ScoringReport.Asset(
-        PAGE_ID,
-        ScoringAssetType.SWAGGER,
-        List.of(
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.WARN,
-                new ScoringReport.Range(new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
-                "operation-operationId",
-                "Operation must have \"operationId\".",
-                "paths./echo.options"
-            ),
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.ERROR,
-                new ScoringReport.Range(new ScoringReport.Position(10, 4), new ScoringReport.Position(10, 10)),
-                "error-rule",
-                "Error rule message",
-                "paths./error"
-            ),
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.INFO,
-                new ScoringReport.Range(new ScoringReport.Position(11, 4), new ScoringReport.Position(11, 10)),
-                "info-rule",
-                "Info rule message",
-                "paths./info"
-            ),
-            new ScoringReport.Diagnostic(
-                ScoringReport.Severity.HINT,
-                new ScoringReport.Range(new ScoringReport.Position(12, 4), new ScoringReport.Position(12, 10)),
-                "hint-rule",
-                "Hint rule message",
-                "paths./hint"
-            )
-        ),
-        List.of()
-    );
+            PAGE_ID,
+            ScoringAssetType.SWAGGER,
+            List.of(
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.WARN,
+                            new ScoringReport.Range(
+                                    new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
+                            "operation-operationId",
+                            "Operation must have \"operationId\".",
+                            "paths./echo.options"),
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.ERROR,
+                            new ScoringReport.Range(
+                                    new ScoringReport.Position(10, 4), new ScoringReport.Position(10, 10)),
+                            "error-rule",
+                            "Error rule message",
+                            "paths./error"),
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.INFO,
+                            new ScoringReport.Range(
+                                    new ScoringReport.Position(11, 4), new ScoringReport.Position(11, 10)),
+                            "info-rule",
+                            "Info rule message",
+                            "paths./info"),
+                    new ScoringReport.Diagnostic(
+                            ScoringReport.Severity.HINT,
+                            new ScoringReport.Range(
+                                    new ScoringReport.Position(12, 4), new ScoringReport.Position(12, 10)),
+                            "hint-rule",
+                            "Hint rule message",
+                            "paths./hint")),
+            List.of());
     private static final ScoringReport.Asset VALIDATION_ERROR_ASSET = new ScoringReport.Asset(
-        PAGE_ID,
-        ScoringAssetType.ASYNCAPI,
-        List.of(),
-        List.of(new ScoringReport.ScoringError("ruleset-validation-error", List.of("path", "to", "invalid", "element")))
-    );
+            PAGE_ID,
+            ScoringAssetType.ASYNCAPI,
+            List.of(),
+            List.of(new ScoringReport.ScoringError(
+                    "ruleset-validation-error", List.of("path", "to", "invalid", "element"))));
 
     ScoringReportQueryServiceInMemory scoringReportQueryService = new ScoringReportQueryServiceInMemory();
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
@@ -102,23 +101,22 @@ class GetLatestReportUseCaseTest {
     void should_return_the_latest_report_of_an_api() {
         // Given
         givenExistingScoringReports(aReport());
-        givenExistingPage(PageFixtures.aPage().toBuilder().id(PAGE_ID).name(PAGE_NAME).build());
+        givenExistingPage(
+                PageFixtures.aPage().toBuilder().id(PAGE_ID).name(PAGE_NAME).build());
 
         // When
         var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
 
         // Then
         Assertions.assertThat(report)
-            .extracting(GetLatestReportUseCase.Output::report)
-            .isEqualTo(
-                new ScoringReportView(
-                    REPORT_ID,
-                    API_ID,
-                    CREATED_AT,
-                    List.of(new ScoringReportView.AssetView(PAGE_NAME, ASSET.type(), ASSET.diagnostics(), ASSET.errors())),
-                    new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L)
-                )
-            );
+                .extracting(GetLatestReportUseCase.Output::report)
+                .isEqualTo(new ScoringReportView(
+                        REPORT_ID,
+                        API_ID,
+                        CREATED_AT,
+                        List.of(new ScoringReportView.AssetView(
+                                PAGE_NAME, ASSET.type(), ASSET.diagnostics(), ASSET.errors())),
+                        new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L)));
     }
 
     @Test
@@ -129,7 +127,9 @@ class GetLatestReportUseCaseTest {
         var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
 
         // Then
-        Assertions.assertThat(report).extracting(GetLatestReportUseCase.Output::report).isNull();
+        Assertions.assertThat(report)
+                .extracting(GetLatestReportUseCase.Output::report)
+                .isNull();
     }
 
     @Test
@@ -142,16 +142,14 @@ class GetLatestReportUseCaseTest {
 
         // Then
         Assertions.assertThat(report)
-            .extracting(GetLatestReportUseCase.Output::report)
-            .isEqualTo(
-                new ScoringReportView(
-                    REPORT_ID,
-                    API_ID,
-                    CREATED_AT,
-                    List.of(new ScoringReportView.AssetView(null, ASSET.type(), ASSET.diagnostics(), ASSET.errors())),
-                    new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L)
-                )
-            );
+                .extracting(GetLatestReportUseCase.Output::report)
+                .isEqualTo(new ScoringReportView(
+                        REPORT_ID,
+                        API_ID,
+                        CREATED_AT,
+                        List.of(new ScoringReportView.AssetView(
+                                null, ASSET.type(), ASSET.diagnostics(), ASSET.errors())),
+                        new ScoringReportView.Summary(0.84D, 4L, 1L, 1L, 1L, 1L)));
     }
 
     @Test
@@ -164,23 +162,17 @@ class GetLatestReportUseCaseTest {
 
         // Then
         Assertions.assertThat(report)
-            .extracting(GetLatestReportUseCase.Output::report)
-            .isEqualTo(
-                new ScoringReportView(
-                    REPORT_ID,
-                    API_ID,
-                    CREATED_AT,
-                    List.of(
-                        new ScoringReportView.AssetView(
-                            null,
-                            VALIDATION_ERROR_ASSET.type(),
-                            VALIDATION_ERROR_ASSET.diagnostics(),
-                            VALIDATION_ERROR_ASSET.errors()
-                        )
-                    ),
-                    null
-                )
-            );
+                .extracting(GetLatestReportUseCase.Output::report)
+                .isEqualTo(new ScoringReportView(
+                        REPORT_ID,
+                        API_ID,
+                        CREATED_AT,
+                        List.of(new ScoringReportView.AssetView(
+                                null,
+                                VALIDATION_ERROR_ASSET.type(),
+                                VALIDATION_ERROR_ASSET.diagnostics(),
+                                VALIDATION_ERROR_ASSET.errors())),
+                        null));
     }
 
     @Test
@@ -193,41 +185,38 @@ class GetLatestReportUseCaseTest {
 
         // Then
         Assertions.assertThat(report)
-            .extracting(GetLatestReportUseCase.Output::report)
-            .isEqualTo(new ScoringReportView(REPORT_ID, API_ID, CREATED_AT, List.of(), null));
+                .extracting(GetLatestReportUseCase.Output::report)
+                .isEqualTo(new ScoringReportView(REPORT_ID, API_ID, CREATED_AT, List.of(), null));
     }
 
     private static ScoringReport aReport() {
-        return ScoringReportFixture.aScoringReport()
-            .toBuilder()
-            .id(REPORT_ID)
-            .apiId(API_ID)
-            .createdAt(CREATED_AT)
-            .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
-            .assets(List.of(ASSET))
-            .build();
+        return ScoringReportFixture.aScoringReport().toBuilder()
+                .id(REPORT_ID)
+                .apiId(API_ID)
+                .createdAt(CREATED_AT)
+                .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))
+                .assets(List.of(ASSET))
+                .build();
     }
 
     private static ScoringReport aScoringErrorReport() {
-        return ScoringReportFixture.aScoringReport()
-            .toBuilder()
-            .id(REPORT_ID)
-            .apiId(API_ID)
-            .createdAt(CREATED_AT)
-            .summary(new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L))
-            .assets(List.of(VALIDATION_ERROR_ASSET))
-            .build();
+        return ScoringReportFixture.aScoringReport().toBuilder()
+                .id(REPORT_ID)
+                .apiId(API_ID)
+                .createdAt(CREATED_AT)
+                .summary(new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L))
+                .assets(List.of(VALIDATION_ERROR_ASSET))
+                .build();
     }
 
     private static ScoringReport noScoreableAssetReport() {
-        return ScoringReportFixture.aScoringReport()
-            .toBuilder()
-            .id(REPORT_ID)
-            .apiId(API_ID)
-            .createdAt(CREATED_AT)
-            .summary(new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L))
-            .assets(List.of())
-            .build();
+        return ScoringReportFixture.aScoringReport().toBuilder()
+                .id(REPORT_ID)
+                .apiId(API_ID)
+                .createdAt(CREATED_AT)
+                .summary(new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L))
+                .assets(List.of())
+                .build();
     }
 
     private void givenExistingScoringReports(ScoringReport... reports) {

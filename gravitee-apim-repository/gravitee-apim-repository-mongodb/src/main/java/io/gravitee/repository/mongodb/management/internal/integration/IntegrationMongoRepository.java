@@ -26,7 +26,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface IntegrationMongoRepository extends MongoRepository<IntegrationMongo, String>, IntegrationMongoRepositoryCustom {
+public interface IntegrationMongoRepository
+        extends MongoRepository<IntegrationMongo, String>, IntegrationMongoRepositoryCustom {
     @Query(value = "{ environmentId: ?0 }", fields = "{ _id : 1 }", delete = true)
     List<IntegrationMongo> deleteByEnvironmentId(String environmentId);
 }

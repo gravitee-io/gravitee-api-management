@@ -55,15 +55,14 @@ class CheckIntegrationUseCaseTest {
     private static final String PROVIDER = "aws-api-gateway";
     private static final Integration INTEGRATION_BASE = IntegrationFixture.anApiIntegration();
     private static final Integration INTEGRATION = new Integration.ApiIntegration(
-        INTEGRATION_ID,
-        INTEGRATION_BASE.name(),
-        INTEGRATION_BASE.description(),
-        PROVIDER,
-        ENVIRONMENT_1,
-        INTEGRATION_BASE.createdAt(),
-        INTEGRATION_BASE.updatedAt(),
-        INTEGRATION_BASE.groups()
-    );
+            INTEGRATION_ID,
+            INTEGRATION_BASE.name(),
+            INTEGRATION_BASE.description(),
+            PROVIDER,
+            ENVIRONMENT_1,
+            INTEGRATION_BASE.createdAt(),
+            INTEGRATION_BASE.updatedAt(),
+            INTEGRATION_BASE.groups());
 
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
     EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
@@ -85,12 +84,15 @@ class CheckIntegrationUseCaseTest {
     void setUp() {
         useCase = new CheckIntegrationUseCase(integrationCrudService, environmentCrudService, permissionDomainService);
 
-        environmentCrudService.initWith(
-            List.of(
-                Environment.builder().id(ENVIRONMENT_1).organizationId(ORGANIZATION_1).build(),
-                Environment.builder().id(ENVIRONMENT_2).organizationId(ORGANIZATION_2).build()
-            )
-        );
+        environmentCrudService.initWith(List.of(
+                Environment.builder()
+                        .id(ENVIRONMENT_1)
+                        .organizationId(ORGANIZATION_1)
+                        .build(),
+                Environment.builder()
+                        .id(ENVIRONMENT_2)
+                        .organizationId(ORGANIZATION_2)
+                        .build()));
     }
 
     @AfterEach
@@ -104,7 +106,9 @@ class CheckIntegrationUseCaseTest {
         var result = useCase.execute(new Input(ORGANIZATION_1, USER_ID, "unknown", PROVIDER));
 
         // Then
-        assertThat(result).extracting(Output::success, Output::message).containsExactly(false, "Integration [id=unknown] not found");
+        assertThat(result)
+                .extracting(Output::success, Output::message)
+                .containsExactly(false, "Integration [id=unknown] not found");
     }
 
     @Test
@@ -112,21 +116,22 @@ class CheckIntegrationUseCaseTest {
         // Given
         givenExistingIntegration(INTEGRATION);
         givenPermission(
-            RolePermission.ENVIRONMENT_INTEGRATION,
-            ENVIRONMENT_1,
-            RolePermissionAction.CREATE,
-            RolePermissionAction.READ,
-            RolePermissionAction.UPDATE,
-            RolePermissionAction.DELETE
-        );
+                RolePermission.ENVIRONMENT_INTEGRATION,
+                ENVIRONMENT_1,
+                RolePermissionAction.CREATE,
+                RolePermissionAction.READ,
+                RolePermissionAction.UPDATE,
+                RolePermissionAction.DELETE);
 
         // When
         var result = useCase.execute(new Input(ORGANIZATION_1, USER_ID, INTEGRATION_ID, "other"));
 
         // Then
         assertThat(result)
-            .extracting(Output::success, Output::message)
-            .containsExactly(false, "Integration [id=my-integration-id] does not match. Expected provider [provider=aws-api-gateway]");
+                .extracting(Output::success, Output::message)
+                .containsExactly(
+                        false,
+                        "Integration [id=my-integration-id] does not match. Expected provider [provider=aws-api-gateway]");
     }
 
     @Test
@@ -139,8 +144,8 @@ class CheckIntegrationUseCaseTest {
 
         // Then
         assertThat(result)
-            .extracting(Output::success, Output::message)
-            .containsExactly(false, "Integration [id=my-integration-id] not found");
+                .extracting(Output::success, Output::message)
+                .containsExactly(false, "Integration [id=my-integration-id] not found");
     }
 
     @Test
@@ -153,8 +158,8 @@ class CheckIntegrationUseCaseTest {
 
         // Then
         assertThat(result)
-            .extracting(Output::success, Output::message)
-            .containsExactly(false, "Integration [id=my-integration-id] not found");
+                .extracting(Output::success, Output::message)
+                .containsExactly(false, "Integration [id=my-integration-id] not found");
     }
 
     @Test
@@ -162,13 +167,12 @@ class CheckIntegrationUseCaseTest {
         // Given
         givenExistingIntegration(INTEGRATION);
         givenPermission(
-            RolePermission.ENVIRONMENT_INTEGRATION,
-            ENVIRONMENT_1,
-            RolePermissionAction.CREATE,
-            RolePermissionAction.READ,
-            RolePermissionAction.UPDATE,
-            RolePermissionAction.DELETE
-        );
+                RolePermission.ENVIRONMENT_INTEGRATION,
+                ENVIRONMENT_1,
+                RolePermissionAction.CREATE,
+                RolePermissionAction.READ,
+                RolePermissionAction.UPDATE,
+                RolePermissionAction.DELETE);
 
         var result = useCase.execute(new Input(ORGANIZATION_1, USER_ID, INTEGRATION_ID, PROVIDER));
 
@@ -195,7 +199,9 @@ class CheckIntegrationUseCaseTest {
     }
 
     private void givenPermission(RolePermission rolePermission, String referenceId, RolePermissionAction... acls) {
-        when(permissionDomainService.hasExactPermissions(ORGANIZATION_1, USER_ID, rolePermission, referenceId, acls)).thenReturn(true);
-        when(permissionDomainService.hasPermission(ORGANIZATION_1, USER_ID, rolePermission, referenceId, acls)).thenReturn(true);
+        when(permissionDomainService.hasExactPermissions(ORGANIZATION_1, USER_ID, rolePermission, referenceId, acls))
+                .thenReturn(true);
+        when(permissionDomainService.hasPermission(ORGANIZATION_1, USER_ID, rolePermission, referenceId, acls))
+                .thenReturn(true);
     }
 }

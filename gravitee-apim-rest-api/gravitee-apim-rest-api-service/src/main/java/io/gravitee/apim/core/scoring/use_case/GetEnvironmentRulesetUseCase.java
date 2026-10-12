@@ -30,9 +30,9 @@ public class GetEnvironmentRulesetUseCase {
 
     public Output execute(Input input) {
         var result = scoringRulesetCrudService
-            .findById(input.rulesetId())
-            .filter(ruleset -> ruleset.referenceId().equals(input.auditInfo.environmentId()))
-            .orElseThrow(() -> new RulesetNotFoundException(input.rulesetId));
+                .findById(input.rulesetId())
+                .filter(ruleset -> ruleset.referenceId().equals(input.auditInfo.environmentId()))
+                .orElseThrow(() -> new RulesetNotFoundException(input.rulesetId));
 
         return new Output(result);
     }

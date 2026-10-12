@@ -42,13 +42,11 @@ public class AutoFetchPortalNavigationItemsUseCase {
     private final PortalNavigationBulkImportDomainService bulkImportDomainService;
 
     public Output execute() {
-        var dueItems = queryService
-            .findAllWithAutoFetchEnabled()
-            .stream()
-            .filter(item -> item.getSource() != null)
-            .filter(this::isAutoFetchable)
-            .filter(item -> sourceDomainService.isAutoFetchDue(item.getSource()))
-            .toList();
+        var dueItems = queryService.findAllWithAutoFetchEnabled().stream()
+                .filter(item -> item.getSource() != null)
+                .filter(this::isAutoFetchable)
+                .filter(item -> sourceDomainService.isAutoFetchDue(item.getSource()))
+                .toList();
 
         int succeeded = 0;
         int failed = 0;
@@ -85,25 +83,20 @@ public class AutoFetchPortalNavigationItemsUseCase {
     private boolean reimport(PortalNavigationFolder folder) {
         try {
             log.debug(
-                "Auto-importing portal navigation folder [id={}, title={}, environmentId={}]",
-                folder.getId().json(),
-                folder.getTitle(),
-                folder.getEnvironmentId()
-            );
-            return bulkImportDomainService
-                .importSubtree(folder)
-                .files()
-                .stream()
-                .allMatch(file -> file.success());
+                    "Auto-importing portal navigation folder [id={}, title={}, environmentId={}]",
+                    folder.getId().json(),
+                    folder.getTitle(),
+                    folder.getEnvironmentId());
+            return bulkImportDomainService.importSubtree(folder).files().stream()
+                    .allMatch(file -> file.success());
         } catch (Exception e) {
             log.warn(
-                "Failed to auto-import portal navigation folder [id={}, title={}, environmentId={}, sourceType={}]",
-                folder.getId().json(),
-                folder.getTitle(),
-                folder.getEnvironmentId(),
-                folder.getSource() == null ? null : folder.getSource().getSourceType(),
-                e
-            );
+                    "Failed to auto-import portal navigation folder [id={}, title={}, environmentId={}, sourceType={}]",
+                    folder.getId().json(),
+                    folder.getTitle(),
+                    folder.getEnvironmentId(),
+                    folder.getSource() == null ? null : folder.getSource().getSourceType(),
+                    e);
             return false;
         }
     }
@@ -112,22 +105,20 @@ public class AutoFetchPortalNavigationItemsUseCase {
     private boolean fetch(PortalNavigationPage page) {
         try {
             log.debug(
-                "Auto-fetching portal navigation page [id={}, title={}, environmentId={}]",
-                page.getId().json(),
-                page.getTitle(),
-                page.getEnvironmentId()
-            );
+                    "Auto-fetching portal navigation page [id={}, title={}, environmentId={}]",
+                    page.getId().json(),
+                    page.getTitle(),
+                    page.getEnvironmentId());
             var updated = domainService.fetchPageContent(page);
             return updated.getSource() != null && updated.getSource().getLastFetchError() == null;
         } catch (Exception e) {
             log.warn(
-                "Failed to auto-fetch portal navigation page [id={}, title={}, environmentId={}, sourceType={}]",
-                page.getId().json(),
-                page.getTitle(),
-                page.getEnvironmentId(),
-                page.getSource() == null ? null : page.getSource().getSourceType(),
-                e
-            );
+                    "Failed to auto-fetch portal navigation page [id={}, title={}, environmentId={}, sourceType={}]",
+                    page.getId().json(),
+                    page.getTitle(),
+                    page.getEnvironmentId(),
+                    page.getSource() == null ? null : page.getSource().getSourceType(),
+                    e);
             return false;
         }
     }

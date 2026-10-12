@@ -68,12 +68,12 @@ public abstract class AbstractSolaceEndpointIntegrationTest extends AbstractGate
 
     @Container
     protected static final SolaceContainer solaceContainer = new SolaceContainer("solace/solace-pubsub-standard:10.3")
-        .withCredentials(USER, PASSWORD)
-        .withVpn(VPN)
-        .withExposedPorts(Service.SMF.getPort())
-        .withEnv("username_admin_globalaccesslevel", "admin")
-        .withEnv("username_admin_password", "admin")
-        .withStartupTimeout(java.time.Duration.ofMinutes(2));
+            .withCredentials(USER, PASSWORD)
+            .withVpn(VPN)
+            .withExposedPorts(Service.SMF.getPort())
+            .withEnv("username_admin_globalaccesslevel", "admin")
+            .withEnv("username_admin_password", "admin")
+            .withStartupTimeout(java.time.Duration.ofMinutes(2));
 
     protected MessagingService messagingService;
 
@@ -92,15 +92,15 @@ public abstract class AbstractSolaceEndpointIntegrationTest extends AbstractGate
         topic = UUID.randomUUID().toString();
         if (definitionClass.isAssignableFrom(Api.class)) {
             Api apiDefinition = (Api) api.getDefinition();
-            apiDefinition
-                .getEndpointGroups()
-                .stream()
-                .flatMap(eg -> eg.getEndpoints().stream())
-                .filter(endpoint -> endpoint.getType().equals("solace"))
-                .forEach(endpoint -> {
-                    endpoint.setConfiguration(endpoint.getConfiguration().replace("solace-url", solaceContainer.getOrigin(Service.SMF)));
-                    endpoint.setSharedConfigurationOverride(endpoint.getSharedConfigurationOverride().replace("test-topic", topic));
-                });
+            apiDefinition.getEndpointGroups().stream()
+                    .flatMap(eg -> eg.getEndpoints().stream())
+                    .filter(endpoint -> endpoint.getType().equals("solace"))
+                    .forEach(endpoint -> {
+                        endpoint.setConfiguration(endpoint.getConfiguration()
+                                .replace("solace-url", solaceContainer.getOrigin(Service.SMF)));
+                        endpoint.setSharedConfigurationOverride(
+                                endpoint.getSharedConfigurationOverride().replace("test-topic", topic));
+                    });
         }
     }
 
@@ -118,23 +118,23 @@ public abstract class AbstractSolaceEndpointIntegrationTest extends AbstractGate
      */
     private void waitForSolaceReady() {
         Awaitility.await()
-            .atMost(60, TimeUnit.SECONDS)
-            .pollInterval(1, TimeUnit.SECONDS)
-            .pollDelay(java.time.Duration.ZERO)
-            .ignoreExceptions()
-            .until(() -> {
-                MessagingService testService = createMessageService();
-                try {
-                    testService.connect();
-                    boolean connected = testService.isConnected();
-                    if (connected) {
-                        testService.disconnect();
+                .atMost(60, TimeUnit.SECONDS)
+                .pollInterval(1, TimeUnit.SECONDS)
+                .pollDelay(java.time.Duration.ZERO)
+                .ignoreExceptions()
+                .until(() -> {
+                    MessagingService testService = createMessageService();
+                    try {
+                        testService.connect();
+                        boolean connected = testService.isConnected();
+                        if (connected) {
+                            testService.disconnect();
+                        }
+                        return connected;
+                    } catch (Exception e) {
+                        return false;
                     }
-                    return connected;
-                } catch (Exception e) {
-                    return false;
-                }
-            });
+                });
         log.info("Solace is ready to accept connections");
     }
 
@@ -148,42 +148,43 @@ public abstract class AbstractSolaceEndpointIntegrationTest extends AbstractGate
 
     protected Flowable<InboundMessage> subscribeToSolace(final String topic) {
         final DirectMessageReceiver receiver = messagingService
-            .createDirectMessageReceiverBuilder()
-            .withSubscriptions(TopicSubscription.of(topic))
-            .build();
+                .createDirectMessageReceiverBuilder()
+                .withSubscriptions(TopicSubscription.of(topic))
+                .build();
 
-        return Completable.fromCompletionStage(receiver.startAsync()).andThen(
-            Flowable.create(emitter -> receiver.receiveAsync(emitter::onNext), BackpressureStrategy.DROP)
-        );
+        return Completable.fromCompletionStage(receiver.startAsync())
+                .andThen(Flowable.create(emitter -> receiver.receiveAsync(emitter::onNext), BackpressureStrategy.DROP));
     }
 
     protected Completable publishToSolace(final String topic, List<OutboundMessage> outboundMessages) {
         return publishToSolace(topic, outboundMessages, 0);
     }
 
-    protected Completable publishToSolace(final String topic, List<OutboundMessage> outboundMessages, final long delay) {
-        final DirectMessagePublisher publisher = messagingService.createDirectMessagePublisherBuilder().build();
+    protected Completable publishToSolace(
+            final String topic, List<OutboundMessage> outboundMessages, final long delay) {
+        final DirectMessagePublisher publisher =
+                messagingService.createDirectMessagePublisherBuilder().build();
         return Completable.fromCompletionStage(publisher.startAsync())
-            .delay(delay, TimeUnit.MILLISECONDS)
-            .andThen(
-                Completable.fromRunnable(() -> {
+                .delay(delay, TimeUnit.MILLISECONDS)
+                .andThen(Completable.fromRunnable(() -> {
                     Topic topic1 = Topic.of(topic);
                     outboundMessages.forEach(outboundMessage -> publisher.publish(outboundMessage, topic1));
-                })
-            );
+                }));
     }
 
     private MessagingService createMessageService() {
         final Properties serviceConfiguration = new Properties();
-        serviceConfiguration.setProperty(SolaceProperties.TransportLayerProperties.HOST, solaceContainer.getOrigin(Service.SMF));
+        serviceConfiguration.setProperty(
+                SolaceProperties.TransportLayerProperties.HOST, solaceContainer.getOrigin(Service.SMF));
         serviceConfiguration.setProperty(SolaceProperties.ServiceProperties.VPN_NAME, VPN);
         // use basic auth
         serviceConfiguration.setProperty(
-            SolaceProperties.AuthenticationProperties.SCHEME,
-            SolaceConstants.AuthenticationConstants.AUTHENTICATION_SCHEME_BASIC
-        );
+                SolaceProperties.AuthenticationProperties.SCHEME,
+                SolaceConstants.AuthenticationConstants.AUTHENTICATION_SCHEME_BASIC);
         serviceConfiguration.setProperty(SolaceProperties.AuthenticationProperties.SCHEME_BASIC_USER_NAME, USER);
         serviceConfiguration.setProperty(SolaceProperties.AuthenticationProperties.SCHEME_BASIC_PASSWORD, PASSWORD);
-        return MessagingService.builder(ConfigurationProfile.V1).fromProperties(serviceConfiguration).build();
+        return MessagingService.builder(ConfigurationProfile.V1)
+                .fromProperties(serviceConfiguration)
+                .build();
     }
 }

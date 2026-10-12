@@ -159,9 +159,9 @@ class UserServiceRegistrationApprovalTest {
         when(userConverter.toUser(any(NewExternalUserEntity.class))).thenCallRealMethod();
         when(userConverter.toUserEntity(any(User.class), any())).thenCallRealMethod();
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
-        when(
-            environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)
-        ).thenReturn(3600);
+        when(environment.getProperty(
+                        "user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER))
+                .thenReturn(3600);
         when(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER)).thenReturn(DEFAULT_JWT_ISSUER);
     }
 
@@ -206,16 +206,14 @@ class UserServiceRegistrationApprovalTest {
 
         userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true);
 
-        EmailNotification registrationEmail = capturedEmails()
-            .stream()
-            .filter(this::isRegistrationEmail)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no registration email has been sent"));
+        EmailNotification registrationEmail = capturedEmails().stream()
+                .filter(this::isRegistrationEmail)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no registration email has been sent"));
 
         assertThat(registrationEmail.getTo()).containsExactly(EMAIL);
-        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL)).startsWith(
-            PORTAL_URL + "/user/registration/confirm/"
-        );
+        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL))
+                .startsWith(PORTAL_URL + "/user/registration/confirm/");
     }
 
     @Test
@@ -229,7 +227,8 @@ class UserServiceRegistrationApprovalTest {
     }
 
     @Test
-    void should_not_send_the_registration_email_when_the_approved_user_already_has_a_password() throws TechnicalException {
+    void should_not_send_the_registration_email_when_the_approved_user_already_has_a_password()
+            throws TechnicalException {
         givenPendingUser("$2a$10$encoded");
 
         userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true);
@@ -248,9 +247,12 @@ class UserServiceRegistrationApprovalTest {
 
     @Test
     void should_reject_the_finalization_of_a_registration_awaiting_approval() throws TechnicalException {
-        when(
-            parameterService.findAsBoolean(PORTAL_CONTEXT, Key.PORTAL_USERCREATION_ENABLED, ENVIRONMENT, ParameterReferenceType.ENVIRONMENT)
-        ).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(
+                        PORTAL_CONTEXT,
+                        Key.PORTAL_USERCREATION_ENABLED,
+                        ENVIRONMENT,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(Boolean.TRUE);
         when(passwordValidator.validate(any())).thenReturn(true);
         when(userRepository.findById(USER_ID)).thenReturn(of(pendingUser(null)));
 
@@ -258,18 +260,20 @@ class UserServiceRegistrationApprovalTest {
         registerUserEntity.setToken(registrationToken());
         registerUserEntity.setPassword("gh2gyf8!zjfnz");
 
-        assertThatThrownBy(() -> userService.finalizeRegistration(PORTAL_CONTEXT, registerUserEntity)).isInstanceOf(
-            UserRegistrationPendingApprovalException.class
-        );
+        assertThatThrownBy(() -> userService.finalizeRegistration(PORTAL_CONTEXT, registerUserEntity))
+                .isInstanceOf(UserRegistrationPendingApprovalException.class);
 
         verify(userRepository, never()).update(any());
     }
 
     @Test
     void should_reject_the_finalization_of_a_rejected_registration() throws TechnicalException {
-        when(
-            parameterService.findAsBoolean(PORTAL_CONTEXT, Key.PORTAL_USERCREATION_ENABLED, ENVIRONMENT, ParameterReferenceType.ENVIRONMENT)
-        ).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(
+                        PORTAL_CONTEXT,
+                        Key.PORTAL_USERCREATION_ENABLED,
+                        ENVIRONMENT,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(Boolean.TRUE);
         when(passwordValidator.validate(any())).thenReturn(true);
         User rejectedUser = pendingUser(null);
         rejectedUser.setStatus(UserStatus.REJECTED);
@@ -279,67 +283,66 @@ class UserServiceRegistrationApprovalTest {
         registerUserEntity.setToken(registrationToken());
         registerUserEntity.setPassword("gh2gyf8!zjfnz");
 
-        assertThatThrownBy(() -> userService.finalizeRegistration(PORTAL_CONTEXT, registerUserEntity)).isInstanceOf(
-            UserStateConflictException.class
-        );
+        assertThatThrownBy(() -> userService.finalizeRegistration(PORTAL_CONTEXT, registerUserEntity))
+                .isInstanceOf(UserStateConflictException.class);
 
         verify(userRepository, never()).update(any());
     }
 
     @Test
-    void should_link_the_registration_email_to_the_portal_of_the_environment_the_user_registered_on() throws TechnicalException {
+    void should_link_the_registration_email_to_the_portal_of_the_environment_the_user_registered_on()
+            throws TechnicalException {
         givenPendingUser(null);
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USER_ID, MembershipReferenceType.ENVIRONMENT)
-        ).thenReturn(Set.of(OTHER_ENVIRONMENT));
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, USER_ID, MembershipReferenceType.ENVIRONMENT))
+                .thenReturn(Set.of(OTHER_ENVIRONMENT));
         when(installationAccessQueryService.getPortalUrl(OTHER_ENVIRONMENT)).thenReturn(OTHER_PORTAL_URL);
 
         userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true);
 
-        EmailNotification registrationEmail = capturedEmails()
-            .stream()
-            .filter(this::isRegistrationEmail)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no registration email has been sent"));
+        EmailNotification registrationEmail = capturedEmails().stream()
+                .filter(this::isRegistrationEmail)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no registration email has been sent"));
 
-        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL)).startsWith(
-            OTHER_PORTAL_URL + "/user/registration/confirm/"
-        );
+        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL))
+                .startsWith(OTHER_PORTAL_URL + "/user/registration/confirm/");
     }
 
     @Test
-    void should_link_the_registration_email_to_the_console_when_no_portal_url_is_configured() throws TechnicalException {
+    void should_link_the_registration_email_to_the_console_when_no_portal_url_is_configured()
+            throws TechnicalException {
         givenPendingUser(null);
-        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn(InstallationAccessQueryService.DEFAULT_PORTAL_URL);
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT))
+                .thenReturn(InstallationAccessQueryService.DEFAULT_PORTAL_URL);
         when(installationAccessQueryService.getConsoleUrl(ORGANIZATION)).thenReturn(CONSOLE_URL);
 
         userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true);
 
-        EmailNotification registrationEmail = capturedEmails()
-            .stream()
-            .filter(this::isRegistrationEmail)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no registration email has been sent"));
+        EmailNotification registrationEmail = capturedEmails().stream()
+                .filter(this::isRegistrationEmail)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no registration email has been sent"));
 
-        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL)).startsWith(CONSOLE_URL + REGISTRATION_PATH);
+        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL))
+                .startsWith(CONSOLE_URL + REGISTRATION_PATH);
     }
 
     @Test
     void should_link_the_registration_email_to_gamma_when_the_gamma_target_is_named() throws TechnicalException {
         givenUserRegistrationEnabled(true);
-        when(installationAccessQueryService.findGammaUrl(ORGANIZATION)).thenReturn(Optional.of("https://gamma.example.com"));
+        when(installationAccessQueryService.findGammaUrl(ORGANIZATION))
+                .thenReturn(Optional.of("https://gamma.example.com"));
 
         userService.registerWithTarget(PORTAL_CONTEXT, newExternalUser(), "gamma");
 
-        EmailNotification registrationEmail = capturedEmails()
-            .stream()
-            .filter(this::isRegistrationEmail)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no registration email has been sent"));
+        EmailNotification registrationEmail = capturedEmails().stream()
+                .filter(this::isRegistrationEmail)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no registration email has been sent"));
 
-        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL)).startsWith(
-            "https://gamma.example.com/registration/"
-        );
+        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL))
+                .startsWith("https://gamma.example.com/registration/");
     }
 
     @Test
@@ -348,8 +351,8 @@ class UserServiceRegistrationApprovalTest {
         when(installationAccessQueryService.findGammaUrl(ORGANIZATION)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.registerWithTarget(PORTAL_CONTEXT, newExternalUser(), "gamma"))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("No Gamma URL is configured");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("No Gamma URL is configured");
 
         verify(userRepository, never()).create(any(User.class));
     }
@@ -357,18 +360,19 @@ class UserServiceRegistrationApprovalTest {
     @Test
     void should_link_the_registration_email_to_the_console_when_no_target_is_named() throws TechnicalException {
         givenUserRegistrationEnabled(true);
-        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn(InstallationAccessQueryService.DEFAULT_PORTAL_URL);
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT))
+                .thenReturn(InstallationAccessQueryService.DEFAULT_PORTAL_URL);
         when(installationAccessQueryService.getConsoleUrl(ORGANIZATION)).thenReturn(CONSOLE_URL);
 
         userService.registerWithTarget(PORTAL_CONTEXT, newExternalUser(), null);
 
-        EmailNotification registrationEmail = capturedEmails()
-            .stream()
-            .filter(this::isRegistrationEmail)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no registration email has been sent"));
+        EmailNotification registrationEmail = capturedEmails().stream()
+                .filter(this::isRegistrationEmail)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no registration email has been sent"));
 
-        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL)).startsWith(CONSOLE_URL + REGISTRATION_PATH);
+        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL))
+                .startsWith(CONSOLE_URL + REGISTRATION_PATH);
         verify(installationAccessQueryService, never()).findGammaUrl(any());
     }
 
@@ -412,7 +416,8 @@ class UserServiceRegistrationApprovalTest {
     }
 
     @Test
-    void should_link_the_approved_registration_email_to_gamma_when_the_user_signed_up_on_gamma() throws TechnicalException {
+    void should_link_the_approved_registration_email_to_gamma_when_the_user_signed_up_on_gamma()
+            throws TechnicalException {
         givenPendingUser(null, RegistrationOrigin.GAMMA);
         when(installationAccessQueryService.findGammaUrl(ORGANIZATION)).thenReturn(Optional.of(GAMMA_URL));
 
@@ -422,7 +427,8 @@ class UserServiceRegistrationApprovalTest {
     }
 
     @Test
-    void should_link_the_approved_registration_email_to_the_console_when_the_user_signed_up_on_the_console() throws TechnicalException {
+    void should_link_the_approved_registration_email_to_the_console_when_the_user_signed_up_on_the_console()
+            throws TechnicalException {
         givenPendingUser(null, RegistrationOrigin.CONSOLE);
         when(installationAccessQueryService.getConsoleUrl(ORGANIZATION)).thenReturn(CONSOLE_URL);
 
@@ -434,7 +440,8 @@ class UserServiceRegistrationApprovalTest {
     }
 
     @Test
-    void should_link_the_approved_registration_email_to_the_portal_when_the_user_signed_up_on_the_portal() throws TechnicalException {
+    void should_link_the_approved_registration_email_to_the_portal_when_the_user_signed_up_on_the_portal()
+            throws TechnicalException {
         givenPendingUser(null, RegistrationOrigin.PORTAL);
         when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn(PORTAL_URL);
 
@@ -449,8 +456,8 @@ class UserServiceRegistrationApprovalTest {
         when(installationAccessQueryService.findGammaUrl(ORGANIZATION)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("No Gamma URL is configured");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("No Gamma URL is configured");
 
         // the destination is resolved before the status changes, so the user stays re-approvable
         verify(userRepository, never()).update(any(User.class));
@@ -468,17 +475,18 @@ class UserServiceRegistrationApprovalTest {
     }
 
     private void givenUserRegistrationEnabled(boolean automaticValidation) throws TechnicalException {
-        when(
-            parameterService.findAsBoolean(PORTAL_CONTEXT, Key.PORTAL_USERCREATION_ENABLED, ENVIRONMENT, ParameterReferenceType.ENVIRONMENT)
-        ).thenReturn(Boolean.TRUE);
-        when(
-            parameterService.findAsBoolean(
-                PORTAL_CONTEXT,
-                Key.PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED,
-                ENVIRONMENT,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(automaticValidation);
+        when(parameterService.findAsBoolean(
+                        PORTAL_CONTEXT,
+                        Key.PORTAL_USERCREATION_ENABLED,
+                        ENVIRONMENT,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(
+                        PORTAL_CONTEXT,
+                        Key.PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED,
+                        ENVIRONMENT,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(automaticValidation);
         when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
         when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(Optional.empty());
         when(userRepository.create(any(User.class))).thenAnswer(returnsFirstArg());
@@ -486,22 +494,18 @@ class UserServiceRegistrationApprovalTest {
 
     /** Console registration arrives on an organization reference context, so it reads the CONSOLE_* parameters. */
     private void givenConsoleUserRegistrationEnabled(boolean automaticValidation) throws TechnicalException {
-        when(
-            parameterService.findAsBoolean(
-                CONSOLE_CONTEXT,
-                Key.CONSOLE_USERCREATION_ENABLED,
-                ORGANIZATION,
-                ParameterReferenceType.ORGANIZATION
-            )
-        ).thenReturn(Boolean.TRUE);
-        when(
-            parameterService.findAsBoolean(
-                CONSOLE_CONTEXT,
-                Key.CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED,
-                ORGANIZATION,
-                ParameterReferenceType.ORGANIZATION
-            )
-        ).thenReturn(automaticValidation);
+        when(parameterService.findAsBoolean(
+                        CONSOLE_CONTEXT,
+                        Key.CONSOLE_USERCREATION_ENABLED,
+                        ORGANIZATION,
+                        ParameterReferenceType.ORGANIZATION))
+                .thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(
+                        CONSOLE_CONTEXT,
+                        Key.CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED,
+                        ORGANIZATION,
+                        ParameterReferenceType.ORGANIZATION))
+                .thenReturn(automaticValidation);
         when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
         when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(Optional.empty());
         when(userRepository.create(any(User.class))).thenAnswer(returnsFirstArg());
@@ -543,11 +547,10 @@ class UserServiceRegistrationApprovalTest {
     }
 
     private String registrationUrl() {
-        EmailNotification registrationEmail = capturedEmails()
-            .stream()
-            .filter(this::isRegistrationEmail)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no registration email has been sent"));
+        EmailNotification registrationEmail = capturedEmails().stream()
+                .filter(this::isRegistrationEmail)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no registration email has been sent"));
         return (String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL);
     }
 
@@ -561,24 +564,26 @@ class UserServiceRegistrationApprovalTest {
 
     private String registrationToken() {
         return JWT.create()
-            .withIssuer(DEFAULT_JWT_ISSUER)
-            .withSubject(USER_ID)
-            .withClaim(JWTHelper.Claims.EMAIL, EMAIL)
-            .withClaim(JWTHelper.Claims.ACTION, USER_REGISTRATION.name())
-            .withExpiresAt(new Date(System.currentTimeMillis() + 3600_000))
-            .sign(Algorithm.HMAC256(JWT_SECRET));
+                .withIssuer(DEFAULT_JWT_ISSUER)
+                .withSubject(USER_ID)
+                .withClaim(JWTHelper.Claims.EMAIL, EMAIL)
+                .withClaim(JWTHelper.Claims.ACTION, USER_REGISTRATION.name())
+                .withExpiresAt(new Date(System.currentTimeMillis() + 3600_000))
+                .sign(Algorithm.HMAC256(JWT_SECRET));
     }
 
     private boolean isRequestProcessedEmail(EmailNotification email) {
-        return EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION_REQUEST_PROCESSED.getLinkedHook()
-            .getTemplate()
-            .equals(email.getTemplate());
+        return EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION_REQUEST_PROCESSED
+                .getLinkedHook()
+                .getTemplate()
+                .equals(email.getTemplate());
     }
 
     private boolean isRegistrationEmail(EmailNotification email) {
-        return EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION.getLinkedHook()
-            .getTemplate()
-            .equals(email.getTemplate());
+        return EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION
+                .getLinkedHook()
+                .getTemplate()
+                .equals(email.getTemplate());
     }
 
     private List<EmailNotification> capturedEmails() {

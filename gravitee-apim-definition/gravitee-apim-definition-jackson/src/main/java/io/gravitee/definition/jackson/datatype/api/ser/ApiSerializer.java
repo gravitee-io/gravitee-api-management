@@ -91,30 +91,25 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
 
         if (api.getTags() != null && !api.getTags().isEmpty()) {
             jgen.writeArrayFieldStart("tags");
-            api
-                .getTags()
-                .forEach(tag -> {
-                    try {
-                        jgen.writeObject(tag);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            api.getTags().forEach(tag -> {
+                try {
+                    jgen.writeObject(tag);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
             jgen.writeEndArray();
         }
 
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
             jgen.writeArrayFieldStart("path_mappings");
-            api
-                .getPathMappings()
-                .keySet()
-                .forEach(pathMapping -> {
-                    try {
-                        jgen.writeObject(pathMapping);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            api.getPathMappings().keySet().forEach(pathMapping -> {
+                try {
+                    jgen.writeObject(pathMapping);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
             jgen.writeEndArray();
         }
 

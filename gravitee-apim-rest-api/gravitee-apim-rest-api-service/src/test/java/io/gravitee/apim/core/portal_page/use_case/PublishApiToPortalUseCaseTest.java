@@ -58,18 +58,18 @@ class PublishApiToPortalUseCaseTest {
 
     private PortalNavigationItemId failingUpdateOf;
 
-    private final PortalNavigationItemsCrudServiceInMemory crudService = new PortalNavigationItemsCrudServiceInMemory() {
-        @Override
-        public PortalNavigationItem update(PortalNavigationItem portalNavigationItem) {
-            if (portalNavigationItem.getId().equals(failingUpdateOf)) {
-                throw new IllegalStateException("update failed");
-            }
-            return super.update(portalNavigationItem);
-        }
-    };
-    private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory(
-        crudService.storage()
-    );
+    private final PortalNavigationItemsCrudServiceInMemory crudService =
+            new PortalNavigationItemsCrudServiceInMemory() {
+                @Override
+                public PortalNavigationItem update(PortalNavigationItem portalNavigationItem) {
+                    if (portalNavigationItem.getId().equals(failingUpdateOf)) {
+                        throw new IllegalStateException("update failed");
+                    }
+                    return super.update(portalNavigationItem);
+                }
+            };
+    private final PortalNavigationItemsQueryServiceInMemory queryService =
+            new PortalNavigationItemsQueryServiceInMemory(crudService.storage());
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private PublishApiToPortalUseCase useCase;
 
@@ -80,25 +80,23 @@ class PublishApiToPortalUseCaseTest {
         var sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
         var apiOwnedNavigationDomainService = new ApiOwnedNavigationDomainService(queryService, crudService);
         useCase = new PublishApiToPortalUseCase(
-            apiOwnedNavigationDomainService,
-            new PortalNavigationItemValidatorService(
-                queryService,
-                pageContentQueryService,
-                new ApiProductQueryServiceInMemory(),
-                sourceDomainService,
-                apiCrudService
-            ),
-            new PortalNavigationItemDomainService(
-                crudService,
-                queryService,
-                pageContentCrudService,
-                pageContentQueryService,
-                apiCrudService,
-                sourceDomainService,
-                apiOwnedNavigationDomainService
-            )
-        );
-        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
+                apiOwnedNavigationDomainService,
+                new PortalNavigationItemValidatorService(
+                        queryService,
+                        pageContentQueryService,
+                        new ApiProductQueryServiceInMemory(),
+                        sourceDomainService,
+                        apiCrudService),
+                new PortalNavigationItemDomainService(
+                        crudService,
+                        queryService,
+                        pageContentCrudService,
+                        pageContentQueryService,
+                        apiCrudService,
+                        sourceDomainService,
+                        apiOwnedNavigationDomainService));
+        apiCrudService.initWith(List.of(
+                Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
     }
 
     @Test
@@ -121,22 +119,33 @@ class PublishApiToPortalUseCaseTest {
     @Test
     void should_publish_every_item_owned_by_the_api_including_those_hidden_individually() {
         var section = aFolder("APIs");
-        var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).published(false).build();
-        var nestedPage = aPage("Setup", folder.getId()).toBuilder().reference(ownedBy(API_ID)).published(false).build();
-        var alreadyPublished = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(true).build();
+        var folder = aFolder("Auth").toBuilder()
+                .reference(ownedBy(API_ID))
+                .published(false)
+                .build();
+        var nestedPage = aPage("Setup", folder.getId()).toBuilder()
+                .reference(ownedBy(API_ID))
+                .published(false)
+                .build();
+        var alreadyPublished = aPage("Overview", null).toBuilder()
+                .reference(ownedBy(API_ID))
+                .published(true)
+                .build();
         queryService.initWith(List.of(section, folder, nestedPage, alreadyPublished));
 
         publishTo(section.getId());
 
-        assertThat(List.of(stored(folder.getId()), stored(nestedPage.getId()), stored(alreadyPublished.getId()))).allSatisfy(item ->
-            assertThat(item.getPublished()).isTrue()
-        );
+        assertThat(List.of(stored(folder.getId()), stored(nestedPage.getId()), stored(alreadyPublished.getId())))
+                .allSatisfy(item -> assertThat(item.getPublished()).isTrue());
     }
 
     @Test
     void should_not_set_a_stored_parent_on_the_api_items() {
         var section = aFolder("APIs");
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(false).build();
+        var page = aPage("Overview", null).toBuilder()
+                .reference(ownedBy(API_ID))
+                .published(false)
+                .build();
         queryService.initWith(List.of(section, page));
 
         publishTo(section.getId());
@@ -148,7 +157,10 @@ class PublishApiToPortalUseCaseTest {
     @Test
     void should_not_touch_items_owned_by_another_api() {
         var section = aFolder("APIs");
-        var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).published(false).build();
+        var foreign = aPage("Other overview", null).toBuilder()
+                .reference(ownedBy(OTHER_API_ID))
+                .published(false)
+                .build();
         queryService.initWith(List.of(section, foreign));
 
         publishTo(section.getId());
@@ -186,7 +198,8 @@ class PublishApiToPortalUseCaseTest {
         var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
         queryService.initWith(List.of(section, otherSection, listing));
 
-        assertThatThrownBy(() -> publishTo(otherSection.getId())).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+        assertThatThrownBy(() -> publishTo(otherSection.getId()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class);
     }
 
     @Nested
@@ -201,13 +214,11 @@ class PublishApiToPortalUseCaseTest {
             var output = publishTo(section.getId());
 
             assertThat(output.listing().getId()).isEqualTo(hiddenListing.getId());
-            assertThat(listingRows())
-                .singleElement()
-                .satisfies(listing -> {
-                    assertThat(listing.getPublished()).isTrue();
-                    assertThat(listing.getParentId()).isEqualTo(section.getId());
-                    assertThat(listing.getSegment()).isEqualTo(hiddenListing.getSegment());
-                });
+            assertThat(listingRows()).singleElement().satisfies(listing -> {
+                assertThat(listing.getPublished()).isTrue();
+                assertThat(listing.getParentId()).isEqualTo(section.getId());
+                assertThat(listing.getSegment()).isEqualTo(hiddenListing.getSegment());
+            });
         }
 
         @Test
@@ -217,20 +228,20 @@ class PublishApiToPortalUseCaseTest {
             var nestedFolder = aFolder("Internal", otherSection.getId());
             nestedFolder.updateParent(otherSection);
             var hiddenListing = aHiddenListing(nestedFolder);
-            var storedUnderListing = aPage("Legacy page", hiddenListing.getId()).toBuilder().published(false).build();
+            var storedUnderListing = aPage("Legacy page", hiddenListing.getId()).toBuilder()
+                    .published(false)
+                    .build();
             storedUnderListing.updateParent(hiddenListing);
             queryService.initWith(List.of(section, otherSection, nestedFolder, hiddenListing, storedUnderListing));
 
             var output = publishTo(section.getId());
 
             assertThat(output.section()).isEqualTo(section);
-            assertThat(listingRows())
-                .singleElement()
-                .satisfies(listing -> {
-                    assertThat(listing.getId()).isEqualTo(hiddenListing.getId());
-                    assertThat(listing.getParentId()).isEqualTo(section.getId());
-                    assertThat(listing.getPublished()).isTrue();
-                });
+            assertThat(listingRows()).singleElement().satisfies(listing -> {
+                assertThat(listing.getId()).isEqualTo(hiddenListing.getId());
+                assertThat(listing.getParentId()).isEqualTo(section.getId());
+                assertThat(listing.getPublished()).isTrue();
+            });
             assertThat(stored(storedUnderListing.getId())).satisfies(page -> {
                 assertThat(page.getParentId()).isEqualTo(hiddenListing.getId());
                 assertThat(page.getRootId()).isEqualTo(section.getId());
@@ -242,7 +253,10 @@ class PublishApiToPortalUseCaseTest {
         void should_publish_every_item_owned_by_the_api() {
             var section = aSection("APIs");
             var hiddenListing = aHiddenListing(section);
-            var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(false).build();
+            var page = aPage("Overview", null).toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .published(false)
+                    .build();
             queryService.initWith(List.of(section, hiddenListing, page));
 
             publishTo(section.getId());
@@ -253,20 +267,20 @@ class PublishApiToPortalUseCaseTest {
         @Test
         void should_make_the_row_private_when_the_chosen_section_is_private() {
             var section = aSection("APIs");
-            var privateSection = aFolder("Partners").toBuilder().visibility(PortalVisibility.PRIVATE).build();
+            var privateSection = aFolder("Partners").toBuilder()
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build();
             privateSection.markAsRoot();
             var hiddenListing = aHiddenListing(section);
             queryService.initWith(List.of(section, privateSection, hiddenListing));
 
             publishTo(privateSection.getId());
 
-            assertThat(listingRows())
-                .singleElement()
-                .satisfies(listing -> {
-                    assertThat(listing.getParentId()).isEqualTo(privateSection.getId());
-                    assertThat(listing.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
-                    assertThat(listing.getPublished()).isTrue();
-                });
+            assertThat(listingRows()).singleElement().satisfies(listing -> {
+                assertThat(listing.getParentId()).isEqualTo(privateSection.getId());
+                assertThat(listing.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+                assertThat(listing.getPublished()).isTrue();
+            });
         }
 
         @Test
@@ -277,7 +291,8 @@ class PublishApiToPortalUseCaseTest {
             var hiddenListing = aHiddenListing(section);
             queryService.initWith(List.of(section, nestedFolder, hiddenListing));
 
-            assertThatThrownBy(() -> publishTo(nestedFolder.getId())).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+            assertThatThrownBy(() -> publishTo(nestedFolder.getId()))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class);
 
             assertThat(stored(hiddenListing.getId()).getPublished()).isFalse();
             assertThat(stored(hiddenListing.getId()).getParentId()).isEqualTo(section.getId());
@@ -291,7 +306,10 @@ class PublishApiToPortalUseCaseTest {
     @Test
     void should_leave_the_api_unlisted_when_publishing_its_items_fails_so_that_a_retry_succeeds() {
         var section = aSection("APIs");
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(false).build();
+        var page = aPage("Overview", null).toBuilder()
+                .reference(ownedBy(API_ID))
+                .published(false)
+                .build();
         queryService.initWith(List.of(section, page));
         failingUpdateOf = page.getId();
 
@@ -302,8 +320,8 @@ class PublishApiToPortalUseCaseTest {
         publishTo(section.getId());
 
         assertThat(listingRows())
-            .singleElement()
-            .satisfies(listing -> assertThat(listing.getPublished()).isTrue());
+                .singleElement()
+                .satisfies(listing -> assertThat(listing.getPublished()).isTrue());
         assertThat(stored(page.getId()).getPublished()).isTrue();
     }
 
@@ -314,7 +332,8 @@ class PublishApiToPortalUseCaseTest {
 
     @Test
     void should_reject_an_unknown_section_without_creating_one() {
-        assertThatThrownBy(() -> publishTo(PortalNavigationItemId.random())).isInstanceOf(ParentNotFoundException.class);
+        assertThatThrownBy(() -> publishTo(PortalNavigationItemId.random()))
+                .isInstanceOf(ParentNotFoundException.class);
 
         assertThat(crudService.storage()).isEmpty();
     }
@@ -323,10 +342,14 @@ class PublishApiToPortalUseCaseTest {
     void should_reject_a_target_that_is_not_a_publish_location_and_leave_documentation_unpublished() {
         var section = aFolder("APIs");
         var nested = aFolder("Payments", section.getId());
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(false).build();
+        var page = aPage("Overview", null).toBuilder()
+                .reference(ownedBy(API_ID))
+                .published(false)
+                .build();
         queryService.initWith(List.of(section, nested, page));
 
-        assertThatThrownBy(() -> publishTo(nested.getId())).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+        assertThatThrownBy(() -> publishTo(nested.getId()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class);
 
         assertThat(stored(page.getId()).getPublished()).isFalse();
         assertThat(crudService.storage()).hasSize(3);
@@ -337,7 +360,9 @@ class PublishApiToPortalUseCaseTest {
     }
 
     private List<PortalNavigationItem> listingRows() {
-        return crudService.storage().stream().filter(PortalNavigationApi.class::isInstance).toList();
+        return crudService.storage().stream()
+                .filter(PortalNavigationApi.class::isInstance)
+                .toList();
     }
 
     private static PortalNavigationFolder aSection(String title) {

@@ -48,24 +48,22 @@ class GetVisiblePortalCategoriesUseCaseTest {
 
     @Test
     void should_return_only_visible_categories_for_environment() {
-        portalCategoryQueryServiceInMemory.initWith(
-            List.of(
+        portalCategoryQueryServiceInMemory.initWith(List.of(
                 PortalCategory.of(PortalCategoryId.random(), ENVIRONMENT_ID, "Weather", null, true),
                 PortalCategory.of(PortalCategoryId.random(), ENVIRONMENT_ID, "Hidden Category", null, false),
-                PortalCategory.of(PortalCategoryId.random(), "other-env", "Banking", null, true)
-            )
-        );
+                PortalCategory.of(PortalCategoryId.random(), "other-env", "Banking", null, true)));
 
         var output = useCase.execute(new GetVisiblePortalCategoriesUseCase.Input(ENVIRONMENT_ID));
 
-        assertThat(output.portalCategories()).extracting(PortalCategory::getTitle).containsExactly("Weather");
+        assertThat(output.portalCategories())
+                .extracting(PortalCategory::getTitle)
+                .containsExactly("Weather");
     }
 
     @Test
     void should_return_empty_list_when_no_visible_categories() {
         portalCategoryQueryServiceInMemory.initWith(
-            List.of(PortalCategory.of(PortalCategoryId.random(), ENVIRONMENT_ID, "Hidden Category", null, false))
-        );
+                List.of(PortalCategory.of(PortalCategoryId.random(), ENVIRONMENT_ID, "Hidden Category", null, false)));
 
         var output = useCase.execute(new GetVisiblePortalCategoriesUseCase.Input(ENVIRONMENT_ID));
 

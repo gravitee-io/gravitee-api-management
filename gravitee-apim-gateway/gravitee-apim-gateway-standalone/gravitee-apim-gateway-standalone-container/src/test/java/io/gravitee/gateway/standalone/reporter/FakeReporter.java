@@ -28,7 +28,8 @@ public class FakeReporter extends AbstractService<Reporter> implements Reporter 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FakeReporter.class);
 
-    static final Handler<Reportable> DEFAULT_REPORT_HANDLER = reportable -> LOGGER.debug("Reporting: {}", reportable.toString());
+    static final Handler<Reportable> DEFAULT_REPORT_HANDLER =
+            reportable -> LOGGER.debug("Reporting: {}", reportable.toString());
 
     private Handler<Reportable> reportHandler = DEFAULT_REPORT_HANDLER;
 

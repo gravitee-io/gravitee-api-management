@@ -29,10 +29,10 @@ class SearchMessageLogQueryAdapterTest {
     @ParameterizedTest
     @MethodSource("noFilter")
     void should_build_query_without_filter(MessageLogQuery.Filter filter) {
-        var result = SearchMessageLogQueryAdapter.adapt(MessageLogQuery.builder().page(1).size(20).filter(filter).build());
+        var result = SearchMessageLogQueryAdapter.adapt(
+                MessageLogQuery.builder().page(1).size(20).filter(filter).build());
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "from": 0,
               "size": 20,
@@ -40,27 +40,31 @@ class SearchMessageLogQueryAdapterTest {
                 "@timestamp": { "order": "desc" }
               }
             }
-            """
-        );
+            """);
     }
 
     @ParameterizedTest
     @MethodSource("getFilters")
     void should_build_query_with_filters(MessageLogQuery.Filter filter, String expected) {
-        var result = SearchMessageLogQueryAdapter.adapt(MessageLogQuery.builder().page(1).size(20).filter(filter).build());
+        var result = SearchMessageLogQueryAdapter.adapt(
+                MessageLogQuery.builder().page(1).size(20).filter(filter).build());
 
         assertThatJson(result).when(IGNORING_ARRAY_ORDER).isEqualTo(expected);
     }
 
     private static Stream<Arguments> noFilter() {
-        return Stream.of(Arguments.of((Object) null), Arguments.of(MessageLogQuery.Filter.builder().build()));
+        return Stream.of(
+                Arguments.of((Object) null),
+                Arguments.of(MessageLogQuery.Filter.builder().build()));
     }
 
     private static Stream<Arguments> getFilters() {
         return Stream.of(
-            Arguments.of(
-                MessageLogQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build(),
-                """
+                Arguments.of(
+                        MessageLogQuery.Filter.builder()
+                                .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -75,14 +79,13 @@ class SearchMessageLogQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageLogQuery.Filter.builder()
-                    .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                    .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageLogQuery.Filter.builder()
+                                .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                                .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -98,15 +101,14 @@ class SearchMessageLogQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageLogQuery.Filter.builder()
-                    .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                    .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
-                    .connectorType("entrypoint")
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageLogQuery.Filter.builder()
+                                .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                                .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                                .connectorType("entrypoint")
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -123,8 +125,6 @@ class SearchMessageLogQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            )
-        );
+                """));
     }
 }

@@ -27,10 +27,8 @@ public class PropertyDeserializerTest extends AbstractTest {
 
     @Test
     public void deserialize() throws Exception {
-        Property resultProperty = objectMapper().readValue(
-            "{\"key\" : \"key1\", \"value\" : \"myvalue\", \"encrypted\" : true}",
-            Property.class
-        );
+        Property resultProperty = objectMapper()
+                .readValue("{\"key\" : \"key1\", \"value\" : \"myvalue\", \"encrypted\" : true}", Property.class);
 
         Property expectedProperty = new Property("key1", "myvalue", true);
 

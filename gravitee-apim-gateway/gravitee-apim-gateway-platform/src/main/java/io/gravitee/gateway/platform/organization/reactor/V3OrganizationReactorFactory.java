@@ -57,58 +57,53 @@ public class V3OrganizationReactorFactory implements OrganizationReactorFactory 
 
     public OrganizationReactor create(final ReactableOrganization reactableOrganization) {
         ResourceLifecycleManager resourceLifecycleManager = resourceLifecycleManager(reactableOrganization);
-        OrganizationPolicyManager organizationPolicyManager = platformPolicyManager(reactableOrganization, resourceLifecycleManager);
+        OrganizationPolicyManager organizationPolicyManager =
+                platformPolicyManager(reactableOrganization, resourceLifecycleManager);
         PolicyChainFactory policyChainFactory = new PolicyChainFactory(organizationPolicyManager);
-        return new V3OrganizationReactor(reactableOrganization, policyChainFactory, resourceLifecycleManager, organizationPolicyManager);
+        return new V3OrganizationReactor(
+                reactableOrganization, policyChainFactory, resourceLifecycleManager, organizationPolicyManager);
     }
 
     private OrganizationPolicyManager platformPolicyManager(
-        final ReactableOrganization reactableOrganization,
-        final ResourceLifecycleManager resourceLifecycleManager
-    ) {
+            final ReactableOrganization reactableOrganization,
+            final ResourceLifecycleManager resourceLifecycleManager) {
         String[] beanNamesForType = applicationContext.getBeanNamesForType(
-            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
-        );
+                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
 
-        ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager = (ConfigurablePluginManager<
-            PolicyPlugin<?>
-        >) applicationContext.getBean(beanNamesForType[0]);
+        ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager =
+                (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(beanNamesForType[0]);
 
         PolicyFactory policyFactory = factoryCreator.create();
         CachedPolicyConfigurationFactory policyConfigurationFactory = new CachedPolicyConfigurationFactory();
 
         return new OrganizationPolicyManager(
-            classLoaderLegacyMode,
-            defaultClassLoader,
-            policyFactory,
-            policyConfigurationFactory,
-            configurablePluginManager,
-            policyClassLoaderFactory,
-            resourceLifecycleManager,
-            componentProvider,
-            reactableOrganization
-        );
+                classLoaderLegacyMode,
+                defaultClassLoader,
+                policyFactory,
+                policyConfigurationFactory,
+                configurablePluginManager,
+                policyClassLoaderFactory,
+                resourceLifecycleManager,
+                componentProvider,
+                reactableOrganization);
     }
 
     private ResourceLifecycleManager resourceLifecycleManager(ReactableOrganization reactableOrganization) {
         String[] beanNamesForType = applicationContext.getBeanNamesForType(
-            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
-        );
+                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
 
-        ConfigurablePluginManager<ResourcePlugin<?>> cpm = (ConfigurablePluginManager<ResourcePlugin<?>>) applicationContext.getBean(
-            beanNamesForType[0]
-        );
+        ConfigurablePluginManager<ResourcePlugin<?>> cpm =
+                (ConfigurablePluginManager<ResourcePlugin<?>>) applicationContext.getBean(beanNamesForType[0]);
 
         return new ResourceManagerImpl(
-            classLoaderLegacyMode,
-            applicationContext.getBean(DefaultClassLoader.class),
-            reactableOrganization,
-            cpm,
-            resourceClassLoaderFactory,
-            new ResourceConfigurationFactoryImpl(),
-            applicationContext,
-            deploymentContext()
-        );
+                classLoaderLegacyMode,
+                applicationContext.getBean(DefaultClassLoader.class),
+                reactableOrganization,
+                cpm,
+                resourceClassLoaderFactory,
+                new ResourceConfigurationFactoryImpl(),
+                applicationContext,
+                deploymentContext());
     }
 
     private DefaultDeploymentContext deploymentContext() {

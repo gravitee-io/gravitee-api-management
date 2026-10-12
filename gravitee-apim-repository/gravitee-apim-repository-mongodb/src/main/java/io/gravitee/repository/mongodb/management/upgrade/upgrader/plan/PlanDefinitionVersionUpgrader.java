@@ -32,7 +32,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlanDefinitionVersionUpgrader extends MongoUpgrader {
 
-    public static final int PLAN_DEFINITION_VERSION_UPGRADER_ORDER = DashboardTypeUpgrader.DASHBOARD_TYPE_UPGRADER_ORDER + 1;
+    public static final int PLAN_DEFINITION_VERSION_UPGRADER_ORDER =
+            DashboardTypeUpgrader.DASHBOARD_TYPE_UPGRADER_ORDER + 1;
 
     @Override
     public String version() {
@@ -45,17 +46,11 @@ public class PlanDefinitionVersionUpgrader extends MongoUpgrader {
         var projection = Projections.fields(Projections.include("_id", "definitionVersion"));
 
         var bulkActions = new ArrayList<UpdateManyModel<Document>>();
-        this.getCollection("apis")
-            .find(query)
-            .projection(projection)
-            .forEach(v4Api -> {
-                bulkActions.add(
-                    new UpdateManyModel<>(
-                        Filters.and(Filters.eq("api", v4Api.getString("_id")), Filters.exists("definitionVersion", false)),
-                        Updates.set("definitionVersion", DefinitionVersion.V4.name())
-                    )
-                );
-            });
+        this.getCollection("apis").find(query).projection(projection).forEach(v4Api -> {
+            bulkActions.add(new UpdateManyModel<>(
+                    Filters.and(Filters.eq("api", v4Api.getString("_id")), Filters.exists("definitionVersion", false)),
+                    Updates.set("definitionVersion", DefinitionVersion.V4.name())));
+        });
 
         if (!bulkActions.isEmpty()) {
             return this.getCollection("plans").bulkWrite(bulkActions).wasAcknowledged();

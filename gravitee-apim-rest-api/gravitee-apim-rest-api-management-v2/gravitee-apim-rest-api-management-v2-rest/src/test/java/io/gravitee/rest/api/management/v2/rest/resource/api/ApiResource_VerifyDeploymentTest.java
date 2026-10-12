@@ -49,7 +49,9 @@ public class ApiResource_VerifyDeploymentTest extends ApiResourceTest {
 
     @Test
     public void shouldHandleInvalidLicense() {
-        doThrow(new InvalidLicenseException("Bad license")).when(apiLicenseService).checkLicense(any(), anyString());
+        doThrow(new InvalidLicenseException("Bad license"))
+                .when(apiLicenseService)
+                .checkLicense(any(), anyString());
 
         final Response response = rootTarget().request().get();
 
@@ -62,7 +64,9 @@ public class ApiResource_VerifyDeploymentTest extends ApiResourceTest {
 
     @Test
     public void shouldHandleForbiddenFeature() {
-        doThrow(new ForbiddenFeatureException("http-get")).when(apiLicenseService).checkLicense(any(), anyString());
+        doThrow(new ForbiddenFeatureException("http-get"))
+                .when(apiLicenseService)
+                .checkLicense(any(), anyString());
 
         final Response response = rootTarget().request().get();
 
@@ -75,7 +79,9 @@ public class ApiResource_VerifyDeploymentTest extends ApiResourceTest {
 
     @Test
     public void shouldHandleMultipleForbiddenFeatures() {
-        doThrow(new ForbiddenFeatureException(List.of("http-get", "http-post"))).when(apiLicenseService).checkLicense(any(), anyString());
+        doThrow(new ForbiddenFeatureException(List.of("http-get", "http-post")))
+                .when(apiLicenseService)
+                .checkLicense(any(), anyString());
 
         final Response response = rootTarget().request().get();
 
@@ -88,7 +94,9 @@ public class ApiResource_VerifyDeploymentTest extends ApiResourceTest {
 
     @Test
     public void shouldHandleInvalidApiDefinition() {
-        doThrow(new TechnicalManagementException("not good")).when(apiLicenseService).checkLicense(any(), anyString());
+        doThrow(new TechnicalManagementException("not good"))
+                .when(apiLicenseService)
+                .checkLicense(any(), anyString());
 
         final Response response = rootTarget().request().get();
 

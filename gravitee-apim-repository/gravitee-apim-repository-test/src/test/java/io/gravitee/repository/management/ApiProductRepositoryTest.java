@@ -43,7 +43,8 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldCreate() throws TechnicalException {
         var date = new Date();
         var uuid = UUID.random().toString();
-        ApiProduct apiProduct = createApiProduct(uuid, date, "my-env", "my-api-product", "1.0.0", List.of("api1", "api2"));
+        ApiProduct apiProduct =
+                createApiProduct(uuid, date, "my-env", "my-api-product", "1.0.0", List.of("api1", "api2"));
 
         ApiProduct createdApiProduct = apiProductsRepository.create(apiProduct);
 
@@ -102,12 +103,10 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
         apiProductsRepository.create(apiProduct);
 
         ApiProduct byId = apiProductsRepository.findById(uuid).orElseThrow();
-        ApiProduct byEnvironment = apiProductsRepository
-            .findByEnvironmentId("my-env")
-            .stream()
-            .filter(p -> uuid.equals(p.getId()))
-            .findFirst()
-            .orElseThrow();
+        ApiProduct byEnvironment = apiProductsRepository.findByEnvironmentId("my-env").stream()
+                .filter(p -> uuid.equals(p.getId()))
+                .findFirst()
+                .orElseThrow();
 
         assertThat(byId.getTags()).containsExactlyInAnyOrder("internal", "external");
         assertThat(byEnvironment.getTags()).isEqualTo(byId.getTags());
@@ -140,7 +139,8 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindByEnvironmentIdAndName() throws TechnicalException {
         var id = "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3";
 
-        final Optional<ApiProduct> apiProduct = apiProductsRepository.findByEnvironmentIdAndName("my-env", "my-api-product");
+        final Optional<ApiProduct> apiProduct =
+                apiProductsRepository.findByEnvironmentIdAndName("my-env", "my-api-product");
 
         assertThat(apiProduct).isPresent();
         ApiProduct found = apiProduct.get();
@@ -154,7 +154,8 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldReturnEmptyWhenEnvironmentIdAndNameNotFound() throws TechnicalException {
-        final Optional<ApiProduct> apiProduct = apiProductsRepository.findByEnvironmentIdAndName("other-env", "unknown-product");
+        final Optional<ApiProduct> apiProduct =
+                apiProductsRepository.findByEnvironmentIdAndName("other-env", "unknown-product");
 
         assertThat(apiProduct).isEmpty();
     }
@@ -166,9 +167,9 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(apiProducts).hasSize(2).are(containingApi("api1"));
         // Must return every API in the product, not only the queried id (used when removing one API from a product).
         assertThat(apiProducts)
-            .filteredOn(p -> "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3".equals(p.getId()))
-            .singleElement()
-            .satisfies(p -> assertThat(p.getApiIds()).containsExactlyInAnyOrder("api1", "api2"));
+                .filteredOn(p -> "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3".equals(p.getId()))
+                .singleElement()
+                .satisfies(p -> assertThat(p.getApiIds()).containsExactlyInAnyOrder("api1", "api2"));
     }
 
     @Test
@@ -183,15 +184,17 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
         Set<ApiProduct> products = apiProductsRepository.findApiProductsByApiIds(Set.of("api1", "api2"));
 
         assertThat(products).isNotEmpty();
-        assertThat(products).allMatch(p -> p.getApiIds() != null && (p.getApiIds().contains("api1") || p.getApiIds().contains("api2")));
         assertThat(products)
-            .filteredOn(p -> "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3".equals(p.getId()))
-            .singleElement()
-            .satisfies(p -> assertThat(p.getApiIds()).containsExactlyInAnyOrder("api1", "api2"));
+                .allMatch(p -> p.getApiIds() != null
+                        && (p.getApiIds().contains("api1") || p.getApiIds().contains("api2")));
         assertThat(products)
-            .filteredOn(p -> "459a022c-e79c-4411-9a02-2ce79c141165".equals(p.getId()))
-            .singleElement()
-            .satisfies(p -> assertThat(p.getApiIds()).containsExactlyInAnyOrder("api2", "api3"));
+                .filteredOn(p -> "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3".equals(p.getId()))
+                .singleElement()
+                .satisfies(p -> assertThat(p.getApiIds()).containsExactlyInAnyOrder("api1", "api2"));
+        assertThat(products)
+                .filteredOn(p -> "459a022c-e79c-4411-9a02-2ce79c141165".equals(p.getId()))
+                .singleElement()
+                .satisfies(p -> assertThat(p.getApiIds()).containsExactlyInAnyOrder("api2", "api3"));
     }
 
     @Test
@@ -220,15 +223,15 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
         var date = new Date(1_470_157_767_000L);
         var updateDate = new Date(1_712_660_289L);
         ApiProduct apiProduct = ApiProduct.builder()
-            .id(id)
-            .name("my-updated-api-product")
-            .description("updated-description")
-            .version("2.0.0")
-            .environmentId("my-env")
-            .createdAt(date)
-            .updatedAt(updateDate)
-            .apiIds(List.of("api3", "api4"))
-            .build();
+                .id(id)
+                .name("my-updated-api-product")
+                .description("updated-description")
+                .version("2.0.0")
+                .environmentId("my-env")
+                .createdAt(date)
+                .updatedAt(updateDate)
+                .apiIds(List.of("api3", "api4"))
+                .build();
 
         final ApiProduct updatedApiProduct = apiProductsRepository.update(apiProduct);
         assertSoftly(softly -> {
@@ -254,7 +257,10 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
 
         ApiProduct created = apiProductsRepository.create(apiProduct);
         assertThat(created.getAnalytics()).isEqualTo("{\"enabled\":true}");
-        assertThat(apiProductsRepository.findById(uuid)).get().extracting(ApiProduct::getAnalytics).isEqualTo("{\"enabled\":true}");
+        assertThat(apiProductsRepository.findById(uuid))
+                .get()
+                .extracting(ApiProduct::getAnalytics)
+                .isEqualTo("{\"enabled\":true}");
 
         apiProduct.setAnalytics("{\"enabled\":false}");
         assertThat(apiProductsRepository.update(apiProduct).getAnalytics()).isEqualTo("{\"enabled\":false}");
@@ -266,9 +272,9 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldReadNullAnalyticsOnApiProductStoredBeforeTheColumnExisted() throws TechnicalException {
         assertThat(apiProductsRepository.findById("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"))
-            .get()
-            .extracting(ApiProduct::getAnalytics)
-            .isNull();
+                .get()
+                .extracting(ApiProduct::getAnalytics)
+                .isNull();
     }
 
     @Test
@@ -328,10 +334,11 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchIdsByEnvironments() throws TechnicalException {
         Page<String> page = apiProductsRepository.searchIds(
-            List.of(new ApiProductCriteria.Builder().environments(List.of("my-env")).build()),
-            new PageableBuilder().pageNumber(0).pageSize(10).build(),
-            null
-        );
+                List.of(new ApiProductCriteria.Builder()
+                        .environments(List.of("my-env"))
+                        .build()),
+                new PageableBuilder().pageNumber(0).pageSize(10).build(),
+                null);
 
         assertThat(page.getTotalElements()).isEqualTo(3);
         assertThat(page.getContent()).hasSize(3).contains("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3");
@@ -340,10 +347,9 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchIdsByEnvironmentId() throws TechnicalException {
         Page<String> page = apiProductsRepository.searchIds(
-            List.of(new ApiProductCriteria.Builder().environmentId("my-env").build()),
-            new PageableBuilder().pageNumber(0).pageSize(10).build(),
-            null
-        );
+                List.of(new ApiProductCriteria.Builder().environmentId("my-env").build()),
+                new PageableBuilder().pageNumber(0).pageSize(10).build(),
+                null);
 
         assertThat(page.getTotalElements()).isEqualTo(3);
         assertThat(page.getContent()).hasSize(3);
@@ -352,10 +358,11 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchIdsReturnsEmptyForUnknownEnvironment() throws TechnicalException {
         Page<String> page = apiProductsRepository.searchIds(
-            List.of(new ApiProductCriteria.Builder().environments(List.of("other-env")).build()),
-            new PageableBuilder().pageNumber(0).pageSize(10).build(),
-            null
-        );
+                List.of(new ApiProductCriteria.Builder()
+                        .environments(List.of("other-env"))
+                        .build()),
+                new PageableBuilder().pageNumber(0).pageSize(10).build(),
+                null);
 
         assertThat(page.getTotalElements()).isEqualTo(0);
         assertThat(page.getContent()).isEmpty();
@@ -364,19 +371,21 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchIdsWithPageable() throws TechnicalException {
         Page<String> page = apiProductsRepository.searchIds(
-            List.of(new ApiProductCriteria.Builder().environments(List.of("my-env")).build()),
-            new PageableBuilder().pageNumber(0).pageSize(2).build(),
-            null
-        );
+                List.of(new ApiProductCriteria.Builder()
+                        .environments(List.of("my-env"))
+                        .build()),
+                new PageableBuilder().pageNumber(0).pageSize(2).build(),
+                null);
 
         assertThat(page.getTotalElements()).isEqualTo(3);
         assertThat(page.getContent()).hasSize(2);
 
         page = apiProductsRepository.searchIds(
-            List.of(new ApiProductCriteria.Builder().environments(List.of("my-env")).build()),
-            new PageableBuilder().pageNumber(1).pageSize(2).build(),
-            null
-        );
+                List.of(new ApiProductCriteria.Builder()
+                        .environments(List.of("my-env"))
+                        .build()),
+                new PageableBuilder().pageNumber(1).pageSize(2).build(),
+                null);
 
         assertThat(page.getTotalElements()).isEqualTo(3);
         assertThat(page.getContent()).hasSize(1);
@@ -410,28 +419,24 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldPreserveExistingKindWhenReadingSeededProduct() throws TechnicalException {
-        ApiProduct found = apiProductsRepository.findById("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3").orElseThrow();
+        ApiProduct found = apiProductsRepository
+                .findById("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3")
+                .orElseThrow();
         assertThat(found.getKind()).isNull();
     }
 
     private static ApiProduct createApiProduct(
-        String uuid,
-        Date date,
-        String environmentId,
-        String name,
-        String version,
-        List<String> apiIds
-    ) {
+            String uuid, Date date, String environmentId, String name, String version, List<String> apiIds) {
         return ApiProduct.builder()
-            .id(uuid)
-            .name(name)
-            .description("test-description")
-            .version(version)
-            .environmentId(environmentId)
-            .createdAt(date)
-            .updatedAt(date)
-            .apiIds(apiIds)
-            .build();
+                .id(uuid)
+                .name(name)
+                .description("test-description")
+                .version(version)
+                .environmentId(environmentId)
+                .createdAt(date)
+                .updatedAt(date)
+                .apiIds(apiIds)
+                .build();
     }
 
     private org.assertj.core.api.Condition<ApiProduct> declaredInEnv(String env) {
@@ -439,6 +444,7 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     private org.assertj.core.api.Condition<ApiProduct> containingApi(String apiId) {
-        return new org.assertj.core.api.Condition<>(e -> e.getApiIds() != null && e.getApiIds().contains(apiId), "containing api " + apiId);
+        return new org.assertj.core.api.Condition<>(
+                e -> e.getApiIds() != null && e.getApiIds().contains(apiId), "containing api " + apiId);
     }
 }

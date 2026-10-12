@@ -29,11 +29,10 @@ import lombok.CustomLog;
 public class ES9IndexPreparer extends AbstractIndexPreparer {
 
     public ES9IndexPreparer(
-        final ReporterConfiguration configuration,
-        final PipelineConfiguration pipelineConfiguration,
-        final FreeMarkerComponent freeMarkerComponent,
-        final Client client
-    ) {
+            final ReporterConfiguration configuration,
+            final PipelineConfiguration pipelineConfiguration,
+            final FreeMarkerComponent freeMarkerComponent,
+            final Client client) {
         super(configuration, pipelineConfiguration, freeMarkerComponent, client, "/es9x");
     }
 }

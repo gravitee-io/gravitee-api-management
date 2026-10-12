@@ -37,7 +37,6 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +55,7 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json" })
+@DeployApi({"/apis/v4/http/pathtraversal/api-alpha.json"})
 class RejectedPathReportingIntegrationTest extends AbstractGatewayTest {
 
     private static final String TRAVERSAL = "/alpha/api/../../beta/api/echo";
@@ -76,12 +75,14 @@ class RejectedPathReportingIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @BeforeEach
@@ -100,25 +101,22 @@ class RejectedPathReportingIntegrationTest extends AbstractGatewayTest {
         final TestObserver<Metrics> metrics = reported.firstOrError().test();
 
         httpClient
-            .rxRequest(HttpMethod.GET, TRAVERSAL)
-            .flatMap(HttpClientRequest::rxSend)
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(response -> {
-                assertThat(response.statusCode()).isEqualTo(400);
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, TRAVERSAL)
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response.statusCode()).isEqualTo(400);
+                    return true;
+                })
+                .assertNoErrors();
 
-        metrics
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(reportable -> {
-                assertThat(reportable.getStatus()).isEqualTo(400);
-                // The operator needs to see what was actually asked for, not a sanitized version.
-                assertThat(reportable.getUri()).isEqualTo(TRAVERSAL);
-                return true;
-            });
+        metrics.awaitDone(30, TimeUnit.SECONDS).assertComplete().assertValue(reportable -> {
+            assertThat(reportable.getStatus()).isEqualTo(400);
+            // The operator needs to see what was actually asked for, not a sanitized version.
+            assertThat(reportable.getUri()).isEqualTo(TRAVERSAL);
+            return true;
+        });
     }
 }

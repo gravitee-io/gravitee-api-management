@@ -38,10 +38,10 @@ class SearchMetricsQueryAdapterTest {
     @ParameterizedTest
     @MethodSource("noFilter")
     void should_build_query_without_filter(MetricsQuery.Filter filter) {
-        var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder().page(1).size(20).filter(filter).build());
+        var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder().page(1).size(20).filter(filter).build());
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "from": 0,
               "size": 20,
@@ -50,24 +50,24 @@ class SearchMetricsQueryAdapterTest {
                 { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
               ]
             }
-            """
-        );
+            """);
     }
 
     @ParameterizedTest
     @MethodSource("getFilters")
     void should_build_query_with_filters(MetricsQuery.Filter filter, String expected) {
-        var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder().page(1).size(20).filter(filter).build());
+        var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder().page(1).size(20).filter(filter).build());
 
         assertThatJson(result).when(IGNORING_ARRAY_ORDER).isEqualTo(expected);
     }
 
     @Test
     void should_build_query_asking_another_page() {
-        var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder().page(3).size(10).build());
+        var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder().page(3).size(10).build());
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "from": 20,
               "size": 10,
@@ -76,19 +76,22 @@ class SearchMetricsQueryAdapterTest {
                 { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
               ]
             }
-            """
-        );
+            """);
     }
 
     private static Stream<Arguments> noFilter() {
-        return Stream.of(Arguments.of((Object) null), Arguments.of(MetricsQuery.Filter.builder().build()));
+        return Stream.of(
+                Arguments.of((Object) null),
+                Arguments.of(MetricsQuery.Filter.builder().build()));
     }
 
     private static Stream<Arguments> getFilters() {
         return Stream.of(
-            Arguments.of(
-                MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build(),
-                """
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                                .build(),
+                        """
                 {
                     "from": 0,
                     "size": 20,
@@ -117,15 +120,14 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                  }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder()
-                    .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
-                    .from(1695081660000L)
-                    .to(1695167999000L)
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                                .from(1695081660000L)
+                                .to(1695167999000L)
+                                .build(),
+                        """
                 {
                     "from": 0,
                     "size": 20,
@@ -163,11 +165,13 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                  }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder().from(1695081660000L).to(1695167999000L).build(),
-                """
+                """),
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .from(1695081660000L)
+                                .to(1695167999000L)
+                                .build(),
+                        """
                 {
                     "from": 0,
                     "size": 20,
@@ -190,11 +194,8 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                  }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder().to(1695167999000L).build(),
-                """
+                """),
+                Arguments.of(MetricsQuery.Filter.builder().to(1695167999000L).build(), """
                 {
                     "from": 0,
                     "size": 20,
@@ -216,11 +217,8 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                  }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder().from(1695081660000L).build(),
-                """
+                """),
+                Arguments.of(MetricsQuery.Filter.builder().from(1695081660000L).build(), """
                 {
                     "from": 0,
                     "size": 20,
@@ -242,11 +240,13 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                  }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder().apiIds(Set.of("1")).applicationIds(Set.of("2", "3")).build(),
-                """
+                """),
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .apiIds(Set.of("1"))
+                                .applicationIds(Set.of("2", "3"))
+                                .build(),
+                        """
                 {
                     "from": 0,
                     "size": 20,
@@ -290,14 +290,13 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                 }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder()
-                    .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
-                    .planIds(Set.of("plan-1", "plan-2"))
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                                .planIds(Set.of("plan-1", "plan-2"))
+                                .build(),
+                        """
                 {
                     "from": 0,
                     "size": 20,
@@ -341,15 +340,14 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                  }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder()
-                    .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
-                    .planIds(Set.of("plan-1", "plan-2"))
-                    .applicationIds(Set.of("app-1", "app-2", "app-3"))
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                                .planIds(Set.of("plan-1", "plan-2"))
+                                .applicationIds(Set.of("app-1", "app-2", "app-3"))
+                                .build(),
+                        """
                 {
                     "from": 0,
                     "size": 20,
@@ -407,11 +405,13 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                  }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder().apiIds(Set.of("1")).methods(Set.of(HttpMethod.GET, HttpMethod.CONNECT)).build(),
-                """
+                """),
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .apiIds(Set.of("1"))
+                                .methods(Set.of(HttpMethod.GET, HttpMethod.CONNECT))
+                                .build(),
+                        """
                 {
                     "from": 0,
                     "size": 20,
@@ -455,11 +455,13 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                 }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).statuses(Set.of(200, 202)).build(),
-                """
+                """),
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                                .statuses(Set.of(200, 202))
+                                .build(),
+                        """
                 {
                     "from": 0,
                     "size": 20,
@@ -494,11 +496,12 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                  }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder().entrypointIds(Set.of("http-post", "http-get")).build(),
-                """
+                """),
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .entrypointIds(Set.of("http-post", "http-get"))
+                                .build(),
+                        """
                 {
                     "from": 0,
                     "size": 20,
@@ -534,11 +537,14 @@ class SearchMetricsQueryAdapterTest {
                         { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                     ]
                 }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder().requestIds(Set.of("req-1", "req-2")).transactionIds(Set.of("t-1")).uri("my-path").build(),
-                """
+                """),
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .requestIds(Set.of("req-1", "req-2"))
+                                .transactionIds(Set.of("t-1"))
+                                .uri("my-path")
+                                .build(),
+                        """
                                          {
                                              "from": 0,
                                              "size": 20,
@@ -588,18 +594,19 @@ class SearchMetricsQueryAdapterTest {
                                                  { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                                              ]
                                           }
-                """
-            ),
-            Arguments.of(
-                MetricsQuery.Filter.builder()
-                    .responseTimeRanges(
-                        List.of(
-                            MetricsQuery.Filter.ResponseTimeRange.builder().to(10L).build(),
-                            MetricsQuery.Filter.ResponseTimeRange.builder().from(400L).to(500L).build()
-                        )
-                    )
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MetricsQuery.Filter.builder()
+                                .responseTimeRanges(List.of(
+                                        MetricsQuery.Filter.ResponseTimeRange.builder()
+                                                .to(10L)
+                                                .build(),
+                                        MetricsQuery.Filter.ResponseTimeRange.builder()
+                                                .from(400L)
+                                                .to(500L)
+                                                .build()))
+                                .build(),
+                        """
                                          {
                                              "from": 0,
                                              "size": 20,
@@ -647,9 +654,7 @@ class SearchMetricsQueryAdapterTest {
                                                  { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                                              ]
                                           }
-                """
-            )
-        );
+                """));
     }
 
     @Nested
@@ -658,13 +663,11 @@ class SearchMetricsQueryAdapterTest {
         @Test
         void should_add_error_keys_terms_filter_when_error_keys_provided() {
             var query = MetricsQuery.builder()
-                .filter(
-                    MetricsQuery.Filter.builder()
-                        .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
-                        .errorKeys(Set.of("GATEWAY_CLIENT_CONNECTION_ERROR", "NO_ENDPOINT_FOUND"))
-                        .build()
-                )
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                            .errorKeys(Set.of("GATEWAY_CLIENT_CONNECTION_ERROR", "NO_ENDPOINT_FOUND"))
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.ERROR_KEY)).isTrue();
         }
@@ -672,8 +675,11 @@ class SearchMetricsQueryAdapterTest {
         @Test
         void should_not_add_error_keys_filter_when_error_keys_null() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).errorKeys(null).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                            .errorKeys(null)
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.ERROR_KEY)).isFalse();
         }
@@ -681,8 +687,11 @@ class SearchMetricsQueryAdapterTest {
         @Test
         void should_not_add_error_keys_filter_when_error_keys_empty() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).errorKeys(Set.of()).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                            .errorKeys(Set.of())
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.ERROR_KEY)).isFalse();
         }
@@ -693,18 +702,15 @@ class SearchMetricsQueryAdapterTest {
 
         @Test
         void should_include_missing_entrypoint_fallback_when_entrypoint_ids_provided() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(MetricsQuery.Filter.builder().entrypointIds(Set.of("llm-proxy", "mcp-proxy")).build())
-                    .build()
-            );
+                    .filter(MetricsQuery.Filter.builder()
+                            .entrypointIds(Set.of("llm-proxy", "mcp-proxy"))
+                            .build())
+                    .build());
 
-            assertThatJson(result)
-                .when(IGNORING_ARRAY_ORDER)
-                .isEqualTo(
-                    """
+            assertThatJson(result).when(IGNORING_ARRAY_ORDER).isEqualTo("""
                     {
                         "from": 0,
                         "size": 20,
@@ -740,44 +746,47 @@ class SearchMetricsQueryAdapterTest {
                             { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
                         ]
                     }
-                    """
-                );
+                    """);
         }
 
         @Test
         void should_not_add_entrypoint_filter_when_entrypoint_ids_null() {
             var query = MetricsQuery.builder()
-                .page(1)
-                .size(20)
-                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).entrypointIds(null).build())
-                .build();
+                    .page(1)
+                    .size(20)
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("api-1"))
+                            .entrypointIds(null)
+                            .build())
+                    .build();
 
             var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
-            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
-            assertThat(
-                mustClauses
-                    .stream()
-                    .map(o -> (JsonObject) o)
-                    .noneMatch(clause -> clause.toString().contains("entrypoint-id"))
-            ).isTrue();
+            var mustClauses =
+                    result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+            assertThat(mustClauses.stream()
+                            .map(o -> (JsonObject) o)
+                            .noneMatch(clause -> clause.toString().contains("entrypoint-id")))
+                    .isTrue();
         }
 
         @Test
         void should_not_add_entrypoint_filter_when_entrypoint_ids_empty() {
             var query = MetricsQuery.builder()
-                .page(1)
-                .size(20)
-                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).entrypointIds(Set.of()).build())
-                .build();
+                    .page(1)
+                    .size(20)
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("api-1"))
+                            .entrypointIds(Set.of())
+                            .build())
+                    .build();
 
             var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
-            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
-            assertThat(
-                mustClauses
-                    .stream()
-                    .map(o -> (JsonObject) o)
-                    .noneMatch(clause -> clause.toString().contains("entrypoint-id"))
-            ).isTrue();
+            var mustClauses =
+                    result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+            assertThat(mustClauses.stream()
+                            .map(o -> (JsonObject) o)
+                            .noneMatch(clause -> clause.toString().contains("entrypoint-id")))
+                    .isTrue();
         }
     }
 
@@ -786,22 +795,15 @@ class SearchMetricsQueryAdapterTest {
 
         @Test
         void should_exclude_the_scope_ids_on_the_field_and_its_keyword_sub_field() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(
-                        MetricsQuery.Filter.builder()
+                    .filter(MetricsQuery.Filter.builder()
                             .entrypointScope(MetricsQuery.Filter.EntrypointScope.excluding(List.of("sse", "edge")))
-                            .build()
-                    )
-                    .build()
-            );
+                            .build())
+                    .build());
 
-            assertThatJson(result)
-                .node("query.bool.must")
-                .isEqualTo(
-                    """
+            assertThatJson(result).node("query.bool.must").isEqualTo("""
                     [
                         {
                             "bool": {
@@ -812,74 +814,53 @@ class SearchMetricsQueryAdapterTest {
                             }
                         }
                     ]
-                    """
-                );
+                    """);
         }
 
         @Test
         void should_select_exactly_the_given_entrypoints_without_the_field_missing_fallback() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(
-                        MetricsQuery.Filter.builder()
+                    .filter(MetricsQuery.Filter.builder()
                             .entrypointScope(MetricsQuery.Filter.EntrypointScope.exactly(List.of("mcp-studio")))
-                            .build()
-                    )
-                    .build()
-            );
+                            .build())
+                    .build());
 
-            assertThatJson(result)
-                .node("query.bool.must")
-                .isEqualTo(
-                    """
+            assertThatJson(result).node("query.bool.must").isEqualTo("""
                     [{"bool":{"should":[{"terms":{"entrypoint-id":["mcp-studio"]}},{"terms":{"entrypoint-id.keyword":["mcp-studio"]}}],"minimum_should_match":1}}]
-                    """
-                );
+                    """);
         }
 
         @Test
         void should_select_documents_without_an_entrypoint_for_the_synthetic_value() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(
-                        MetricsQuery.Filter.builder()
+                    .filter(MetricsQuery.Filter.builder()
                             .entrypointScope(MetricsQuery.Filter.EntrypointScope.exactly(List.of("(none)")))
-                            .build()
-                    )
-                    .build()
-            );
+                            .build())
+                    .build());
 
             assertThatJson(result)
-                .node("query.bool.must")
-                .isEqualTo("[{ \"bool\": { \"must_not\": { \"exists\": { \"field\": \"entrypoint-id\" } } } }]");
+                    .node("query.bool.must")
+                    .isEqualTo("[{ \"bool\": { \"must_not\": { \"exists\": { \"field\": \"entrypoint-id\" } } } }]");
         }
 
         @Test
         void should_let_the_scope_replace_the_legacy_ids_when_both_are_given() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(
-                        MetricsQuery.Filter.builder()
+                    .filter(MetricsQuery.Filter.builder()
                             .entrypointIds(Set.of("http-proxy"))
                             .entrypointScope(MetricsQuery.Filter.EntrypointScope.exactly(List.of("mcp")))
-                            .build()
-                    )
-                    .build()
-            );
+                            .build())
+                    .build());
 
-            assertThatJson(result)
-                .node("query.bool.must")
-                .isEqualTo(
-                    """
+            assertThatJson(result).node("query.bool.must").isEqualTo("""
                     [{"bool":{"should":[{"terms":{"entrypoint-id":["mcp"]}},{"terms":{"entrypoint-id.keyword":["mcp"]}}],"minimum_should_match":1}}]
-                    """
-                );
+                    """);
         }
     }
 
@@ -889,35 +870,41 @@ class SearchMetricsQueryAdapterTest {
         @Test
         void should_add_api_product_ids_terms_filter_when_provided() {
             var query = MetricsQuery.builder()
-                .filter(
-                    MetricsQuery.Filter.builder()
-                        .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
-                        .apiProductIds(Set.of("f5e6a5a0-1234-4b3a-9c1e-000000000001", "f5e6a5a0-1234-4b3a-9c1e-000000000002"))
-                        .build()
-                )
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                            .apiProductIds(Set.of(
+                                    "f5e6a5a0-1234-4b3a-9c1e-000000000001", "f5e6a5a0-1234-4b3a-9c1e-000000000002"))
+                            .build())
+                    .build();
 
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())).isTrue();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics()))
+                    .isTrue();
         }
 
         @Test
         void should_not_add_api_product_ids_filter_when_null() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).apiProductIds(null).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                            .apiProductIds(null)
+                            .build())
+                    .build();
 
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())).isFalse();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics()))
+                    .isFalse();
         }
 
         @Test
         void should_not_add_api_product_ids_filter_when_empty() {
             var query = MetricsQuery.builder()
-                .filter(
-                    MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).apiProductIds(Set.of()).build()
-                )
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                            .apiProductIds(Set.of())
+                            .build())
+                    .build();
 
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())).isFalse();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics()))
+                    .isFalse();
         }
     }
 
@@ -926,85 +913,87 @@ class SearchMetricsQueryAdapterTest {
 
         @Test
         void should_add_single_status_range_filter() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(
-                        MetricsQuery.Filter.builder()
-                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder().gte(200).lte(299).build()))
-                            .build()
-                    )
-                    .build()
-            );
+                    .filter(MetricsQuery.Filter.builder()
+                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder()
+                                    .gte(200)
+                                    .lte(299)
+                                    .build()))
+                            .build())
+                    .build());
 
             assertThatJson(result).inPath("$.query.bool.must[0].range.status").isEqualTo("{\"gte\":200,\"lte\":299}");
         }
 
         @Test
         void should_add_open_lower_bound_status_range() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(
-                        MetricsQuery.Filter.builder()
-                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder().gte(500).build()))
-                            .build()
-                    )
-                    .build()
-            );
+                    .filter(MetricsQuery.Filter.builder()
+                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder()
+                                    .gte(500)
+                                    .build()))
+                            .build())
+                    .build());
 
             assertThatJson(result).inPath("$.query.bool.must[0].range.status").isEqualTo("{\"gte\":500}");
         }
 
         @Test
         void should_add_open_upper_bound_status_range() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(
-                        MetricsQuery.Filter.builder()
-                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder().lte(299).build()))
-                            .build()
-                    )
-                    .build()
-            );
+                    .filter(MetricsQuery.Filter.builder()
+                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder()
+                                    .lte(299)
+                                    .build()))
+                            .build())
+                    .build());
 
             assertThatJson(result).inPath("$.query.bool.must[0].range.status").isEqualTo("{\"lte\":299}");
         }
 
         @Test
         void should_add_multiple_status_ranges_as_bool_should() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(
-                        MetricsQuery.Filter.builder()
-                            .statusRanges(
-                                List.of(
-                                    MetricsQuery.Filter.StatusRange.builder().gte(200).lte(299).build(),
-                                    MetricsQuery.Filter.StatusRange.builder().gte(400).lte(499).build()
-                                )
-                            )
-                            .build()
-                    )
-                    .build()
-            );
+                    .filter(MetricsQuery.Filter.builder()
+                            .statusRanges(List.of(
+                                    MetricsQuery.Filter.StatusRange.builder()
+                                            .gte(200)
+                                            .lte(299)
+                                            .build(),
+                                    MetricsQuery.Filter.StatusRange.builder()
+                                            .gte(400)
+                                            .lte(499)
+                                            .build()))
+                            .build())
+                    .build());
 
-            assertThatJson(result).inPath("$.query.bool.must[0].bool.should").isArray().hasSize(2);
-            assertThatJson(result).inPath("$.query.bool.must[0].bool.minimum_should_match").isEqualTo(1);
+            assertThatJson(result)
+                    .inPath("$.query.bool.must[0].bool.should")
+                    .isArray()
+                    .hasSize(2);
+            assertThatJson(result)
+                    .inPath("$.query.bool.must[0].bool.minimum_should_match")
+                    .isEqualTo(1);
         }
 
         @Test
         void should_not_add_status_range_filter_when_null() {
             var query = MetricsQuery.builder()
-                .page(1)
-                .size(20)
-                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).statusRanges(null).build())
-                .build();
+                    .page(1)
+                    .size(20)
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("api-1"))
+                            .statusRanges(null)
+                            .build())
+                    .build();
 
             var result = SearchMetricsQueryAdapter.adapt(query);
 
@@ -1017,45 +1006,48 @@ class SearchMetricsQueryAdapterTest {
 
         @Test
         void should_add_single_group_as_range_filter() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(MetricsQuery.Filter.builder().statusCodeGroups(Set.of("4XX")).build())
-                    .build()
-            );
+                    .filter(MetricsQuery.Filter.builder()
+                            .statusCodeGroups(Set.of("4XX"))
+                            .build())
+                    .build());
 
             assertThatJson(result).inPath("$.query.bool.must[0].range.status").isEqualTo("{\"gte\":400,\"lte\":499}");
         }
 
         @Test
         void should_add_multiple_groups_as_bool_should() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(MetricsQuery.Filter.builder().statusCodeGroups(Set.of("2XX", "4XX")).build())
-                    .build()
-            );
+                    .filter(MetricsQuery.Filter.builder()
+                            .statusCodeGroups(Set.of("2XX", "4XX"))
+                            .build())
+                    .build());
 
-            assertThatJson(result).inPath("$.query.bool.must[0].bool.should").isArray().hasSize(2);
-            assertThatJson(result).inPath("$.query.bool.must[0].bool.minimum_should_match").isEqualTo(1);
+            assertThatJson(result)
+                    .inPath("$.query.bool.must[0].bool.should")
+                    .isArray()
+                    .hasSize(2);
+            assertThatJson(result)
+                    .inPath("$.query.bool.must[0].bool.minimum_should_match")
+                    .isEqualTo(1);
         }
 
         @Test
         void should_produce_separate_must_clauses_for_groups_and_ranges() {
-            var result = SearchMetricsQueryAdapter.adapt(
-                MetricsQuery.builder()
+            var result = SearchMetricsQueryAdapter.adapt(MetricsQuery.builder()
                     .page(1)
                     .size(20)
-                    .filter(
-                        MetricsQuery.Filter.builder()
+                    .filter(MetricsQuery.Filter.builder()
                             .statusCodeGroups(Set.of("4XX"))
-                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder().gte(450).build()))
-                            .build()
-                    )
-                    .build()
-            );
+                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder()
+                                    .gte(450)
+                                    .build()))
+                            .build())
+                    .build());
 
             assertThatJson(result).inPath("$.query.bool.must").isArray().hasSize(2);
         }
@@ -1067,79 +1059,115 @@ class SearchMetricsQueryAdapterTest {
         @Test
         void should_add_llm_proxy_model_terms_filter() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().llmProxyModels(Set.of("gpt-4", "claude-3")).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .llmProxyModels(Set.of("gpt-4", "claude-3"))
+                            .build())
+                    .build();
 
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics())).isTrue();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics()))
+                    .isTrue();
         }
 
         @Test
         void should_add_llm_proxy_provider_terms_filter() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().llmProxyProviders(Set.of("openai", "anthropic")).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .llmProxyProviders(Set.of("openai", "anthropic"))
+                            .build())
+                    .build();
 
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_PROVIDER.v4Metrics())).isTrue();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_PROVIDER.v4Metrics()))
+                    .isTrue();
         }
 
         @Test
         void should_add_mcp_proxy_tool_terms_filter() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().mcpProxyTools(Set.of("tool-a")).build()).build();
+            var query = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder()
+                            .mcpProxyTools(Set.of("tool-a"))
+                            .build())
+                    .build();
 
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_TOOL.v4Metrics())).isTrue();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_TOOL.v4Metrics()))
+                    .isTrue();
         }
 
         @Test
         void should_add_mcp_proxy_resource_terms_filter() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().mcpProxyResources(Set.of("resource-a")).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .mcpProxyResources(Set.of("resource-a"))
+                            .build())
+                    .build();
 
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_RESOURCE.v4Metrics())).isTrue();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_RESOURCE.v4Metrics()))
+                    .isTrue();
         }
 
         @Test
         void should_add_mcp_proxy_prompt_terms_filter() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().mcpProxyPrompts(Set.of("prompt-a")).build()).build();
+            var query = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder()
+                            .mcpProxyPrompts(Set.of("prompt-a"))
+                            .build())
+                    .build();
 
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_PROMPT.v4Metrics())).isTrue();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_PROMPT.v4Metrics()))
+                    .isTrue();
         }
 
         @Test
         void should_not_add_llm_model_filter_when_null() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().llmProxyModels(null).build()).build();
+            var query = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder().llmProxyModels(null).build())
+                    .build();
 
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics())).isFalse();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics()))
+                    .isFalse();
         }
 
         @Test
         void should_not_add_llm_model_filter_when_empty() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().llmProxyModels(Set.of()).build()).build();
+            var query = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder()
+                            .llmProxyModels(Set.of())
+                            .build())
+                    .build();
 
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics())).isFalse();
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics()))
+                    .isFalse();
         }
     }
 
     @Nested
     class NativeConnectionStatusFilter {
 
-        private static final String FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
+        private static final String FIELD =
+                RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
 
         @Test
         void should_add_native_connection_status_terms_filter_on_additional_metrics() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().nativeConnectionStatuses(Set.of("CONNECTED", "SESSION_ERROR")).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .nativeConnectionStatuses(Set.of("CONNECTED", "SESSION_ERROR"))
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(query, FIELD)).isTrue();
         }
 
         @Test
         void should_not_add_native_connection_status_filter_when_null_or_empty() {
-            var nullQuery = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().nativeConnectionStatuses(null).build()).build();
+            var nullQuery = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder()
+                            .nativeConnectionStatuses(null)
+                            .build())
+                    .build();
             var emptyQuery = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().nativeConnectionStatuses(Set.of()).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .nativeConnectionStatuses(Set.of())
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(nullQuery, FIELD)).isFalse();
             assertThat(hasTermsOn(emptyQuery, FIELD)).isFalse();
@@ -1149,17 +1177,20 @@ class SearchMetricsQueryAdapterTest {
     @Nested
     class NativeClientFilters {
 
-        private static final String CLIENT_ID_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
+        private static final String CLIENT_ID_FIELD =
+                RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
         private static final String SOFTWARE_NAME_FIELD =
-            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
+                RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
         private static final String SOFTWARE_VERSION_FIELD =
-            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
+                RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
 
         @Test
         void should_add_kafka_client_id_terms_filter_on_additional_metrics() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().nativeClientIds(Set.of("rdkafka", "adminclient-1")).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .nativeClientIds(Set.of("rdkafka", "adminclient-1"))
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(query, CLIENT_ID_FIELD)).isTrue();
         }
@@ -1167,8 +1198,10 @@ class SearchMetricsQueryAdapterTest {
         @Test
         void should_add_kafka_client_software_name_terms_filter_on_additional_metrics() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().nativeClientSoftwareNames(Set.of("librdkafka")).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .nativeClientSoftwareNames(Set.of("librdkafka"))
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(query, SOFTWARE_NAME_FIELD)).isTrue();
         }
@@ -1176,8 +1209,10 @@ class SearchMetricsQueryAdapterTest {
         @Test
         void should_add_kafka_client_software_version_terms_filter_on_additional_metrics() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().nativeClientSoftwareVersions(Set.of("1.8.2")).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .nativeClientSoftwareVersions(Set.of("1.8.2"))
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(query, SOFTWARE_VERSION_FIELD)).isTrue();
         }
@@ -1185,23 +1220,19 @@ class SearchMetricsQueryAdapterTest {
         @Test
         void should_not_add_native_client_filters_when_null_or_empty() {
             var nullQuery = MetricsQuery.builder()
-                .filter(
-                    MetricsQuery.Filter.builder()
-                        .nativeClientIds(null)
-                        .nativeClientSoftwareNames(null)
-                        .nativeClientSoftwareVersions(null)
-                        .build()
-                )
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .nativeClientIds(null)
+                            .nativeClientSoftwareNames(null)
+                            .nativeClientSoftwareVersions(null)
+                            .build())
+                    .build();
             var emptyQuery = MetricsQuery.builder()
-                .filter(
-                    MetricsQuery.Filter.builder()
-                        .nativeClientIds(Set.of())
-                        .nativeClientSoftwareNames(Set.of())
-                        .nativeClientSoftwareVersions(Set.of())
-                        .build()
-                )
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .nativeClientIds(Set.of())
+                            .nativeClientSoftwareNames(Set.of())
+                            .nativeClientSoftwareVersions(Set.of())
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(nullQuery, CLIENT_ID_FIELD)).isFalse();
             assertThat(hasTermsOn(nullQuery, SOFTWARE_NAME_FIELD)).isFalse();
@@ -1216,7 +1247,7 @@ class SearchMetricsQueryAdapterTest {
     class FailureOriginFilter {
 
         private static final String STATUS_FIELD =
-            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
+                RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
 
         @Test
         void should_translate_none_to_no_error_and_no_internal_status() {
@@ -1232,7 +1263,10 @@ class SearchMetricsQueryAdapterTest {
             var predicate = singleOriginPredicate("CLIENT_TO_GATEWAY");
 
             var encoded = predicate.encode();
-            assertThat(encoded).contains("SASL_AUTHENTICATION_FAILED").contains("CONNECTION_ERROR").contains("DOWNSTREAM");
+            assertThat(encoded)
+                    .contains("SASL_AUTHENTICATION_FAILED")
+                    .contains("CONNECTION_ERROR")
+                    .contains("DOWNSTREAM");
             // the fallback branch must exclude broker-side and internal classifications
             assertThat(encoded).contains("UNKNOWN_SERVER_ERROR").contains("BROKER_");
         }
@@ -1250,12 +1284,13 @@ class SearchMetricsQueryAdapterTest {
         void should_translate_unknown_to_undecidable_without_explicit_side() {
             var predicate = singleOriginPredicate("UNKNOWN");
 
-            var mustNot = predicate.getJsonObject("bool").getJsonArray("must_not").encode();
+            var mustNot =
+                    predicate.getJsonObject("bool").getJsonArray("must_not").encode();
             assertThat(mustNot)
-                .contains(NativeApiMetricKeys.FAILURE_SIDE)
-                .contains("SASL_AUTHENTICATION_FAILED")
-                .contains("UNKNOWN_SERVER_ERROR")
-                .contains("CONNECTION_ERROR");
+                    .contains(NativeApiMetricKeys.FAILURE_SIDE)
+                    .contains("SASL_AUTHENTICATION_FAILED")
+                    .contains("UNKNOWN_SERVER_ERROR")
+                    .contains("CONNECTION_ERROR");
         }
 
         @Test
@@ -1268,10 +1303,16 @@ class SearchMetricsQueryAdapterTest {
 
         @Test
         void should_scope_the_failure_origin_clause_to_native_documents() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("NONE")).build()).build();
+            var query = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder()
+                            .failureOrigins(Set.of("NONE"))
+                            .build())
+                    .build();
 
             var clause = mustClauses(query).getJsonObject(0).getJsonObject("bool");
-            assertThat(clause.getJsonArray("must").encode()).contains(STATUS_FIELD).contains("\"exists\"");
+            assertThat(clause.getJsonArray("must").encode())
+                    .contains(STATUS_FIELD)
+                    .contains("\"exists\"");
         }
 
         @Test
@@ -1280,33 +1321,54 @@ class SearchMetricsQueryAdapterTest {
 
             // the heuristic branch excludes only the KNOWN side values (terms), not any exists —
             // a future side value must not make rows unfilterable
-            var heuristicBranch = predicate.getJsonObject("bool").getJsonArray("should").getJsonObject(1);
-            var mustNot = heuristicBranch.getJsonObject("bool").getJsonArray("must_not").encode();
+            var heuristicBranch =
+                    predicate.getJsonObject("bool").getJsonArray("should").getJsonObject(1);
+            var mustNot = heuristicBranch
+                    .getJsonObject("bool")
+                    .getJsonArray("must_not")
+                    .encode();
             assertThat(mustNot).contains("\"terms\"").contains("DOWNSTREAM").doesNotContain("\"exists\"");
         }
 
         @Test
         void should_or_multiple_requested_origins() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("NONE", "GATEWAY_INTERNAL")).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .failureOrigins(Set.of("NONE", "GATEWAY_INTERNAL"))
+                            .build())
+                    .build();
 
             var must = mustClauses(query);
             assertThat(must).hasSize(1);
-            assertThat(must.getJsonObject(0).getJsonObject("bool").getJsonArray("should")).hasSize(2);
+            assertThat(must.getJsonObject(0).getJsonObject("bool").getJsonArray("should"))
+                    .hasSize(2);
         }
 
         @Test
         void should_ignore_unknown_origin_values_and_empty_sets() {
-            var unknown = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("BOGUS")).build()).build();
-            var empty = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of()).build()).build();
+            var unknown = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder()
+                            .failureOrigins(Set.of("BOGUS"))
+                            .build())
+                    .build();
+            var empty = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder()
+                            .failureOrigins(Set.of())
+                            .build())
+                    .build();
 
-            assertThat(new JsonObject(SearchMetricsQueryAdapter.adapt(unknown)).getJsonObject("query")).isNull();
-            assertThat(new JsonObject(SearchMetricsQueryAdapter.adapt(empty)).getJsonObject("query")).isNull();
+            assertThat(new JsonObject(SearchMetricsQueryAdapter.adapt(unknown)).getJsonObject("query"))
+                    .isNull();
+            assertThat(new JsonObject(SearchMetricsQueryAdapter.adapt(empty)).getJsonObject("query"))
+                    .isNull();
         }
 
         private JsonObject singleOriginPredicate(String origin) {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of(origin)).build()).build();
+            var query = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder()
+                            .failureOrigins(Set.of(origin))
+                            .build())
+                    .build();
             var must = mustClauses(query);
             assertThat(must).hasSize(1);
             var should = must.getJsonObject(0).getJsonObject("bool").getJsonArray("should");
@@ -1326,8 +1388,11 @@ class SearchMetricsQueryAdapterTest {
         @Test
         void should_add_tenants_terms_filter_when_provided() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).tenants(Set.of("tenant-a", "tenant-b")).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("api-1"))
+                            .tenants(Set.of("tenant-a", "tenant-b"))
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.TENANT)).isTrue();
         }
@@ -1338,22 +1403,31 @@ class SearchMetricsQueryAdapterTest {
          */
         @Test
         void should_query_the_tenant_field_directly_for_both_indexes() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().tenants(Set.of("tenant-a")).build()).build();
+            var query = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder()
+                            .tenants(Set.of("tenant-a"))
+                            .build())
+                    .build();
 
             var mustClauses = new JsonObject(SearchMetricsQueryAdapter.adapt(query))
-                .getJsonObject("query")
-                .getJsonObject("bool")
-                .getJsonArray("must");
+                    .getJsonObject("query")
+                    .getJsonObject("bool")
+                    .getJsonArray("must");
 
             assertThat(mustClauses).hasSize(1);
-            assertThat(mustClauses.getJsonObject(0)).isEqualTo(
-                JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.TENANT, JsonArray.of("tenant-a")))
-            );
+            assertThat(mustClauses.getJsonObject(0))
+                    .isEqualTo(JsonObject.of(
+                            "terms", JsonObject.of(RequestV2MetricsV4Fields.TENANT, JsonArray.of("tenant-a"))));
         }
 
         @Test
         void should_not_add_tenants_filter_when_null() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).tenants(null).build()).build();
+            var query = MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("api-1"))
+                            .tenants(null)
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.TENANT)).isFalse();
         }
@@ -1361,8 +1435,11 @@ class SearchMetricsQueryAdapterTest {
         @Test
         void should_not_add_tenants_filter_when_empty() {
             var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).tenants(Set.of()).build())
-                .build();
+                    .filter(MetricsQuery.Filter.builder()
+                            .apiIds(Set.of("api-1"))
+                            .tenants(Set.of())
+                            .build())
+                    .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.TENANT)).isFalse();
         }
@@ -1378,9 +1455,9 @@ class SearchMetricsQueryAdapterTest {
         if (mustClauses == null) {
             return false;
         }
-        return mustClauses
-            .stream()
-            .map(o -> (JsonObject) o)
-            .anyMatch(clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(field));
+        return mustClauses.stream()
+                .map(o -> (JsonObject) o)
+                .anyMatch(clause -> clause.containsKey("terms")
+                        && clause.getJsonObject("terms").containsKey(field));
     }
 }

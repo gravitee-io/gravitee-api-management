@@ -31,15 +31,21 @@ public class HttpErrorRateBuilder {
     private final SingleDateHistogramBucketBuilder singleBucketBuilder = new SingleDateHistogramBucketBuilder();
 
     public Map<String, JsonObject> build(String aggName, String field) {
-        return Map.of("_" + aggName, json().put("date_histogram", singleBucketBuilder.build()).put("aggs", aggs(aggName)));
+        return Map.of(
+                "_" + aggName,
+                json().put("date_histogram", singleBucketBuilder.build()).put("aggs", aggs(aggName)));
     }
 
     private JsonObject aggs(String aggName) {
-        return json().put("_success_count", successCount()).put("_error_count", errorCount()).put(aggName, bucketScript());
+        return json().put("_success_count", successCount())
+                .put("_error_count", errorCount())
+                .put(aggName, bucketScript());
     }
 
     private JsonObject bucketScript() {
-        return json().put("bucket_script", json().put("buckets_path", bucketPath()).put("script", script()));
+        return json().put(
+                        "bucket_script",
+                        json().put("buckets_path", bucketPath()).put("script", script()));
     }
 
     private JsonObject bucketPath() {

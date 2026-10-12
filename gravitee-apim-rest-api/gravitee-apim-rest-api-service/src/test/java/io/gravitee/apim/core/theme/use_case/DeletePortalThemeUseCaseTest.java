@@ -41,10 +41,10 @@ import org.junit.jupiter.api.Test;
 class DeletePortalThemeUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String THEME_ID = "theme-1";
 
     private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
@@ -55,10 +55,9 @@ class DeletePortalThemeUseCaseTest {
     void setUp() {
         var themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
         useCase = new DeletePortalThemeUseCase(
-            themeCrudService,
-            portalCrudService,
-            new CurrentThemeDomainService(themeQueryService, themeCrudService)
-        );
+                themeCrudService,
+                portalCrudService,
+                new CurrentThemeDomainService(themeQueryService, themeCrudService));
     }
 
     @AfterEach
@@ -80,16 +79,16 @@ class DeletePortalThemeUseCaseTest {
     void rejects_delete_when_portal_active_theme_id_matches() {
         themeCrudService.initWith(List.of(anEnvironmentTheme(THEME_ID)));
         var portal = Portal.of(
-            PortalId.of("11111111-1111-1111-1111-111111111111"),
-            AUDIT_INFO.environmentId(),
-            AUDIT_INFO.organizationId(),
-            "Portal 1"
-        ).withActiveThemeId(THEME_ID);
+                        PortalId.of("11111111-1111-1111-1111-111111111111"),
+                        AUDIT_INFO.environmentId(),
+                        AUDIT_INFO.organizationId(),
+                        "Portal 1")
+                .withActiveThemeId(THEME_ID);
         portalCrudService.initWith(List.of(portal));
 
         assertThatThrownBy(() -> useCase.execute(new DeletePortalThemeUseCase.Input(AUDIT_INFO, THEME_ID)))
-            .isInstanceOf(PortalThemeInUseException.class)
-            .hasMessageContaining("still referenced");
+                .isInstanceOf(PortalThemeInUseException.class)
+                .hasMessageContaining("still referenced");
 
         assertThat(themeCrudService.storage()).hasSize(1);
     }
@@ -98,11 +97,11 @@ class DeletePortalThemeUseCaseTest {
     void allows_delete_when_portals_reference_other_themes() {
         themeCrudService.initWith(List.of(anEnvironmentTheme(THEME_ID), anEnvironmentTheme("other")));
         var portal = Portal.of(
-            PortalId.of("11111111-1111-1111-1111-111111111111"),
-            AUDIT_INFO.environmentId(),
-            AUDIT_INFO.organizationId(),
-            "Portal 1"
-        ).withActiveThemeId("other");
+                        PortalId.of("11111111-1111-1111-1111-111111111111"),
+                        AUDIT_INFO.environmentId(),
+                        AUDIT_INFO.organizationId(),
+                        "Portal 1")
+                .withActiveThemeId("other");
         portalCrudService.initWith(List.of(portal));
 
         useCase.execute(new DeletePortalThemeUseCase.Input(AUDIT_INFO, THEME_ID));
@@ -118,26 +117,24 @@ class DeletePortalThemeUseCaseTest {
         useCase.execute(new DeletePortalThemeUseCase.Input(AUDIT_INFO, THEME_ID));
 
         assertThat(themeCrudService.storage())
-            .filteredOn(t -> t.getId().equals("other"))
-            .singleElement()
-            .extracting(Theme::isEnabled)
-            .isEqualTo(true);
+                .filteredOn(t -> t.getId().equals("other"))
+                .singleElement()
+                .extracting(Theme::isEnabled)
+                .isEqualTo(true);
     }
 
     @Test
     void throws_when_theme_missing() {
-        assertThatThrownBy(() -> useCase.execute(new DeletePortalThemeUseCase.Input(AUDIT_INFO, "unknown"))).isInstanceOf(
-            ThemeNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new DeletePortalThemeUseCase.Input(AUDIT_INFO, "unknown")))
+                .isInstanceOf(ThemeNotFoundException.class);
     }
 
     @Test
     void throws_when_theme_belongs_to_another_environment() {
         themeCrudService.initWith(List.of(anEnvironmentTheme(THEME_ID, "other-env")));
 
-        assertThatThrownBy(() -> useCase.execute(new DeletePortalThemeUseCase.Input(AUDIT_INFO, THEME_ID))).isInstanceOf(
-            ThemeNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new DeletePortalThemeUseCase.Input(AUDIT_INFO, THEME_ID)))
+                .isInstanceOf(ThemeNotFoundException.class);
     }
 
     private static Theme anEnvironmentTheme(String id) {
@@ -146,12 +143,12 @@ class DeletePortalThemeUseCaseTest {
 
     private static Theme anEnvironmentTheme(String id, String envId) {
         return Theme.builder()
-            .id(id)
-            .name("Theme " + id)
-            .type(ThemeType.PORTAL_NEXT)
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .referenceId(envId)
-            .enabled(true)
-            .build();
+                .id(id)
+                .name("Theme " + id)
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .referenceId(envId)
+                .enabled(true)
+                .build();
     }
 }

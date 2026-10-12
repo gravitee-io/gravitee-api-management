@@ -65,10 +65,8 @@ public class UndeploySharedPolicyGroupUseCase {
     }
 
     private void updateSharedPolicyGroup(Input input) {
-        final SharedPolicyGroup existingSharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
-            input.environmentId(),
-            input.sharedPolicyGroupId()
-        );
+        final SharedPolicyGroup existingSharedPolicyGroup =
+                sharedPolicyGroupCrudService.getByEnvironmentId(input.environmentId(), input.sharedPolicyGroupId());
 
         existingSharedPolicyGroup.undeploy();
 
@@ -76,10 +74,9 @@ public class UndeploySharedPolicyGroupUseCase {
     }
 
     private SharedPolicyGroup getLastDeployedSharedPolicyGroup(Input input) {
-        final Optional<SharedPolicyGroup> optional = sharedPolicyGroupHistoryQueryService.getLatestBySharedPolicyGroupId(
-            input.environmentId(),
-            input.sharedPolicyGroupId()
-        );
+        final Optional<SharedPolicyGroup> optional =
+                sharedPolicyGroupHistoryQueryService.getLatestBySharedPolicyGroupId(
+                        input.environmentId(), input.sharedPolicyGroupId());
         if (optional.isEmpty()) {
             throw new SharedPolicyGroupNotFoundException(input.sharedPolicyGroupId());
         }
@@ -87,28 +84,28 @@ public class UndeploySharedPolicyGroupUseCase {
     }
 
     private void publishEvent(
-        Input input,
-        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup definition,
-        SharedPolicyGroup sharedPolicyGroup
-    ) {
+            Input input,
+            io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup definition,
+            SharedPolicyGroup sharedPolicyGroup) {
         final Event event = eventCrudService.createEvent(
-            input.auditInfo().organizationId(),
-            input.environmentId,
-            Set.of(input.environmentId),
-            EventType.UNDEPLOY_SHARED_POLICY_GROUP,
-            definition,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, input.auditInfo().actor().userId()),
-                entry(Event.EventProperties.SHARED_POLICY_GROUP_ID, sharedPolicyGroup.getCrossId())
-            )
-        );
+                input.auditInfo().organizationId(),
+                input.environmentId,
+                Set.of(input.environmentId),
+                EventType.UNDEPLOY_SHARED_POLICY_GROUP,
+                definition,
+                Map.ofEntries(
+                        entry(
+                                Event.EventProperties.USER,
+                                input.auditInfo().actor().userId()),
+                        entry(Event.EventProperties.SHARED_POLICY_GROUP_ID, sharedPolicyGroup.getCrossId())));
 
-        eventLatestCrudService.createOrPatchLatestEvent(input.auditInfo.organizationId(), sharedPolicyGroup.getId(), event);
+        eventLatestCrudService.createOrPatchLatestEvent(
+                input.auditInfo.organizationId(), sharedPolicyGroup.getId(), event);
     }
 
-    private void createAuditLog(SharedPolicyGroup oldSharedPolicyGroup, SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+    private void createAuditLog(
+            SharedPolicyGroup oldSharedPolicyGroup, SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_UNDEPLOYED)
@@ -117,8 +114,7 @@ public class UndeploySharedPolicyGroupUseCase {
                 .newValue(sharedPolicyGroup)
                 .createdAt(sharedPolicyGroup.getUpdatedAt())
                 .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP, sharedPolicyGroup.getId()))
-                .build()
-        );
+                .build());
     }
 
     public record Output(SharedPolicyGroup sharedPolicyGroup) {}

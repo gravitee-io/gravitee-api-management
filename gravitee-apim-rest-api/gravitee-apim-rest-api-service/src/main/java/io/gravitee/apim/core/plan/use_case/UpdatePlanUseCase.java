@@ -43,8 +43,9 @@ public class UpdatePlanUseCase {
 
     public Output execute(Input input) {
         final Plan planEntity = planCrudService
-            .findByPlanIdAndReferenceIdAndReferenceType(input.planToUpdate.getId(), input.apiId, GenericPlanEntity.ReferenceType.API.name())
-            .orElseThrow(() -> new PlanNotFoundException(input.planToUpdate.getId()));
+                .findByPlanIdAndReferenceIdAndReferenceType(
+                        input.planToUpdate.getId(), input.apiId, GenericPlanEntity.ReferenceType.API.name())
+                .orElseThrow(() -> new PlanNotFoundException(input.planToUpdate.getId()));
         if (input.planToUpdate.getValidation() == null) {
             input.planToUpdate.setValidation(planEntity.getValidation());
         }
@@ -61,11 +62,10 @@ public class UpdatePlanUseCase {
 
     @Builder
     public record Input(
-        PlanUpdates planToUpdate,
-        Function<Api, List<? extends AbstractFlow>> flowProvider,
-        String apiId,
-        AuditInfo auditInfo
-    ) {}
+            PlanUpdates planToUpdate,
+            Function<Api, List<? extends AbstractFlow>> flowProvider,
+            String apiId,
+            AuditInfo auditInfo) {}
 
     public record Output(PlanWithFlows updated) {}
 }

@@ -80,23 +80,20 @@ public class UpdateRatingEntity {
 
     @Override
     public String toString() {
-        return (
-            "UpdateRatingEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", api='" +
-            api +
-            '\'' +
-            ", rate=" +
-            rate +
-            ", title='" +
-            title +
-            '\'' +
-            ", comment='" +
-            comment +
-            '\'' +
-            '}'
-        );
+        return ("UpdateRatingEntity{" + "id='"
+                + id
+                + '\''
+                + ", api='"
+                + api
+                + '\''
+                + ", rate="
+                + rate
+                + ", title='"
+                + title
+                + '\''
+                + ", comment='"
+                + comment
+                + '\''
+                + '}');
     }
 }

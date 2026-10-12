@@ -24,11 +24,14 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface PortalMenuLinkRepository extends CrudRepository<PortalMenuLink, String> {
-    Optional<PortalMenuLink> findByIdAndEnvironmentId(final String portalMenuLinkId, final String environmentId) throws TechnicalException;
+    Optional<PortalMenuLink> findByIdAndEnvironmentId(final String portalMenuLinkId, final String environmentId)
+            throws TechnicalException;
+
     List<PortalMenuLink> findByEnvironmentIdSortByOrder(final String environmentId) throws TechnicalException;
+
     List<PortalMenuLink> findByEnvironmentIdAndVisibilitySortByOrder(
-        final String environmentId,
-        final PortalMenuLink.PortalMenuLinkVisibility visibility
-    ) throws TechnicalException;
+            final String environmentId, final PortalMenuLink.PortalMenuLinkVisibility visibility)
+            throws TechnicalException;
+
     void deleteByEnvironmentId(final String environmentId) throws TechnicalException;
 }

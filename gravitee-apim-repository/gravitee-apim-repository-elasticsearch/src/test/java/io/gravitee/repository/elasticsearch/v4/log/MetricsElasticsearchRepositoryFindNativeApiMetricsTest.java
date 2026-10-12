@@ -45,22 +45,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class MetricsElasticsearchRepositoryFindNativeApiMetricsTest extends AbstractElasticsearchRepositoryTest {
 
     /** Window [today 09:00 UTC, today 11:00 UTC) covering all native fixture events. */
-    private static final long FROM_MILLIS =
-        ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
-            .withHour(9)
-            .withMinute(0)
-            .withSecond(0)
-            .withNano(0)
-            .toEpochSecond() *
-        1000;
-    private static final long TO_MILLIS =
-        ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
-            .withHour(11)
-            .withMinute(0)
-            .withSecond(0)
-            .withNano(0)
-            .toEpochSecond() *
-        1000;
+    private static final long FROM_MILLIS = ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
+                    .withHour(9)
+                    .withMinute(0)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond()
+            * 1000;
+
+    private static final long TO_MILLIS = ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
+                    .withHour(11)
+                    .withMinute(0)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond()
+            * 1000;
 
     private static final String API_ID = "kafka-api-001";
     private static final String GATEWAY_ID = "2c99d50d-d318-42d3-99d5-0dd31862d3d2";
@@ -85,7 +84,8 @@ public class MetricsElasticsearchRepositoryFindNativeApiMetricsTest extends Abst
 
     @Test
     void returns_empty_optional_when_request_id_is_unknown() throws AnalyticsException {
-        var result = metricsV4Repository.findNativeApiMetrics(queryContext, API_ID, "no-such-request", FROM_MILLIS, TO_MILLIS);
+        var result = metricsV4Repository.findNativeApiMetrics(
+                queryContext, API_ID, "no-such-request", FROM_MILLIS, TO_MILLIS);
 
         assertThat(result).isEmpty();
     }
@@ -108,14 +108,17 @@ public class MetricsElasticsearchRepositoryFindNativeApiMetricsTest extends Abst
             soft.assertThat(result.getRemoteAddress()).isEqualTo("192.168.1.10");
             soft.assertThat(result.getHost()).isEqualTo(NATIVE_HOST);
             soft.assertThat(result.getTimestamp()).isEqualTo(today + "T10:00:00.000Z");
-            soft.assertThat(result.getErrorKey()).as("no error fields on a CONNECTED event").isNull();
-            soft.assertThat(result.getMessage()).as("no error message on a CONNECTED event").isNull();
-            soft
-                .assertThat(result.getAdditionalMetrics())
-                .containsEntry(NativeApiMetricKeys.CLIENT_ID, "consumer-app-1-A")
-                .containsEntry(NativeApiMetricKeys.BROKER_ID, "broker-1")
-                .containsEntry(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED")
-                .doesNotContainKey(NativeApiMetricKeys.CONNECTION_DURATION_MS);
+            soft.assertThat(result.getErrorKey())
+                    .as("no error fields on a CONNECTED event")
+                    .isNull();
+            soft.assertThat(result.getMessage())
+                    .as("no error message on a CONNECTED event")
+                    .isNull();
+            soft.assertThat(result.getAdditionalMetrics())
+                    .containsEntry(NativeApiMetricKeys.CLIENT_ID, "consumer-app-1-A")
+                    .containsEntry(NativeApiMetricKeys.BROKER_ID, "broker-1")
+                    .containsEntry(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED")
+                    .doesNotContainKey(NativeApiMetricKeys.CONNECTION_DURATION_MS);
         });
     }
 
@@ -139,12 +142,11 @@ public class MetricsElasticsearchRepositoryFindNativeApiMetricsTest extends Abst
             soft.assertThat(result.getTimestamp()).isEqualTo(today + "T10:05:00.000Z");
             soft.assertThat(result.getErrorKey()).isEqualTo("KAFKA_AUTH_FAILED");
             soft.assertThat(result.getMessage()).isEqualTo("SASL authentication failed: Invalid credentials");
-            soft
-                .assertThat(result.getAdditionalMetrics())
-                .containsEntry(NativeApiMetricKeys.CLIENT_ID, "consumer-app-1-B")
-                .containsEntry(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTION_ERROR")
-                .doesNotContainKey(NativeApiMetricKeys.BROKER_ID)
-                .doesNotContainKey(NativeApiMetricKeys.CONNECTION_DURATION_MS);
+            soft.assertThat(result.getAdditionalMetrics())
+                    .containsEntry(NativeApiMetricKeys.CLIENT_ID, "consumer-app-1-B")
+                    .containsEntry(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTION_ERROR")
+                    .doesNotContainKey(NativeApiMetricKeys.BROKER_ID)
+                    .doesNotContainKey(NativeApiMetricKeys.CONNECTION_DURATION_MS);
         });
     }
 
@@ -167,16 +169,17 @@ public class MetricsElasticsearchRepositoryFindNativeApiMetricsTest extends Abst
             soft.assertThat(result.getHost()).isEqualTo(NATIVE_HOST);
             soft.assertThat(result.getTimestamp()).isEqualTo(today + "T10:30:00.000Z");
             soft.assertThat(result.getErrorKey()).isEqualTo("KAFKA_CONSUMER_LEFT_GROUP");
-            soft
-                .assertThat(result.getAdditionalMetrics())
-                .containsEntry(NativeApiMetricKeys.CLIENT_ID, "consumer-app-1-A")
-                .containsEntry(NativeApiMetricKeys.BROKER_ID, "broker-1")
-                .containsEntry(NativeApiMetricKeys.CONNECTION_STATUS, "DISCONNECTED")
-                .containsEntry(NativeApiMetricKeys.CONNECTION_DURATION_MS, 1800000);
+            soft.assertThat(result.getAdditionalMetrics())
+                    .containsEntry(NativeApiMetricKeys.CLIENT_ID, "consumer-app-1-A")
+                    .containsEntry(NativeApiMetricKeys.BROKER_ID, "broker-1")
+                    .containsEntry(NativeApiMetricKeys.CONNECTION_STATUS, "DISCONNECTED")
+                    .containsEntry(NativeApiMetricKeys.CONNECTION_DURATION_MS, 1800000);
         });
     }
 
     private NativeApiMetrics findById(String requestId) throws AnalyticsException {
-        return metricsV4Repository.findNativeApiMetrics(queryContext, API_ID, requestId, FROM_MILLIS, TO_MILLIS).orElseThrow();
+        return metricsV4Repository
+                .findNativeApiMetrics(queryContext, API_ID, requestId, FROM_MILLIS, TO_MILLIS)
+                .orElseThrow();
     }
 }

@@ -55,13 +55,10 @@ class ApiGetDocumentationPageUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        ApiDocumentationDomainService apiDocumentationDomainService = new ApiDocumentationDomainService(pageQueryService, planQueryService);
+        ApiDocumentationDomainService apiDocumentationDomainService =
+                new ApiDocumentationDomainService(pageQueryService, planQueryService);
         useCase = new ApiGetDocumentationPageUseCase(
-            apiDocumentationDomainService,
-            pageSourceDomainService,
-            apiCrudService,
-            pageCrudService
-        );
+                apiDocumentationDomainService, pageSourceDomainService, apiCrudService, pageCrudService);
     }
 
     @AfterEach
@@ -75,160 +72,176 @@ class ApiGetDocumentationPageUseCaseTest {
     @Test
     void should_return_page() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        initPageServices(
-            List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build())
-        );
-        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
+        initPageServices(List.of(Page.builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .build()));
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))
+                .page();
         assertThat(res)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", PAGE_ID)
-            .hasFieldOrPropertyWithValue("hidden", null)
-            .hasFieldOrPropertyWithValue("generalConditions", false);
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("hidden", null)
+                .hasFieldOrPropertyWithValue("generalConditions", false);
     }
 
     @Test
     void should_return_page_used_as_general_conditions() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        initPageServices(
-            List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build())
-        );
+        initPageServices(List.of(Page.builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .build()));
 
-        planQueryService.initWith(
-            List.of(
-                PlanFixtures.aPlanHttpV4()
-                    .toBuilder()
-                    .id("plan-1")
-                    .referenceId(API_ID)
-                    .referenceType(GenericPlanEntity.ReferenceType.API)
-                    .generalConditions(PAGE_ID)
-                    .build()
-                    .setPlanStatus(PlanStatus.PUBLISHED)
-            )
-        );
+        planQueryService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                .id("plan-1")
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .generalConditions(PAGE_ID)
+                .build()
+                .setPlanStatus(PlanStatus.PUBLISHED)));
 
-        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))
+                .page();
         assertThat(res)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", PAGE_ID)
-            .hasFieldOrPropertyWithValue("hidden", null)
-            .hasFieldOrPropertyWithValue("generalConditions", true);
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("hidden", null)
+                .hasFieldOrPropertyWithValue("generalConditions", true);
     }
 
     @Test
     void should_return_folder_without_children() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        initPageServices(
-            List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build())
-        );
-        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
+        initPageServices(List.of(Page.builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.FOLDER)
+                .build()));
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))
+                .page();
         assertThat(res)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", PAGE_ID)
-            .hasFieldOrPropertyWithValue("hidden", true)
-            .hasFieldOrPropertyWithValue("generalConditions", null);
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("hidden", true)
+                .hasFieldOrPropertyWithValue("generalConditions", null);
     }
 
     @Test
     void should_return_folder_with_published_children() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        initPageServices(
-            List.of(
-                Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build(),
-                Page.builder().id("one-child").parentId(PAGE_ID).published(true).build()
-            )
-        );
-        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
-        assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("hidden", false);
+        initPageServices(List.of(
+                Page.builder()
+                        .id(PAGE_ID)
+                        .referenceType(Page.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .type(Page.Type.FOLDER)
+                        .build(),
+                Page.builder().id("one-child").parentId(PAGE_ID).published(true).build()));
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))
+                .page();
+        assertThat(res)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("hidden", false);
     }
 
     @Test
     void should_return_folder_with_unpublished_children() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        initPageServices(
-            List.of(
-                Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build(),
-                Page.builder().id("one-child").parentId(PAGE_ID).published(false).build()
-            )
-        );
-        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
-        assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("hidden", true);
+        initPageServices(List.of(
+                Page.builder()
+                        .id(PAGE_ID)
+                        .referenceType(Page.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .type(Page.Type.FOLDER)
+                        .build(),
+                Page.builder()
+                        .id("one-child")
+                        .parentId(PAGE_ID)
+                        .published(false)
+                        .build()));
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))
+                .page();
+        assertThat(res)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("hidden", true);
     }
 
     @Test
     void should_throw_error_if_api_does_not_exist() {
-        initPageServices(
-            List.of(Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build())
-        );
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))).isInstanceOf(
-            ApiNotFoundException.class
-        );
+        initPageServices(List.of(Page.builder()
+                .id("page#1")
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .build()));
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
+                .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_error_if_page_not_associated_to_api_by_id() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        initPageServices(
-            List.of(
-                Page.builder()
-                    .id(PAGE_ID)
-                    .referenceType(Page.ReferenceType.API)
-                    .referenceId(API_ID + "-bad")
-                    .type(Page.Type.MARKDOWN)
-                    .build()
-            )
-        );
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))).isInstanceOf(
-            ValidationDomainException.class
-        );
+        initPageServices(List.of(Page.builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID + "-bad")
+                .type(Page.Type.MARKDOWN)
+                .build()));
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
+                .isInstanceOf(ValidationDomainException.class);
     }
 
     @Test
     void should_throw_error_if_page_not_associated_to_api_by_reference_type() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        initPageServices(
-            List.of(
-                Page.builder()
-                    .id(PAGE_ID)
-                    .referenceType(Page.ReferenceType.ENVIRONMENT)
-                    .referenceId(API_ID)
-                    .type(Page.Type.MARKDOWN)
-                    .build()
-            )
-        );
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))).isInstanceOf(
-            ValidationDomainException.class
-        );
+        initPageServices(List.of(Page.builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.ENVIRONMENT)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .build()));
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
+                .isInstanceOf(ValidationDomainException.class);
     }
 
     @Test
     void should_throw_error_if_page_does_not_exist() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(List.of());
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))).isInstanceOf(
-            PageNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
+                .isInstanceOf(PageNotFoundException.class);
     }
 
     @Test
     void should_throw_error_if_page_id_is_root() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, "ROOT"))).isInstanceOf(
-            PageNotFoundException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, "ROOT")))
+                .isInstanceOf(PageNotFoundException.class);
     }
 
     @Test
     void should_return_fetched_page_without_sensitive_data() throws JsonProcessingException {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        initPageServices(
-            List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).source(githubSource()).build())
-        );
-        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
+        initPageServices(List.of(Page.builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .source(githubSource())
+                .build()));
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))
+                .page();
         String configuration = res.getSource().getConfiguration();
         JsonNode jsonConfiguration = new ObjectMapper().readTree(configuration);
-        assertThat(jsonConfiguration.get("personalAccessToken").textValue()).isEqualTo(
-            PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
-        );
+        assertThat(jsonConfiguration.get("personalAccessToken").textValue())
+                .isEqualTo(PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT);
     }
 
     private void initPageServices(List<Page> pages) {
@@ -241,15 +254,10 @@ class ApiGetDocumentationPageUseCaseTest {
     }
 
     private static PageSource githubSource() {
-        return PageSource.builder()
-            .type("github-fetcher")
-            .configuration(
-                """
+        return PageSource.builder().type("github-fetcher").configuration("""
                 {
                    "personalAccessToken" : I'm a sensitive data
                 }
-                """
-            )
-            .build();
+                """).build();
     }
 }

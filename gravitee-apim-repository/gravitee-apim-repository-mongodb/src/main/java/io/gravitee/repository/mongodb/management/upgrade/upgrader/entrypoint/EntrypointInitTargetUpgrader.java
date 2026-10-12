@@ -17,7 +17,6 @@ package io.gravitee.repository.mongodb.management.upgrade.upgrader.entrypoint;
 
 import static io.gravitee.repository.mongodb.management.upgrade.upgrader.subscription.SubscriptionApplicationNameUpgrader.SUBSCRIPTION_APPLICATION_NAME_UPGRADER_ORDER;
 
-import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
 import org.bson.Document;

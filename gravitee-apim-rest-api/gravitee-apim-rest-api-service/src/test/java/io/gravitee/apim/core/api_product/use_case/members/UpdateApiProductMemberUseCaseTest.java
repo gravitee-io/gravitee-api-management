@@ -46,7 +46,8 @@ class UpdateApiProductMemberUseCaseTest {
         Member member = memberQueryService.storage().get(0);
         assertThat(member.getRoles().get(0).getName()).isEqualTo("OWNER");
 
-        updateApiProductMemberUseCase.execute(new UpdateApiProductMemberUseCase.Input("API_PRODUCT_USER", "member-1", "ap-1"));
+        updateApiProductMemberUseCase.execute(
+                new UpdateApiProductMemberUseCase.Input("API_PRODUCT_USER", "member-1", "ap-1"));
 
         member = memberQueryService.storage().get(0);
         assertThat(member.getRoles().get(0).getName()).isEqualTo("API_PRODUCT_USER");
@@ -55,44 +56,48 @@ class UpdateApiProductMemberUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_role_is_primary_owner() {
-        assertThatThrownBy(() ->
-            updateApiProductMemberUseCase.execute(new UpdateApiProductMemberUseCase.Input("PRIMARY_OWNER", "member-1", "ap-1"))
-        ).isInstanceOf(SinglePrimaryOwnerException.class);
+        assertThatThrownBy(() -> updateApiProductMemberUseCase.execute(
+                        new UpdateApiProductMemberUseCase.Input("PRIMARY_OWNER", "member-1", "ap-1")))
+                .isInstanceOf(SinglePrimaryOwnerException.class);
     }
 
     @Test
     void should_throw_exception_when_downgrading_primary_owner() {
-        assertThatThrownBy(() ->
-            updateApiProductMemberUseCase.execute(new UpdateApiProductMemberUseCase.Input("API_PRODUCT_USER", "primary-owner", "ap-1"))
-        ).isInstanceOf(PrimaryOwnerRemovalException.class);
+        assertThatThrownBy(() -> updateApiProductMemberUseCase.execute(
+                        new UpdateApiProductMemberUseCase.Input("API_PRODUCT_USER", "primary-owner", "ap-1")))
+                .isInstanceOf(PrimaryOwnerRemovalException.class);
     }
 
     @Test
     void should_return_null_when_member_unknown() {
         var output = updateApiProductMemberUseCase.execute(
-            new UpdateApiProductMemberUseCase.Input("API_PRODUCT_USER", "member-unknown", "ap-1")
-        );
+                new UpdateApiProductMemberUseCase.Input("API_PRODUCT_USER", "member-unknown", "ap-1"));
 
         assertThat(output.updatedMember()).isNull();
     }
 
     private void initMembers() {
         List<Member> members = List.of(
-            Member.builder()
-                .referenceType(MembershipReferenceType.API_PRODUCT)
-                .referenceId("ap-1")
-                .type(MembershipMemberType.USER)
-                .id("member-1")
-                .roles(List.of(Member.Role.builder().name("OWNER").scope(RoleScope.API_PRODUCT).build()))
-                .build(),
-            Member.builder()
-                .referenceType(MembershipReferenceType.API_PRODUCT)
-                .referenceId("ap-1")
-                .type(MembershipMemberType.USER)
-                .id("primary-owner")
-                .roles(List.of(Member.Role.builder().name(PRIMARY_OWNER.name()).scope(RoleScope.API_PRODUCT).build()))
-                .build()
-        );
+                Member.builder()
+                        .referenceType(MembershipReferenceType.API_PRODUCT)
+                        .referenceId("ap-1")
+                        .type(MembershipMemberType.USER)
+                        .id("member-1")
+                        .roles(List.of(Member.Role.builder()
+                                .name("OWNER")
+                                .scope(RoleScope.API_PRODUCT)
+                                .build()))
+                        .build(),
+                Member.builder()
+                        .referenceType(MembershipReferenceType.API_PRODUCT)
+                        .referenceId("ap-1")
+                        .type(MembershipMemberType.USER)
+                        .id("primary-owner")
+                        .roles(List.of(Member.Role.builder()
+                                .name(PRIMARY_OWNER.name())
+                                .scope(RoleScope.API_PRODUCT)
+                                .build()))
+                        .build());
         memberQueryService.initWith(members);
     }
 }

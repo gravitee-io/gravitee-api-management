@@ -70,19 +70,27 @@ public class LoggingContext implements ConditionSupplier {
     }
 
     public boolean proxyRequestHeaders() {
-        return logging.getMode().isProxyMode() && logging.getScope().isRequest() && logging.getContent().isHeaders();
+        return logging.getMode().isProxyMode()
+                && logging.getScope().isRequest()
+                && logging.getContent().isHeaders();
     }
 
     public boolean proxyRequestPayload() {
-        return logging.getMode().isProxyMode() && logging.getScope().isRequest() && logging.getContent().isPayloads();
+        return logging.getMode().isProxyMode()
+                && logging.getScope().isRequest()
+                && logging.getContent().isPayloads();
     }
 
     public boolean proxyResponseHeaders() {
-        return logging.getMode().isProxyMode() && logging.getScope().isResponse() && logging.getContent().isHeaders();
+        return logging.getMode().isProxyMode()
+                && logging.getScope().isResponse()
+                && logging.getContent().isHeaders();
     }
 
     public boolean proxyResponsePayload() {
-        return logging.getMode().isProxyMode() && logging.getScope().isResponse() && logging.getContent().isPayloads();
+        return logging.getMode().isProxyMode()
+                && logging.getScope().isResponse()
+                && logging.getContent().isPayloads();
     }
 
     public int getMaxSizeLogMessage() {

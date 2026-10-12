@@ -97,7 +97,8 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public OrganizationEntity updateOrganization(String organizationId, final UpdateOrganizationEntity organizationEntity) {
+    public OrganizationEntity updateOrganization(
+            String organizationId, final UpdateOrganizationEntity organizationEntity) {
         try {
             Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
             if (organizationOptional.isPresent()) {
@@ -111,9 +112,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             }
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to update organization " + organizationEntity.getName(),
-                ex
-            );
+                    "An error occurs while trying to update organization " + organizationEntity.getName(), ex);
         }
     }
 
@@ -137,7 +136,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 organization.setId(organizationId);
                 OrganizationEntity createdOrganization = convert(organizationRepository.create(organization));
 
-                //create Default role for organization
+                // create Default role for organization
                 ExecutionContext executionContext = new ExecutionContext(organizationId);
                 roleService.initialize(executionContext, createdOrganization.getId());
                 roleService.createOrUpdateSystemRoles(executionContext, createdOrganization.getId());
@@ -147,30 +146,29 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             }
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to update organization " + organizationEntity.getName(),
-                ex
-            );
+                    "An error occurs while trying to update organization " + organizationEntity.getName(), ex);
         }
     }
 
     @Override
-    public OrganizationEntity updateOrganizationAndFlows(String organizationId, final UpdateOrganizationEntity organizationEntity) {
+    public OrganizationEntity updateOrganizationAndFlows(
+            String organizationId, final UpdateOrganizationEntity organizationEntity) {
         try {
             Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
             if (organizationOptional.isPresent()) {
                 List<Flow> previousFlows = flowService.findByReference(FlowReferenceType.ORGANIZATION, organizationId);
-                List<Flow> newFlows = organizationEntity.getFlows() != null ? organizationEntity.getFlows() : Collections.emptyList();
+                List<Flow> newFlows =
+                        organizationEntity.getFlows() != null ? organizationEntity.getFlows() : Collections.emptyList();
                 flowService.save(FlowReferenceType.ORGANIZATION, organizationId, newFlows);
                 auditService.createOrganizationAuditLog(
-                    GraviteeContext.getExecutionContext(),
-                    AuditService.AuditLogData.builder()
-                        .properties(Collections.emptyMap())
-                        .event(Organization.AuditEvent.ORGANIZATION_FLOWS_UPDATED)
-                        .createdAt(new Date())
-                        .oldValue(Collections.singletonMap("flows", previousFlows))
-                        .newValue(Collections.singletonMap("flows", newFlows))
-                        .build()
-                );
+                        GraviteeContext.getExecutionContext(),
+                        AuditService.AuditLogData.builder()
+                                .properties(Collections.emptyMap())
+                                .event(Organization.AuditEvent.ORGANIZATION_FLOWS_UPDATED)
+                                .createdAt(new Date())
+                                .oldValue(Collections.singletonMap("flows", previousFlows))
+                                .newValue(Collections.singletonMap("flows", newFlows))
+                                .build());
                 Organization organization = convert(organizationEntity);
                 organization.setId(organizationId);
                 OrganizationEntity updatedOrganization = convert(organizationRepository.update(organization));
@@ -181,26 +179,21 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             }
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to update organization " + organizationEntity.getName(),
-                ex
-            );
+                    "An error occurs while trying to update organization " + organizationEntity.getName(), ex);
         }
     }
 
     private void createPublishOrganizationEvent(OrganizationEntity organizationEntity) {
-        Set<String> environmentIds = environmentService
-            .findByOrganization(organizationEntity.getId())
-            .stream()
-            .map(EnvironmentEntity::getId)
-            .collect(Collectors.toSet());
+        Set<String> environmentIds = environmentService.findByOrganization(organizationEntity.getId()).stream()
+                .map(EnvironmentEntity::getId)
+                .collect(Collectors.toSet());
 
         eventService.createOrganizationEvent(
-            new ExecutionContext(organizationEntity.getId()),
-            environmentIds,
-            organizationEntity.getId(),
-            EventType.PUBLISH_ORGANIZATION,
-            organizationEntity
-        );
+                new ExecutionContext(organizationEntity.getId()),
+                environmentIds,
+                organizationEntity.getId(),
+                EventType.PUBLISH_ORGANIZATION,
+                organizationEntity);
     }
 
     @Override
@@ -220,7 +213,8 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 organizationRepository.delete(organizationId);
             }
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to delete organization " + organizationId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to delete organization " + organizationId, ex);
         }
     }
 
@@ -230,7 +224,9 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         organization.setCockpitId(organizationEntity.getCockpitId());
         organization.setName(organizationEntity.getName());
         organization.setDescription(organizationEntity.getDescription());
-        String flowMode = organizationEntity.getFlowMode() != null ? organizationEntity.getFlowMode().name() : FlowMode.DEFAULT.name();
+        String flowMode = organizationEntity.getFlowMode() != null
+                ? organizationEntity.getFlowMode().name()
+                : FlowMode.DEFAULT.name();
         organization.setFlowMode(flowMode);
         return organization;
     }
@@ -242,7 +238,8 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         organizationEntity.setHrids(organization.getHrids());
         organizationEntity.setName(organization.getName());
         organizationEntity.setDescription(organization.getDescription());
-        FlowMode flowMode = organization.getFlowMode() != null ? FlowMode.valueOf(organization.getFlowMode()) : FlowMode.DEFAULT;
+        FlowMode flowMode =
+                organization.getFlowMode() != null ? FlowMode.valueOf(organization.getFlowMode()) : FlowMode.DEFAULT;
         organizationEntity.setFlowMode(flowMode);
         List<Flow> flows = flowService.findByReference(FlowReferenceType.ORGANIZATION, organization.getId());
         organizationEntity.setFlows(flows);
@@ -276,7 +273,10 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     @Override
     public OrganizationEntity getDefaultOrInitialize() {
         try {
-            return organizationRepository.findById(GraviteeContext.getDefaultOrganization()).map(this::convert).orElseGet(this::initialize);
+            return organizationRepository
+                    .findById(GraviteeContext.getDefaultOrganization())
+                    .map(this::convert)
+                    .orElseGet(this::initialize);
         } catch (final Exception ex) {
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
@@ -287,18 +287,21 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         try {
             log.debug("Find organization by cockpit id");
             return organizationRepository
-                .findByCockpitId(cockpitId)
-                .map(this::convert)
-                .orElseThrow(() -> new OrganizationNotFoundException(cockpitId));
+                    .findByCockpitId(cockpitId)
+                    .map(this::convert)
+                    .orElseThrow(() -> new OrganizationNotFoundException(cockpitId));
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find organization by cockpit id " + cockpitId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find organization by cockpit id " + cockpitId, ex);
         }
     }
 
     @Override
     public Set<OrganizationEntity> findByHrids(Set<String> hrids) {
         try {
-            return organizationRepository.findByHrids(hrids).stream().map(this::convert).collect(Collectors.toSet());
+            return organizationRepository.findByHrids(hrids).stream()
+                    .map(this::convert)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to list all organizations", ex);
         }

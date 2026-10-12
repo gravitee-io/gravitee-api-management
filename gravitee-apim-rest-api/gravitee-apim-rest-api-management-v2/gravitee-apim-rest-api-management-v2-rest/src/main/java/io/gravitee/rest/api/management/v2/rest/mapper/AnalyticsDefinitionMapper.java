@@ -68,7 +68,8 @@ public interface AnalyticsDefinitionMapper {
 
     List<MetricSpec> mapMetricSpecs(List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs);
 
-    default MetricSpecsResponse toMetricSpecsResponse(List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs) {
+    default MetricSpecsResponse toMetricSpecsResponse(
+            List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs) {
         return new MetricSpecsResponse().data(mapMetricSpecs(metricSpecs));
     }
 
@@ -76,7 +77,8 @@ public interface AnalyticsDefinitionMapper {
 
     List<FacetSpec> mapFacetSpecs(List<io.gravitee.apim.core.analytics_engine.model.FacetSpec> facetSpecs);
 
-    default FacetSpecsResponse toFacetSpecsResponse(List<io.gravitee.apim.core.analytics_engine.model.FacetSpec> facetSpecs) {
+    default FacetSpecsResponse toFacetSpecsResponse(
+            List<io.gravitee.apim.core.analytics_engine.model.FacetSpec> facetSpecs) {
         return new FacetSpecsResponse().data(mapFacetSpecs(facetSpecs));
     }
 
@@ -87,7 +89,8 @@ public interface AnalyticsDefinitionMapper {
     @Mapping(source = "apis", target = "apiTypes")
     FilterSpec mapFilterSpec(io.gravitee.apim.core.analytics_engine.model.FilterSpec filterSpec);
 
-    ObservabilityFilterName mapObservabilityFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
+    ObservabilityFilterName mapObservabilityFilterName(
+            io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 
     ApiName mapApiSpecName(io.gravitee.apim.core.analytics_engine.model.ApiSpec.Name name);
 
@@ -95,7 +98,8 @@ public interface AnalyticsDefinitionMapper {
 
     List<FilterSpec> mapFilterSpecs(List<io.gravitee.apim.core.analytics_engine.model.FilterSpec> filterSpecs);
 
-    default FilterSpecsResponse toFilterSpecsResponse(List<io.gravitee.apim.core.analytics_engine.model.FilterSpec> filterSpecs) {
+    default FilterSpecsResponse toFilterSpecsResponse(
+            List<io.gravitee.apim.core.analytics_engine.model.FilterSpec> filterSpecs) {
         return new FilterSpecsResponse().data(mapFilterSpecs(filterSpecs));
     }
 
@@ -106,10 +110,10 @@ public interface AnalyticsDefinitionMapper {
     default FilterValuesResponse toFilterValuesResponse(FilterValuesPage page, int pageNumber, int perPage) {
         var data = mapFilterValues(page.data());
         var pagination = new Pagination()
-            .page(pageNumber)
-            .perPage(perPage)
-            .pageItemsCount(data.size())
-            .totalCount(page.totalFilteredCount());
+                .page(pageNumber)
+                .perPage(perPage)
+                .pageItemsCount(data.size())
+                .totalCount(page.totalFilteredCount());
         return new FilterValuesResponse().data(data).pagination(pagination);
     }
 }

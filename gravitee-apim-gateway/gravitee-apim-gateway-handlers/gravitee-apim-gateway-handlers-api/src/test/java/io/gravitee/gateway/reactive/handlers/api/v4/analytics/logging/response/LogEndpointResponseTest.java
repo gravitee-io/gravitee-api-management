@@ -41,7 +41,6 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -142,7 +141,8 @@ class LogEndpointResponseTest {
 
     @Test
     void should_log_only_headers_returned_by_the_backend_and_ignore_headers_set_by_the_gateway() {
-        final HttpHeaders backendHeaders = HttpHeaders.create().set("X-From-Backend1", "Backend1").set("X-From-Backend2", "Backend2");
+        final HttpHeaders backendHeaders =
+                HttpHeaders.create().set("X-From-Backend1", "Backend1").set("X-From-Backend2", "Backend2");
         final VertxHttpHeaders existingHeaders = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         existingHeaders.set("X-Test1", "Value1");
         existingHeaders.set("X-Test2", "Value2");
@@ -203,7 +203,8 @@ class LogEndpointResponseTest {
         initializeHeaders(HttpHeaders.create());
         when(loggingContext.endpointResponseHeaders()).thenReturn(false);
         when(loggingContext.endpointResponsePayload()).thenReturn(true);
-        when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any())).thenReturn(false);
+        when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any()))
+                .thenReturn(false);
 
         cut.setupCapture(ctx);
         triggerResponseFromBackend(backendHeaders);
@@ -316,7 +317,8 @@ class LogEndpointResponseTest {
         when(loggingContext.endpointResponseHeaders()).thenReturn(false);
         when(loggingContext.endpointResponsePayload()).thenReturn(false);
         when(response.status()).thenReturn(OK_200);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(new ExecutionFailure(400));
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE))
+                .thenReturn(new ExecutionFailure(400));
 
         cut.setupCapture(ctx);
         triggerResponseFromBackend(null);
@@ -334,9 +336,8 @@ class LogEndpointResponseTest {
         when(loggingContext.isBodyLoggable()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(false);
         when(response.status()).thenReturn(OK_200);
-        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(
-            new ExecutionFailure(400).message(errorMessage)
-        );
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE))
+                .thenReturn(new ExecutionFailure(400).message(errorMessage));
 
         cut.setupCapture(ctx);
         triggerResponseFromBackend(null);
@@ -360,44 +361,40 @@ class LogEndpointResponseTest {
             backendHeaders.forEach(e -> response.headers().set(e.getKey(), e.getValue()));
         }
 
-        Flowable.fromPublisher(
-            buffersInterceptorCaptor.getValue().apply(Flowable.just(Buffer.buffer(LogEndpointResponseTest.BODY_CONTENT)))
-        )
-            .test()
-            .assertComplete();
+        Flowable.fromPublisher(buffersInterceptorCaptor
+                        .getValue()
+                        .apply(Flowable.just(Buffer.buffer(LogEndpointResponseTest.BODY_CONTENT))))
+                .test()
+                .assertComplete();
 
         cut.finalizeCapture(ctx);
     }
 
     private void triggerResponseFromBackendWithError() {
-        List<Buffer> buffers = BODY_CONTENT.chars()
-            .mapToObj(i -> Buffer.buffer(String.valueOf((char) i)))
-            .collect(Collectors.toCollection(ArrayList::new));
+        List<Buffer> buffers = BODY_CONTENT
+                .chars()
+                .mapToObj(i -> Buffer.buffer(String.valueOf((char) i)))
+                .collect(Collectors.toCollection(ArrayList::new));
 
         // Remove last buffer to simulate error before complete.
         buffers.removeLast();
 
-        Flowable.fromPublisher(
-            buffersInterceptorCaptor
-                .getValue()
-                .apply(Flowable.fromIterable(buffers).concatWith(Flowable.error(new RuntimeException("error"))))
-        )
-            .test()
-            .assertError(RuntimeException.class);
+        Flowable.fromPublisher(buffersInterceptorCaptor
+                        .getValue()
+                        .apply(Flowable.fromIterable(buffers)
+                                .concatWith(Flowable.error(new RuntimeException("error")))))
+                .test()
+                .assertError(RuntimeException.class);
 
         cut.finalizeCapture(ctx);
     }
 
     private void initializeHeaders(HttpHeaders initialHeaders) {
         AtomicReference<HttpHeaders> headersRef = new AtomicReference<>(initialHeaders);
-        lenient()
-            .when(response.headers())
-            .thenAnswer(invocation -> headersRef.get());
-        lenient()
-            .when(response.setHeaders(any(HttpHeaders.class)))
-            .thenAnswer(invocation -> {
-                headersRef.set(invocation.getArgument(0));
-                return response;
-            });
+        lenient().when(response.headers()).thenAnswer(invocation -> headersRef.get());
+        lenient().when(response.setHeaders(any(HttpHeaders.class))).thenAnswer(invocation -> {
+            headersRef.set(invocation.getArgument(0));
+            return response;
+        });
     }
 }

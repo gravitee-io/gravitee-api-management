@@ -33,8 +33,7 @@ class FindAuthzDecisionLogQueryAdapterTest {
     void builds_a_single_hit_query_pinned_to_the_environment_the_decision_point_the_api_and_the_event_id() {
         var result = FindAuthzDecisionLogQueryAdapter.adapt(QUERY_CONTEXT, "api-1", "evt-9");
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "query": {
                 "bool": {
@@ -50,8 +49,7 @@ class FindAuthzDecisionLogQueryAdapterTest {
               },
               "size": 1
             }
-            """
-        );
+            """);
     }
 
     @Test
@@ -59,10 +57,10 @@ class FindAuthzDecisionLogQueryAdapterTest {
         var result = FindAuthzDecisionLogQueryAdapter.adapt(new QueryContext("org-2", "env-2"), "api-1", "evt-9");
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter")
-            .isArray()
-            .contains(json("{ \"term\": { \"org-id\": \"org-2\" } }"))
-            .contains(json("{ \"term\": { \"env-id\": \"env-2\" } }"));
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"term\": { \"org-id\": \"org-2\" } }"))
+                .contains(json("{ \"term\": { \"env-id\": \"env-2\" } }"));
     }
 
     @Test
@@ -70,24 +68,30 @@ class FindAuthzDecisionLogQueryAdapterTest {
         var result = FindAuthzDecisionLogQueryAdapter.adapt(QUERY_CONTEXT, "api-1", "evt-9");
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter")
-            .isArray()
-            .contains(json("{ \"term\": { \"decision-point-type\": \"authz\" } }"))
-            .contains(json("{ \"term\": { \"phase\": \"RESOLVED\" } }"));
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"term\": { \"decision-point-type\": \"authz\" } }"))
+                .contains(json("{ \"term\": { \"phase\": \"RESOLVED\" } }"));
     }
 
     @Test
     void scopes_by_api_so_an_event_id_from_another_api_cannot_be_read() {
         var result = FindAuthzDecisionLogQueryAdapter.adapt(QUERY_CONTEXT, "api-1", "evt-9");
 
-        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"term\": { \"api-id\": \"api-1\" } }"));
+        assertThatJson(result)
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"term\": { \"api-id\": \"api-1\" } }"));
     }
 
     @Test
     void keys_on_event_id_because_a_batch_shares_one_request_id() {
         var result = FindAuthzDecisionLogQueryAdapter.adapt(QUERY_CONTEXT, "api-1", "evt-9");
 
-        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"term\": { \"event-id\": \"evt-9\" } }"));
+        assertThatJson(result)
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"term\": { \"event-id\": \"evt-9\" } }"));
         assertThat(result).doesNotContain("request-id");
     }
 }

@@ -56,10 +56,10 @@ public abstract class AbstractFlow implements Serializable {
     @JsonIgnore
     protected List<Plugin> computePlugins(List<Step> step) {
         return Stream.ofNullable(step)
-            .flatMap(Collection::stream)
-            .filter(Step::isEnabled)
-            .map(Step::getPlugins)
-            .flatMap(List::stream)
-            .toList();
+                .flatMap(Collection::stream)
+                .filter(Step::isEnabled)
+                .map(Step::getPlugins)
+                .flatMap(List::stream)
+                .toList();
     }
 }

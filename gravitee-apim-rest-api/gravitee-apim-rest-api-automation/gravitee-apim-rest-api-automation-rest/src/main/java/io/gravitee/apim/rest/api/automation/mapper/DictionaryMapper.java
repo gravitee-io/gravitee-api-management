@@ -83,35 +83,38 @@ public interface DictionaryMapper {
         }
         rejectKeysDeclaredTwice(plain, secret);
         return Stream.concat(
-            plain == null ? Stream.empty() : plain.entrySet().stream().map(DictionaryMapper::toPlainProperty),
-            secret == null ? Stream.empty() : secret.entrySet().stream().map(DictionaryMapper::toSecretProperty)
-        ).toList();
+                        plain == null
+                                ? Stream.empty()
+                                : plain.entrySet().stream().map(DictionaryMapper::toPlainProperty),
+                        secret == null
+                                ? Stream.empty()
+                                : secret.entrySet().stream().map(DictionaryMapper::toSecretProperty))
+                .toList();
     }
 
     private static DictionaryProperty toPlainProperty(Map.Entry<String, String> property) {
-        return DictionaryProperty.builder().key(property.getKey()).value(property.getValue()).build();
+        return DictionaryProperty.builder()
+                .key(property.getKey())
+                .value(property.getValue())
+                .build();
     }
 
     private static DictionaryProperty toSecretProperty(Map.Entry<String, EncryptableValue> property) {
         return DictionaryProperty.builder()
-            .key(property.getKey())
-            .value(property.getValue() == null ? null : property.getValue().getValue())
-            .encryptable(true)
-            .build();
+                .key(property.getKey())
+                .value(property.getValue() == null ? null : property.getValue().getValue())
+                .encryptable(true)
+                .build();
     }
 
     private static void rejectKeysDeclaredTwice(Map<String, String> plain, Map<String, EncryptableValue> secret) {
         if (plain == null || secret == null) {
             return;
         }
-        secret
-            .keySet()
-            .stream()
-            .filter(plain::containsKey)
-            .findFirst()
-            .ifPresent(key -> {
-                throw new InvalidDictionaryPropertyOptionsException(key, "it is declared in both 'properties' and 'encryptedProperties'");
-            });
+        secret.keySet().stream().filter(plain::containsKey).findFirst().ifPresent(key -> {
+            throw new InvalidDictionaryPropertyOptionsException(
+                    key, "it is declared in both 'properties' and 'encryptedProperties'");
+        });
     }
 
     io.gravitee.apim.core.dictionary.model.DictionaryType toCoreType(DictionaryType type);
@@ -119,16 +122,17 @@ public interface DictionaryMapper {
     @Mapping(source = "unit", target = "unit", qualifiedByName = "specTriggerUnitToTimeUnit")
     io.gravitee.apim.core.dictionary.model.DictionaryTrigger toCoreTrigger(DictionaryTrigger trigger);
 
-    io.gravitee.apim.core.dictionary.model.DictionaryEncryptionPolicy toCoreEncryptionPolicy(DictionaryEncryptionPolicy encryption);
+    io.gravitee.apim.core.dictionary.model.DictionaryEncryptionPolicy toCoreEncryptionPolicy(
+            DictionaryEncryptionPolicy encryption);
 
     default io.gravitee.apim.core.dictionary.model.DictionaryProvider toCoreProvider(DictionaryProvider provider) {
         if (provider == null) return null;
         Object actual = provider.getActualInstance();
         if (actual instanceof HttpDictionaryProvider http) {
             return io.gravitee.apim.core.dictionary.model.DictionaryProvider.builder()
-                .type(http.getType().getValue())
-                .configuration(GRAVITEE_MAPPER.valueToTree(http))
-                .build();
+                    .type(http.getType().getValue())
+                    .configuration(GRAVITEE_MAPPER.valueToTree(http))
+                    .build();
         }
         return null;
     }
@@ -144,43 +148,42 @@ public interface DictionaryMapper {
         if (encryptedKeys.isEmpty()) {
             return null;
         }
-        return encryptedKeys
-            .stream()
-            .collect(LinkedHashMap::new, (values, key) -> values.put(key, new EncryptableValue()), LinkedHashMap::putAll);
+        return encryptedKeys.stream()
+                .collect(
+                        LinkedHashMap::new,
+                        (values, key) -> values.put(key, new EncryptableValue()),
+                        LinkedHashMap::putAll);
     }
 
     private static Set<String> encryptedKeys(Map<String, DictionaryPropertyOptions> options) {
         if (options == null) {
             return Set.of();
         }
-        return options
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() != null && Boolean.TRUE.equals(entry.getValue().getEncrypted()))
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+        return options.entrySet().stream()
+                .filter(entry -> entry.getValue() != null
+                        && Boolean.TRUE.equals(entry.getValue().getEncrypted()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    private static Map<String, String> toSpecPlainProperties(Map<String, String> properties, Set<String> encryptedKeys) {
+    private static Map<String, String> toSpecPlainProperties(
+            Map<String, String> properties, Set<String> encryptedKeys) {
         if (properties == null) {
             return Map.of();
         }
-        return properties
-            .entrySet()
-            .stream()
-            .filter(entry -> !encryptedKeys.contains(entry.getKey()))
-            .collect(LinkedHashMap::new, (plain, entry) -> plain.put(entry.getKey(), entry.getValue()), LinkedHashMap::putAll);
+        return properties.entrySet().stream()
+                .filter(entry -> !encryptedKeys.contains(entry.getKey()))
+                .collect(
+                        LinkedHashMap::new,
+                        (plain, entry) -> plain.put(entry.getKey(), entry.getValue()),
+                        LinkedHashMap::putAll);
     }
 
     // ===== DictionaryEntity → DictionaryState =====
 
     default DictionaryState toDictionaryState(DictionaryEntity entity, ExecutionContext executionContext) {
         DictionaryState state = new DictionaryState(
-            entity.getId(),
-            executionContext.getEnvironmentId(),
-            executionContext.getOrganizationId(),
-            null
-        );
+                entity.getId(), executionContext.getEnvironmentId(), executionContext.getOrganizationId(), null);
         state.setHrid(entity.getKey() != null ? entity.getKey() : entity.getId());
         state.setName(entity.getName());
         state.setDescription(entity.getDescription());
@@ -215,7 +218,9 @@ public interface DictionaryMapper {
         if (state.getManual() == null || state.getManual().getEncryptedProperties() == null) {
             return;
         }
-        state.getManual().setEncryptedProperties(toSpecEncryptedProperties(state.getManual().getEncryptedProperties().keySet()));
+        state.getManual()
+                .setEncryptedProperties(toSpecEncryptedProperties(
+                        state.getManual().getEncryptedProperties().keySet()));
     }
 
     @Mapping(target = "id", ignore = true)
@@ -232,7 +237,8 @@ public interface DictionaryMapper {
     default DictionaryProvider toSpecProvider(DictionaryProviderEntity entity) {
         if (entity == null) return null;
         try {
-            HttpDictionaryProvider http = GRAVITEE_MAPPER.treeToValue(entity.getConfiguration(), HttpDictionaryProvider.class);
+            HttpDictionaryProvider http =
+                    GRAVITEE_MAPPER.treeToValue(entity.getConfiguration(), HttpDictionaryProvider.class);
             http.setType(HttpDictionaryProvider.TypeEnum.fromValue(entity.getType()));
             return new DictionaryProvider(http);
         } catch (Exception e) {

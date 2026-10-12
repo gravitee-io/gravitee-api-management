@@ -28,12 +28,11 @@ import io.reactivex.rxjava3.core.Maybe;
 
 public interface HealthCheckRepository {
     Maybe<AverageHealthCheckResponseTime> averageResponseTime(QueryContext queryContext, ApiFieldPeriod query);
+
     Maybe<AvailabilityResponse> availability(QueryContext queryContext, ApiFieldPeriod query);
 
     Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(
-        QueryContext queryContext,
-        AverageHealthCheckResponseTimeOvertimeQuery query
-    );
+            QueryContext queryContext, AverageHealthCheckResponseTimeOvertimeQuery query);
 
     Maybe<Page<HealthCheckLog>> searchLogs(QueryContext queryContext, HealthCheckLogQuery query);
 }

@@ -30,18 +30,18 @@ public class ApiParameterResolver implements GatewayTestParameterResolver {
 
     @Override
     public boolean supports(ParameterContext parameterContext) {
-        return (
-            parameterContext.getParameter().getType() == ReactableApi.class &&
-            parameterContext.getParameter().isAnnotationPresent(InjectApi.class)
-        );
+        return (parameterContext.getParameter().getType() == ReactableApi.class
+                && parameterContext.getParameter().isAnnotationPresent(InjectApi.class));
     }
 
     @Override
-    public Object resolve(ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest) {
+    public Object resolve(
+            ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest) {
         final InjectApi annotation = parameterContext.getParameter().getAnnotation(InjectApi.class);
         final ReactableApi<?> reactableApi = gatewayTest.deployedApis.get(annotation.apiId());
         if (reactableApi == null) {
-            throw new PreconditionViolationException("Not api found for [" + annotation.apiId() + "] deployed at method level");
+            throw new PreconditionViolationException(
+                    "Not api found for [" + annotation.apiId() + "] deployed at method level");
         }
         return reactableApi;
     }

@@ -55,7 +55,9 @@ class ApiEventListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
+    @EnumSource(
+            value = DefinitionVersion.class,
+            names = {"V2"})
     void should_do_nothing_on_not_v4_api_deploy(DefinitionVersion definitionVersion) {
         final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
         eventManager.publishEvent(ApiEvent.DEPLOY, eventApi);
@@ -66,9 +68,8 @@ class ApiEventListenerTest {
     void should_do_actions_on_v4_api_deploy() {
         final Api eventApi = ApiFixtures.anApi();
         eventManager.publishEvent(ApiEvent.DEPLOY, eventApi);
-        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor = ArgumentCaptor.forClass(
-            io.gravitee.apim.core.api.model.Api.class
-        );
+        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor =
+                ArgumentCaptor.forClass(io.gravitee.apim.core.api.model.Api.class);
         verify(managementApiServicesManager).deployServices(coreApiCaptor.capture());
 
         assertThat(coreApiCaptor.getValue()).satisfies(api -> {
@@ -78,7 +79,9 @@ class ApiEventListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
+    @EnumSource(
+            value = DefinitionVersion.class,
+            names = {"V2"})
     void should_do_nothing_on_not_v4_api_undeploy(DefinitionVersion definitionVersion) {
         final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
         eventManager.publishEvent(ApiEvent.UNDEPLOY, eventApi);
@@ -89,9 +92,8 @@ class ApiEventListenerTest {
     void should_do_actions_on_v4_api_undeploy() {
         final Api eventApi = ApiFixtures.anApi();
         eventManager.publishEvent(ApiEvent.UNDEPLOY, eventApi);
-        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor = ArgumentCaptor.forClass(
-            io.gravitee.apim.core.api.model.Api.class
-        );
+        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor =
+                ArgumentCaptor.forClass(io.gravitee.apim.core.api.model.Api.class);
         verify(managementApiServicesManager).undeployServices(coreApiCaptor.capture());
 
         assertThat(coreApiCaptor.getValue()).satisfies(api -> {
@@ -101,7 +103,9 @@ class ApiEventListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
+    @EnumSource(
+            value = DefinitionVersion.class,
+            names = {"V2"})
     void should_do_nothing_on_not_v4_api_update(DefinitionVersion definitionVersion) {
         final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
         eventManager.publishEvent(ApiEvent.UPDATE, eventApi);
@@ -112,9 +116,8 @@ class ApiEventListenerTest {
     void should_do_actions_on_v4_api_update() {
         final Api eventApi = ApiFixtures.anApi();
         eventManager.publishEvent(ApiEvent.UPDATE, eventApi);
-        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor = ArgumentCaptor.forClass(
-            io.gravitee.apim.core.api.model.Api.class
-        );
+        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor =
+                ArgumentCaptor.forClass(io.gravitee.apim.core.api.model.Api.class);
         verify(managementApiServicesManager).updateServices(coreApiCaptor.capture());
 
         assertThat(coreApiCaptor.getValue()).satisfies(api -> {
@@ -124,7 +127,9 @@ class ApiEventListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
+    @EnumSource(
+            value = DefinitionVersion.class,
+            names = {"V2"})
     void should_do_nothing_on_not_v4_api_dynamic_property_started(DefinitionVersion definitionVersion) {
         final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
         eventManager.publishEvent(ApiEvent.START_DYNAMIC_PROPERTY_V4, eventApi);
@@ -136,9 +141,8 @@ class ApiEventListenerTest {
         final Api eventApi = ApiFixtures.anApi(); // defaults to V4
         eventManager.publishEvent(ApiEvent.START_DYNAMIC_PROPERTY_V4, eventApi);
 
-        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor = ArgumentCaptor.forClass(
-            io.gravitee.apim.core.api.model.Api.class
-        );
+        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor =
+                ArgumentCaptor.forClass(io.gravitee.apim.core.api.model.Api.class);
         verify(managementApiServicesManager).startDynamicProperties(coreApiCaptor.capture());
 
         assertThat(coreApiCaptor.getValue()).satisfies(api -> {
@@ -148,7 +152,9 @@ class ApiEventListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = { "V2" })
+    @EnumSource(
+            value = DefinitionVersion.class,
+            names = {"V2"})
     void should_do_nothing_on_not_v4_api_dynamic_property_stopped(DefinitionVersion definitionVersion) {
         final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
         eventManager.publishEvent(ApiEvent.STOP_DYNAMIC_PROPERTY_V4, eventApi);
@@ -160,9 +166,8 @@ class ApiEventListenerTest {
         final Api eventApi = ApiFixtures.anApi(); // defaults to V4
         eventManager.publishEvent(ApiEvent.STOP_DYNAMIC_PROPERTY_V4, eventApi);
 
-        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor = ArgumentCaptor.forClass(
-            io.gravitee.apim.core.api.model.Api.class
-        );
+        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor =
+                ArgumentCaptor.forClass(io.gravitee.apim.core.api.model.Api.class);
         verify(managementApiServicesManager).stopDynamicProperties(coreApiCaptor.capture());
 
         assertThat(coreApiCaptor.getValue()).satisfies(api -> {

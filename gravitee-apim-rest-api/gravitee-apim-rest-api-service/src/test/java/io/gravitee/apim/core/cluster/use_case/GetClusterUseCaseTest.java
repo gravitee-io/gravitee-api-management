@@ -44,18 +44,19 @@ class GetClusterUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        getClusterUseCase = new GetClusterUseCase(clusterCrudService, new ClusterConfigurationAccessDomainService(permissionDomainService));
+        getClusterUseCase = new GetClusterUseCase(
+                clusterCrudService, new ClusterConfigurationAccessDomainService(permissionDomainService));
 
         existingCluster = Cluster.builder()
-            .id(GENERATED_UUID)
-            .name("Cluster 1")
-            .createdAt(INSTANT_NOW)
-            .description("The cluster no 1")
-            .environmentId(ENV_ID)
-            .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
-            .groups(Set.of("group-1", "group-2"))
-            .build();
+                .id(GENERATED_UUID)
+                .name("Cluster 1")
+                .createdAt(INSTANT_NOW)
+                .description("The cluster no 1")
+                .environmentId(ENV_ID)
+                .organizationId(ORG_ID)
+                .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .groups(Set.of("group-1", "group-2"))
+                .build();
         ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
     }
 
@@ -64,7 +65,8 @@ class GetClusterUseCaseTest extends AbstractUseCaseTest {
         // Given
         grant(RolePermissionAction.UPDATE);
         // When
-        var result = getClusterUseCase.execute(new GetClusterUseCase.Input(existingCluster.getId(), ENV_ID, ORG_ID, USER_ID));
+        var result = getClusterUseCase.execute(
+                new GetClusterUseCase.Input(existingCluster.getId(), ENV_ID, ORG_ID, USER_ID));
         // Then
         assertThat(result.cluster()).usingRecursiveComparison().isEqualTo(existingCluster);
     }
@@ -72,9 +74,9 @@ class GetClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_throw_exception_when_shared_policy_group_not_found() {
         // When
-        var throwable = assertThrows(DbEntityNotFoundException.class, () ->
-            getClusterUseCase.execute(new GetClusterUseCase.Input("unknown", ENV_ID, ORG_ID, USER_ID))
-        );
+        var throwable = assertThrows(
+                DbEntityNotFoundException.class,
+                () -> getClusterUseCase.execute(new GetClusterUseCase.Input("unknown", ENV_ID, ORG_ID, USER_ID)));
         // Then
         assertThat(throwable.getMessage()).isEqualTo("Cluster with id unknown cannot be found");
     }
@@ -82,9 +84,10 @@ class GetClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_throw_exception_when_shared_policy_group_not_found_in_environment() {
         // When
-        var throwable = assertThrows(DbEntityNotFoundException.class, () ->
-            getClusterUseCase.execute(new GetClusterUseCase.Input(existingCluster.getId(), "unknown", ORG_ID, USER_ID))
-        );
+        var throwable = assertThrows(
+                DbEntityNotFoundException.class,
+                () -> getClusterUseCase.execute(
+                        new GetClusterUseCase.Input(existingCluster.getId(), "unknown", ORG_ID, USER_ID)));
         // Then
         assertThat(throwable.getMessage()).isEqualTo("Cluster with id " + GENERATED_UUID + " cannot be found");
     }
@@ -95,11 +98,11 @@ class GetClusterUseCaseTest extends AbstractUseCaseTest {
         givenClusterWithCredentials();
         grant(RolePermissionAction.READ);
         // When
-        var result = getClusterUseCase.execute(new GetClusterUseCase.Input(existingCluster.getId(), ENV_ID, ORG_ID, USER_ID));
+        var result = getClusterUseCase.execute(
+                new GetClusterUseCase.Input(existingCluster.getId(), ENV_ID, ORG_ID, USER_ID));
         // Then
-        assertThat(result.cluster().getConfiguration()).isEqualTo(
-            Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL"))
-        );
+        assertThat(result.cluster().getConfiguration())
+                .isEqualTo(Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL")));
     }
 
     @Test
@@ -107,22 +110,25 @@ class GetClusterUseCaseTest extends AbstractUseCaseTest {
         // Given
         givenClusterWithCredentials();
         // When
-        var result = getClusterUseCase.execute(new GetClusterUseCase.Input(existingCluster.getId(), ENV_ID, ORG_ID, USER_ID));
+        var result = getClusterUseCase.execute(
+                new GetClusterUseCase.Input(existingCluster.getId(), ENV_ID, ORG_ID, USER_ID));
         // Then
         assertThat(result.cluster().getConfiguration()).isNull();
         assertThat(result.cluster().getId()).isEqualTo(existingCluster.getId());
     }
 
     private void givenClusterWithCredentials() {
-        existingCluster.setConfiguration(
-            Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret")))
-        );
+        existingCluster.setConfiguration(Map.of(
+                "bootstrapServers",
+                "broker:9093",
+                "security",
+                Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret"))));
         ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
     }
 
     private void grant(RolePermissionAction action) {
-        when(
-            permissionDomainService.hasPermission(ORG_ID, USER_ID, RolePermission.CLUSTER_CONFIGURATION, existingCluster.getId(), action)
-        ).thenReturn(true);
+        when(permissionDomainService.hasPermission(
+                        ORG_ID, USER_ID, RolePermission.CLUSTER_CONFIGURATION, existingCluster.getId(), action))
+                .thenReturn(true);
     }
 }

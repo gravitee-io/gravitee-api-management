@@ -55,41 +55,48 @@ public class PublishApiToPortalUseCase {
         var section = apiOwnedNavigationDomainService.requirePublishLocation(input.environmentId(), input.sectionId());
 
         // A hidden listing, typically one the portal editor added, means the API is not published: it is reused
-        var listing = listings.isEmpty() ? createListing(input, section) : showListing(input, listings.getFirst(), section);
+        var listing =
+                listings.isEmpty() ? createListing(input, section) : showListing(input, listings.getFirst(), section);
 
         return new Output(listing, section);
     }
 
     private PortalNavigationApi createListing(Input input, PortalNavigationFolder section) {
         var listingToCreate = CreatePortalNavigationItem.builder()
-            .id(PortalNavigationItemId.random())
-            .type(PortalNavigationItemType.API)
-            .apiId(input.apiId())
-            .area(PortalArea.TOP_NAVBAR)
-            .parentId(section.getId())
-            .published(true)
-            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.API)
+                .apiId(input.apiId())
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(section.getId())
+                .published(true)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .build();
         validatorService.validateAll(List.of(listingToCreate), input.environmentId());
 
         publishOwnedItems(input);
-        return (PortalNavigationApi) domainService.create(input.organizationId(), input.environmentId(), listingToCreate);
+        return (PortalNavigationApi)
+                domainService.create(input.organizationId(), input.environmentId(), listingToCreate);
     }
 
-    private PortalNavigationApi showListing(Input input, PortalNavigationApi hiddenListing, PortalNavigationFolder section) {
+    private PortalNavigationApi showListing(
+            Input input, PortalNavigationApi hiddenListing, PortalNavigationFolder section) {
         boolean staysInPlace = section.getId().equals(hiddenListing.getParentId());
         var listingToUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.API)
-            .title(hiddenListing.getTitle())
-            .parentId(section.getId())
-            // Moved to another section, the listing takes the last position there and a segment free among its new siblings
-            .order(staysInPlace ? hiddenListing.getOrder() : null)
-            .segment(staysInPlace ? hiddenListing.getSegment() : null)
-            .categoryIds(hiddenListing.getCategoryIds())
-            // A public item cannot sit under a private section
-            .visibility(PortalVisibility.PRIVATE.equals(section.getVisibility()) ? PortalVisibility.PRIVATE : hiddenListing.getVisibility())
-            .published(true)
-            .build();
+                .type(PortalNavigationItemType.API)
+                .title(hiddenListing.getTitle())
+                .parentId(section.getId())
+                // Moved to another section, the listing takes the last position there and a segment free among its new
+                // siblings
+                .order(staysInPlace ? hiddenListing.getOrder() : null)
+                .segment(staysInPlace ? hiddenListing.getSegment() : null)
+                .categoryIds(hiddenListing.getCategoryIds())
+                // A public item cannot sit under a private section
+                .visibility(
+                        PortalVisibility.PRIVATE.equals(section.getVisibility())
+                                ? PortalVisibility.PRIVATE
+                                : hiddenListing.getVisibility())
+                .published(true)
+                .build();
         validatorService.validateToUpdate(listingToUpdate, hiddenListing);
 
         publishOwnedItems(input);

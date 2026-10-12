@@ -97,22 +97,30 @@ public class KafkaExplorerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @GraviteeLicenseFeature("apim-native-kafka-explorer")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ)})
     public Response describeCluster(DescribeClusterRequest request) {
-        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+        if (request == null
+                || request.getClusterId() == null
+                || request.getClusterId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("clusterId is required")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         try {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
-            var result = describeKafkaClusterUseCase.execute(new DescribeKafkaClusterUseCase.Input(request.getClusterId(), environmentId));
-            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.clusterInfo())).build();
+            var result = describeKafkaClusterUseCase.execute(
+                    new DescribeKafkaClusterUseCase.Input(request.getClusterId(), environmentId));
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.clusterInfo()))
+                    .build();
         } catch (KafkaExplorerException e) {
             return Response.status(Response.Status.BAD_GATEWAY)
-                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message(e.getMessage())
+                            .technicalCode(e.getTechnicalCode().name()))
+                    .build();
         }
     }
 
@@ -121,55 +129,58 @@ public class KafkaExplorerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @GraviteeLicenseFeature("apim-native-kafka-explorer")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ)})
     public Response listTopics(
-        ListTopicsRequest request,
-        @QueryParam("page") @DefaultValue("1") int page,
-        @QueryParam("perPage") @DefaultValue("10") int perPage,
-        @QueryParam("sortBy") @DefaultValue("name") String sortBy,
-        @QueryParam("sortOrder") @DefaultValue("asc") String sortOrder
-    ) {
-        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+            ListTopicsRequest request,
+            @QueryParam("page") @DefaultValue("1") int page,
+            @QueryParam("perPage") @DefaultValue("10") int perPage,
+            @QueryParam("sortBy") @DefaultValue("name") String sortBy,
+            @QueryParam("sortOrder") @DefaultValue("asc") String sortOrder) {
+        if (request == null
+                || request.getClusterId() == null
+                || request.getClusterId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("clusterId is required")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         if (page < 1) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("page must be >= 1").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("page must be >= 1")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         if (perPage < 1 || perPage > 100) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(
-                    new KafkaExplorerError()
-                        .message("perPage must be between 1 and 100")
-                        .technicalCode(TechnicalCode.INVALID_PARAMETERS.name())
-                )
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("perPage must be between 1 and 100")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         try {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
             int page0Based = page - 1;
-            var result = listTopicsUseCase.execute(
-                new ListTopicsUseCase.Input(
+            var result = listTopicsUseCase.execute(new ListTopicsUseCase.Input(
                     request.getClusterId(),
                     environmentId,
                     request.getNameFilter(),
                     page0Based,
                     perPage,
                     sortBy,
-                    sortOrder
-                )
-            );
-            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.topicsPage(), page, perPage)).build();
+                    sortOrder));
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.topicsPage(), page, perPage))
+                    .build();
         } catch (KafkaExplorerException e) {
             return Response.status(Response.Status.BAD_GATEWAY)
-                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message(e.getMessage())
+                            .technicalCode(e.getTechnicalCode().name()))
+                    .build();
         }
     }
 
@@ -178,30 +189,38 @@ public class KafkaExplorerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @GraviteeLicenseFeature("apim-native-kafka-explorer")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ)})
     public Response describeTopic(DescribeTopicRequest request) {
-        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+        if (request == null
+                || request.getClusterId() == null
+                || request.getClusterId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("clusterId is required")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         if (request.getTopicName() == null || request.getTopicName().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("topicName is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("topicName is required")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         try {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
             var result = describeTopicUseCase.execute(
-                new DescribeTopicUseCase.Input(request.getClusterId(), environmentId, request.getTopicName())
-            );
-            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.topicDetail())).build();
+                    new DescribeTopicUseCase.Input(request.getClusterId(), environmentId, request.getTopicName()));
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.topicDetail()))
+                    .build();
         } catch (KafkaExplorerException e) {
             return Response.status(Response.Status.BAD_GATEWAY)
-                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message(e.getMessage())
+                            .technicalCode(e.getTechnicalCode().name()))
+                    .build();
         }
     }
 
@@ -210,30 +229,38 @@ public class KafkaExplorerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @GraviteeLicenseFeature("apim-native-kafka-explorer")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ)})
     public Response describeBroker(DescribeBrokerRequest request) {
-        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+        if (request == null
+                || request.getClusterId() == null
+                || request.getClusterId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("clusterId is required")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         if (request.getBrokerId() == null || request.getBrokerId() < 0) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("brokerId must be >= 0").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("brokerId must be >= 0")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         try {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
             var result = describeBrokerUseCase.execute(
-                new DescribeBrokerUseCase.Input(request.getClusterId(), environmentId, request.getBrokerId())
-            );
-            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.brokerInfo())).build();
+                    new DescribeBrokerUseCase.Input(request.getClusterId(), environmentId, request.getBrokerId()));
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.brokerInfo()))
+                    .build();
         } catch (KafkaExplorerException e) {
             return Response.status(Response.Status.BAD_GATEWAY)
-                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message(e.getMessage())
+                            .technicalCode(e.getTechnicalCode().name()))
+                    .build();
         }
     }
 
@@ -242,41 +269,43 @@ public class KafkaExplorerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @GraviteeLicenseFeature("apim-native-kafka-explorer")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ)})
     public Response listConsumerGroups(
-        ListConsumerGroupsRequest request,
-        @QueryParam("page") @DefaultValue("1") int page,
-        @QueryParam("perPage") @DefaultValue("25") int perPage,
-        @QueryParam("sortBy") @DefaultValue("groupId") String sortBy,
-        @QueryParam("sortOrder") @DefaultValue("asc") String sortOrder
-    ) {
-        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+            ListConsumerGroupsRequest request,
+            @QueryParam("page") @DefaultValue("1") int page,
+            @QueryParam("perPage") @DefaultValue("25") int perPage,
+            @QueryParam("sortBy") @DefaultValue("groupId") String sortBy,
+            @QueryParam("sortOrder") @DefaultValue("asc") String sortOrder) {
+        if (request == null
+                || request.getClusterId() == null
+                || request.getClusterId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("clusterId is required")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         if (page < 1) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("page must be >= 1").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("page must be >= 1")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         if (perPage < 1 || perPage > 100) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(
-                    new KafkaExplorerError()
-                        .message("perPage must be between 1 and 100")
-                        .technicalCode(TechnicalCode.INVALID_PARAMETERS.name())
-                )
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("perPage must be between 1 and 100")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         try {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
             int page0Based = page - 1;
-            var result = listConsumerGroupsUseCase.execute(
-                new ListConsumerGroupsUseCase.Input(
+            var result = listConsumerGroupsUseCase.execute(new ListConsumerGroupsUseCase.Input(
                     request.getClusterId(),
                     environmentId,
                     request.getNameFilter(),
@@ -284,14 +313,15 @@ public class KafkaExplorerResource {
                     page0Based,
                     perPage,
                     sortBy,
-                    sortOrder
-                )
-            );
-            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.consumerGroupsPage(), page, perPage)).build();
+                    sortOrder));
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.consumerGroupsPage(), page, perPage))
+                    .build();
         } catch (KafkaExplorerException e) {
             return Response.status(Response.Status.BAD_GATEWAY)
-                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message(e.getMessage())
+                            .technicalCode(e.getTechnicalCode().name()))
+                    .build();
         }
     }
 
@@ -300,30 +330,38 @@ public class KafkaExplorerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @GraviteeLicenseFeature("apim-native-kafka-explorer")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ)})
     public Response describeConsumerGroup(DescribeConsumerGroupRequest request) {
-        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+        if (request == null
+                || request.getClusterId() == null
+                || request.getClusterId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("clusterId is required")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         if (request.getGroupId() == null || request.getGroupId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("groupId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("groupId is required")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         try {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
-            var result = describeConsumerGroupUseCase.execute(
-                new DescribeConsumerGroupUseCase.Input(request.getClusterId(), environmentId, request.getGroupId())
-            );
-            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.consumerGroupDetail())).build();
+            var result = describeConsumerGroupUseCase.execute(new DescribeConsumerGroupUseCase.Input(
+                    request.getClusterId(), environmentId, request.getGroupId()));
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.consumerGroupDetail()))
+                    .build();
         } catch (KafkaExplorerException e) {
             return Response.status(Response.Status.BAD_GATEWAY)
-                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message(e.getMessage())
+                            .technicalCode(e.getTechnicalCode().name()))
+                    .build();
         }
     }
 
@@ -332,36 +370,40 @@ public class KafkaExplorerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @GraviteeLicenseFeature("apim-native-kafka-explorer")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ)})
     public Response browseMessages(BrowseMessagesRequest request, @QueryParam("limit") @DefaultValue("50") int limit) {
-        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+        if (request == null
+                || request.getClusterId() == null
+                || request.getClusterId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("clusterId is required")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         if (request.getTopicName() == null || request.getTopicName().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message("topicName is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("topicName is required")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
         if (limit < 1 || limit > 1000) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(
-                    new KafkaExplorerError()
-                        .message("limit must be between 1 and 1000")
-                        .technicalCode(TechnicalCode.INVALID_PARAMETERS.name())
-                )
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message("limit must be between 1 and 1000")
+                            .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                    .build();
         }
 
-        var offsetMode = request.getOffsetMode() != null ? request.getOffsetMode().name() : "NEWEST";
+        var offsetMode =
+                request.getOffsetMode() != null ? request.getOffsetMode().name() : "NEWEST";
 
         try {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
-            var result = browseMessagesUseCase.execute(
-                new BrowseMessagesUseCase.Input(
+            var result = browseMessagesUseCase.execute(new BrowseMessagesUseCase.Input(
                     request.getClusterId(),
                     environmentId,
                     request.getTopicName(),
@@ -370,14 +412,15 @@ public class KafkaExplorerResource {
                     request.getOffsetValue(),
                     request.getKeyFilter(),
                     request.getValueFilter(),
-                    limit
-                )
-            );
-            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.browseMessagesResult())).build();
+                    limit));
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.browseMessagesResult()))
+                    .build();
         } catch (KafkaExplorerException e) {
             return Response.status(Response.Status.BAD_GATEWAY)
-                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
-                .build();
+                    .entity(new KafkaExplorerError()
+                            .message(e.getMessage())
+                            .technicalCode(e.getTechnicalCode().name()))
+                    .build();
         }
     }
 
@@ -385,18 +428,17 @@ public class KafkaExplorerResource {
     @Path("/tail-messages")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @GraviteeLicenseFeature("apim-native-kafka-explorer")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ)})
     public void tailMessages(
-        @QueryParam("clusterId") String clusterId,
-        @QueryParam("topicName") String topicName,
-        @QueryParam("partition") Integer partition,
-        @QueryParam("keyFilter") String keyFilter,
-        @QueryParam("valueFilter") String valueFilter,
-        @QueryParam("maxMessages") @DefaultValue("1000") int maxMessages,
-        @QueryParam("durationSeconds") @DefaultValue("30") int durationSeconds,
-        @Context SseEventSink eventSink,
-        @Context Sse sse
-    ) {
+            @QueryParam("clusterId") String clusterId,
+            @QueryParam("topicName") String topicName,
+            @QueryParam("partition") Integer partition,
+            @QueryParam("keyFilter") String keyFilter,
+            @QueryParam("valueFilter") String valueFilter,
+            @QueryParam("maxMessages") @DefaultValue("1000") int maxMessages,
+            @QueryParam("durationSeconds") @DefaultValue("30") int durationSeconds,
+            @Context SseEventSink eventSink,
+            @Context Sse sse) {
         if (clusterId == null || clusterId.isBlank()) {
             throw badRequest("clusterId is required");
         }
@@ -414,12 +456,12 @@ public class KafkaExplorerResource {
         }
 
         if (activeTailStreams.get() >= MAX_TAIL_STREAMS) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                    .entity(new KafkaExplorerError().message("Too many active tail streams").technicalCode(TechnicalCode.TIMEOUT.name()))
+            throw new WebApplicationException(Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity(new KafkaExplorerError()
+                            .message("Too many active tail streams")
+                            .technicalCode(TechnicalCode.TIMEOUT.name()))
                     .type(MediaType.APPLICATION_JSON_TYPE)
-                    .build()
-            );
+                    .build());
         }
 
         var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
@@ -427,39 +469,42 @@ public class KafkaExplorerResource {
         activeTailStreams.incrementAndGet();
         try {
             tailMessagesUseCase.execute(
-                new TailMessagesUseCase.Input(
-                    clusterId,
-                    environmentId,
-                    topicName,
-                    partition,
-                    keyFilter,
-                    valueFilter,
-                    maxMessages,
-                    durationSeconds
-                ),
-                message -> {
-                    if (eventSink.isClosed()) return false;
-                    try {
-                        eventSink.send(
-                            sse.newEventBuilder().name("message").data(String.class, objectMapper.writeValueAsString(message)).build()
-                        );
-                        return true;
-                    } catch (Exception e) {
-                        return false;
-                    }
-                }
-            );
+                    new TailMessagesUseCase.Input(
+                            clusterId,
+                            environmentId,
+                            topicName,
+                            partition,
+                            keyFilter,
+                            valueFilter,
+                            maxMessages,
+                            durationSeconds),
+                    message -> {
+                        if (eventSink.isClosed()) return false;
+                        try {
+                            eventSink.send(sse.newEventBuilder()
+                                    .name("message")
+                                    .data(String.class, objectMapper.writeValueAsString(message))
+                                    .build());
+                            return true;
+                        } catch (Exception e) {
+                            return false;
+                        }
+                    });
             if (!eventSink.isClosed()) {
                 eventSink.send(sse.newEventBuilder().name("done").data("{}").build());
             }
         } catch (KafkaExplorerException e) {
             if (!eventSink.isClosed()) {
-                eventSink.send(sse.newEventBuilder().name("error").data(e.getMessage()).build());
+                eventSink.send(
+                        sse.newEventBuilder().name("error").data(e.getMessage()).build());
             }
         } catch (Exception e) {
             log.error("Unexpected error during tail", e);
             if (!eventSink.isClosed()) {
-                eventSink.send(sse.newEventBuilder().name("error").data("An unexpected error occurred").build());
+                eventSink.send(sse.newEventBuilder()
+                        .name("error")
+                        .data("An unexpected error occurred")
+                        .build());
             }
         } finally {
             activeTailStreams.decrementAndGet();
@@ -468,11 +513,11 @@ public class KafkaExplorerResource {
     }
 
     private WebApplicationException badRequest(String message) {
-        return new WebApplicationException(
-            Response.status(Response.Status.BAD_REQUEST)
-                .entity(new KafkaExplorerError().message(message).technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+        return new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError()
+                        .message(message)
+                        .technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .build()
-        );
+                .build());
     }
 }

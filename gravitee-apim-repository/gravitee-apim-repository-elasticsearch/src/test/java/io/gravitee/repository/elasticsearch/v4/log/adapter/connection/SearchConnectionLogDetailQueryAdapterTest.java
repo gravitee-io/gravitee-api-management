@@ -33,55 +33,55 @@ class SearchConnectionLogDetailQueryAdapterTest {
     @ParameterizedTest
     @MethodSource("noFilter")
     void should_build_query_without_filter(ConnectionLogDetailQuery.Filter filter) {
-        var result = SearchConnectionLogDetailQueryAdapter.adapt(ConnectionLogDetailQuery.builder().filter(filter).build());
+        var result = SearchConnectionLogDetailQueryAdapter.adapt(
+                ConnectionLogDetailQuery.builder().filter(filter).build());
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
             "size":20,"from":0,"sort":{"@timestamp":{"order":"desc"}}
             }
-            """
-        );
+            """);
     }
 
     @Test
     void should_include_projection_fields() {
-        var result = SearchConnectionLogDetailQueryAdapter.adapt(
-            ConnectionLogDetailQuery.builder()
+        var result = SearchConnectionLogDetailQueryAdapter.adapt(ConnectionLogDetailQuery.builder()
                 .projectionFields(List.of("_id", "api"))
                 .filter(ConnectionLogDetailQuery.Filter.builder().build())
-                .build()
-        );
+                .build());
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
             "size":20,
             "from":0,
             "_source": [ "_id", "api" ],
             "sort":{"@timestamp":{"order":"desc"}}
             }
-            """
-        );
+            """);
     }
 
     @ParameterizedTest
     @MethodSource("getFilters")
     void should_build_query_with_filters(ConnectionLogDetailQuery.Filter filter, String expected) {
-        var result = SearchConnectionLogDetailQueryAdapter.adapt(ConnectionLogDetailQuery.builder().filter(filter).build());
+        var result = SearchConnectionLogDetailQueryAdapter.adapt(
+                ConnectionLogDetailQuery.builder().filter(filter).build());
 
         assertThatJson(result).when(IGNORING_ARRAY_ORDER).isEqualTo(expected);
     }
 
     private static Stream<Arguments> noFilter() {
-        return Stream.of(Arguments.of((Object) null), Arguments.of(ConnectionLogDetailQuery.Filter.builder().build()));
+        return Stream.of(
+                Arguments.of((Object) null),
+                Arguments.of(ConnectionLogDetailQuery.Filter.builder().build()));
     }
 
     private static Stream<Arguments> getFilters() {
         return Stream.of(
-            Arguments.of(
-                ConnectionLogDetailQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build(),
-                """
+                Arguments.of(
+                        ConnectionLogDetailQuery.Filter.builder()
+                                .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                                .build(),
+                        """
                 {
                    "from": 0,
                    "size": 20,
@@ -107,11 +107,12 @@ class SearchConnectionLogDetailQueryAdapterTest {
                         }
                     },"sort":{"@timestamp":{"order":"desc"}}
                  }
-                """
-            ),
-            Arguments.of(
-                ConnectionLogDetailQuery.Filter.builder().requestIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build(),
-                """
+                """),
+                Arguments.of(
+                        ConnectionLogDetailQuery.Filter.builder()
+                                .requestIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                                .build(),
+                        """
                 {
                    "from": 0,
                    "size": 20,
@@ -137,14 +138,13 @@ class SearchConnectionLogDetailQueryAdapterTest {
                         }
                     },"sort":{"@timestamp":{"order":"desc"}}
                  }
-                """
-            ),
-            Arguments.of(
-                ConnectionLogDetailQuery.Filter.builder()
-                    .requestIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
-                    .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e5"))
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        ConnectionLogDetailQuery.Filter.builder()
+                                .requestIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                                .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e5"))
+                                .build(),
+                        """
                 {
                  "from": 0,
                  "size": 20,
@@ -185,19 +185,18 @@ class SearchConnectionLogDetailQueryAdapterTest {
                         }
                     },"sort":{"@timestamp":{"order":"desc"}}
                  }
-                """
-            ),
-            Arguments.of(
-                ConnectionLogDetailQuery.Filter.builder()
-                    .from(0L)
-                    .to(1L)
-                    .bodyText("curl")
-                    .methods(Set.of(HttpMethod.GET, HttpMethod.DELETE))
-                    .uri("my-path")
-                    .statuses(Set.of(100, 200))
-                    .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e5"))
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        ConnectionLogDetailQuery.Filter.builder()
+                                .from(0L)
+                                .to(1L)
+                                .bodyText("curl")
+                                .methods(Set.of(HttpMethod.GET, HttpMethod.DELETE))
+                                .uri("my-path")
+                                .statuses(Set.of(100, 200))
+                                .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e5"))
+                                .build(),
+                        """
                 {
                  "from": 0,
                  "size": 20,
@@ -294,11 +293,12 @@ class SearchConnectionLogDetailQueryAdapterTest {
                         }
                     },"sort":{"@timestamp":{"order":"desc"}}
                  }
-                """
-            ),
-            Arguments.of(
-                ConnectionLogDetailQuery.Filter.builder().bodyText("error:500").build(),
-                """
+                """),
+                Arguments.of(
+                        ConnectionLogDetailQuery.Filter.builder()
+                                .bodyText("error:500")
+                                .build(),
+                        """
                 {
                  "from": 0,
                  "size": 20,
@@ -314,11 +314,12 @@ class SearchConnectionLogDetailQueryAdapterTest {
                         }
                     },"sort":{"@timestamp":{"order":"desc"}}
                  }
-                """
-            ),
-            Arguments.of(
-                ConnectionLogDetailQuery.Filter.builder().bodyText("curl*").build(),
-                """
+                """),
+                Arguments.of(
+                        ConnectionLogDetailQuery.Filter.builder()
+                                .bodyText("curl*")
+                                .build(),
+                        """
                 {
                  "from": 0,
                  "size": 20,
@@ -334,8 +335,6 @@ class SearchConnectionLogDetailQueryAdapterTest {
                         }
                     },"sort":{"@timestamp":{"order":"desc"}}
                  }
-                """
-            )
-        );
+                """));
     }
 }

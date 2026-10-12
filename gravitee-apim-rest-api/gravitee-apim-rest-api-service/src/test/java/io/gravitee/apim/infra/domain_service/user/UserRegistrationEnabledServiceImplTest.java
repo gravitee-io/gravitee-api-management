@@ -39,14 +39,12 @@ class UserRegistrationEnabledServiceImplTest {
         @Test
         void should_not_throw_when_portal_registration_is_enabled() {
             var executionContext = new ExecutionContext("org-id", "env-id");
-            when(
-                parameterService.findAsBoolean(
-                    executionContext,
-                    Key.PORTAL_USERCREATION_ENABLED,
-                    "env-id",
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(true);
+            when(parameterService.findAsBoolean(
+                            executionContext,
+                            Key.PORTAL_USERCREATION_ENABLED,
+                            "env-id",
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(true);
 
             var throwable = catchThrowable(() -> service.checkEnabled(executionContext));
 
@@ -56,14 +54,12 @@ class UserRegistrationEnabledServiceImplTest {
         @Test
         void should_throw_when_portal_registration_is_disabled() {
             var executionContext = new ExecutionContext("org-id", "env-id");
-            when(
-                parameterService.findAsBoolean(
-                    executionContext,
-                    Key.PORTAL_USERCREATION_ENABLED,
-                    "env-id",
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(false);
+            when(parameterService.findAsBoolean(
+                            executionContext,
+                            Key.PORTAL_USERCREATION_ENABLED,
+                            "env-id",
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(false);
 
             var throwable = catchThrowable(() -> service.checkEnabled(executionContext));
 
@@ -73,14 +69,12 @@ class UserRegistrationEnabledServiceImplTest {
         @Test
         void should_not_throw_when_console_registration_is_enabled() {
             var executionContext = new ExecutionContext("org-id");
-            when(
-                parameterService.findAsBoolean(
-                    executionContext,
-                    Key.CONSOLE_USERCREATION_ENABLED,
-                    "org-id",
-                    ParameterReferenceType.ORGANIZATION
-                )
-            ).thenReturn(true);
+            when(parameterService.findAsBoolean(
+                            executionContext,
+                            Key.CONSOLE_USERCREATION_ENABLED,
+                            "org-id",
+                            ParameterReferenceType.ORGANIZATION))
+                    .thenReturn(true);
 
             var throwable = catchThrowable(() -> service.checkEnabled(executionContext));
 
@@ -90,14 +84,12 @@ class UserRegistrationEnabledServiceImplTest {
         @Test
         void should_throw_when_console_registration_is_disabled() {
             var executionContext = new ExecutionContext("org-id");
-            when(
-                parameterService.findAsBoolean(
-                    executionContext,
-                    Key.CONSOLE_USERCREATION_ENABLED,
-                    "org-id",
-                    ParameterReferenceType.ORGANIZATION
-                )
-            ).thenReturn(false);
+            when(parameterService.findAsBoolean(
+                            executionContext,
+                            Key.CONSOLE_USERCREATION_ENABLED,
+                            "org-id",
+                            ParameterReferenceType.ORGANIZATION))
+                    .thenReturn(false);
 
             var throwable = catchThrowable(() -> service.checkEnabled(executionContext));
 

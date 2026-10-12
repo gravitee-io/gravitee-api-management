@@ -28,8 +28,8 @@ public class DeleteEnvironmentRulesetUseCase {
 
     public void execute(Input input) {
         var found = scoringRulesetCrudService
-            .findById(input.rulesetId)
-            .filter(ruleset -> ruleset.referenceId().equals(input.auditInfo.environmentId()));
+                .findById(input.rulesetId)
+                .filter(ruleset -> ruleset.referenceId().equals(input.auditInfo.environmentId()));
 
         if (found.isPresent()) {
             scoringRulesetCrudService.delete(input.rulesetId);

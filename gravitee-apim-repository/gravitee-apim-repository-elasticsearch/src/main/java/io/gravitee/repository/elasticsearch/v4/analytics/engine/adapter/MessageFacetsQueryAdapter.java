@@ -59,9 +59,9 @@ public class MessageFacetsQueryAdapter {
 
     private JsonObject json(FacetsQuery query, JsonObject boolQuery) {
         return new JsonObject()
-            .put("size", 0)
-            .put("query", JsonObject.of("bool", boolQuery))
-            .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit()));
+                .put("size", 0)
+                .put("query", JsonObject.of("bool", boolQuery))
+                .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit()));
     }
 
     JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit) {
@@ -109,7 +109,8 @@ public class MessageFacetsQueryAdapter {
      * than "top N of the ranked dimension".
      */
     private JsonObject toTermsLeaf(MetricMeasuresQuery metric, Facet facet, Integer limit) {
-        var terms = new JsonObject().put("field", measuresAdapter.fieldResolver().fromFacet(facet));
+        var terms =
+                new JsonObject().put("field", measuresAdapter.fieldResolver().fromFacet(facet));
         // A null limit leaves Elasticsearch its default terms size of 10. Fine for the closed
         // dimensions (operation, connector type); a caller ranking a high-cardinality one — connector
         // id, application — must ask for the size it wants.
@@ -119,7 +120,9 @@ public class MessageFacetsQueryAdapter {
         if (metric.sorts() != null && !metric.sorts().isEmpty()) {
             var order = new JsonObject();
             for (var sort : metric.sorts()) {
-                order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+                order.put(
+                        AggregationAdapter.adaptName(metric.metric(), sort.measure()),
+                        sort.order().name().toLowerCase());
             }
             terms.put("order", order);
         }
@@ -127,7 +130,11 @@ public class MessageFacetsQueryAdapter {
     }
 
     private JsonObject toTerms(Facet facet) {
-        return new JsonObject().put("terms", new JsonObject().put("field", measuresAdapter.fieldResolver().fromFacet(facet)));
+        return new JsonObject()
+                .put(
+                        "terms",
+                        new JsonObject()
+                                .put("field", measuresAdapter.fieldResolver().fromFacet(facet)));
     }
 
     /** Kept out of the class body so the facets and time-series adapters restrict identically. */

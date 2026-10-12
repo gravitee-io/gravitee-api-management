@@ -37,14 +37,14 @@ public class AvailabilityUseCase {
 
     public Maybe<Output> execute(Input input) {
         return validateApiRequirements(input)
-            .flatMapMaybe(api -> apiHealthQueryService.availability(input.toApiFieldPeriodQuery()))
-            .map(e -> new Output(e.global(), e.byField()));
+                .flatMapMaybe(api -> apiHealthQueryService.availability(input.toApiFieldPeriodQuery()))
+                .map(e -> new Output(e.global(), e.byField()));
     }
 
     private Single<Api> validateApiRequirements(AvailabilityUseCase.Input input) {
         return Single.fromCallable(() -> apiCrudService.get(input.api()))
-            .flatMap(api -> validateApiMultiTenancyAccess(api, input.ctx().getEnvironmentId()))
-            .flatMap(this::validateApiIsNotTcp);
+                .flatMap(api -> validateApiMultiTenancyAccess(api, input.ctx().getEnvironmentId()))
+                .flatMap(this::validateApiIsNotTcp);
     }
 
     private Single<Api> validateApiIsNotTcp(Api api) {
@@ -52,19 +52,15 @@ public class AvailabilityUseCase {
     }
 
     private static Single<Api> validateApiMultiTenancyAccess(Api api, String environmentId) {
-        return !api.belongsToEnvironment(environmentId) ? Single.error(new ApiNotFoundException(api.getId())) : Single.just(api);
+        return !api.belongsToEnvironment(environmentId)
+                ? Single.error(new ApiNotFoundException(api.getId()))
+                : Single.just(api);
     }
 
     public record Input(ExecutionContext ctx, Instant since, Instant until, String api, String field) {
         public ApiHealthQueryService.ApiFieldPeriodQuery toApiFieldPeriodQuery() {
             return new ApiHealthQueryService.ApiFieldPeriodQuery(
-                ctx.getOrganizationId(),
-                ctx.getEnvironmentId(),
-                api(),
-                field(),
-                since(),
-                until()
-            );
+                    ctx.getOrganizationId(), ctx.getEnvironmentId(), api(), field(), since(), until());
         }
     }
 

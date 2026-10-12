@@ -17,7 +17,6 @@ package io.gravitee.repository.management;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.management.model.Token;
 import java.util.Date;
 import java.util.List;
@@ -38,11 +37,10 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Token> tokens = tokenRepository.findAll();
         assertNotNull(tokens);
         assertEquals(6, tokens.size());
-        final Token token123 = tokens
-            .stream()
-            .filter(token -> "token123".equals(token.getId()))
-            .findAny()
-            .get();
+        final Token token123 = tokens.stream()
+                .filter(token -> "token123".equals(token.getId()))
+                .findAny()
+                .get();
         assertToken(token123);
     }
 
@@ -51,11 +49,10 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
         final List<Token> tokens = tokenRepository.findByReference("USER", "123");
         assertNotNull(tokens);
         assertEquals(2, tokens.size());
-        final Token token123 = tokens
-            .stream()
-            .filter(token -> "token123".equals(token.getId()))
-            .findAny()
-            .get();
+        final Token token123 = tokens.stream()
+                .filter(token -> "token123".equals(token.getId()))
+                .findAny()
+                .get();
         assertToken(token123);
     }
 
@@ -80,9 +77,11 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
         token.setReferenceType("USER");
         token.setReferenceId("456");
 
-        int nbTokensBeforeCreation = tokenRepository.findByReference("USER", "456").size();
+        int nbTokensBeforeCreation =
+                tokenRepository.findByReference("USER", "456").size();
         tokenRepository.create(token);
-        int nbTokensAfterCreation = tokenRepository.findByReference("USER", "456").size();
+        int nbTokensAfterCreation =
+                tokenRepository.findByReference("USER", "456").size();
 
         Assertions.assertEquals(nbTokensBeforeCreation + 1, nbTokensAfterCreation);
 
@@ -114,9 +113,11 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
         token.setExpiresAt(new Date(1486775200000L));
         token.setLastUseAt(new Date(1486776200000L));
 
-        int nbTokensBeforeUpdate = tokenRepository.findByReference("USER", "token123").size();
+        int nbTokensBeforeUpdate =
+                tokenRepository.findByReference("USER", "token123").size();
         tokenRepository.update(token);
-        int nbTokensAfterUpdate = tokenRepository.findByReference("USER", "token123").size();
+        int nbTokensAfterUpdate =
+                tokenRepository.findByReference("USER", "token123").size();
 
         Assertions.assertEquals(nbTokensBeforeUpdate, nbTokensAfterUpdate);
 
@@ -135,9 +136,11 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbTokensBeforeDeletion = tokenRepository.findByReference("USER", "123").size();
+        int nbTokensBeforeDeletion =
+                tokenRepository.findByReference("USER", "123").size();
         tokenRepository.delete("token_to_delete");
-        int nbTokensAfterDeletion = tokenRepository.findByReference("USER", "123").size();
+        int nbTokensAfterDeletion =
+                tokenRepository.findByReference("USER", "123").size();
 
         Assertions.assertEquals(nbTokensBeforeDeletion - 1, nbTokensAfterDeletion);
     }
@@ -162,9 +165,13 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        final var nbBeforeDeletion = tokenRepository.findByReference("USER", "ToBeDeleted").size();
-        final var deleted = tokenRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", "USER").size();
-        final var nbAfterDeletion = tokenRepository.findByReference("USER", "ToBeDeleted").size();
+        final var nbBeforeDeletion =
+                tokenRepository.findByReference("USER", "ToBeDeleted").size();
+        final var deleted = tokenRepository
+                .deleteByReferenceIdAndReferenceType("ToBeDeleted", "USER")
+                .size();
+        final var nbAfterDeletion =
+                tokenRepository.findByReference("USER", "ToBeDeleted").size();
 
         assertEquals(2, nbBeforeDeletion);
         assertEquals(2, deleted);

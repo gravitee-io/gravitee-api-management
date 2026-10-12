@@ -45,12 +45,11 @@ import org.springframework.context.annotation.FilterType;
  */
 @Configuration
 @ComponentScan(
-    basePackages = "io.gravitee.gamma.rest.core.observability.filter",
-    includeFilters = {
-        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class),
-        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class),
-    }
-)
+        basePackages = "io.gravitee.gamma.rest.core.observability.filter",
+        includeFilters = {
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class),
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class),
+        })
 public class GammaObservabilityFilterConfiguration {
 
     @Bean
@@ -69,9 +68,7 @@ public class GammaObservabilityFilterConfiguration {
      */
     @Bean
     public ObservabilityFilterDataPort observabilityFilterDataPort(
-        GetFilterValuesUseCase getFilterValuesUseCase,
-        ResolveFilterLabelsUseCase resolveFilterLabelsUseCase
-    ) {
+            GetFilterValuesUseCase getFilterValuesUseCase, ResolveFilterLabelsUseCase resolveFilterLabelsUseCase) {
         return new ObservabilityFilterDataPortAdapter(getFilterValuesUseCase, resolveFilterLabelsUseCase);
     }
 }

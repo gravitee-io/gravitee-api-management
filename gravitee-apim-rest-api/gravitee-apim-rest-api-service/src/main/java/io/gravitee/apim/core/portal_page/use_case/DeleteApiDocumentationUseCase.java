@@ -37,12 +37,14 @@ public class DeleteApiDocumentationUseCase {
 
     public void execute(Input input) {
         var pageContent = portalPageContentQueryService
-            .findById(input.portalPageContentId())
-            .filter(pc -> pc.getAutomationMetadata() != null)
-            .filter(pc -> pc.getAutomationMetadata().referenceType() == AutomationMetadata.ReferenceType.API)
-            .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId().toString()));
+                .findById(input.portalPageContentId())
+                .filter(pc -> pc.getAutomationMetadata() != null)
+                .filter(pc -> pc.getAutomationMetadata().referenceType() == AutomationMetadata.ReferenceType.API)
+                .orElseThrow(() -> new PageContentNotFoundException(
+                        input.portalPageContentId().toString()));
 
-        syncDomainService.dematerialize(input.auditInfo(), pageContent.getAutomationMetadata().referenceId(), input.portalPageContentId());
+        syncDomainService.dematerialize(
+                input.auditInfo(), pageContent.getAutomationMetadata().referenceId(), input.portalPageContentId());
         portalPageContentCrudService.delete(input.portalPageContentId());
     }
 }

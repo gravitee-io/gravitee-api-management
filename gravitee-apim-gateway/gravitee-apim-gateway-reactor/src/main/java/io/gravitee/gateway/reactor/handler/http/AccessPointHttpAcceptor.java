@@ -19,7 +19,6 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.reactor.handler.AbstractAccessPointAcceptor;
-import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
@@ -38,14 +37,13 @@ public class AccessPointHttpAcceptor extends AbstractAccessPointAcceptor<HttpAcc
     private final HttpAcceptorFactory httpAcceptorFactory;
 
     public AccessPointHttpAcceptor(
-        final EventManager eventManager,
-        final HttpAcceptorFactory httpAcceptorFactory,
-        final String environmentId,
-        final List<ReactableAccessPoint> initialReactableAccessPoints,
-        final String path,
-        final ReactorHandler reactor,
-        final Collection<String> serverIds
-    ) {
+            final EventManager eventManager,
+            final HttpAcceptorFactory httpAcceptorFactory,
+            final String environmentId,
+            final List<ReactableAccessPoint> initialReactableAccessPoints,
+            final String path,
+            final ReactorHandler reactor,
+            final Collection<String> serverIds) {
         super(reactor, eventManager, environmentId);
         this.httpAcceptorFactory = httpAcceptorFactory;
         this.path = path;

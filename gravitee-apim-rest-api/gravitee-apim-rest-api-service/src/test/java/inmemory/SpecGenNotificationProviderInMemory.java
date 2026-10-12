@@ -28,7 +28,8 @@ import java.util.Map.Entry;
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SpecGenNotificationProviderInMemory implements SpecGenNotificationProvider, InMemoryAlternative<Entry<String, Integer>> {
+public class SpecGenNotificationProviderInMemory
+        implements SpecGenNotificationProvider, InMemoryAlternative<Entry<String, Integer>> {
 
     private Map<String, Integer> notifications;
 

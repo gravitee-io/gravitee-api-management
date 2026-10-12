@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.management.model;
 
-import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;

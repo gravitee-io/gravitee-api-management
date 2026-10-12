@@ -60,18 +60,19 @@ class UserServiceRegistrationTargetTest {
 
     @Test
     void should_reject_an_unknown_registration_target() {
-        assertThatThrownBy(() -> userService.registerWithTarget(EXECUTION_CONTEXT, new NewExternalUserEntity(), "portal"))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("portal");
+        assertThatThrownBy(
+                        () -> userService.registerWithTarget(EXECUTION_CONTEXT, new NewExternalUserEntity(), "portal"))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("portal");
     }
 
     @Test
     void should_reject_a_url_shaped_registration_target() {
         // The endpoint is anonymous and the link carries a signed token, so a caller-supplied
         // destination would exfiltrate it. Only the fixed keyword is accepted.
-        assertThatThrownBy(() ->
-            userService.registerWithTarget(EXECUTION_CONTEXT, new NewExternalUserEntity(), "https://attacker.example.com")
-        ).isInstanceOf(ValidationDomainException.class);
+        assertThatThrownBy(() -> userService.registerWithTarget(
+                        EXECUTION_CONTEXT, new NewExternalUserEntity(), "https://attacker.example.com"))
+                .isInstanceOf(ValidationDomainException.class);
 
         verify(installationAccessQueryService, never()).findGammaUrl(any());
     }

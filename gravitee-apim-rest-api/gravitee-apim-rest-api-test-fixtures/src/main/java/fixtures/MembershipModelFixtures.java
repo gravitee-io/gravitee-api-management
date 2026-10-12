@@ -26,25 +26,27 @@ public class MembershipModelFixtures {
     private MembershipModelFixtures() {}
 
     private static final MembershipEntity.MembershipEntityBuilder BASE_MODEL = MembershipEntity.builder()
-        .id("membership-id")
-        .id("m1")
-        .roleId("role1")
-        .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00.00Z")))
-        .updatedAt(Date.from(Instant.parse("2020-01-01T00:00:00.00Z")));
+            .id("membership-id")
+            .id("m1")
+            .roleId("role1")
+            .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00.00Z")))
+            .updatedAt(Date.from(Instant.parse("2020-01-01T00:00:00.00Z")));
 
     public static MembershipEntity aUserMembershipForApi() {
-        return BASE_MODEL.memberId("user-id")
-            .memberType(MembershipMemberType.USER)
-            .referenceType(MembershipReferenceType.API)
-            .referenceId("api-id")
-            .build();
+        return BASE_MODEL
+                .memberId("user-id")
+                .memberType(MembershipMemberType.USER)
+                .referenceType(MembershipReferenceType.API)
+                .referenceId("api-id")
+                .build();
     }
 
     public static MembershipEntity aGroupMembershipForApi() {
-        return BASE_MODEL.memberType(MembershipMemberType.GROUP)
-            .memberId("group-id")
-            .referenceType(MembershipReferenceType.API)
-            .referenceId("api-id")
-            .build();
+        return BASE_MODEL
+                .memberType(MembershipMemberType.GROUP)
+                .memberId("group-id")
+                .referenceType(MembershipReferenceType.API)
+                .referenceId("api-id")
+                .build();
     }
 }

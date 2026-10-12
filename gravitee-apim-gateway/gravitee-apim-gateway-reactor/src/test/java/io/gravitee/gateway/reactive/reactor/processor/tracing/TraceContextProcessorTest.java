@@ -20,7 +20,6 @@ import static io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContex
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
-import io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,19 +35,17 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 public class TraceContextProcessorTest extends AbstractProcessorTest {
 
-    public static final Pattern TRACEPARENT_REGEX = Pattern.compile(
-        "(([0-9a-e][0-9a-f])|([0-9a-f][0-9a-e]))-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})"
-    );
+    public static final Pattern TRACEPARENT_REGEX =
+            Pattern.compile("(([0-9a-e][0-9a-f])|([0-9a-f][0-9a-e]))-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})");
     private TraceContextProcessor traceContextProcessor;
 
     private static Stream<Arguments> provideParameters() {
         return Stream.of(
-            Arguments.of("00-00000000000000000000000000000000-00f067aa0ba902b7-01"),
-            Arguments.of("ff-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"),
-            Arguments.of("00-00000000000000000000000000000000-00f067aa0ba902b7-01"),
-            Arguments.of("00-00f067aa0ba902b7-00f067aa0ba902b7-01"),
-            Arguments.of("00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000000-01")
-        );
+                Arguments.of("00-00000000000000000000000000000000-00f067aa0ba902b7-01"),
+                Arguments.of("ff-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"),
+                Arguments.of("00-00000000000000000000000000000000-00f067aa0ba902b7-01"),
+                Arguments.of("00-00f067aa0ba902b7-00f067aa0ba902b7-01"),
+                Arguments.of("00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000000-01"));
     }
 
     @BeforeEach
@@ -62,11 +59,17 @@ public class TraceContextProcessorTest extends AbstractProcessorTest {
         spyResponseHeaders.set(TraceContextProcessor.HEADER_TRACE_STATE, tracestate);
         traceContextProcessor.execute(ctx).test().assertResult();
 
-        assertThat(TRACEPARENT_REGEX.matcher(spyRequestHeaders.get(HEADER_TRACE_PARENT)).matches()).isTrue();
+        assertThat(TRACEPARENT_REGEX
+                        .matcher(spyRequestHeaders.get(HEADER_TRACE_PARENT))
+                        .matches())
+                .isTrue();
 
         // if TRACESTATE provided witout traceparent, tracestate is removed
         assertThat(spyRequestHeaders.get(HEADER_TRACE_STATE)).isNull();
-        assertThat(TRACEPARENT_REGEX.matcher(spyResponseHeaders.get(HEADER_TRACE_PARENT)).matches()).isTrue();
+        assertThat(TRACEPARENT_REGEX
+                        .matcher(spyResponseHeaders.get(HEADER_TRACE_PARENT))
+                        .matches())
+                .isTrue();
     }
 
     @Test

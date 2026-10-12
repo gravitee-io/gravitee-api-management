@@ -32,28 +32,26 @@ public class CorsV4IntegrationTest extends CorsV4EmulationIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi(
-        {
-            "/apis/v4/http/cors-running-policies.json",
-            "/apis/v4/http/cors-not-running-policies.json",
-            "/apis/v4/http/cors-with-response-template.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/http/cors-running-policies.json",
+        "/apis/v4/http/cors-not-running-policies.json",
+        "/apis/v4/http/cors-with-response-template.json",
+    })
     class CheckingResponseStatus extends CorsV4EmulationIntegrationTest.CheckingResponseStatus {}
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/cors-running-policies.json", "/apis/v4/http/cors-not-running-policies.json" })
+    @DeployApi({"/apis/v4/http/cors-running-policies.json", "/apis/v4/http/cors-not-running-policies.json"})
     class CheckingPoliciesExecution extends CorsV4EmulationIntegrationTest.CheckingPoliciesExecution {}
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/cors-running-policies.json", "/apis/v4/http/cors-not-running-policies.json" })
+    @DeployApi({"/apis/v4/http/cors-running-policies.json", "/apis/v4/http/cors-not-running-policies.json"})
     class CheckingRejection extends CorsV4EmulationIntegrationTest.CheckingRejection {}
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/http/cors-running-policies.json" })
+    @DeployApi({"/apis/v4/http/cors-running-policies.json"})
     class CheckingSecurityChainSkip extends CorsV4EmulationIntegrationTest.CheckingSecurityChainSkip {
 
         @Override
@@ -64,7 +62,11 @@ public class CorsV4IntegrationTest extends CorsV4EmulationIntegrationTest {
                 var security = new PlanSecurity();
                 security.setType("api-key");
 
-                var plan = Plan.builder().id("plan-id").security(security).status(PlanStatus.PUBLISHED).build();
+                var plan = Plan.builder()
+                        .id("plan-id")
+                        .security(security)
+                        .status(PlanStatus.PUBLISHED)
+                        .build();
                 ((Api) api.getDefinition()).setPlans(List.of(plan));
             }
         }

@@ -43,10 +43,14 @@ class HomepageReconcilerTest {
     private static final String ENV_ID = "env-1";
     private static final String PORTAL_ID = "11111111-1111-1111-1111-1111111111a1";
     private static final String OTHER_PORTAL_UUID = "11111111-1111-1111-1111-1111111111b1";
-    private static final PortalNavigationItemId ACTIVE_ID = PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000a1");
-    private static final PortalNavigationItemId STALE_ID = PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000a2");
-    private static final PortalNavigationItemId UNATTACHED_ID = PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000a3");
-    private static final PortalNavigationItemId OTHER_PORTAL_ID = PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000a4");
+    private static final PortalNavigationItemId ACTIVE_ID =
+            PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000a1");
+    private static final PortalNavigationItemId STALE_ID =
+            PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000a2");
+    private static final PortalNavigationItemId UNATTACHED_ID =
+            PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000a3");
+    private static final PortalNavigationItemId OTHER_PORTAL_ID =
+            PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000a4");
 
     private PortalNavigationItemsCrudServiceInMemory navItemCrud;
     private PortalNavigationItemsQueryServiceInMemory navItemQuery;
@@ -63,14 +67,16 @@ class HomepageReconcilerTest {
 
     @Test
     void is_a_noop_when_no_homepages_exist() {
-        assertThatCode(() -> reconciler.dropStaleHomepages(ENV_ID, PORTAL_ID, ACTIVE_ID)).doesNotThrowAnyException();
+        assertThatCode(() -> reconciler.dropStaleHomepages(ENV_ID, PORTAL_ID, ACTIVE_ID))
+                .doesNotThrowAnyException();
         assertThat(navItemCrud.storage()).isEmpty();
     }
 
     @Test
     void keeps_the_active_homepage_untouched() {
         var contentId = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1");
-        navItemCrud.create(homepage(ACTIVE_ID, new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID)), contentId));
+        navItemCrud.create(
+                homepage(ACTIVE_ID, new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID)), contentId));
         pageContentCrud.create(content(contentId));
 
         reconciler.dropStaleHomepages(ENV_ID, PORTAL_ID, ACTIVE_ID);
@@ -82,7 +88,8 @@ class HomepageReconcilerTest {
     @Test
     void drops_stale_homepage_of_same_portal_and_its_content() {
         var staleContentId = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c2");
-        navItemCrud.create(homepage(STALE_ID, new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID)), staleContentId));
+        navItemCrud.create(homepage(
+                STALE_ID, new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID)), staleContentId));
         pageContentCrud.create(content(staleContentId));
 
         reconciler.dropStaleHomepages(ENV_ID, PORTAL_ID, ACTIVE_ID);
@@ -106,9 +113,10 @@ class HomepageReconcilerTest {
     @Test
     void does_not_touch_homepage_of_a_different_portal() {
         var otherContentId = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c4");
-        navItemCrud.create(
-            homepage(OTHER_PORTAL_ID, new NavigationItemReference.PortalReference(PortalId.of(OTHER_PORTAL_UUID)), otherContentId)
-        );
+        navItemCrud.create(homepage(
+                OTHER_PORTAL_ID,
+                new NavigationItemReference.PortalReference(PortalId.of(OTHER_PORTAL_UUID)),
+                otherContentId));
         pageContentCrud.create(content(otherContentId));
 
         reconciler.dropStaleHomepages(ENV_ID, PORTAL_ID, ACTIVE_ID);
@@ -120,17 +128,17 @@ class HomepageReconcilerTest {
     @Test
     void drops_non_page_homepage_without_touching_page_contents() {
         var folder = PortalNavigationFolder.builder()
-            .id(STALE_ID)
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .reference(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID)))
-            .title("Stale Folder")
-            .segment("stale-folder")
-            .area(PortalArea.HOMEPAGE)
-            .order(0)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(STALE_ID)
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .reference(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID)))
+                .title("Stale Folder")
+                .segment("stale-folder")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
         navItemCrud.create(folder);
         var untouchedContentId = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c5");
         pageContentCrud.create(content(untouchedContentId));
@@ -142,23 +150,20 @@ class HomepageReconcilerTest {
     }
 
     private static PortalNavigationPage homepage(
-        PortalNavigationItemId id,
-        NavigationItemReference reference,
-        PortalPageContentId contentId
-    ) {
+            PortalNavigationItemId id, NavigationItemReference reference, PortalPageContentId contentId) {
         return PortalNavigationPage.builder()
-            .id(id)
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .reference(reference)
-            .title("Home")
-            .segment("home")
-            .area(PortalArea.HOMEPAGE)
-            .order(0)
-            .portalPageContentId(contentId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(id)
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .reference(reference)
+                .title("Home")
+                .segment("home")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .portalPageContentId(contentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 
     private static GraviteeMarkdownPageContent content(PortalPageContentId contentId) {

@@ -69,10 +69,16 @@ class AuthzSyncCycleIsolationTest {
         NoopDistributedSyncService distributedSyncService = new NoopDistributedSyncService();
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
-        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
+        lenient()
+                .when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong()))
+                .thenReturn(Completable.complete());
         lenient().when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
-        lenient().when(deployerFactory.createAuthzEntityDeployer()).thenReturn(new AuthzEntityDeployer(enginePort, distributedSyncService));
-        lenient().when(deployerFactory.createAuthzPolicyDeployer()).thenReturn(new AuthzPolicyDeployer(enginePort, distributedSyncService));
+        lenient()
+                .when(deployerFactory.createAuthzEntityDeployer())
+                .thenReturn(new AuthzEntityDeployer(enginePort, distributedSyncService));
+        lenient()
+                .when(deployerFactory.createAuthzPolicyDeployer())
+                .thenReturn(new AuthzPolicyDeployer(enginePort, distributedSyncService));
     }
 
     @AfterEach
@@ -82,30 +88,45 @@ class AuthzSyncCycleIsolationTest {
 
     @Test
     void entity_fetch_error_does_not_fail_the_cycle() throws InterruptedException {
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.error(new RuntimeException("db down")));
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.error(new RuntimeException("db down")));
 
-        entitySynchronizer().synchronize(1_000L, 2_000L, Set.of("env-1")).test().await().assertComplete();
+        entitySynchronizer()
+                .synchronize(1_000L, 2_000L, Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
     }
 
     @Test
     void policy_fetch_error_does_not_fail_the_cycle() throws InterruptedException {
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.error(new RuntimeException("db down")));
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.error(new RuntimeException("db down")));
 
-        policySynchronizer().synchronize(1_000L, 2_000L, Set.of("env-1")).test().await().assertComplete();
+        policySynchronizer()
+                .synchronize(1_000L, 2_000L, Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
     }
 
     @Test
     void pdp_fetch_error_does_not_fail_the_cycle() throws InterruptedException {
-        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.error(new RuntimeException("db down")));
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+                .thenReturn(Flowable.error(new RuntimeException("db down")));
 
-        pdpSynchronizer().synchronize(1_000L, 2_000L, Set.of("env-1")).test().await().assertComplete();
+        pdpSynchronizer()
+                .synchronize(1_000L, 2_000L, Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
     }
 
     @Test
     void entity_refetches_failed_window_on_next_cycle() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.error(new RuntimeException("db down")))
-            .thenReturn(Flowable.empty());
+                .thenReturn(Flowable.error(new RuntimeException("db down")))
+                .thenReturn(Flowable.empty());
         AuthzEntitySynchronizer synchronizer = entitySynchronizer();
 
         synchronizer.synchronize(1_000L, 2_000L, Set.of("env-1")).test().await().assertComplete();
@@ -117,13 +138,17 @@ class AuthzSyncCycleIsolationTest {
     @Test
     void entity_returns_to_live_window_after_recovery() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.error(new RuntimeException("db down")))
-            .thenReturn(Flowable.empty());
+                .thenReturn(Flowable.error(new RuntimeException("db down")))
+                .thenReturn(Flowable.empty());
         AuthzEntitySynchronizer synchronizer = entitySynchronizer();
 
         synchronizer.synchronize(1_000L, 2_000L, Set.of("env-1")).test().await().assertComplete();
         synchronizer.synchronize(6_000L, 7_000L, Set.of("env-1")).test().await().assertComplete();
-        synchronizer.synchronize(11_000L, 12_000L, Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(11_000L, 12_000L, Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(fetchedFroms()).containsExactly(1_000L, 1_000L, 11_000L);
     }
@@ -131,8 +156,8 @@ class AuthzSyncCycleIsolationTest {
     @Test
     void entity_initial_fetch_error_redoes_initial_fetch_on_next_cycle() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.error(new RuntimeException("db down")))
-            .thenReturn(Flowable.empty());
+                .thenReturn(Flowable.error(new RuntimeException("db down")))
+                .thenReturn(Flowable.empty());
         AuthzEntitySynchronizer synchronizer = entitySynchronizer();
 
         synchronizer.synchronize(-1L, 2_000L, Set.of("env-1")).test().await().assertComplete();
@@ -145,14 +170,18 @@ class AuthzSyncCycleIsolationTest {
     @Test
     void entity_keeps_widened_window_across_repeated_failures() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.error(new RuntimeException("db down")))
-            .thenReturn(Flowable.error(new RuntimeException("db still down")))
-            .thenReturn(Flowable.empty());
+                .thenReturn(Flowable.error(new RuntimeException("db down")))
+                .thenReturn(Flowable.error(new RuntimeException("db still down")))
+                .thenReturn(Flowable.empty());
         AuthzEntitySynchronizer synchronizer = entitySynchronizer();
 
         synchronizer.synchronize(1_000L, 2_000L, Set.of("env-1")).test().await().assertComplete();
         synchronizer.synchronize(6_000L, 7_000L, Set.of("env-1")).test().await().assertComplete();
-        synchronizer.synchronize(11_000L, 12_000L, Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(11_000L, 12_000L, Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(fetchedFroms()).containsExactly(1_000L, 1_000L, 1_000L);
     }
@@ -160,8 +189,8 @@ class AuthzSyncCycleIsolationTest {
     @Test
     void pdp_refetches_failed_window_on_next_cycle() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.error(new RuntimeException("db down")))
-            .thenReturn(Flowable.empty());
+                .thenReturn(Flowable.error(new RuntimeException("db down")))
+                .thenReturn(Flowable.empty());
         AuthzPdpSynchronizer synchronizer = pdpSynchronizer();
 
         synchronizer.synchronize(1_000L, 2_000L, Set.of("env-1")).test().await().assertComplete();
@@ -173,13 +202,17 @@ class AuthzSyncCycleIsolationTest {
     @Test
     void pdp_returns_to_live_window_after_recovery() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.error(new RuntimeException("db down")))
-            .thenReturn(Flowable.empty());
+                .thenReturn(Flowable.error(new RuntimeException("db down")))
+                .thenReturn(Flowable.empty());
         AuthzPdpSynchronizer synchronizer = pdpSynchronizer();
 
         synchronizer.synchronize(1_000L, 2_000L, Set.of("env-1")).test().await().assertComplete();
         synchronizer.synchronize(6_000L, 7_000L, Set.of("env-1")).test().await().assertComplete();
-        synchronizer.synchronize(11_000L, 12_000L, Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(11_000L, 12_000L, Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(fetchedFroms()).containsExactly(1_000L, 1_000L, 11_000L);
     }
@@ -190,11 +223,10 @@ class AuthzSyncCycleIsolationTest {
         missed.setId("evt-missed");
         missed.setType(EventType.PUBLISH_AUTHZ_ENTITY);
         missed.setPayload(
-            "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"attributes\":{},\"parents\":[],\"environmentId\":\"env-1\",\"targetPdpIds\":[\"default\"]}"
-        );
+                "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"attributes\":{},\"parents\":[],\"environmentId\":\"env-1\",\"targetPdpIds\":[\"default\"]}");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
-            .thenReturn(Flowable.error(new RuntimeException("db down")))
-            .thenReturn(Flowable.just(List.of(missed)));
+                .thenReturn(Flowable.error(new RuntimeException("db down")))
+                .thenReturn(Flowable.just(List.of(missed)));
         AuthzEntitySynchronizer synchronizer = entitySynchronizer();
 
         synchronizer.synchronize(1_000L, 2_000L, Set.of("env-1")).test().await().assertComplete();
@@ -219,38 +251,35 @@ class AuthzSyncCycleIsolationTest {
 
     private AuthzEntitySynchronizer entitySynchronizer() {
         return new AuthzEntitySynchronizer(
-            fetcher,
-            new AuthzEntityMapper(new ObjectMapper()),
-            deployerFactory,
-            enginePort,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzEntityMapper(new ObjectMapper()),
+                deployerFactory,
+                enginePort,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
     }
 
     private AuthzPolicySynchronizer policySynchronizer() {
         return new AuthzPolicySynchronizer(
-            fetcher,
-            new AuthzPolicyMapper(new ObjectMapper()),
-            deployerFactory,
-            enginePort,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzPolicyMapper(new ObjectMapper()),
+                deployerFactory,
+                enginePort,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
     }
 
     private AuthzSchemaSynchronizer schemaSynchronizer() {
         return new AuthzSchemaSynchronizer(
-            fetcher,
-            new AuthzSchemaMapper(new ObjectMapper()),
-            deployerFactory,
-            enginePort,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzSchemaMapper(new ObjectMapper()),
+                deployerFactory,
+                enginePort,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
     }
 
     private AuthzPdpSynchronizer pdpSynchronizer() {
@@ -259,19 +288,18 @@ class AuthzSyncCycleIsolationTest {
         lenient().when(node.id()).thenReturn("gw-1");
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         return new AuthzPdpSynchronizer(
-            fetcher,
-            new AuthzPdpMapper(new ObjectMapper()),
-            schemaSynchronizer(),
-            policySynchronizer(),
-            entitySynchronizer(),
-            node,
-            gatewayConfiguration,
-            vertx,
-            new AuthzHostedScopes(),
-            executor(),
-            executor(),
-            new AuthzAppliedRevisions()
-        );
+                fetcher,
+                new AuthzPdpMapper(new ObjectMapper()),
+                schemaSynchronizer(),
+                policySynchronizer(),
+                entitySynchronizer(),
+                node,
+                gatewayConfiguration,
+                vertx,
+                new AuthzHostedScopes(),
+                executor(),
+                executor(),
+                new AuthzAppliedRevisions());
     }
 
     private static ThreadPoolExecutor executor() {

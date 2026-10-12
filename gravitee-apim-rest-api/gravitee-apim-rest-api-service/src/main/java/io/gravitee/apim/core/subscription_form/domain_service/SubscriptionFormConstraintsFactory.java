@@ -88,11 +88,15 @@ public final class SubscriptionFormConstraintsFactory {
             out.add(new Constraint.MinLength(min.minLength()));
         }
         if (field instanceof InputField input) {
-            out.add(input.maxLength() != null ? Constraint.MaxLength.forInput(input.maxLength()) : Constraint.MaxLength.forInput());
+            out.add(
+                    input.maxLength() != null
+                            ? Constraint.MaxLength.forInput(input.maxLength())
+                            : Constraint.MaxLength.forInput());
         } else if (field instanceof TextareaField textarea) {
             out.add(
-                textarea.maxLength() != null ? Constraint.MaxLength.forTextarea(textarea.maxLength()) : Constraint.MaxLength.forTextarea()
-            );
+                    textarea.maxLength() != null
+                            ? Constraint.MaxLength.forTextarea(textarea.maxLength())
+                            : Constraint.MaxLength.forTextarea());
         }
     }
 

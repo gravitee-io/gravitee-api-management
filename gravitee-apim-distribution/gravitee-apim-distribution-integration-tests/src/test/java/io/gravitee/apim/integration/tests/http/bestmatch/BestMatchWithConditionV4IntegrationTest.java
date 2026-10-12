@@ -68,31 +68,31 @@ class BestMatchWithConditionV4IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.putIfAbsent(
-            "transform-headers",
-            PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
-        );
+                "transform-headers",
+                PolicyBuilder.build(
+                        "transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class));
     }
 
     @Test
     void should_select_the_most_specific_flow_when_its_condition_is_true(HttpClient client) {
         callApi(client, "/books/145", "gold");
 
-        wiremock.verify(
-            getRequestedFor(urlPathEqualTo("/endpoint/books/145"))
+        wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint/books/145"))
                 .withHeader(PLAN_FLOW_SELECTED, equalTo("/books/:bookId"))
-                .withHeader(API_FLOW_SELECTED, equalTo("/books/:bookId"))
-        );
+                .withHeader(API_FLOW_SELECTED, equalTo("/books/:bookId")));
     }
 
     @Test
@@ -100,11 +100,9 @@ class BestMatchWithConditionV4IntegrationTest extends AbstractGatewayTest {
         callApi(client, "/books/145", "silver");
 
         // The gold flow is not a candidate at all, so the broader flow wins the selection.
-        wiremock.verify(
-            getRequestedFor(urlPathEqualTo("/endpoint/books/145"))
+        wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint/books/145"))
                 .withHeader(PLAN_FLOW_SELECTED, equalTo("/books"))
-                .withHeader(API_FLOW_SELECTED, equalTo("/books"))
-        );
+                .withHeader(API_FLOW_SELECTED, equalTo("/books")));
     }
 
     @Test
@@ -112,36 +110,31 @@ class BestMatchWithConditionV4IntegrationTest extends AbstractGatewayTest {
         callApi(client, "/vip", "silver");
 
         // No fallback flow is declared under /vip: the request is still proxied, without any flow being executed.
-        wiremock.verify(
-            getRequestedFor(urlPathEqualTo("/endpoint/vip"))
+        wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint/vip"))
                 .withHeader(PLAN_FLOW_SELECTED, absent())
-                .withHeader(API_FLOW_SELECTED, absent())
-        );
+                .withHeader(API_FLOW_SELECTED, absent()));
     }
 
     @Test
     void should_select_the_conditional_flow_when_no_other_flow_matches_the_path(HttpClient client) {
         callApi(client, "/vip", "gold");
 
-        wiremock.verify(
-            getRequestedFor(urlPathEqualTo("/endpoint/vip"))
+        wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint/vip"))
                 .withHeader(PLAN_FLOW_SELECTED, absent())
-                .withHeader(API_FLOW_SELECTED, equalTo("/vip"))
-        );
+                .withHeader(API_FLOW_SELECTED, equalTo("/vip")));
     }
 
     private void callApi(final HttpClient client, final String path, final String tier) {
         wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
-        client
-            .rxRequest(HttpMethod.GET, "/test-bestmatch-condition" + path)
-            .flatMap(request -> request.putHeader(TIER, tier).rxSend())
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete();
+        client.rxRequest(HttpMethod.GET, "/test-bestmatch-condition" + path)
+                .flatMap(request -> request.putHeader(TIER, tier).rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
     }
 }

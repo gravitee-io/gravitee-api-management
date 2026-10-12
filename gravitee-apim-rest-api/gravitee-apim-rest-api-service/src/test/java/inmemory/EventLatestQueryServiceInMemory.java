@@ -35,28 +35,33 @@ public class EventLatestQueryServiceInMemory implements EventLatestQueryService,
     }
 
     @Override
-    public List<Event> findLatestByEntityIds(Set<String> entityIds, EventType eventType, Event.EventProperties propertyKey) {
-        return entityIds
-            .stream()
-            .map(entityId ->
-                storage
-                    .stream()
-                    .filter(event -> eventType.name().equals(event.getType() != null ? event.getType().name() : null))
-                    .filter(event -> entityId.equals(event.getProperties().getOrDefault(propertyKey, null)))
-                    .max(Comparator.comparing(event -> event.getUpdatedAt() != null ? event.getUpdatedAt() : event.getCreatedAt()))
-            )
-            .flatMap(Optional::stream)
-            .collect(Collectors.toList());
+    public List<Event> findLatestByEntityIds(
+            Set<String> entityIds, EventType eventType, Event.EventProperties propertyKey) {
+        return entityIds.stream()
+                .map(entityId -> storage.stream()
+                        .filter(event -> eventType
+                                .name()
+                                .equals(
+                                        event.getType() != null
+                                                ? event.getType().name()
+                                                : null))
+                        .filter(event -> entityId.equals(event.getProperties().getOrDefault(propertyKey, null)))
+                        .max(Comparator.comparing(
+                                event -> event.getUpdatedAt() != null ? event.getUpdatedAt() : event.getCreatedAt())))
+                .flatMap(Optional::stream)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Event> findAllByTypeAndEnvironments(Set<EventType> eventTypes, Set<String> environments, Event.EventProperties groupBy) {
+    public List<Event> findAllByTypeAndEnvironments(
+            Set<EventType> eventTypes, Set<String> environments, Event.EventProperties groupBy) {
         Set<String> typeNames = eventTypes.stream().map(Enum::name).collect(Collectors.toSet());
-        return storage
-            .stream()
-            .filter(event -> event.getType() != null && typeNames.contains(event.getType().name()))
-            .filter(event -> event.getEnvironments() != null && event.getEnvironments().stream().anyMatch(environments::contains))
-            .collect(Collectors.toList());
+        return storage.stream()
+                .filter(event -> event.getType() != null
+                        && typeNames.contains(event.getType().name()))
+                .filter(event -> event.getEnvironments() != null
+                        && event.getEnvironments().stream().anyMatch(environments::contains))
+                .collect(Collectors.toList());
     }
 
     @Override

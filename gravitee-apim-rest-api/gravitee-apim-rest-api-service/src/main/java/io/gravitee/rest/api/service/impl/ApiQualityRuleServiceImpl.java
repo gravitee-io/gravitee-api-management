@@ -60,7 +60,9 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
     public List<ApiQualityRuleEntity> findByApi(final String api) {
         try {
             log.debug("Find quality rules by API");
-            return apiQualityRuleRepository.findByApi(api).stream().map(this::convert).collect(toList());
+            return apiQualityRuleRepository.findByApi(api).stream()
+                    .map(this::convert)
+                    .collect(toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find quality rules by API";
             throw new TechnicalManagementException(error, ex);
@@ -70,24 +72,21 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
     @Override
     public ApiQualityRuleEntity create(ExecutionContext executionContext, NewApiQualityRuleEntity newEntity) {
         try {
-            final Optional<ApiQualityRule> optionalApiQualityRule = apiQualityRuleRepository.findById(
-                newEntity.getApi(),
-                newEntity.getQualityRule()
-            );
+            final Optional<ApiQualityRule> optionalApiQualityRule =
+                    apiQualityRuleRepository.findById(newEntity.getApi(), newEntity.getQualityRule());
             if (optionalApiQualityRule.isPresent()) {
                 throw new ApiQualityRuleAlreadyExistsException(newEntity.getApi(), newEntity.getQualityRule());
             }
             final ApiQualityRule apiQualityRule = convert(newEntity);
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()))
-                    .event(API_QUALITY_RULE_CREATED)
-                    .createdAt(apiQualityRule.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(apiQualityRule)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()))
+                            .event(API_QUALITY_RULE_CREATED)
+                            .createdAt(apiQualityRule.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(apiQualityRule)
+                            .build());
             return convert(apiQualityRuleRepository.create(apiQualityRule));
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to create an API quality rule " + newEntity;
@@ -98,24 +97,21 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
     @Override
     public ApiQualityRuleEntity update(ExecutionContext executionContext, UpdateApiQualityRuleEntity updateEntity) {
         try {
-            final Optional<ApiQualityRule> optionalApiQualityRule = apiQualityRuleRepository.findById(
-                updateEntity.getApi(),
-                updateEntity.getQualityRule()
-            );
+            final Optional<ApiQualityRule> optionalApiQualityRule =
+                    apiQualityRuleRepository.findById(updateEntity.getApi(), updateEntity.getQualityRule());
             if (!optionalApiQualityRule.isPresent()) {
                 throw new ApiQualityRuleNotFoundException(updateEntity.getApi(), updateEntity.getQualityRule());
             }
             final ApiQualityRule apiQualityRule = apiQualityRuleRepository.update(convert(updateEntity));
             auditService.createAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()))
-                    .event(API_QUALITY_RULE_UPDATED)
-                    .createdAt(apiQualityRule.getUpdatedAt())
-                    .oldValue(optionalApiQualityRule.get())
-                    .newValue(apiQualityRule)
-                    .build()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()))
+                            .event(API_QUALITY_RULE_UPDATED)
+                            .createdAt(apiQualityRule.getUpdatedAt())
+                            .oldValue(optionalApiQualityRule.get())
+                            .newValue(apiQualityRule)
+                            .build());
             return convert(apiQualityRule);
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to update API quality rule " + updateEntity;

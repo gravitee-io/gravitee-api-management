@@ -200,9 +200,9 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                 deleteLocally(source);
             } catch (Exception ex) {
                 throw new TechnicalManagementException(
-                    "Unable to delete document for content [ " + content.getId() + " - " + content.getClazz() + " ]",
-                    ex
-                );
+                        "Unable to delete document for content [ " + content.getId() + " - " + content.getClazz()
+                                + " ]",
+                        ex);
             }
         } else if (ACTION_INDEX.equals(content.getAction())) {
             Indexable source = getSource(executionContext, content.getClazz(), content.getId());
@@ -227,10 +227,15 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     private Indexable getSource(final ExecutionContext executionContext, String clazz, String id) {
         try {
-            if (ApiEntity.class.getName().equals(clazz) || io.gravitee.rest.api.model.v4.api.ApiEntity.class.getName().equals(clazz)) {
-                GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, id, false, false, true);
+            if (ApiEntity.class.getName().equals(clazz)
+                    || io.gravitee.rest.api.model.v4.api.ApiEntity.class
+                            .getName()
+                            .equals(clazz)) {
+                GenericApiEntity genericApi =
+                        apiSearchService.findGenericById(executionContext, id, false, false, true);
                 return apiMetadataService.fetchMetadataForApi(executionContext, genericApi);
-            } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
+            } else if (PageEntity.class.getName().equals(clazz)
+                    || ApiPageEntity.class.getName().equals(clazz)) {
                 return pageService.findById(id);
             } else if (UserEntity.class.getName().equals(clazz)) {
                 return userService.findById(executionContext, id);
@@ -239,15 +244,15 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             } else if (IndexableApi.class.getName().equals(clazz)) {
                 var api = apiCrudService.get(id);
                 return apiIndexerDomainService.toIndexableApi(
-                    new Indexer.IndexationContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                    api
-                );
+                        new Indexer.IndexationContext(
+                                executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                        api);
             } else if (IndexableApiProduct.class.getName().equals(clazz)) {
                 var apiProduct = apiProductCrudService.get(id);
                 return apiProductIndexerDomainService.toIndexableApiProduct(
-                    new Indexer.IndexationContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                    apiProduct
-                );
+                        new Indexer.IndexationContext(
+                                executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                        apiProduct);
             }
         } catch (final AbstractNotFoundException nfe) {
             // ignore not found exception because may be due to synchronization not yet processed by DBs
@@ -262,42 +267,38 @@ public class SearchEngineServiceImpl implements SearchEngineService {
         // detection) is updated even when Lucene degrades. Observer failures are caught per-observer so they cannot
         // block the Lucene write.
         notifyObservers(source, true);
-        transformers
-            .stream()
-            .filter(transformer -> transformer.handle(source.getClass()))
-            .findFirst()
-            .ifPresentOrElse(
-                transformer -> {
-                    try {
-                        indexer.index(transformer.transform(source), commit);
-                    } catch (TechnicalException te) {
-                        log.error("Unexpected error while indexing a document", te);
-                    }
-                },
-                () -> log.warn("No document transformer found for type [{}], document will not be indexed", source.getClass().getName())
-            );
+        transformers.stream()
+                .filter(transformer -> transformer.handle(source.getClass()))
+                .findFirst()
+                .ifPresentOrElse(
+                        transformer -> {
+                            try {
+                                indexer.index(transformer.transform(source), commit);
+                            } catch (TechnicalException te) {
+                                log.error("Unexpected error while indexing a document", te);
+                            }
+                        },
+                        () -> log.warn(
+                                "No document transformer found for type [{}], document will not be indexed",
+                                source.getClass().getName()));
     }
 
     private void deleteLocally(Indexable source) {
         notifyObservers(source, false);
-        transformers
-            .stream()
-            .filter(transformer -> transformer.handle(source.getClass()))
-            .findFirst()
-            .ifPresentOrElse(
-                transformer -> {
-                    try {
-                        indexer.remove(transformer.transform(source));
-                    } catch (TechnicalException te) {
-                        log.error("Unexpected error while deleting a document", te);
-                    }
-                },
-                () ->
-                    log.warn(
-                        "No document transformer found for type [{}], document will not be removed from index",
-                        source.getClass().getName()
-                    )
-            );
+        transformers.stream()
+                .filter(transformer -> transformer.handle(source.getClass()))
+                .findFirst()
+                .ifPresentOrElse(
+                        transformer -> {
+                            try {
+                                indexer.remove(transformer.transform(source));
+                            } catch (TechnicalException te) {
+                                log.error("Unexpected error while deleting a document", te);
+                            }
+                        },
+                        () -> log.warn(
+                                "No document transformer found for type [{}], document will not be removed from index",
+                                source.getClass().getName()));
     }
 
     private void notifyObservers(Indexable source, boolean indexing) {
@@ -309,7 +310,11 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                     observer.onDelete(source);
                 }
             } catch (RuntimeException e) {
-                log.error("Indexation observer [{}] failed for [{}]", observer.getClass().getSimpleName(), source.getClass().getName(), e);
+                log.error(
+                        "Indexation observer [{}] failed for [{}]",
+                        observer.getClass().getSimpleName(),
+                        source.getClass().getName(),
+                        e);
             }
         }
     }
@@ -326,48 +331,46 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Override
     public SearchResult search(final ExecutionContext executionContext, Query<? extends Indexable> query) {
-        Optional<SearchResult> results = searchers
-            .stream()
-            .filter(searcher -> searcher.handle(query.getRoot()))
-            .findFirst()
-            .flatMap(searcher -> {
-                try {
-                    if (searcher instanceof ApiDocumentSearcher) {
-                        Optional<DocumentSearcher> pageDocumentSearcher = searchers
-                            .stream()
-                            .filter(s -> s.handle(PageEntity.class))
-                            .findFirst();
-                        if (pageDocumentSearcher.isPresent()) {
-                            SearchResult apiReferences = pageDocumentSearcher.get().searchReference(executionContext, query);
-                            if (!apiReferences.getDocuments().isEmpty()) {
-                                query.setIds(apiReferences.getDocuments());
+        Optional<SearchResult> results = searchers.stream()
+                .filter(searcher -> searcher.handle(query.getRoot()))
+                .findFirst()
+                .flatMap(searcher -> {
+                    try {
+                        if (searcher instanceof ApiDocumentSearcher) {
+                            Optional<DocumentSearcher> pageDocumentSearcher = searchers.stream()
+                                    .filter(s -> s.handle(PageEntity.class))
+                                    .findFirst();
+                            if (pageDocumentSearcher.isPresent()) {
+                                SearchResult apiReferences =
+                                        pageDocumentSearcher.get().searchReference(executionContext, query);
+                                if (!apiReferences.getDocuments().isEmpty()) {
+                                    query.setIds(apiReferences.getDocuments());
+                                }
                             }
                         }
+                        return Optional.of(searcher.search(executionContext, query));
+                    } catch (TechnicalException te) {
+                        log.error("Unexpected error while searching a document", te);
+                        return Optional.empty();
                     }
-                    return Optional.of(searcher.search(executionContext, query));
-                } catch (TechnicalException te) {
-                    log.error("Unexpected error while searching a document", te);
-                    return Optional.empty();
-                }
-            });
+                });
 
         return results.orElse(new SearchResult(List.of()));
     }
 
     @Override
     public SearchResult searchPageReference(final ExecutionContext executionContext, Query<PageEntity> query) {
-        return searchers
-            .stream()
-            .filter(searcher -> searcher.handle(PageEntity.class))
-            .findFirst()
-            .flatMap(searcher -> {
-                try {
-                    return Optional.of(searcher.searchReference(executionContext, query));
-                } catch (TechnicalException te) {
-                    log.error("Unexpected error while searching page references", te);
-                    return Optional.empty();
-                }
-            })
-            .orElse(new SearchResult(List.of()));
+        return searchers.stream()
+                .filter(searcher -> searcher.handle(PageEntity.class))
+                .findFirst()
+                .flatMap(searcher -> {
+                    try {
+                        return Optional.of(searcher.searchReference(executionContext, query));
+                    } catch (TechnicalException te) {
+                        log.error("Unexpected error while searching page references", te);
+                        return Optional.empty();
+                    }
+                })
+                .orElse(new SearchResult(List.of()));
     }
 }

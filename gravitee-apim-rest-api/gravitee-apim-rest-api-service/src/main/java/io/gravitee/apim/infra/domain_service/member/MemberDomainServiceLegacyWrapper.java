@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.infra.domain_service.member;
 
-import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.member.domain_service.MemberDomainService;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -32,10 +31,7 @@ public class MemberDomainServiceLegacyWrapper implements MemberDomainService {
     private final MembershipService legacyService;
 
     public Set<MemberEntity> getMembersByReference(
-        ExecutionContext executionContext,
-        MembershipReferenceType referenceType,
-        String referenceId
-    ) {
+            ExecutionContext executionContext, MembershipReferenceType referenceType, String referenceId) {
         return legacyService.getMembersByReference(executionContext, referenceType, referenceId);
     }
 }

@@ -73,9 +73,9 @@ class MongoQueriesTest {
 
     @Test
     void countOrTimeout_returns_minus_one_when_count_times_out() {
-        when(mongoTemplate.count(any(Query.class), eq(Object.class))).thenThrow(
-            new UncategorizedMongoDbException("Wrapped", new MongoExecutionTimeoutException(50, "operation exceeded time limit"))
-        );
+        when(mongoTemplate.count(any(Query.class), eq(Object.class)))
+                .thenThrow(new UncategorizedMongoDbException(
+                        "Wrapped", new MongoExecutionTimeoutException(50, "operation exceeded time limit")));
 
         MongoQueries mongoQueries = new MongoQueries(2000L);
 
@@ -96,23 +96,25 @@ class MongoQueriesTest {
 
     @Test
     void countOrTimeout_logs_warning_with_collection_and_timeout_when_count_times_out() {
-        when(mongoTemplate.count(any(Query.class), eq(Object.class))).thenThrow(
-            new UncategorizedMongoDbException("Wrapped", new MongoExecutionTimeoutException(50, "operation exceeded time limit"))
-        );
+        when(mongoTemplate.count(any(Query.class), eq(Object.class)))
+                .thenThrow(new UncategorizedMongoDbException(
+                        "Wrapped", new MongoExecutionTimeoutException(50, "operation exceeded time limit")));
         when(mongoTemplate.getCollectionName(Object.class)).thenReturn("myCollection");
         MongoQueries mongoQueries = new MongoQueries(2500L);
 
         mongoQueries.countOrTimeout(mongoTemplate, new Query(), Object.class);
 
-        assertThat(logAppender.list).anyMatch(
-            e -> e.getLevel() == Level.WARN && e.getFormattedMessage().contains("myCollection") && e.getFormattedMessage().contains("2500")
-        );
+        assertThat(logAppender.list)
+                .anyMatch(e -> e.getLevel() == Level.WARN
+                        && e.getFormattedMessage().contains("myCollection")
+                        && e.getFormattedMessage().contains("2500"));
     }
 
     @Test
     void countAggregationOrTimeout_returns_minus_one_when_aggregation_times_out() {
         when(aggregateIterable.maxTime(anyLong(), eq(TimeUnit.MILLISECONDS))).thenReturn(aggregateIterable);
-        when(aggregateIterable.first()).thenThrow(new MongoExecutionTimeoutException(50, "operation exceeded time limit"));
+        when(aggregateIterable.first())
+                .thenThrow(new MongoExecutionTimeoutException(50, "operation exceeded time limit"));
         MongoQueries mongoQueries = new MongoQueries(2000L);
 
         long total = mongoQueries.countAggregationOrTimeout(aggregateIterable, "totalCount", "subscriptions");
@@ -175,8 +177,8 @@ class MongoQueriesTest {
         mongoQueries.countOrTimeout(mongoTemplate, callerQuery, Object.class);
 
         assertThat(callerQuery.getMeta().getMaxTimeMsec())
-            .as("caller's Query must be left untouched so find() keeps its own budget")
-            .isNull();
+                .as("caller's Query must be left untouched so find() keeps its own budget")
+                .isNull();
     }
 
     @Test
@@ -185,7 +187,8 @@ class MongoQueriesTest {
         when(mongoTemplate.count(any(Query.class), eq(Object.class))).thenThrow(nonTimeout);
         MongoQueries mongoQueries = new MongoQueries(2000L);
 
-        assertThatThrownBy(() -> mongoQueries.countOrTimeout(mongoTemplate, new Query(), Object.class)).isSameAs(nonTimeout);
+        assertThatThrownBy(() -> mongoQueries.countOrTimeout(mongoTemplate, new Query(), Object.class))
+                .isSameAs(nonTimeout);
     }
 
     @Test
@@ -195,8 +198,8 @@ class MongoQueriesTest {
         when(aggregateIterable.first()).thenThrow(nonTimeout);
         MongoQueries mongoQueries = new MongoQueries(2000L);
 
-        assertThatThrownBy(() -> mongoQueries.countAggregationOrTimeout(aggregateIterable, "totalCount", "subscriptions")).isSameAs(
-            nonTimeout
-        );
+        assertThatThrownBy(
+                        () -> mongoQueries.countAggregationOrTimeout(aggregateIterable, "totalCount", "subscriptions"))
+                .isSameAs(nonTimeout);
     }
 }

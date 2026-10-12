@@ -87,8 +87,8 @@ class TracingHookTest {
         var captor = ArgumentCaptor.forClass(InternalRequest.class);
         verify(spyNoopTracer).startSpanFrom(any(), captor.capture());
         assertThat(captor.getValue().attributes())
-            .containsEntry(SPAN_REQUEST_ID_ATTR, "test-req-id")
-            .containsEntry(SPAN_TRANSACTION_ID_ATTR, "test-tx-id");
+                .containsEntry(SPAN_REQUEST_ID_ATTR, "test-req-id")
+                .containsEntry(SPAN_TRANSACTION_ID_ATTR, "test-tx-id");
     }
 
     @Test
@@ -110,7 +110,10 @@ class TracingHookTest {
     @Test
     public void should_end_span_on_error_step() {
         ctx.putInternalAttribute("tracing-span-any", NoOpSpan.asDefault());
-        tracingHook.error("any", ctx, ExecutionPhase.REQUEST, new RuntimeException()).test().assertComplete();
+        tracingHook
+                .error("any", ctx, ExecutionPhase.REQUEST, new RuntimeException())
+                .test()
+                .assertComplete();
 
         verify(spyNoopTracer).endOnError(any(), any(), any(Throwable.class));
         assertThat(ctx.<Span>getInternalAttribute("tracing-span-any")).isNull();
@@ -118,7 +121,10 @@ class TracingHookTest {
 
     @Test
     public void should_do_nothing_without_span_on_error_step() {
-        tracingHook.error("any", ctx, ExecutionPhase.REQUEST, new RuntimeException()).test().assertComplete();
+        tracingHook
+                .error("any", ctx, ExecutionPhase.REQUEST, new RuntimeException())
+                .test()
+                .assertComplete();
 
         verifyNoInteractions(spyNoopTracer);
     }
@@ -142,8 +148,12 @@ class TracingHookTest {
     @Test
     public void should_end_span_on_interrupt_with_step() {
         ctx.putInternalAttribute("tracing-span-any", NoOpSpan.asDefault());
-        ExecutionFailure failure = new ExecutionFailure().message("failure").key("key").contentType("contentType");
-        tracingHook.interruptWith("any", ctx, ExecutionPhase.REQUEST, failure).test().assertComplete();
+        ExecutionFailure failure =
+                new ExecutionFailure().message("failure").key("key").contentType("contentType");
+        tracingHook
+                .interruptWith("any", ctx, ExecutionPhase.REQUEST, failure)
+                .test()
+                .assertComplete();
 
         verify(spyNoopTracer).endOnError(any(), any(), anyString());
         assertThat(ctx.<Span>getInternalAttribute("tracing-span-any")).isNull();
@@ -151,7 +161,10 @@ class TracingHookTest {
 
     @Test
     public void should_do_nothing_without_span_on_interrupt_with_step() {
-        tracingHook.interruptWith("any", ctx, ExecutionPhase.REQUEST, new ExecutionFailure()).test().assertComplete();
+        tracingHook
+                .interruptWith("any", ctx, ExecutionPhase.REQUEST, new ExecutionFailure())
+                .test()
+                .assertComplete();
 
         verifyNoInteractions(spyNoopTracer);
     }

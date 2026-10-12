@@ -126,8 +126,8 @@ class EnvironmentServiceTest {
         when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.of(environment()));
         // first fetch fails transiently, second fetch succeeds (bridge recovered)
         when(organizationRepository.findById(ORG_ID))
-            .thenThrow(new TechnicalException("bridge 502"))
-            .thenReturn(Optional.of(organization()));
+                .thenThrow(new TechnicalException("bridge 502"))
+                .thenReturn(Optional.of(organization()));
 
         assertThatThrownBy(() -> cut.fill(ENV_ID, reactableApi)).isInstanceOf(SyncException.class);
 

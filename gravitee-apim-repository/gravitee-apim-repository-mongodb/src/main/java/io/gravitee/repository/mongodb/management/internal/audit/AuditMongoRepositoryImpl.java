@@ -33,7 +33,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.CriteriaDefinition;
 import org.springframework.data.mongodb.core.query.Query;
 
 /**
@@ -56,15 +55,15 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
     public Page<AuditMongo> search(AuditCriteria filter, Pageable pageable) {
         final Query query = new Query();
         if (filter.getReferences() != null && !filter.getReferences().isEmpty()) {
-            filter
-                .getReferences()
-                .forEach((referenceType, referenceIds) -> {
-                    if (referenceIds != null && !referenceIds.isEmpty()) {
-                        query.addCriteria(where("referenceType").is(referenceType).andOperator(where("referenceId").in(referenceIds)));
-                    } else {
-                        query.addCriteria(where("referenceType").is(referenceType));
-                    }
-                });
+            filter.getReferences().forEach((referenceType, referenceIds) -> {
+                if (referenceIds != null && !referenceIds.isEmpty()) {
+                    query.addCriteria(where("referenceType")
+                            .is(referenceType)
+                            .andOperator(where("referenceId").in(referenceIds)));
+                } else {
+                    query.addCriteria(where("referenceType").is(referenceType));
+                }
+            });
         }
 
         if (filter.getFrom() != 0 && filter.getTo() != 0) {
@@ -91,18 +90,16 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
         }
 
         if (filter.getProperties() != null && !filter.getProperties().isEmpty()) {
-            Criteria[] propertyCriteria = filter
-                .getProperties()
-                .entrySet()
-                .stream()
-                .map(property -> where("properties." + property.getKey()).is(property.getValue()))
-                .toArray(Criteria[]::new);
+            Criteria[] propertyCriteria = filter.getProperties().entrySet().stream()
+                    .map(property -> where("properties." + property.getKey()).is(property.getValue()))
+                    .toArray(Criteria[]::new);
             query.addCriteria(new Criteria().orOperator(propertyCriteria));
         }
 
         long total = mongoQueries.countOrTimeout(mongoTemplate, query, AuditMongo.class);
 
-        query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.by(Sort.Direction.DESC, "createdAt")));
+        query.with(
+                PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.by(Sort.Direction.DESC, "createdAt")));
 
         List<AuditMongo> audits = mongoTemplate.find(query, AuditMongo.class);
 
@@ -110,7 +107,9 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
     }
 
     public void deleteByEnvironmentIdAndAge(String environmentId, Instant limit) {
-        var criteria = where("environmentId").is(environmentId).andOperator(where("createdAt").lt(Date.from(limit)));
+        var criteria = where("environmentId")
+                .is(environmentId)
+                .andOperator(where("createdAt").lt(Date.from(limit)));
         Query chunkQuery = new Query(criteria).limit(batchSize);
         chunkQuery.fields().include("_id");
 
@@ -122,10 +121,9 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
             long deleted = result.getDeletedCount();
             if (deleted == 0) {
                 log.warn(
-                    "Audit cleanup made no progress for environment {} after fetching {} candidates; aborting tick",
-                    environmentId,
-                    ids.size()
-                );
+                        "Audit cleanup made no progress for environment {} after fetching {} candidates; aborting tick",
+                        environmentId,
+                        ids.size());
                 break;
             }
             totalDeleted += deleted;

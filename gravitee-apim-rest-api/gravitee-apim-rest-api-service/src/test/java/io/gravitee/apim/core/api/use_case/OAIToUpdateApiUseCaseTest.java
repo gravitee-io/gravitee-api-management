@@ -64,121 +64,152 @@ class OAIToUpdateApiUseCaseTest {
 
     @Test
     void should_throw_when_oai_conversion_returns_null() {
-        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean())).thenReturn(null);
+        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(null);
 
-        assertThatThrownBy(() ->
-            cut.execute(
-                OAIToUpdateApiUseCase.Input.builder()
-                    .apiId(API_ID)
-                    .importSwaggerDescriptor(new ImportSwaggerDescriptorEntity())
-                    .auditInfo(AUDIT_INFO)
-                    .build()
-            )
-        )
-            .isInstanceOf(InvalidApiDefinitionException.class)
-            .hasMessage("Unable to read the swagger specification");
+        assertThatThrownBy(() -> cut.execute(OAIToUpdateApiUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .importSwaggerDescriptor(new ImportSwaggerDescriptorEntity())
+                        .auditInfo(AUDIT_INFO)
+                        .build()))
+                .isInstanceOf(InvalidApiDefinitionException.class)
+                .hasMessage("Unable to read the swagger specification");
     }
 
     @Test
     void should_reuse_persisted_http_flow_id_when_swagger_import_matches_path_and_methods() {
-        var persistedSelector = HttpSelector.builder().pathOperator(Operator.EQUALS).path("/pets").methods(Set.of(HttpMethod.GET)).build();
-        var persistedFlow = Flow.builder().id("persisted-flow-id").selectors(List.of(persistedSelector)).build();
+        var persistedSelector = HttpSelector.builder()
+                .pathOperator(Operator.EQUALS)
+                .path("/pets")
+                .methods(Set.of(HttpMethod.GET))
+                .build();
+        var persistedFlow = Flow.builder()
+                .id("persisted-flow-id")
+                .selectors(List.of(persistedSelector))
+                .build();
         flowCrudService.saveApiFlows(API_ID, List.of(persistedFlow));
 
-        var importSelector = HttpSelector.builder().pathOperator(Operator.EQUALS).path("/pets").methods(Set.of(HttpMethod.GET)).build();
-        var importedFlow = Flow.builder().id(null).selectors(List.of(importSelector)).build();
+        var importSelector = HttpSelector.builder()
+                .pathOperator(Operator.EQUALS)
+                .path("/pets")
+                .methods(Set.of(HttpMethod.GET))
+                .build();
+        var importedFlow =
+                Flow.builder().id(null).selectors(List.of(importSelector)).build();
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().definitionVersion(DefinitionVersion.V4).flows(List.of(importedFlow)).build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .definitionVersion(DefinitionVersion.V4)
+                        .flows(List.of(importedFlow))
+                        .build())
+                .build();
 
-        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean())).thenReturn(importDefinition);
+        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(importDefinition);
 
         var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
-        when(updateApiDefinitionUseCase.execute(any())).thenReturn(
-            new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(existingApi, List.of()))
-        );
+        when(updateApiDefinitionUseCase.execute(any()))
+                .thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(existingApi, List.of())));
 
-        cut.execute(
-            OAIToUpdateApiUseCase.Input.builder()
+        cut.execute(OAIToUpdateApiUseCase.Input.builder()
                 .apiId(API_ID)
                 .importSwaggerDescriptor(new ImportSwaggerDescriptorEntity())
                 .withPolicyPaths(false)
                 .auditInfo(AUDIT_INFO)
-                .build()
-        );
+                .build());
 
         var inputCaptor = ArgumentCaptor.forClass(UpdateApiDefinitionFromImportUseCase.Input.class);
         org.mockito.Mockito.verify(updateApiDefinitionUseCase).execute(inputCaptor.capture());
-        var flowsPassedToUseCase = inputCaptor.getValue().importDefinition().getApiExport().getFlows();
+        var flowsPassedToUseCase =
+                inputCaptor.getValue().importDefinition().getApiExport().getFlows();
         assertThat(flowsPassedToUseCase).hasSize(1);
         assertThat(flowsPassedToUseCase.getFirst().getId()).isEqualTo("persisted-flow-id");
     }
 
     @Test
     void should_not_set_flow_id_when_no_persisted_flow_matches_swagger_import() {
-        var importSelector = HttpSelector.builder().pathOperator(Operator.EQUALS).path("/unknown").methods(Set.of(HttpMethod.POST)).build();
-        var importedFlow = Flow.builder().id(null).selectors(List.of(importSelector)).build();
+        var importSelector = HttpSelector.builder()
+                .pathOperator(Operator.EQUALS)
+                .path("/unknown")
+                .methods(Set.of(HttpMethod.POST))
+                .build();
+        var importedFlow =
+                Flow.builder().id(null).selectors(List.of(importSelector)).build();
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().definitionVersion(DefinitionVersion.V4).flows(List.of(importedFlow)).build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .definitionVersion(DefinitionVersion.V4)
+                        .flows(List.of(importedFlow))
+                        .build())
+                .build();
 
-        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean())).thenReturn(importDefinition);
+        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(importDefinition);
 
         var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
-        when(updateApiDefinitionUseCase.execute(any())).thenReturn(
-            new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(existingApi, List.of()))
-        );
+        when(updateApiDefinitionUseCase.execute(any()))
+                .thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(existingApi, List.of())));
 
-        cut.execute(
-            OAIToUpdateApiUseCase.Input.builder()
+        cut.execute(OAIToUpdateApiUseCase.Input.builder()
                 .apiId(API_ID)
                 .importSwaggerDescriptor(new ImportSwaggerDescriptorEntity())
                 .withPolicyPaths(false)
                 .auditInfo(AUDIT_INFO)
-                .build()
-        );
+                .build());
 
         var inputCaptor = ArgumentCaptor.forClass(UpdateApiDefinitionFromImportUseCase.Input.class);
         org.mockito.Mockito.verify(updateApiDefinitionUseCase).execute(inputCaptor.capture());
-        var flowsPassedToUseCase = inputCaptor.getValue().importDefinition().getApiExport().getFlows();
+        var flowsPassedToUseCase =
+                inputCaptor.getValue().importDefinition().getApiExport().getFlows();
         assertThat(flowsPassedToUseCase).hasSize(1);
         assertThat(flowsPassedToUseCase.getFirst().getId()).isNull();
     }
 
     @Test
     void should_assign_persisted_flow_id_only_to_first_incoming_flow_when_two_incoming_flows_share_same_key() {
-        var persistedSelector = HttpSelector.builder().pathOperator(Operator.EQUALS).path("/pets").methods(Set.of(HttpMethod.GET)).build();
-        var persistedFlow = Flow.builder().id("persisted-flow-id").selectors(List.of(persistedSelector)).build();
+        var persistedSelector = HttpSelector.builder()
+                .pathOperator(Operator.EQUALS)
+                .path("/pets")
+                .methods(Set.of(HttpMethod.GET))
+                .build();
+        var persistedFlow = Flow.builder()
+                .id("persisted-flow-id")
+                .selectors(List.of(persistedSelector))
+                .build();
         flowCrudService.saveApiFlows(API_ID, List.of(persistedFlow));
 
-        var selector = HttpSelector.builder().pathOperator(Operator.EQUALS).path("/pets").methods(Set.of(HttpMethod.GET)).build();
-        var firstIncomingFlow = Flow.builder().id(null).selectors(List.of(selector)).build();
-        var secondIncomingFlow = Flow.builder().id(null).selectors(List.of(selector)).build();
+        var selector = HttpSelector.builder()
+                .pathOperator(Operator.EQUALS)
+                .path("/pets")
+                .methods(Set.of(HttpMethod.GET))
+                .build();
+        var firstIncomingFlow =
+                Flow.builder().id(null).selectors(List.of(selector)).build();
+        var secondIncomingFlow =
+                Flow.builder().id(null).selectors(List.of(selector)).build();
         var importDefinition = ImportDefinition.builder()
-            .apiExport(
-                ApiExport.builder().definitionVersion(DefinitionVersion.V4).flows(List.of(firstIncomingFlow, secondIncomingFlow)).build()
-            )
-            .build();
+                .apiExport(ApiExport.builder()
+                        .definitionVersion(DefinitionVersion.V4)
+                        .flows(List.of(firstIncomingFlow, secondIncomingFlow))
+                        .build())
+                .build();
 
-        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean())).thenReturn(importDefinition);
+        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(importDefinition);
 
         var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
-        when(updateApiDefinitionUseCase.execute(any())).thenReturn(
-            new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(existingApi, List.of()))
-        );
+        when(updateApiDefinitionUseCase.execute(any()))
+                .thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(existingApi, List.of())));
 
-        cut.execute(
-            OAIToUpdateApiUseCase.Input.builder()
+        cut.execute(OAIToUpdateApiUseCase.Input.builder()
                 .apiId(API_ID)
                 .importSwaggerDescriptor(new ImportSwaggerDescriptorEntity())
                 .withPolicyPaths(false)
                 .auditInfo(AUDIT_INFO)
-                .build()
-        );
+                .build());
 
         var inputCaptor = ArgumentCaptor.forClass(UpdateApiDefinitionFromImportUseCase.Input.class);
         org.mockito.Mockito.verify(updateApiDefinitionUseCase).execute(inputCaptor.capture());
-        var flowsPassedToUseCase = inputCaptor.getValue().importDefinition().getApiExport().getFlows();
+        var flowsPassedToUseCase =
+                inputCaptor.getValue().importDefinition().getApiExport().getFlows();
         assertThat(flowsPassedToUseCase).hasSize(2);
         // first flow claims the persisted ID; second flow gets null and will be created as new
         assertThat(flowsPassedToUseCase.get(0).getId()).isEqualTo("persisted-flow-id");
@@ -187,35 +218,47 @@ class OAIToUpdateApiUseCaseTest {
 
     @Test
     void should_assign_first_persisted_flow_id_when_two_persisted_flows_share_same_key() {
-        var selector = HttpSelector.builder().pathOperator(Operator.EQUALS).path("/pets").methods(Set.of(HttpMethod.GET)).build();
-        var firstPersistedFlow = Flow.builder().id("persisted-flow-id-1").selectors(List.of(selector)).build();
-        var secondPersistedFlow = Flow.builder().id("persisted-flow-id-2").selectors(List.of(selector)).build();
+        var selector = HttpSelector.builder()
+                .pathOperator(Operator.EQUALS)
+                .path("/pets")
+                .methods(Set.of(HttpMethod.GET))
+                .build();
+        var firstPersistedFlow = Flow.builder()
+                .id("persisted-flow-id-1")
+                .selectors(List.of(selector))
+                .build();
+        var secondPersistedFlow = Flow.builder()
+                .id("persisted-flow-id-2")
+                .selectors(List.of(selector))
+                .build();
         flowCrudService.saveApiFlows(API_ID, List.of(firstPersistedFlow, secondPersistedFlow));
 
         var importedFlow = Flow.builder().id(null).selectors(List.of(selector)).build();
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().definitionVersion(DefinitionVersion.V4).flows(List.of(importedFlow)).build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .definitionVersion(DefinitionVersion.V4)
+                        .flows(List.of(importedFlow))
+                        .build())
+                .build();
 
-        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean())).thenReturn(importDefinition);
+        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(importDefinition);
 
         var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
-        when(updateApiDefinitionUseCase.execute(any())).thenReturn(
-            new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(existingApi, List.of()))
-        );
+        when(updateApiDefinitionUseCase.execute(any()))
+                .thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(existingApi, List.of())));
 
-        cut.execute(
-            OAIToUpdateApiUseCase.Input.builder()
+        cut.execute(OAIToUpdateApiUseCase.Input.builder()
                 .apiId(API_ID)
                 .importSwaggerDescriptor(new ImportSwaggerDescriptorEntity())
                 .withPolicyPaths(false)
                 .auditInfo(AUDIT_INFO)
-                .build()
-        );
+                .build());
 
         var inputCaptor = ArgumentCaptor.forClass(UpdateApiDefinitionFromImportUseCase.Input.class);
         org.mockito.Mockito.verify(updateApiDefinitionUseCase).execute(inputCaptor.capture());
-        var flowsPassedToUseCase = inputCaptor.getValue().importDefinition().getApiExport().getFlows();
+        var flowsPassedToUseCase =
+                inputCaptor.getValue().importDefinition().getApiExport().getFlows();
         assertThat(flowsPassedToUseCase).hasSize(1);
         // merge function keeps first persisted ID on duplicate key
         assertThat(flowsPassedToUseCase.getFirst().getId()).isEqualTo("persisted-flow-id-1");
@@ -223,35 +266,49 @@ class OAIToUpdateApiUseCaseTest {
 
     @Test
     void should_not_reuse_persisted_flow_id_when_with_policy_paths_is_true() {
-        var persistedSelector = HttpSelector.builder().pathOperator(Operator.EQUALS).path("/pets").methods(Set.of(HttpMethod.GET)).build();
-        var persistedFlow = Flow.builder().id("persisted-flow-id").selectors(List.of(persistedSelector)).build();
+        var persistedSelector = HttpSelector.builder()
+                .pathOperator(Operator.EQUALS)
+                .path("/pets")
+                .methods(Set.of(HttpMethod.GET))
+                .build();
+        var persistedFlow = Flow.builder()
+                .id("persisted-flow-id")
+                .selectors(List.of(persistedSelector))
+                .build();
         flowCrudService.saveApiFlows(API_ID, List.of(persistedFlow));
 
-        var importSelector = HttpSelector.builder().pathOperator(Operator.EQUALS).path("/pets").methods(Set.of(HttpMethod.GET)).build();
-        var importedFlow = Flow.builder().id(null).selectors(List.of(importSelector)).build();
+        var importSelector = HttpSelector.builder()
+                .pathOperator(Operator.EQUALS)
+                .path("/pets")
+                .methods(Set.of(HttpMethod.GET))
+                .build();
+        var importedFlow =
+                Flow.builder().id(null).selectors(List.of(importSelector)).build();
         var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().definitionVersion(DefinitionVersion.V4).flows(List.of(importedFlow)).build())
-            .build();
+                .apiExport(ApiExport.builder()
+                        .definitionVersion(DefinitionVersion.V4)
+                        .flows(List.of(importedFlow))
+                        .build())
+                .build();
 
-        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean())).thenReturn(importDefinition);
+        when(oaiDomainService.convert(anyString(), anyString(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(importDefinition);
 
         var existingApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
-        when(updateApiDefinitionUseCase.execute(any())).thenReturn(
-            new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(existingApi, List.of()))
-        );
+        when(updateApiDefinitionUseCase.execute(any()))
+                .thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(new ApiWithFlows(existingApi, List.of())));
 
-        cut.execute(
-            OAIToUpdateApiUseCase.Input.builder()
+        cut.execute(OAIToUpdateApiUseCase.Input.builder()
                 .apiId(API_ID)
                 .importSwaggerDescriptor(new ImportSwaggerDescriptorEntity())
                 .withPolicyPaths(true)
                 .auditInfo(AUDIT_INFO)
-                .build()
-        );
+                .build());
 
         var inputCaptor = ArgumentCaptor.forClass(UpdateApiDefinitionFromImportUseCase.Input.class);
         org.mockito.Mockito.verify(updateApiDefinitionUseCase).execute(inputCaptor.capture());
-        var flowsPassedToUseCase = inputCaptor.getValue().importDefinition().getApiExport().getFlows();
+        var flowsPassedToUseCase =
+                inputCaptor.getValue().importDefinition().getApiExport().getFlows();
         assertThat(flowsPassedToUseCase).hasSize(1);
         assertThat(flowsPassedToUseCase.getFirst().getId()).isNull();
     }

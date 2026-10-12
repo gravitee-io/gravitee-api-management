@@ -46,7 +46,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -65,40 +64,35 @@ public class OAIDomainServiceImpl implements OAIDomainService {
 
     @Override
     public ImportDefinition convert(
-        String organizationId,
-        String environmentId,
-        ImportSwaggerDescriptorEntity importSwaggerDescriptor,
-        boolean withDocumentation,
-        boolean withOASValidationPolicy
-    ) {
+            String organizationId,
+            String environmentId,
+            ImportSwaggerDescriptorEntity importSwaggerDescriptor,
+            boolean withDocumentation,
+            boolean withOASValidationPolicy) {
         var payload = importSwaggerDescriptor.getPayload();
         // When the payload is a URL, the swagger parser fetches it server-side. Guard that fetch against SSRF
         // (import whitelist + private-address blocking), consistent with the v2 swagger import (SwaggerServiceImpl).
         if (UrlSanitizerUtils.isUrl(payload)) {
             UrlSanitizerUtils.checkAllowed(
-                payload,
-                importConfiguration.getImportWhitelist(),
-                importConfiguration.isAllowImportFromPrivate()
-            );
+                    payload, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
         }
         var descriptor = toOAIDescriptor(payload);
         var visitors = getVisitors(importSwaggerDescriptor);
 
         var importDefinition = OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(
-            descriptor.getSpecification(),
-            visitors,
-            importSwaggerDescriptor.isSkipFlows()
-        );
+                descriptor.getSpecification(), visitors, importSwaggerDescriptor.isSkipFlows());
 
         if (importDefinition != null) {
             var importWithEndpointGroupsSharedConfiguration = addEndpointGroupSharedConfiguration(importDefinition);
             var importWithTags = replaceTagsNamesWithIds(organizationId, importWithEndpointGroupsSharedConfiguration);
             // Both consumers below store their argument as an OpenAPI document, so a URL payload has to be
             // resolved first. Skip the work when neither of them is going to keep it.
-            var specContent = (withDocumentation || withOASValidationPolicy) ? resolveSpecContent(payload, descriptor) : payload;
+            var specContent =
+                    (withDocumentation || withOASValidationPolicy) ? resolveSpecContent(payload, descriptor) : payload;
             var importWithDocumentation = addOAIDocumentation(withDocumentation, specContent, importWithTags);
             boolean deferResponseValidation = shouldDeferResponseValidation(importSwaggerDescriptor);
-            return addOASValidationPolicy(withOASValidationPolicy, specContent, importWithDocumentation, deferResponseValidation);
+            return addOASValidationPolicy(
+                    withOASValidationPolicy, specContent, importWithDocumentation, deferResponseValidation);
         }
 
         return null;
@@ -124,17 +118,13 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         return descriptor;
     }
 
-    private Collection<? extends OAIOperationVisitor> getVisitors(ImportSwaggerDescriptorEntity importSwaggerDescriptor) {
-        return policyOperationVisitorManager
-            .getPolicyVisitors()
-            .stream()
-            .filter(
-                operationVisitor ->
-                    importSwaggerDescriptor.getWithPolicies() != null &&
-                    importSwaggerDescriptor.getWithPolicies().contains(operationVisitor.getId())
-            )
-            .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
-            .collect(Collectors.toList());
+    private Collection<? extends OAIOperationVisitor> getVisitors(
+            ImportSwaggerDescriptorEntity importSwaggerDescriptor) {
+        return policyOperationVisitorManager.getPolicyVisitors().stream()
+                .filter(operationVisitor -> importSwaggerDescriptor.getWithPolicies() != null
+                        && importSwaggerDescriptor.getWithPolicies().contains(operationVisitor.getId()))
+                .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
+                .collect(Collectors.toList());
     }
 
     private ImportDefinition addEndpointGroupSharedConfiguration(ImportDefinition importDefinition) {
@@ -144,50 +134,30 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             return importDefinition;
         }
 
-        return importDefinition
-            .toBuilder()
-            .apiExport(
-                importDefinition
-                    .getApiExport()
-                    .toBuilder()
-                    .endpointGroups(
-                        endpointGroups
-                            .stream()
-                            .peek(endpointGroup -> endpointGroup.setSharedConfiguration(sharedConfiguration))
-                            .toList()
-                    )
-                    .build()
-            )
-            .build();
+        return importDefinition.toBuilder()
+                .apiExport(importDefinition.getApiExport().toBuilder()
+                        .endpointGroups(endpointGroups.stream()
+                                .peek(endpointGroup -> endpointGroup.setSharedConfiguration(sharedConfiguration))
+                                .toList())
+                        .build())
+                .build();
     }
 
     private ImportDefinition replaceTagsNamesWithIds(String organizationId, ImportDefinition importDefinition) {
-        if (
-            importDefinition.getApiExport() == null ||
-            importDefinition.getApiExport().getTags() == null ||
-            importDefinition.getApiExport().getTags().isEmpty()
-        ) {
+        if (importDefinition.getApiExport() == null
+                || importDefinition.getApiExport().getTags() == null
+                || importDefinition.getApiExport().getTags().isEmpty()) {
             return importDefinition;
         }
 
-        return importDefinition
-            .toBuilder()
-            .apiExport(
-                importDefinition
-                    .getApiExport()
-                    .toBuilder()
-                    .tags(
-                        importDefinition
-                            .getApiExport()
-                            .getTags()
-                            .stream()
-                            .flatMap(group -> tagsQueryService.findByName(organizationId, group).stream())
-                            .map(Tag::getKey)
-                            .collect(Collectors.toSet())
-                    )
-                    .build()
-            )
-            .build();
+        return importDefinition.toBuilder()
+                .apiExport(importDefinition.getApiExport().toBuilder()
+                        .tags(importDefinition.getApiExport().getTags().stream()
+                                .flatMap(group -> tagsQueryService.findByName(organizationId, group).stream())
+                                .map(Tag::getKey)
+                                .collect(Collectors.toSet()))
+                        .build())
+                .build();
     }
 
     /**
@@ -205,74 +175,81 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         try {
             return descriptor.toJson();
         } catch (JsonProcessingException e) {
-            throw new TechnicalManagementException("Error while serializing the OpenAPI specification fetched from " + payload, e);
+            throw new TechnicalManagementException(
+                    "Error while serializing the OpenAPI specification fetched from " + payload, e);
         }
     }
 
-    private ImportDefinition addOAIDocumentation(boolean withDocumentation, String specContent, ImportDefinition importWithTags) {
+    private ImportDefinition addOAIDocumentation(
+            boolean withDocumentation, String specContent, ImportDefinition importWithTags) {
         if (!withDocumentation) {
             return importWithTags;
         }
         var page = io.gravitee.apim.core.documentation.model.Page.builder()
-            .name(DEFAULT_IMPORT_PAGE_NAME)
-            .type(io.gravitee.apim.core.documentation.model.Page.Type.SWAGGER)
-            .homepage(false)
-            .content(specContent)
-            .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
-            .published(true)
-            .visibility(Page.Visibility.PUBLIC)
-            .build();
+                .name(DEFAULT_IMPORT_PAGE_NAME)
+                .type(io.gravitee.apim.core.documentation.model.Page.Type.SWAGGER)
+                .homepage(false)
+                .content(specContent)
+                .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
+                .published(true)
+                .visibility(Page.Visibility.PUBLIC)
+                .build();
 
         return importWithTags.toBuilder().pages(List.of(page)).build();
     }
 
     private ImportDefinition addOASValidationPolicy(
-        boolean withOASValidationPolicy,
-        String specContent,
-        ImportDefinition importDefinition,
-        boolean deferResponseValidation
-    ) {
+            boolean withOASValidationPolicy,
+            String specContent,
+            ImportDefinition importDefinition,
+            boolean deferResponseValidation) {
         if (!withOASValidationPolicy) {
             return importDefinition;
         }
 
         PolicyPlugin oasValidationPolicy = policyPluginCrudService
-            .get("oas-validation")
-            .orElseThrow(() -> new InvalidImportWithOASValidationPolicyException("Policy not found"));
+                .get("oas-validation")
+                .orElseThrow(() -> new InvalidImportWithOASValidationPolicyException("Policy not found"));
 
         try {
             // Add Content provider inline resource to API resources
             Resource resource = Resource.builder()
-                .name("OpenAPI Specification")
-                .type("content-provider-inline-resource")
-                .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("content", specContent))))
-                .build();
+                    .name("OpenAPI Specification")
+                    .type("content-provider-inline-resource")
+                    .configuration(
+                            new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("content", specContent))))
+                    .build();
             importDefinition.getApiExport().setResources(List.of(resource));
 
             var step = Step.builder()
-                .policy(oasValidationPolicy.getId())
-                .name(oasValidationPolicy.getName())
-                .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("resourceName", "OpenAPI Specification"))))
-                .build();
+                    .policy(oasValidationPolicy.getId())
+                    .name(oasValidationPolicy.getName())
+                    .configuration(new ObjectMapper()
+                            .writeValueAsString(new LinkedHashMap<>(Map.of("resourceName", "OpenAPI Specification"))))
+                    .build();
 
-            var httpSelector = HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build();
+            var httpSelector = HttpSelector.builder()
+                    .path("/")
+                    .pathOperator(Operator.STARTS_WITH)
+                    .build();
 
             var flow = Flow.builder()
-                .name("OpenAPI Specification Validation")
-                .selectors(List.of(httpSelector))
-                .request(List.of(step))
-                .response(deferResponseValidation ? List.of() : List.of(step))
-                .build();
+                    .name("OpenAPI Specification Validation")
+                    .selectors(List.of(httpSelector))
+                    .request(List.of(step))
+                    .response(deferResponseValidation ? List.of() : List.of(step))
+                    .build();
 
-            List<Flow> apiExportFlows = (List<Flow>) importDefinition.getApiExport().getFlows();
+            List<Flow> apiExportFlows =
+                    (List<Flow>) importDefinition.getApiExport().getFlows();
             apiExportFlows.addFirst(flow);
 
             if (deferResponseValidation) {
                 var responseFlow = Flow.builder()
-                    .name("OpenAPI Specification Validation")
-                    .selectors(List.of(httpSelector))
-                    .response(List.of(step))
-                    .build();
+                        .name("OpenAPI Specification Validation")
+                        .selectors(List.of(httpSelector))
+                        .response(List.of(step))
+                        .build();
                 apiExportFlows.addLast(responseFlow);
             }
 
@@ -285,10 +262,8 @@ public class OAIDomainServiceImpl implements OAIDomainService {
     }
 
     private static boolean shouldDeferResponseValidation(ImportSwaggerDescriptorEntity importSwaggerDescriptor) {
-        return (
-            ImportSwaggerDescriptorEntity.Format.WSDL.equals(importSwaggerDescriptor.getFormat()) &&
-            importSwaggerDescriptor.getWithPolicies() != null &&
-            !importSwaggerDescriptor.getWithPolicies().isEmpty()
-        );
+        return (ImportSwaggerDescriptorEntity.Format.WSDL.equals(importSwaggerDescriptor.getFormat())
+                && importSwaggerDescriptor.getWithPolicies() != null
+                && !importSwaggerDescriptor.getWithPolicies().isEmpty());
     }
 }

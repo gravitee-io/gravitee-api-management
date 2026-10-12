@@ -61,11 +61,10 @@ public class AuthResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldLogout() {
-        final Response response = target()
-            .path("logout")
-            .request()
-            .header(HttpHeaders.SET_COOKIE, "Auth-Graviteeio-APIM=Bearer%20xxxxxx;Path=/;HttpOnly")
-            .post(null);
+        final Response response = target().path("logout")
+                .request()
+                .header(HttpHeaders.SET_COOKIE, "Auth-Graviteeio-APIM=Bearer%20xxxxxx;Path=/;HttpOnly")
+                .post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertNull(response.getHeaderString(HttpHeaders.SET_COOKIE));
     }
@@ -91,11 +90,12 @@ public class AuthResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         verifyJwtToken(response);
-        //APIPortal: can't test Cookie, since servletResponse is mocked
+        // APIPortal: can't test Cookie, since servletResponse is mocked
     }
 
     private void verifyJwtToken(Response response)
-        throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
+            throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException,
+                    JWTVerificationException {
         Token responseToken = response.readEntity(Token.class);
         assertEquals("BEARER", responseToken.getTokenType().name());
 

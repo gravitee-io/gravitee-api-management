@@ -55,7 +55,6 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
@@ -186,41 +185,40 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
 
     public ApiServiceImpl(
-        @Lazy final ApiRepository apiRepository,
-        final ApiMapper apiMapper,
-        final GenericApiMapper genericApiMapper,
-        final PrimaryOwnerService primaryOwnerService,
-        final ApiValidationService apiValidationService,
-        final ParameterService parameterService,
-        final WorkflowService workflowService,
-        final AuditService auditService,
-        final MembershipService membershipService,
-        final GenericNotificationConfigService genericNotificationConfigService,
-        @Lazy final ApiMetadataService apiMetadataService,
-        final FlowCrudService flowCrudService,
-        @Lazy final SearchEngineService searchEngineService,
-        final PlanService planService,
-        final PlanSearchService planSearchService,
-        @Lazy final SubscriptionService subscriptionService,
-        final EventService eventService,
-        @Lazy final PageService pageService,
-        @Lazy final TopApiService topApiService,
-        final PortalNotificationConfigService portalNotificationConfigService,
-        @Lazy final AlertService alertService,
-        @Lazy final ApiQualityRuleRepository apiQualityRuleRepository,
-        @Lazy final ScoringReportRepository scoringReportRepository,
-        final MediaService mediaService,
-        final PropertiesService propertiesService,
-        final ApiNotificationService apiNotificationService,
-        final TagsValidationService tagsValidationService,
-        final ApiAuthorizationService apiAuthorizationService,
-        final GroupService groupService,
-        ApiCategoryService apiCategoryService,
-        RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService,
-        RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService,
-        ApiMetadataQueryService apiMetadataQueryService,
-        PropertyDomainService propertyDomainService
-    ) {
+            @Lazy final ApiRepository apiRepository,
+            final ApiMapper apiMapper,
+            final GenericApiMapper genericApiMapper,
+            final PrimaryOwnerService primaryOwnerService,
+            final ApiValidationService apiValidationService,
+            final ParameterService parameterService,
+            final WorkflowService workflowService,
+            final AuditService auditService,
+            final MembershipService membershipService,
+            final GenericNotificationConfigService genericNotificationConfigService,
+            @Lazy final ApiMetadataService apiMetadataService,
+            final FlowCrudService flowCrudService,
+            @Lazy final SearchEngineService searchEngineService,
+            final PlanService planService,
+            final PlanSearchService planSearchService,
+            @Lazy final SubscriptionService subscriptionService,
+            final EventService eventService,
+            @Lazy final PageService pageService,
+            @Lazy final TopApiService topApiService,
+            final PortalNotificationConfigService portalNotificationConfigService,
+            @Lazy final AlertService alertService,
+            @Lazy final ApiQualityRuleRepository apiQualityRuleRepository,
+            @Lazy final ScoringReportRepository scoringReportRepository,
+            final MediaService mediaService,
+            final PropertiesService propertiesService,
+            final ApiNotificationService apiNotificationService,
+            final TagsValidationService tagsValidationService,
+            final ApiAuthorizationService apiAuthorizationService,
+            final GroupService groupService,
+            ApiCategoryService apiCategoryService,
+            RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService,
+            RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService,
+            ApiMetadataQueryService apiMetadataQueryService,
+            PropertyDomainService propertyDomainService) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
         this.genericApiMapper = genericApiMapper;
@@ -258,27 +256,30 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity createWithImport(final ExecutionContext executionContext, final ApiEntity apiEntity, final String userId) {
-        String id = apiEntity.getId() != null && !apiEntity.getId().isEmpty() ? apiEntity.getId() : UuidString.generateRandom();
+    public ApiEntity createWithImport(
+            final ExecutionContext executionContext, final ApiEntity apiEntity, final String userId) {
+        String id = apiEntity.getId() != null && !apiEntity.getId().isEmpty()
+                ? apiEntity.getId()
+                : UuidString.generateRandom();
         apiEntity.setId(id);
 
         log.debug("Importing API {}", id);
         try {
-            apiRepository
-                .findById(id)
-                .ifPresent(action -> {
-                    throw new ApiAlreadyExistsException(id);
-                });
+            apiRepository.findById(id).ifPresent(action -> {
+                throw new ApiAlreadyExistsException(id);
+            });
         } catch (TechnicalException ex) {
             String errorMsg = String.format("An error occurs while trying to check if 'id' %s is already used", id);
             log.error(errorMsg, ex);
             throw new TechnicalManagementException(errorMsg, ex);
         }
 
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, userId, apiEntity.getPrimaryOwner());
+        PrimaryOwnerEntity primaryOwner =
+                primaryOwnerService.getPrimaryOwner(executionContext, userId, apiEntity.getPrimaryOwner());
         apiValidationService.validateAndSanitizeImportApiForCreation(executionContext, apiEntity, primaryOwner);
 
-        if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4 && !ApiProductComposition.supports(apiEntity.getType())) {
+        if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4
+                && !ApiProductComposition.supports(apiEntity.getType())) {
             apiEntity.setAllowedInApiProducts(null);
         }
 
@@ -292,19 +293,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (apiEntity.getOriginContext() instanceof OriginContext.Management) {
             repositoryApi.setLifecycleState(LifecycleState.STOPPED);
         } else {
-            repositoryApi.setLifecycleState(LifecycleState.valueOf(apiEntity.getState().name()));
+            repositoryApi.setLifecycleState(
+                    LifecycleState.valueOf(apiEntity.getState().name()));
         }
         // Make sure visibility is PRIVATE by default if not set.
         repositoryApi.setVisibility(
-            apiEntity.getVisibility() == null ? Visibility.PRIVATE : Visibility.valueOf(apiEntity.getVisibility().toString())
-        );
+                apiEntity.getVisibility() == null
+                        ? Visibility.PRIVATE
+                        : Visibility.valueOf(apiEntity.getVisibility().toString()));
 
         // Add Default groups
-        Set<String> defaultGroups = groupService
-            .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
-            .stream()
-            .map(GroupEntity::getId)
-            .collect(toSet());
+        Set<String> defaultGroups =
+                groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE).stream()
+                        .map(GroupEntity::getId)
+                        .collect(toSet());
         if (repositoryApi.getGroups() == null) {
             repositoryApi.setGroups(defaultGroups.isEmpty() ? null : defaultGroups);
         } else {
@@ -319,7 +321,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             repositoryApi.getGroups().add(primaryOwner.getId());
         }
 
-        if (parameterService.findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
+        if (parameterService.findAsBoolean(
+                executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
             workflowService.create(WorkflowReferenceType.API, id, REVIEW, userId, DRAFT, "");
         }
 
@@ -328,23 +331,23 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             createdApi = apiRepository.create(repositoryApi);
             log.debug("API {} imported", createdApi.getId());
         } catch (TechnicalException ex) {
-            String errorMsg = String.format("An error occurs while trying to create API '%s' for user '%s'", apiEntity.getId(), userId);
+            String errorMsg = String.format(
+                    "An error occurs while trying to create API '%s' for user '%s'", apiEntity.getId(), userId);
             log.error(errorMsg, ex);
             throw new TechnicalManagementException(errorMsg, ex);
         }
 
         // Audit
         auditService.createApiAuditLog(
-            executionContext,
-            AuditService.AuditLogData.builder()
-                .properties(EncryptedPropertyAuditProperties.of(null, apiEntity.getProperties()))
-                .event(API_CREATED)
-                .createdAt(createdApi.getCreatedAt())
-                .oldValue(null)
-                .newValue(createdApi)
-                .build(),
-            createdApi.getId()
-        );
+                executionContext,
+                AuditService.AuditLogData.builder()
+                        .properties(EncryptedPropertyAuditProperties.of(null, apiEntity.getProperties()))
+                        .event(API_CREATED)
+                        .createdAt(createdApi.getCreatedAt())
+                        .oldValue(null)
+                        .newValue(createdApi)
+                        .build(),
+                createdApi.getId());
 
         // Add the primary owner of the newly created API
         addPrimaryOwnerToCreatedApi(executionContext, primaryOwner, createdApi);
@@ -383,45 +386,47 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         notificationConfigEntity.setName("Default Mail Notifications");
         notificationConfigEntity.setReferenceType(HookScope.API.name());
         notificationConfigEntity.setReferenceId(createdApi.getId());
-        notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
+        notificationConfigEntity.setHooks(
+                Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
         notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
         notificationConfigEntity.setConfig(EMAIL_METADATA_VALUE);
         genericNotificationConfigService.create(notificationConfigEntity);
     }
 
-    private void addPrimaryOwnerToCreatedApi(ExecutionContext executionContext, PrimaryOwnerEntity primaryOwner, Api createdApi) {
+    private void addPrimaryOwnerToCreatedApi(
+            ExecutionContext executionContext, PrimaryOwnerEntity primaryOwner, Api createdApi) {
         membershipService.addRoleToMemberOnReference(
-            executionContext,
-            new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
-            new MembershipService.MembershipMember(primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
-            new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-        );
+                executionContext,
+                new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
+                new MembershipService.MembershipMember(
+                        primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
+                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
     }
 
     @Override
-    public ApiEntity update(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api, final String userId) {
+    public ApiEntity update(
+            final ExecutionContext executionContext,
+            final String apiId,
+            final UpdateApiEntity api,
+            final String userId) {
         return update(executionContext, apiId, api, false, userId);
     }
 
     @Override
     public ApiEntity update(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final UpdateApiEntity updateApiEntity,
-        final boolean checkPlans,
-        final String userId
-    ) {
+            final ExecutionContext executionContext,
+            final String apiId,
+            final UpdateApiEntity updateApiEntity,
+            final boolean checkPlans,
+            final String userId) {
         try {
             var primaryOwner = resolvePrimaryOwner(executionContext, apiId, userId);
             var apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-            final ApiEntity existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, false, true, true);
+            final ApiEntity existingApiEntity =
+                    apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, false, true, true);
 
             apiValidationService.validateAndSanitizeUpdateApi(
-                executionContext,
-                updateApiEntity,
-                existingApiEntity.getPrimaryOwner(),
-                existingApiEntity
-            );
+                    executionContext, updateApiEntity, existingApiEntity.getPrimaryOwner(), existingApiEntity);
 
             // TODO FCY
             // check HC inheritance
@@ -438,62 +443,54 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 Set<PlanEntity> existingPlans = existingApiEntity.getPlans();
                 Map<String, PlanStatus> planStatuses = new HashMap<>();
                 if (existingPlans != null && !existingPlans.isEmpty()) {
-                    planStatuses.putAll(existingPlans.stream().collect(toMap(PlanEntity::getId, PlanEntity::getStatus)));
+                    planStatuses.putAll(
+                            existingPlans.stream().collect(toMap(PlanEntity::getId, PlanEntity::getStatus)));
                 }
 
-                updateApiEntity
-                    .getPlans()
-                    .forEach(planToUpdate -> {
-                        if (
-                            !planStatuses.containsKey(planToUpdate.getId()) ||
-                            (planStatuses.containsKey(planToUpdate.getId()) &&
-                                planStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
-                                planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus())
-                        ) {
-                            throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
-                        }
+                updateApiEntity.getPlans().forEach(planToUpdate -> {
+                    if (!planStatuses.containsKey(planToUpdate.getId())
+                            || (planStatuses.containsKey(planToUpdate.getId())
+                                    && planStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED
+                                    && planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus())) {
+                        throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
+                    }
 
-                        try {
-                            tagsValidationService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), updateApiEntity.getTags());
-                        } catch (TagNotAllowedException e) {
-                            final var missingTags = planToUpdate
-                                .getTags()
-                                .stream()
+                    try {
+                        tagsValidationService.validatePlanTagsAgainstApiTags(
+                                planToUpdate.getTags(), updateApiEntity.getTags());
+                    } catch (TagNotAllowedException e) {
+                        final var missingTags = planToUpdate.getTags().stream()
                                 .filter(tag -> !updateApiEntity.getTags().contains(tag))
                                 .toList();
-                            throw new InvalidDataException(
-                                "Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'"
-                            );
-                        }
-                    });
+                        throw new InvalidDataException(
+                                "Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'");
+                    }
+                });
             }
 
             if (updateApiEntity.getProperties() != null) {
                 propertyDomainService.validateClassification(
-                    existingApiEntity.getProperties(),
-                    toEncryptableProperties(updateApiEntity.getProperties())
-                );
+                        existingApiEntity.getProperties(), toEncryptableProperties(updateApiEntity.getProperties()));
                 List<PropertyEntity> existingProperties = Optional.ofNullable(existingApiEntity.getProperties())
-                    .map(properties -> properties.stream().map(PropertyEntity::new).toList())
-                    .orElse(null);
+                        .map(properties ->
+                                properties.stream().map(PropertyEntity::new).toList())
+                        .orElse(null);
                 updateApiEntity.setProperties(
-                    this.propertiesService.encryptProperties(existingProperties, updateApiEntity.getProperties())
-                );
+                        this.propertiesService.encryptProperties(existingProperties, updateApiEntity.getProperties()));
             }
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED == updateApiEntity.getLifecycleState()) {
                 planSearchService
-                    .findByApi(executionContext, existingApiEntity, false)
-                    .forEach(plan -> {
-                        if (PlanStatus.PUBLISHED == plan.getPlanStatus() || PlanStatus.STAGING == plan.getPlanStatus()) {
-                            planService.deprecate(executionContext, plan.getId(), true);
-                            updateApiEntity
-                                .getPlans()
-                                .stream()
-                                .filter(p -> p.getId().equals(plan.getId()))
-                                .forEach(p -> p.setStatus(PlanStatus.DEPRECATED));
-                        }
-                    });
+                        .findByApi(executionContext, existingApiEntity, false)
+                        .forEach(plan -> {
+                            if (PlanStatus.PUBLISHED == plan.getPlanStatus()
+                                    || PlanStatus.STAGING == plan.getPlanStatus()) {
+                                planService.deprecate(executionContext, plan.getId(), true);
+                                updateApiEntity.getPlans().stream()
+                                        .filter(p -> p.getId().equals(plan.getId()))
+                                        .forEach(p -> p.setStatus(PlanStatus.DEPRECATED));
+                            }
+                        });
             }
 
             Api api = apiMapper.toRepository(executionContext, updateApiEntity);
@@ -521,11 +518,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (updateApiEntity.getGroups() == null) {
                 api.setGroups(apiToUpdate.getGroups());
             } else if (apiToUpdate.getGroups() != null) {
-                Set<String> toRemove = apiToUpdate
-                    .getGroups()
-                    .stream()
-                    .filter(g -> !updateApiEntity.getGroups().contains(g)) // keep removed groups
-                    .collect(Collectors.toCollection(HashSet::new));
+                Set<String> toRemove = apiToUpdate.getGroups().stream()
+                        .filter(g -> !updateApiEntity.getGroups().contains(g)) // keep removed groups
+                        .collect(Collectors.toCollection(HashSet::new));
                 if (!toRemove.isEmpty()) {
                     portalNotificationConfigService.removeGroupIds(api.getId(), toRemove);
                 }
@@ -539,7 +534,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
-                GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, existingApiEntity);
+                GenericApiEntity apiWithMetadata =
+                        apiMetadataService.fetchMetadataForApi(executionContext, existingApiEntity);
                 apiNotificationService.triggerDeprecatedNotification(executionContext, apiWithMetadata);
             }
 
@@ -549,31 +545,30 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             flowCrudService.saveApiFlows(api.getId(), updateApiEntity.getFlows());
 
             // update API plans
-            updateApiEntity
-                .getPlans()
-                .forEach(plan -> {
-                    plan.setReferenceId(api.getId());
-                    plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
-                    planService.createOrUpdatePlan(executionContext, plan);
-                });
+            updateApiEntity.getPlans().forEach(plan -> {
+                plan.setReferenceId(api.getId());
+                plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+                planService.createOrUpdatePlan(executionContext, plan);
+            });
 
             // update Api Category Order entities
             apiCategoryService.updateApiCategories(updatedApi.getId(), updatedApi.getCategories());
 
             // Audit
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(EncryptedPropertyAuditProperties.of(existingApiEntity.getProperties(), updateApiEntity.getProperties()))
-                    .event(API_UPDATED)
-                    .createdAt(updatedApi.getUpdatedAt())
-                    .oldValue(apiToUpdate)
-                    .newValue(updatedApi)
-                    .build(),
-                updatedApi.getId()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(EncryptedPropertyAuditProperties.of(
+                                    existingApiEntity.getProperties(), updateApiEntity.getProperties()))
+                            .event(API_UPDATED)
+                            .createdAt(updatedApi.getUpdatedAt())
+                            .oldValue(apiToUpdate)
+                            .newValue(updatedApi)
+                            .build(),
+                    updatedApi.getId());
 
-            if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
+            if (parameterService.findAsBoolean(
+                    executionContext, Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
                 Logging existingApiLogging = null;
                 if (existingApiEntity.getAnalytics() != null) {
                     existingApiLogging = existingApiEntity.getAnalytics().getLogging();
@@ -586,7 +581,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 auditApiLogging(executionContext, updateApiEntity.getId(), existingApiLogging, updateApiLogging);
             }
 
-            ApiEntity apiEntity = apiMapper.toEntity(executionContext, updatedApi, existingApiEntity.getPrimaryOwner(), true, true, true);
+            ApiEntity apiEntity = apiMapper.toEntity(
+                    executionContext, updatedApi, existingApiEntity.getPrimaryOwner(), true, true, true);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
 
@@ -602,22 +598,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public void validate(
-        final ExecutionContext executionContext,
-        final String apiId,
-        final UpdateApiEntity updateApiEntity,
-        final String userId
-    ) {
+            final ExecutionContext executionContext,
+            final String apiId,
+            final UpdateApiEntity updateApiEntity,
+            final String userId) {
         try {
             var primaryOwner = resolvePrimaryOwner(executionContext, apiId, userId);
             var apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-            final var existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, false, true, true);
+            final var existingApiEntity =
+                    apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, false, true, true);
 
             apiValidationService.validateAndSanitizeUpdateApi(
-                executionContext,
-                updateApiEntity,
-                existingApiEntity.getPrimaryOwner(),
-                existingApiEntity
-            );
+                    executionContext, updateApiEntity, existingApiEntity.getPrimaryOwner(), existingApiEntity);
         } catch (TechnicalException ex) {
             var errorMsg = String.format("An error occurs while trying to validate API '%s'", apiId);
             log.error(errorMsg, ex);
@@ -627,18 +619,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private PrimaryOwnerEntity resolvePrimaryOwner(ExecutionContext executionContext, String apiId, String userId) {
         var primaryOwnerMembership = membershipService.getPrimaryOwner(
-            executionContext.getOrganizationId(),
-            MembershipReferenceType.API,
-            apiId
-        );
+                executionContext.getOrganizationId(), MembershipReferenceType.API, apiId);
         return primaryOwnerService.getPrimaryOwner(
-            executionContext,
-            userId,
-            PrimaryOwnerEntity.builder()
-                .type(primaryOwnerMembership.getMemberType().name())
-                .id(primaryOwnerMembership.getMemberId())
-                .build()
-        );
+                executionContext,
+                userId,
+                PrimaryOwnerEntity.builder()
+                        .type(primaryOwnerMembership.getMemberType().name())
+                        .id(primaryOwnerMembership.getMemberId())
+                        .build());
     }
 
     /**
@@ -661,16 +649,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, apiEntity, false);
             if (closePlans) {
-                plans
-                    .stream()
-                    .filter(plan -> plan.getPlanStatus() != PlanStatus.CLOSED)
-                    .forEach(plan -> planService.close(executionContext, plan.getId()));
+                plans.stream()
+                        .filter(plan -> plan.getPlanStatus() != PlanStatus.CLOSED)
+                        .forEach(plan -> planService.close(executionContext, plan.getId()));
             } else {
-                Set<String> plansNotClosed = plans
-                    .stream()
-                    .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
-                    .map(GenericPlanEntity::getName)
-                    .collect(toSet());
+                Set<String> plansNotClosed = plans.stream()
+                        .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
+                        .map(GenericPlanEntity::getName)
+                        .collect(toSet());
 
                 if (!plansNotClosed.isEmpty()) {
                     throw new ApiNotDeletableException(plansNotClosed);
@@ -694,18 +680,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // all its relative events) have been deleted.
             Map<String, String> properties = new HashMap<>(2);
             if (getAuthenticatedUser() != null) {
-                properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
+                properties.put(
+                        Event.EventProperties.USER.getValue(),
+                        getAuthenticatedUser().getUsername());
             }
 
             if (!Origin.KUBERNETES.name().equalsIgnoreCase(api.getSyncFrom())) {
                 eventService.createApiEvent(
-                    executionContext,
-                    singleton(executionContext.getEnvironmentId()),
-                    executionContext.getOrganizationId(),
-                    EventType.UNPUBLISH_API,
-                    apiId,
-                    properties
-                );
+                        executionContext,
+                        singleton(executionContext.getEnvironmentId()),
+                        executionContext.getOrganizationId(),
+                        EventType.UNPUBLISH_API,
+                        apiId,
+                        properties);
             }
 
             // Delete pages
@@ -728,11 +715,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Remove API from all API Products that reference it
             removeApiFromApiProductsDomainService.removeApiFromApiProducts(
-                apiId,
-                executionContext.getOrganizationId(),
-                executionContext.getEnvironmentId(),
-                getAuthenticatedUser() != null ? getAuthenticatedUser().getUsername() : "system"
-            );
+                    apiId,
+                    executionContext.getOrganizationId(),
+                    executionContext.getEnvironmentId(),
+                    getAuthenticatedUser() != null ? getAuthenticatedUser().getUsername() : "system");
 
             // Delete alerts
             final List<AlertTriggerEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
@@ -741,16 +727,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiQualityRuleRepository.deleteByApi(apiId);
             // Audit
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(EncryptedPropertyAuditProperties.of(apiEntity.getProperties(), null))
-                    .event(API_DELETED)
-                    .createdAt(new Date())
-                    .oldValue(api)
-                    .newValue(null)
-                    .build(),
-                apiId
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(EncryptedPropertyAuditProperties.of(apiEntity.getProperties(), null))
+                            .event(API_DELETED)
+                            .createdAt(new Date())
+                            .oldValue(api)
+                            .newValue(null)
+                            .build(),
+                    apiId);
             // remove from search engine
             searchEngineService.delete(executionContext, genericApiMapper.toGenericApi(api, null));
 
@@ -766,16 +751,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Page<GenericApiEntity> findAll(
-        final ExecutionContext executionContext,
-        final String userId,
-        final boolean isAdmin,
-        final Set<String> expands,
-        final Sortable sortable,
-        final Pageable pageable
-    ) {
+            final ExecutionContext executionContext,
+            final String userId,
+            final boolean isAdmin,
+            final Set<String> expands,
+            final Sortable sortable,
+            final Pageable pageable) {
         ApiCriteria.Builder criteria = new ApiCriteria.Builder()
-            .environmentId(executionContext.getEnvironmentId())
-            .notApiTypes(List.of(ApiType.EDGE));
+                .environmentId(executionContext.getEnvironmentId())
+                .notApiTypes(List.of(ApiType.EDGE));
 
         // If user is not admin, get list of apiIds in their scope and add it to the criteria
         if (!isAdmin) {
@@ -789,25 +773,23 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         Page<Api> apis = apiRepository.search(
-            criteria.build(),
-            convert(sortable),
-            convert(pageable),
-            new ApiFieldFilter.Builder().excludePicture().build()
-        );
+                criteria.build(),
+                convert(sortable),
+                convert(pageable),
+                new ApiFieldFilter.Builder().excludePicture().build());
 
-        List<GenericApiEntity> apiEntityList = apis
-            .getContent()
-            .stream()
-            .map(api -> {
-                PrimaryOwnerEntity primaryOwner = null;
+        List<GenericApiEntity> apiEntityList = apis.getContent().stream()
+                .map(api -> {
+                    PrimaryOwnerEntity primaryOwner = null;
 
-                if (expands != null && expands.contains(EXPAND_PRIMARY_OWNER)) {
-                    primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
-                }
+                    if (expands != null && expands.contains(EXPAND_PRIMARY_OWNER)) {
+                        primaryOwner =
+                                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
+                    }
 
-                return genericApiMapper.toGenericApi(api, primaryOwner);
-            })
-            .collect(Collectors.toList());
+                    return genericApiMapper.toGenericApi(api, primaryOwner);
+                })
+                .collect(Collectors.toList());
 
         if (expands != null && expands.contains(EXPAND_METADATA) && !apiEntityList.isEmpty()) {
             fetchAndSetMetadata(executionContext, apiEntityList);
@@ -816,15 +798,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements());
     }
 
-    private void fetchAndSetMetadata(final ExecutionContext executionContext, final List<GenericApiEntity> apiEntityList) {
-        List<String> apiIds = apiEntityList.stream().map(GenericApiEntity::getId).filter(Objects::nonNull).distinct().toList();
+    private void fetchAndSetMetadata(
+            final ExecutionContext executionContext, final List<GenericApiEntity> apiEntityList) {
+        List<String> apiIds = apiEntityList.stream()
+                .map(GenericApiEntity::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
         if (apiIds.isEmpty()) {
             return;
         }
-        Map<String, Map<String, ApiMetadata>> metadataByApiId = apiMetadataQueryService.findApiMetadataForApis(
-            executionContext.getEnvironmentId(),
-            apiIds
-        );
+        Map<String, Map<String, ApiMetadata>> metadataByApiId =
+                apiMetadataQueryService.findApiMetadataForApis(executionContext.getEnvironmentId(), apiIds);
         for (GenericApiEntity apiEntity : apiEntityList) {
             Map<String, ApiMetadata> apiMetadataMap = metadataByApiId.get(apiEntity.getId());
             if (apiMetadataMap != null && !apiMetadataMap.isEmpty()) {
@@ -834,79 +819,68 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private static Map<String, Object> toResolvedMetadataValues(final Map<String, ApiMetadata> apiMetadataMap) {
-        return apiMetadataMap
-            .values()
-            .stream()
-            .filter(metadata -> metadata.getValue() != null || metadata.getDefaultValue() != null)
-            .collect(
-                toMap(
-                    ApiMetadata::getKey,
-                    metadata -> (Object) (metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue()),
-                    (existing, replacement) -> replacement
-                )
-            );
+        return apiMetadataMap.values().stream()
+                .filter(metadata -> metadata.getValue() != null || metadata.getDefaultValue() != null)
+                .collect(toMap(
+                        ApiMetadata::getKey,
+                        metadata -> (Object)
+                                (metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue()),
+                        (existing, replacement) -> replacement));
     }
 
     @Override
     public Page<GenericApiEntity> findAll(
-        final ExecutionContext executionContext,
-        final String userId,
-        final boolean isAdmin,
-        final Pageable pageable
-    ) {
+            final ExecutionContext executionContext,
+            final String userId,
+            final boolean isAdmin,
+            final Pageable pageable) {
         return this.findAll(executionContext, userId, isAdmin, Collections.emptySet(), null, pageable);
     }
 
     @Override
     public Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId) {
         try {
-            return apiRepository.findByEnvironmentIdAndCrossId(environment, crossId).map(api -> apiMapper.toEntity(api, null));
+            return apiRepository
+                    .findByEnvironmentIdAndCrossId(environment, crossId)
+                    .map(api -> apiMapper.toEntity(api, null));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurred while finding API by environment " + environment + " and crossId " + crossId,
-                e
-            );
+                    "An error occurred while finding API by environment " + environment + " and crossId " + crossId, e);
         }
     }
 
     private static List<EncryptableProperty> toEncryptableProperties(List<PropertyEntity> properties) {
-        return properties
-            .stream()
-            .filter(Objects::nonNull)
-            .map(property -> {
-                var encryptableProperty = EncryptableProperty.fromProperty(property);
-                encryptableProperty.setEncryptable(property.isEncryptable());
-                return encryptableProperty;
-            })
-            .toList();
+        return properties.stream()
+                .filter(Objects::nonNull)
+                .map(property -> {
+                    var encryptableProperty = EncryptableProperty.fromProperty(property);
+                    encryptableProperty.setEncryptable(property.isEncryptable());
+                    return encryptableProperty;
+                })
+                .toList();
     }
 
-    private void auditApiLogging(ExecutionContext executionContext, String apiId, Logging existingLogging, Logging updatedLogging) {
+    private void auditApiLogging(
+            ExecutionContext executionContext, String apiId, Logging existingLogging, Logging updatedLogging) {
         try {
             // no changes for logging configuration, continue
-            if (
-                existingLogging == updatedLogging ||
-                (existingLogging != null &&
-                    updatedLogging != null &&
-                    Objects.equals(existingLogging.getMode(), updatedLogging.getMode()) &&
-                    Objects.equals(existingLogging.getContent(), updatedLogging.getContent()) &&
-                    Objects.equals(existingLogging.getPhase(), updatedLogging.getPhase()) &&
-                    Objects.equals(existingLogging.getCondition(), updatedLogging.getCondition()))
-            ) {
+            if (existingLogging == updatedLogging
+                    || (existingLogging != null
+                            && updatedLogging != null
+                            && Objects.equals(existingLogging.getMode(), updatedLogging.getMode())
+                            && Objects.equals(existingLogging.getContent(), updatedLogging.getContent())
+                            && Objects.equals(existingLogging.getPhase(), updatedLogging.getPhase())
+                            && Objects.equals(existingLogging.getCondition(), updatedLogging.getCondition()))) {
                 return;
             }
 
             // determine the audit event type
             Api.AuditEvent auditEvent;
-            if (
-                (existingLogging == null || !existingLogging.getMode().isEnabled()) &&
-                (updatedLogging != null && updatedLogging.getMode().isEnabled())
-            ) {
+            if ((existingLogging == null || !existingLogging.getMode().isEnabled())
+                    && (updatedLogging != null && updatedLogging.getMode().isEnabled())) {
                 auditEvent = Api.AuditEvent.API_LOGGING_ENABLED;
-            } else if (
-                (existingLogging != null && existingLogging.getMode().isEnabled()) &&
-                (updatedLogging == null || !updatedLogging.getMode().isEnabled())
-            ) {
+            } else if ((existingLogging != null && existingLogging.getMode().isEnabled())
+                    && (updatedLogging == null || !updatedLogging.getMode().isEnabled())) {
                 auditEvent = Api.AuditEvent.API_LOGGING_DISABLED;
             } else {
                 auditEvent = Api.AuditEvent.API_LOGGING_UPDATED;
@@ -914,18 +888,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Audit
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.emptyMap())
-                    .event(auditEvent)
-                    .createdAt(new Date())
-                    .oldValue(existingLogging)
-                    .newValue(updatedLogging)
-                    .build(),
-                apiId
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(Collections.emptyMap())
+                            .event(auditEvent)
+                            .createdAt(new Date())
+                            .oldValue(existingLogging)
+                            .newValue(updatedLogging)
+                            .build(),
+                    apiId);
         } catch (Exception ex) {
-            String errorMsg = String.format("An error occurs while auditing API logging configuration for API:  %s", apiId);
+            String errorMsg =
+                    String.format("An error occurs while auditing API logging configuration for API:  %s", apiId);
             log.error(errorMsg, apiId, ex);
             throw new TechnicalManagementException(errorMsg, ex);
         }

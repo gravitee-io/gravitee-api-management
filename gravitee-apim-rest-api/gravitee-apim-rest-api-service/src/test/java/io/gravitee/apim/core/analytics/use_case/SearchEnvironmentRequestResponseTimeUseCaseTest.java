@@ -65,26 +65,27 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
 
     @Test
     public void should_get_request_response_time_only_for_specified_env() {
-        apiQueryService.initWith(
-            List.of(
-                ApiFixtures.aProxyApiV4().toBuilder().id("proper-env-proxy-api-v4-id").build(),
-                ApiFixtures.aProxyApiV4().toBuilder().id("other-env-proxy-api-v4-id").environmentId("other-env").build()
-            )
-        );
+        apiQueryService.initWith(List.of(
+                ApiFixtures.aProxyApiV4().toBuilder()
+                        .id("proper-env-proxy-api-v4-id")
+                        .build(),
+                ApiFixtures.aProxyApiV4().toBuilder()
+                        .id("other-env-proxy-api-v4-id")
+                        .environmentId("other-env")
+                        .build()));
         var input = SearchEnvironmentRequestResponseTimeUseCase.Input.builder()
-            .executionContext(executionContext)
-            .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
-            .build();
+                .executionContext(executionContext)
+                .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
+                .build();
 
-        when(analyticsQueryService.searchRequestResponseTime(any(), any())).thenReturn(
-            RequestResponseTime.builder()
-                .requestsPerSecond(3.7d)
-                .requestsTotal(25600L)
-                .responseMinTime(32.5d)
-                .responseMaxTime(1220.87d)
-                .responseAvgTime(159.2d)
-                .build()
-        );
+        when(analyticsQueryService.searchRequestResponseTime(any(), any()))
+                .thenReturn(RequestResponseTime.builder()
+                        .requestsPerSecond(3.7d)
+                        .requestsTotal(25600L)
+                        .responseMinTime(32.5d)
+                        .responseMaxTime(1220.87d)
+                        .responseAvgTime(159.2d)
+                        .build());
 
         var result = cut.execute(input).requestResponseTime();
 
@@ -92,29 +93,25 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
 
         SoftAssertions.assertSoftly(softAssertions -> {
             softAssertions
-                .assertThat(argumentCaptor.getValue())
-                .isEqualTo(
-                    AnalyticsQueryParameters.builder()
-                        .from(FROM)
-                        .to(TO)
-                        .apiIds(List.of("proper-env-proxy-api-v4-id"))
-                        .definitionVersions(EnumSet.of(DefinitionVersion.V4))
-                        .build()
-                );
+                    .assertThat(argumentCaptor.getValue())
+                    .isEqualTo(AnalyticsQueryParameters.builder()
+                            .from(FROM)
+                            .to(TO)
+                            .apiIds(List.of("proper-env-proxy-api-v4-id"))
+                            .definitionVersions(EnumSet.of(DefinitionVersion.V4))
+                            .build());
             softAssertions
-                .assertThat(result)
-                .isPresent()
-                .isNotNull()
-                .get()
-                .isEqualTo(
-                    RequestResponseTime.builder()
-                        .requestsPerSecond(3.7d)
-                        .requestsTotal(25600L)
-                        .responseMinTime(32.5d)
-                        .responseMaxTime(1220.87d)
-                        .responseAvgTime(159.2d)
-                        .build()
-                );
+                    .assertThat(result)
+                    .isPresent()
+                    .isNotNull()
+                    .get()
+                    .isEqualTo(RequestResponseTime.builder()
+                            .requestsPerSecond(3.7d)
+                            .requestsTotal(25600L)
+                            .responseMinTime(32.5d)
+                            .responseMaxTime(1220.87d)
+                            .responseAvgTime(159.2d)
+                            .build());
         });
     }
 }

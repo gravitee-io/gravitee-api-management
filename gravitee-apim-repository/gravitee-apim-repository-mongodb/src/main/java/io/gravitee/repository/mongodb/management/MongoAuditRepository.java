@@ -52,14 +52,13 @@ public class MongoAuditRepository implements AuditRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, Audit.AuditReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Delete audit by reference [{}/{}]", referenceId, referenceType);
 
-        final var audits = internalAuditRepo
-            .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-            .stream()
-            .map(AuditMongo::getId)
-            .toList();
+        final var audits =
+                internalAuditRepo.deleteByReferenceIdAndReferenceType(referenceId, referenceType.name()).stream()
+                        .map(AuditMongo::getId)
+                        .toList();
 
         log.debug("Delete audit by reference [{}/{}] - Done", referenceId, referenceType);
         return audits;

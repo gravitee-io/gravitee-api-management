@@ -33,14 +33,14 @@ public class AuditEventQueryServiceImpl implements AuditEventQueryService {
     @Override
     public List<String> listAllApiAuditEvents() {
         if (events.isEmpty()) {
-            Set<Class<? extends Audit.ApiAuditEvent>> subTypesOf = new Reflections("io.gravitee.repository.management.model").getSubTypesOf(
-                Audit.ApiAuditEvent.class
-            );
+            Set<Class<? extends Audit.ApiAuditEvent>> subTypesOf =
+                    new Reflections("io.gravitee.repository.management.model").getSubTypesOf(Audit.ApiAuditEvent.class);
             for (Class<? extends Audit.ApiAuditEvent> clazz : subTypesOf) {
                 if (clazz.isEnum()) {
-                    events.addAll(
-                        Stream.of(clazz.getEnumConstants()).map(Audit.AuditEvent.class::cast).map(Audit.AuditEvent::name).toList()
-                    );
+                    events.addAll(Stream.of(clazz.getEnumConstants())
+                            .map(Audit.AuditEvent.class::cast)
+                            .map(Audit.AuditEvent::name)
+                            .toList());
                 }
             }
             events.sort(Comparator.naturalOrder());

@@ -24,5 +24,6 @@ import java.util.Optional;
 public interface PortalPageContentQueryService {
     Optional<PortalPageContent<?>> findById(PortalPageContentId id);
 
-    List<PortalPageContent<?>> findByReference(String environmentId, AutomationMetadata.ReferenceType referenceType, String referenceId);
+    List<PortalPageContent<?>> findByReference(
+            String environmentId, AutomationMetadata.ReferenceType referenceType, String referenceId);
 }

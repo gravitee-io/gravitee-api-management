@@ -89,8 +89,12 @@ public class PageResourceTest extends AbstractResourceTest {
 
         doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
-        doReturn(true).when(accessControlService).canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), anyString());
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(true)
+                .when(accessControlService)
+                .canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), anyString());
+        doReturn(true)
+                .when(accessControlService)
+                .canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -137,7 +141,10 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPageWithInclude() {
-        final Response response = target(PUBLISHED_PAGE).queryParam("include", "content").request().get();
+        final Response response = target(PUBLISHED_PAGE)
+                .queryParam("include", "content")
+                .request()
+                .get();
         assertEquals(OK_200, response.getStatus());
 
         final Page pageResponse = response.readEntity(Page.class);
@@ -148,7 +155,9 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetPageBecauseOfGroupService() {
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(false)
+                .when(accessControlService)
+                .canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
 
         Response response = target(PUBLISHED_PAGE).request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
@@ -184,7 +193,8 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPageContent() {
-        final Response response = target(PUBLISHED_PAGE).path("content").request().get();
+        final Response response =
+                target(PUBLISHED_PAGE).path("content").request().get();
         assertEquals(OK_200, response.getStatus());
 
         final String pageContent = response.readEntity(String.class);
@@ -201,13 +211,16 @@ public class PageResourceTest extends AbstractResourceTest {
         publishedPage.setReferenceId("Another_environment");
         doReturn(publishedPage).when(pageService).findById(PUBLISHED_PAGE, null);
 
-        final Response response = target(PUBLISHED_PAGE).path("content").request().get();
+        final Response response =
+                target(PUBLISHED_PAGE).path("content").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
     }
 
     @Test
     public void shouldNotGetPageContentBecauseOfGroupService() {
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(false)
+                .when(accessControlService)
+                .canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any());
 
         Response response = target(PUBLISHED_PAGE).path("content").request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());

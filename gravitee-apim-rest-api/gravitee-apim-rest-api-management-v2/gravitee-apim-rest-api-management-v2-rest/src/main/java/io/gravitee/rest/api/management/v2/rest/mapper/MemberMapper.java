@@ -24,12 +24,14 @@ import java.util.Set;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { RoleMapper.class })
+@Mapper(uses = {RoleMapper.class})
 public interface MemberMapper {
     MemberMapper INSTANCE = Mappers.getMapper(MemberMapper.class);
 
     Member map(MemberEntity memberEntity);
+
     MemberEntity map(Member member);
+
     Member map(io.gravitee.apim.core.member.model.Member member);
 
     Set<Member> map(Set<MemberEntity> memberEntityCollection);
@@ -37,6 +39,7 @@ public interface MemberMapper {
     List<Member> map(List<MemberEntity> members);
 
     ApiMember toApiMember(Member member);
+
     Set<ApiMember> toApiMembers(Set<Member> members);
 
     io.gravitee.apim.core.membership.model.AddMember map(AddMember addMember);

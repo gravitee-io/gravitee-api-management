@@ -74,7 +74,9 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public Set<ApiKey> findBySubscription(String subscription) {
-        return internalApiKeyRepo.findBySubscription(subscription).stream().map(this::toApiKey).collect(toSet());
+        return internalApiKeyRepo.findBySubscription(subscription).stream()
+                .map(this::toApiKey)
+                .collect(toSet());
     }
 
     @Override
@@ -99,7 +101,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public List<ApiKey> searchAfter(ApiKeyCriteria criteria, Sortable sortable, ApiKeyCursor after, int pageSize)
-        throws TechnicalException {
+            throws TechnicalException {
         boolean sortByUpdatedAt = resolveSortByUpdatedAt(sortable);
         return mapper.mapApiKeys(internalApiKeyRepo.searchAfter(criteria, after, pageSize, sortByUpdatedAt));
     }
@@ -111,7 +113,9 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
         return switch (sortable.field()) {
             case "updatedAt" -> true;
             case "id" -> false;
-            default -> throw new TechnicalException("searchAfter supports sort field 'updatedAt' or 'id' only, got: " + sortable.field());
+            default ->
+                throw new TechnicalException(
+                        "searchAfter supports sort field 'updatedAt' or 'id' only, got: " + sortable.field());
         };
     }
 
@@ -128,7 +132,9 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete by environmentId [{}]", environmentId);
         try {
-            final var apiKeyMongos = internalApiKeyRepo.deleteByEnvironmentId(environmentId).stream().map(ApiKeyMongo::getId).toList();
+            final var apiKeyMongos = internalApiKeyRepo.deleteByEnvironmentId(environmentId).stream()
+                    .map(ApiKeyMongo::getId)
+                    .toList();
             log.debug("Delete by environmentId [{}] - Done", environmentId);
             return apiKeyMongos;
         } catch (Exception ex) {
@@ -149,7 +155,9 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public List<ApiKey> findByKeyAndEnvironmentId(String key, String environmentId) {
-        return internalApiKeyRepo.findByKeyAndEnvironmentId(key, environmentId).stream().map(this::toApiKey).toList();
+        return internalApiKeyRepo.findByKeyAndEnvironmentId(key, environmentId).stream()
+                .map(this::toApiKey)
+                .toList();
     }
 
     @Override
@@ -158,13 +166,11 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
-    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
-        throws TechnicalException {
-        return internalApiKeyRepo
-            .findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)
-            .stream()
-            .findFirst()
-            .map(this::toApiKey);
+    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(
+            String key, String referenceId, String referenceType) throws TechnicalException {
+        return internalApiKeyRepo.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType).stream()
+                .findFirst()
+                .map(this::toApiKey);
     }
 
     @Override
@@ -175,7 +181,9 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     @Override
     public List<ApiKey> findByApplication(String applicationId) throws TechnicalException {
         try {
-            return internalApiKeyRepo.findByApplication(applicationId).stream().map(this::toApiKey).collect(toList());
+            return internalApiKeyRepo.findByApplication(applicationId).stream()
+                    .map(this::toApiKey)
+                    .collect(toList());
         } catch (Exception e) {
             throw new TechnicalException("An error occurred trying to find API Key by application", e);
         }

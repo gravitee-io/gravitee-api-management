@@ -38,52 +38,51 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
     private final ResourceLoader resourceLoader;
 
     public ResourceManagerImpl(
-        final boolean legacyMode,
-        final DefaultClassLoader classLoader,
-        final Reactable reactable,
-        final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
-        final ResourceClassLoaderFactory resourceClassLoaderFactory,
-        final ResourceConfigurationFactory resourceConfigurationFactory,
-        final ApplicationContext applicationContext,
-        final DeploymentContext deploymentContext
-    ) {
-        super(reactable, resourcePluginManager, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
+            final boolean legacyMode,
+            final DefaultClassLoader classLoader,
+            final Reactable reactable,
+            final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
+            final ResourceClassLoaderFactory resourceClassLoaderFactory,
+            final ResourceConfigurationFactory resourceConfigurationFactory,
+            final ApplicationContext applicationContext,
+            final DeploymentContext deploymentContext) {
+        super(
+                reactable,
+                resourcePluginManager,
+                resourceClassLoaderFactory,
+                resourceConfigurationFactory,
+                applicationContext);
         this.legacyMode = legacyMode;
         this.resourceLoader = new ResourceLoader(
-            classLoader,
-            resourcePluginManager,
-            resourceClassLoaderFactory,
-            resourceConfigurationFactory,
-            applicationContext,
-            deploymentContext
-        );
+                classLoader,
+                resourcePluginManager,
+                resourceClassLoaderFactory,
+                resourceConfigurationFactory,
+                applicationContext,
+                deploymentContext);
     }
 
     protected void initialize() {
         if (legacyMode) {
             super.initialize();
         } else {
-            // Unlike v4 resource, v2 Resource enabled flag has never been used. Keep this unchanged to avoid unexpected behavior or breaking changes.
-            reactable
-                .dependencies(Resource.class)
-                .forEach(resource -> {
-                    log.debug("Loading resource {} for {}", resource.getName(), reactable);
-                    final io.gravitee.resource.api.Resource resourceInstance = resourceLoader.load(
-                        resource.getType(),
-                        resource.getConfiguration()
-                    );
+            // Unlike v4 resource, v2 Resource enabled flag has never been used. Keep this unchanged to avoid unexpected
+            // behavior or breaking changes.
+            reactable.dependencies(Resource.class).forEach(resource -> {
+                log.debug("Loading resource {} for {}", resource.getName(), reactable);
+                final io.gravitee.resource.api.Resource resourceInstance =
+                        resourceLoader.load(resource.getType(), resource.getConfiguration());
 
-                    if (resourceInstance != null) {
-                        resources.put(resource.getName(), resourceInstance);
-                    } else {
-                        log.debug(
+                if (resourceInstance != null) {
+                    resources.put(resource.getName(), resourceInstance);
+                } else {
+                    log.debug(
                             "Resource [{}] of type [{}] could not be loaded for {}",
                             resource.getName(),
                             resource.getType(),
-                            reactable
-                        );
-                    }
-                });
+                            reactable);
+                }
+            });
         }
     }
 }

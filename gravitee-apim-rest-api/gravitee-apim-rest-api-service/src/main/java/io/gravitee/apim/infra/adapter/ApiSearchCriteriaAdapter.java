@@ -42,35 +42,28 @@ public class ApiSearchCriteriaAdapter {
             if (criteria.getVisibility() != null) {
                 builder.visibility(Visibility.valueOf(criteria.getVisibility().name()));
             }
-            if (criteria.getLifecycleStates() != null && !criteria.getLifecycleStates().isEmpty()) {
-                builder.lifecycleStates(
-                    criteria
-                        .getLifecycleStates()
-                        .stream()
+            if (criteria.getLifecycleStates() != null
+                    && !criteria.getLifecycleStates().isEmpty()) {
+                builder.lifecycleStates(criteria.getLifecycleStates().stream()
                         .map(s -> ApiLifecycleState.valueOf(s.name()))
-                        .collect(Collectors.toList())
-                );
+                        .collect(Collectors.toList()));
             }
-            if (criteria.getDefinitionVersion() != null && !criteria.getDefinitionVersion().isEmpty()) {
-                builder.definitionVersion(
-                    criteria
-                        .getDefinitionVersion()
-                        .stream()
+            if (criteria.getDefinitionVersion() != null
+                    && !criteria.getDefinitionVersion().isEmpty()) {
+                builder.definitionVersion(criteria.getDefinitionVersion().stream()
                         .map(v -> DefinitionVersion.valueOf(v.name()))
-                        .toList()
-                );
+                        .toList());
             }
-            builder
-                .groups(criteria.getGroups())
-                .category(criteria.getCategory())
-                .label(criteria.getLabel())
-                .version(criteria.getVersion())
-                .name(criteria.getName())
-                .environmentId(criteria.getEnvironmentId())
-                .environments(criteria.getEnvironments())
-                .crossId(criteria.getCrossId())
-                .integrationId(criteria.getIntegrationId())
-                .notApiTypes(criteria.getNotApiTypes());
+            builder.groups(criteria.getGroups())
+                    .category(criteria.getCategory())
+                    .label(criteria.getLabel())
+                    .version(criteria.getVersion())
+                    .name(criteria.getName())
+                    .environmentId(criteria.getEnvironmentId())
+                    .environments(criteria.getEnvironments())
+                    .crossId(criteria.getCrossId())
+                    .integrationId(criteria.getIntegrationId())
+                    .notApiTypes(criteria.getNotApiTypes());
             if (criteria.getUpdatedAtFrom() != null) {
                 builder.updatedAtFrom(Date.from(criteria.getUpdatedAtFrom()));
             }

@@ -47,7 +47,9 @@ public class AuthzAppliedRevisions {
         if (updatedAt <= 0) {
             return;
         }
-        revisions.computeIfAbsent(scopeKey(environmentId, scope), k -> new ConcurrentHashMap<>()).merge(docId, updatedAt, Math::max);
+        revisions
+                .computeIfAbsent(scopeKey(environmentId, scope), k -> new ConcurrentHashMap<>())
+                .merge(docId, updatedAt, Math::max);
     }
 
     public boolean isApplied(String environmentId, String scope, String docId) {

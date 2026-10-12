@@ -41,23 +41,23 @@ class MongoDictionaryPropertyNullValueTest extends AbstractManagementRepositoryT
     @Test
     void should_drop_a_raw_null_property_when_updating_a_dictionary() throws Exception {
         mongoOperations
-            .getCollection("test_prefix_dictionaries")
-            .insertOne(
-                new Document()
-                    .append("_id", "dic-raw-null")
-                    .append("environmentId", "DEFAULT")
-                    .append("name", "Raw Null Dictionary")
-                    .append("key", "dic-raw-null")
-                    .append("type", "MANUAL")
-                    .append("state", "STOPPED")
-                    .append("properties", new Document("valid", "value").append("invalid", null))
-            );
+                .getCollection("test_prefix_dictionaries")
+                .insertOne(new Document()
+                        .append("_id", "dic-raw-null")
+                        .append("environmentId", "DEFAULT")
+                        .append("name", "Raw Null Dictionary")
+                        .append("key", "dic-raw-null")
+                        .append("type", "MANUAL")
+                        .append("state", "STOPPED")
+                        .append("properties", new Document("valid", "value").append("invalid", null)));
 
         var dictionary = dictionaryRepository.findById("dic-raw-null").orElseThrow();
         assertThat(dictionary.getProperties().get("invalid")).isNull();
 
         var updated = dictionaryRepository.update(dictionary);
 
-        assertThat(updated.getProperties()).containsEntry("valid", new DictionaryProperty("value", false)).doesNotContainKey("invalid");
+        assertThat(updated.getProperties())
+                .containsEntry("valid", new DictionaryProperty("value", false))
+                .doesNotContainKey("invalid");
     }
 }

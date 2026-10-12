@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.definition.model.DefinitionVersion.V2;
-import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -175,16 +174,13 @@ public class PlanService_CreateTest {
 
         planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
 
-        verify(auditService, times(1)).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent().equals(PLAN_CREATED) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue().equals(plan)
-            ),
-            eq(API_ID)
-        );
+        verify(auditService, times(1))
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(PLAN_CREATED)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue().equals(plan)),
+                        eq(API_ID));
         verifyNoMoreInteractions(auditService);
     }
 
@@ -196,8 +192,8 @@ public class PlanService_CreateTest {
             when(this.newPlanEntity.getTags()).thenReturn(Set.of("tag1"));
 
             doThrow(new TagNotAllowedException(new String[0]))
-                .when(tagsValidationService)
-                .validatePlanTagsAgainstApiTags(any(), any(Api.class));
+                    .when(tagsValidationService)
+                    .validatePlanTagsAgainstApiTags(any(), any(Api.class));
 
             planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
         });
@@ -207,6 +203,7 @@ public class PlanService_CreateTest {
     private void mockApiDefinitionVersion(DefinitionVersion version) throws Exception {
         var apiDefinition = new io.gravitee.definition.model.Api();
         apiDefinition.setDefinitionVersion(version);
-        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
+        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class))
+                .thenReturn(apiDefinition);
     }
 }

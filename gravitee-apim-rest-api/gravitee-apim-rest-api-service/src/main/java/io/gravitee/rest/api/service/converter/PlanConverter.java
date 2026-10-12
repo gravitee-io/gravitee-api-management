@@ -57,7 +57,8 @@ public class PlanConverter {
         entity.setName(plan.getName());
         entity.setDescription(plan.getDescription());
         entity.setReferenceId(plan.getReferenceId());
-        entity.setReferenceType(GenericPlanEntity.ReferenceType.valueOf(plan.getReferenceType().name()));
+        entity.setReferenceType(
+                GenericPlanEntity.ReferenceType.valueOf(plan.getReferenceType().name()));
         entity.setApi(plan.getReferenceId());
 
         entity.setEnvironmentId(plan.getEnvironmentId());
@@ -156,14 +157,16 @@ public class PlanConverter {
         return newPlanEntity;
     }
 
-    public Plan toPlan(NewPlanEntity newPlan, DefinitionVersion graviteeDefinitionVersion) throws JsonProcessingException {
+    public Plan toPlan(NewPlanEntity newPlan, DefinitionVersion graviteeDefinitionVersion)
+            throws JsonProcessingException {
         Plan plan = new Plan();
         plan.setId(newPlan.getId());
         plan.setCrossId(newPlan.getCrossId());
         plan.setHrid(newPlan.getHrid());
         plan.setApi(newPlan.getReferenceId());
         plan.setReferenceId(newPlan.getReferenceId());
-        plan.setReferenceType(Plan.PlanReferenceType.valueOf(newPlan.getReferenceType().name()));
+        plan.setReferenceType(
+                Plan.PlanReferenceType.valueOf(newPlan.getReferenceType().name()));
         plan.setName(newPlan.getName());
         plan.setDescription(newPlan.getDescription());
         plan.setCreatedAt(new Date());
@@ -188,7 +191,8 @@ public class PlanConverter {
             // There is no need for a validation when authentication is KEY_LESS, force to AUTO
             plan.setValidation(Plan.PlanValidationType.AUTO);
         } else {
-            plan.setValidation(Plan.PlanValidationType.valueOf(newPlan.getValidation().name()));
+            plan.setValidation(
+                    Plan.PlanValidationType.valueOf(newPlan.getValidation().name()));
         }
 
         plan.setCharacteristics(newPlan.getCharacteristics());

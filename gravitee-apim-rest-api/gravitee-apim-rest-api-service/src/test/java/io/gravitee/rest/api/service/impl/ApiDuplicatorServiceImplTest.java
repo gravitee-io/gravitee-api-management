@@ -20,31 +20,22 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import io.gravitee.apim.core.documentation.model.AccessControl;
-import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageSourceEntity;
-import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.GroupService;
@@ -139,24 +130,24 @@ public class ApiDuplicatorServiceImplTest {
         groupMember.setType(MembershipMemberType.GROUP);
         groupMember.setRoles(Collections.singletonList(new RoleEntity()));
 
-        when(
-            membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID)
-        ).thenReturn(Set.of(userMember, groupMember));
+        when(membershipService.getMembersByReference(
+                        GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID))
+                .thenReturn(Set.of(userMember, groupMember));
 
         UserEntity userEntity = new UserEntity();
         userEntity.setId("user-id");
         userEntity.setSource("user-source");
         userEntity.setSourceId("user-source-id");
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), "user-id")).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), "user-id"))
+                .thenReturn(userEntity);
 
-        final Set<ApiDuplicatorServiceImpl.MemberToImport> apiCurrentMembers = apiDuplicatorService.getAPICurrentMembers(
-            GraviteeContext.getExecutionContext(),
-            API_ID
-        );
+        final Set<ApiDuplicatorServiceImpl.MemberToImport> apiCurrentMembers =
+                apiDuplicatorService.getAPICurrentMembers(GraviteeContext.getExecutionContext(), API_ID);
 
         assertEquals(1, apiCurrentMembers.size());
-        final ApiDuplicatorServiceImpl.MemberToImport memberToImport = apiCurrentMembers.iterator().next();
+        final ApiDuplicatorServiceImpl.MemberToImport memberToImport =
+                apiCurrentMembers.iterator().next();
         assertEquals("user-source", memberToImport.getSource());
         assertEquals("user-source-id", memberToImport.getSourceId());
         assertNotNull(memberToImport.getRoles());
@@ -180,11 +171,13 @@ public class ApiDuplicatorServiceImplTest {
         existingMember.setSourceId("user-sourceId");
         existingMember.setRoles(Collections.singletonList("user-role"));
 
-        ApiDuplicatorServiceImpl.MemberToImport memberToImportWithNoRole = new ApiDuplicatorServiceImpl.MemberToImport();
+        ApiDuplicatorServiceImpl.MemberToImport memberToImportWithNoRole =
+                new ApiDuplicatorServiceImpl.MemberToImport();
         memberToImportWithNoRole.setSource("user-source");
         memberToImportWithNoRole.setSourceId("user-sourceId");
 
-        ApiDuplicatorServiceImpl.MemberToImport memberToImportWithEmptyRole = new ApiDuplicatorServiceImpl.MemberToImport();
+        ApiDuplicatorServiceImpl.MemberToImport memberToImportWithEmptyRole =
+                new ApiDuplicatorServiceImpl.MemberToImport();
         memberToImportWithNoRole.setSource("user-source");
         memberToImportWithNoRole.setSourceId("user-sourceId");
         memberToImportWithNoRole.setRoles(Collections.emptyList());
@@ -209,7 +202,8 @@ public class ApiDuplicatorServiceImplTest {
         memberToImport.setSourceId("user-sourceId");
         memberToImport.setRoles(List.of(userRoleEntity.getId()));
 
-        final List<String> rolesToImport = apiDuplicatorService.getRoleIdsToImport(GraviteeContext.getExecutionContext(), memberToImport);
+        final List<String> rolesToImport =
+                apiDuplicatorService.getRoleIdsToImport(GraviteeContext.getExecutionContext(), memberToImport);
 
         assertNotNull(rolesToImport);
         assertEquals(1, rolesToImport.size());
@@ -231,13 +225,15 @@ public class ApiDuplicatorServiceImplTest {
         memberToImport.setSourceId("user-sourceId");
         memberToImport.setRoles(List.of(userRoleEntity2.getId(), userRoleEntity1.getName(), "unexisting_role"));
 
-        final List<String> rolesToImport = apiDuplicatorService.getRoleIdsToImport(GraviteeContext.getExecutionContext(), memberToImport);
+        final List<String> rolesToImport =
+                apiDuplicatorService.getRoleIdsToImport(GraviteeContext.getExecutionContext(), memberToImport);
 
         assertNotNull(rolesToImport);
         assertEquals(3, rolesToImport.size());
         assertTrue(rolesToImport.contains("user-role-1-name"));
         assertTrue(rolesToImport.contains(userRoleEntity2.getId()));
-        // The check on role existence will occur when creating the membership. So this method returns every roleId available in the definition.
+        // The check on role existence will occur when creating the membership. So this method returns every roleId
+        // available in the definition.
         assertTrue(rolesToImport.contains("unexisting_role"));
     }
 
@@ -251,9 +247,11 @@ public class ApiDuplicatorServiceImplTest {
         userRoleEntity2.setId(UUID.randomUUID().toString());
         userRoleEntity2.setName("user-role-2-name");
 
-        when(
-            roleService.findByScopeAndName(RoleScope.API, "user-role-1-name", GraviteeContext.getExecutionContext().getOrganizationId())
-        ).thenReturn(Optional.of(userRoleEntity1));
+        when(roleService.findByScopeAndName(
+                        RoleScope.API,
+                        "user-role-1-name",
+                        GraviteeContext.getExecutionContext().getOrganizationId()))
+                .thenReturn(Optional.of(userRoleEntity1));
 
         ApiDuplicatorServiceImpl.MemberToImport memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
         memberToImport.setSource("user-source");
@@ -261,13 +259,15 @@ public class ApiDuplicatorServiceImplTest {
         memberToImport.setRoles(List.of(userRoleEntity2.getId(), "unexisting_role"));
         memberToImport.setRole(userRoleEntity1.getName());
 
-        final List<String> rolesToImport = apiDuplicatorService.getRoleIdsToImport(GraviteeContext.getExecutionContext(), memberToImport);
+        final List<String> rolesToImport =
+                apiDuplicatorService.getRoleIdsToImport(GraviteeContext.getExecutionContext(), memberToImport);
 
         assertNotNull(rolesToImport);
         assertEquals(3, rolesToImport.size());
         assertTrue(rolesToImport.contains(userRoleEntity1.getId()));
         assertTrue(rolesToImport.contains(userRoleEntity2.getId()));
-        // The check on role existence will occur when creating the membership. So this method returns every roleId available in the definition.
+        // The check on role existence will occur when creating the membership. So this method returns every roleId
+        // available in the definition.
         assertTrue(rolesToImport.contains("unexisting_role"));
     }
 
@@ -299,11 +299,11 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode pagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.default.json");
         apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
 
-        verify(pageService, times(1)).createOrUpdatePages(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(pageEntities -> pageEntities.size() == 2),
-            eq(API_ID)
-        );
+        verify(pageService, times(1))
+                .createOrUpdatePages(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(pageEntities -> pageEntities.size() == 2),
+                        eq(API_ID));
     }
 
     @Test
@@ -322,11 +322,11 @@ public class ApiDuplicatorServiceImplTest {
 
         verify(pageService, times(1)).delete(GraviteeContext.getExecutionContext(), deletedPageId);
 
-        verify(pageService, times(1)).createOrUpdatePages(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(pageEntities -> pageEntities.size() == 2),
-            eq(API_ID)
-        );
+        verify(pageService, times(1))
+                .createOrUpdatePages(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(pageEntities -> pageEntities.size() == 2),
+                        eq(API_ID));
     }
 
     @Test
@@ -335,33 +335,37 @@ public class ApiDuplicatorServiceImplTest {
 
         when(apiEntity.getId()).thenReturn(API_ID);
 
-        when(
-            pageService.importFiles(eq(GraviteeContext.getExecutionContext()), eq(API_ID), argThat(page -> page.getSource() != null))
-        ).thenReturn(List.of(PageEntity.builder().type("MARKDOWN").build(), PageEntity.builder().type("MARKDOWN").build()));
+        when(pageService.importFiles(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(API_ID),
+                        argThat(page -> page.getSource() != null)))
+                .thenReturn(List.of(
+                        PageEntity.builder().type("MARKDOWN").build(),
+                        PageEntity.builder().type("MARKDOWN").build()));
 
         apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, node);
 
-        verify(pageService, times(1)).importFiles(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(API_ID),
-            argThat(page -> page.getSource() != null)
-        );
+        verify(pageService, times(1))
+                .importFiles(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(API_ID),
+                        argThat(page -> page.getSource() != null));
 
-        verify(pageService, atLeastOnce()).createOrUpdatePages(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(pages ->
-                pages
-                    .stream()
-                    .allMatch(page -> "MARKDOWN".equals(page.getType()) && page.isPublished() && page.getVisibility() == Visibility.PUBLIC)
-            ),
-            eq(API_ID)
-        );
+        verify(pageService, atLeastOnce())
+                .createOrUpdatePages(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(pages -> pages.stream()
+                                .allMatch(page -> "MARKDOWN".equals(page.getType())
+                                        && page.isPublished()
+                                        && page.getVisibility() == Visibility.PUBLIC)),
+                        eq(API_ID));
 
-        verify(pageService, atLeastOnce()).createOrUpdatePages(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(pages -> pages.size() == 1 && pages.iterator().next().getId().equals("markdown-page")),
-            eq(API_ID)
-        );
+        verify(pageService, atLeastOnce())
+                .createOrUpdatePages(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(pages -> pages.size() == 1
+                                && pages.iterator().next().getId().equals("markdown-page")),
+                        eq(API_ID));
     }
 
     @Test
@@ -389,7 +393,8 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode emptyPlansNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.plans.empty.json");
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId("existing-plan-id");
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(singleton(planEntity));
         apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), apiEntity, emptyPlansNode);
 
         verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), API_ID);
@@ -404,7 +409,8 @@ public class ApiDuplicatorServiceImplTest {
 
         verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), API_ID);
         verify(planService, never()).delete(any(), any());
-        verify(planService, times(2)).createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), any(PlanEntity.class));
+        verify(planService, times(2))
+                .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), any(PlanEntity.class));
     }
 
     // Metadata
@@ -419,7 +425,8 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldNotUpdateMetadataIfEmptyMetadata() throws IOException {
         ImportApiJsonNode emptyMetadataNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.metadata.empty.json");
-        apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), apiEntity, emptyMetadataNode);
+        apiDuplicatorService.createOrUpdateMetadata(
+                GraviteeContext.getExecutionContext(), apiEntity, emptyMetadataNode);
 
         verifyNoInteractions(apiMetadataService);
     }
@@ -429,16 +436,16 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode metadataNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.metadata.default.json");
         apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), apiEntity, metadataNode);
 
-        verify(apiMetadataService, times(2)).update(eq(GraviteeContext.getExecutionContext()), any(UpdateApiMetadataEntity.class));
+        verify(apiMetadataService, times(2))
+                .update(eq(GraviteeContext.getExecutionContext()), any(UpdateApiMetadataEntity.class));
     }
 
     @Test
     public void shouldThrowTechnicalManagementExceptionWithMetadata() throws IOException {
         assertThrows(TechnicalManagementException.class, () -> {
             ImportApiJsonNode metadataNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.metadata.default.json");
-            when(apiMetadataService.update(eq(GraviteeContext.getExecutionContext()), any())).thenThrow(
-                new RuntimeException("fake exception")
-            );
+            when(apiMetadataService.update(eq(GraviteeContext.getExecutionContext()), any()))
+                    .thenThrow(new RuntimeException("fake exception"));
 
             apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), apiEntity, metadataNode);
         });
@@ -458,23 +465,27 @@ public class ApiDuplicatorServiceImplTest {
         when(userService.findBySource(any(), any(), any(), eq(false))).thenReturn(new UserEntity());
 
         apiDuplicatorService.addOrUpdateMembers(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            "po-role-id",
-            currentPo,
-            memberToImport,
-            List.of("new-role"),
-            false
-        );
+                GraviteeContext.getExecutionContext(),
+                API_ID,
+                "po-role-id",
+                currentPo,
+                memberToImport,
+                List.of("new-role"),
+                false);
 
-        verify(membershipService).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any());
+        verify(membershipService)
+                .addRoleToMemberOnReference(
+                        eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any());
     }
 
     @Test
     public void cleanCategories_shouldUseCaseInsensitiveKeysIfKubernetesOrigin() throws IOException {
-        when(categoryService.findAll(ENVIRONMENT_ID)).thenReturn(
-            List.of(CategoryEntity.builder().key("poc").name("PoC").id("poc-id").build())
-        );
+        when(categoryService.findAll(ENVIRONMENT_ID))
+                .thenReturn(List.of(CategoryEntity.builder()
+                        .key("poc")
+                        .name("PoC")
+                        .id("poc-id")
+                        .build()));
 
         var jsonNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.categories.kubernetes.json");
 
@@ -498,11 +509,14 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode pagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.with-access-controls.json");
         apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
 
-        verify(pageService, times(1)).createOrUpdatePages(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(pageEntities -> pageEntities.size() == 2 && pageEntities.stream().allMatch(page -> page.getAccessControls().isEmpty())),
-            eq(API_ID)
-        );
+        verify(pageService, times(1))
+                .createOrUpdatePages(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(pageEntities -> pageEntities.size() == 2
+                                && pageEntities.stream()
+                                        .allMatch(
+                                                page -> page.getAccessControls().isEmpty())),
+                        eq(API_ID));
     }
 
     @Test
@@ -511,44 +525,35 @@ public class ApiDuplicatorServiceImplTest {
         GroupEntity mockGroupEntity = new GroupEntity();
         mockGroupEntity.setId("group-id-1");
         mockGroupEntity.setName("TestGroup");
-        when(groupService.findByName(eq(GraviteeContext.getExecutionContext().getEnvironmentId()), eq("TestGroup"))).thenReturn(
-            Collections.singletonList(mockGroupEntity)
-        );
+        when(groupService.findByName(eq(GraviteeContext.getExecutionContext().getEnvironmentId()), eq("TestGroup")))
+                .thenReturn(Collections.singletonList(mockGroupEntity));
         apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
 
-        verify(pageService, times(1)).createOrUpdatePages(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                pageEntities ->
-                    pageEntities.size() == 2 &&
-                    pageEntities
-                        .stream()
-                        .allMatch(page -> {
-                            if (page.getName().equals("toto")) {
-                                return (
-                                    page.getAccessControls().size() == 1 &&
-                                    page
-                                        .getAccessControls()
-                                        .stream()
-                                        .anyMatch(accessControl -> "group-id-1".equals(accessControl.getReferenceId()))
-                                );
-                            }
-                            if (page.getName().equals("petstore")) {
-                                return page.getAccessControls().isEmpty();
-                            }
-                            return true; // For other pages, no specific checks
-                        })
-            ),
-            eq(API_ID)
-        );
+        verify(pageService, times(1))
+                .createOrUpdatePages(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(pageEntities -> pageEntities.size() == 2
+                                && pageEntities.stream().allMatch(page -> {
+                                    if (page.getName().equals("toto")) {
+                                        return (page.getAccessControls().size() == 1
+                                                && page.getAccessControls().stream()
+                                                        .anyMatch(accessControl ->
+                                                                "group-id-1".equals(accessControl.getReferenceId())));
+                                    }
+                                    if (page.getName().equals("petstore")) {
+                                        return page.getAccessControls().isEmpty();
+                                    }
+                                    return true; // For other pages, no specific checks
+                                })),
+                        eq(API_ID));
     }
 
     @Test
     public void shouldThrowExceptionForInvalidFetchCronExpression() throws IOException {
         ImportApiJsonNode node = loadTestNode(IMPORT_FILES_FOLDER + "import-api.invalid.cron.json");
-        ApiImportException exception = assertThrows(ApiImportException.class, () ->
-            ReflectionTestUtils.invokeMethod(apiDuplicatorService, "checkPagesConsistency", node)
-        );
+        ApiImportException exception = assertThrows(
+                ApiImportException.class,
+                () -> ReflectionTestUtils.invokeMethod(apiDuplicatorService, "checkPagesConsistency", node));
 
         assertTrue(exception.getMessage().startsWith("Invalid fetchCron expression in page"));
         assertTrue(exception.getMessage().contains("Cron expression must consist of 6 fields"));

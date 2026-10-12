@@ -150,33 +150,30 @@ public class UpdateCategoryEntity {
 
     @Override
     public String toString() {
-        return (
-            "UpdateCategoryEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", defaultCategory='" +
-            defaultCategory +
-            '\'' +
-            ", hidden='" +
-            hidden +
-            '\'' +
-            ", order='" +
-            order +
-            '\'' +
-            ", page='" +
-            page +
-            '\'' +
-            ", pictureUrl='" +
-            pictureUrl +
-            '\'' +
-            '}'
-        );
+        return ("UpdateCategoryEntity{" + "id='"
+                + id
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", defaultCategory='"
+                + defaultCategory
+                + '\''
+                + ", hidden='"
+                + hidden
+                + '\''
+                + ", order='"
+                + order
+                + '\''
+                + ", page='"
+                + page
+                + '\''
+                + ", pictureUrl='"
+                + pictureUrl
+                + '\''
+                + '}');
     }
 }

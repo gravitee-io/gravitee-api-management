@@ -189,7 +189,8 @@ public class UriBuilderRequestFilterTest {
     }
 
     @Test
-    public void protoHeaderHostHeaderWithoutPortAndPortHeaderCauseUriBuildersSchemeSetHostSetAndPortSet() throws IOException {
+    public void protoHeaderHostHeaderWithoutPortAndPortHeaderCauseUriBuildersSchemeSetHostSetAndPortSet()
+            throws IOException {
         givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io", "X-Forwarded-Port", "1234");
 
         filter.filter(containerRequestContext);
@@ -200,7 +201,8 @@ public class UriBuilderRequestFilterTest {
     }
 
     @Test
-    public void protoHeaderHostHeaderWithPortAndPortHeaderCauseUriBuildersSchemeSetHostSetAndPortSet() throws IOException {
+    public void protoHeaderHostHeaderWithPortAndPortHeaderCauseUriBuildersSchemeSetHostSetAndPortSet()
+            throws IOException {
         givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io:4321", "X-Forwarded-Port", "1234");
 
         filter.filter(containerRequestContext);
@@ -218,11 +220,13 @@ public class UriBuilderRequestFilterTest {
 
         verifyUriBuildersChangedSchemeTo("https");
         verifyUriBuildersChangedHostTo("gravitee.io"); // override with Host header
-        verifyUriBuildersChangedPortTo(PROTOCOL_DEFAULT_PORT); // override with port in Host header but then override with Port header
+        verifyUriBuildersChangedPortTo(
+                PROTOCOL_DEFAULT_PORT); // override with port in Host header but then override with Port header
     }
 
     @Test
-    public void protoHeaderHostHeaderWithMultipleHostsAndPortCauseUriBuildersSchemeSetHostSetToOneHost() throws IOException {
+    public void protoHeaderHostHeaderWithMultipleHostsAndPortCauseUriBuildersSchemeSetHostSetToOneHost()
+            throws IOException {
         givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io:8443,gravitee.io");
 
         filter.filter(containerRequestContext);
@@ -233,8 +237,15 @@ public class UriBuilderRequestFilterTest {
     }
 
     @Test
-    public void protoHeaderHostHeaderWithMultipleHostsAndPortOverriddenCauseUriBuildersSchemeSetHostSetToOneHost() throws IOException {
-        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io,gravitee.io:8443", "X-Forwarded-Port", "443");
+    public void protoHeaderHostHeaderWithMultipleHostsAndPortOverriddenCauseUriBuildersSchemeSetHostSetToOneHost()
+            throws IOException {
+        givenHeaders(
+                "X-Forwarded-Proto",
+                "https",
+                "X-Forwarded-Host",
+                "gravitee.io,gravitee.io:8443",
+                "X-Forwarded-Port",
+                "443");
 
         filter.filter(containerRequestContext);
 
@@ -282,25 +293,25 @@ public class UriBuilderRequestFilterTest {
     }
 
     private void verifyUriBuildersKeptOriginalScheme() {
-        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
+        for (UriBuilder uriBuilder : new UriBuilder[] {baseUriBuilder, requestUriBuilder}) {
             verify(uriBuilder, never()).scheme(anyString());
         }
     }
 
     private void verifyUriBuildersKeptOriginalHost() {
-        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
+        for (UriBuilder uriBuilder : new UriBuilder[] {baseUriBuilder, requestUriBuilder}) {
             verify(uriBuilder, never()).host(anyString());
         }
     }
 
     private void verifyUriBuildersKeptOriginalPort() {
-        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
+        for (UriBuilder uriBuilder : new UriBuilder[] {baseUriBuilder, requestUriBuilder}) {
             verify(uriBuilder, never()).port(anyInt());
         }
     }
 
     private void verifyUriBuildersChangedSchemeTo(String expectedScheme) {
-        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
+        for (UriBuilder uriBuilder : new UriBuilder[] {baseUriBuilder, requestUriBuilder}) {
             String actualScheme = getMethodArgBeforeLastBuild(uriBuilder, "scheme", String.class);
             assertNotNull(actualScheme);
             assertEquals(expectedScheme, actualScheme);
@@ -308,7 +319,7 @@ public class UriBuilderRequestFilterTest {
     }
 
     private void verifyUriBuildersChangedHostTo(String expectedHost) {
-        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
+        for (UriBuilder uriBuilder : new UriBuilder[] {baseUriBuilder, requestUriBuilder}) {
             String actualHost = getMethodArgBeforeLastBuild(uriBuilder, "host", String.class);
             assertNotNull(actualHost);
             assertEquals(expectedHost, actualHost);
@@ -316,7 +327,7 @@ public class UriBuilderRequestFilterTest {
     }
 
     private void verifyUriBuildersChangedPortTo(int expectedPort) {
-        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
+        for (UriBuilder uriBuilder : new UriBuilder[] {baseUriBuilder, requestUriBuilder}) {
             Integer actualPort = getMethodArgBeforeLastBuild(uriBuilder, "port", Integer.class);
             assertNotNull(actualPort);
             assertEquals(expectedPort, actualPort.intValue());
@@ -424,14 +435,16 @@ public class UriBuilderRequestFilterTest {
         assertNotNull(actualBasePath, "Base path should have been set");
         assertNotNull(actualRequestPath, "Request path should have been set");
         assertEquals(expectedBasePath, actualBasePath, "Base path should be normalized without double slashes");
-        assertEquals(expectedRequestPath, actualRequestPath, "Request path should be normalized without double slashes");
+        assertEquals(
+                expectedRequestPath, actualRequestPath, "Request path should be normalized without double slashes");
     }
 
     @Test
     public void portalContextFallsBackToConfiguredSchemeWhenNoProtoHeader() throws IOException {
         givenHeaders(); // no headers
         givenPortalContext();
-        when(installationAccessQueryService.getPortalAPIUrl(any())).thenReturn("https://portal.gravitee.io:8443/portal");
+        when(installationAccessQueryService.getPortalAPIUrl(any()))
+                .thenReturn("https://portal.gravitee.io:8443/portal");
 
         filter.filter(containerRequestContext);
 
@@ -442,7 +455,8 @@ public class UriBuilderRequestFilterTest {
     public void portalContextFallsBackToConfiguredHostWhenNoHostHeader() throws IOException {
         givenHeaders(); // no headers
         givenPortalContext();
-        when(installationAccessQueryService.getPortalAPIUrl(any())).thenReturn("https://portal.gravitee.io:8443/portal");
+        when(installationAccessQueryService.getPortalAPIUrl(any()))
+                .thenReturn("https://portal.gravitee.io:8443/portal");
 
         filter.filter(containerRequestContext);
 
@@ -480,7 +494,8 @@ public class UriBuilderRequestFilterTest {
         givenHeaders(); // no headers
         givenPortalContext();
         givenBuilderPaths("/portal/environments", "/portal/environments/DEFAULT");
-        when(installationAccessQueryService.getPortalAPIUrl(any())).thenReturn("https://portal.gravitee.io/gateway/portal/");
+        when(installationAccessQueryService.getPortalAPIUrl(any()))
+                .thenReturn("https://portal.gravitee.io/gateway/portal/");
         when(installationAccessQueryService.getPortalApiPath()).thenReturn("/gateway/portal/");
 
         filter.filter(containerRequestContext);
@@ -493,7 +508,8 @@ public class UriBuilderRequestFilterTest {
     public void managementContextFallsBackToConfiguredSchemeWhenNoProtoHeader() throws IOException {
         givenHeaders(); // no headers
         givenManagementContext();
-        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io:8443/management");
+        when(installationAccessQueryService.getConsoleAPIUrl(any()))
+                .thenReturn("https://console.gravitee.io:8443/management");
 
         filter.filter(containerRequestContext);
 
@@ -504,7 +520,8 @@ public class UriBuilderRequestFilterTest {
     public void managementContextFallsBackToConfiguredHostWhenNoHostHeader() throws IOException {
         givenHeaders(); // no headers
         givenManagementContext();
-        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io:9443/management");
+        when(installationAccessQueryService.getConsoleAPIUrl(any()))
+                .thenReturn("https://console.gravitee.io:9443/management");
 
         filter.filter(containerRequestContext);
 
@@ -516,7 +533,8 @@ public class UriBuilderRequestFilterTest {
     public void managementContextFallsBackToConfiguredHostWithDefaultPortWhenNoHostHeader() throws IOException {
         givenHeaders(); // no headers
         givenManagementContext();
-        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io/management");
+        when(installationAccessQueryService.getConsoleAPIUrl(any()))
+                .thenReturn("https://console.gravitee.io/management");
 
         filter.filter(containerRequestContext);
 
@@ -529,7 +547,8 @@ public class UriBuilderRequestFilterTest {
         givenHeaders(); // no headers
         givenManagementContext();
         givenBuilderPaths("/management/organizations", "/management/organizations/DEFAULT");
-        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io/api/console");
+        when(installationAccessQueryService.getConsoleAPIUrl(any()))
+                .thenReturn("https://console.gravitee.io/api/console");
         when(installationAccessQueryService.getConsoleApiPath()).thenReturn("/api/console");
 
         filter.filter(containerRequestContext);
@@ -542,7 +561,8 @@ public class UriBuilderRequestFilterTest {
         givenHeaders(); // no headers
         givenManagementContext();
         givenBuilderPaths("/management/organizations", "/management/organizations/DEFAULT");
-        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io/gateway/console/");
+        when(installationAccessQueryService.getConsoleAPIUrl(any()))
+                .thenReturn("https://console.gravitee.io/gateway/console/");
         when(installationAccessQueryService.getConsoleApiPath()).thenReturn("/gateway/console/");
 
         filter.filter(containerRequestContext);
@@ -556,7 +576,8 @@ public class UriBuilderRequestFilterTest {
     public void portalContextHeadersTakePrecedenceOverFallback() throws IOException {
         givenHeaders("X-Forwarded-Proto", "http", "X-Forwarded-Host", "custom.host:1234");
         givenPortalContext();
-        when(installationAccessQueryService.getPortalAPIUrl(any())).thenReturn("https://portal.gravitee.io:8443/portal");
+        when(installationAccessQueryService.getPortalAPIUrl(any()))
+                .thenReturn("https://portal.gravitee.io:8443/portal");
 
         filter.filter(containerRequestContext);
 
@@ -570,7 +591,8 @@ public class UriBuilderRequestFilterTest {
     public void managementContextHeadersTakePrecedenceOverFallback() throws IOException {
         givenHeaders("X-Forwarded-Proto", "http", "X-Forwarded-Host", "custom.host:5678");
         givenManagementContext();
-        when(installationAccessQueryService.getConsoleAPIUrl(any())).thenReturn("https://console.gravitee.io:9443/management");
+        when(installationAccessQueryService.getConsoleAPIUrl(any()))
+                .thenReturn("https://console.gravitee.io:9443/management");
 
         filter.filter(containerRequestContext);
 

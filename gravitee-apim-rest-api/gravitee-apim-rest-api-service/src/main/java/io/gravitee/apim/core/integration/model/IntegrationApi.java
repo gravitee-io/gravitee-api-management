@@ -23,17 +23,16 @@ import lombok.Builder;
 
 @Builder(toBuilder = true)
 public record IntegrationApi(
-    String integrationId,
-    String uniqueId,
-    String id,
-    String name,
-    String description,
-    String version,
-    Map<String, String> connectionDetails,
-    List<Plan> plans,
-    List<Page> pages,
-    Collection<Metadata> metadata
-) {
+        String integrationId,
+        String uniqueId,
+        String id,
+        String name,
+        String description,
+        String version,
+        Map<String, String> connectionDetails,
+        List<Plan> plans,
+        List<Page> pages,
+        Collection<Metadata> metadata) {
     public record Plan(String id, String name, String description, PlanType type, List<String> characteristics) {}
 
     public enum PlanType {
@@ -52,9 +51,14 @@ public record IntegrationApi(
         SWAGGER,
     }
 
-    public record Metadata(String name, String value, io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat format) {}
+    public record Metadata(
+            String name, String value, io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat format) {}
 
     public FederatedApi.FederatedApiBuilder toFederatedApiDefinitionBuilder() {
-        return FederatedApi.builder().providerId(id).apiVersion(version).name(name).server(connectionDetails);
+        return FederatedApi.builder()
+                .providerId(id)
+                .apiVersion(version)
+                .name(name)
+                .server(connectionDetails);
     }
 }

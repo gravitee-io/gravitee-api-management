@@ -27,7 +27,6 @@ import io.gravitee.rest.api.model.InstallationStatus;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.InstallationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.InstallationServiceImpl;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -96,13 +95,11 @@ public class InstallationServiceTest {
         assertEquals(NOW, installationEntity.getUpdatedAt());
         assertEquals(2, installationEntity.getAdditionalInformation().size());
         assertEquals(
-            COCKPIT_INSTALLATION_ID,
-            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID)
-        );
+                COCKPIT_INSTALLATION_ID,
+                installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID));
         assertEquals(
-            COCKPIT_INSTALLATION_STATUS,
-            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS)
-        );
+                COCKPIT_INSTALLATION_STATUS,
+                installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS));
     }
 
     @Test
@@ -118,13 +115,11 @@ public class InstallationServiceTest {
         assertEquals(NOW, installationEntity.getUpdatedAt());
         assertEquals(2, installationEntity.getAdditionalInformation().size());
         assertEquals(
-            COCKPIT_INSTALLATION_ID,
-            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID)
-        );
+                COCKPIT_INSTALLATION_ID,
+                installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID));
         assertEquals(
-            COCKPIT_INSTALLATION_STATUS,
-            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS)
-        );
+                COCKPIT_INSTALLATION_STATUS,
+                installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS));
     }
 
     @Test
@@ -143,13 +138,11 @@ public class InstallationServiceTest {
         assertEquals(NOW, installationEntity.getUpdatedAt());
         assertEquals(2, installationEntity.getAdditionalInformation().size());
         assertEquals(
-            COCKPIT_INSTALLATION_ID,
-            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID)
-        );
+                COCKPIT_INSTALLATION_ID,
+                installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID));
         assertEquals(
-            COCKPIT_INSTALLATION_STATUS,
-            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS)
-        );
+                COCKPIT_INSTALLATION_STATUS,
+                installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS));
     }
 
     @Test
@@ -162,25 +155,23 @@ public class InstallationServiceTest {
         updatedInstallation.setUpdatedAt(new Date());
         when(installationRepository.update(any(Installation.class))).thenReturn(updatedInstallation);
 
-        final InstallationEntity updatedInstallationEntity = installationService.setAdditionalInformation(newAdditionalInformation);
+        final InstallationEntity updatedInstallationEntity =
+                installationService.setAdditionalInformation(newAdditionalInformation);
 
         verify(installationRepository).find();
-        verify(installationRepository).update(
-            ArgumentMatchers.argThat(
-                argument ->
-                    argument != null &&
-                    INSTALLATION_ID.equals(argument.getId()) &&
-                    NOW.equals(argument.getCreatedAt()) &&
-                    NOW.before(argument.getUpdatedAt()) &&
-                    newAdditionalInformation.equals(argument.getAdditionalInformation())
-            )
-        );
+        verify(installationRepository)
+                .update(ArgumentMatchers.argThat(argument -> argument != null
+                        && INSTALLATION_ID.equals(argument.getId())
+                        && NOW.equals(argument.getCreatedAt())
+                        && NOW.before(argument.getUpdatedAt())
+                        && newAdditionalInformation.equals(argument.getAdditionalInformation())));
 
         assertNotNull(updatedInstallationEntity);
         assertEquals(INSTALLATION_ID, updatedInstallationEntity.getId());
         assertEquals(NOW, updatedInstallationEntity.getCreatedAt());
         assertEquals(1, updatedInstallationEntity.getAdditionalInformation().size());
-        assertEquals("value1", updatedInstallationEntity.getAdditionalInformation().get("key1"));
+        assertEquals(
+                "value1", updatedInstallationEntity.getAdditionalInformation().get("key1"));
     }
 
     @Test

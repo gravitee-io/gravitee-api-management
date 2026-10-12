@@ -20,6 +20,8 @@ import java.util.Collection;
 
 public interface MembershipCrudService {
     Membership create(Membership membership);
+
     void delete(String id);
+
     Collection<Membership> findByApiId(String apiId);
 }

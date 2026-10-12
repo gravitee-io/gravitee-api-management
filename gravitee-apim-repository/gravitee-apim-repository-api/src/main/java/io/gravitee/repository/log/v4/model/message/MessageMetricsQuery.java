@@ -34,14 +34,13 @@ public class MessageMetricsQuery {
 
     @Builder(toBuilder = true)
     public record Filter(
-        String apiId,
-        String requestId,
-        String connectorType,
-        String connectorId,
-        String operation,
-        long from,
-        long to,
-        Map<String, List<String>> additional,
-        Boolean requiresAdditional
-    ) {}
+            String apiId,
+            String requestId,
+            String connectorType,
+            String connectorId,
+            String operation,
+            long from,
+            long to,
+            Map<String, List<String>> additional,
+            Boolean requiresAdditional) {}
 }

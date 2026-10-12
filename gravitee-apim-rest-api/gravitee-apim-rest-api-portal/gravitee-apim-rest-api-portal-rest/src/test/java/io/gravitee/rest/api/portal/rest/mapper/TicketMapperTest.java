@@ -37,11 +37,11 @@ public class TicketMapperTest {
         TicketMapper ticketMapper = new TicketMapper();
 
         TicketInput input = new TicketInput()
-            .api(TICKET_API)
-            .application(TICKET_APPLICATION)
-            .content(TICKET_CONTENT)
-            .subject(TICKET_SUBJECT)
-            .copyToSender(Boolean.TRUE);
+                .api(TICKET_API)
+                .application(TICKET_APPLICATION)
+                .content(TICKET_CONTENT)
+                .subject(TICKET_SUBJECT)
+                .copyToSender(Boolean.TRUE);
 
         NewTicketEntity ticketEntity = ticketMapper.convert(input);
 

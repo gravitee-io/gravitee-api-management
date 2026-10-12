@@ -42,119 +42,123 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
     @BeforeEach
     public void init() {
         reset(applicationService, apiAuthorizationServiceV4, permissionService);
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_PLATFORM,
-                "DEFAULT",
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_PLATFORM,
+                        "DEFAULT",
+                        RolePermissionAction.READ))
+                .thenReturn(true);
     }
 
     @Test
     public void should_return_no_content_when_user_admin_and_application_analytics() {
-        when(applicationService.findIdsByEnvironment(GraviteeContext.getExecutionContext())).thenReturn(Set.of());
+        when(applicationService.findIdsByEnvironment(GraviteeContext.getExecutionContext()))
+                .thenReturn(Set.of());
 
         final Response response = envTarget()
-            .queryParam("to", 122222L)
-            .queryParam("from", 111111L)
-            .queryParam("interval", 1000L)
-            .queryParam("type", AnalyticsType.COUNT)
-            .queryParam("field", "application")
-            .request()
-            .get();
+                .queryParam("to", 122222L)
+                .queryParam("from", 111111L)
+                .queryParam("interval", 1000L)
+                .queryParam("type", AnalyticsType.COUNT)
+                .queryParam("field", "application")
+                .request()
+                .get();
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        verify(permissionService, times(1)).hasPermission(
-            GraviteeContext.getExecutionContext(),
-            RolePermission.ENVIRONMENT_PLATFORM,
-            "DEFAULT",
-            RolePermissionAction.READ
-        );
+        verify(permissionService, times(1))
+                .hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_PLATFORM,
+                        "DEFAULT",
+                        RolePermissionAction.READ);
         verify(applicationService).findIdsByEnvironment(any(ExecutionContext.class));
     }
 
     @Test
     public void should_return_no_content_when_user_admin_and_api_analytics() {
-        when(apiAuthorizationServiceV4.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of());
+        when(apiAuthorizationServiceV4.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment()))
+                .thenReturn(Set.of());
 
         final Response response = envTarget()
-            .queryParam("to", 122222L)
-            .queryParam("from", 111111L)
-            .queryParam("interval", 1000L)
-            .queryParam("type", AnalyticsType.COUNT)
-            .request()
-            .get();
+                .queryParam("to", 122222L)
+                .queryParam("from", 111111L)
+                .queryParam("interval", 1000L)
+                .queryParam("type", AnalyticsType.COUNT)
+                .request()
+                .get();
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        verify(permissionService, times(1)).hasPermission(
-            GraviteeContext.getExecutionContext(),
-            RolePermission.ENVIRONMENT_PLATFORM,
-            "DEFAULT",
-            RolePermissionAction.READ
-        );
+        verify(permissionService, times(1))
+                .hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_PLATFORM,
+                        "DEFAULT",
+                        RolePermissionAction.READ);
         verify(apiAuthorizationServiceV4).findIdsByEnvironment(any());
     }
 
     @Test
     public void should_return_analytics_when_user_admin_and_application_analytics() {
-        when(applicationService.findIdsByEnvironment(GraviteeContext.getExecutionContext())).thenReturn(Set.of("app-1"));
+        when(applicationService.findIdsByEnvironment(GraviteeContext.getExecutionContext()))
+                .thenReturn(Set.of("app-1"));
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);
-        when(analyticsService.execute(any(ExecutionContext.class), any(CountQuery.class))).thenReturn(analytics);
+        when(analyticsService.execute(any(ExecutionContext.class), any(CountQuery.class)))
+                .thenReturn(analytics);
 
         final Response response = envTarget()
-            .queryParam("to", 122222L)
-            .queryParam("from", 111111L)
-            .queryParam("interval", 1000L)
-            .queryParam("type", AnalyticsType.COUNT)
-            .queryParam("field", "application")
-            .request()
-            .get();
+                .queryParam("to", 122222L)
+                .queryParam("from", 111111L)
+                .queryParam("interval", 1000L)
+                .queryParam("type", AnalyticsType.COUNT)
+                .queryParam("field", "application")
+                .request()
+                .get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         var body = response.readEntity(HitsAnalytics.class);
         assertEquals(100L, body.getHits());
 
-        verify(permissionService, times(1)).hasPermission(
-            GraviteeContext.getExecutionContext(),
-            RolePermission.ENVIRONMENT_PLATFORM,
-            "DEFAULT",
-            RolePermissionAction.READ
-        );
+        verify(permissionService, times(1))
+                .hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_PLATFORM,
+                        "DEFAULT",
+                        RolePermissionAction.READ);
         verify(applicationService).findIdsByEnvironment(any(ExecutionContext.class));
     }
 
     @Test
     public void should_return_analytics_when_user_admin_and_api_analytics() {
-        when(apiAuthorizationServiceV4.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of("api-1"));
+        when(apiAuthorizationServiceV4.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment()))
+                .thenReturn(Set.of("api-1"));
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);
-        when(analyticsService.execute(any(ExecutionContext.class), any(CountQuery.class))).thenReturn(analytics);
+        when(analyticsService.execute(any(ExecutionContext.class), any(CountQuery.class)))
+                .thenReturn(analytics);
 
         final Response response = envTarget()
-            .queryParam("to", 122222L)
-            .queryParam("from", 111111L)
-            .queryParam("interval", 1000L)
-            .queryParam("type", AnalyticsType.COUNT)
-            .request()
-            .get();
+                .queryParam("to", 122222L)
+                .queryParam("from", 111111L)
+                .queryParam("interval", 1000L)
+                .queryParam("type", AnalyticsType.COUNT)
+                .request()
+                .get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         var body = response.readEntity(HitsAnalytics.class);
         assertEquals(100L, body.getHits());
 
-        verify(permissionService, times(1)).hasPermission(
-            GraviteeContext.getExecutionContext(),
-            RolePermission.ENVIRONMENT_PLATFORM,
-            "DEFAULT",
-            RolePermissionAction.READ
-        );
+        verify(permissionService, times(1))
+                .hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_PLATFORM,
+                        "DEFAULT",
+                        RolePermissionAction.READ);
         verify(apiAuthorizationServiceV4).findIdsByEnvironment(any());
     }
 }

@@ -57,7 +57,8 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
     }
 
     @Override
@@ -76,17 +77,17 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     void should_receive_all_messages_from_endpoint_with_tenant_1_only(HttpClient httpClient) {
         for (int i = 0; i < 2; i++) {
             createGetRequest("/test", MediaType.APPLICATION_JSON, httpClient)
-                .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-                .flatMapPublisher(response ->
-                    response.rxBody().flatMapPublisher(HttpGetEntrypointMockEndpointIntegrationTest.this::extractMessages).take(1)
-                )
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(jsonObject -> {
-                    assertThat(jsonObject.getString("content")).isEqualTo("message from endpoint tenant-1");
-                    return true;
-                })
-                .assertComplete();
+                    .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+                    .flatMapPublisher(response -> response.rxBody()
+                            .flatMapPublisher(HttpGetEntrypointMockEndpointIntegrationTest.this::extractMessages)
+                            .take(1))
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertValue(jsonObject -> {
+                        assertThat(jsonObject.getString("content")).isEqualTo("message from endpoint tenant-1");
+                        return true;
+                    })
+                    .assertComplete();
         }
     }
 
@@ -105,11 +106,9 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @NonNull
     private Single<HttpClientResponse> createGetRequest(String path, String accept, HttpClient httpClient) {
-        return httpClient
-            .rxRequest(HttpMethod.GET, path)
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), accept);
-                return request.rxSend();
-            });
+        return httpClient.rxRequest(HttpMethod.GET, path).flatMap(request -> {
+            request.putHeader(HttpHeaderNames.ACCEPT.toString(), accept);
+            return request.rxSend();
+        });
     }
 }

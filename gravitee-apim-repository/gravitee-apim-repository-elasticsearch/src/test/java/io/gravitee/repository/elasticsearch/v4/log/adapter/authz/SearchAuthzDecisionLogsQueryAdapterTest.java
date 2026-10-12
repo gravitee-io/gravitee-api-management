@@ -44,12 +44,17 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
 
     @Test
     void builds_a_paginated_query_scoped_to_the_calling_environment_the_authz_decision_point_and_the_timestamp_range() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(1000L).to(2000L).page(2).size(10).build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .from(1000L)
+                .to(2000L)
+                .page(2)
+                .size(10)
+                .build();
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "query": {
                 "bool": {
@@ -71,8 +76,7 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
                 { "event-id": { "order": "asc", "unmapped_type": "keyword" } }
               ]
             }
-            """
-        );
+            """);
     }
 
     @Test
@@ -81,8 +85,14 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(new QueryContext("org-2", "env-2"), query);
 
-        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"term\": { \"org-id\": \"org-2\" } }"));
-        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"term\": { \"env-id\": \"env-2\" } }"));
+        assertThatJson(result)
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"term\": { \"org-id\": \"org-2\" } }"));
+        assertThatJson(result)
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"term\": { \"env-id\": \"env-2\" } }"));
     }
 
     @Test
@@ -92,10 +102,10 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter")
-            .isArray()
-            .contains(json("{ \"term\": { \"decision-point-type\": \"authz\" } }"))
-            .contains(json("{ \"term\": { \"phase\": \"RESOLVED\" } }"));
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"term\": { \"decision-point-type\": \"authz\" } }"))
+                .contains(json("{ \"term\": { \"phase\": \"RESOLVED\" } }"));
     }
 
     @Test
@@ -104,13 +114,9 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
-        assertThatJson(result)
-            .inPath("$.sort[1]")
-            .isEqualTo(
-                """
+        assertThatJson(result).inPath("$.sort[1]").isEqualTo("""
                 { "event-id": { "order": "asc", "unmapped_type": "keyword" } }
-                """
-            );
+                """);
     }
 
     @Test
@@ -126,62 +132,77 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
 
     @Test
     void keeps_an_open_ended_range_when_only_one_bound_is_given() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(1000L).build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .from(1000L)
+                .build();
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter")
-            .isArray()
-            .contains(json("{ \"range\": { \"@timestamp\": { \"gte\": 1000 } } }"));
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"range\": { \"@timestamp\": { \"gte\": 1000 } } }"));
     }
 
     @Test
     void narrows_on_the_requested_decisions_through_the_verdict() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).decisions(Set.of("FORBID")).build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .decisions(Set.of("FORBID"))
+                .build();
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
-        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"terms\": { \"verdict\": [ \"FORBID\" ] } }"));
+        assertThatJson(result)
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"terms\": { \"verdict\": [ \"FORBID\" ] } }"));
     }
 
     @Test
     void narrows_on_subject_action_resource_and_caller() {
         var query = AuthzDecisionLogQuery.builder()
-            .apiIds(Set.of("api-1"))
-            .subjectIds(Set.of("alice"))
-            .actions(Set.of("read"))
-            .resourceIds(Set.of("doc-1"))
-            .callers(Set.of("pep"))
-            .build();
+                .apiIds(Set.of("api-1"))
+                .subjectIds(Set.of("alice"))
+                .actions(Set.of("read"))
+                .resourceIds(Set.of("doc-1"))
+                .callers(Set.of("pep"))
+                .build();
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter")
-            .isArray()
-            .contains(json("{ \"terms\": { \"subject-id\": [ \"alice\" ] } }"))
-            .contains(json("{ \"terms\": { \"action\": [ \"read\" ] } }"))
-            .contains(json("{ \"terms\": { \"resource-id\": [ \"doc-1\" ] } }"))
-            .contains(json("{ \"terms\": { \"caller\": [ \"pep\" ] } }"));
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"terms\": { \"subject-id\": [ \"alice\" ] } }"))
+                .contains(json("{ \"terms\": { \"action\": [ \"read\" ] } }"))
+                .contains(json("{ \"terms\": { \"resource-id\": [ \"doc-1\" ] } }"))
+                .contains(json("{ \"terms\": { \"caller\": [ \"pep\" ] } }"));
     }
 
     @Test
     @SneakyThrows
     void shares_one_entity_reference_budget_between_the_subject_and_resource_clauses() {
-        var subjects = IntStream.range(0, 100)
-            .mapToObj(i -> "T" + i + "::a::b::c")
-            .collect(Collectors.toSet());
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).subjectIds(subjects).resourceIds(Set.of("Doc::\"d1\"")).build();
+        var subjects =
+                IntStream.range(0, 100).mapToObj(i -> "T" + i + "::a::b::c").collect(Collectors.toSet());
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .subjectIds(subjects)
+                .resourceIds(Set.of("Doc::\"d1\""))
+                .build();
 
-        JsonNode filters = MAPPER.readTree(SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query)).at("/query/bool/filter");
+        JsonNode filters = MAPPER.readTree(SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query))
+                .at("/query/bool/filter");
 
         assertThat(filters.valueStream().filter(clause -> clause.has("bool")))
-            .singleElement()
-            .satisfies(clause -> assertThat(clause.at("/bool/should").size()).isEqualTo(129));
+                .singleElement()
+                .satisfies(
+                        clause -> assertThat(clause.at("/bool/should").size()).isEqualTo(129));
         assertThat(filters.valueStream().filter(clause -> clause.at("/terms").has("resource-id")))
-            .singleElement()
-            .satisfies(clause -> assertThat(clause.at("/terms/resource-id")).isEqualTo(MAPPER.readTree("[\"Doc::\\\"d1\\\"\"]")));
+                .singleElement()
+                .satisfies(clause -> assertThat(clause.at("/terms/resource-id"))
+                        .isEqualTo(MAPPER.readTree("[\"Doc::\\\"d1\\\"\"]")));
     }
 
     @Test
@@ -206,26 +227,42 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
     void rejects_a_query_that_would_read_across_every_api() {
         var query = AuthzDecisionLogQuery.builder().apiIds(Set.of()).build();
 
-        assertThatThrownBy(query::validate).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("apiIds");
+        assertThatThrownBy(query::validate)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("apiIds");
     }
 
     @Test
     void rejects_an_inverted_time_range() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).from(2000L).to(1000L).build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .from(2000L)
+                .to(1000L)
+                .build();
 
-        assertThatThrownBy(query::validate).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("from must be <= to");
+        assertThatThrownBy(query::validate)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("from must be <= to");
     }
 
     @Test
     void rejects_a_page_larger_than_the_maximum() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).size(AuthzDecisionLogQuery.MAX_SIZE + 1).build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .size(AuthzDecisionLogQuery.MAX_SIZE + 1)
+                .build();
 
-        assertThatThrownBy(query::validate).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("size must be <= 1000");
+        assertThatThrownBy(query::validate)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("size must be <= 1000");
     }
 
     @Test
     void accepts_a_page_at_the_maximum() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).size(AuthzDecisionLogQuery.MAX_SIZE).build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .size(AuthzDecisionLogQuery.MAX_SIZE)
+                .build();
 
         assertThatCode(query::validate).doesNotThrowAnyException();
     }
@@ -233,40 +270,38 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
     @Test
     void narrows_on_status_indeterminate_cause_pdp_engine_generation_and_request_id() {
         var query = AuthzDecisionLogQuery.builder()
-            .apiIds(Set.of("api-1"))
-            .statuses(Set.of("error"))
-            .indeterminateCauses(Set.of("NOT_READY"))
-            .targetPdpIds(Set.of("default"))
-            .policyGenerations(Set.of("9"))
-            .requestIds(Set.of("req-1"))
-            .build();
+                .apiIds(Set.of("api-1"))
+                .statuses(Set.of("error"))
+                .indeterminateCauses(Set.of("NOT_READY"))
+                .targetPdpIds(Set.of("default"))
+                .policyGenerations(Set.of("9"))
+                .requestIds(Set.of("req-1"))
+                .build();
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter")
-            .isArray()
-            .contains(json("{ \"terms\": { \"status\": [ \"error\" ] } }"))
-            .contains(json("{ \"terms\": { \"indeterminate-cause\": [ \"NOT_READY\" ] } }"))
-            .contains(json("{ \"terms\": { \"decision-point-id\": [ \"default\" ] } }"))
-            .contains(json("{ \"terms\": { \"decision-point-version\": [ \"9\" ] } }"))
-            .contains(json("{ \"terms\": { \"request-id\": [ \"req-1\" ] } }"));
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"terms\": { \"status\": [ \"error\" ] } }"))
+                .contains(json("{ \"terms\": { \"indeterminate-cause\": [ \"NOT_READY\" ] } }"))
+                .contains(json("{ \"terms\": { \"decision-point-id\": [ \"default\" ] } }"))
+                .contains(json("{ \"terms\": { \"decision-point-version\": [ \"9\" ] } }"))
+                .contains(json("{ \"terms\": { \"request-id\": [ \"req-1\" ] } }"));
         assertThat(result).doesNotContain("\"operation\"");
     }
 
     @Test
     void wraps_the_matched_policy_clause_in_a_nested_query_on_the_matched_rules() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).matchedPolicyNames(Set.of("forbid-delete")).build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .matchedPolicyNames(Set.of("forbid-delete"))
+                .build();
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         // Nested objects are separate Lucene documents: without the wrapper this matches nothing.
-        assertThatJson(result)
-            .inPath("$.query.bool.filter")
-            .isArray()
-            .contains(
-                json(
-                    """
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("""
                     {
                       "nested": {
                         "path": "matched-rules",
@@ -282,67 +317,77 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
                         }
                       }
                     }
-                    """
-                )
-            );
+                    """));
     }
 
     @Test
     void matches_a_policy_name_on_every_rule_of_that_policy() {
         var names = new LinkedHashSet<>(List.of("QA default", "other#1"));
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).matchedPolicyNames(names).build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .matchedPolicyNames(names)
+                .build();
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter[5].nested.query.bool.should")
-            .isEqualTo(
-                json(
-                    """
+                .inPath("$.query.bool.filter[5].nested.query.bool.should")
+                .isEqualTo(json("""
                     [
                       { "terms": { "matched-rules.name": [ "QA default", "other#1" ] } },
                       { "prefix": { "matched-rules.name": "QA default#" } },
                       { "prefix": { "matched-rules.name": "other#1#" } }
                     ]
-                    """
-                )
-            );
+                    """));
     }
 
     @Test
     void narrows_on_the_error_type() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).errorTypes(Set.of("pdp_unavailable")).build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .errorTypes(Set.of("pdp_unavailable"))
+                .build();
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter")
-            .isArray()
-            .contains(json("{ \"terms\": { \"error-type\": [ \"pdp_unavailable\" ] } }"));
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(json("{ \"terms\": { \"error-type\": [ \"pdp_unavailable\" ] } }"));
     }
 
     @Test
     void matches_a_reason_on_a_fragment_rather_than_the_whole_sentence() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).reasonContains("forbid-delete").build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .reasonContains("forbid-delete")
+                .build();
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter")
-            .isArray()
-            .contains(json("{ \"wildcard\": { \"reasons\": { \"value\": \"*forbid-delete*\", \"case_insensitive\": true } } }"));
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(
+                        json(
+                                "{ \"wildcard\": { \"reasons\": { \"value\": \"*forbid-delete*\", \"case_insensitive\": true } } }"));
     }
 
     @Test
     void escapes_wildcard_syntax_so_a_reason_needle_cannot_widen_the_search() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).reasonContains("a*b?c").build();
+        var query = AuthzDecisionLogQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .reasonContains("a*b?c")
+                .build();
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         // Unescaped, "*" would match every reason while the caller still sees an active filter.
         assertThatJson(result)
-            .inPath("$.query.bool.filter")
-            .isArray()
-            .contains(json("{ \"wildcard\": { \"reasons\": { \"value\": \"*a\\\\*b\\\\?c*\", \"case_insensitive\": true } } }"));
+                .inPath("$.query.bool.filter")
+                .isArray()
+                .contains(
+                        json(
+                                "{ \"wildcard\": { \"reasons\": { \"value\": \"*a\\\\*b\\\\?c*\", \"case_insensitive\": true } } }"));
     }
 }

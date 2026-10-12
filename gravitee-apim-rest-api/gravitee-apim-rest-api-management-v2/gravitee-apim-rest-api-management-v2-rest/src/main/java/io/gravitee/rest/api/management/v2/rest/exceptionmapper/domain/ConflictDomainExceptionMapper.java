@@ -26,15 +26,15 @@ public class ConflictDomainExceptionMapper extends AbstractDomainExceptionMapper
     @Override
     public Response toResponse(ConflictDomainException exception) {
         return Response.status(Response.Status.CONFLICT)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(conflictDomainError(exception))
-            .build();
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(conflictDomainError(exception))
+                .build();
     }
 
     private Error conflictDomainError(ConflictDomainException exception) {
         return new Error()
-            .httpStatus(Response.Status.CONFLICT.getStatusCode())
-            .message(exception.getMessage())
-            .parameters(exception.getId() != null ? Map.of("id", exception.getId()) : null);
+                .httpStatus(Response.Status.CONFLICT.getStatusCode())
+                .message(exception.getMessage())
+                .parameters(exception.getId() != null ? Map.of("id", exception.getId()) : null);
     }
 }

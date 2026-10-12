@@ -27,22 +27,21 @@ class CsvUtilsTest {
     CsvUtils csvUtils = new CsvUtils(';');
 
     @ParameterizedTest
-    @MethodSource({ "csvInputs" })
+    @MethodSource({"csvInputs"})
     void sanitize(String input, String expected) {
         assertThat(csvUtils.sanitize(input)).isEqualTo(expected);
     }
 
     static Stream<Arguments> csvInputs() {
         return Stream.of(
-            Arguments.of(null, ""),
-            Arguments.of("", ""),
-            Arguments.of("a", "a"),
-            Arguments.of("a;b", "\"a;b\""),
-            Arguments.of("a\"b", "a\"\"b"),
-            Arguments.of("a\"\"\"\"b", "a\"\"\"\"\"\"\"\"b"),
-            Arguments.of("=1+2\";=1+2", "\"'=1+2\"\";=1+2\""),
-            Arguments.of("=1+2'\" ;,=1+2", "\"'=1+2'\"\" ;,=1+2\""),
-            Arguments.of("=1+2", "\"'=1+2\"")
-        );
+                Arguments.of(null, ""),
+                Arguments.of("", ""),
+                Arguments.of("a", "a"),
+                Arguments.of("a;b", "\"a;b\""),
+                Arguments.of("a\"b", "a\"\"b"),
+                Arguments.of("a\"\"\"\"b", "a\"\"\"\"\"\"\"\"b"),
+                Arguments.of("=1+2\";=1+2", "\"'=1+2\"\";=1+2\""),
+                Arguments.of("=1+2'\" ;,=1+2", "\"'=1+2'\"\" ;,=1+2\""),
+                Arguments.of("=1+2", "\"'=1+2\""));
     }
 }

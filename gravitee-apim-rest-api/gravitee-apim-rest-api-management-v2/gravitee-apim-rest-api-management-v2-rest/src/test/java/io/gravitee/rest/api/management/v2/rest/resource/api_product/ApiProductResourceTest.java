@@ -35,7 +35,6 @@ import assertions.MAPIAssertions;
 import fixtures.core.model.LicenseFixtures;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
@@ -115,11 +114,12 @@ class ApiProductResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
         // These endpoints manage classic products, so that is what sits under the id unless a test says otherwise.
-        when(getApiProductByIdUseCase.execute(any())).thenReturn(
-            GetApiProductsUseCase.Output.single(
-                Optional.of(ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).apiIds(new HashSet<>()).build())
-            )
-        );
+        when(getApiProductByIdUseCase.execute(any()))
+                .thenReturn(GetApiProductsUseCase.Output.single(Optional.of(ApiProduct.builder()
+                        .id(API_PRODUCT_ID)
+                        .environmentId(ENV_ID)
+                        .apiIds(new HashSet<>())
+                        .build())));
     }
 
     @AfterEach
@@ -127,13 +127,12 @@ class ApiProductResourceTest extends AbstractResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
         reset(
-            getApiProductByIdUseCase,
-            deleteApiProductUseCase,
-            deployApiProductUseCase,
-            updateApiProductUseCase,
-            verifyApiProductExistsUseCase,
-            verifyApiProductDeployUseCase
-        );
+                getApiProductByIdUseCase,
+                deleteApiProductUseCase,
+                deployApiProductUseCase,
+                updateApiProductUseCase,
+                verifyApiProductExistsUseCase,
+                verifyApiProductDeployUseCase);
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
@@ -143,17 +142,18 @@ class ApiProductResourceTest extends AbstractResourceTest {
         @Test
         void should_get_api_product_by_id() {
             ApiProduct apiProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .environmentId(ENV_ID)
-                .name("My API Product")
-                .description("Product description")
-                .version("1.0.0")
-                .createdAt(ZonedDateTime.now())
-                .updatedAt(ZonedDateTime.now())
-                .apiIds(new HashSet<>())
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .environmentId(ENV_ID)
+                    .name("My API Product")
+                    .description("Product description")
+                    .version("1.0.0")
+                    .createdAt(ZonedDateTime.now())
+                    .updatedAt(ZonedDateTime.now())
+                    .apiIds(new HashSet<>())
+                    .build();
 
-            when(getApiProductByIdUseCase.execute(any())).thenReturn(GetApiProductsUseCase.Output.single(Optional.of(apiProduct)));
+            when(getApiProductByIdUseCase.execute(any()))
+                    .thenReturn(GetApiProductsUseCase.Output.single(Optional.of(apiProduct)));
 
             final Response response = rootTarget().request().get();
 
@@ -162,17 +162,17 @@ class ApiProductResourceTest extends AbstractResourceTest {
             var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ApiProduct.class);
 
             assertAll(
-                () -> assertThat(result.getId()).isEqualTo(API_PRODUCT_ID),
-                () -> assertThat(result.getName()).isEqualTo("My API Product"),
-                () -> assertThat(result.getDescription()).isEqualTo("Product description"),
-                () -> assertThat(result.getVersion()).isEqualTo("1.0.0"),
-                () -> assertThat(result.getEnvironmentId()).isEqualTo(ENV_ID)
-            );
+                    () -> assertThat(result.getId()).isEqualTo(API_PRODUCT_ID),
+                    () -> assertThat(result.getName()).isEqualTo("My API Product"),
+                    () -> assertThat(result.getDescription()).isEqualTo("Product description"),
+                    () -> assertThat(result.getVersion()).isEqualTo("1.0.0"),
+                    () -> assertThat(result.getEnvironmentId()).isEqualTo(ENV_ID));
         }
 
         @Test
         void should_return_404_when_api_product_not_found() {
-            when(getApiProductByIdUseCase.execute(any())).thenReturn(GetApiProductsUseCase.Output.single(Optional.empty()));
+            when(getApiProductByIdUseCase.execute(any()))
+                    .thenReturn(GetApiProductsUseCase.Output.single(Optional.empty()));
 
             final Response response = rootTarget().request().get();
 
@@ -181,7 +181,8 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_api_product_belongs_to_different_environment() {
-            when(getApiProductByIdUseCase.execute(any())).thenReturn(GetApiProductsUseCase.Output.single(Optional.empty()));
+            when(getApiProductByIdUseCase.execute(any()))
+                    .thenReturn(GetApiProductsUseCase.Output.single(Optional.empty()));
 
             final Response response = rootTarget().request().get();
 
@@ -190,9 +191,11 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.READ, () ->
-                rootTarget().request().get()
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_DEFINITION,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().request().get());
         }
     }
 
@@ -203,7 +206,9 @@ class ApiProductResourceTest extends AbstractResourceTest {
         void theCheckRefusesWhatThisSurfaceDoesNotManage() {
             // The kind rule itself lives in VerifyApiProductExistsUseCase and is tested there; what belongs
             // here is that every fenced route asks for it and stops when it is refused.
-            doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
+            doThrow(new ApiProductNotFoundException(API_PRODUCT_ID))
+                    .when(verifyApiProductExistsUseCase)
+                    .execute(any());
         }
 
         @Test
@@ -228,7 +233,9 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_not_update_a_product_this_surface_does_not_manage() {
-            final Response response = rootTarget().request().put(Entity.json(UpdateApiProduct.builder().name("Renamed").build()));
+            final Response response = rootTarget()
+                    .request()
+                    .put(Entity.json(UpdateApiProduct.builder().name("Renamed").build()));
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
             verify(updateApiProductUseCase, never()).execute(any());
@@ -250,13 +257,15 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_not_reach_the_subscriptions_of_a_product_this_surface_does_not_manage() {
-            assertThat(rootTarget().path("subscriptions").request().get().getStatus()).isEqualTo(NOT_FOUND_404);
+            assertThat(rootTarget().path("subscriptions").request().get().getStatus())
+                    .isEqualTo(NOT_FOUND_404);
         }
 
         @Test
         void should_not_reach_the_notification_settings_of_a_product_this_surface_does_not_manage() {
             // This sub-tree writes: a POST, two PUTs and a DELETE.
-            assertThat(rootTarget().path("notificationSettings").request().get().getStatus()).isEqualTo(NOT_FOUND_404);
+            assertThat(rootTarget().path("notificationSettings").request().get().getStatus())
+                    .isEqualTo(NOT_FOUND_404);
         }
 
         @Test
@@ -285,7 +294,9 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_api_product_belongs_to_different_environment() {
-            doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(deleteApiProductUseCase).execute(any());
+            doThrow(new ApiProductNotFoundException(API_PRODUCT_ID))
+                    .when(deleteApiProductUseCase)
+                    .execute(any());
 
             final Response response = rootTarget().request().delete();
 
@@ -294,9 +305,11 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.DELETE, () ->
-                rootTarget().request().delete()
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_DEFINITION,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.DELETE,
+                    () -> rootTarget().request().delete());
         }
     }
 
@@ -307,29 +320,30 @@ class ApiProductResourceTest extends AbstractResourceTest {
         void initUpdateApiProductTests() {
             // OpenAPI UpdateApiProduct serializes tags as [] by default; the resource loads the existing
             // product for tag validation whenever tags are present in the request body.
-            when(getApiProductByIdUseCase.execute(any())).thenReturn(
-                GetApiProductsUseCase.Output.single(
-                    Optional.of(
-                        ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("Existing Product").tags(Set.of()).build()
-                    )
-                )
-            );
+            when(getApiProductByIdUseCase.execute(any()))
+                    .thenReturn(GetApiProductsUseCase.Output.single(Optional.of(ApiProduct.builder()
+                            .id(API_PRODUCT_ID)
+                            .environmentId(ENV_ID)
+                            .name("Existing Product")
+                            .tags(Set.of())
+                            .build())));
         }
 
         @Test
         void should_update_api_product() {
             ApiProduct updatedApiProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .environmentId(ENV_ID)
-                .name("Updated Product")
-                .description("Updated description")
-                .version("2.0.0")
-                .createdAt(ZonedDateTime.now().minusDays(1))
-                .updatedAt(ZonedDateTime.now())
-                .apiIds(Set.of("api-1", "api-2"))
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .environmentId(ENV_ID)
+                    .name("Updated Product")
+                    .description("Updated description")
+                    .version("2.0.0")
+                    .createdAt(ZonedDateTime.now().minusDays(1))
+                    .updatedAt(ZonedDateTime.now())
+                    .apiIds(Set.of("api-1", "api-2"))
+                    .build();
 
-            when(updateApiProductUseCase.execute(any())).thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
+            when(updateApiProductUseCase.execute(any()))
+                    .thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Updated Product");
@@ -343,14 +357,13 @@ class ApiProductResourceTest extends AbstractResourceTest {
             }
 
             assertAll(
-                () -> assertThat(updatedResponse.getId()).isEqualTo(API_PRODUCT_ID),
-                () -> assertThat(updatedResponse.getName()).isEqualTo("Updated Product"),
-                () -> assertThat(updatedResponse.getDescription()).isEqualTo("Updated description"),
-                () -> assertThat(updatedResponse.getVersion()).isEqualTo("2.0.0"),
-                () -> assertThat(updatedResponse.getEnvironmentId()).isEqualTo(ENV_ID),
-                () -> assertThat(updatedResponse.getCreatedAt()).isNotNull(),
-                () -> assertThat(updatedResponse.getUpdatedAt()).isNotNull()
-            );
+                    () -> assertThat(updatedResponse.getId()).isEqualTo(API_PRODUCT_ID),
+                    () -> assertThat(updatedResponse.getName()).isEqualTo("Updated Product"),
+                    () -> assertThat(updatedResponse.getDescription()).isEqualTo("Updated description"),
+                    () -> assertThat(updatedResponse.getVersion()).isEqualTo("2.0.0"),
+                    () -> assertThat(updatedResponse.getEnvironmentId()).isEqualTo(ENV_ID),
+                    () -> assertThat(updatedResponse.getCreatedAt()).isNotNull(),
+                    () -> assertThat(updatedResponse.getUpdatedAt()).isNotNull());
 
             var captor = ArgumentCaptor.forClass(UpdateApiProductUseCase.Input.class);
             verify(updateApiProductUseCase).execute(captor.capture());
@@ -364,15 +377,18 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_update_api_product_analytics() {
-            var analytics = io.gravitee.definition.model.v4.analytics.Analytics.builder().enabled(false).build();
+            var analytics = io.gravitee.definition.model.v4.analytics.Analytics.builder()
+                    .enabled(false)
+                    .build();
             ApiProduct updatedApiProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .environmentId(ENV_ID)
-                .name("Existing Product")
-                .analytics(analytics)
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .environmentId(ENV_ID)
+                    .name("Existing Product")
+                    .analytics(analytics)
+                    .build();
 
-            when(updateApiProductUseCase.execute(any())).thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
+            when(updateApiProductUseCase.execute(any()))
+                    .thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Existing Product");
@@ -391,9 +407,14 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_clear_api_product_analytics_when_sent_as_null() {
-            ApiProduct updatedApiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("Existing Product").build();
+            ApiProduct updatedApiProduct = ApiProduct.builder()
+                    .id(API_PRODUCT_ID)
+                    .environmentId(ENV_ID)
+                    .name("Existing Product")
+                    .build();
 
-            when(updateApiProductUseCase.execute(any())).thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
+            when(updateApiProductUseCase.execute(any()))
+                    .thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Existing Product");
@@ -412,9 +433,9 @@ class ApiProductResourceTest extends AbstractResourceTest {
         void should_return_400_if_execute_fails_with_invalid_data_exception() {
             when(updateApiProductUseCase.execute(any())).thenThrow(new InvalidDataException("Name is required."));
 
-            try (
-                Response response = rootTarget().request().put(json(new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct()))
-            ) {
+            try (Response response = rootTarget()
+                    .request()
+                    .put(json(new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct()))) {
                 assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
             }
         }
@@ -440,9 +461,8 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_when_license_does_not_allow_api_product() {
-            when(updateApiProductUseCase.execute(any())).thenThrow(
-                new io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException("api-product")
-            );
+            when(updateApiProductUseCase.execute(any()))
+                    .thenThrow(new io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException("api-product"));
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Updated Product");
@@ -454,14 +474,17 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().request().put(json(""))
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_DEFINITION,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().request().put(json("")));
         }
 
         @Test
         void should_return_400_when_user_not_allowed_to_use_restricted_tag() {
-            when(updateApiProductUseCase.execute(any())).thenThrow(new TagNotAllowedException(new String[] { "restricted-tag" }));
+            when(updateApiProductUseCase.execute(any()))
+                    .thenThrow(new TagNotAllowedException(new String[] {"restricted-tag"}));
 
             var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
             updatePayload.setName("Updated Product");
@@ -479,15 +502,15 @@ class ApiProductResourceTest extends AbstractResourceTest {
         @Test
         void should_deploy_api_product() {
             ApiProduct apiProduct = ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .environmentId(ENV_ID)
-                .name("My API Product")
-                .description("Product description")
-                .version("1.0.0")
-                .createdAt(ZonedDateTime.now())
-                .updatedAt(ZonedDateTime.now())
-                .apiIds(new HashSet<>())
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .environmentId(ENV_ID)
+                    .name("My API Product")
+                    .description("Product description")
+                    .version("1.0.0")
+                    .createdAt(ZonedDateTime.now())
+                    .updatedAt(ZonedDateTime.now())
+                    .apiIds(new HashSet<>())
+                    .build();
 
             when(deployApiProductUseCase.execute(any())).thenReturn(new DeployApiProductUseCase.Output(apiProduct));
 
@@ -523,9 +546,8 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_when_license_does_not_allow_api_product() {
-            when(deployApiProductUseCase.execute(any())).thenThrow(
-                new io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException("api-product")
-            );
+            when(deployApiProductUseCase.execute(any()))
+                    .thenThrow(new io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException("api-product"));
 
             final Response response = rootTarget().path("deployments").request().post(json(Map.of()));
 
@@ -534,9 +556,11 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("deployments").request().post(json(Map.of()))
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_DEFINITION,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.UPDATE,
+                    () -> rootTarget().path("deployments").request().post(json(Map.of())));
         }
     }
 
@@ -545,27 +569,34 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_verify_deployment() {
-            when(verifyApiProductDeployUseCase.execute(any())).thenReturn(new VerifyApiProductDeployUseCase.Output(true, null));
+            when(verifyApiProductDeployUseCase.execute(any()))
+                    .thenReturn(new VerifyApiProductDeployUseCase.Output(true, null));
 
-            final Response response = rootTarget().path("deployments/_verify").request().get();
+            final Response response =
+                    rootTarget().path("deployments/_verify").request().get();
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
         }
 
         @Test
         void should_return_404_when_api_product_belongs_to_different_environment() {
-            doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
+            doThrow(new ApiProductNotFoundException(API_PRODUCT_ID))
+                    .when(verifyApiProductExistsUseCase)
+                    .execute(any());
 
-            final Response response = rootTarget().path("deployments/_verify").request().get();
+            final Response response =
+                    rootTarget().path("deployments/_verify").request().get();
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
         }
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.READ, () ->
-                rootTarget().path("deployments/_verify").request().get()
-            );
+            shouldReturn403(
+                    RolePermission.API_PRODUCT_DEFINITION,
+                    API_PRODUCT_ID,
+                    RolePermissionAction.READ,
+                    () -> rootTarget().path("deployments/_verify").request().get());
         }
     }
 }

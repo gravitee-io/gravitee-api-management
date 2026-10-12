@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4.mapper;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.definition.model.flow.Operator;
@@ -116,7 +115,7 @@ public class FlowMapperTest {
         repositoryFlow.setEnabled(true);
 
         io.gravitee.repository.management.model.flow.FlowStep entrypointConnectStep =
-            new io.gravitee.repository.management.model.flow.FlowStep();
+                new io.gravitee.repository.management.model.flow.FlowStep();
         entrypointConnectStep.setEnabled(true);
         entrypointConnectStep.setName("IPFiltering");
         entrypointConnectStep.setPolicy("ip-filtering");
@@ -146,7 +145,9 @@ public class FlowMapperTest {
         flowDefinition.setName("plan-flow");
         flowDefinition.setSelectors(List.of(httpSelector));
 
-        assertThrows(InvalidDataException.class, () -> flowMapper.toRepository(flowDefinition, FlowReferenceType.PLAN, "plan-id", 0));
+        assertThrows(
+                InvalidDataException.class,
+                () -> flowMapper.toRepository(flowDefinition, FlowReferenceType.PLAN, "plan-id", 0));
     }
 
     @Test
@@ -162,7 +163,8 @@ public class FlowMapperTest {
 
         assertNotNull(flowDefinition.getSelectors());
         assertEquals(1, flowDefinition.getSelectors().size());
-        HttpSelector mappedSelector = (HttpSelector) flowDefinition.getSelectors().get(0);
+        HttpSelector mappedSelector =
+                (HttpSelector) flowDefinition.getSelectors().get(0);
         assertEquals(Operator.STARTS_WITH, mappedSelector.getPathOperator());
     }
 

@@ -26,13 +26,17 @@ public interface AccessPointQueryService {
     List<AccessPoint> getConsoleAccessPoints();
 
     List<AccessPoint> getConsoleAccessPoints(final String organizationId);
+
     AccessPoint getConsoleAccessPoint(final String organizationId);
+
     AccessPoint getConsoleApiAccessPoint(String organizationId);
 
     List<AccessPoint> getPortalAccessPoints();
 
     List<AccessPoint> getPortalAccessPoints(final String environmentId);
+
     AccessPoint getPortalAccessPoint(final String environmentId);
+
     AccessPoint getPortalApiAccessPoint(String environmentId);
 
     List<AccessPoint> getGatewayAccessPoints(final String environmentId);
@@ -42,6 +46,8 @@ public interface AccessPointQueryService {
     List<AccessPoint> getGammaConsoleAccessPoints();
 
     List<AccessPoint> getGammaConsoleAccessPoints(final String organizationId);
+
     AccessPoint getGammaConsoleAccessPoint(final String organizationId);
+
     AccessPoint getGammaApiAccessPoint(final String organizationId);
 }

@@ -73,14 +73,17 @@ public class PlansFlowsDefinitionUpgrader implements Upgrader {
     private boolean applyUpgrade() throws Exception {
         AtomicBoolean upgradeFailed = new AtomicBoolean(false);
         var apis = apiRepository
-            .search(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(), null, ApiFieldFilter.allFields())
-            .toList();
+                .search(
+                        new ApiCriteria.Builder()
+                                .definitionVersion(List.of(DefinitionVersion.V2))
+                                .build(),
+                        null,
+                        ApiFieldFilter.allFields())
+                .toList();
 
         for (var api : apis) {
-            io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                api.getDefinition(),
-                io.gravitee.definition.model.Api.class
-            );
+            io.gravitee.definition.model.Api apiDefinition =
+                    objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
             migrateApiFlows(api.getId(), apiDefinition);
         }
         return !upgradeFailed.get();
@@ -88,20 +91,17 @@ public class PlansFlowsDefinitionUpgrader implements Upgrader {
 
     protected void migrateApiFlows(String apiId, io.gravitee.definition.model.Api apiDefinition) throws Exception {
         log.debug("Migrate flows for api [{}]", apiId);
-        Map<String, Plan> plansById = planRepository.findByApi(apiId).stream().collect(toMap(Plan::getId, Function.identity()));
+        Map<String, Plan> plansById =
+                planRepository.findByApi(apiId).stream().collect(toMap(Plan::getId, Function.identity()));
 
         flowService.save(FlowReferenceType.API, apiDefinition.getId(), apiDefinition.getFlows());
 
-        apiDefinition
-            .getPlans()
-            .forEach(apiDefinitionPlan -> {
-                if (
-                    apiDefinitionPlan.getFlows() != null &&
-                    !apiDefinitionPlan.getFlows().isEmpty() &&
-                    plansById.containsKey(apiDefinitionPlan.getId())
-                ) {
-                    flowService.save(FlowReferenceType.PLAN, apiDefinitionPlan.getId(), apiDefinitionPlan.getFlows());
-                }
-            });
+        apiDefinition.getPlans().forEach(apiDefinitionPlan -> {
+            if (apiDefinitionPlan.getFlows() != null
+                    && !apiDefinitionPlan.getFlows().isEmpty()
+                    && plansById.containsKey(apiDefinitionPlan.getId())) {
+                flowService.save(FlowReferenceType.PLAN, apiDefinitionPlan.getId(), apiDefinitionPlan.getFlows());
+            }
+        });
     }
 }

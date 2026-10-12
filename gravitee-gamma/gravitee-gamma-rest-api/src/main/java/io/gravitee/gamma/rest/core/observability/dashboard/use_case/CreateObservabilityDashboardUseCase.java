@@ -45,29 +45,31 @@ public class CreateObservabilityDashboardUseCase {
     private final DashboardRepository dashboardRepository;
     private final ObservabilityFilterValidator filterValidator;
 
-    public record Input(String environmentId, String createdBy, String dashboardId, String module, DashboardContent content) {}
+    public record Input(
+            String environmentId, String createdBy, String dashboardId, String module, DashboardContent content) {}
 
     public record Output(Dashboard dashboard) {}
 
     public Output execute(Input input) {
         input.content().validate();
         DashboardModule.requireValidOrAbsent(input.module());
-        filterValidator.validateDashboardFilters(input.content().filters().stream().map(DashboardFilter::condition).toList());
+        filterValidator.validateDashboardFilters(input.content().filters().stream()
+                .map(DashboardFilter::condition)
+                .toList());
         Instant now = TimeProvider.instantNow();
         Dashboard dashboard = new Dashboard(
-            input.dashboardId(),
-            input.environmentId(),
-            input.module(),
-            input.content().title(),
-            input.content().description(),
-            input.content().filters(),
-            input.content().timeRange(),
-            input.content().widgets(),
-            INITIAL_VERSION,
-            input.createdBy(),
-            now,
-            now
-        );
+                input.dashboardId(),
+                input.environmentId(),
+                input.module(),
+                input.content().title(),
+                input.content().description(),
+                input.content().filters(),
+                input.content().timeRange(),
+                input.content().widgets(),
+                INITIAL_VERSION,
+                input.createdBy(),
+                now,
+                now);
         return new Output(dashboardRepository.create(dashboard));
     }
 }

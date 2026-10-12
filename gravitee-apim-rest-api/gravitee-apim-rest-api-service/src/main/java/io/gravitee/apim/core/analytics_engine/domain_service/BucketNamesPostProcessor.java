@@ -28,5 +28,6 @@ import java.util.List;
 public interface BucketNamesPostProcessor {
     FacetsResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, FacetsResponse response);
 
-    TimeSeriesResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response);
+    TimeSeriesResponse mapBucketNames(
+            AnalyticsQueryContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response);
 }

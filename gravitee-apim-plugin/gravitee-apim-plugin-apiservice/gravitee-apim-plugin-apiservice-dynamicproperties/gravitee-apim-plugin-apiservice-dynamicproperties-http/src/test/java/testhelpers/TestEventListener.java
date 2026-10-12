@@ -30,7 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class TestEventListener implements EventListener<ManagementApiServiceEvent, DynamicPropertiesEvent> {
 
-    private final ReplaySubject<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> events = ReplaySubject.create();
+    private final ReplaySubject<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> events =
+            ReplaySubject.create();
     private final AtomicInteger counter = new AtomicInteger();
 
     private TestEventListener(EventManager eventManager) {

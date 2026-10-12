@@ -27,13 +27,15 @@ import java.nio.file.Path;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class DefaultApiServicePlugin<T extends ApiServiceFactory, C extends ApiServiceConfiguration> implements ApiServicePlugin<T, C> {
+class DefaultApiServicePlugin<T extends ApiServiceFactory, C extends ApiServiceConfiguration>
+        implements ApiServicePlugin<T, C> {
 
     private final Plugin plugin;
     private final Class<T> apiServiceClass;
     private final Class<C> apiServiceConfigurationClass;
 
-    DefaultApiServicePlugin(final Plugin plugin, final Class<T> ApiServiceFactoryClass, final Class<C> apiServiceConfigurationClass) {
+    DefaultApiServicePlugin(
+            final Plugin plugin, final Class<T> ApiServiceFactoryClass, final Class<C> apiServiceConfigurationClass) {
         this.plugin = plugin;
         this.apiServiceClass = ApiServiceFactoryClass;
         this.apiServiceConfigurationClass = apiServiceConfigurationClass;

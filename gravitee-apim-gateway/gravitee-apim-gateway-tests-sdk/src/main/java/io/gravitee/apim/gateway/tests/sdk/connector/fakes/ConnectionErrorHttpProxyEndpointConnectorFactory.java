@@ -43,15 +43,13 @@ public class ConnectionErrorHttpProxyEndpointConnectorFactory extends HttpProxyE
 
     @Override
     public ConnectionErrorHttpProxyEndpointConnector createConnector(
-        DeploymentContext deploymentContext,
-        String configuration,
-        String sharedConfiguration
-    ) {
+            DeploymentContext deploymentContext, String configuration, String sharedConfiguration) {
         try {
             return new ConnectionErrorHttpProxyEndpointConnector(
-                pluginConfigurationHelper.readConfiguration(ConnectionErrorHttpProxyEndpointConnectorConfiguration.class, configuration),
-                pluginConfigurationHelper.readConfiguration(HttpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration)
-            );
+                    pluginConfigurationHelper.readConfiguration(
+                            ConnectionErrorHttpProxyEndpointConnectorConfiguration.class, configuration),
+                    pluginConfigurationHelper.readConfiguration(
+                            HttpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration));
         } catch (PluginConfigurationException e) {
             return null;
         }

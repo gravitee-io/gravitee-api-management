@@ -23,7 +23,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
-import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
@@ -56,11 +55,12 @@ public class RoleService_FindByIdAndOrganizationId {
 
     @Test
     public void should_not_find_role() throws TechnicalException {
-        when(roleRepository.findByIdAndReferenceIdAndReferenceType(ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION)).thenReturn(
-            Optional.empty()
-        );
+        when(roleRepository.findByIdAndReferenceIdAndReferenceType(
+                        ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION))
+                .thenReturn(Optional.empty());
 
-        assertThat(roleService.findByIdAndOrganizationId(ROLE_ID, ORGANIZATION_ID)).isEmpty();
+        assertThat(roleService.findByIdAndOrganizationId(ROLE_ID, ORGANIZATION_ID))
+                .isEmpty();
     }
 
     @Test
@@ -68,18 +68,21 @@ public class RoleService_FindByIdAndOrganizationId {
         var role = new Role();
         role.setId(ROLE_ID);
 
-        when(roleRepository.findByIdAndReferenceIdAndReferenceType(ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION)).thenReturn(
-            Optional.of(role)
-        );
-        assertThat(roleService.findByIdAndOrganizationId(ROLE_ID, ORGANIZATION_ID)).isNotNull();
+        when(roleRepository.findByIdAndReferenceIdAndReferenceType(
+                        ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION))
+                .thenReturn(Optional.of(role));
+        assertThat(roleService.findByIdAndOrganizationId(ROLE_ID, ORGANIZATION_ID))
+                .isNotNull();
     }
 
     @Test
     public void should_throw_exception() throws TechnicalException {
-        when(roleRepository.findByIdAndReferenceIdAndReferenceType(ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION)).thenThrow(
-            new TechnicalException()
-        );
+        when(roleRepository.findByIdAndReferenceIdAndReferenceType(
+                        ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION))
+                .thenThrow(new TechnicalException());
 
-        assertThrows(TechnicalManagementException.class, () -> roleService.findByIdAndOrganizationId(ROLE_ID, ORGANIZATION_ID));
+        assertThrows(
+                TechnicalManagementException.class,
+                () -> roleService.findByIdAndOrganizationId(ROLE_ID, ORGANIZATION_ID));
     }
 }

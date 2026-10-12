@@ -30,13 +30,10 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.assertj.core.util.Sets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +62,8 @@ public class PortalNotificationConfigService_FindByIdTest {
 
     @BeforeEach
     public void setup() {
-        underTest = new PortalNotificationConfigServiceImpl(portalNotificationConfigRepository, membershipService, groupService);
+        underTest = new PortalNotificationConfigServiceImpl(
+                portalNotificationConfigRepository, membershipService, groupService);
     }
 
     @Test
@@ -75,7 +73,8 @@ public class PortalNotificationConfigService_FindByIdTest {
         when(cfg.getReferenceId()).thenReturn("123");
         when(cfg.getUser()).thenReturn("user");
         when(cfg.getHooks()).thenReturn(Arrays.asList("A", "B", "C"));
-        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(of(cfg));
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123"))
+                .thenReturn(of(cfg));
 
         final PortalNotificationConfigEntity entity = underTest.findById("user", NotificationReferenceType.API, "123");
 
@@ -90,27 +89,31 @@ public class PortalNotificationConfigService_FindByIdTest {
     @Test
     public void shouldAddGroupHooks() throws TechnicalException {
         var cfg = PortalNotificationConfig.builder()
-            .referenceType(NotificationReferenceType.API)
-            .referenceId("123")
-            .user("user")
-            .groups(Set.of())
-            .build();
+                .referenceType(NotificationReferenceType.API)
+                .referenceId("123")
+                .user("user")
+                .groups(Set.of())
+                .build();
 
         var poCfg = PortalNotificationConfig.builder()
-            .referenceType(NotificationReferenceType.API)
-            .referenceId("123")
-            .user("api-po-id")
-            .hooks(List.of("A", "B", "C"))
-            .groups(Set.of("group-id"))
-            .build();
+                .referenceType(NotificationReferenceType.API)
+                .referenceId("123")
+                .user("api-po-id")
+                .hooks(List.of("A", "B", "C"))
+                .groups(Set.of("group-id"))
+                .build();
 
-        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(of(cfg));
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123"))
+                .thenReturn(of(cfg));
 
-        when(groupService.findByUser("user")).thenReturn(Set.of(GroupEntity.builder().id("group-id").build()));
+        when(groupService.findByUser("user"))
+                .thenReturn(Set.of(GroupEntity.builder().id("group-id").build()));
 
-        when(membershipService.getPrimaryOwnerUserId(anyString(), eq(MembershipReferenceType.API), eq("123"))).thenReturn("api-po-id");
+        when(membershipService.getPrimaryOwnerUserId(anyString(), eq(MembershipReferenceType.API), eq("123")))
+                .thenReturn("api-po-id");
 
-        when(portalNotificationConfigRepository.findById("api-po-id", NotificationReferenceType.API, "123")).thenReturn(of(poCfg));
+        when(portalNotificationConfigRepository.findById("api-po-id", NotificationReferenceType.API, "123"))
+                .thenReturn(of(poCfg));
 
         var entity = underTest.findById("user", NotificationReferenceType.API, "123");
 
@@ -127,13 +130,14 @@ public class PortalNotificationConfigService_FindByIdTest {
     @Test
     public void shouldNotAddGroupHooks() throws TechnicalException {
         var cfg = PortalNotificationConfig.builder()
-            .referenceType(NotificationReferenceType.APPLICATION)
-            .referenceId("123")
-            .user("user")
-            .groups(Set.of())
-            .build();
+                .referenceType(NotificationReferenceType.APPLICATION)
+                .referenceId("123")
+                .user("user")
+                .groups(Set.of())
+                .build();
 
-        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.APPLICATION, "123")).thenReturn(of(cfg));
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.APPLICATION, "123"))
+                .thenReturn(of(cfg));
 
         var entity = underTest.findById("user", NotificationReferenceType.APPLICATION, "123");
 
@@ -145,14 +149,17 @@ public class PortalNotificationConfigService_FindByIdTest {
         assertNotNull(entity.getGroupHooks(), "groupHooks");
         assertEquals(Set.of(), entity.getGroupHooks(), "groupHooks");
 
-        verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.APPLICATION, "123");
-        verify(membershipService, never()).getPrimaryOwnerUserId(anyString(), any(MembershipReferenceType.class), anyString());
+        verify(portalNotificationConfigRepository, times(1))
+                .findById("user", NotificationReferenceType.APPLICATION, "123");
+        verify(membershipService, never())
+                .getPrimaryOwnerUserId(anyString(), any(MembershipReferenceType.class), anyString());
         verify(groupService, never()).findByUser(anyString());
     }
 
     @Test
     public void shouldNotFindConfig() throws TechnicalException {
-        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(empty());
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123"))
+                .thenReturn(empty());
 
         final PortalNotificationConfigEntity entity = underTest.findById("user", NotificationReferenceType.API, "123");
 

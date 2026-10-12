@@ -28,10 +28,10 @@ public class FilesOrganizationIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("media.files")
-            .name("o1")
-            .key("metadata.organization", ascending())
-            .build();
+                .collection("media.files")
+                .name("o1")
+                .key("metadata.organization", ascending())
+                .build();
     }
 
     @Override

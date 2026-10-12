@@ -135,9 +135,8 @@ public class ApiService_DeleteTest {
     @Mock
     private RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
 
-    private ApiConverter apiConverter = Mockito.spy(
-        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
-    );
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter(
+            objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class)));
 
     private Api api;
     private PlanEntity planEntity;
@@ -146,8 +145,7 @@ public class ApiService_DeleteTest {
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
+                new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         api = new Api();
         api.setId(API_ID);
         api.setEnvironmentId("api-environment");
@@ -156,7 +154,9 @@ public class ApiService_DeleteTest {
         planEntity.setApi(API_ID);
 
         lenient().when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        lenient().when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
+        lenient()
+                .when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(Collections.singleton(planEntity));
     }
 
     @Test
@@ -171,10 +171,12 @@ public class ApiService_DeleteTest {
     @Test
     public void shouldDeleteBecauseNoPlan() throws TechnicalException {
         api.setLifecycleState(LifecycleState.STOPPED);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.emptySet());
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(Collections.emptySet());
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
-        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+                .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
@@ -188,7 +190,8 @@ public class ApiService_DeleteTest {
             planEntity.setStatus(PlanStatus.PUBLISHED);
 
             apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
-            verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+            verify(membershipService, times(1))
+                    .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         });
     }
 
@@ -200,7 +203,8 @@ public class ApiService_DeleteTest {
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
-        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+                .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
     }
 
@@ -213,7 +217,8 @@ public class ApiService_DeleteTest {
 
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
         verify(apiQualityRuleRepository, times(1)).deleteByApi(API_ID);
-        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+                .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
@@ -229,8 +234,13 @@ public class ApiService_DeleteTest {
         verify(apiRepository).delete(eq(API_ID));
         verify(pageService).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(topApiService).delete(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
-        verify(searchEngineService).delete(eq(GraviteeContext.getExecutionContext()), argThat(_api -> _api.getId().equals(API_ID)));
-        verify(membershipService).deleteReference(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID));
+        verify(searchEngineService)
+                .delete(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(_api -> _api.getId().equals(API_ID)));
+        verify(membershipService)
+                .deleteReference(
+                        eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID));
         verify(genericNotificationConfigService).deleteReference(eq(NotificationReferenceType.API), eq(API_ID));
         verify(portalNotificationConfigService).deleteReference(eq(NotificationReferenceType.API), eq(API_ID));
         verify(apiQualityRuleRepository).deleteByApi(eq(API_ID));
@@ -250,7 +260,8 @@ public class ApiService_DeleteTest {
         final PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId(PLAN_ID);
         closedPlan.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(Collections.singleton(planEntity));
         when(planService.close(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(closedPlan);
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, true);
@@ -267,7 +278,8 @@ public class ApiService_DeleteTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(SUBSCRIPTION_ID);
-        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(Collections.singleton(subscription));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -282,18 +294,19 @@ public class ApiService_DeleteTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(SUBSCRIPTION_ID);
-        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(Collections.singleton(subscription));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
-        verify(eventService, times(1)).createApiEvent(
-            any(ExecutionContext.class),
-            anySet(),
-            anyString(),
-            eq(EventType.UNPUBLISH_API),
-            eq(API_ID),
-            anyMap()
-        );
+        verify(eventService, times(1))
+                .createApiEvent(
+                        any(ExecutionContext.class),
+                        anySet(),
+                        anyString(),
+                        eq(EventType.UNPUBLISH_API),
+                        eq(API_ID),
+                        anyMap());
     }
 
     @Test
@@ -303,17 +316,18 @@ public class ApiService_DeleteTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(SUBSCRIPTION_ID);
-        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(Collections.singleton(subscription));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
-        verify(eventService, never()).createApiEvent(
-            any(ExecutionContext.class),
-            anySet(),
-            anyString(),
-            eq(EventType.UNPUBLISH_API),
-            eq(API_ID),
-            anyMap()
-        );
+        verify(eventService, never())
+                .createApiEvent(
+                        any(ExecutionContext.class),
+                        anySet(),
+                        anyString(),
+                        eq(EventType.UNPUBLISH_API),
+                        eq(API_ID),
+                        anyMap());
     }
 }

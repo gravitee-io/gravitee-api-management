@@ -92,22 +92,19 @@ public class UpdateMetadataEntity {
 
     @Override
     public String toString() {
-        return (
-            "UpdateMetadataEntity{" +
-            "key='" +
-            key +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", format=" +
-            format +
-            ", value='" +
-            value +
-            '\'' +
-            ", hidden=" +
-            hidden +
-            '}'
-        );
+        return ("UpdateMetadataEntity{" + "key='"
+                + key
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", format="
+                + format
+                + ", value='"
+                + value
+                + '\''
+                + ", hidden="
+                + hidden
+                + '}');
     }
 }

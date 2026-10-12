@@ -63,17 +63,17 @@ public interface AuditService {
     }
 
     default void createApiAuditLog(
-        ExecutionContext executionContext,
-        AuditLogData auditLogData,
-        String apiId,
-        String userWhenUnauthenticated
-    ) {
+            ExecutionContext executionContext,
+            AuditLogData auditLogData,
+            String apiId,
+            String userWhenUnauthenticated) {
         auditLogData.setReferenceType(Audit.AuditReferenceType.API);
         auditLogData.setReferenceId(apiId);
         createAuditLog(executionContext, auditLogData, userWhenUnauthenticated);
     }
 
-    default void createApplicationAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String applicationId) {
+    default void createApplicationAuditLog(
+            ExecutionContext executionContext, AuditLogData auditLogData, String applicationId) {
         auditLogData.setReferenceType(Audit.AuditReferenceType.APPLICATION);
         auditLogData.setReferenceId(applicationId);
         createAuditLog(executionContext, auditLogData);
@@ -91,7 +91,8 @@ public interface AuditService {
         createAuditLog(executionContext, auditLogData);
     }
 
-    default void createApiProductAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String apiProductId) {
+    default void createApiProductAuditLog(
+            ExecutionContext executionContext, AuditLogData auditLogData, String apiProductId) {
         auditLogData.setReferenceType(Audit.AuditReferenceType.API_PRODUCT);
         auditLogData.setReferenceId(apiProductId);
         createAuditLog(executionContext, auditLogData);

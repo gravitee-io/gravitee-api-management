@@ -58,23 +58,28 @@ public class IntegrationMembersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(@Permission(value = RolePermission.INTEGRATION_MEMBER, acls = { RolePermissionAction.READ }))
+    @Permissions(
+            @Permission(
+                    value = RolePermission.INTEGRATION_MEMBER,
+                    acls = {RolePermissionAction.READ}))
     public MembersResponse getIntegrationMembers(@BeanParam @Valid PaginationParam paginationParam) {
         var members = membershipService
-            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.INTEGRATION, integrationId)
-            .stream()
-            .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
-            .map(MemberMapper.INSTANCE::map)
-            .filter(member -> member.getId() != null)
-            .sorted(Comparator.comparing(Member::getId))
-            .collect(Collectors.toList());
+                .getMembersByReference(
+                        GraviteeContext.getExecutionContext(), MembershipReferenceType.INTEGRATION, integrationId)
+                .stream()
+                .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
+                .map(MemberMapper.INSTANCE::map)
+                .filter(member -> member.getId() != null)
+                .sorted(Comparator.comparing(Member::getId))
+                .collect(Collectors.toList());
 
         List<Member> membersSubList = computePaginationData(members, paginationParam);
 
         return new MembersResponse()
-            .data(membersSubList)
-            .pagination(PaginationInfo.computePaginationInfo(members.size(), membersSubList.size(), paginationParam))
-            .links(computePaginationLinks(members.size(), paginationParam));
+                .data(membersSubList)
+                .pagination(
+                        PaginationInfo.computePaginationInfo(members.size(), membersSubList.size(), paginationParam))
+                .links(computePaginationLinks(members.size(), paginationParam));
     }
 
     @POST
@@ -89,13 +94,14 @@ public class IntegrationMembersResource extends AbstractResource {
         }
 
         var createdMember = membershipService.createNewMembershipForIntegration(
-            GraviteeContext.getExecutionContext(),
-            integrationId,
-            integrationMembership.getUserId(),
-            integrationMembership.getExternalReference(),
-            integrationMembership.getRoleName()
-        );
-        return Response.status(Response.Status.CREATED).entity(MemberMapper.INSTANCE.map(createdMember)).build();
+                GraviteeContext.getExecutionContext(),
+                integrationId,
+                integrationMembership.getUserId(),
+                integrationMembership.getExternalReference(),
+                integrationMembership.getRoleName());
+        return Response.status(Response.Status.CREATED)
+                .entity(MemberMapper.INSTANCE.map(createdMember))
+                .build();
     }
 
     @PUT
@@ -107,12 +113,10 @@ public class IntegrationMembersResource extends AbstractResource {
         checkRoleIsNotPrimaryOwner(updateMember.getRoleName());
 
         var updatedMembership = membershipService.updateMembershipForIntegration(
-            GraviteeContext.getExecutionContext(),
-            integrationId,
-            memberId,
-            updateMember.getRoleName()
-        );
-        return Response.ok().entity(MemberMapper.INSTANCE.map(updatedMembership)).build();
+                GraviteeContext.getExecutionContext(), integrationId, memberId, updateMember.getRoleName());
+        return Response.ok()
+                .entity(MemberMapper.INSTANCE.map(updatedMembership))
+                .build();
     }
 
     @Path("/{memberId}")

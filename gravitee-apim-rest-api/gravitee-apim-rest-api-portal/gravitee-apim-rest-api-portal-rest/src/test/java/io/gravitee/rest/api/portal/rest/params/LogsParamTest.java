@@ -31,18 +31,18 @@ public class LogsParamTest {
 
     @Test
     public void testValidateOk() {
-        //init
+        // init
         LogsParam params = new LogsParam();
         params.setFrom(1);
         params.setTo(10);
         params.setOrder("ASC");
-        //test
+        // test
         params.validate();
         assertTrue(true);
 
-        //another test with 'DESC'
+        // another test with 'DESC'
         params.setOrder("DESC");
-        //test
+        // test
         params.validate();
         assertTrue(true);
     }

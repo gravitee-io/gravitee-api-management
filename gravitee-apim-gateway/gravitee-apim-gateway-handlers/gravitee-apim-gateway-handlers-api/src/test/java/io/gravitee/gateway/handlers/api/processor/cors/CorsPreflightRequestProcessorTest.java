@@ -78,7 +78,8 @@ class CorsPreflightRequestProcessorTest {
 
         processor.handle(context);
 
-        assertThat(responseHeaders.getFirst(ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK)).isEqualTo("true");
+        assertThat(responseHeaders.getFirst(ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK))
+                .isEqualTo("true");
     }
 
     @Test
@@ -89,7 +90,8 @@ class CorsPreflightRequestProcessorTest {
 
         processor.handle(context);
 
-        assertThat(responseHeaders.getFirst(ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK)).isNull();
+        assertThat(responseHeaders.getFirst(ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK))
+                .isNull();
     }
 
     @Test
@@ -101,6 +103,7 @@ class CorsPreflightRequestProcessorTest {
 
         processor.handle(context);
 
-        assertThat(responseHeaders.getFirst(ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK)).isNull();
+        assertThat(responseHeaders.getFirst(ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK))
+                .isNull();
     }
 }

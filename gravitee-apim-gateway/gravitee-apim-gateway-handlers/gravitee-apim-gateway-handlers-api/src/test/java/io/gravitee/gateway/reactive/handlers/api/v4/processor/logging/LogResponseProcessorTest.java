@@ -173,9 +173,8 @@ class LogResponseProcessorTest extends AbstractV4ProcessorTest {
         when(loggingContext.endpointResponsePayload()).thenReturn(true);
         when(loggingContext.isBodyLoggable()).thenReturn(true);
         ctx.setInternalAttribute(
-            InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE,
-            new ExecutionFailure(400).message(errorMessage)
-        );
+                InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE,
+                new ExecutionFailure(400).message(errorMessage));
 
         cut.execute(ctx).test().assertComplete();
 

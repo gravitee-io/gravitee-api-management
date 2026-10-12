@@ -49,7 +49,8 @@ public class HttpSecurityPlan extends AbstractSecurityPlan<HttpSecurityPolicy, H
     }
 
     @Override
-    protected Completable executeSecurityPolicy(final HttpPlainExecutionContext ctx, final ExecutionPhase executionPhase) {
+    protected Completable executeSecurityPolicy(
+            final HttpPlainExecutionContext ctx, final ExecutionPhase executionPhase) {
         if (ExecutionPhase.REQUEST == executionPhase) {
             return policy.onRequest(ctx);
         }
@@ -63,7 +64,8 @@ public class HttpSecurityPlan extends AbstractSecurityPlan<HttpSecurityPolicy, H
         }
 
         if (selectionRule.startsWith("#")) {
-            // Backward compatibility. In V3 mode selection rule EL expression based can be defined with "#something" while it is usually defined with "{#something}" everywhere else.
+            // Backward compatibility. In V3 mode selection rule EL expression based can be defined with "#something"
+            // while it is usually defined with "{#something}" everywhere else.
             return "{" + selectionRule + "}";
         }
         return selectionRule;

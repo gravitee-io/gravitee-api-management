@@ -53,7 +53,8 @@ public class ProxyEndpointResolver implements EndpointResolver {
 
     @Override
     public ProxyEndpoint resolve(String reference) {
-        ProxyEndpoint result = (reference != null) ? selectUserDefinedEndpoint(reference) : selectLoadBalancedEndpoint();
+        ProxyEndpoint result =
+                (reference != null) ? selectUserDefinedEndpoint(reference) : selectLoadBalancedEndpoint();
         if (result == null) {
             log.debug("No endpoint resolved for reference [{}]", reference);
         } else {
@@ -86,11 +87,11 @@ public class ProxyEndpointResolver implements EndpointResolver {
             // When the user selected endpoint which is not defined (according to the given uri), the gateway
             // is always returning the first endpoints reference and took into account its configuration.
             Collection<EndpointReference> endpoints = referenceRegister.referencesByType(EndpointReference.class);
-            Reference reference = endpoints
-                .stream()
-                .filter(endpointEntry -> uri.startsWith(endpointEntry.endpoint().target()))
-                .findFirst()
-                .orElse(endpoints.iterator().next());
+            Reference reference = endpoints.stream()
+                    .filter(endpointEntry ->
+                            uri.startsWith(endpointEntry.endpoint().target()))
+                    .findFirst()
+                    .orElse(endpoints.iterator().next());
 
             if (reference == null) {
                 return null;

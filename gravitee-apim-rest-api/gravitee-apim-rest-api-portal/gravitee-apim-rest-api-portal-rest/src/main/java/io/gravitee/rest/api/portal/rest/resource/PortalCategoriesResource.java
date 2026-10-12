@@ -40,8 +40,7 @@ public class PortalCategoriesResource extends AbstractResource {
     public Response getPortalCategories() {
         var executionContext = getExecutionContext();
         var output = getVisiblePortalCategoriesUseCase.execute(
-            new GetVisiblePortalCategoriesUseCase.Input(executionContext.getEnvironmentId())
-        );
+                new GetVisiblePortalCategoriesUseCase.Input(executionContext.getEnvironmentId()));
 
         var responseBody = new PortalCategoriesResponse().data(portalCategoryMapper.map(output.portalCategories()));
         return Response.ok(responseBody).build();

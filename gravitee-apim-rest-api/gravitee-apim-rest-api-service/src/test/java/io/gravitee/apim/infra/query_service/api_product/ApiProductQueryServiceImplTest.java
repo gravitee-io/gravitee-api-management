@@ -72,7 +72,8 @@ class ApiProductQueryServiceImplTest {
 
         @Test
         void should_return_empty_when_not_found() throws TechnicalException {
-            when(apiProductRepository.findByEnvironmentIdAndName(ENV_ID, API_PRODUCT_NAME)).thenReturn(Optional.empty());
+            when(apiProductRepository.findByEnvironmentIdAndName(ENV_ID, API_PRODUCT_NAME))
+                    .thenReturn(Optional.empty());
             var result = service.findByEnvironmentIdAndName(ENV_ID, API_PRODUCT_NAME);
             assertThat(result).isEmpty();
         }
@@ -80,7 +81,8 @@ class ApiProductQueryServiceImplTest {
         @Test
         void should_return_api_product_when_found() throws TechnicalException {
             var repoApiProduct = buildRepositoryApiProduct();
-            when(apiProductRepository.findByEnvironmentIdAndName(ENV_ID, API_PRODUCT_NAME)).thenReturn(Optional.of(repoApiProduct));
+            when(apiProductRepository.findByEnvironmentIdAndName(ENV_ID, API_PRODUCT_NAME))
+                    .thenReturn(Optional.of(repoApiProduct));
             var result = service.findByEnvironmentIdAndName(ENV_ID, API_PRODUCT_NAME);
 
             assertAll(() -> {
@@ -93,9 +95,8 @@ class ApiProductQueryServiceImplTest {
 
         @Test
         void should_throw_technical_exception_when_repository_fails() throws TechnicalException {
-            when(apiProductRepository.findByEnvironmentIdAndName(ENV_ID, API_PRODUCT_NAME)).thenThrow(
-                new TechnicalException("Database error")
-            );
+            when(apiProductRepository.findByEnvironmentIdAndName(ENV_ID, API_PRODUCT_NAME))
+                    .thenThrow(new TechnicalException("Database error"));
 
             var throwable = catchThrowable(() -> service.findByEnvironmentIdAndName(ENV_ID, API_PRODUCT_NAME));
             assertThat(throwable).isInstanceOf(TechnicalDomainException.class);
@@ -117,15 +118,15 @@ class ApiProductQueryServiceImplTest {
         void should_return_api_products_when_found() throws TechnicalException {
             var repoApiProduct1 = buildRepositoryApiProduct();
             var repoApiProduct2 = io.gravitee.repository.management.model.ApiProduct.builder()
-                .id("api-product-2")
-                .environmentId(ENV_ID)
-                .name("Another API Product")
-                .description("Description")
-                .version("1.0.0")
-                .apiIds(List.of("api-2"))
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
+                    .id("api-product-2")
+                    .environmentId(ENV_ID)
+                    .name("Another API Product")
+                    .description("Description")
+                    .version("1.0.0")
+                    .apiIds(List.of("api-2"))
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
 
             when(apiProductRepository.findByEnvironmentId(ENV_ID)).thenReturn(Set.of(repoApiProduct1, repoApiProduct2));
 
@@ -155,16 +156,15 @@ class ApiProductQueryServiceImplTest {
         void should_return_products_matching_environment_and_ids() throws TechnicalException {
             var repoApiProduct = buildRepositoryApiProduct();
             var otherEnvProduct = io.gravitee.repository.management.model.ApiProduct.builder()
-                .id("other-env-product")
-                .environmentId("other-env")
-                .name("Other")
-                .version("1.0.0")
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
-            when(apiProductRepository.findByIds(Set.of(API_PRODUCT_ID, "other-env-product"))).thenReturn(
-                Set.of(repoApiProduct, otherEnvProduct)
-            );
+                    .id("other-env-product")
+                    .environmentId("other-env")
+                    .name("Other")
+                    .version("1.0.0")
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
+            when(apiProductRepository.findByIds(Set.of(API_PRODUCT_ID, "other-env-product")))
+                    .thenReturn(Set.of(repoApiProduct, otherEnvProduct));
 
             var result = service.findByEnvironmentIdAndIdIn(ENV_ID, Set.of(API_PRODUCT_ID, "other-env-product"));
 
@@ -174,7 +174,8 @@ class ApiProductQueryServiceImplTest {
 
         @Test
         void should_throw_technical_exception_when_repository_fails() throws TechnicalException {
-            when(apiProductRepository.findByIds(Set.of(API_PRODUCT_ID))).thenThrow(new TechnicalException("Database error"));
+            when(apiProductRepository.findByIds(Set.of(API_PRODUCT_ID)))
+                    .thenThrow(new TechnicalException("Database error"));
             var throwable = catchThrowable(() -> service.findByEnvironmentIdAndIdIn(ENV_ID, Set.of(API_PRODUCT_ID)));
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         }
@@ -230,10 +231,9 @@ class ApiProductQueryServiceImplTest {
             var result = service.findById(executionContext, API_PRODUCT_ID);
 
             assertAll(
-                () -> assertThat(result.getId()).isEqualTo(API_PRODUCT_ID),
-                () -> assertThat(result.getName()).isEqualTo(API_PRODUCT_NAME),
-                () -> assertThat(result.getEnvironmentId()).isEqualTo(ENV_ID)
-            );
+                    () -> assertThat(result.getId()).isEqualTo(API_PRODUCT_ID),
+                    () -> assertThat(result.getName()).isEqualTo(API_PRODUCT_NAME),
+                    () -> assertThat(result.getEnvironmentId()).isEqualTo(ENV_ID));
         }
 
         @Test
@@ -247,13 +247,13 @@ class ApiProductQueryServiceImplTest {
         @Test
         void should_throw_not_found_when_product_belongs_to_another_environment() throws TechnicalException {
             var repoApiProduct = io.gravitee.repository.management.model.ApiProduct.builder()
-                .id(API_PRODUCT_ID)
-                .environmentId("other-env")
-                .name(API_PRODUCT_NAME)
-                .version("1.0.0")
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
+                    .id(API_PRODUCT_ID)
+                    .environmentId("other-env")
+                    .name(API_PRODUCT_NAME)
+                    .version("1.0.0")
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
             when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(repoApiProduct));
 
             var throwable = catchThrowable(() -> service.findById(executionContext, API_PRODUCT_ID));
@@ -329,25 +329,29 @@ class ApiProductQueryServiceImplTest {
         void should_return_products_grouped_by_api_id() throws TechnicalException {
             var repoProduct1 = buildRepositoryApiProduct();
             var repoProduct2 = io.gravitee.repository.management.model.ApiProduct.builder()
-                .id("product-2")
-                .environmentId(ENV_ID)
-                .name("Product 2")
-                .apiIds(List.of("api-2", API_ID))
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
-            when(apiProductRepository.findApiProductsByApiIds(Set.of(API_ID, "api-2"))).thenReturn(Set.of(repoProduct1, repoProduct2));
+                    .id("product-2")
+                    .environmentId(ENV_ID)
+                    .name("Product 2")
+                    .apiIds(List.of("api-2", API_ID))
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
+            when(apiProductRepository.findApiProductsByApiIds(Set.of(API_ID, "api-2")))
+                    .thenReturn(Set.of(repoProduct1, repoProduct2));
 
             Map<String, Set<ApiProduct>> result = service.findProductsByApiIds(Set.of(API_ID, "api-2"));
 
             assertThat(result).hasSize(2);
-            assertThat(result.get(API_ID)).extracting(ApiProduct::getId).containsExactlyInAnyOrder(API_PRODUCT_ID, "product-2");
+            assertThat(result.get(API_ID))
+                    .extracting(ApiProduct::getId)
+                    .containsExactlyInAnyOrder(API_PRODUCT_ID, "product-2");
             assertThat(result.get("api-2")).extracting(ApiProduct::getId).containsExactlyInAnyOrder("product-2");
         }
 
         @Test
         void should_throw_technical_exception_when_repository_fails() throws TechnicalException {
-            when(apiProductRepository.findApiProductsByApiIds(Set.of(API_ID))).thenThrow(new TechnicalException("Database error"));
+            when(apiProductRepository.findApiProductsByApiIds(Set.of(API_ID)))
+                    .thenThrow(new TechnicalException("Database error"));
             var throwable = catchThrowable(() -> service.findProductsByApiIds(Set.of(API_ID)));
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         }
@@ -383,7 +387,8 @@ class ApiProductQueryServiceImplTest {
         @Test
         void should_return_products_for_current_page() throws TechnicalException {
             var repoApiProduct = buildRepositoryApiProduct();
-            when(apiProductRepository.search(any(), any(), any())).thenReturn(new Page<>(List.of(repoApiProduct), 1, 1, 1));
+            when(apiProductRepository.search(any(), any(), any()))
+                    .thenReturn(new Page<>(List.of(repoApiProduct), 1, 1, 1));
 
             Page<ApiProduct> result = service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10));
 
@@ -395,38 +400,41 @@ class ApiProductQueryServiceImplTest {
         @Test
         void should_respect_db_sort_order_from_search() throws TechnicalException {
             var productA = io.gravitee.repository.management.model.ApiProduct.builder()
-                .id("p-a")
-                .environmentId(ENV_ID)
-                .name("Alpha Product")
-                .version("1.0.0")
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
+                    .id("p-a")
+                    .environmentId(ENV_ID)
+                    .name("Alpha Product")
+                    .version("1.0.0")
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
             var productZ = io.gravitee.repository.management.model.ApiProduct.builder()
-                .id("p-z")
-                .environmentId(ENV_ID)
-                .name("Zebra Product")
-                .version("1.0.0")
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
-            when(apiProductRepository.search(any(), any(), any())).thenReturn(new Page<>(List.of(productA, productZ), 1, 2, 2));
+                    .id("p-z")
+                    .environmentId(ENV_ID)
+                    .name("Zebra Product")
+                    .version("1.0.0")
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
+            when(apiProductRepository.search(any(), any(), any()))
+                    .thenReturn(new Page<>(List.of(productA, productZ), 1, 2, 2));
 
             Page<ApiProduct> result = service.searchByIds(Set.of("p-a", "p-z"), ENV_ID, new PageableImpl(1, 10));
 
-            assertThat(result.getContent()).extracting(ApiProduct::getName).containsExactly("Alpha Product", "Zebra Product");
+            assertThat(result.getContent())
+                    .extracting(ApiProduct::getName)
+                    .containsExactly("Alpha Product", "Zebra Product");
         }
 
         @Test
         void should_return_only_current_page_with_correct_total() throws TechnicalException {
             var product3 = io.gravitee.repository.management.model.ApiProduct.builder()
-                .id("p-3")
-                .environmentId(ENV_ID)
-                .name("Product C")
-                .version("1.0.0")
-                .createdAt(new Date())
-                .updatedAt(new Date())
-                .build();
+                    .id("p-3")
+                    .environmentId(ENV_ID)
+                    .name("Product C")
+                    .version("1.0.0")
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
             when(apiProductRepository.search(any(), any(), any())).thenReturn(new Page<>(List.of(product3), 2, 1, 3));
 
             Page<ApiProduct> result = service.searchByIds(Set.of("p-1", "p-2", "p-3"), ENV_ID, new PageableImpl(2, 2));
@@ -439,21 +447,22 @@ class ApiProductQueryServiceImplTest {
         @Test
         void should_throw_technical_exception_when_search_fails() throws TechnicalException {
             when(apiProductRepository.search(any(), any(), any())).thenThrow(new TechnicalException("Database error"));
-            var throwable = catchThrowable(() -> service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10)));
+            var throwable =
+                    catchThrowable(() -> service.searchByIds(Set.of(API_PRODUCT_ID), ENV_ID, new PageableImpl(1, 10)));
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         }
     }
 
     private io.gravitee.repository.management.model.ApiProduct buildRepositoryApiProduct() {
         return io.gravitee.repository.management.model.ApiProduct.builder()
-            .id(API_PRODUCT_ID)
-            .environmentId(ENV_ID)
-            .name(API_PRODUCT_NAME)
-            .description("API Product Description")
-            .version("1.0.0")
-            .apiIds(List.of(API_ID))
-            .createdAt(new Date())
-            .updatedAt(new Date())
-            .build();
+                .id(API_PRODUCT_ID)
+                .environmentId(ENV_ID)
+                .name(API_PRODUCT_NAME)
+                .description("API Product Description")
+                .version("1.0.0")
+                .apiIds(List.of(API_ID))
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
     }
 }

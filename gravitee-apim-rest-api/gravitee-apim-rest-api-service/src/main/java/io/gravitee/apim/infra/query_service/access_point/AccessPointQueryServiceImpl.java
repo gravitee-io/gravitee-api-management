@@ -44,13 +44,12 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     public Optional<ReferenceContext> getReferenceContext(final String host) {
         try {
             return accessPointRepository
-                .findByHost(host)
-                .map(accessPoint ->
-                    ReferenceContext.builder()
-                        .referenceId(accessPoint.getReferenceId())
-                        .referenceType(ReferenceContext.Type.valueOf(accessPoint.getReferenceType().name()))
-                        .build()
-                );
+                    .findByHost(host)
+                    .map(accessPoint -> ReferenceContext.builder()
+                            .referenceId(accessPoint.getReferenceId())
+                            .referenceType(ReferenceContext.Type.valueOf(
+                                    accessPoint.getReferenceType().name()))
+                            .build());
         } catch (TechnicalException e) {
             log.debug("Unable to retrieve access point from given host '{}'", host, e);
             return Optional.empty();
@@ -61,10 +60,10 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     public List<AccessPoint> getConsoleAccessPoints() {
         try {
             return accessPointRepository
-                .findByTarget(AccessPointAdapter.INSTANCE.fromEntity(AccessPoint.Target.CONSOLE))
-                .stream()
-                .map(AccessPointAdapter.INSTANCE::toEntity)
-                .toList();
+                    .findByTarget(AccessPointAdapter.INSTANCE.fromEntity(AccessPoint.Target.CONSOLE))
+                    .stream()
+                    .map(AccessPointAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while getting all console access points", e);
         }
@@ -73,40 +72,48 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     @Override
     public List<AccessPoint> getConsoleAccessPoints(final String organizationId) {
         try {
-            return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.CONSOLE, true).toList();
+            return findAccessPoints(
+                            AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.CONSOLE, true)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting console access point for organization '%s'", organizationId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting console access point for organization '%s'", organizationId),
+                    e);
         }
     }
 
     @Override
     public AccessPoint getConsoleAccessPoint(final String organizationId) {
         try {
-            return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.CONSOLE, false)
-                .findFirst()
-                .orElse(null);
+            return findAccessPoints(
+                            AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.CONSOLE, false)
+                    .findFirst()
+                    .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting console access point for organization '%s'", organizationId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting console access point for organization '%s'", organizationId),
+                    e);
         }
     }
 
     @Override
     public AccessPoint getConsoleApiAccessPoint(final String organizationId) {
         try {
-            return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.CONSOLE_API, false)
-                .findFirst()
-                .orElse(null);
+            return findAccessPoints(
+                            AccessPoint.ReferenceType.ORGANIZATION,
+                            organizationId,
+                            AccessPoint.Target.CONSOLE_API,
+                            false)
+                    .findFirst()
+                    .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting console api access point for organization '%s'", organizationId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting console api access point for organization '%s'",
+                            organizationId),
+                    e);
         }
     }
 
@@ -122,52 +129,60 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     @Override
     public List<AccessPoint> getPortalAccessPoints(final String environmentId) {
         try {
-            return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.PORTAL, true).toList();
+            return findAccessPoints(
+                            AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.PORTAL, true)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting portal access point for environment '%s'", environmentId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting portal access point for environment '%s'", environmentId),
+                    e);
         }
     }
 
     @Override
     public AccessPoint getPortalAccessPoint(final String environmentId) {
         try {
-            return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.PORTAL, false)
-                .findFirst()
-                .orElse(null);
+            return findAccessPoints(
+                            AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.PORTAL, false)
+                    .findFirst()
+                    .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting portal access point for environment '%s'", environmentId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting portal access point for environment '%s'", environmentId),
+                    e);
         }
     }
 
     @Override
     public AccessPoint getPortalApiAccessPoint(final String environmentId) {
         try {
-            return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.PORTAL_API, false)
-                .findFirst()
-                .orElse(null);
+            return findAccessPoints(
+                            AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.PORTAL_API, false)
+                    .findFirst()
+                    .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting portal api access point for environment '%s'", environmentId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting portal api access point for environment '%s'",
+                            environmentId),
+                    e);
         }
     }
 
     @Override
     public List<AccessPoint> getGatewayAccessPoints(final String environmentId) {
         try {
-            return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.GATEWAY, false).toList();
+            return findAccessPoints(
+                            AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.GATEWAY, false)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting gateway restricted domain from environment '%s'", environmentId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting gateway restricted domain from environment '%s'",
+                            environmentId),
+                    e);
         }
     }
 
@@ -184,85 +199,99 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     public List<AccessPoint> getGammaConsoleAccessPoints(final String organizationId) {
         try {
             return findAccessPoints(
-                AccessPoint.ReferenceType.ORGANIZATION,
-                organizationId,
-                AccessPoint.Target.GAMMA_CONSOLE,
-                true
-            ).toList();
+                            AccessPoint.ReferenceType.ORGANIZATION,
+                            organizationId,
+                            AccessPoint.Target.GAMMA_CONSOLE,
+                            true)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting gamma console access point for organization '%s'", organizationId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting gamma console access point for organization '%s'",
+                            organizationId),
+                    e);
         }
     }
 
     @Override
     public AccessPoint getGammaConsoleAccessPoint(final String organizationId) {
         try {
-            return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.GAMMA_CONSOLE, false)
-                .findFirst()
-                .orElse(null);
+            return findAccessPoints(
+                            AccessPoint.ReferenceType.ORGANIZATION,
+                            organizationId,
+                            AccessPoint.Target.GAMMA_CONSOLE,
+                            false)
+                    .findFirst()
+                    .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting gamma console access point for organization '%s'", organizationId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting gamma console access point for organization '%s'",
+                            organizationId),
+                    e);
         }
     }
 
     @Override
     public AccessPoint getGammaApiAccessPoint(final String organizationId) {
         try {
-            return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.GAMMA_API, false)
-                .findFirst()
-                .orElse(null);
+            return findAccessPoints(
+                            AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.GAMMA_API, false)
+                    .findFirst()
+                    .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting gamma api access point for organization '%s'", organizationId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting gamma api access point for organization '%s'",
+                            organizationId),
+                    e);
         }
     }
 
     @Override
     public List<AccessPoint> getKafkaGatewayAccessPoints(String environmentId) {
         try {
-            return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.KAFKA_GATEWAY, false).toList();
+            return findAccessPoints(
+                            AccessPoint.ReferenceType.ENVIRONMENT,
+                            environmentId,
+                            AccessPoint.Target.KAFKA_GATEWAY,
+                            false)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting gateway restricted domain from environment '%s'", environmentId),
-                e
-            );
+                    String.format(
+                            "An error occurs while getting gateway restricted domain from environment '%s'",
+                            environmentId),
+                    e);
         }
     }
 
     private List<AccessPoint> findAccessPoints(final AccessPoint.Target target) throws TechnicalException {
-        return accessPointRepository
-            .findByTarget(AccessPointAdapter.INSTANCE.fromEntity(target))
-            .stream()
-            .map(AccessPointAdapter.INSTANCE::toEntity)
-            .toList();
+        return accessPointRepository.findByTarget(AccessPointAdapter.INSTANCE.fromEntity(target)).stream()
+                .map(AccessPointAdapter.INSTANCE::toEntity)
+                .toList();
     }
 
     private Stream<AccessPoint> findAccessPoints(
-        final AccessPoint.ReferenceType referenceType,
-        final String referenceId,
-        final AccessPoint.Target target,
-        final boolean includeAll
-    ) throws TechnicalException {
+            final AccessPoint.ReferenceType referenceType,
+            final String referenceId,
+            final AccessPoint.Target target,
+            final boolean includeAll)
+            throws TechnicalException {
         List<io.gravitee.repository.management.model.AccessPoint> filteredList = new ArrayList<>();
 
         // Retrieve domain for env
-        List<io.gravitee.repository.management.model.AccessPoint> accessPoints = accessPointRepository.findByReferenceAndTarget(
-            AccessPointAdapter.INSTANCE.fromEntity(referenceType),
-            referenceId,
-            AccessPointAdapter.INSTANCE.fromEntity(target)
-        );
+        List<io.gravitee.repository.management.model.AccessPoint> accessPoints =
+                accessPointRepository.findByReferenceAndTarget(
+                        AccessPointAdapter.INSTANCE.fromEntity(referenceType),
+                        referenceId,
+                        AccessPointAdapter.INSTANCE.fromEntity(target));
         if (accessPoints.size() == 1 || includeAll) {
             filteredList.addAll(accessPoints);
         } else {
-            filteredList.addAll(accessPoints.stream().filter(io.gravitee.repository.management.model.AccessPoint::isOverriding).toList());
+            filteredList.addAll(accessPoints.stream()
+                    .filter(io.gravitee.repository.management.model.AccessPoint::isOverriding)
+                    .toList());
         }
         return filteredList.stream().map(AccessPointAdapter.INSTANCE::toEntity);
     }

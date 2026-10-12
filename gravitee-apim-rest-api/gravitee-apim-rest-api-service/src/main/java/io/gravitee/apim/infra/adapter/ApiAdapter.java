@@ -48,23 +48,26 @@ import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(uses = { PlanAdapter.class })
+@Mapper(uses = {PlanAdapter.class})
 @DecoratedWith(ApiAdapterDecorator.class)
 public interface ApiAdapter {
     Logger log = NodeLoggerFactory.getLogger(ApiAdapter.class);
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
 
     @Mapping(target = "apiDefinitionValue", expression = "java(toApiDefinition(source))")
-    @Mapping(target = "portalNavigation", expression = "java(deserializePortalNavigation(source.getPortalNavigation()))")
+    @Mapping(
+            target = "portalNavigation",
+            expression = "java(deserializePortalNavigation(source.getPortalNavigation()))")
     Api toCoreModel(io.gravitee.repository.management.model.Api source);
 
     default ApiDefinition toApiDefinition(io.gravitee.repository.management.model.Api source) {
         return switch (source.getDefinitionVersion()) {
-            case V4 -> ApiType.NATIVE == source.getType()
-                ? deserialize(source, NativeApi.class)
-                : ApiType.EDGE == source.getType()
-                    ? deserialize(source, EdgeApi.class)
-                    : deserialize(source, io.gravitee.definition.model.v4.Api.class);
+            case V4 ->
+                ApiType.NATIVE == source.getType()
+                        ? deserialize(source, NativeApi.class)
+                        : ApiType.EDGE == source.getType()
+                                ? deserialize(source, EdgeApi.class)
+                                : deserialize(source, io.gravitee.definition.model.v4.Api.class);
             case FEDERATED -> deserialize(source, FederatedApi.class);
             case FEDERATED_AGENT -> null; // TODO ???
             case V2 -> deserialize(source, io.gravitee.definition.model.Api.class);
@@ -108,11 +111,12 @@ public interface ApiAdapter {
     @Mapping(target = "apiVersion", source = "api.version")
     @Mapping(target = "lifecycleState", source = "api.apiLifecycleState")
     @Mapping(target = "resources", expression = "java(apiDefinitionV4 != null ? apiDefinitionV4.getResources() : null)")
-    @Mapping(target = "responseTemplates", expression = "java(apiDefinitionV4 != null ? apiDefinitionV4.getResponseTemplates() : null)")
     @Mapping(
-        target = "allowedInApiProducts",
-        expression = "java(apiDefinitionV4 != null ? apiDefinitionV4.getAllowedInApiProducts() : null)"
-    )
+            target = "responseTemplates",
+            expression = "java(apiDefinitionV4 != null ? apiDefinitionV4.getResponseTemplates() : null)")
+    @Mapping(
+            target = "allowedInApiProducts",
+            expression = "java(apiDefinitionV4 != null ? apiDefinitionV4.getAllowedInApiProducts() : null)")
     UpdateApiEntity toUpdateApiEntity(Api api, io.gravitee.definition.model.v4.Api apiDefinitionV4);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
@@ -149,7 +153,8 @@ public interface ApiAdapter {
     @Mapping(target = "referenceId", source = "source.environmentId")
     @Mapping(target = "referenceType", constant = "ENVIRONMENT")
     @Mapping(source = "source.apiLifecycleState", target = "lifecycleState")
-    FederatedApiEntity toFederatedApiEntity(io.gravitee.repository.management.model.Api source, PrimaryOwnerEntity primaryOwnerEntity);
+    FederatedApiEntity toFederatedApiEntity(
+            io.gravitee.repository.management.model.Api source, PrimaryOwnerEntity primaryOwnerEntity);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(target = "apiVersion", source = "source.version")
@@ -170,16 +175,18 @@ public interface ApiAdapter {
     @Mapping(target = "description", source = "source.description")
     @Mapping(target = "originContext", source = "originContext")
     FederatedApiAgentEntity toFederatedAgentEntity(
-        io.gravitee.repository.management.model.Api source,
-        FederatedAgent agent,
-        PrimaryOwnerEntity primaryOwnerEntity,
-        OriginContext.Integration originContext
-    );
+            io.gravitee.repository.management.model.Api source,
+            FederatedAgent agent,
+            PrimaryOwnerEntity primaryOwnerEntity,
+            OriginContext.Integration originContext);
 
     default Collection<String> capabilities(FederatedAgent agent) {
         return agent == null || agent.getCapabilities() == null
-            ? null
-            : agent.getCapabilities().entrySet().stream().filter(Map.Entry::getValue).map(Map.Entry::getKey).toList();
+                ? null
+                : agent.getCapabilities().entrySet().stream()
+                        .filter(Map.Entry::getValue)
+                        .map(Map.Entry::getKey)
+                        .toList();
     }
 
     @Mapping(source = "state", target = "lifecycleState")
@@ -196,7 +203,11 @@ public interface ApiAdapter {
         try {
             return GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), clazz);
         } catch (IOException ioe) {
-            log.error("Unexpected error while deserializing {} definition of API {}", clazz.getSimpleName(), api.getId(), ioe);
+            log.error(
+                    "Unexpected error while deserializing {} definition of API {}",
+                    clazz.getSimpleName(),
+                    api.getId(),
+                    ioe);
             return null;
         }
     }

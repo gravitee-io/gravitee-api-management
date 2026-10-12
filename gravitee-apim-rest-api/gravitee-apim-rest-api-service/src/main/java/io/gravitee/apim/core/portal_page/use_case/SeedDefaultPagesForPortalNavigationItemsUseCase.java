@@ -28,9 +28,8 @@ public class SeedDefaultPagesForPortalNavigationItemsUseCase {
     private final PortalNavigationDefaultPageDomainService defaultPageDomainService;
 
     public Output execute(Input input) {
-        return new Output(
-            defaultPageDomainService.seedDefaultPages(input.organizationId(), input.environmentId(), input.navigationItemIds())
-        );
+        return new Output(defaultPageDomainService.seedDefaultPages(
+                input.organizationId(), input.environmentId(), input.navigationItemIds()));
     }
 
     public record Input(String organizationId, String environmentId, List<PortalNavigationItemId> navigationItemIds) {}

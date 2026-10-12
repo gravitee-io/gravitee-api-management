@@ -79,21 +79,17 @@ class SearchResponseStatusRangesUseCaseTest {
 
     @Test
     void should_throw_exception_if_api_is_tcp() {
-        //Given
+        // Given
         apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
 
-        //When
-        var throwable = catchThrowable(() ->
-            useCase.execute(
+        // When
+        var throwable = catchThrowable(() -> useCase.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchResponseStatusRangesUseCase.Input(
-                    MY_API,
-                    ENV_ID,
-                    TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
-                    TimeProvider.instantNow().toEpochMilli()
-                )
-            )
-        );
+                        MY_API,
+                        ENV_ID,
+                        TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
+                        TimeProvider.instantNow().toEpochMilli())));
 
         // Then
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);
@@ -101,21 +97,18 @@ class SearchResponseStatusRangesUseCaseTest {
 
     @Test
     void should_throw_if_api_doesnt_belong_to_environment() {
-        //Given
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-env").build()));
+        // Given
+        apiCrudService.initWith(List.of(
+                ApiFixtures.aProxyApiV4().toBuilder().environmentId("other-env").build()));
 
-        //When
-        var throwable = catchThrowable(() ->
-            useCase.execute(
+        // When
+        var throwable = catchThrowable(() -> useCase.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchResponseStatusRangesUseCase.Input(
-                    MY_API,
-                    ENV_ID,
-                    TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
-                    TimeProvider.instantNow().toEpochMilli()
-                )
-            )
-        );
+                        MY_API,
+                        ENV_ID,
+                        TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
+                        TimeProvider.instantNow().toEpochMilli())));
 
         // Then
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -123,21 +116,17 @@ class SearchResponseStatusRangesUseCaseTest {
 
     @Test
     void should_throw_if_api_definition_is_not_v2_or_v4() {
-        //Given
+        // Given
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
 
-        //When
-        var throwable = catchThrowable(() ->
-            useCase.execute(
+        // When
+        var throwable = catchThrowable(() -> useCase.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchResponseStatusRangesUseCase.Input(
-                    MY_API,
-                    ENV_ID,
-                    TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
-                    TimeProvider.instantNow().toEpochMilli()
-                )
-            )
-        );
+                        MY_API,
+                        ENV_ID,
+                        TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
+                        TimeProvider.instantNow().toEpochMilli())));
 
         // Then
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
@@ -145,23 +134,22 @@ class SearchResponseStatusRangesUseCaseTest {
 
     @Test
     void should_return_status_ranges_for_v2_api() {
-        //Given
+        // Given
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
         var expectedResponseStatusRanges = ResponseStatusRanges.builder()
-            .ranges(Map.of("100.0-200.0", 0L, "200.0-300.0", 5L, "300.0-400.0", 0L, "400.0-500.0", 1L, "500.0-600.0", 0L))
-            .build();
+                .ranges(Map.of(
+                        "100.0-200.0", 0L, "200.0-300.0", 5L, "300.0-400.0", 0L, "400.0-500.0", 1L, "500.0-600.0", 0L))
+                .build();
         analyticsQueryService.responseStatusRanges = expectedResponseStatusRanges;
 
-        //When
+        // When
         var result = useCase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchResponseStatusRangesUseCase.Input(
-                MY_API,
-                ENV_ID,
-                TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
-                TimeProvider.instantNow().toEpochMilli()
-            )
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchResponseStatusRangesUseCase.Input(
+                        MY_API,
+                        ENV_ID,
+                        TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
+                        TimeProvider.instantNow().toEpochMilli()));
 
         // Then
         assertThat(result.responseStatusRanges()).hasValue(expectedResponseStatusRanges);
@@ -169,18 +157,14 @@ class SearchResponseStatusRangesUseCaseTest {
 
     @Test
     void should_throw_if_api_is_not_found() {
-        //When
-        var throwable = catchThrowable(() ->
-            useCase.execute(
+        // When
+        var throwable = catchThrowable(() -> useCase.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchResponseStatusRangesUseCase.Input(
-                    MY_API,
-                    ENV_ID,
-                    TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
-                    TimeProvider.instantNow().toEpochMilli()
-                )
-            )
-        );
+                        MY_API,
+                        ENV_ID,
+                        TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
+                        TimeProvider.instantNow().toEpochMilli())));
 
         // Then
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -188,18 +172,14 @@ class SearchResponseStatusRangesUseCaseTest {
 
     @Test
     void should_throw_if_api_dates_are_invalid() {
-        //When
-        var throwable = catchThrowable(() ->
-            useCase.execute(
+        // When
+        var throwable = catchThrowable(() -> useCase.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchResponseStatusRangesUseCase.Input(
-                    MY_API,
-                    ENV_ID,
-                    TimeProvider.instantNow().toEpochMilli(),
-                    TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli()
-                )
-            )
-        );
+                        MY_API,
+                        ENV_ID,
+                        TimeProvider.instantNow().toEpochMilli(),
+                        TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli())));
 
         // Then
         assertThat(throwable).isInstanceOf(IllegalArgumentException.class);
@@ -207,64 +187,64 @@ class SearchResponseStatusRangesUseCaseTest {
 
     @Test
     void should_return_status_ranges_for_specified_date_range() {
-        //Given
+        // Given
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         var expectedResponseStatusRanges = ResponseStatusRanges.builder()
-            .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
-            .build();
+                .ranges(Map.of(
+                        "100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
+                .build();
         analyticsQueryService.responseStatusRanges = expectedResponseStatusRanges;
 
-        //When
+        // When
         var result = useCase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchResponseStatusRangesUseCase.Input(
-                MY_API,
-                ENV_ID,
-                TimeProvider.instantNow().minus(Duration.ofDays(3)).toEpochMilli(),
-                TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli()
-            )
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchResponseStatusRangesUseCase.Input(
+                        MY_API,
+                        ENV_ID,
+                        TimeProvider.instantNow().minus(Duration.ofDays(3)).toEpochMilli(),
+                        TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli()));
 
         // Then
         assertThat(result.responseStatusRanges()).hasValue(expectedResponseStatusRanges);
 
         var queryCaptor = ArgumentCaptor.forClass(AnalyticsQueryParameters.class);
         verify(analyticsQueryService).searchResponseStatusRanges(any(), queryCaptor.capture());
-        assertThat(queryCaptor.getValue()).satisfies(query ->
-            assertSoftly(softly -> {
-                softly.assertThat(query.getApiIds()).isEqualTo(List.of(MY_API));
-                softly.assertThat(query.getFrom()).isEqualTo(INSTANT_NOW.minus(3, ChronoUnit.DAYS).toEpochMilli());
-                softly.assertThat(query.getTo()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli());
-            })
-        );
+        assertThat(queryCaptor.getValue())
+                .satisfies(query -> assertSoftly(softly -> {
+                    softly.assertThat(query.getApiIds()).isEqualTo(List.of(MY_API));
+                    softly.assertThat(query.getFrom())
+                            .isEqualTo(INSTANT_NOW.minus(3, ChronoUnit.DAYS).toEpochMilli());
+                    softly.assertThat(query.getTo())
+                            .isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli());
+                }));
     }
 
     @Test
     void should_return_status_ranges_for_default_date_range() {
-        //Given
+        // Given
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         var expectedResponseStatusRanges = ResponseStatusRanges.builder()
-            .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
-            .build();
+                .ranges(Map.of(
+                        "100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
+                .build();
         analyticsQueryService.responseStatusRanges = expectedResponseStatusRanges;
 
-        //When
+        // When
         var result = useCase.execute(
-            GraviteeContext.getExecutionContext(),
-            new SearchResponseStatusRangesUseCase.Input(MY_API, ENV_ID, null, null)
-        );
+                GraviteeContext.getExecutionContext(),
+                new SearchResponseStatusRangesUseCase.Input(MY_API, ENV_ID, null, null));
 
         // Then
         assertThat(result.responseStatusRanges()).hasValue(expectedResponseStatusRanges);
 
         var queryCaptor = ArgumentCaptor.forClass(AnalyticsQueryParameters.class);
         verify(analyticsQueryService).searchResponseStatusRanges(any(), queryCaptor.capture());
-        assertThat(queryCaptor.getValue()).satisfies(query ->
-            assertSoftly(softly -> {
-                softly.assertThat(query.getApiIds()).isEqualTo(List.of(MY_API));
-                softly.assertThat(query.getFrom()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli());
-                softly.assertThat(query.getTo()).isEqualTo(INSTANT_NOW.toEpochMilli());
-            })
-        );
+        assertThat(queryCaptor.getValue())
+                .satisfies(query -> assertSoftly(softly -> {
+                    softly.assertThat(query.getApiIds()).isEqualTo(List.of(MY_API));
+                    softly.assertThat(query.getFrom())
+                            .isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli());
+                    softly.assertThat(query.getTo()).isEqualTo(INSTANT_NOW.toEpochMilli());
+                }));
     }
 }

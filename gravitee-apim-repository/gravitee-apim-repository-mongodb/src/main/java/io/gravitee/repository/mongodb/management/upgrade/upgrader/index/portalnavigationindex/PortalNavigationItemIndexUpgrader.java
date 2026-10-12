@@ -26,10 +26,10 @@ public class PortalNavigationItemIndexUpgrader extends IndexUpgrader {
     protected Index buildIndex() {
         // Build a composite index on organizationId + environmentId
         return Index.builder()
-            .collection("portal_navigation_items")
-            .key("organizationId", ascending())
-            .key("environmentId", ascending())
-            .name("o1e1")
-            .build();
+                .collection("portal_navigation_items")
+                .key("organizationId", ascending())
+                .key("environmentId", ascending())
+                .name("o1e1")
+                .build();
     }
 }

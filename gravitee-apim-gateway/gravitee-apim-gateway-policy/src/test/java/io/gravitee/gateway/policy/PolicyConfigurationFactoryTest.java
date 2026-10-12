@@ -40,7 +40,8 @@ public class PolicyConfigurationFactoryTest {
 
     @Test
     public void createPolicyWithConfigurationAndWithoutConfigurationData() {
-        PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, null);
+        PolicyConfiguration policyConfiguration =
+                policyConfigurationFactory.create(DummyPolicyConfiguration.class, null);
 
         Assertions.assertNull(policyConfiguration);
     }
@@ -54,9 +55,11 @@ public class PolicyConfigurationFactoryTest {
 
     @Test
     public void createPolicyWithConfigurationAndConfigurationData01() {
-        try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-01.json")) {
+        try (InputStream is =
+                PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-01.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
-            DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
+            DummyPolicyConfiguration policyConfiguration =
+                    policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
             Assertions.assertNotNull(policyConfiguration);
         } catch (IOException e) {
@@ -66,9 +69,11 @@ public class PolicyConfigurationFactoryTest {
 
     @Test
     public void createPolicyWithConfigurationAndConfigurationData02() {
-        try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-02.json")) {
+        try (InputStream is =
+                PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-02.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
-            DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
+            DummyPolicyConfiguration policyConfiguration =
+                    policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
             Assertions.assertNotNull(policyConfiguration);
         } catch (IOException e) {
@@ -78,9 +83,11 @@ public class PolicyConfigurationFactoryTest {
 
     @Test
     public void createPolicyWithConfigurationAndConfigurationData_unrecognizedField() {
-        try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-unrecognized-field.json")) {
+        try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream(
+                "policy-configuration-unrecognized-field.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
-            DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
+            DummyPolicyConfiguration policyConfiguration =
+                    policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
             Assertions.assertNotNull(policyConfiguration);
         } catch (IOException e) {

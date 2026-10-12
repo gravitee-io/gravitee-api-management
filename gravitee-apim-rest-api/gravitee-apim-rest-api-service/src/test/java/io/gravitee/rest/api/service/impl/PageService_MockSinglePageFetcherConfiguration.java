@@ -22,7 +22,8 @@ import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PageService_MockSinglePageFetcherConfiguration implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
+public class PageService_MockSinglePageFetcherConfiguration
+        implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
 
     private static String cron = "* * * * * *";
     private static boolean isAutoFetch = true;

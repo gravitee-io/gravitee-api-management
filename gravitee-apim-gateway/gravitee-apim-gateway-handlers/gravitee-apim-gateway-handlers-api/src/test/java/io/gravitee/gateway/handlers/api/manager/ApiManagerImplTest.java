@@ -62,7 +62,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -156,7 +155,8 @@ public class ApiManagerImplTest {
                     setPlans(api, singletonList(plan));
                     setTags(api, new HashSet<>(Arrays.asList("product", "international")));
 
-                    when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("product", "!international")));
+                    when(gatewayConfiguration.shardingTags())
+                            .thenReturn(Optional.of(Arrays.asList("product", "!international")));
 
                     apiManager.register(api);
 
@@ -199,8 +199,8 @@ public class ApiManagerImplTest {
                     var api = buildTestApi();
                     final String orgId = api.getOrganizationId();
                     doThrow(new InvalidLicenseException("Invalid license for test"))
-                        .when(licenseManager)
-                        .validatePluginFeatures(eq(orgId), anyCollection());
+                            .when(licenseManager)
+                            .validatePluginFeatures(eq(orgId), anyCollection());
                     apiManager.register(api);
 
                     verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
@@ -211,11 +211,10 @@ public class ApiManagerImplTest {
                 public void should_not_deploy_if_api_uses_feature_not_entitled_by_license() {
                     var api = buildTestApi();
                     final String orgId = api.getOrganizationId();
-                    doThrow(
-                        new ForbiddenFeatureException(List.of(new LicenseManager.ForbiddenFeature("Not entitled feature", "some plugin")))
-                    )
-                        .when(licenseManager)
-                        .validatePluginFeatures(eq(orgId), anyCollection());
+                    doThrow(new ForbiddenFeatureException(List.of(
+                                    new LicenseManager.ForbiddenFeature("Not entitled feature", "some plugin"))))
+                            .when(licenseManager)
+                            .validatePluginFeatures(eq(orgId), anyCollection());
                     apiManager.register(api);
 
                     verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
@@ -263,9 +262,7 @@ public class ApiManagerImplTest {
                 }
 
                 @ParameterizedTest(name = "{2}")
-                @CsvSource(
-                    delimiter = '|',
-                    textBlock = """
+                @CsvSource(delimiter = '|', textBlock = """
                     !test       |  toto    |   test_deployApiWithTagExcluded
                     test,toto   |  test    |   test_deployApiWithTag
                     test,toto   |  Test    |   test_deployApiWithUpperCasedTag
@@ -275,16 +272,17 @@ public class ApiManagerImplTest {
                     test, !toto |  test    |   test_deployApiWithSpaceAfterComma
                     test ,!toto |  test    |   test_deployApiWithSpaceBeforeComma
                      test,!toto |  test    |   test_deployApiWithSpaceBeforeTag
-                    """
-                )
-                void should_deploy_api_with_different_tag_combinations(String gatewayTags, String apiTag, String label) {
+                    """)
+                void should_deploy_api_with_different_tag_combinations(
+                        String gatewayTags, String apiTag, String label) {
                     var api = buildTestApi();
                     var plan = buildMockPlan();
 
                     setPlans(api, singletonList(plan));
                     setTags(api, new HashSet<>(singletonList(apiTag)));
 
-                    when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList(gatewayTags.split(","))));
+                    when(gatewayConfiguration.shardingTags())
+                            .thenReturn(Optional.of(Arrays.asList(gatewayTags.split(","))));
 
                     apiManager.register(api);
 
@@ -579,12 +577,21 @@ public class ApiManagerImplTest {
         protected ReactableApi<?> buildTestApi() {
             Proxy proxy = new Proxy();
             proxy.setVirtualHosts(singletonList(mock(VirtualHost.class)));
-            return new ApiBuilder().id("api-test").name("api-name-test").proxy(proxy).deployedAt(new Date()).build();
+            return new ApiBuilder()
+                    .id("api-test")
+                    .name("api-name-test")
+                    .proxy(proxy)
+                    .deployedAt(new Date())
+                    .build();
         }
 
         @Override
         protected Object buildMockPlan() {
-            return Plan.builder().id("plan-test").name("TestPlan").status("published").build();
+            return Plan.builder()
+                    .id("plan-test")
+                    .name("TestPlan")
+                    .status("published")
+                    .build();
         }
 
         @Override
@@ -605,23 +612,20 @@ public class ApiManagerImplTest {
         @Override
         protected void setProperties(ReactableApi<?> api) {
             Properties properties = new Properties();
-            properties.setProperties(
-                List.of(
+            properties.setProperties(List.of(
                     new Property("key1", "plain value 1", false),
                     new Property("key2", "value2Base64encrypted", true),
-                    new Property("key3", "value3Base64encrypted", true)
-                )
-            );
+                    new Property("key3", "value3Base64encrypted", true)));
             ((Api) api).getDefinition().setProperties(properties);
         }
 
         @Override
         protected void verifyPropertiesDecrypted(ReactableApi<?> api) {
-            assertThat(((Api) api).getDefinition().getProperties().getValues()).containsOnly(
-                Map.entry("key1", "plain value 1"),
-                Map.entry("key2", "plain value 2"),
-                Map.entry("key3", "plain value 3")
-            );
+            assertThat(((Api) api).getDefinition().getProperties().getValues())
+                    .containsOnly(
+                            Map.entry("key1", "plain value 1"),
+                            Map.entry("key2", "plain value 2"),
+                            Map.entry("key3", "plain value 3"));
         }
 
         static class ApiBuilder {
@@ -667,33 +671,35 @@ public class ApiManagerImplTest {
             HttpListener httpListener = new HttpListener();
             httpListener.setPaths(List.of(mock(Path.class)));
             return new ApiBuilder()
-                .id("api-test")
-                .name("api-name-test")
-                .listeners(List.of(httpListener))
-                .deployedAt(new Date())
-                .organizationId("org-id")
-                .build();
+                    .id("api-test")
+                    .name("api-name-test")
+                    .listeners(List.of(httpListener))
+                    .deployedAt(new Date())
+                    .organizationId("org-id")
+                    .build();
         }
 
         @Override
         protected Object buildMockPlan() {
             return io.gravitee.definition.model.v4.plan.Plan.builder()
-                .id("plan-test")
-                .name("TestPlan")
-                .status(PlanStatus.PUBLISHED)
-                .build();
+                    .id("plan-test")
+                    .name("TestPlan")
+                    .status(PlanStatus.PUBLISHED)
+                    .build();
         }
 
         @Override
         protected void setPlans(ReactableApi<?> api, List<Object> plans) {
-            ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api).getDefinition().setPlans(
-                (List<io.gravitee.definition.model.v4.plan.Plan>) (List<?>) plans
-            );
+            ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api)
+                    .getDefinition()
+                    .setPlans((List<io.gravitee.definition.model.v4.plan.Plan>) (List<?>) plans);
         }
 
         @Override
         protected void setTags(ReactableApi<?> api, HashSet<String> tags) {
-            ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api).getDefinition().setTags(tags);
+            ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api)
+                    .getDefinition()
+                    .setTags(tags);
         }
 
         @Override
@@ -703,36 +709,34 @@ public class ApiManagerImplTest {
 
         @Override
         protected void setProperties(ReactableApi<?> api) {
-            ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api).getDefinition().setProperties(
-                List.of(
-                    new io.gravitee.definition.model.v4.property.Property("key1", "plain value 1", false),
-                    new io.gravitee.definition.model.v4.property.Property("key2", "value2Base64encrypted", true),
-                    new io.gravitee.definition.model.v4.property.Property("key3", "value3Base64encrypted", true)
-                )
-            );
+            ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api)
+                    .getDefinition()
+                    .setProperties(List.of(
+                            new io.gravitee.definition.model.v4.property.Property("key1", "plain value 1", false),
+                            new io.gravitee.definition.model.v4.property.Property(
+                                    "key2", "value2Base64encrypted", true),
+                            new io.gravitee.definition.model.v4.property.Property(
+                                    "key3", "value3Base64encrypted", true)));
         }
 
         @Override
         protected void verifyPropertiesDecrypted(ReactableApi<?> api) {
-            assertThat(
-                ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api).getDefinition()
-                    .getProperties()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.definition.model.v4.property.Property::getKey,
-                            io.gravitee.definition.model.v4.property.Property::getValue
-                        )
-                    )
-            ).containsOnly(Map.entry("key1", "plain value 1"), Map.entry("key2", "plain value 2"), Map.entry("key3", "plain value 3"));
+            assertThat(((io.gravitee.gateway.reactive.handlers.api.v4.Api) api)
+                            .getDefinition().getProperties().stream()
+                                    .collect(Collectors.toMap(
+                                            io.gravitee.definition.model.v4.property.Property::getKey,
+                                            io.gravitee.definition.model.v4.property.Property::getValue)))
+                    .containsOnly(
+                            Map.entry("key1", "plain value 1"),
+                            Map.entry("key2", "plain value 2"),
+                            Map.entry("key3", "plain value 3"));
         }
 
         static class ApiBuilder {
 
             private final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
-            private final io.gravitee.gateway.reactive.handlers.api.v4.Api api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(
-                definition
-            );
+            private final io.gravitee.gateway.reactive.handlers.api.v4.Api api =
+                    new io.gravitee.gateway.reactive.handlers.api.v4.Api(definition);
 
             public ApiBuilder id(String id) {
                 this.definition.setId(id);
@@ -775,7 +779,8 @@ public class ApiManagerImplTest {
         @Override
         @BeforeEach
         public void setUp() {
-            apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, apiProductRegistry));
+            apiManager = spy(new ApiManagerImpl(
+                    eventManager, gatewayConfiguration, licenseManager, dataEncryptor, apiProductRegistry));
             lenient().when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
             lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
         }
@@ -789,11 +794,9 @@ public class ApiManagerImplTest {
                 api.setEnvironmentId("env-1");
                 setPlans(api, Collections.emptyList());
 
-                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
-                    List.of(
-                        new ApiProductRegistry.ApiProductPlanEntry("product-1", (io.gravitee.definition.model.v4.plan.Plan) buildMockPlan())
-                    )
-                );
+                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                        .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry(
+                                "product-1", (io.gravitee.definition.model.v4.plan.Plan) buildMockPlan())));
 
                 apiManager.register(api);
 
@@ -807,7 +810,8 @@ public class ApiManagerImplTest {
                 api.setEnvironmentId("env-1");
                 setPlans(api, Collections.emptyList());
 
-                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(List.of());
+                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                        .thenReturn(List.of());
 
                 apiManager.register(api);
 
@@ -835,11 +839,9 @@ public class ApiManagerImplTest {
                 api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
                 setPlans(api2, Collections.emptyList());
 
-                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
-                    List.of(
-                        new ApiProductRegistry.ApiProductPlanEntry("product-1", (io.gravitee.definition.model.v4.plan.Plan) buildMockPlan())
-                    )
-                );
+                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                        .thenReturn(List.of(new ApiProductRegistry.ApiProductPlanEntry(
+                                "product-1", (io.gravitee.definition.model.v4.plan.Plan) buildMockPlan())));
 
                 apiManager.register(api2);
 
@@ -866,7 +868,8 @@ public class ApiManagerImplTest {
                 api2.setEnvironmentId("env-1");
                 api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
                 setPlans(api2, Collections.emptyList());
-                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(List.of());
+                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1")))
+                        .thenReturn(List.of());
 
                 apiManager.register(api2);
 
@@ -887,17 +890,21 @@ public class ApiManagerImplTest {
             KafkaListener kafkaListener = new KafkaListener();
             kafkaListener.setHost("host");
             return new NativeApiBuilder()
-                .id("api-test")
-                .name("api-name-test")
-                .listeners(List.of(kafkaListener))
-                .deployedAt(new Date())
-                .organizationId("org-id")
-                .build();
+                    .id("api-test")
+                    .name("api-name-test")
+                    .listeners(List.of(kafkaListener))
+                    .deployedAt(new Date())
+                    .organizationId("org-id")
+                    .build();
         }
 
         @Override
         protected Object buildMockPlan() {
-            return NativePlan.builder().id("plan-test").name("TestPlan").status(PlanStatus.PUBLISHED).build();
+            return NativePlan.builder()
+                    .id("plan-test")
+                    .name("TestPlan")
+                    .status(PlanStatus.PUBLISHED)
+                    .build();
         }
 
         @Override
@@ -917,34 +924,33 @@ public class ApiManagerImplTest {
 
         @Override
         protected void setProperties(ReactableApi<?> api) {
-            ((NativeApi) api).getDefinition().setProperties(
-                List.of(
-                    new io.gravitee.definition.model.v4.property.Property("key1", "plain value 1", false),
-                    new io.gravitee.definition.model.v4.property.Property("key2", "value2Base64encrypted", true),
-                    new io.gravitee.definition.model.v4.property.Property("key3", "value3Base64encrypted", true)
-                )
-            );
+            ((NativeApi) api)
+                    .getDefinition()
+                    .setProperties(List.of(
+                            new io.gravitee.definition.model.v4.property.Property("key1", "plain value 1", false),
+                            new io.gravitee.definition.model.v4.property.Property(
+                                    "key2", "value2Base64encrypted", true),
+                            new io.gravitee.definition.model.v4.property.Property(
+                                    "key3", "value3Base64encrypted", true)));
         }
 
         @Override
         protected void verifyPropertiesDecrypted(ReactableApi<?> api) {
-            assertThat(
-                ((NativeApi) api).getDefinition()
-                    .getProperties()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.definition.model.v4.property.Property::getKey,
-                            io.gravitee.definition.model.v4.property.Property::getValue
-                        )
-                    )
-            ).containsOnly(Map.entry("key1", "plain value 1"), Map.entry("key2", "plain value 2"), Map.entry("key3", "plain value 3"));
+            assertThat(((NativeApi) api)
+                            .getDefinition().getProperties().stream()
+                                    .collect(Collectors.toMap(
+                                            io.gravitee.definition.model.v4.property.Property::getKey,
+                                            io.gravitee.definition.model.v4.property.Property::getValue)))
+                    .containsOnly(
+                            Map.entry("key1", "plain value 1"),
+                            Map.entry("key2", "plain value 2"),
+                            Map.entry("key3", "plain value 3"));
         }
 
         static class NativeApiBuilder {
 
             private final io.gravitee.definition.model.v4.nativeapi.NativeApi definition =
-                new io.gravitee.definition.model.v4.nativeapi.NativeApi();
+                    new io.gravitee.definition.model.v4.nativeapi.NativeApi();
             private final NativeApi api = new NativeApi(definition);
 
             public NativeApiBuilder id(String id) {

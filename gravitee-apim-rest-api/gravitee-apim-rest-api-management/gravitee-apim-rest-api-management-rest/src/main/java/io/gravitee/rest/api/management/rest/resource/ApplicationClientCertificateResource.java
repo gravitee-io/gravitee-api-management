@@ -70,19 +70,22 @@ public class ApplicationClientCertificateResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Get a client certificate",
-        description = "User must have the APPLICATION_DEFINITION[READ] permission to use this service"
-    )
+            summary = "Get a client certificate",
+            description = "User must have the APPLICATION_DEFINITION[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Client certificate",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ClientCertificate.class))
-    )
+            responseCode = "200",
+            description = "Client certificate",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ClientCertificate.class)))
     @ApiResponse(responseCode = "404", description = "Client certificate not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)})
     public ClientCertificate getApplicationClientCertificate() {
-        var clientCertificate = getClientCertificateUseCase.execute(new GetClientCertificateUseCase.Input(certId)).clientCertificate();
+        var clientCertificate = getClientCertificateUseCase
+                .execute(new GetClientCertificateUseCase.Input(certId))
+                .clientCertificate();
         return ClientCertificateMapper.INSTANCE.toDto(clientCertificate);
     }
 
@@ -90,33 +93,35 @@ public class ApplicationClientCertificateResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Update a client certificate",
-        description = "User must have the APPLICATION_DEFINITION[UPDATE] permission to use this service"
-    )
+            summary = "Update a client certificate",
+            description = "User must have the APPLICATION_DEFINITION[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Updated client certificate",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ClientCertificate.class))
-    )
+            responseCode = "200",
+            description = "Updated client certificate",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ClientCertificate.class)))
     @ApiResponse(responseCode = "404", description = "Client certificate not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateApplicationClientCertificate(@Valid @NotNull final UpdateClientCertificate updateClientCertificate) {
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)})
+    public Response updateApplicationClientCertificate(
+            @Valid @NotNull final UpdateClientCertificate updateClientCertificate) {
         var updated = updateClientCertificateUseCase
-            .execute(new UpdateClientCertificateUseCase.Input(certId, ClientCertificateMapper.INSTANCE.toDomain(updateClientCertificate)))
-            .clientCertificate();
+                .execute(new UpdateClientCertificateUseCase.Input(
+                        certId, ClientCertificateMapper.INSTANCE.toDomain(updateClientCertificate)))
+                .clientCertificate();
         return Response.ok(ClientCertificateMapper.INSTANCE.toDto(updated)).build();
     }
 
     @DELETE
     @Operation(
-        summary = "Delete a client certificate",
-        description = "User must have the APPLICATION_DEFINITION[DELETE] permission to use this service"
-    )
+            summary = "Delete a client certificate",
+            description = "User must have the APPLICATION_DEFINITION[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Client certificate successfully deleted")
     @ApiResponse(responseCode = "404", description = "Client certificate not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)})
     public Response deleteApplicationClientCertificate() {
         deleteClientCertificateUseCase.execute(new DeleteClientCertificateUseCase.Input(certId));
         return Response.noContent().build();

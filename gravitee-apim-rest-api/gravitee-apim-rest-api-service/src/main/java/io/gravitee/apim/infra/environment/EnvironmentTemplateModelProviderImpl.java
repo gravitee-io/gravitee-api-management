@@ -33,10 +33,8 @@ public class EnvironmentTemplateModelProviderImpl implements EnvironmentTemplate
 
     @Override
     public Map<String, String> getEnvironmentMetadata(String environmentId) {
-        List<MetadataEntity> metadataList = metadataService.findByReferenceTypeAndReferenceId(
-            MetadataReferenceType.ENVIRONMENT,
-            environmentId
-        );
+        List<MetadataEntity> metadataList =
+                metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, environmentId);
         if (metadataList == null) {
             return Map.of();
         }

@@ -80,8 +80,7 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
     @Override
     public void handle(ExecutionContext context) {
         try {
-            eventProducer.send(
-                Event.at(context.request().timestamp())
+            eventProducer.send(Event.at(context.request().timestamp())
                     .type(REQUEST_TYPE)
                     .context(CONTEXT_NODE_ID, node.id())
                     .context(CONTEXT_NODE_HOSTNAME, node.hostname())
@@ -91,17 +90,26 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
                     .context(PROCESSOR_USERAGENT, PROP_REQUEST_USER_AGENT)
                     .property(PROP_TENANT, () -> node.metadata().get("tenant"))
                     .property(PROP_REQUEST_ID, context.request().id())
-                    .property(PROP_REQUEST_USER_AGENT, context.request().metrics().getUserAgent())
-                    .property(PROP_REQUEST_CONTENT_LENGTH, context.request().metrics().getRequestContentLength())
+                    .property(
+                            PROP_REQUEST_USER_AGENT, context.request().metrics().getUserAgent())
+                    .property(
+                            PROP_REQUEST_CONTENT_LENGTH,
+                            context.request().metrics().getRequestContentLength())
                     .property(PROP_REQUEST_IP, context.request().metrics().getRemoteAddress())
                     .property(PROP_API_ID, context.getAttribute(ExecutionContext.ATTR_API))
                     .property(PROP_APPLICATION_ID, context.getAttribute(ExecutionContext.ATTR_APPLICATION))
                     .property(PROP_PLAN_ID, context.getAttribute(ExecutionContext.ATTR_PLAN))
                     .property(PROP_RESPONSE_STATUS, context.response().status())
                     .property(PROP_RESPONSE_LATENCY, context.request().metrics().getProxyLatencyMs())
-                    .property(PROP_RESPONSE_RESPONSE_TIME, context.request().metrics().getProxyResponseTimeMs())
-                    .property(PROP_RESPONSE_UPSTREAM_RESPONSE_TIME, context.request().metrics().getApiResponseTimeMs())
-                    .property(PROP_RESPONSE_CONTENT_LENGTH, context.request().metrics().getResponseContentLength())
+                    .property(
+                            PROP_RESPONSE_RESPONSE_TIME,
+                            context.request().metrics().getProxyResponseTimeMs())
+                    .property(
+                            PROP_RESPONSE_UPSTREAM_RESPONSE_TIME,
+                            context.request().metrics().getApiResponseTimeMs())
+                    .property(
+                            PROP_RESPONSE_CONTENT_LENGTH,
+                            context.request().metrics().getResponseContentLength())
                     .property(PROP_USER_ID, context.request().metrics().getUser())
                     .property(PROP_QUOTA_COUNTER, context.getAttribute(ExecutionContext.ATTR_QUOTA_COUNT))
                     .property(PROP_QUOTA_LIMIT, context.getAttribute(ExecutionContext.ATTR_QUOTA_LIMIT))
@@ -109,8 +117,7 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
                     .organization((String) context.getAttribute(ExecutionContext.ATTR_ORGANIZATION))
                     .environment((String) context.getAttribute(ExecutionContext.ATTR_ENVIRONMENT))
                     .installation((String) node.metadata().get(Node.META_INSTALLATION))
-                    .build()
-            );
+                    .build());
         } catch (Exception ex) {
             log.error("An error occurs while sending alert", ex);
         } finally {

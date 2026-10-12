@@ -55,15 +55,13 @@ public class VertxWebSocket implements WebSocket {
     @Override
     public Single<WebSocket> upgrade() {
         if (!upgraded) {
-            return Single.defer(() ->
-                httpServerRequest
+            return Single.defer(() -> httpServerRequest
                     .rxToWebSocket()
                     .doOnSuccess(serverWebSocket -> {
                         webSocket = serverWebSocket;
                         upgraded = true;
                     })
-                    .map(serverWebSocket -> this)
-            );
+                    .map(serverWebSocket -> this));
         }
 
         return Single.just(this);
@@ -114,18 +112,15 @@ public class VertxWebSocket implements WebSocket {
     @Override
     public Flowable<Buffer> read() {
         if (isValid()) {
-            return webSocket
-                .toFlowable()
-                .map(Buffer::buffer)
-                .onErrorResumeNext(t -> {
-                    if (t instanceof HttpClosedException) {
-                        // Ends the flow properly if connection is closed by the client.
-                        return Flowable.empty();
-                    }
+            return webSocket.toFlowable().map(Buffer::buffer).onErrorResumeNext(t -> {
+                if (t instanceof HttpClosedException) {
+                    // Ends the flow properly if connection is closed by the client.
+                    return Flowable.empty();
+                }
 
-                    // Propagate in case of any other error.
-                    return Flowable.error(t);
-                });
+                // Propagate in case of any other error.
+                return Flowable.error(t);
+            });
         }
 
         return Flowable.empty();

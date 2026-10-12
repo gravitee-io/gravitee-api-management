@@ -71,11 +71,10 @@ class ObservabilityAnalyticsDataPortAdapterTest {
     private static final String ORG = "org-1";
     private static final String ENV = "env-1";
     private static final PreparedScope SCOPE = new PreparedScope(
-        Instant.parse("2026-06-10T00:00:00Z"),
-        Instant.parse("2026-06-11T00:00:00Z"),
-        List.of(new FilterCondition("API", FilterOperator.IN, List.of("api-1"))),
-        Set.of("api-1")
-    );
+            Instant.parse("2026-06-10T00:00:00Z"),
+            Instant.parse("2026-06-11T00:00:00Z"),
+            List.of(new FilterCondition("API", FilterOperator.IN, List.of("api-1"))),
+            Set.of("api-1"));
 
     @Mock
     private ComputeMeasuresUseCase computeMeasuresUseCase;
@@ -94,22 +93,23 @@ class ObservabilityAnalyticsDataPortAdapterTest {
     @BeforeEach
     void setUp() {
         adapter = new ObservabilityAnalyticsDataPortAdapter(
-            computeMeasuresUseCase,
-            computeFacetsUseCase,
-            computeTimeSeriesUseCase,
-            new AnalyticsQueryValidator(new AnalyticsDefinitionYAMLQueryService()),
-            userContextLoader,
-            new ObjectMapper()
-        );
+                computeMeasuresUseCase,
+                computeFacetsUseCase,
+                computeTimeSeriesUseCase,
+                new AnalyticsQueryValidator(new AnalyticsDefinitionYAMLQueryService()),
+                userContextLoader,
+                new ObjectMapper());
     }
 
     @Test
     void should_map_an_authz_api_to_the_authz_gamma_api_type() {
-        when(userContextLoader.loadApis(any())).thenAnswer(invocation ->
-            ((UserContext) invocation.getArgument(0)).withApis(
-                List.of(Api.builder().id("api-1").name("Authz API").type(io.gravitee.definition.model.v4.ApiType.AUTHZ).build())
-            )
-        );
+        when(userContextLoader.loadApis(any()))
+                .thenAnswer(invocation -> ((UserContext) invocation.getArgument(0))
+                        .withApis(List.of(Api.builder()
+                                .id("api-1")
+                                .name("Authz API")
+                                .type(io.gravitee.definition.model.v4.ApiType.AUTHZ)
+                                .build())));
 
         var accessibleApis = adapter.loadAccessibleApis(ORG, ENV);
 
@@ -123,46 +123,45 @@ class ObservabilityAnalyticsDataPortAdapterTest {
         @Test
         void should_reject_an_unknown_metric_without_querying_the_engine() {
             var query = new MeasuresQuery(
-                ORG,
-                ENV,
-                SCOPE,
-                List.of(new AnalyticsMetricQuery("HTTP_NOPE", List.of("COUNT"), List.of())),
-                Map.of()
-            );
+                    ORG,
+                    ENV,
+                    SCOPE,
+                    List.of(new AnalyticsMetricQuery("HTTP_NOPE", List.of("COUNT"), List.of())),
+                    Map.of());
 
             assertThatThrownBy(() -> adapter.computeMeasures(query))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .hasMessageContaining("HTTP_NOPE")
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_metric");
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .hasMessageContaining("HTTP_NOPE")
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.unknown_metric");
             verifyNoInteractions(computeMeasuresUseCase);
         }
 
         @Test
         void should_reject_a_metric_without_a_name() {
-            var query = new MeasuresQuery(ORG, ENV, SCOPE, List.of(new AnalyticsMetricQuery(null, List.of("COUNT"), List.of())), Map.of());
+            var query = new MeasuresQuery(
+                    ORG, ENV, SCOPE, List.of(new AnalyticsMetricQuery(null, List.of("COUNT"), List.of())), Map.of());
 
             assertThatThrownBy(() -> adapter.computeMeasures(query))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_metric");
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.unknown_metric");
         }
 
         @Test
         void should_reject_an_unknown_measure() {
             var query = new MeasuresQuery(
-                ORG,
-                ENV,
-                SCOPE,
-                List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("MEDIAN"), List.of())),
-                Map.of()
-            );
+                    ORG,
+                    ENV,
+                    SCOPE,
+                    List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("MEDIAN"), List.of())),
+                    Map.of());
 
             assertThatThrownBy(() -> adapter.computeMeasures(query))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .hasMessageContaining("MEDIAN")
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_measure");
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .hasMessageContaining("MEDIAN")
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.unknown_measure");
         }
 
         @Test
@@ -170,10 +169,10 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             var query = facetsQuery(List.of("HTTP_NOPE"), List.of());
 
             assertThatThrownBy(() -> adapter.computeFacets(query))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .hasMessageContaining("HTTP_NOPE")
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_facet");
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .hasMessageContaining("HTTP_NOPE")
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.unknown_facet");
             verifyNoInteractions(computeFacetsUseCase);
         }
 
@@ -182,9 +181,9 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             var query = facetsQuery(List.of("HTTP_STATUS"), List.of(new AnalyticsSortSpec("MEDIAN", "DESC")));
 
             assertThatThrownBy(() -> adapter.computeFacets(query))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_measure");
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.unknown_measure");
         }
 
         @Test
@@ -192,36 +191,41 @@ class ObservabilityAnalyticsDataPortAdapterTest {
             var query = facetsQuery(List.of("HTTP_STATUS"), List.of(new AnalyticsSortSpec("COUNT", "SIDEWAYS")));
 
             assertThatThrownBy(() -> adapter.computeFacets(query))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .hasMessageContaining("SIDEWAYS")
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_sort_order");
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .hasMessageContaining("SIDEWAYS")
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.unknown_sort_order");
         }
 
         @Test
         void should_read_the_sort_order_case_insensitively() {
-            when(computeFacetsUseCase.execute(any())).thenReturn(new ComputeFacetsUseCase.Output(new FacetsResponse(List.of())));
+            when(computeFacetsUseCase.execute(any()))
+                    .thenReturn(new ComputeFacetsUseCase.Output(new FacetsResponse(List.of())));
 
             adapter.computeFacets(facetsQuery(List.of("HTTP_STATUS"), List.of(new AnalyticsSortSpec("COUNT", "desc"))));
 
             var captor = ArgumentCaptor.forClass(ComputeFacetsUseCase.Input.class);
             verify(computeFacetsUseCase).execute(captor.capture());
-            assertThat(captor.getValue().request().metrics().getFirst().sorts().getFirst().order()).isEqualTo(
-                FacetMetricMeasuresRequest.Sort.Order.DESC
-            );
+            assertThat(captor.getValue()
+                            .request()
+                            .metrics()
+                            .getFirst()
+                            .sorts()
+                            .getFirst()
+                            .order())
+                    .isEqualTo(FacetMetricMeasuresRequest.Sort.Order.DESC);
         }
 
         private static FacetsQuery facetsQuery(List<String> facets, List<AnalyticsSortSpec> sorts) {
             return new FacetsQuery(
-                ORG,
-                ENV,
-                SCOPE,
-                facets,
-                null,
-                List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), sorts, List.of())),
-                List.of(),
-                Map.of()
-            );
+                    ORG,
+                    ENV,
+                    SCOPE,
+                    facets,
+                    null,
+                    List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), sorts, List.of())),
+                    List.of(),
+                    Map.of());
         }
     }
 
@@ -232,45 +236,36 @@ class ObservabilityAnalyticsDataPortAdapterTest {
 
         @Test
         void should_list_what_gamma_did_not_apply_after_what_the_engine_skipped() {
-            when(computeMeasuresUseCase.execute(any())).thenReturn(
-                new ComputeMeasuresUseCase.Output(
-                    new MeasuresResponse(
-                        List.of(
-                            new MetricMeasuresResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(), SKIPPED_BY_THE_ENGINE),
-                            new MetricMeasuresResponse(MetricSpec.Name.HTTP_ERRORS, null, List.of(), List.of())
-                        )
-                    )
-                )
-            );
+            when(computeMeasuresUseCase.execute(any()))
+                    .thenReturn(new ComputeMeasuresUseCase.Output(new MeasuresResponse(List.of(
+                            new MetricMeasuresResponse(
+                                    MetricSpec.Name.HTTP_REQUESTS, null, List.of(), SKIPPED_BY_THE_ENGINE),
+                            new MetricMeasuresResponse(MetricSpec.Name.HTTP_ERRORS, null, List.of(), List.of())))));
 
-            var response = adapter.computeMeasures(
-                new MeasuresQuery(
+            var response = adapter.computeMeasures(new MeasuresQuery(
                     ORG,
                     ENV,
                     SCOPE,
                     List.of(
-                        new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of()),
-                        new AnalyticsMetricQuery("HTTP_ERRORS", List.of("COUNT"), List.of())
-                    ),
-                    Map.of("HTTP_REQUESTS", List.of("RECORD_TYPE"))
-                )
-            );
+                            new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of()),
+                            new AnalyticsMetricQuery("HTTP_ERRORS", List.of("COUNT"), List.of())),
+                    Map.of("HTTP_REQUESTS", List.of("RECORD_TYPE"))));
 
-            assertThat(response.at("/metrics/0/ignoredFilters").toString()).isEqualTo("[\"NATIVE_CLIENT_ID\",\"RECORD_TYPE\"]");
-            assertThat(response.at("/metrics/1").has("ignoredFilters")).as("nothing skipped, no field").isFalse();
+            assertThat(response.at("/metrics/0/ignoredFilters").toString())
+                    .isEqualTo("[\"NATIVE_CLIENT_ID\",\"RECORD_TYPE\"]");
+            assertThat(response.at("/metrics/1").has("ignoredFilters"))
+                    .as("nothing skipped, no field")
+                    .isFalse();
         }
 
         @Test
         void should_keep_metric_level_conditions_away_from_the_engine() {
-            when(computeFacetsUseCase.execute(any())).thenReturn(
-                new ComputeFacetsUseCase.Output(
-                    new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(), List.of())))
-                )
-            );
+            when(computeFacetsUseCase.execute(any()))
+                    .thenReturn(new ComputeFacetsUseCase.Output(new FacetsResponse(List.of(
+                            new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(), List.of())))));
             var plan = new FilterCondition("PLAN", FilterOperator.EQ, List.of("plan-1"));
 
-            var response = adapter.computeFacets(
-                new FacetsQuery(
+            var response = adapter.computeFacets(new FacetsQuery(
                     ORG,
                     ENV,
                     SCOPE,
@@ -278,13 +273,12 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                     null,
                     List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of(plan))),
                     List.of(),
-                    Map.of("HTTP_REQUESTS", List.of("PLAN"))
-                )
-            );
+                    Map.of("HTTP_REQUESTS", List.of("PLAN"))));
 
             var captor = ArgumentCaptor.forClass(ComputeFacetsUseCase.Input.class);
             verify(computeFacetsUseCase).execute(captor.capture());
-            assertThat(captor.getValue().request().metrics().getFirst().filters()).isNullOrEmpty();
+            assertThat(captor.getValue().request().metrics().getFirst().filters())
+                    .isNullOrEmpty();
             assertThat(response.at("/metrics/0/ignoredFilters").toString()).isEqualTo("[\"PLAN\"]");
         }
     }
@@ -298,12 +292,11 @@ class ObservabilityAnalyticsDataPortAdapterTest {
         @Test
         void should_accept_a_well_formed_query_on_an_empty_scope() {
             var query = new MeasuresQuery(
-                ORG,
-                ENV,
-                emptyScope,
-                List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of())),
-                Map.of()
-            );
+                    ORG,
+                    ENV,
+                    emptyScope,
+                    List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of())),
+                    Map.of());
 
             adapter.validate(query);
 
@@ -313,55 +306,52 @@ class ObservabilityAnalyticsDataPortAdapterTest {
         @Test
         void should_refuse_an_unknown_metric_on_an_empty_scope() {
             var query = new MeasuresQuery(
-                ORG,
-                ENV,
-                emptyScope,
-                List.of(new AnalyticsMetricQuery("HTTP_NOPE", List.of("COUNT"), List.of())),
-                Map.of()
-            );
+                    ORG,
+                    ENV,
+                    emptyScope,
+                    List.of(new AnalyticsMetricQuery("HTTP_NOPE", List.of("COUNT"), List.of())),
+                    Map.of());
 
             assertThatThrownBy(() -> adapter.validate(query))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_metric");
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.unknown_metric");
         }
 
         @Test
         void should_apply_the_engine_rules_on_an_empty_scope() {
             var query = new FacetsQuery(
-                ORG,
-                ENV,
-                emptyScope,
-                List.of(),
-                null,
-                List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
-                List.of(),
-                Map.of()
-            );
+                    ORG,
+                    ENV,
+                    emptyScope,
+                    List.of(),
+                    null,
+                    List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
+                    List.of(),
+                    Map.of());
 
             assertThatThrownBy(() -> adapter.validate(query))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("at least one facet");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("at least one facet");
         }
 
         @Test
         void should_refuse_an_unknown_measure_on_a_time_series_with_an_empty_scope() {
             var query = new TimeSeriesQuery(
-                ORG,
-                ENV,
-                emptyScope,
-                60_000L,
-                List.of(),
-                null,
-                List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("MEDIAN"), List.of(), List.of())),
-                List.of(),
-                Map.of()
-            );
+                    ORG,
+                    ENV,
+                    emptyScope,
+                    60_000L,
+                    List.of(),
+                    null,
+                    List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("MEDIAN"), List.of(), List.of())),
+                    List.of(),
+                    Map.of());
 
             assertThatThrownBy(() -> adapter.validate(query))
-                .isInstanceOf(InvalidObservabilityQueryException.class)
-                .extracting("technicalCode")
-                .isEqualTo("observability.query.unknown_measure");
+                    .isInstanceOf(InvalidObservabilityQueryException.class)
+                    .extracting("technicalCode")
+                    .isEqualTo("observability.query.unknown_measure");
         }
     }
 }

@@ -38,16 +38,18 @@ public class UserQueryServiceInMemory implements UserQueryService, InMemoryAlter
 
     @Override
     public List<User> search(UserSearchQuery searchQuery) {
-        var normalizedQuery = "*".equals(searchQuery.query()) ? "" : searchQuery.query().toLowerCase(Locale.ROOT);
-        return storage
-            .stream()
-            .filter(user -> normalizedQuery.isBlank() || matches(user, normalizedQuery))
-            .map(this::toUser)
-            .toList();
+        var normalizedQuery =
+                "*".equals(searchQuery.query()) ? "" : searchQuery.query().toLowerCase(Locale.ROOT);
+        return storage.stream()
+                .filter(user -> normalizedQuery.isBlank() || matches(user, normalizedQuery))
+                .map(this::toUser)
+                .toList();
     }
 
     private boolean matches(BaseUserEntity user, String query) {
-        return contains(user.displayName(), query) || contains(user.getEmail(), query) || contains(user.getSourceId(), query);
+        return contains(user.displayName(), query)
+                || contains(user.getEmail(), query)
+                || contains(user.getSourceId(), query);
     }
 
     private boolean contains(String value, String query) {
@@ -56,13 +58,13 @@ public class UserQueryServiceInMemory implements UserQueryService, InMemoryAlter
 
     private User toUser(BaseUserEntity user) {
         return User.builder()
-            .id(user.getId())
-            .reference(user.getSourceId())
-            .displayName(user.displayName())
-            .firstName(user.getFirstname())
-            .lastName(user.getLastname())
-            .email(user.getEmail())
-            .build();
+                .id(user.getId())
+                .reference(user.getSourceId())
+                .displayName(user.displayName())
+                .firstName(user.getFirstname())
+                .lastName(user.getLastname())
+                .email(user.getEmail())
+                .build();
     }
 
     @Override

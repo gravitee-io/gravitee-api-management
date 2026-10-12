@@ -48,9 +48,7 @@ public class DeleteSharedPolicyGroupUseCase {
 
     public Output execute(Input input) {
         var sharedPolicyGroupToDelete = this.sharedPolicyGroupCrudService.getByEnvironmentId(
-            input.auditInfo().environmentId(),
-            input.sharedPolicyGroupId()
-        );
+                input.auditInfo().environmentId(), input.sharedPolicyGroupId());
 
         publishUndeployEvent(input, sharedPolicyGroupToDelete);
 
@@ -67,8 +65,7 @@ public class DeleteSharedPolicyGroupUseCase {
     public record Output() {}
 
     private void createAuditLog(SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
+        auditService.createEnvironmentAuditLog(EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_DELETED)
@@ -77,23 +74,23 @@ public class DeleteSharedPolicyGroupUseCase {
                 .newValue(null)
                 .createdAt(TimeProvider.now())
                 .properties(Map.of(AuditProperties.SHARED_POLICY_GROUP, sharedPolicyGroup.getId()))
-                .build()
-        );
+                .build());
     }
 
     private void publishUndeployEvent(Input input, SharedPolicyGroup sharedPolicyGroup) {
         final Event event = eventCrudService.createEvent(
-            input.auditInfo.organizationId(),
-            input.auditInfo.environmentId(),
-            Set.of(input.auditInfo.environmentId()),
-            EventType.UNDEPLOY_SHARED_POLICY_GROUP,
-            sharedPolicyGroup.getDescription(),
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, input.auditInfo.actor().userId()),
-                entry(Event.EventProperties.SHARED_POLICY_GROUP_ID, sharedPolicyGroup.getCrossId())
-            )
-        );
+                input.auditInfo.organizationId(),
+                input.auditInfo.environmentId(),
+                Set.of(input.auditInfo.environmentId()),
+                EventType.UNDEPLOY_SHARED_POLICY_GROUP,
+                sharedPolicyGroup.getDescription(),
+                Map.ofEntries(
+                        entry(
+                                Event.EventProperties.USER,
+                                input.auditInfo.actor().userId()),
+                        entry(Event.EventProperties.SHARED_POLICY_GROUP_ID, sharedPolicyGroup.getCrossId())));
 
-        eventLatestCrudService.createOrPatchLatestEvent(input.auditInfo.organizationId(), sharedPolicyGroup.getId(), event);
+        eventLatestCrudService.createOrPatchLatestEvent(
+                input.auditInfo.organizationId(), sharedPolicyGroup.getId(), event);
     }
 }

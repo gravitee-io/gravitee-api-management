@@ -29,22 +29,20 @@ public class ParametersQueryServiceInMemory implements ParametersQueryService, I
 
     @Override
     public boolean findAsBoolean(Key key, ParameterContext context) {
-        return parameters
-            .stream()
-            .filter(parameter -> key.equals(Key.findByKey(parameter.getKey())))
-            .map(parameter -> Boolean.valueOf(parameter.getValue()))
-            .findFirst()
-            .orElse(false);
+        return parameters.stream()
+                .filter(parameter -> key.equals(Key.findByKey(parameter.getKey())))
+                .map(parameter -> Boolean.valueOf(parameter.getValue()))
+                .findFirst()
+                .orElse(false);
     }
 
     @Override
     public String findAsString(Key key, ParameterContext context) {
-        return parameters
-            .stream()
-            .filter(parameter -> key.equals(Key.findByKey(parameter.getKey())))
-            .map(Parameter::getValue)
-            .findFirst()
-            .orElse(null);
+        return parameters.stream()
+                .filter(parameter -> key.equals(Key.findByKey(parameter.getKey())))
+                .map(Parameter::getValue)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

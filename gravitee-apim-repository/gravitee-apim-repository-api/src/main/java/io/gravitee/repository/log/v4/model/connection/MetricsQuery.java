@@ -54,6 +54,7 @@ public class MetricsQuery {
          * the field-missing fallback, kept as is for the Console runtime logs and the v2 environment logs.
          */
         private EntrypointScope entrypointScope;
+
         private Set<String> apiIds;
         private Set<String> apiProductIds;
         private Set<String> requestIds;

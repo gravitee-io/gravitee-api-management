@@ -28,10 +28,10 @@ public class UpdatedAtIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("events")
-            .name("u-1i-1")
-            .key("updatedAt", descending())
-            .key("_id", descending())
-            .build();
+                .collection("events")
+                .name("u-1i-1")
+                .key("updatedAt", descending())
+                .key("_id", descending())
+                .build();
     }
 }

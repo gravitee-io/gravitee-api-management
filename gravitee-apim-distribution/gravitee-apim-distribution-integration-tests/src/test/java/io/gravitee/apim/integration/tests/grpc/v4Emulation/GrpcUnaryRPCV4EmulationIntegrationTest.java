@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/grpc/hello-world.json" })
+@DeployApi({"/apis/grpc/hello-world.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class GrpcUnaryRPCV4EmulationIntegrationTest extends AbstractGrpcGatewayTest {
 
@@ -64,7 +64,9 @@ public class GrpcUnaryRPCV4EmulationIntegrationTest extends AbstractGrpcGatewayT
             request.handler(hello -> {
                 // just a simple response
                 GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
-                HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + hello.getName()).build();
+                HelloReply reply = HelloReply.newBuilder()
+                        .setMessage("Hello " + hello.getName())
+                        .build();
                 response.end(reply);
             });
         });
@@ -74,11 +76,9 @@ public class GrpcUnaryRPCV4EmulationIntegrationTest extends AbstractGrpcGatewayT
 
         // Create the backend HTTP Server handling gRPC
         HttpServer httpServer = createHttpServer(grpcServer);
-        httpServer
-            .listen()
-            .andThen(handler -> {
-                // call the service through the gateway
-                getGrpcClient()
+        httpServer.listen().andThen(handler -> {
+            // call the service through the gateway
+            getGrpcClient()
                     .request(gatewayAddress(httpConfig), GreeterGrpc.getSayHelloMethod())
                     .compose(request -> {
                         request.end(HelloRequest.newBuilder().setName("You").build());
@@ -94,11 +94,9 @@ public class GrpcUnaryRPCV4EmulationIntegrationTest extends AbstractGrpcGatewayT
                         fail(failure.getMessage());
                     });
 
-                await()
-                    .atMost(30, TimeUnit.SECONDS)
-                    .untilAsserted(() -> {
-                        assertThat(latch.getCount()).isZero();
-                    });
+            await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
+                assertThat(latch.getCount()).isZero();
             });
+        });
     }
 }

@@ -59,17 +59,15 @@ public class CustomUserFieldsResource extends AbstractResource {
 
     @GET
     @Operation(
-        summary = "List All Custom User Fields",
-        description = "User must have the CUSTOM_USER_FIELDS[READ] permission to use this service"
-    )
+            summary = "List All Custom User Fields",
+            description = "User must have the CUSTOM_USER_FIELDS[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Custom User Field deleted",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = CustomUserFieldEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "Custom User Field deleted",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = CustomUserFieldEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCustomUserFields() {
         List<CustomUserFieldEntity> fields = fieldService.listAllFields(GraviteeContext.getExecutionContext());
@@ -81,19 +79,23 @@ public class CustomUserFieldsResource extends AbstractResource {
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_CUSTOM_USER_FIELDS, acls = CREATE))
     @Operation(
-        summary = "Create a Custom User Field",
-        description = "User must have the CUSTOM_USER_FIELDS[CREATE] permission to use this service"
-    )
+            summary = "Create a Custom User Field",
+            description = "User must have the CUSTOM_USER_FIELDS[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Custom User Field Created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CustomUserFieldEntity.class))
-    )
+            responseCode = "201",
+            description = "Custom User Field Created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = CustomUserFieldEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createCustomUserField(@Valid CustomUserFieldEntity newCustomUserFieldEntity) {
-        CustomUserFieldEntity newField = fieldService.create(GraviteeContext.getExecutionContext(), newCustomUserFieldEntity);
+        CustomUserFieldEntity newField =
+                fieldService.create(GraviteeContext.getExecutionContext(), newCustomUserFieldEntity);
         if (newField != null) {
-            return Response.created(URI.create(uriInfo.getPath() + "/" + newField.getKey())).entity(newField).build();
+            return Response.created(URI.create(uriInfo.getPath() + "/" + newField.getKey()))
+                    .entity(newField)
+                    .build();
         }
 
         return Response.serverError().build();
@@ -105,21 +107,25 @@ public class CustomUserFieldsResource extends AbstractResource {
     @Path("{key}")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_CUSTOM_USER_FIELDS, acls = UPDATE))
     @Operation(
-        summary = "Update a Custom User Field",
-        description = "User must have the CUSTOM_USER_FIELDS[UPDATE] permission to use this service"
-    )
+            summary = "Update a Custom User Field",
+            description = "User must have the CUSTOM_USER_FIELDS[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Custom User Field updated",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CustomUserFieldEntity.class))
-    )
+            responseCode = "200",
+            description = "Custom User Field updated",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = CustomUserFieldEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Response updateCustomUserField(@PathParam("key") String key, @Valid CustomUserFieldEntity toUpdateFieldEntity) {
-        if (toUpdateFieldEntity == null || !key.toLowerCase().equals(toUpdateFieldEntity.getKey().toLowerCase())) {
+    public Response updateCustomUserField(
+            @PathParam("key") String key, @Valid CustomUserFieldEntity toUpdateFieldEntity) {
+        if (toUpdateFieldEntity == null
+                || !key.toLowerCase().equals(toUpdateFieldEntity.getKey().toLowerCase())) {
             throw new CustomUserFieldException(key, "update");
         }
 
-        CustomUserFieldEntity updatedField = fieldService.update(GraviteeContext.getExecutionContext(), toUpdateFieldEntity);
+        CustomUserFieldEntity updatedField =
+                fieldService.update(GraviteeContext.getExecutionContext(), toUpdateFieldEntity);
         if (updatedField != null) {
             return Response.ok().entity(updatedField).build();
         }
@@ -131,9 +137,8 @@ public class CustomUserFieldsResource extends AbstractResource {
     @Path("{key}")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_CUSTOM_USER_FIELDS, acls = DELETE))
     @Operation(
-        summary = "Delete a Custom User Field",
-        description = "User must have the CUSTOM_USER_FIELDS[DELETE] permission to use this service"
-    )
+            summary = "Delete a Custom User Field",
+            description = "User must have the CUSTOM_USER_FIELDS[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Custom User Field deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response deleteCustomUserField(@PathParam("key") String key) {

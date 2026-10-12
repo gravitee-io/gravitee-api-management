@@ -33,7 +33,6 @@ import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import lombok.CustomLog;
 
 /**
@@ -108,7 +107,9 @@ public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements 
 
             if (onResponseAction != null) {
                 ComponentScope.push(ctx, ComponentType.POLICY, policy.id());
-                return onResponseAction.apply(ctx).doFinally(() -> ComponentScope.remove(ctx, ComponentType.POLICY, policy.id()));
+                return onResponseAction
+                        .apply(ctx)
+                        .doFinally(() -> ComponentScope.remove(ctx, ComponentType.POLICY, policy.id()));
             }
 
             return Completable.complete();
@@ -122,18 +123,20 @@ public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements 
 
             HttpExecutionContext ctx = (HttpExecutionContext) baseCtx;
             ctx.putInternalAttribute(
-                TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION,
-                policyDescriptions != null ? policyDescriptions.get(policy) : null
-            );
+                    TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION,
+                    policyDescriptions != null ? policyDescriptions.get(policy) : null);
             return switch (phase) {
                 case REQUEST -> HookHelper.hook(() -> policy.onRequest(ctx), policy.id(), policyHooks, ctx, phase);
                 case RESPONSE -> HookHelper.hook(() -> policy.onResponse(ctx), policy.id(), policyHooks, ctx, phase);
-                case MESSAGE_REQUEST -> HookHelper.hook(() -> policy.onMessageRequest(ctx), policy.id(), policyMessageHooks, ctx, phase);
-                case MESSAGE_RESPONSE -> HookHelper.hook(() -> policy.onMessageResponse(ctx), policy.id(), policyMessageHooks, ctx, phase);
+                case MESSAGE_REQUEST ->
+                    HookHelper.hook(() -> policy.onMessageRequest(ctx), policy.id(), policyMessageHooks, ctx, phase);
+                case MESSAGE_RESPONSE ->
+                    HookHelper.hook(() -> policy.onMessageResponse(ctx), policy.id(), policyMessageHooks, ctx, phase);
                 default -> Completable.error(new IllegalArgumentException("Execution phase unknown"));
             };
         } catch (Exception e) {
-            // Capture any error that could occur during policy execution assembly (e.g. NPE, IllegalArgumentException, ...) and rethrow it properly in a reactive way.
+            // Capture any error that could occur during policy execution assembly (e.g. NPE, IllegalArgumentException,
+            // ...) and rethrow it properly in a reactive way.
             return Completable.error(e);
         }
     }

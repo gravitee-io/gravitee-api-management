@@ -58,22 +58,26 @@ public class PortalThemesResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { CREATE, UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_THEME,
+                acls = {CREATE, UPDATE})
+    })
     public Response createOrUpdate(@Valid @NotNull PortalThemeSpec spec, @QueryParam("dryRun") boolean dryRun) {
         var auditInfo = getAuditInfo();
         var input = new ValidateThemeDomainService.Input(
-            auditInfo,
-            spec.getHrid(),
-            spec.getName(),
-            PortalThemeMapper.INSTANCE.toCoreDefinition(spec.getDefinition()),
-            spec.getLogo(),
-            spec.getOptionalLogo(),
-            spec.getFavicon(),
-            spec.getBackgroundImage()
-        );
-        var output = dryRun ? validatePortalThemeUseCase.execute(input) : createOrUpdatePortalThemeUseCase.execute(input);
-        return Response.ok(
-            PortalThemeMapper.INSTANCE.toPortalThemeState(output.theme(), spec.getHrid(), auditInfo, output.errors())
-        ).build();
+                auditInfo,
+                spec.getHrid(),
+                spec.getName(),
+                PortalThemeMapper.INSTANCE.toCoreDefinition(spec.getDefinition()),
+                spec.getLogo(),
+                spec.getOptionalLogo(),
+                spec.getFavicon(),
+                spec.getBackgroundImage());
+        var output =
+                dryRun ? validatePortalThemeUseCase.execute(input) : createOrUpdatePortalThemeUseCase.execute(input);
+        return Response.ok(PortalThemeMapper.INSTANCE.toPortalThemeState(
+                        output.theme(), spec.getHrid(), auditInfo, output.errors()))
+                .build();
     }
 }

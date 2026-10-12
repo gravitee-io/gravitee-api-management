@@ -16,10 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.page.revision;
 
 import io.gravitee.repository.mongodb.management.internal.model.PageRevisionMongo;
-import java.util.List;
 import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)

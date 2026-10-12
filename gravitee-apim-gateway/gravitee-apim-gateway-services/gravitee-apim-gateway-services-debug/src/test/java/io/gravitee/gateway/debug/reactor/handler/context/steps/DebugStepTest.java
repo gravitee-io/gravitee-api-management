@@ -37,7 +37,8 @@ public class DebugStepTest {
 
     @BeforeEach
     public void setUp() {
-        cut = new DebugTestingStep("policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST, new PolicyMetadata("policy", "{}"));
+        cut = new DebugTestingStep(
+                "policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST, new PolicyMetadata("policy", "{}"));
     }
 
     @Test
@@ -79,12 +80,11 @@ public class DebugStepTest {
     static class DebugTestingStep extends DebugStep<Object> {
 
         public DebugTestingStep(
-            String policyId,
-            StreamType streamType,
-            String uuid,
-            PolicyScope policyScope,
-            PolicyMetadata policyMetadata
-        ) {
+                String policyId,
+                StreamType streamType,
+                String uuid,
+                PolicyScope policyScope,
+                PolicyMetadata policyMetadata) {
             super(policyId, streamType, uuid, policyScope, policyMetadata);
         }
 
@@ -92,7 +92,8 @@ public class DebugStepTest {
         protected void snapshotInputData(Object source, Map<String, Serializable> attributes) {}
 
         @Override
-        protected void generateDiffMap(Object source, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer) {}
+        protected void generateDiffMap(
+                Object source, Map<String, Serializable> attributes, Buffer inputBuffer, Buffer outputBuffer) {}
 
         public DebugStepContent getPolicyInputContent() {
             return this.policyInputContent;

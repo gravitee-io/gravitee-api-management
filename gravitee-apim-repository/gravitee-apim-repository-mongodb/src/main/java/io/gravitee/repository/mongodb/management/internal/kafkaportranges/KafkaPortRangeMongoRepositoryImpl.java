@@ -31,27 +31,27 @@ public class KafkaPortRangeMongoRepositoryImpl implements KafkaPortRangeMongoRep
 
     @Override
     public List<KafkaPortRangeMongo> findConflicting(
-        String environmentId,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) {
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId) {
         // The four conflict conditions (see KafkaPortRangeRepository javadoc), expressed as an $or
         // of Mongo criteria. Scoping to environmentId is added as a separate $and term.
-        final Criteria brokerRangeOverlap = where("rangeStart").lte(rangeEnd).and("rangeEnd").gte(rangeStart);
-        final Criteria newBootstrapInsideExistingRange = where("rangeStart").lte(bootstrapPort).and("rangeEnd").gte(bootstrapPort);
-        final Criteria existingBootstrapInsideNewRange = where("bootstrapPort").gte(rangeStart).lte(rangeEnd);
+        final Criteria brokerRangeOverlap =
+                where("rangeStart").lte(rangeEnd).and("rangeEnd").gte(rangeStart);
+        final Criteria newBootstrapInsideExistingRange =
+                where("rangeStart").lte(bootstrapPort).and("rangeEnd").gte(bootstrapPort);
+        final Criteria existingBootstrapInsideNewRange =
+                where("bootstrapPort").gte(rangeStart).lte(rangeEnd);
         final Criteria bootstrapPortCollision = where("bootstrapPort").is(bootstrapPort);
 
-        final Criteria conflict = new Criteria().orOperator(
-            brokerRangeOverlap,
-            newBootstrapInsideExistingRange,
-            existingBootstrapInsideNewRange,
-            bootstrapPortCollision
-        );
+        final Criteria conflict = new Criteria()
+                .orOperator(
+                        brokerRangeOverlap,
+                        newBootstrapInsideExistingRange,
+                        existingBootstrapInsideNewRange,
+                        bootstrapPortCollision);
 
-        final Query query = new Query().addCriteria(where("environmentId").is(environmentId)).addCriteria(conflict);
+        final Query query = new Query()
+                .addCriteria(where("environmentId").is(environmentId))
+                .addCriteria(conflict);
 
         if (excludePlanId != null) {
             query.addCriteria(where("_id").ne(excludePlanId));

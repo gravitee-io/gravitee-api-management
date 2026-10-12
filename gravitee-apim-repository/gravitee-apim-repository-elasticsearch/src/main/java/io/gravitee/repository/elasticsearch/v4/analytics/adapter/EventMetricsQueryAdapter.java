@@ -72,7 +72,8 @@ public final class EventMetricsQueryAdapter {
     private EventMetricsQueryAdapter() {}
 
     public static String toESQuery(HistogramQuery query) {
-        Set<AggregationType> types = query.aggregations().stream().map(Aggregation::getType).collect(Collectors.toSet());
+        Set<AggregationType> types =
+                query.aggregations().stream().map(Aggregation::getType).collect(Collectors.toSet());
 
         if (types.size() != 1) {
             throw new IllegalArgumentException("Exactly one aggregate function should be specified");
@@ -126,50 +127,44 @@ public final class EventMetricsQueryAdapter {
     }
 
     private static void applyDeltaAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
-        query
-            .aggregations()
-            .forEach(agg -> {
-                String field = agg.getField();
-                var filteredNode = aggregationsNode.putObject(FILTERED_PREFIX + field);
-                filteredNode.putObject(FILTER).putObject(TERM).put("doc-type", getDocType(field));
-                var filteredAgg = filteredNode.putObject(AGGS);
-                filteredAgg.putObject(TOTAL_PREFIX + field).putObject(SUM).put(FIELD, field);
-            });
+        query.aggregations().forEach(agg -> {
+            String field = agg.getField();
+            var filteredNode = aggregationsNode.putObject(FILTERED_PREFIX + field);
+            filteredNode.putObject(FILTER).putObject(TERM).put("doc-type", getDocType(field));
+            var filteredAgg = filteredNode.putObject(AGGS);
+            filteredAgg.putObject(TOTAL_PREFIX + field).putObject(SUM).put(FIELD, field);
+        });
     }
 
     private static void applyValueAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
-        query
-            .aggregations()
-            .forEach(agg -> {
-                String field = agg.getField();
-                var filteredNode = aggregationsNode.putObject(FILTERED_PREFIX + field);
-                filteredNode.putObject(FILTER).putObject(TERM).put("doc-type", getDocType(field));
-                var filteredAgg = filteredNode.putObject(AGGS);
+        query.aggregations().forEach(agg -> {
+            String field = agg.getField();
+            var filteredNode = aggregationsNode.putObject(FILTERED_PREFIX + field);
+            filteredNode.putObject(FILTER).putObject(TERM).put("doc-type", getDocType(field));
+            var filteredAgg = filteredNode.putObject(AGGS);
 
-                var latestTopHitts = filteredAgg.putObject(LATEST_PREFIX + field).putObject(TOP_HITS);
-                var sort = latestTopHitts.putArray(SORT);
-                sort.addObject().putObject(TIMESTAMP).put(ORDER, DESC);
+            var latestTopHitts = filteredAgg.putObject(LATEST_PREFIX + field).putObject(TOP_HITS);
+            var sort = latestTopHitts.putArray(SORT);
+            sort.addObject().putObject(TIMESTAMP).put(ORDER, DESC);
 
-                latestTopHitts.put(SIZE, 1);
-                latestTopHitts.putObject(SOURCE).putArray("includes").add(field);
-            });
+            latestTopHitts.put(SIZE, 1);
+            latestTopHitts.putObject(SOURCE).putArray("includes").add(field);
+        });
     }
 
     private static void applyTrendAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
         var histogramAgg = applyFixedIntervalAggregations(query, aggregationsNode);
-        query
-            .aggregations()
-            .forEach(agg -> {
-                String field = agg.getField();
-                histogramAgg.putObject(TOTAL_PREFIX + field).putObject(SUM).put(FIELD, field);
-            });
+        query.aggregations().forEach(agg -> {
+            String field = agg.getField();
+            histogramAgg.putObject(TOTAL_PREFIX + field).putObject(SUM).put(FIELD, field);
+        });
     }
 
     private static ObjectNode applyFixedIntervalAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
         TimeRange timeRange = query.timeRange();
         Duration interval = timeRange
-            .interval()
-            .orElseThrow(() -> new IllegalArgumentException("Interval is required for TREND aggregations"));
+                .interval()
+                .orElseThrow(() -> new IllegalArgumentException("Interval is required for TREND aggregations"));
         long from = timeRange.from().toEpochMilli();
         long to = timeRange.to().toEpochMilli();
         long intervalMillis = interval.toMillis();
@@ -193,7 +188,10 @@ public final class EventMetricsQueryAdapter {
 
         Map<String, Set<String>> groupedTerms = new LinkedHashMap<>();
 
-        query.terms().forEach(term -> groupedTerms.computeIfAbsent(term.key(), k -> new LinkedHashSet<>()).add(term.value()));
+        query.terms()
+                .forEach(term -> groupedTerms
+                        .computeIfAbsent(term.key(), k -> new LinkedHashSet<>())
+                        .add(term.value()));
 
         groupedTerms.forEach((field, values) -> applyTermsFilter(field, values, filters));
     }

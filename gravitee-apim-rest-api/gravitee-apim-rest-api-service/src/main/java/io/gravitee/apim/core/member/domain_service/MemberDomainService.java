@@ -21,5 +21,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 
 public interface MemberDomainService {
-    Set<MemberEntity> getMembersByReference(ExecutionContext executionContext, MembershipReferenceType referenceType, String referenceId);
+    Set<MemberEntity> getMembersByReference(
+            ExecutionContext executionContext, MembershipReferenceType referenceType, String referenceId);
 }

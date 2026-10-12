@@ -45,7 +45,8 @@ public class StatsQueryCommand extends AbstractElasticsearchQueryCommand<StatsRe
         final String sQuery = this.createQuery(TEMPLATE, query);
 
         try {
-            SearchResponse searchResponse = execute(queryContext, statsQuery, Type.REQUEST, sQuery).blockingGet();
+            SearchResponse searchResponse =
+                    execute(queryContext, statsQuery, Type.REQUEST, sQuery).blockingGet();
             return this.toStatsResponse(searchResponse);
         } catch (final Exception eex) {
             log.error("Impossible to perform StatsQuery", eex);
@@ -56,7 +57,8 @@ public class StatsQueryCommand extends AbstractElasticsearchQueryCommand<StatsRe
     private StatsResponse toStatsResponse(final SearchResponse response) {
         final StatsResponse statsResponse = new StatsResponse();
         if (response.getAggregations() != null && !response.getAggregations().isEmpty()) {
-            final Aggregation aggregation = response.getAggregations().entrySet().iterator().next().getValue();
+            final Aggregation aggregation =
+                    response.getAggregations().entrySet().iterator().next().getValue();
             statsResponse.setAvg(toFloat(aggregation.getAvg()));
             statsResponse.setCount(toFloat(aggregation.getCount()));
             statsResponse.setMax(toFloat(aggregation.getMax()));

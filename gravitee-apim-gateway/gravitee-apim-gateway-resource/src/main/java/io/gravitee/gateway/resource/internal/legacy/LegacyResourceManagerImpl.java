@@ -39,7 +39,8 @@ import org.springframework.util.ClassUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<ResourceManager> implements ResourceLifecycleManager {
+public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<ResourceManager>
+        implements ResourceLifecycleManager {
 
     protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());
 
@@ -53,12 +54,11 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
     protected final ApplicationContext applicationContext;
 
     public LegacyResourceManagerImpl(
-        final Reactable reactable,
-        final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
-        final ResourceClassLoaderFactory resourceClassLoaderFactory,
-        final ResourceConfigurationFactory resourceConfigurationFactory,
-        final ApplicationContext applicationContext
-    ) {
+            final Reactable reactable,
+            final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
+            final ResourceClassLoaderFactory resourceClassLoaderFactory,
+            final ResourceConfigurationFactory resourceConfigurationFactory,
+            final ApplicationContext applicationContext) {
         this.reactable = reactable;
         this.resourcePluginManager = resourcePluginManager;
         this.resourceClassLoaderFactory = resourceClassLoaderFactory;
@@ -72,47 +72,45 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
         initialize();
 
         // Start resources
-        resources
-            .entrySet()
-            .stream()
-            .forEach(resource -> {
-                try {
-                    log.info("Start resource {} [{}]", resource.getKey(), resource.getValue().getClass());
-                    resource.getValue().start();
-                } catch (Exception ex) {
-                    log.error("Unable to start resource", ex);
-                }
-            });
+        resources.entrySet().stream().forEach(resource -> {
+            try {
+                log.info(
+                        "Start resource {} [{}]",
+                        resource.getKey(),
+                        resource.getValue().getClass());
+                resource.getValue().start();
+            } catch (Exception ex) {
+                log.error("Unable to start resource", ex);
+            }
+        });
     }
 
     @Override
     protected void doStop() throws Exception {
         // Stop resources
-        resources
-            .entrySet()
-            .stream()
-            .forEach(resource -> {
-                try {
-                    log.info("Stop resource {} [{}]", resource.getKey(), resource.getValue().getClass());
-                    resource.getValue().stop();
-                } catch (Exception ex) {
-                    log.error("Unable to stop resource", ex);
-                }
-            });
+        resources.entrySet().stream().forEach(resource -> {
+            try {
+                log.info(
+                        "Stop resource {} [{}]",
+                        resource.getKey(),
+                        resource.getValue().getClass());
+                resource.getValue().stop();
+            } catch (Exception ex) {
+                log.error("Unable to stop resource", ex);
+            }
+        });
 
         // Close resource classLoaders
-        resources
-            .values()
-            .forEach(resource -> {
-                ClassLoader resourceClassLoader = resource.getClass().getClassLoader();
-                if (resourceClassLoader instanceof PluginClassLoader) {
-                    try {
-                        ((PluginClassLoader) resourceClassLoader).close();
-                    } catch (IOException ioe) {
-                        log.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
-                    }
+        resources.values().forEach(resource -> {
+            ClassLoader resourceClassLoader = resource.getClass().getClassLoader();
+            if (resourceClassLoader instanceof PluginClassLoader) {
+                try {
+                    ((PluginClassLoader) resourceClassLoader).close();
+                } catch (IOException ioe) {
+                    log.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
                 }
-            });
+            }
+        });
 
         // Be sure to remove all references to resources
         resources.clear();
@@ -125,32 +123,35 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
             final ResourcePlugin resourcePlugin = resourcePluginManager.get(resource.getType());
             if (resourcePlugin == null) {
                 log.error("Resource [{}] cannot be found in plugin registry", resource.getType());
-                throw new IllegalStateException("Resource [" + resource.getType() + "] cannot be found in plugin registry");
+                throw new IllegalStateException(
+                        "Resource [" + resource.getType() + "] cannot be found in plugin registry");
             }
 
-            PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(resourcePlugin.id(), s ->
-                resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
-            );
+            PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(
+                    resourcePlugin.id(),
+                    s -> resourceClassLoaderFactory.getOrCreateClassLoader(
+                            resourcePlugin, reactable.getClass().getClassLoader()));
 
             log.debug("Loading resource {} for {}", resource.getName(), reactable);
 
             try {
-                Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<
-                    ? extends io.gravitee.resource.api.Resource
-                >) ClassUtils.forName(resourcePlugin.resource().getName(), resourceClassLoader);
+                Class<? extends io.gravitee.resource.api.Resource> resourceClass =
+                        (Class<? extends io.gravitee.resource.api.Resource>)
+                                ClassUtils.forName(resourcePlugin.resource().getName(), resourceClassLoader);
                 Map<Class<?>, Object> injectables = new HashMap<>();
 
                 if (resourcePlugin.configuration() != null) {
-                    Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<
-                        ? extends ResourceConfiguration
-                    >) ClassUtils.forName(resourcePlugin.configuration().getName(), resourceClassLoader);
+                    Class<? extends ResourceConfiguration> resourceConfigurationClass =
+                            (Class<? extends ResourceConfiguration>) ClassUtils.forName(
+                                    resourcePlugin.configuration().getName(), resourceClassLoader);
                     injectables.put(
-                        resourceConfigurationClass,
-                        resourceConfigurationFactory.create(resourceConfigurationClass, resource.getConfiguration())
-                    );
+                            resourceConfigurationClass,
+                            resourceConfigurationFactory.create(
+                                    resourceConfigurationClass, resource.getConfiguration()));
                 }
 
-                io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);
+                io.gravitee.resource.api.Resource resourceInstance =
+                        new ResourceFactory().create(resourceClass, injectables);
 
                 if (resourceInstance instanceof ApplicationContextAware) {
                     ((ApplicationContextAware) resourceInstance).setApplicationContext(applicationContext);
@@ -177,11 +178,9 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
 
     @Override
     public <T> T getResource(Class<T> requiredType) {
-        Optional<T> resource = (Optional<T>) resources
-            .values()
-            .stream()
-            .filter(resourceEntry -> resourceEntry.getClass().isAssignableFrom(requiredType))
-            .findFirst();
+        Optional<T> resource = (Optional<T>) resources.values().stream()
+                .filter(resourceEntry -> resourceEntry.getClass().isAssignableFrom(requiredType))
+                .findFirst();
 
         return resource.orElse(null);
     }

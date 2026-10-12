@@ -48,7 +48,7 @@ public class KafkaExplorerPermissionUpgraderTest {
 
     private static final String CLUSTER = EnvironmentPermission.CLUSTER.getName();
     private static final String EXPLORER = EnvironmentPermission.EXPLORER.getName();
-    private static final char[] CLUSTER_ACLS = { 'C', 'R', 'U', 'D' };
+    private static final char[] CLUSTER_ACLS = {'C', 'R', 'U', 'D'};
     private static final String ORG_A = "org-a";
     private static final String ORG_B = "org-b";
 
@@ -62,7 +62,8 @@ public class KafkaExplorerPermissionUpgraderTest {
     OrganizationRepository organizationRepository;
 
     @Test
-    public void should_copy_cluster_acls_when_role_has_cluster_permission() throws TechnicalException, UpgraderException {
+    public void should_copy_cluster_acls_when_role_has_cluster_permission()
+            throws TechnicalException, UpgraderException {
         String orgId = GraviteeContext.getDefaultOrganization();
         mockOrganizations(orgId);
 
@@ -100,7 +101,7 @@ public class KafkaExplorerPermissionUpgraderTest {
         String orgId = GraviteeContext.getDefaultOrganization();
         mockOrganizations(orgId);
 
-        char[] customAcls = { 'R' };
+        char[] customAcls = {'R'};
         RoleEntity role = roleWithPermissions("role-id", Map.of(CLUSTER, CLUSTER_ACLS, EXPLORER, customAcls));
         when(roleService.findByScope(ENVIRONMENT, orgId)).thenReturn(List.of(role));
 
@@ -150,11 +151,9 @@ public class KafkaExplorerPermissionUpgraderTest {
         when(orgB.getId()).thenReturn(ORG_B);
         when(organizationRepository.findAll()).thenReturn(Set.of(orgA, orgB));
 
-        List.of(ORG_A, ORG_B).forEach(orgId ->
-            when(roleService.findByScope(ENVIRONMENT, orgId)).thenReturn(
-                List.of(roleWithPermissions("role-" + orgId, Map.of(CLUSTER, CLUSTER_ACLS)))
-            )
-        );
+        List.of(ORG_A, ORG_B)
+                .forEach(orgId -> when(roleService.findByScope(ENVIRONMENT, orgId))
+                        .thenReturn(List.of(roleWithPermissions("role-" + orgId, Map.of(CLUSTER, CLUSTER_ACLS)))));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -163,9 +162,11 @@ public class KafkaExplorerPermissionUpgraderTest {
     }
 
     @Test
-    public void throws_UpgraderException_when_organization_repository_throws_RuntimeException() throws TechnicalException {
+    public void throws_UpgraderException_when_organization_repository_throws_RuntimeException()
+            throws TechnicalException {
         assertThrows(UpgraderException.class, () -> {
-            when(organizationRepository.findAll()).thenThrow(new RuntimeException("OrganizationRepository connection failure"));
+            when(organizationRepository.findAll())
+                    .thenThrow(new RuntimeException("OrganizationRepository connection failure"));
             upgrader.upgrade();
         });
     }
@@ -176,12 +177,11 @@ public class KafkaExplorerPermissionUpgraderTest {
             String orgId = GraviteeContext.getDefaultOrganization();
             mockOrganizations(orgId);
 
-            when(roleService.findByScope(ENVIRONMENT, orgId)).thenReturn(
-                List.of(roleWithPermissions("role-id", Map.of(CLUSTER, CLUSTER_ACLS)))
-            );
+            when(roleService.findByScope(ENVIRONMENT, orgId))
+                    .thenReturn(List.of(roleWithPermissions("role-id", Map.of(CLUSTER, CLUSTER_ACLS))));
             doThrow(new RuntimeException("RoleService update failure"))
-                .when(roleService)
-                .update(any(ExecutionContext.class), any(UpdateRoleEntity.class));
+                    .when(roleService)
+                    .update(any(ExecutionContext.class), any(UpdateRoleEntity.class));
 
             upgrader.upgrade();
         });

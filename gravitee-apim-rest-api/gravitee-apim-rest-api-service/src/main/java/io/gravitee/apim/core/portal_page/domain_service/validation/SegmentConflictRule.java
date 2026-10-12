@@ -32,14 +32,14 @@ import lombok.RequiredArgsConstructor;
 
 /** Rejects items whose (parent, segment) is already claimed — by the DB or by another item in the same batch. */
 @RequiredArgsConstructor
-public class SegmentConflictRule implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
+public class SegmentConflictRule
+        implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
 
     private static final Set<PortalNavigationItemType> SEGMENT_CHECKED_TYPES = EnumSet.of(
-        PortalNavigationItemType.FOLDER,
-        PortalNavigationItemType.LINK,
-        PortalNavigationItemType.API,
-        PortalNavigationItemType.API_PRODUCT
-    );
+            PortalNavigationItemType.FOLDER,
+            PortalNavigationItemType.LINK,
+            PortalNavigationItemType.API,
+            PortalNavigationItemType.API_PRODUCT);
 
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
 
@@ -53,23 +53,19 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
-        if (
-            collidesWithPendingBatch(
-                item.getId(),
-                item.getParentId(),
-                item.getSegment(),
-                item.getReference(),
-                ctx.pendingSegmentClaims()
-            ) ||
-            collidesWithPersistedSibling(
-                item.getId(),
-                item.getParentId(),
-                item.getSegment(),
-                item.getReference(),
-                environmentId,
-                ctx.pendingSegmentClaims()
-            )
-        ) {
+        if (collidesWithPendingBatch(
+                        item.getId(),
+                        item.getParentId(),
+                        item.getSegment(),
+                        item.getReference(),
+                        ctx.pendingSegmentClaims())
+                || collidesWithPersistedSibling(
+                        item.getId(),
+                        item.getParentId(),
+                        item.getSegment(),
+                        item.getReference(),
+                        environmentId,
+                        ctx.pendingSegmentClaims())) {
             throw exceptionFor(item);
         }
     }
@@ -83,77 +79,63 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
     }
 
     @Override
-    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
-        if (
-            collidesWithPendingBatch(
-                existingItem.getId(),
-                toUpdate.getParentId(),
-                toUpdate.getSegment(),
-                existingItem.getReference(),
-                ctx.pendingSegmentClaims()
-            ) ||
-            collidesWithPersistedSibling(
-                existingItem.getId(),
-                toUpdate.getParentId(),
-                toUpdate.getSegment(),
-                existingItem.getReference(),
-                existingItem.getEnvironmentId(),
-                ctx.pendingSegmentClaims()
-            )
-        ) {
+    public void validate(
+            UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+        if (collidesWithPendingBatch(
+                        existingItem.getId(),
+                        toUpdate.getParentId(),
+                        toUpdate.getSegment(),
+                        existingItem.getReference(),
+                        ctx.pendingSegmentClaims())
+                || collidesWithPersistedSibling(
+                        existingItem.getId(),
+                        toUpdate.getParentId(),
+                        toUpdate.getSegment(),
+                        existingItem.getReference(),
+                        existingItem.getEnvironmentId(),
+                        ctx.pendingSegmentClaims())) {
             throw exceptionFor(existingItem);
         }
     }
 
     private static boolean collidesWithPendingBatch(
-        PortalNavigationItemId itemId,
-        PortalNavigationItemId parentId,
-        String segment,
-        NavigationItemReference reference,
-        List<PendingSegmentClaim> claims
-    ) {
-        return claims
-            .stream()
-            .anyMatch(
-                claim ->
-                    claim.intent() == PendingSegmentClaim.Intent.CLAIM &&
-                    !Objects.equals(claim.id(), itemId) &&
-                    Objects.equals(claim.parentId(), parentId) &&
-                    Objects.equals(claim.segment(), segment) &&
-                    (parentId != null || reference.sharesRootNamespaceWith(claim.reference()))
-            );
+            PortalNavigationItemId itemId,
+            PortalNavigationItemId parentId,
+            String segment,
+            NavigationItemReference reference,
+            List<PendingSegmentClaim> claims) {
+        return claims.stream()
+                .anyMatch(claim -> claim.intent() == PendingSegmentClaim.Intent.CLAIM
+                        && !Objects.equals(claim.id(), itemId)
+                        && Objects.equals(claim.parentId(), parentId)
+                        && Objects.equals(claim.segment(), segment)
+                        && (parentId != null || reference.sharesRootNamespaceWith(claim.reference())));
     }
 
     private boolean collidesWithPersistedSibling(
-        PortalNavigationItemId itemId,
-        PortalNavigationItemId parentId,
-        String segment,
-        NavigationItemReference reference,
-        String environmentId,
-        List<PendingSegmentClaim> claims
-    ) {
+            PortalNavigationItemId itemId,
+            PortalNavigationItemId parentId,
+            String segment,
+            NavigationItemReference reference,
+            String environmentId,
+            List<PendingSegmentClaim> claims) {
         return navigationItemsQueryService
-            .findByParentIdAndSegment(environmentId, parentId, segment, reference)
-            .filter(sibling -> !sibling.getId().equals(itemId))
-            .filter(sibling -> !isVacatedInBatch(sibling.getId(), parentId, segment, claims))
-            .isPresent();
+                .findByParentIdAndSegment(environmentId, parentId, segment, reference)
+                .filter(sibling -> !sibling.getId().equals(itemId))
+                .filter(sibling -> !isVacatedInBatch(sibling.getId(), parentId, segment, claims))
+                .isPresent();
     }
 
     private static boolean isVacatedInBatch(
-        PortalNavigationItemId siblingId,
-        PortalNavigationItemId parentId,
-        String segment,
-        List<PendingSegmentClaim> claims
-    ) {
-        return claims
-            .stream()
-            .anyMatch(
-                claim ->
-                    claim.intent() == PendingSegmentClaim.Intent.RELEASE &&
-                    Objects.equals(claim.id(), siblingId) &&
-                    Objects.equals(claim.parentId(), parentId) &&
-                    Objects.equals(claim.segment(), segment)
-            );
+            PortalNavigationItemId siblingId,
+            PortalNavigationItemId parentId,
+            String segment,
+            List<PendingSegmentClaim> claims) {
+        return claims.stream()
+                .anyMatch(claim -> claim.intent() == PendingSegmentClaim.Intent.RELEASE
+                        && Objects.equals(claim.id(), siblingId)
+                        && Objects.equals(claim.parentId(), parentId)
+                        && Objects.equals(claim.segment(), segment));
     }
 
     private static PathConflictException exceptionFor(CreatePortalNavigationItem item) {
@@ -161,7 +143,8 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
     }
 
     private static PathConflictException exceptionFor(PortalNavigationItem existing) {
-        return exceptionFor(existing.getType(), resolveLocation(existing.getAutomationMetadata(), existing.getSegment()));
+        return exceptionFor(
+                existing.getType(), resolveLocation(existing.getAutomationMetadata(), existing.getSegment()));
     }
 
     private static String resolveLocation(AutomationMetadata automationMetadata, String segment) {
@@ -172,7 +155,8 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
         return switch (type) {
             case FOLDER -> PathConflictException.folderPath(location);
             case LINK -> PathConflictException.segmentTaken(PathConflictException.EntryKind.LINK, location);
-            case API, API_PRODUCT -> PathConflictException.segmentTaken(PathConflictException.EntryKind.LISTING, location);
+            case API, API_PRODUCT ->
+                PathConflictException.segmentTaken(PathConflictException.EntryKind.LISTING, location);
             default -> throw new IllegalStateException("SegmentConflictRule does not apply to " + type);
         };
     }

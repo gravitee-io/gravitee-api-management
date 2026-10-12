@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/grpc/invalid-path.json" })
+@DeployApi({"/apis/grpc/invalid-path.json"})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class GrpcUnknownServiceV4EmulationIntegrationTest extends AbstractGrpcGatewayTest {
 
@@ -52,18 +52,19 @@ public class GrpcUnknownServiceV4EmulationIntegrationTest extends AbstractGrpcGa
 
     @Test
     void should_request_and_not_get_response(VertxTestContext testContext, GatewayDynamicConfig.HttpConfig httpConfig)
-        throws InterruptedException {
+            throws InterruptedException {
         getGrpcClient()
-            .request(gatewayAddress(httpConfig), StreamingGreeterGrpc.getSayHelloStreamingMethod())
-            .compose(request -> {
-                // send one request
-                request.end(HelloRequest.newBuilder().setName("You").build());
-                return request.response();
-            })
-            .onSuccess(response -> {
-                assertThat(response.status().code).isEqualTo(Status.NOT_FOUND.getCode().value());
-                testContext.completeNow();
-            });
+                .request(gatewayAddress(httpConfig), StreamingGreeterGrpc.getSayHelloStreamingMethod())
+                .compose(request -> {
+                    // send one request
+                    request.end(HelloRequest.newBuilder().setName("You").build());
+                    return request.response();
+                })
+                .onSuccess(response -> {
+                    assertThat(response.status().code)
+                            .isEqualTo(Status.NOT_FOUND.getCode().value());
+                    testContext.completeNow();
+                });
 
         assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
     }

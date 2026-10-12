@@ -138,28 +138,25 @@ public class UpdateGroupEntity {
 
     @Override
     public String toString() {
-        return (
-            "UpdateGroupEntity{" +
-            "name='" +
-            name +
-            '\'' +
-            ", eventRules=" +
-            eventRules +
-            ", roles=" +
-            roles +
-            ", maxInvitation=" +
-            maxInvitation +
-            ", lockApiRole=" +
-            lockApiRole +
-            ", lockApplicationRole=" +
-            lockApplicationRole +
-            ", systemInvitation=" +
-            systemInvitation +
-            ", emailInvitation=" +
-            emailInvitation +
-            ", disableMembershipNotifications=" +
-            disableMembershipNotifications +
-            '}'
-        );
+        return ("UpdateGroupEntity{" + "name='"
+                + name
+                + '\''
+                + ", eventRules="
+                + eventRules
+                + ", roles="
+                + roles
+                + ", maxInvitation="
+                + maxInvitation
+                + ", lockApiRole="
+                + lockApiRole
+                + ", lockApplicationRole="
+                + lockApplicationRole
+                + ", systemInvitation="
+                + systemInvitation
+                + ", emailInvitation="
+                + emailInvitation
+                + ", disableMembershipNotifications="
+                + disableMembershipNotifications
+                + '}');
     }
 }

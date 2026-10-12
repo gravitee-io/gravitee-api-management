@@ -26,7 +26,8 @@ public class GroupInvitationFixtures {
         return new GroupInvitation(InvitationId.of(id), groupId, "GROUP", email, "API_USER", "APP_USER");
     }
 
-    public static GroupInvitation aGroupInvitation(String id, String groupId, String email, String apiRole, String applicationRole) {
+    public static GroupInvitation aGroupInvitation(
+            String id, String groupId, String email, String apiRole, String applicationRole) {
         return new GroupInvitation(InvitationId.of(id), groupId, "GROUP", email, apiRole, applicationRole);
     }
 }

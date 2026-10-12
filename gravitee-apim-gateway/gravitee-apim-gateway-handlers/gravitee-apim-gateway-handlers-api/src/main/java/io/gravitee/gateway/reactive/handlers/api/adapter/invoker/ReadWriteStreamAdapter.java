@@ -62,12 +62,12 @@ class ReadWriteStreamAdapter extends SimpleReadWriteStream<Buffer> {
             }
 
             delegateRequest
-                .chunks()
-                .doOnNext(bodyHandler::handle)
-                .doOnComplete(() -> endHandler.handle(null))
-                .doOnError(nextEmitter::tryOnError)
-                .onErrorResumeWith(e -> {})
-                .subscribe();
+                    .chunks()
+                    .doOnNext(bodyHandler::handle)
+                    .doOnComplete(() -> endHandler.handle(null))
+                    .doOnError(nextEmitter::tryOnError)
+                    .onErrorResumeWith(e -> {})
+                    .subscribe();
         });
     }
 }

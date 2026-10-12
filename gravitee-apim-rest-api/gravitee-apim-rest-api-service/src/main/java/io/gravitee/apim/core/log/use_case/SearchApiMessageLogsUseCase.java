@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @UseCase
 @RequiredArgsConstructor
 public class SearchApiMessageLogsUseCase {
@@ -41,11 +40,7 @@ public class SearchApiMessageLogsUseCase {
 
     public Output execute(ExecutionContext executionContext, Input input) {
         var response = messageMetricsCrudService.searchApiMessageLogs(
-            executionContext,
-            input.apiId(),
-            input.searchMessageMetricsFilters(),
-            input.pageable()
-        );
+                executionContext, input.apiId(), input.searchMessageMetricsFilters(), input.pageable());
         return new Output(response.total(), response.logs());
     }
 }

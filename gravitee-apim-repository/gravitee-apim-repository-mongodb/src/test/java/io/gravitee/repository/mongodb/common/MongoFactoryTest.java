@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -50,19 +49,15 @@ public class MongoFactoryTest {
      * "repositories." + key first.
      */
     private void registerAliasPropertySource() {
-        environment
-            .getPropertySources()
-            .addFirst(
-                new PropertySource<Object>("repositoryAlias") {
-                    @Override
-                    public Object getProperty(String name) {
-                        if (name.startsWith("management.") || name.startsWith("analytics.") || name.startsWith("ratelimit.")) {
-                            return environment.getProperty("repositories." + name);
-                        }
-                        return null;
-                    }
+        environment.getPropertySources().addFirst(new PropertySource<Object>("repositoryAlias") {
+            @Override
+            public Object getProperty(String name) {
+                if (name.startsWith("management.") || name.startsWith("analytics.") || name.startsWith("ratelimit.")) {
+                    return environment.getProperty("repositories." + name);
                 }
-            );
+                return null;
+            }
+        });
     }
 
     @Test
@@ -91,7 +86,8 @@ public class MongoFactoryTest {
         ClusterSettings clusterSettings = mongoFactory.buildClusterSettings(false);
 
         assertThat(clusterSettings).isNotNull();
-        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS)).isEqualTo(1000);
+        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS))
+                .isEqualTo(1000);
         assertThat(clusterSettings.getHosts()).isEqualTo(List.of(new ServerAddress("localhost", 27017)));
         assertThat(clusterSettings.getLocalThreshold(TimeUnit.MILLISECONDS)).isEqualTo(15);
     }
@@ -106,7 +102,8 @@ public class MongoFactoryTest {
         ClusterSettings clusterSettings = mongoFactory.buildClusterSettings(false);
 
         assertThat(clusterSettings).isNotNull();
-        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS)).isEqualTo(200);
+        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS))
+                .isEqualTo(200);
         assertThat(clusterSettings.getHosts()).isEqualTo(List.of(new ServerAddress("mongohost", 27117)));
         assertThat(clusterSettings.getLocalThreshold(TimeUnit.MILLISECONDS)).isEqualTo(300);
     }
@@ -123,10 +120,10 @@ public class MongoFactoryTest {
         ClusterSettings clusterSettings = mongoFactory.buildClusterSettings(false);
 
         assertThat(clusterSettings).isNotNull();
-        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS)).isEqualTo(200);
-        assertThat(clusterSettings.getHosts()).isEqualTo(
-            List.of(new ServerAddress("mongohost1", 27117), new ServerAddress("mongohost2", 27118))
-        );
+        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS))
+                .isEqualTo(200);
+        assertThat(clusterSettings.getHosts())
+                .isEqualTo(List.of(new ServerAddress("mongohost1", 27117), new ServerAddress("mongohost2", 27118)));
         assertThat(clusterSettings.getLocalThreshold(TimeUnit.MILLISECONDS)).isEqualTo(300);
     }
 
@@ -138,7 +135,8 @@ public class MongoFactoryTest {
         ClusterSettings clusterSettings = mongoFactory.buildClusterSettings(true);
 
         assertThat(clusterSettings).isNotNull();
-        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS)).isEqualTo(200);
+        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS))
+                .isEqualTo(200);
         assertThat(clusterSettings.getHosts()).isEqualTo(List.of(new ServerAddress("localhost", 27017)));
         assertThat(clusterSettings.getLocalThreshold(TimeUnit.MILLISECONDS)).isEqualTo(15);
     }
@@ -149,8 +147,10 @@ public class MongoFactoryTest {
 
         assertThat(connectionPoolSettings).isNotNull();
         assertThat(connectionPoolSettings.getMaxWaitTime(TimeUnit.MILLISECONDS)).isEqualTo(120000);
-        assertThat(connectionPoolSettings.getMaxConnectionLifeTime(TimeUnit.MILLISECONDS)).isZero();
-        assertThat(connectionPoolSettings.getMaxConnectionIdleTime(TimeUnit.MILLISECONDS)).isZero();
+        assertThat(connectionPoolSettings.getMaxConnectionLifeTime(TimeUnit.MILLISECONDS))
+                .isZero();
+        assertThat(connectionPoolSettings.getMaxConnectionIdleTime(TimeUnit.MILLISECONDS))
+                .isZero();
         assertThat(connectionPoolSettings.getMinSize()).isZero();
         assertThat(connectionPoolSettings.getMaxSize()).isEqualTo(100);
     }
@@ -167,8 +167,10 @@ public class MongoFactoryTest {
 
         assertThat(connectionPoolSettings).isNotNull();
         assertThat(connectionPoolSettings.getMaxWaitTime(TimeUnit.MILLISECONDS)).isEqualTo(200);
-        assertThat(connectionPoolSettings.getMaxConnectionLifeTime(TimeUnit.MILLISECONDS)).isEqualTo(300);
-        assertThat(connectionPoolSettings.getMaxConnectionIdleTime(TimeUnit.MILLISECONDS)).isEqualTo(400);
+        assertThat(connectionPoolSettings.getMaxConnectionLifeTime(TimeUnit.MILLISECONDS))
+                .isEqualTo(300);
+        assertThat(connectionPoolSettings.getMaxConnectionIdleTime(TimeUnit.MILLISECONDS))
+                .isEqualTo(400);
         assertThat(connectionPoolSettings.getMinSize()).isEqualTo(500);
         assertThat(connectionPoolSettings.getMaxSize()).isEqualTo(600);
     }
@@ -185,8 +187,10 @@ public class MongoFactoryTest {
 
         assertThat(connectionPoolSettings).isNotNull();
         assertThat(connectionPoolSettings.getMaxWaitTime(TimeUnit.MILLISECONDS)).isEqualTo(200);
-        assertThat(connectionPoolSettings.getMaxConnectionLifeTime(TimeUnit.MILLISECONDS)).isEqualTo(300);
-        assertThat(connectionPoolSettings.getMaxConnectionIdleTime(TimeUnit.MILLISECONDS)).isEqualTo(400);
+        assertThat(connectionPoolSettings.getMaxConnectionLifeTime(TimeUnit.MILLISECONDS))
+                .isEqualTo(300);
+        assertThat(connectionPoolSettings.getMaxConnectionIdleTime(TimeUnit.MILLISECONDS))
+                .isEqualTo(400);
         assertThat(connectionPoolSettings.getMinSize()).isZero();
         assertThat(connectionPoolSettings.getMaxSize()).isEqualTo(100);
     }
@@ -197,7 +201,8 @@ public class MongoFactoryTest {
 
         assertThat(serverSettings).isNotNull();
         assertThat(serverSettings.getHeartbeatFrequency(TimeUnit.MILLISECONDS)).isEqualTo(10000);
-        assertThat(serverSettings.getMinHeartbeatFrequency(TimeUnit.MILLISECONDS)).isEqualTo(500);
+        assertThat(serverSettings.getMinHeartbeatFrequency(TimeUnit.MILLISECONDS))
+                .isEqualTo(500);
     }
 
     @Test
@@ -209,7 +214,8 @@ public class MongoFactoryTest {
 
         assertThat(serverSettings).isNotNull();
         assertThat(serverSettings.getHeartbeatFrequency(TimeUnit.MILLISECONDS)).isEqualTo(200);
-        assertThat(serverSettings.getMinHeartbeatFrequency(TimeUnit.MILLISECONDS)).isEqualTo(100);
+        assertThat(serverSettings.getMinHeartbeatFrequency(TimeUnit.MILLISECONDS))
+                .isEqualTo(100);
     }
 
     @Test
@@ -225,11 +231,15 @@ public class MongoFactoryTest {
     public void buildSslSettingsShouldReturnSettingsConfiguredWithProperties() {
         environment.setProperty(PROPERTY_PREFIX + "sslEnabled", "true");
         environment.setProperty(PROPERTY_PREFIX + "sslInvalidHostNameAllowed", "true");
-        environment.setProperty(PROPERTY_PREFIX + "truststore.path", this.getClass().getResource("/ca-truststore.jks").getPath());
+        environment.setProperty(
+                PROPERTY_PREFIX + "truststore.path",
+                this.getClass().getResource("/ca-truststore.jks").getPath());
         environment.setProperty(PROPERTY_PREFIX + "truststore.password", "truststore-secret");
         environment.setProperty(PROPERTY_PREFIX + "truststore.type", "jks");
 
-        environment.setProperty(PROPERTY_PREFIX + "keystore.path", this.getClass().getResource("/keystore.jks").getPath());
+        environment.setProperty(
+                PROPERTY_PREFIX + "keystore.path",
+                this.getClass().getResource("/keystore.jks").getPath());
         environment.setProperty(PROPERTY_PREFIX + "keystore.password", "keystore-secret");
         environment.setProperty(PROPERTY_PREFIX + "keystore.type", "jks");
 
@@ -250,7 +260,8 @@ public class MongoFactoryTest {
         assertThat(mongoClientSettings.getCredential()).isNull();
         assertThat(mongoClientSettings.getRetryWrites()).isTrue();
         assertThat(mongoClientSettings.getReadPreference()).isEqualTo(ReadPreference.primary());
-        assertThat(mongoClientSettings.getWriteConcern()).isEqualTo(WriteConcern.W1.withWTimeout(0, TimeUnit.MILLISECONDS));
+        assertThat(mongoClientSettings.getWriteConcern())
+                .isEqualTo(WriteConcern.W1.withWTimeout(0, TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -270,16 +281,16 @@ public class MongoFactoryTest {
 
         assertThat(mongoClientSettings).isNotNull();
         assertThat(mongoClientSettings.getApplicationName()).isEqualTo("my-application");
-        assertThat(mongoClientSettings.getCredential()).isEqualTo(
-            MongoCredential.createCredential("username", "authSource", "password".toCharArray())
-        );
+        assertThat(mongoClientSettings.getCredential())
+                .isEqualTo(MongoCredential.createCredential("username", "authSource", "password".toCharArray()));
         assertThat(mongoClientSettings.getRetryWrites()).isFalse();
-        assertThat(mongoClientSettings.getReadPreference()).isEqualTo(
-            ReadPreference.secondaryPreferred(new TagSet(List.of(new Tag("tag1", "value1"), new Tag("tag2", "value2"))))
-        );
-        assertThat(mongoClientSettings.getWriteConcern()).isEqualTo(
-            WriteConcern.MAJORITY.withWTimeout(1000, TimeUnit.MILLISECONDS).withJournal(true)
-        );
+        assertThat(mongoClientSettings.getReadPreference())
+                .isEqualTo(ReadPreference.secondaryPreferred(
+                        new TagSet(List.of(new Tag("tag1", "value1"), new Tag("tag2", "value2")))));
+        assertThat(mongoClientSettings.getWriteConcern())
+                .isEqualTo(WriteConcern.MAJORITY
+                        .withWTimeout(1000, TimeUnit.MILLISECONDS)
+                        .withJournal(true));
     }
 
     @Test
@@ -299,9 +310,8 @@ public class MongoFactoryTest {
 
         assertThat(mongoClientSettings).isNotNull();
         assertThat(mongoClientSettings.getApplicationName()).isEqualTo("my-application");
-        assertThat(mongoClientSettings.getCredential()).isEqualTo(
-            MongoCredential.createCredential("username", "authSource", "password".toCharArray())
-        );
+        assertThat(mongoClientSettings.getCredential())
+                .isEqualTo(MongoCredential.createCredential("username", "authSource", "password".toCharArray()));
         assertThat(mongoClientSettings.getRetryWrites()).isFalse();
 
         // These are not supported in reactive mode and so fallback to default values
@@ -318,9 +328,8 @@ public class MongoFactoryTest {
         MongoClient mongoClient = spiedMongoFactory.getObject();
 
         assertThat(mongoClient).isNotNull();
-        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts()).isEqualTo(
-            List.of(new ServerAddress("localhost", 27017))
-        );
+        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts())
+                .isEqualTo(List.of(new ServerAddress("localhost", 27017)));
 
         verify(spiedMongoFactory).buildSslSettings();
         verify(spiedMongoFactory).buildServerSettings();
@@ -342,9 +351,8 @@ public class MongoFactoryTest {
         com.mongodb.reactivestreams.client.MongoClient mongoClient = mongoFactory.getReactiveClient();
 
         assertThat(mongoClient).isNotNull();
-        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts()).isEqualTo(
-            List.of(new ServerAddress("localhost", 27017))
-        );
+        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts())
+                .isEqualTo(List.of(new ServerAddress("localhost", 27017)));
     }
 
     @Test
@@ -371,7 +379,8 @@ public class MongoFactoryTest {
         ClusterSettings clusterSettings = mongoFactory.buildClusterSettings(false);
 
         assertThat(clusterSettings.getHosts()).isEqualTo(List.of(new ServerAddress("newhost", 27117)));
-        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS)).isEqualTo(500);
+        assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS))
+                .isEqualTo(500);
     }
 
     @Test
@@ -395,7 +404,8 @@ public class MongoFactoryTest {
 
         MongoClientSettings settings = mongoFactory.buildClientSettingsFromProperties(false);
 
-        assertThat(settings.getCredential()).isEqualTo(MongoCredential.createCredential("newuser", "admin", "newpass".toCharArray()));
+        assertThat(settings.getCredential())
+                .isEqualTo(MongoCredential.createCredential("newuser", "admin", "newpass".toCharArray()));
     }
 
     @Test
@@ -406,9 +416,8 @@ public class MongoFactoryTest {
         MongoClient mongoClient = mongoFactory.getObject();
 
         assertThat(mongoClient).isNotNull();
-        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts()).isEqualTo(
-            List.of(new ServerAddress("remotehost", 27017))
-        );
+        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts())
+                .isEqualTo(List.of(new ServerAddress("remotehost", 27017)));
     }
 
     @Test
@@ -448,7 +457,8 @@ public class MongoFactoryTest {
 
         ClusterSettings clusterSettings = mongoFactory.buildClusterSettings(false);
 
-        assertThat(clusterSettings.getHosts()).isEqualTo(List.of(new ServerAddress("mongo1", 27017), new ServerAddress("mongo2", 27018)));
+        assertThat(clusterSettings.getHosts())
+                .isEqualTo(List.of(new ServerAddress("mongo1", 27017), new ServerAddress("mongo2", 27018)));
     }
 
     @Test

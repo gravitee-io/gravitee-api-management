@@ -33,32 +33,28 @@ public class ValidateDictionaryDomainService {
             rejectValuelessProperties(dictionary.getProperties());
             if (dictionary.getProvider() != null || dictionary.getTrigger() != null) {
                 throw new ValidationDomainException(
-                    "Manual dictionary must not have 'dynamic' properties (provider, trigger). Set type to 'DYNAMIC' or remove them."
-                );
+                        "Manual dictionary must not have 'dynamic' properties (provider, trigger). Set type to 'DYNAMIC' or remove them.");
             }
         } else if (dictionary.getType() == DictionaryType.DYNAMIC) {
             if (dictionary.getProvider() == null || dictionary.getTrigger() == null) {
                 throw new ValidationDomainException("Dynamic dictionary must have a provider and a trigger.");
             }
-            if (dictionary.getProperties() != null && !dictionary.getProperties().isEmpty()) {
+            if (dictionary.getProperties() != null
+                    && !dictionary.getProperties().isEmpty()) {
                 throw new ValidationDomainException(
-                    "Dynamic dictionary must not have 'manual' properties. Set type to 'MANUAL' or remove them."
-                );
+                        "Dynamic dictionary must not have 'manual' properties. Set type to 'MANUAL' or remove them.");
             }
         }
     }
 
     private static void rejectValuelessProperties(List<DictionaryProperty> properties) {
-        properties
-            .stream()
-            .filter(property -> property.getValue() == null)
-            .findFirst()
-            .ifPresent(property -> {
-                throw new ValidationDomainException(
-                    "Dictionary property [" +
-                        property.getKey() +
-                        "] has no value. A property without a value cannot be deployed to the gateway; remove the property or give it a value."
-                );
-            });
+        properties.stream()
+                .filter(property -> property.getValue() == null)
+                .findFirst()
+                .ifPresent(property -> {
+                    throw new ValidationDomainException(
+                            "Dictionary property [" + property.getKey()
+                                    + "] has no value. A property without a value cannot be deployed to the gateway; remove the property or give it a value.");
+                });
     }
 }

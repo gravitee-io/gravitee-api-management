@@ -42,7 +42,9 @@ public final class StringUtils {
     public static String slugify(@Nullable String input) {
         if (input == null) return null;
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-        String slug = NON_ALPHANUMERIC.matcher(normalized.toLowerCase().replace(' ', '-')).replaceAll("");
+        String slug = NON_ALPHANUMERIC
+                .matcher(normalized.toLowerCase().replace(' ', '-'))
+                .replaceAll("");
         slug = MULTIPLE_DASHES.matcher(slug).replaceAll("-");
         slug = slug.replaceAll("^-|-$", "");
         return slug;
@@ -53,7 +55,8 @@ public final class StringUtils {
             return null;
         }
         if (selectionRule.startsWith("#")) {
-            // Backward compatibility. In V3 mode selection rule EL expression based can be defined with "#something" while it is usually defined with "{#something}" everywhere else.
+            // Backward compatibility. In V3 mode selection rule EL expression based can be defined with "#something"
+            // while it is usually defined with "{#something}" everywhere else.
             return "{" + selectionRule + "}";
         }
         return selectionRule;

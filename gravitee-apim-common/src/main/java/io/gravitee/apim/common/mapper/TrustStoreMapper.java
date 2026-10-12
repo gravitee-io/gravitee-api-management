@@ -41,7 +41,8 @@ public interface TrustStoreMapper {
             return null;
         }
 
-        return switch (TrustStoreMapper.TrustStoreImplementation.get(trustStore.getClass().getName())) {
+        return switch (TrustStoreMapper.TrustStoreImplementation.get(
+                trustStore.getClass().getName())) {
             case PEM_TRUST_STORE -> map((PEMTrustStore) trustStore);
             case JKS_TRUST_STORE -> map((JKSTrustStore) trustStore);
             case PKCS_12_TRUST_STORE -> map((PKCS12TrustStore) trustStore);
@@ -50,8 +51,11 @@ public interface TrustStoreMapper {
     }
 
     io.gravitee.node.vertx.client.ssl.pem.PEMTrustStore map(PEMTrustStore trustStore);
+
     io.gravitee.node.vertx.client.ssl.jks.JKSTrustStore map(JKSTrustStore trustStore);
+
     io.gravitee.node.vertx.client.ssl.pkcs12.PKCS12TrustStore map(PKCS12TrustStore trustStore);
+
     io.gravitee.node.vertx.client.ssl.none.NoneTrustStore map(NoneTrustStore trustStore);
 
     enum TrustStoreImplementation {
@@ -69,11 +73,10 @@ public interface TrustStoreMapper {
         private static final Map<String, TrustStoreMapper.TrustStoreImplementation> ENUM_MAP;
 
         static {
-            Map<String, TrustStoreMapper.TrustStoreImplementation> map = new ConcurrentHashMap<
-                String,
-                TrustStoreMapper.TrustStoreImplementation
-            >();
-            for (TrustStoreMapper.TrustStoreImplementation instance : TrustStoreMapper.TrustStoreImplementation.values()) {
+            Map<String, TrustStoreMapper.TrustStoreImplementation> map =
+                    new ConcurrentHashMap<String, TrustStoreMapper.TrustStoreImplementation>();
+            for (TrustStoreMapper.TrustStoreImplementation instance :
+                    TrustStoreMapper.TrustStoreImplementation.values()) {
                 map.put(instance.className, instance);
             }
             ENUM_MAP = Collections.unmodifiableMap(map);

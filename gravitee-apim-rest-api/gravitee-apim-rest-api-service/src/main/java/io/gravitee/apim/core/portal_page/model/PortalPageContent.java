@@ -23,33 +23,30 @@ import jakarta.annotation.Nullable;
 import lombok.Getter;
 
 @Getter
-public abstract sealed class PortalPageContent<T> permits GraviteeMarkdownPageContent, OpenApiPageContent, AsyncApiPageContent {
+public abstract sealed class PortalPageContent<T>
+        permits GraviteeMarkdownPageContent, OpenApiPageContent, AsyncApiPageContent {
 
     public static PortalPageContent<?> of(
-        @Nonnull PortalPageContentType type,
-        @Nonnull PortalPageContentId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String content,
-        @Nullable AutomationMetadata automationMetadata
-    ) {
+            @Nonnull PortalPageContentType type,
+            @Nonnull PortalPageContentId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull String content,
+            @Nullable AutomationMetadata automationMetadata) {
         return switch (type) {
-            case GRAVITEE_MARKDOWN -> new GraviteeMarkdownPageContent(
-                id,
-                organizationId,
-                environmentId,
-                GraviteeMarkdown.of(content),
-                automationMetadata
-            );
-            case OPENAPI -> new OpenApiPageContent(
-                id,
-                organizationId,
-                environmentId,
-                OpenApi.of(content),
-                new RedocConfiguration(),
-                automationMetadata
-            );
-            case ASYNCAPI -> new AsyncApiPageContent(id, organizationId, environmentId, AsyncApi.of(content), automationMetadata);
+            case GRAVITEE_MARKDOWN ->
+                new GraviteeMarkdownPageContent(
+                        id, organizationId, environmentId, GraviteeMarkdown.of(content), automationMetadata);
+            case OPENAPI ->
+                new OpenApiPageContent(
+                        id,
+                        organizationId,
+                        environmentId,
+                        OpenApi.of(content),
+                        new RedocConfiguration(),
+                        automationMetadata);
+            case ASYNCAPI ->
+                new AsyncApiPageContent(id, organizationId, environmentId, AsyncApi.of(content), automationMetadata);
         };
     }
 
@@ -74,11 +71,10 @@ public abstract sealed class PortalPageContent<T> permits GraviteeMarkdownPageCo
     private AutomationMetadata automationMetadata;
 
     protected PortalPageContent(
-        @Nonnull PortalPageContentId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nullable AutomationMetadata automationMetadata
-    ) {
+            @Nonnull PortalPageContentId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nullable AutomationMetadata automationMetadata) {
         this.id = id;
         this.organizationId = organizationId;
         this.environmentId = environmentId;
@@ -87,7 +83,8 @@ public abstract sealed class PortalPageContent<T> permits GraviteeMarkdownPageCo
 
     public abstract void update(@Nonnull UpdatePortalPageContent updatePortalPageContent);
 
-    public final void update(@Nonnull UpdatePortalPageContent updatePortalPageContent, @Nullable AutomationMetadata automationMetadata) {
+    public final void update(
+            @Nonnull UpdatePortalPageContent updatePortalPageContent, @Nullable AutomationMetadata automationMetadata) {
         this.automationMetadata = automationMetadata;
         update(updatePortalPageContent);
     }

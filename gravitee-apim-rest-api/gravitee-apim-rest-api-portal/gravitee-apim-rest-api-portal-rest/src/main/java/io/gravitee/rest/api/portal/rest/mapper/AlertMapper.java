@@ -103,13 +103,15 @@ public class AlertMapper {
         alert.setDescription(alertTriggerEntity.getDescription());
         if (RESPONSE_TIME_ALERT.equals(alertTriggerEntity.getType())) {
             alert.setType(AlertType.RESPONSE_TIME);
-            final AggregationCondition condition = (AggregationCondition) alertTriggerEntity.getConditions().get(0);
+            final AggregationCondition condition =
+                    (AggregationCondition) alertTriggerEntity.getConditions().get(0);
             alert.setDuration((int) condition.getDuration());
             alert.setTimeUnit(convert(condition.getTimeUnit()));
             alert.setResponseTime(condition.getThreshold().intValue());
         } else if (STATUS_ALERT.equals(alertTriggerEntity.getType())) {
             alert.setType(AlertType.STATUS);
-            final RateCondition condition = (RateCondition) alertTriggerEntity.getConditions().get(0);
+            final RateCondition condition =
+                    (RateCondition) alertTriggerEntity.getConditions().get(0);
             alert.setDuration((int) condition.getDuration());
             alert.setTimeUnit(convert(condition.getTimeUnit()));
             final ThresholdRangeCondition comparison = (ThresholdRangeCondition) condition.getComparison();
@@ -126,20 +128,18 @@ public class AlertMapper {
         switch (Objects.requireNonNull(alertInput.getType())) {
             case STATUS:
                 final Pair<Double, Double> status = convertStatusCode(alertInput.getStatusCode());
-                conditions.add(
-                    RateCondition.of(ThresholdRangeCondition.between("response.status", status.getLeft(), status.getRight()).build())
+                conditions.add(RateCondition.of(
+                                ThresholdRangeCondition.between("response.status", status.getLeft(), status.getRight())
+                                        .build())
                         .duration((long) alertInput.getDuration(), convert(alertInput.getTimeUnit()))
                         .greaterThan(alertInput.getStatusPercent().doubleValue())
-                        .build()
-                );
+                        .build());
                 break;
             case RESPONSE_TIME:
-                conditions.add(
-                    AggregationCondition.avg("response.response_time")
+                conditions.add(AggregationCondition.avg("response.response_time")
                         .duration((long) alertInput.getDuration(), convert(alertInput.getTimeUnit()))
                         .greaterThan(alertInput.getResponseTime().doubleValue())
-                        .build()
-                );
+                        .build());
                 break;
         }
         return conditions;
@@ -195,15 +195,14 @@ public class AlertMapper {
         if (alertInput.getWebhook() != null) {
             try {
                 WebhookNotifierConfiguration webhookConfig = new WebhookNotifierConfiguration(
-                    alertInput.getWebhook().getHttpMethod().getValue(),
-                    alertInput.getWebhook().getUrl().strip()
-                );
-                if (
-                    alertInput.getWebhook().getHttpMethod() == HttpMethod.PUT ||
-                    alertInput.getWebhook().getHttpMethod() == HttpMethod.POST ||
-                    alertInput.getWebhook().getHttpMethod() == HttpMethod.PATCH
-                ) {
-                    webhookConfig.getHeaders().add(new HttpHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+                        alertInput.getWebhook().getHttpMethod().getValue(),
+                        alertInput.getWebhook().getUrl().strip());
+                if (alertInput.getWebhook().getHttpMethod() == HttpMethod.PUT
+                        || alertInput.getWebhook().getHttpMethod() == HttpMethod.POST
+                        || alertInput.getWebhook().getHttpMethod() == HttpMethod.PATCH) {
+                    webhookConfig
+                            .getHeaders()
+                            .add(new HttpHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
                     webhookConfig.setBody(objectMapper.writeValueAsString(alertInput));
                 }
                 Notification webhookNotification = new Notification();
@@ -219,44 +218,41 @@ public class AlertMapper {
 
     private AlertWebhook convertNotificationsToAlertWebhook(List<Notification> notifications) {
         if (notifications != null) {
-            return notifications
-                .stream()
-                .filter(n -> DEFAULT_WEBHOOK_NOTIFIER.equals(n.getType()))
-                .findFirst()
-                .map(webhookNotification -> {
-                    try {
-                        WebhookNotifierConfiguration webhookConfig = objectMapper.readValue(
-                            webhookNotification.getConfiguration(),
-                            WebhookNotifierConfiguration.class
-                        );
-                        AlertWebhook alertWebhook = new AlertWebhook();
-                        alertWebhook.setUrl(webhookConfig.getUrl());
-                        alertWebhook.setHttpMethod(HttpMethod.valueOf(webhookConfig.getMethod()));
-                        return alertWebhook;
-                    } catch (JsonProcessingException e) {
-                        log.error("Failed to convert List<Notification> to AlertWebhook", e);
-                    }
-                    return null;
-                })
-                .orElse(null);
+            return notifications.stream()
+                    .filter(n -> DEFAULT_WEBHOOK_NOTIFIER.equals(n.getType()))
+                    .findFirst()
+                    .map(webhookNotification -> {
+                        try {
+                            WebhookNotifierConfiguration webhookConfig = objectMapper.readValue(
+                                    webhookNotification.getConfiguration(), WebhookNotifierConfiguration.class);
+                            AlertWebhook alertWebhook = new AlertWebhook();
+                            alertWebhook.setUrl(webhookConfig.getUrl());
+                            alertWebhook.setHttpMethod(HttpMethod.valueOf(webhookConfig.getMethod()));
+                            return alertWebhook;
+                        } catch (JsonProcessingException e) {
+                            log.error("Failed to convert List<Notification> to AlertWebhook", e);
+                        }
+                        return null;
+                    })
+                    .orElse(null);
         }
         return null;
     }
 
     private String getApiFromFilters(List<Filter> filters) {
-        return filters
-            .stream()
-            .filter(StringCondition.class::isInstance)
-            .map(StringCondition.class::cast)
-            .filter(filter -> API_FILTER_ALERT.equals(filter.getProperty()))
-            .findFirst()
-            .map(StringCondition::getPattern)
-            .orElse(null);
+        return filters.stream()
+                .filter(StringCondition.class::isInstance)
+                .map(StringCondition.class::cast)
+                .filter(filter -> API_FILTER_ALERT.equals(filter.getProperty()))
+                .findFirst()
+                .map(StringCondition::getPattern)
+                .orElse(null);
     }
 
     private List<Filter> createAlertFilters(AlertInput alertInput) {
         if (alertInput.getApi() != null && !alertInput.getApi().isEmpty()) {
-            return singletonList(StringCondition.equals(API_FILTER_ALERT, alertInput.getApi()).build());
+            return singletonList(StringCondition.equals(API_FILTER_ALERT, alertInput.getApi())
+                    .build());
         }
         return null;
     }

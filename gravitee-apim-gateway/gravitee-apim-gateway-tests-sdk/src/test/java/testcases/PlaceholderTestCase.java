@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/placeholder.json" })
+@DeployApi({"/apis/placeholder.json"})
 @EnableForGatewayTestingExtensionTesting
 public class PlaceholderTestCase extends AbstractGatewayTest {
 
@@ -56,21 +56,19 @@ public class PlaceholderTestCase extends AbstractGatewayTest {
         wiremock.stubFor(get("/team/my_team").willReturn(ok()));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test/my_team")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test/my_team")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete();
 
-        wiremock.verify(
-            getRequestedFor(urlPathEqualTo("/team/my_team"))
+        wiremock.verify(getRequestedFor(urlPathEqualTo("/team/my_team"))
                 .withHeader("X-Gravitee-Policy", equalTo("request-header1"))
-                .withHeader(ON_REQUEST_POLICY, equalTo("invoked"))
-        );
+                .withHeader(ON_REQUEST_POLICY, equalTo("invoked")));
     }
 
     @Override

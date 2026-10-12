@@ -43,7 +43,8 @@ public class PolicyResourceGatewayTest extends AbstractWiremockGatewayTest {
     @Test
     public void shouldReturnNotFound_unknownPolicy() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
-        HttpResponse response = execute(Request.Get("http://localhost:8082/api/my_team")).returnResponse();
+        HttpResponse response =
+                execute(Request.Get("http://localhost:8082/api/my_team")).returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         assertEquals("Dummy Resource", response.getFirstHeader("X-Resource").getValue());

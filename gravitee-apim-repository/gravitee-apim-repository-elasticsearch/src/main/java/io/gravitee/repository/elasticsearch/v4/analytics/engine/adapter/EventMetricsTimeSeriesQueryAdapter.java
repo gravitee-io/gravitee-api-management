@@ -45,12 +45,16 @@ public class EventMetricsTimeSeriesQueryAdapter {
         // A date_histogram sits above the measures, so a per-metric doc-type envelope would nest one
         // level too deep to be read back; see requireSingleDocType.
         measuresAdapter.requireSingleDocType(query.metrics(), "time series");
-        return new JsonObject().put("size", 0).put("query", measuresAdapter.adaptQuery(query)).put("aggs", adaptTimeSeries(query));
+        return new JsonObject()
+                .put("size", 0)
+                .put("query", measuresAdapter.adaptQuery(query))
+                .put("aggs", adaptTimeSeries(query));
     }
 
     public JsonObject adaptTimeSeries(TimeSeriesQuery query) {
         if (query.facets() != null && query.facets().size() > 1) {
-            throw new UnsupportedOperationException("Native event metrics time series support a single facet, got: " + query.facets());
+            throw new UnsupportedOperationException(
+                    "Native event metrics time series support a single facet, got: " + query.facets());
         }
         var aggs = new JsonObject();
         for (var metric : query.metrics()) {
@@ -63,7 +67,8 @@ public class EventMetricsTimeSeriesQueryAdapter {
     public JsonObject adaptTimeSeries(MetricMeasuresQuery metric, TimeSeriesQuery query, boolean docTypeHoisted) {
         var dateHistogram = DateHistogramAdapter.adapt(query.interval(), query.timeRange());
         if (query.facets() != null && !query.facets().isEmpty()) {
-            dateHistogram.put("aggs", facetsQueryAdapter.adaptFacets(metric, query.facets(), query.limit(), docTypeHoisted));
+            dateHistogram.put(
+                    "aggs", facetsQueryAdapter.adaptFacets(metric, query.facets(), query.limit(), docTypeHoisted));
         } else {
             dateHistogram.put("aggs", measuresAdapter.adaptMetrics(List.of(metric), docTypeHoisted));
         }

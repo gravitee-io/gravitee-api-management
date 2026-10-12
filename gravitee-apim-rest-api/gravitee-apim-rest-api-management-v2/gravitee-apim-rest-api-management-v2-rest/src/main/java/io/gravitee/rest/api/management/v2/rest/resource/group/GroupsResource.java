@@ -92,39 +92,43 @@ public class GroupsResource extends AbstractResource {
         List<GroupEntity> groupsSubset = computePaginationData(groups, paginationParam);
 
         return new GroupsResponse()
-            .data(MAPPER.map(groupsSubset))
-            .pagination(PaginationInfo.computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
-            .links(computePaginationLinks(groups.size(), paginationParam));
+                .data(MAPPER.map(groupsSubset))
+                .pagination(PaginationInfo.computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
+                .links(computePaginationLinks(groups.size(), paginationParam));
     }
 
     @POST
     @Path("/_search")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public GroupsResponse searchGroups(@BeanParam PaginationParam paginationParam, @Valid GroupSearchParams searchParams) {
+    public GroupsResponse searchGroups(
+            @BeanParam PaginationParam paginationParam, @Valid GroupSearchParams searchParams) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         Set<String> groupIds = searchParams.getIds();
         if (!canReadEnvironmentGroups(executionContext)) {
             Set<String> allowed = groupIdsAttachedToCaller(executionContext);
             groupIds = groupIds == null || groupIds.isEmpty()
-                ? allowed
-                : groupIds.stream().filter(allowed::contains).collect(Collectors.toSet());
+                    ? allowed
+                    : groupIds.stream().filter(allowed::contains).collect(Collectors.toSet());
         }
         Page<Group> pagedGroups = searchGroupsUseCase.execute(executionContext, groupIds, paginationParam.toPageable());
 
-        io.gravitee.rest.api.management.v2.rest.model.Links links = computePaginationLinks(pagedGroups.getTotalElements(), paginationParam);
+        io.gravitee.rest.api.management.v2.rest.model.Links links =
+                computePaginationLinks(pagedGroups.getTotalElements(), paginationParam);
 
         return new GroupsResponse()
-            .data(MAPPER.mapFromCoreList(pagedGroups.getContent()))
-            .pagination(PaginationInfo.computePaginationInfo(pagedGroups.getPageElements(), paginationParam.getPerPage(), paginationParam))
-            .links(links);
+                .data(MAPPER.mapFromCoreList(pagedGroups.getContent()))
+                .pagination(PaginationInfo.computePaginationInfo(
+                        pagedGroups.getPageElements(), paginationParam.getPerPage(), paginationParam))
+                .links(links);
     }
 
     @GET
     @Path("/{groupId}/members")
     @Produces(MediaType.APPLICATION_JSON)
-    public MembersResponse listGroupMembers(@PathParam("groupId") String groupId, @BeanParam @Valid PaginationParam paginationParam) {
+    public MembersResponse listGroupMembers(
+            @PathParam("groupId") String groupId, @BeanParam @Valid PaginationParam paginationParam) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!canReadGroupMembers(executionContext, groupId)) {
             throw new ForbiddenAccessException();
@@ -136,42 +140,42 @@ public class GroupsResource extends AbstractResource {
         metadata.put("groupName", groupEntity.getName());
 
         var members = membershipService
-            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, groupId)
-            .stream()
-            .map(MemberMapper.INSTANCE::map)
-            .sorted(Comparator.comparing(Member::getId))
-            .collect(Collectors.toList());
+                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, groupId)
+                .stream()
+                .map(MemberMapper.INSTANCE::map)
+                .sorted(Comparator.comparing(Member::getId))
+                .collect(Collectors.toList());
 
         List<Member> membersSubset = computePaginationData(members, paginationParam);
 
         return new MembersResponse()
-            .data(membersSubset)
-            .pagination(PaginationInfo.computePaginationInfo(members.size(), membersSubset.size(), paginationParam))
-            .links(computePaginationLinks(members.size(), paginationParam))
-            .metadata(metadata);
+                .data(membersSubset)
+                .pagination(PaginationInfo.computePaginationInfo(members.size(), membersSubset.size(), paginationParam))
+                .links(computePaginationLinks(members.size(), paginationParam))
+                .metadata(metadata);
     }
 
     @GET
     @Path("/{groupId}/permissions")
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @ApiResponse(
-        responseCode = "200",
-        description = "Integration permissions",
-        content = @Content(
-            mediaType = io.gravitee.common.http.MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = MemberEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "Integration permissions",
+            content =
+                    @Content(
+                            mediaType = io.gravitee.common.http.MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = MemberEntity.class))))
     public Map<String, char[]> getPermissions(@PathParam("groupId") String groupId) {
         if (isAdmin()) {
-            final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), RolePermissionAction.DELETE.getId() };
-            return Arrays.stream(IntegrationPermission.values()).collect(
-                Collectors.toMap(IntegrationPermission::getName, ignored -> rights)
-            );
+            final char[] rights =
+                    new char[] {CREATE.getId(), READ.getId(), UPDATE.getId(), RolePermissionAction.DELETE.getId()};
+            return Arrays.stream(IntegrationPermission.values())
+                    .collect(Collectors.toMap(IntegrationPermission::getName, ignored -> rights));
         } else if (isAuthenticated()) {
             final String username = getAuthenticatedUser();
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-            return membershipService.getUserMemberPermissions(executionContext, MembershipReferenceType.GROUP, groupId, username);
+            return membershipService.getUserMemberPermissions(
+                    executionContext, MembershipReferenceType.GROUP, groupId, username);
         } else {
             return Map.of();
         }
@@ -180,25 +184,22 @@ public class GroupsResource extends AbstractResource {
     @PUT
     @Path("/_import/crd")
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE)})
     public Response importGroupCRD(@Valid GroupCRDSpec spec, @QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         var input = new ImportGroupCRDUseCase.Input(
-            AuditInfo.builder()
-                .organizationId(executionContext.getOrganizationId())
-                .environmentId(executionContext.getEnvironmentId())
-                .actor(
-                    AuditActor.builder()
-                        .userId(userDetails.getUsername())
-                        .userSource(userDetails.getSource())
-                        .userSourceId(userDetails.getSourceId())
-                        .build()
-                )
-                .build(),
-            GroupCRDMapper.INSTANCE.toCore(spec)
-        );
+                AuditInfo.builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build())
+                        .build(),
+                GroupCRDMapper.INSTANCE.toCore(spec));
 
         var output = dryRun ? validateGroupCRD.execute(input) : importGroupCRD.execute(input);
 
@@ -214,31 +215,26 @@ public class GroupsResource extends AbstractResource {
             return groups;
         }
         Set<String> allowed = groupIdsAttachedToCaller(executionContext);
-        return groups
-            .stream()
-            .filter(group -> allowed.contains(group.getId()))
-            .toList();
+        return groups.stream().filter(group -> allowed.contains(group.getId())).toList();
     }
 
     private boolean canReadEnvironmentGroups(ExecutionContext executionContext) {
         return hasPermission(
-            executionContext,
-            RolePermission.ENVIRONMENT_GROUP,
-            executionContext.getEnvironmentId(),
-            RolePermissionAction.READ
-        );
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ);
     }
 
     private boolean canReadGroupMembers(ExecutionContext executionContext, String groupId) {
-        return (
-            canReadEnvironmentGroups(executionContext) ||
-            hasPermission(executionContext, RolePermission.GROUP_MEMBER, groupId, RolePermissionAction.READ) ||
-            groupIdsAttachedToCaller(executionContext).contains(groupId)
-        );
+        return (canReadEnvironmentGroups(executionContext)
+                || hasPermission(executionContext, RolePermission.GROUP_MEMBER, groupId, RolePermissionAction.READ)
+                || groupIdsAttachedToCaller(executionContext).contains(groupId));
     }
 
     private Set<String> groupIdsAttachedToCaller(ExecutionContext executionContext) {
-        Set<String> groupIds = groupService.findGroupIdsAttachedToUserResources(executionContext, getAuthenticatedUser());
+        Set<String> groupIds =
+                groupService.findGroupIdsAttachedToUserResources(executionContext, getAuthenticatedUser());
         return groupIds == null ? Set.of() : groupIds;
     }
 }

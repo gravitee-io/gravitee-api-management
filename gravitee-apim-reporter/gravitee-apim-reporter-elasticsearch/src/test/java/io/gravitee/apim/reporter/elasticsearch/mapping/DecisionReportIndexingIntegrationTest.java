@@ -77,22 +77,24 @@ class DecisionReportIndexingIntegrationTest {
         configuration.setIndexName(INDEX_NAME);
         var beanFactory = BeanFactoryBuilder.buildFactory(client);
         beanFactory
-            .createIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, client)
-            .prepare()
-            .test()
-            .awaitDone(60, TimeUnit.SECONDS)
-            .assertComplete();
+                .createIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, client)
+                .prepare()
+                .test()
+                .awaitDone(60, TimeUnit.SECONDS)
+                .assertComplete();
         indexNameGenerator = beanFactory.createIndexNameGenerator(configuration);
         transformer = new ElasticBulkTransformer(
-            new FormatterFactory(node, beanFactory.createFormatterFactoryConfiguration()).getFormatter(Type.ELASTICSEARCH),
-            pipelineConfiguration,
-            indexNameGenerator
-        );
+                new FormatterFactory(node, beanFactory.createFormatterFactoryConfiguration())
+                        .getFormatter(Type.ELASTICSEARCH),
+                pipelineConfiguration,
+                indexNameGenerator);
 
         var forbidden = decision(FORBIDDEN, "FORBID", List.of("Matched policy no-pii"));
         dataStream = indexNameGenerator.generate(forbidden);
 
-        assertThat(report(forbidden).getErrors()).as("bulk indexing of %s into %s reported errors", FORBIDDEN, dataStream).isFalse();
+        assertThat(report(forbidden).getErrors())
+                .as("bulk indexing of %s into %s reported errors", FORBIDDEN, dataStream)
+                .isFalse();
     }
 
     @Test
@@ -103,7 +105,8 @@ class DecisionReportIndexingIntegrationTest {
 
     @Test
     void should_find_the_decision_on_its_decision_point_its_phase_and_its_verdict() {
-        assertThat(hitsOnTheForbiddenDecision(term("decision-point-type", "authz"))).isOne();
+        assertThat(hitsOnTheForbiddenDecision(term("decision-point-type", "authz")))
+                .isOne();
         assertThat(hitsOnTheForbiddenDecision(term("phase", "RESOLVED"))).isOne();
         assertThat(hitsOnTheForbiddenDecision(term("verdict", "FORBID"))).isOne();
     }
@@ -111,27 +114,30 @@ class DecisionReportIndexingIntegrationTest {
     @Test
     void should_find_the_decision_on_the_version_of_a_rule_it_matched() {
         var ruleVersion = JsonObject.of(
-            "nested",
-            JsonObject.of("path", "matched-rules", "query", term("matched-rules.version", RULE_VERSION))
-        );
+                "nested", JsonObject.of("path", "matched-rules", "query", term("matched-rules.version", RULE_VERSION)));
 
         assertThat(hitsOnTheForbiddenDecision(ruleVersion)).isOne();
     }
 
     @Test
     void should_find_the_decision_on_its_index_in_the_batch() {
-        assertThat(hitsOnTheForbiddenDecision(term("additional-metrics.int_authz_batch-index", 1))).isOne();
+        assertThat(hitsOnTheForbiddenDecision(term("additional-metrics.int_authz_batch-index", 1)))
+                .isOne();
     }
 
     @Test
     void should_find_the_decision_on_every_value_of_a_multi_valued_keyword_metric() {
-        assertThat(hitsOnTheForbiddenDecision(term("additional-metrics.keyword_authz_tools", "search"))).isOne();
-        assertThat(hitsOnTheForbiddenDecision(term("additional-metrics.keyword_authz_tools", "book"))).isOne();
+        assertThat(hitsOnTheForbiddenDecision(term("additional-metrics.keyword_authz_tools", "search")))
+                .isOne();
+        assertThat(hitsOnTheForbiddenDecision(term("additional-metrics.keyword_authz_tools", "book")))
+                .isOne();
     }
 
     private BulkResponse report(DecisionReport decision) {
         try {
-            var bulk = new NoneBulkCompressor().compress(List.of(transformer.transform(decision))).compressed();
+            var bulk = new NoneBulkCompressor()
+                    .compress(List.of(transformer.transform(decision)))
+                    .compressed();
             return client.bulk(bulk, true).blockingGet();
         } catch (Exception e) {
             throw new IllegalStateException(e);
@@ -143,7 +149,11 @@ class DecisionReportIndexingIntegrationTest {
     }
 
     private long hits(JsonObject query) {
-        return client.search(dataStream, null, JsonObject.of("query", query).encode()).blockingGet().getSearchHits().getTotal().getValue();
+        return client.search(dataStream, null, JsonObject.of("query", query).encode())
+                .blockingGet()
+                .getSearchHits()
+                .getTotal()
+                .getValue();
     }
 
     private static JsonObject term(String field, Object value) {
@@ -152,38 +162,36 @@ class DecisionReportIndexingIntegrationTest {
 
     private static DecisionReport decision(String eventId, String verdict, List<String> reasons) {
         return DecisionReport.builder()
-            .timestamp(System.currentTimeMillis())
-            .gatewayId("gw-1")
-            .organizationId("org-1")
-            .environmentId("env-1")
-            .apiId("api-1")
-            .eventId(eventId)
-            .requestId("req-1")
-            .batchId("batch-1")
-            .phase(DecisionReport.Phase.RESOLVED)
-            .decisionPointType(DecisionReport.DECISION_POINT_AUTHZ)
-            .decisionPointId("pdp-a")
-            .decisionPointVersion("7")
-            .caller("pep")
-            .subjectType("User")
-            .subjectId("alice")
-            .action("read")
-            .resourceType("Account")
-            .resourceId("acc-1")
-            .outcome("FORBID".equals(verdict) ? DecisionReport.Outcome.DENY : DecisionReport.Outcome.ALLOW)
-            .enforced("FORBID".equals(verdict) ? DecisionReport.Enforced.DENY : DecisionReport.Enforced.ALLOW)
-            .verdict(verdict)
-            .reasons(reasons)
-            .matchedRules(List.of(new DecisionReport.MatchedRule("rule-1", "no-pii", RULE_VERSION, verdict, Map.of())))
-            .status(DecisionReport.Status.SUCCESS)
-            .durationNanos(120_000L)
-            .additionalMetrics(
-                Set.of(
-                    new AdditionalMetric.IntegerMetric("int_authz_batch-index", 1),
-                    new AdditionalMetric.IntegerMetric("int_authz_batch-size", 2),
-                    new AdditionalMetric.KeywordListMetric("keyword_authz_tools", List.of("search", "book"))
-                )
-            )
-            .build();
+                .timestamp(System.currentTimeMillis())
+                .gatewayId("gw-1")
+                .organizationId("org-1")
+                .environmentId("env-1")
+                .apiId("api-1")
+                .eventId(eventId)
+                .requestId("req-1")
+                .batchId("batch-1")
+                .phase(DecisionReport.Phase.RESOLVED)
+                .decisionPointType(DecisionReport.DECISION_POINT_AUTHZ)
+                .decisionPointId("pdp-a")
+                .decisionPointVersion("7")
+                .caller("pep")
+                .subjectType("User")
+                .subjectId("alice")
+                .action("read")
+                .resourceType("Account")
+                .resourceId("acc-1")
+                .outcome("FORBID".equals(verdict) ? DecisionReport.Outcome.DENY : DecisionReport.Outcome.ALLOW)
+                .enforced("FORBID".equals(verdict) ? DecisionReport.Enforced.DENY : DecisionReport.Enforced.ALLOW)
+                .verdict(verdict)
+                .reasons(reasons)
+                .matchedRules(
+                        List.of(new DecisionReport.MatchedRule("rule-1", "no-pii", RULE_VERSION, verdict, Map.of())))
+                .status(DecisionReport.Status.SUCCESS)
+                .durationNanos(120_000L)
+                .additionalMetrics(Set.of(
+                        new AdditionalMetric.IntegerMetric("int_authz_batch-index", 1),
+                        new AdditionalMetric.IntegerMetric("int_authz_batch-size", 2),
+                        new AdditionalMetric.KeywordListMetric("keyword_authz_tools", List.of("search", "book"))))
+                .build();
     }
 }

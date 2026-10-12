@@ -53,25 +53,26 @@ public class StatsQueryAdapter {
         var filterArray = MAPPER.createArrayNode();
 
         // Query string support (as in stats.ftl)
-        query
-            .query()
-            .ifPresent(q -> {
-                if (!q.trim().isEmpty()) {
-                    ObjectNode queryStringNode = MAPPER.createObjectNode();
-                    ObjectNode queryString = MAPPER.createObjectNode();
-                    queryString.put("query", q);
-                    queryStringNode.set("query_string", queryString);
-                    filterArray.add(queryStringNode);
-                }
-            });
+        query.query().ifPresent(q -> {
+            if (!q.trim().isEmpty()) {
+                ObjectNode queryStringNode = MAPPER.createObjectNode();
+                ObjectNode queryString = MAPPER.createObjectNode();
+                queryString.put("query", q);
+                queryStringNode.set("query_string", queryString);
+                filterArray.add(queryStringNode);
+            }
+        });
 
         var searchTermId = query.searchTermId();
         var shouldArray = MAPPER.createArrayNode();
+        shouldArray.add(MAPPER.createObjectNode()
+                .set(
+                        "term",
+                        MAPPER.createObjectNode().put(searchTermId.searchTerm().getField(), searchTermId.id())));
         shouldArray.add(
-            MAPPER.createObjectNode().set("term", MAPPER.createObjectNode().put(searchTermId.searchTerm().getField(), searchTermId.id()))
-        );
-        shouldArray.add(MAPPER.createObjectNode().set("term", MAPPER.createObjectNode().put("api", searchTermId.id())));
-        filterArray.add(MAPPER.createObjectNode().set("bool", MAPPER.createObjectNode().set("should", shouldArray)));
+                MAPPER.createObjectNode().set("term", MAPPER.createObjectNode().put("api", searchTermId.id())));
+        filterArray.add(
+                MAPPER.createObjectNode().set("bool", MAPPER.createObjectNode().set("should", shouldArray)));
 
         // Time range
         filterArray.add(TimeRangeAdapter.toRangeNode(query.timeRange()));
@@ -108,7 +109,11 @@ public class StatsQueryAdapter {
             return Optional.empty();
         }
 
-        if (agg.getCount() == null || agg.getSum() == null || agg.getAvg() == null || agg.getMin() == null || agg.getMax() == null) {
+        if (agg.getCount() == null
+                || agg.getSum() == null
+                || agg.getAvg() == null
+                || agg.getMin() == null
+                || agg.getMax() == null) {
             return Optional.empty();
         }
 

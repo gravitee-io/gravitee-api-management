@@ -32,7 +32,7 @@ public class AnalyticsParamTest {
 
     @Test
     public void testValidateOk() {
-        //init
+        // init
         AnalyticsParam params = new AnalyticsParam();
         params.setFrom(1);
         params.setTo(10);
@@ -40,14 +40,14 @@ public class AnalyticsParamTest {
         params.setTypeParam(new AnalyticsTypeParam("GROUP_BY"));
         params.setField("name");
 
-        //test
+        // test
         params.validate();
         assertTrue(true);
     }
 
     @Test
     public void testValidateKoType() {
-        //init - type == null
+        // init - type == null
         AnalyticsParam params = new AnalyticsParam();
         params.setFrom(1);
         params.setTo(10);
@@ -56,7 +56,7 @@ public class AnalyticsParamTest {
 
         testParams(params, "Query parameter 'type' must be present and one of : GROUP_BY, DATE_HISTO, COUNT");
 
-        //init - type == ""
+        // init - type == ""
         params = new AnalyticsParam();
         params.setFrom(1);
         params.setTo(10);
@@ -100,7 +100,7 @@ public class AnalyticsParamTest {
 
     @Test
     public void testValidateKoInterval() {
-        //interval = -1
+        // interval = -1
         AnalyticsParam params = new AnalyticsParam();
         params.setFrom(1);
         params.setTo(10);
@@ -109,7 +109,7 @@ public class AnalyticsParamTest {
 
         testParams(params, "Query parameter 'interval' is not valid");
 
-        //interval = 10
+        // interval = 10
         params = new AnalyticsParam();
         params.setFrom(1);
         params.setTo(10);
@@ -118,7 +118,7 @@ public class AnalyticsParamTest {
 
         testParams(params, "Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000");
 
-        //interval = 1_000_000_001
+        // interval = 1_000_000_001
         params = new AnalyticsParam();
         params.setFrom(1);
         params.setTo(10);
@@ -130,7 +130,7 @@ public class AnalyticsParamTest {
 
     @Test
     public void testValidateKoFieldIfTypeGroupBy() {
-        //field = null
+        // field = null
         AnalyticsParam params = new AnalyticsParam();
         params.setFrom(1);
         params.setTo(10);
@@ -139,7 +139,7 @@ public class AnalyticsParamTest {
         params.setField(null);
         testParams(params, "'field' query parameter is required for 'group_by' request");
 
-        //field = ''
+        // field = ''
         params = new AnalyticsParam();
         params.setFrom(1);
         params.setTo(10);

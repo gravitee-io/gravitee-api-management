@@ -79,19 +79,22 @@ public class V3UpgraderService extends AbstractService {
                     for (Entry<String, String[]> entry : roleMappings.entrySet()) {
                         String[] roles = entry.getValue();
                         if (roles != null) {
-                            log.debug("Idp '{}' - RoleMapping with condition '{}' has {} roles", idp.getId(), entry.getKey(), roles.length);
+                            log.debug(
+                                    "Idp '{}' - RoleMapping with condition '{}' has {} roles",
+                                    idp.getId(),
+                                    entry.getKey(),
+                                    roles.length);
                             List<String> newRoles = new ArrayList<>(roles.length);
                             boolean entryHasBeenModified = false;
                             for (String role : roles) {
                                 String[] splittedRole = role.split(":");
                                 if ("1".equals(splittedRole[0])) {
                                     Optional<Role> existingOrgaRoleWithSameName =
-                                        roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                                            RoleScope.ORGANIZATION,
-                                            splittedRole[1],
-                                            "DEFAULT",
-                                            RoleReferenceType.ORGANIZATION
-                                        );
+                                            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                                                    RoleScope.ORGANIZATION,
+                                                    splittedRole[1],
+                                                    "DEFAULT",
+                                                    RoleReferenceType.ORGANIZATION);
                                     if (existingOrgaRoleWithSameName.isPresent()) {
                                         newRoles.add("ORGANIZATION:" + splittedRole[1]);
                                     }
@@ -108,7 +111,10 @@ public class V3UpgraderService extends AbstractService {
                                 idpHasBeenModified = true;
                             }
                         } else {
-                            log.debug("Idp '{}' - RoleMapping with condition '{}' has no roles", idp.getId(), entry.getKey());
+                            log.debug(
+                                    "Idp '{}' - RoleMapping with condition '{}' has no roles",
+                                    idp.getId(),
+                                    entry.getKey());
                         }
                     }
                 }
@@ -128,10 +134,7 @@ public class V3UpgraderService extends AbstractService {
     public void moveIdpPermission() {
         try {
             final Set<Role> allRole = this.roleRepository.findByScopeAndReferenceIdAndReferenceType(
-                RoleScope.ENVIRONMENT,
-                "DEFAULT",
-                RoleReferenceType.ORGANIZATION
-            );
+                    RoleScope.ENVIRONMENT, "DEFAULT", RoleReferenceType.ORGANIZATION);
             log.info("{} environment roles found", allRole.size());
             for (Role envRole : allRole) {
                 int idpPerm = -1;
@@ -149,12 +152,11 @@ public class V3UpgraderService extends AbstractService {
 
                     Role orgRole;
                     final Optional<Role> existingOrgRoleWithSameNameRoleCursor =
-                        this.roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                            RoleScope.ORGANIZATION,
-                            envRole.getName(),
-                            envRole.getReferenceId(),
-                            envRole.getReferenceType()
-                        );
+                            this.roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                                    RoleScope.ORGANIZATION,
+                                    envRole.getName(),
+                                    envRole.getReferenceId(),
+                                    envRole.getReferenceType());
                     if (existingOrgRoleWithSameNameRoleCursor.isPresent()) {
                         log.info("An org role exist with the same name");
                         orgRole = existingOrgRoleWithSameNameRoleCursor.get();
@@ -176,7 +178,7 @@ public class V3UpgraderService extends AbstractService {
                         orgRole.setCreatedAt(new Date());
                         orgRole.setDescription(envRole.getDescription());
                         orgRole.setSystem(envRole.isSystem());
-                        orgRole.setPermissions(new int[] { 1300 + (idpPerm % 100) });
+                        orgRole.setPermissions(new int[] {1300 + (idpPerm % 100)});
                         this.roleRepository.create(orgRole);
                         log.info("Creation of org role done");
                     }
@@ -187,19 +189,15 @@ public class V3UpgraderService extends AbstractService {
 
                     // Update memberships
                     final Set<Membership> envMembershipsWithRole = this.membershipRepository.findByReferenceAndRoleId(
-                        MembershipReferenceType.ENVIRONMENT,
-                        "DEFAULT",
-                        envRole.getId()
-                    );
+                            MembershipReferenceType.ENVIRONMENT, "DEFAULT", envRole.getId());
                     for (Membership membership : envMembershipsWithRole) {
-                        Set<Membership> orgMembershipsWithRole =
-                            this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-                                membership.getMemberId(),
-                                membership.getMemberType(),
-                                MembershipReferenceType.ORGANIZATION,
-                                "DEFAULT",
-                                orgRole.getId()
-                            );
+                        Set<Membership> orgMembershipsWithRole = this.membershipRepository
+                                .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                                        membership.getMemberId(),
+                                        membership.getMemberType(),
+                                        MembershipReferenceType.ORGANIZATION,
+                                        "DEFAULT",
+                                        orgRole.getId());
                         if (orgMembershipsWithRole.isEmpty()) {
                             Membership newOrganizationMembership = membership;
                             newOrganizationMembership.setId(UuidString.generateRandom());
@@ -209,10 +207,9 @@ public class V3UpgraderService extends AbstractService {
 
                             this.membershipRepository.create(newOrganizationMembership);
                             log.info(
-                                "New membership {} on organization created for user {}",
-                                newOrganizationMembership.getId(),
-                                membership.getMemberId()
-                            );
+                                    "New membership {} on organization created for user {}",
+                                    newOrganizationMembership.getId(),
+                                    membership.getMemberId());
                         }
                     }
                 }

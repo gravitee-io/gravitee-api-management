@@ -55,21 +55,15 @@ class DefaultEndpointConnectorPluginManagerTest {
 
     @BeforeEach
     void beforeEach() {
-        cut = spy(
-            new DefaultEndpointConnectorPluginManager(
+        cut = spy(new DefaultEndpointConnectorPluginManager(
                 new DefaultEndpointConnectorClassLoaderFactory(),
-                new PluginConfigurationHelper(null, new ObjectMapper())
-            )
-        );
+                new PluginConfigurationHelper(null, new ObjectMapper())));
     }
 
     @Test
     void shouldRegisterNewEndpointPluginWithoutConfiguration() {
         DefaultEndpointConnectorPlugin endpointPlugin = new DefaultEndpointConnectorPlugin(
-            new FakeEndpointConnectorPlugin(),
-            FakeEndpointConnectorFactory.class,
-            null
-        );
+                new FakeEndpointConnectorPlugin(), FakeEndpointConnectorFactory.class, null);
         cut.register(endpointPlugin);
         final EndpointConnectorFactory<FakeEndpointConnector> fake = cut.getFactoryById(FAKE_ENDPOINT);
         assertThat(fake).isNotNull();
@@ -80,14 +74,14 @@ class DefaultEndpointConnectorPluginManagerTest {
     @Test
     void shouldRegisterNewEndpointPluginWithConfiguration() {
         DefaultEndpointConnectorPlugin endpointPlugin = new DefaultEndpointConnectorPlugin(
-            new FakeEndpointConnectorPlugin(),
-            FakeEndpointConnectorFactory.class,
-            EndpointConnectorConfiguration.class
-        );
+                new FakeEndpointConnectorPlugin(),
+                FakeEndpointConnectorFactory.class,
+                EndpointConnectorConfiguration.class);
         cut.register(endpointPlugin);
         final EndpointConnectorFactory<FakeEndpointConnector> fake = cut.getFactoryById(FAKE_ENDPOINT);
         assertThat(fake).isNotNull();
-        final FakeEndpointConnector fakeConnector = fake.createConnector(deploymentContext, "{\"info\":\"test\"}", null);
+        final FakeEndpointConnector fakeConnector =
+                fake.createConnector(deploymentContext, "{\"info\":\"test\"}", null);
         assertThat(fakeConnector).isNotNull();
         assertThat(fakeConnector.getConfiguration().getInfo()).isEqualTo("test");
     }

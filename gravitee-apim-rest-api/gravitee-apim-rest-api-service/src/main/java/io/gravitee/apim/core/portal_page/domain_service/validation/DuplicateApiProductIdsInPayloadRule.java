@@ -26,15 +26,14 @@ public class DuplicateApiProductIdsInPayloadRule implements BulkCreatePortalNavi
     @Override
     public void validate(List<CreatePortalNavigationItem> items, String environmentId, CreateValidationContext ctx) {
         var seenApiProductIds = new HashSet<String>();
-        items
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItemType.API_PRODUCT)
-            .map(CreatePortalNavigationItem::getApiProductId)
-            .filter(apiProductId -> apiProductId != null && !apiProductId.isBlank())
-            .forEach(apiProductId -> {
-                if (!seenApiProductIds.add(apiProductId)) {
-                    throw new ApiProductNavigationItemAlreadyExistsException(apiProductId);
-                }
-            });
+        items.stream()
+                .filter(item -> item.getType() == PortalNavigationItemType.API_PRODUCT)
+                .map(CreatePortalNavigationItem::getApiProductId)
+                .filter(apiProductId -> apiProductId != null && !apiProductId.isBlank())
+                .forEach(apiProductId -> {
+                    if (!seenApiProductIds.add(apiProductId)) {
+                        throw new ApiProductNavigationItemAlreadyExistsException(apiProductId);
+                    }
+                });
     }
 }

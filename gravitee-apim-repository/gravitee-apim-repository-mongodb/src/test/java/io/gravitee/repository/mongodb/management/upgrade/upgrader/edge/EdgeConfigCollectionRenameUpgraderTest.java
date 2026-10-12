@@ -70,7 +70,9 @@ public class EdgeConfigCollectionRenameUpgraderTest extends AbstractManagementRe
     @Test
     public void upgrade_should_rename_legacy_collection_to_prefixed_name() throws Exception {
         // Given
-        mongoTemplate.getCollection(LEGACY_COLLECTION_NAME).insertOne(new Document("_id", "env-1").append("gatewayUrl", "http://gw"));
+        mongoTemplate
+                .getCollection(LEGACY_COLLECTION_NAME)
+                .insertOne(new Document("_id", "env-1").append("gatewayUrl", "http://gw"));
 
         // When
         boolean result = upgrader.upgrade();
@@ -79,7 +81,10 @@ public class EdgeConfigCollectionRenameUpgraderTest extends AbstractManagementRe
         assertThat(result).isTrue();
         assertThat(mongoTemplate.collectionExists(LEGACY_COLLECTION_NAME)).isFalse();
         assertThat(mongoTemplate.collectionExists(targetCollectionName)).isTrue();
-        Document migrated = mongoTemplate.getCollection(targetCollectionName).find(new Document("_id", "env-1")).first();
+        Document migrated = mongoTemplate
+                .getCollection(targetCollectionName)
+                .find(new Document("_id", "env-1"))
+                .first();
         assertThat(migrated).isNotNull();
         assertThat(migrated.getString("gatewayUrl")).isEqualTo("http://gw");
     }
@@ -105,8 +110,13 @@ public class EdgeConfigCollectionRenameUpgraderTest extends AbstractManagementRe
 
         // Then both collections are left untouched to avoid data loss
         assertThat(result).isTrue();
-        assertThat(mongoTemplate.getCollection(LEGACY_COLLECTION_NAME).countDocuments()).isEqualTo(1);
-        assertThat(mongoTemplate.getCollection(targetCollectionName).find(new Document("_id", "current")).first()).isNotNull();
+        assertThat(mongoTemplate.getCollection(LEGACY_COLLECTION_NAME).countDocuments())
+                .isEqualTo(1);
+        assertThat(mongoTemplate
+                        .getCollection(targetCollectionName)
+                        .find(new Document("_id", "current"))
+                        .first())
+                .isNotNull();
     }
 
     @Test
@@ -122,6 +132,7 @@ public class EdgeConfigCollectionRenameUpgraderTest extends AbstractManagementRe
         assertThat(first).isTrue();
         assertThat(second).isTrue();
         assertThat(mongoTemplate.collectionExists(LEGACY_COLLECTION_NAME)).isFalse();
-        assertThat(mongoTemplate.getCollection(targetCollectionName).countDocuments()).isEqualTo(1);
+        assertThat(mongoTemplate.getCollection(targetCollectionName).countDocuments())
+                .isEqualTo(1);
     }
 }

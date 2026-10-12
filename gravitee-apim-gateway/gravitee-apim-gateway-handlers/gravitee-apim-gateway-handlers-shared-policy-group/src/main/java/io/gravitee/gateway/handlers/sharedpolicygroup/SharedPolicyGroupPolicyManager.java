@@ -34,22 +34,20 @@ public class SharedPolicyGroupPolicyManager extends AbstractPolicyManager {
     private final ReactableSharedPolicyGroup reactableSharedPolicyGroup;
 
     public SharedPolicyGroupPolicyManager(
-        DefaultClassLoader classLoader,
-        PolicyFactoryManager policyFactoryManager,
-        PolicyConfigurationFactory policyConfigurationFactory,
-        ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider,
-        ReactableSharedPolicyGroup reactableSharedPolicyGroup
-    ) {
+            DefaultClassLoader classLoader,
+            PolicyFactoryManager policyFactoryManager,
+            PolicyConfigurationFactory policyConfigurationFactory,
+            ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+            PolicyClassLoaderFactory policyClassLoaderFactory,
+            ComponentProvider componentProvider,
+            ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         super(
-            classLoader,
-            policyFactoryManager,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            componentProvider
-        );
+                classLoader,
+                policyFactoryManager,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                componentProvider);
         this.reactableSharedPolicyGroup = reactableSharedPolicyGroup;
     }
 

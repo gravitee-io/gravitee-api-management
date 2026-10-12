@@ -32,11 +32,8 @@ public class ContextualizedDebugHttpServerRequestTest {
         final Request request = mock(Request.class);
         when(request.path()).thenReturn(String.format("%s/another/path", DEBUG_CONTEXT_PATH));
 
-        final ContextualizedDebugHttpServerRequest contextualizedRequest = new ContextualizedDebugHttpServerRequest(
-            DEBUG_CONTEXT_PATH,
-            request,
-            EVENT_ID
-        );
+        final ContextualizedDebugHttpServerRequest contextualizedRequest =
+                new ContextualizedDebugHttpServerRequest(DEBUG_CONTEXT_PATH, request, EVENT_ID);
         assertThat(contextualizedRequest.contextPath()).isEqualTo("/echo");
         assertThat(contextualizedRequest.path()).isEqualTo("/echo/another/path");
     }

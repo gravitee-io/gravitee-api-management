@@ -39,13 +39,12 @@ public class ComputeObservabilityMeasuresUseCase {
     private final AnalyticsRequestPipeline pipeline;
 
     public record Input(
-        String organizationId,
-        String environmentId,
-        List<FilterCondition> filters,
-        Instant from,
-        Instant to,
-        List<AnalyticsMetricQuery> metrics
-    ) {}
+            String organizationId,
+            String environmentId,
+            List<FilterCondition> filters,
+            Instant from,
+            Instant to,
+            List<AnalyticsMetricQuery> metrics) {}
 
     public record Output(JsonNode response) {}
 
@@ -55,20 +54,15 @@ public class ComputeObservabilityMeasuresUseCase {
         }
         // Before the scope is prepared: a refused condition never reaches the data.
         var notApplied = pipeline.conditionsNotApplied(
-            input.filters,
-            input.metrics
-                .stream()
-                .map(metric -> new AnalyticsRequestPipeline.MetricConditions(metric.metricName(), metric.filters()))
-                .toList()
-        );
-        var scope = pipeline.prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
+                input.filters,
+                input.metrics.stream()
+                        .map(metric ->
+                                new AnalyticsRequestPipeline.MetricConditions(metric.metricName(), metric.filters()))
+                        .toList());
+        var scope = pipeline.prepare(
+                input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
         var query = new ObservabilityAnalyticsDataPort.MeasuresQuery(
-            input.organizationId,
-            input.environmentId,
-            scope,
-            input.metrics,
-            notApplied
-        );
+                input.organizationId, input.environmentId, scope, input.metrics, notApplied);
         analyticsDataPort.validate(query);
 
         if (scope.isEmpty()) {

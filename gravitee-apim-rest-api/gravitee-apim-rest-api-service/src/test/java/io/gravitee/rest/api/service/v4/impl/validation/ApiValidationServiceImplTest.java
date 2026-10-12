@@ -66,7 +66,6 @@ import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
 import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
-import io.gravitee.rest.api.service.v4.impl.validation.ListenerValidationServiceImpl;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
@@ -136,19 +135,18 @@ public class ApiValidationServiceImplTest {
     @BeforeEach
     public void setUp() throws Exception {
         apiValidationService = new ApiValidationServiceImpl(
-            tagsValidationService,
-            groupValidationService,
-            listenerValidationService,
-            endpointGroupsValidationService,
-            flowValidationService,
-            resourcesValidationService,
-            loggingValidationService,
-            planSearchService,
-            planValidationService,
-            apiServicePluginService,
-            flowValidationDomainService,
-            apiProductQueryService
-        );
+                tagsValidationService,
+                groupValidationService,
+                listenerValidationService,
+                endpointGroupsValidationService,
+                flowValidationService,
+                resourcesValidationService,
+                loggingValidationService,
+                planSearchService,
+                planValidationService,
+                apiServicePluginService,
+                flowValidationDomainService,
+                apiProductQueryService);
     }
 
     @Test
@@ -156,20 +154,17 @@ public class ApiValidationServiceImplTest {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         NewApiEntity newApiEntity = new NewApiEntity();
         newApiEntity.setType(ApiType.PROXY);
-        apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity);
+        apiValidationService.validateAndSanitizeNewApi(
+                GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity);
 
         verify(tagsValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null);
-        verify(groupValidationService, times(1)).validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            null,
-            null,
-            null,
-            primaryOwnerEntity,
-            true
-        );
-        verify(listenerValidationService, times(1)).validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, null, null);
+        verify(groupValidationService, times(1))
+                .validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, null, primaryOwnerEntity, true);
+        verify(listenerValidationService, times(1))
+                .validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, null, null);
         verify(endpointGroupsValidationService, times(1)).validateAndSanitizeHttpV4(newApiEntity.getType(), null);
-        verify(loggingValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), newApiEntity.getType(), null);
+        verify(loggingValidationService, times(1))
+                .validateAndSanitize(GraviteeContext.getExecutionContext(), newApiEntity.getType(), null);
         verify(flowValidationService, times(1)).validateAndSanitize(newApiEntity.getType(), null);
         verify(resourcesValidationService, never()).validateAndSanitize(any());
         verify(planValidationService, never()).validateAndSanitize(any(), any());
@@ -185,22 +180,20 @@ public class ApiValidationServiceImplTest {
         apiEntity.setLifecycleState(CREATED);
         List<Listener> listeners = List.of(new HttpListener());
         apiEntity.setListeners(listeners);
-        apiValidationService.validateAndSanitizeImportApiForCreation(GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity);
+        apiValidationService.validateAndSanitizeImportApiForCreation(
+                GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity);
 
         assertNull(apiEntity.getLifecycleState());
 
-        verify(tagsValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, Set.of());
-        verify(groupValidationService, times(1)).validateAndSanitize(
-            GraviteeContext.getExecutionContext(),
-            null,
-            null,
-            null,
-            primaryOwnerEntity,
-            true
-        );
-        verify(listenerValidationService, times(1)).validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, listeners, null);
+        verify(tagsValidationService, times(1))
+                .validateAndSanitize(GraviteeContext.getExecutionContext(), null, Set.of());
+        verify(groupValidationService, times(1))
+                .validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, null, primaryOwnerEntity, true);
+        verify(listenerValidationService, times(1))
+                .validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, listeners, null);
         verify(endpointGroupsValidationService, times(1)).validateAndSanitizeHttpV4(apiEntity.getType(), null);
-        verify(loggingValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), apiEntity.getType(), null);
+        verify(loggingValidationService, times(1))
+                .validateAndSanitize(GraviteeContext.getExecutionContext(), apiEntity.getType(), null);
         verify(flowValidationService, times(1)).validateAndSanitize(apiEntity.getType(), null, Set.of());
         verify(resourcesValidationService, times(1)).validateAndSanitize(List.of());
         verify(planValidationService, times(1)).validateAndSanitize(apiEntity.getType(), Set.of(), Set.of());
@@ -213,7 +206,8 @@ public class ApiValidationServiceImplTest {
             NewApiEntity newApiEntity = new NewApiEntity();
             newApiEntity.setDefinitionVersion(null);
 
-            apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
+            apiValidationService.validateAndSanitizeNewApi(
+                    GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
         });
     }
 
@@ -221,7 +215,8 @@ public class ApiValidationServiceImplTest {
     public void shouldValidateNewApiThrowExceptionWhenApiTypeNull() {
         assertThrows(InvalidDataException.class, () -> {
             NewApiEntity newApiEntity = new NewApiEntity();
-            apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
+            apiValidationService.validateAndSanitizeNewApi(
+                    GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
         });
     }
 
@@ -234,11 +229,10 @@ public class ApiValidationServiceImplTest {
             existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
             apiValidationService.validateAndSanitizeUpdateApi(
-                GraviteeContext.getExecutionContext(),
-                updateApiEntity,
-                new PrimaryOwnerEntity(),
-                existingApiEntity
-            );
+                    GraviteeContext.getExecutionContext(),
+                    updateApiEntity,
+                    new PrimaryOwnerEntity(),
+                    existingApiEntity);
         });
     }
 
@@ -251,11 +245,10 @@ public class ApiValidationServiceImplTest {
             existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
             apiValidationService.validateAndSanitizeUpdateApi(
-                GraviteeContext.getExecutionContext(),
-                updateApiEntity,
-                new PrimaryOwnerEntity(),
-                existingApiEntity
-            );
+                    GraviteeContext.getExecutionContext(),
+                    updateApiEntity,
+                    new PrimaryOwnerEntity(),
+                    existingApiEntity);
         });
     }
 
@@ -270,11 +263,10 @@ public class ApiValidationServiceImplTest {
             existingApiEntity.setType(ApiType.MESSAGE);
 
             apiValidationService.validateAndSanitizeUpdateApi(
-                GraviteeContext.getExecutionContext(),
-                updateApiEntity,
-                new PrimaryOwnerEntity(),
-                existingApiEntity
-            );
+                    GraviteeContext.getExecutionContext(),
+                    updateApiEntity,
+                    new PrimaryOwnerEntity(),
+                    existingApiEntity);
         });
     }
 
@@ -289,11 +281,10 @@ public class ApiValidationServiceImplTest {
             existingApiEntity.setType(ApiType.MESSAGE);
 
             apiValidationService.validateAndSanitizeUpdateApi(
-                GraviteeContext.getExecutionContext(),
-                updateApiEntity,
-                new PrimaryOwnerEntity(),
-                existingApiEntity
-            );
+                    GraviteeContext.getExecutionContext(),
+                    updateApiEntity,
+                    new PrimaryOwnerEntity(),
+                    existingApiEntity);
         });
     }
 
@@ -309,11 +300,7 @@ public class ApiValidationServiceImplTest {
         existingApiEntity.setLifecycleState(CREATED);
 
         apiValidationService.validateAndSanitizeUpdateApi(
-            GraviteeContext.getExecutionContext(),
-            updateApiEntity,
-            new PrimaryOwnerEntity(),
-            existingApiEntity
-        );
+                GraviteeContext.getExecutionContext(), updateApiEntity, new PrimaryOwnerEntity(), existingApiEntity);
         assertEquals(CREATED, updateApiEntity.getLifecycleState());
     }
 
@@ -376,11 +363,10 @@ public class ApiValidationServiceImplTest {
             existingApiEntity.setWorkflowState(IN_REVIEW);
 
             apiValidationService.validateAndSanitizeUpdateApi(
-                GraviteeContext.getExecutionContext(),
-                updateApiEntity,
-                new PrimaryOwnerEntity(),
-                existingApiEntity
-            );
+                    GraviteeContext.getExecutionContext(),
+                    updateApiEntity,
+                    new PrimaryOwnerEntity(),
+                    existingApiEntity);
         });
     }
 
@@ -389,9 +375,9 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId, false)).thenReturn(
-            Set.of(PlanEntity.builder().status(PlanStatus.PUBLISHED).build())
-        );
+        when(planSearchService.findByApi(executionContext, apiId, false))
+                .thenReturn(
+                        Set.of(PlanEntity.builder().status(PlanStatus.PUBLISHED).build()));
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -400,9 +386,9 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId, false)).thenReturn(
-            Set.of(PlanEntity.builder().status(PlanStatus.DEPRECATED).build())
-        );
+        when(planSearchService.findByApi(executionContext, apiId, false))
+                .thenReturn(Set.of(
+                        PlanEntity.builder().status(PlanStatus.DEPRECATED).build()));
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -424,12 +410,14 @@ public class ApiValidationServiceImplTest {
         final String productId = "product-1";
 
         when(planSearchService.findByApi(executionContext, apiId, false)).thenReturn(Set.of());
-        when(apiProductQueryService.findByApiId(apiId)).thenReturn(
-            Set.of(ApiProduct.builder().id(productId).environmentId(environmentId).build())
-        );
-        when(planSearchService.findByApiProduct(executionContext, productId)).thenReturn(
-            Set.of(PlanEntity.builder().status(PlanStatus.PUBLISHED).build())
-        );
+        when(apiProductQueryService.findByApiId(apiId))
+                .thenReturn(Set.of(ApiProduct.builder()
+                        .id(productId)
+                        .environmentId(environmentId)
+                        .build()));
+        when(planSearchService.findByApiProduct(executionContext, productId))
+                .thenReturn(
+                        Set.of(PlanEntity.builder().status(PlanStatus.PUBLISHED).build()));
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -440,9 +428,11 @@ public class ApiValidationServiceImplTest {
         final String environmentId = executionContext.getEnvironmentId();
 
         when(planSearchService.findByApi(executionContext, apiId, false)).thenReturn(Set.of());
-        when(apiProductQueryService.findByApiId(apiId)).thenReturn(
-            Set.of(ApiProduct.builder().id("product-1").environmentId(environmentId).build())
-        );
+        when(apiProductQueryService.findByApiId(apiId))
+                .thenReturn(Set.of(ApiProduct.builder()
+                        .id("product-1")
+                        .environmentId(environmentId)
+                        .build()));
         when(planSearchService.findByApiProduct(executionContext, "product-1")).thenReturn(Set.of());
         assertFalse(apiValidationService.canDeploy(executionContext, apiId));
     }
@@ -452,9 +442,10 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId, false)).thenReturn(
-            Set.of(PlanEntity.builder().status(PlanStatus.STAGING).build(), PlanEntity.builder().status(PlanStatus.CLOSED).build())
-        );
+        when(planSearchService.findByApi(executionContext, apiId, false))
+                .thenReturn(Set.of(
+                        PlanEntity.builder().status(PlanStatus.STAGING).build(),
+                        PlanEntity.builder().status(PlanStatus.CLOSED).build()));
         when(apiProductQueryService.findByApiId(apiId)).thenReturn(Set.of());
         assertFalse(apiValidationService.canDeploy(executionContext, apiId));
     }
@@ -475,11 +466,7 @@ public class ApiValidationServiceImplTest {
         assertEquals("\"A Description\"", updateApiEntity.getDescription());
 
         apiValidationService.validateAndSanitizeUpdateApi(
-            GraviteeContext.getExecutionContext(),
-            updateApiEntity,
-            new PrimaryOwnerEntity(),
-            existingApiEntity
-        );
+                GraviteeContext.getExecutionContext(), updateApiEntity, new PrimaryOwnerEntity(), existingApiEntity);
         assertEquals("\"A Description\"", updateApiEntity.getDescription());
     }
 
@@ -493,7 +480,8 @@ public class ApiValidationServiceImplTest {
         apiEntity.setDescription("\"A<img src=\\\"../../../image.png\\\"> Description\"");
         apiEntity.setListeners(List.of(new HttpListener()));
 
-        apiValidationService.validateAndSanitizeImportApiForCreation(GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity);
+        apiValidationService.validateAndSanitizeImportApiForCreation(
+                GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity);
 
         assertEquals("\"A Description\"", apiEntity.getDescription());
     }
@@ -506,37 +494,32 @@ public class ApiValidationServiceImplTest {
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setListeners(null);
 
-        assertThrows(ListenerMissingException.class, () ->
-            apiValidationService.validateAndSanitizeImportApiForCreation(
-                GraviteeContext.getExecutionContext(),
-                apiEntity,
-                primaryOwnerEntity
-            )
-        );
+        assertThrows(
+                ListenerMissingException.class,
+                () -> apiValidationService.validateAndSanitizeImportApiForCreation(
+                        GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity));
     }
 
     @Test
     public void shouldThrowExceptionWhenNewApiHasEmptyListeners() {
         ApiValidationService sutWithRealListenerValidation = new ApiValidationServiceImpl(
-            tagsValidationService,
-            groupValidationService,
-            new ListenerValidationServiceImpl(
-                mock(VerifyApiPathDomainService.class),
-                mock(EntrypointConnectorPluginService.class),
-                mock(EndpointConnectorPluginService.class),
-                mock(CorsValidationService.class),
-                mock(VerifyApiHostsDomainService.class)
-            ),
-            endpointGroupsValidationService,
-            flowValidationService,
-            resourcesValidationService,
-            loggingValidationService,
-            planSearchService,
-            planValidationService,
-            apiServicePluginService,
-            flowValidationDomainService,
-            apiProductQueryService
-        );
+                tagsValidationService,
+                groupValidationService,
+                new ListenerValidationServiceImpl(
+                        mock(VerifyApiPathDomainService.class),
+                        mock(EntrypointConnectorPluginService.class),
+                        mock(EndpointConnectorPluginService.class),
+                        mock(CorsValidationService.class),
+                        mock(VerifyApiHostsDomainService.class)),
+                endpointGroupsValidationService,
+                flowValidationService,
+                resourcesValidationService,
+                loggingValidationService,
+                planSearchService,
+                planValidationService,
+                apiServicePluginService,
+                flowValidationDomainService,
+                apiProductQueryService);
 
         var primaryOwnerEntity = new PrimaryOwnerEntity();
         NewApiEntity newApiEntity = new NewApiEntity();
@@ -544,9 +527,9 @@ public class ApiValidationServiceImplTest {
         newApiEntity.setDefinitionVersion(DefinitionVersion.V4);
         newApiEntity.setListeners(List.of());
 
-        assertThatThrownBy(() ->
-            sutWithRealListenerValidation.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity)
-        ).isInstanceOf(ListenerMissingException.class);
+        assertThatThrownBy(() -> sutWithRealListenerValidation.validateAndSanitizeNewApi(
+                        GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity))
+                .isInstanceOf(ListenerMissingException.class);
     }
 
     @Test
@@ -556,7 +539,8 @@ public class ApiValidationServiceImplTest {
         newApiEntity.setType(ApiType.PROXY);
         newApiEntity.setDescription("\"A<img src=\\\"../../../image.png\\\"> Description\"");
 
-        apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity);
+        apiValidationService.validateAndSanitizeNewApi(
+                GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity);
 
         assertEquals("\"A Description\"", newApiEntity.getDescription());
     }
@@ -564,19 +548,19 @@ public class ApiValidationServiceImplTest {
     @Test
     public void shouldThrowWhenUpdateV4HttpFlowHasNullPathOperator() {
         ApiValidationService apiValidationServiceWithRealFlowValidation = new ApiValidationServiceImpl(
-            tagsValidationService,
-            groupValidationService,
-            listenerValidationService,
-            endpointGroupsValidationService,
-            flowValidationService,
-            resourcesValidationService,
-            loggingValidationService,
-            planSearchService,
-            planValidationService,
-            apiServicePluginService,
-            new FlowValidationDomainService(mock(PolicyValidationDomainService.class), mock(EntrypointPluginQueryService.class)),
-            apiProductQueryService
-        );
+                tagsValidationService,
+                groupValidationService,
+                listenerValidationService,
+                endpointGroupsValidationService,
+                flowValidationService,
+                resourcesValidationService,
+                loggingValidationService,
+                planSearchService,
+                planValidationService,
+                apiServicePluginService,
+                new FlowValidationDomainService(
+                        mock(PolicyValidationDomainService.class), mock(EntrypointPluginQueryService.class)),
+                apiProductQueryService);
 
         HttpSelector httpSelector = new HttpSelector();
         httpSelector.setPath("/");
@@ -597,23 +581,19 @@ public class ApiValidationServiceImplTest {
         existingApiEntity.setType(ApiType.PROXY);
         existingApiEntity.setLifecycleState(CREATED);
 
-        assertThatThrownBy(() ->
-            apiValidationServiceWithRealFlowValidation.validateAndSanitizeUpdateApi(
-                GraviteeContext.getExecutionContext(),
-                updateApiEntity,
-                new PrimaryOwnerEntity(),
-                existingApiEntity
-            )
-        )
-            .isInstanceOf(InvalidFlowException.class)
-            .hasMessageContaining("missing pathOperator");
+        assertThatThrownBy(() -> apiValidationServiceWithRealFlowValidation.validateAndSanitizeUpdateApi(
+                        GraviteeContext.getExecutionContext(),
+                        updateApiEntity,
+                        new PrimaryOwnerEntity(),
+                        existingApiEntity))
+                .isInstanceOf(InvalidFlowException.class)
+                .hasMessageContaining("missing pathOperator");
     }
 
     private void assertUpdate(
-        final ApiLifecycleState fromLifecycleState,
-        final ApiLifecycleState lifecycleState,
-        final boolean shouldFail
-    ) {
+            final ApiLifecycleState fromLifecycleState,
+            final ApiLifecycleState lifecycleState,
+            final boolean shouldFail) {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
         updateApiEntity.setType(ApiType.MESSAGE);
@@ -626,25 +606,30 @@ public class ApiValidationServiceImplTest {
         boolean failed = false;
         try {
             apiValidationService.validateAndSanitizeUpdateApi(
-                GraviteeContext.getExecutionContext(),
-                updateApiEntity,
-                new PrimaryOwnerEntity(),
-                existingApiEntity
-            );
+                    GraviteeContext.getExecutionContext(),
+                    updateApiEntity,
+                    new PrimaryOwnerEntity(),
+                    existingApiEntity);
         } catch (final LifecycleStateChangeNotAllowedException ise) {
             failed = true;
         }
         if (!failed && shouldFail) {
-            fail("Should not be possible to change the lifecycle state of a " + fromLifecycleState + " API to " + lifecycleState);
+            fail("Should not be possible to change the lifecycle state of a " + fromLifecycleState + " API to "
+                    + lifecycleState);
         }
         if (failed && !shouldFail) {
-            fail("Should be possible to change the lifecycle state of a " + fromLifecycleState + " API to " + lifecycleState);
+            fail("Should be possible to change the lifecycle state of a " + fromLifecycleState + " API to "
+                    + lifecycleState);
         }
     }
 
     @Test
     public void should_not_validate_configuration_when_dynamic_properties_disabled() {
-        Service dynamicProperties = Service.builder().enabled(false).type("http-dynamic-properties").configuration("{}").build();
+        Service dynamicProperties = Service.builder()
+                .enabled(false)
+                .type("http-dynamic-properties")
+                .configuration("{}")
+                .build();
 
         apiValidationService.validateDynamicProperties(dynamicProperties);
 
@@ -653,8 +638,13 @@ public class ApiValidationServiceImplTest {
 
     @Test
     public void should_validate_configuration_when_dynamic_properties_enabled() {
-        Service dynamicProperties = Service.builder().enabled(true).type("http-dynamic-properties").configuration("{}").build();
-        when(apiServicePluginService.validateApiServiceConfiguration("http-dynamic-properties", "{}")).thenReturn("{}");
+        Service dynamicProperties = Service.builder()
+                .enabled(true)
+                .type("http-dynamic-properties")
+                .configuration("{}")
+                .build();
+        when(apiServicePluginService.validateApiServiceConfiguration("http-dynamic-properties", "{}"))
+                .thenReturn("{}");
 
         apiValidationService.validateDynamicProperties(dynamicProperties);
 
@@ -666,17 +656,18 @@ public class ApiValidationServiceImplTest {
         String legacyConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"\"}}}";
         String normalizedConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"}}}";
         Service dynamicProperties = Service.builder()
-            .enabled(true)
-            .type("http-dynamic-properties")
-            .configuration(legacyConfiguration)
-            .build();
-        when(apiServicePluginService.validateApiServiceConfiguration("http-dynamic-properties", normalizedConfiguration)).thenReturn(
-            normalizedConfiguration
-        );
+                .enabled(true)
+                .type("http-dynamic-properties")
+                .configuration(legacyConfiguration)
+                .build();
+        when(apiServicePluginService.validateApiServiceConfiguration(
+                        "http-dynamic-properties", normalizedConfiguration))
+                .thenReturn(normalizedConfiguration);
 
         apiValidationService.validateDynamicProperties(dynamicProperties);
 
-        verify(apiServicePluginService, times(1)).validateApiServiceConfiguration("http-dynamic-properties", normalizedConfiguration);
+        verify(apiServicePluginService, times(1))
+                .validateApiServiceConfiguration("http-dynamic-properties", normalizedConfiguration);
         assertThat(dynamicProperties.getConfiguration()).isEqualTo(normalizedConfiguration);
     }
 
@@ -691,8 +682,7 @@ public class ApiValidationServiceImplTest {
     public void should_throw_when_dynamic_properties_type_is_blank() {
         Service dynamicProperties = Service.builder().enabled(true).type("").build();
 
-        assertThatThrownBy(() -> apiValidationService.validateDynamicProperties(dynamicProperties)).isInstanceOf(
-            DynamicPropertiesInvalidException.class
-        );
+        assertThatThrownBy(() -> apiValidationService.validateDynamicProperties(dynamicProperties))
+                .isInstanceOf(DynamicPropertiesInvalidException.class);
     }
 }

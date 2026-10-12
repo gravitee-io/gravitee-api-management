@@ -23,10 +23,7 @@ public final class NoopAuthzAppender implements AuthzAppender {
 
     @Override
     public Single<List<ApiReactorDeployable>> appends(
-        boolean initialSync,
-        List<ApiReactorDeployable> deployables,
-        Set<String> environments
-    ) {
+            boolean initialSync, List<ApiReactorDeployable> deployables, Set<String> environments) {
         return Single.just(deployables == null ? List.of() : deployables);
     }
 }

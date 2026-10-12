@@ -60,36 +60,39 @@ public class ThemesResource extends AbstractResource {
     private GetCurrentThemeUseCase getCurrentThemeUseCase;
 
     @GET
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_THEME,
+                acls = {RolePermissionAction.READ})
+    })
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalThemes(
-        @BeanParam @Valid PaginationParam paginationParam,
-        @QueryParam("type") ThemeType type,
-        @QueryParam("enabled") Boolean enabled
-    ) {
+            @BeanParam @Valid PaginationParam paginationParam,
+            @QueryParam("type") ThemeType type,
+            @QueryParam("enabled") Boolean enabled) {
         var result = getPortalThemesUseCase
-            .execute(
-                GetThemesUseCase.Input.builder()
-                    .type(ThemeMapper.INSTANCE.map(type))
-                    .enabled(enabled)
-                    .size(paginationParam.getPerPage())
-                    .page(paginationParam.getPage())
-                    .build()
-            )
-            .result();
-        return Response.ok(
-            new ThemesResponse()
-                .data(ThemeMapper.INSTANCE.map(result.getContent()))
-                .pagination(
-                    PaginationInfo.computePaginationInfo(result.getTotalElements(), (int) result.getPageElements(), paginationParam)
-                )
-                .links(computePaginationLinks(result.getTotalElements(), paginationParam))
-        ).build();
+                .execute(GetThemesUseCase.Input.builder()
+                        .type(ThemeMapper.INSTANCE.map(type))
+                        .enabled(enabled)
+                        .size(paginationParam.getPerPage())
+                        .page(paginationParam.getPage())
+                        .build())
+                .result();
+        return Response.ok(new ThemesResponse()
+                        .data(ThemeMapper.INSTANCE.map(result.getContent()))
+                        .pagination(PaginationInfo.computePaginationInfo(
+                                result.getTotalElements(), (int) result.getPageElements(), paginationParam))
+                        .links(computePaginationLinks(result.getTotalElements(), paginationParam)))
+                .build();
     }
 
     @GET
     @Path("_default")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_THEME,
+                acls = {RolePermissionAction.READ})
+    })
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDefaultTheme(@QueryParam("type") ThemeType type) {
         if (Objects.isNull(type)) {
@@ -97,19 +100,21 @@ public class ThemesResource extends AbstractResource {
         }
 
         var result = getDefaultThemeUseCase
-            .execute(
-                GetDefaultThemeUseCase.Input.builder()
-                    .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
-                    .executionContext(GraviteeContext.getExecutionContext())
-                    .build()
-            )
-            .result();
+                .execute(GetDefaultThemeUseCase.Input.builder()
+                        .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
+                        .executionContext(GraviteeContext.getExecutionContext())
+                        .build())
+                .result();
         return Response.ok(ThemeMapper.INSTANCE.map(result)).build();
     }
 
     @GET
     @Path("_current")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_THEME,
+                acls = {RolePermissionAction.READ})
+    })
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCurrentTheme(@QueryParam("type") ThemeType type) {
         if (Objects.isNull(type)) {
@@ -117,13 +122,11 @@ public class ThemesResource extends AbstractResource {
         }
 
         var result = getCurrentThemeUseCase
-            .execute(
-                GetCurrentThemeUseCase.Input.builder()
-                    .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
-                    .executionContext(GraviteeContext.getExecutionContext())
-                    .build()
-            )
-            .result();
+                .execute(GetCurrentThemeUseCase.Input.builder()
+                        .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
+                        .executionContext(GraviteeContext.getExecutionContext())
+                        .build())
+                .result();
         return Response.ok(ThemeMapper.INSTANCE.map(result)).build();
     }
 

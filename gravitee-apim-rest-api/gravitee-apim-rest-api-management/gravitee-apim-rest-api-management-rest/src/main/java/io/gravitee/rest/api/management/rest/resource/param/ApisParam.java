@@ -169,7 +169,9 @@ public class ApisParam {
     }
 
     @QueryParam("order")
-    @Parameter(description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-name")
+    @Parameter(
+            description = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
+            example = "-name")
     public void setOrder(String param) {
         if (param != null) {
             order = Order.parse(param);

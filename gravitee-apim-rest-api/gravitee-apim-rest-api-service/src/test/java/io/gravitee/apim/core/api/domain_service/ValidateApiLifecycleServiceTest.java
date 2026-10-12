@@ -31,35 +31,44 @@ class ValidateApiLifecycleServiceTest {
     void should_return_existing_lifecycle_if_new_is_null(Api.ApiLifecycleState existingLifecycleState) {
         Api.ApiLifecycleState newLifecycleState = null;
 
-        var result = ValidateApiLifecycleService.validateFederatedApiLifecycleState(existingLifecycleState, newLifecycleState);
+        var result = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
+                existingLifecycleState, newLifecycleState);
 
         assertThat(result).isEqualTo(existingLifecycleState);
     }
 
     @ParameterizedTest
     @EnumSource(value = Api.ApiLifecycleState.class)
-    void should_throw_exception_when_trying_to_change_deprecated_lifecycle_state(Api.ApiLifecycleState newLifecycleState) {
+    void should_throw_exception_when_trying_to_change_deprecated_lifecycle_state(
+            Api.ApiLifecycleState newLifecycleState) {
         Api.ApiLifecycleState existingLifecycleState = Api.ApiLifecycleState.DEPRECATED;
 
-        assertThatThrownBy(() -> ValidateApiLifecycleService.validateFederatedApiLifecycleState(existingLifecycleState, newLifecycleState))
-            .isInstanceOf(LifecycleStateChangeNotAllowedException.class)
-            .hasMessage("The API lifecycle state cannot be changed to " + newLifecycleState + ".");
+        assertThatThrownBy(() -> ValidateApiLifecycleService.validateFederatedApiLifecycleState(
+                        existingLifecycleState, newLifecycleState))
+                .isInstanceOf(LifecycleStateChangeNotAllowedException.class)
+                .hasMessage("The API lifecycle state cannot be changed to " + newLifecycleState + ".");
     }
 
     @ParameterizedTest
     @EnumSource(value = Api.ApiLifecycleState.class)
-    void should_throw_exception_when_trying_to_change_archived_lifecycle_state(Api.ApiLifecycleState newLifecycleState) {
+    void should_throw_exception_when_trying_to_change_archived_lifecycle_state(
+            Api.ApiLifecycleState newLifecycleState) {
         Api.ApiLifecycleState existingLifecycleState = Api.ApiLifecycleState.ARCHIVED;
 
-        assertThatThrownBy(() -> ValidateApiLifecycleService.validateFederatedApiLifecycleState(existingLifecycleState, newLifecycleState))
-            .isInstanceOf(LifecycleStateChangeNotAllowedException.class)
-            .hasMessage("The API lifecycle state cannot be changed to " + newLifecycleState + ".");
+        assertThatThrownBy(() -> ValidateApiLifecycleService.validateFederatedApiLifecycleState(
+                        existingLifecycleState, newLifecycleState))
+                .isInstanceOf(LifecycleStateChangeNotAllowedException.class)
+                .hasMessage("The API lifecycle state cannot be changed to " + newLifecycleState + ".");
     }
 
     @ParameterizedTest
-    @EnumSource(value = Api.ApiLifecycleState.class, mode = EnumSource.Mode.EXCLUDE, names = { "ARCHIVED", "DEPRECATED" })
+    @EnumSource(
+            value = Api.ApiLifecycleState.class,
+            mode = EnumSource.Mode.EXCLUDE,
+            names = {"ARCHIVED", "DEPRECATED"})
     void should_return_existing_lifecycle_if_new_is_the_same(Api.ApiLifecycleState existingLifecycleState) {
-        var result = ValidateApiLifecycleService.validateFederatedApiLifecycleState(existingLifecycleState, existingLifecycleState);
+        var result = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
+                existingLifecycleState, existingLifecycleState);
 
         assertThat(result).isEqualTo(existingLifecycleState);
     }
@@ -69,9 +78,10 @@ class ValidateApiLifecycleServiceTest {
         Api.ApiLifecycleState existingLifecycleState = Api.ApiLifecycleState.UNPUBLISHED;
         Api.ApiLifecycleState newLifecycleState = Api.ApiLifecycleState.CREATED;
 
-        assertThatThrownBy(() -> ValidateApiLifecycleService.validateFederatedApiLifecycleState(existingLifecycleState, newLifecycleState))
-            .isInstanceOf(LifecycleStateChangeNotAllowedException.class)
-            .hasMessage("The API lifecycle state cannot be changed to " + newLifecycleState + ".");
+        assertThatThrownBy(() -> ValidateApiLifecycleService.validateFederatedApiLifecycleState(
+                        existingLifecycleState, newLifecycleState))
+                .isInstanceOf(LifecycleStateChangeNotAllowedException.class)
+                .hasMessage("The API lifecycle state cannot be changed to " + newLifecycleState + ".");
     }
 
     @Test
@@ -79,7 +89,8 @@ class ValidateApiLifecycleServiceTest {
         Api.ApiLifecycleState existingLifecycleState = Api.ApiLifecycleState.CREATED;
         Api.ApiLifecycleState newLifecycleState = Api.ApiLifecycleState.PUBLISHED;
 
-        var result = ValidateApiLifecycleService.validateFederatedApiLifecycleState(existingLifecycleState, newLifecycleState);
+        var result = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
+                existingLifecycleState, newLifecycleState);
 
         assertThat(result).isEqualTo(newLifecycleState);
     }
@@ -89,7 +100,8 @@ class ValidateApiLifecycleServiceTest {
         Api.ApiLifecycleState existingLifecycleState = Api.ApiLifecycleState.PUBLISHED;
         Api.ApiLifecycleState newLifecycleState = Api.ApiLifecycleState.UNPUBLISHED;
 
-        var result = ValidateApiLifecycleService.validateFederatedApiLifecycleState(existingLifecycleState, newLifecycleState);
+        var result = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
+                existingLifecycleState, newLifecycleState);
 
         assertThat(result).isEqualTo(newLifecycleState);
     }
@@ -99,7 +111,8 @@ class ValidateApiLifecycleServiceTest {
         Api.ApiLifecycleState existingLifecycleState = Api.ApiLifecycleState.UNPUBLISHED;
         Api.ApiLifecycleState newLifecycleState = Api.ApiLifecycleState.DEPRECATED;
 
-        var result = ValidateApiLifecycleService.validateFederatedApiLifecycleState(existingLifecycleState, newLifecycleState);
+        var result = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
+                existingLifecycleState, newLifecycleState);
 
         assertThat(result).isEqualTo(newLifecycleState);
     }

@@ -41,10 +41,7 @@ public class ApiQualityMetricDescription implements ApiQualityMetric {
     public boolean isValid(ExecutionContext executionContext, ApiEntity api) {
         int minLength = Integer.parseInt(Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH.defaultValue());
         List<String> minLengthParam = parameterService.findAll(
-            executionContext,
-            Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
-            ParameterReferenceType.ENVIRONMENT
-        );
+                executionContext, Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH, ParameterReferenceType.ENVIRONMENT);
         if (!minLengthParam.isEmpty()) {
             minLength = Integer.parseInt(minLengthParam.get(0));
         }

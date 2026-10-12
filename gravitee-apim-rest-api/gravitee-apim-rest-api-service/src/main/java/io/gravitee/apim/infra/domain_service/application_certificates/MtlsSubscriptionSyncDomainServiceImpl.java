@@ -51,25 +51,20 @@ public class MtlsSubscriptionSyncDomainServiceImpl implements MtlsSubscriptionSy
 
     @Override
     public void validateCertificateRemoval(String applicationId, String certificateId) {
-        List<SubscriptionEntity> mtlsSubscriptions = subscriptionQueryService.findActiveByApplicationIdAndPlanSecurityTypes(
-            applicationId,
-            List.of(PlanSecurityType.MTLS.name())
-        );
+        List<SubscriptionEntity> mtlsSubscriptions =
+                subscriptionQueryService.findActiveByApplicationIdAndPlanSecurityTypes(
+                        applicationId, List.of(PlanSecurityType.MTLS.name()));
 
         if (mtlsSubscriptions.isEmpty()) {
             return;
         }
 
         var activeCertificates = clientCertificateCrudService.findByApplicationIdAndStatuses(
-            applicationId,
-            ClientCertificateStatus.ACTIVE,
-            ClientCertificateStatus.ACTIVE_WITH_END
-        );
+                applicationId, ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END);
 
-        long remainingAfterRemoval = activeCertificates
-            .stream()
-            .filter(c -> !c.id().equals(certificateId))
-            .count();
+        long remainingAfterRemoval = activeCertificates.stream()
+                .filter(c -> !c.id().equals(certificateId))
+                .count();
 
         if (remainingAfterRemoval == 0) {
             throw new ClientCertificateLastRemovalException(applicationId);
@@ -80,10 +75,9 @@ public class MtlsSubscriptionSyncDomainServiceImpl implements MtlsSubscriptionSy
     public void updateActiveMTLSSubscriptions(String applicationId) {
         log.debug("Updating client certificates for application: {}", applicationId);
 
-        List<SubscriptionEntity> mtlsSubscriptions = subscriptionQueryService.findActiveByApplicationIdAndPlanSecurityTypes(
-            applicationId,
-            List.of(PlanSecurityType.MTLS.name())
-        );
+        List<SubscriptionEntity> mtlsSubscriptions =
+                subscriptionQueryService.findActiveByApplicationIdAndPlanSecurityTypes(
+                        applicationId, List.of(PlanSecurityType.MTLS.name()));
 
         if (mtlsSubscriptions.isEmpty()) {
             log.debug("No active mTLS subscriptions found for application: {}", applicationId);
@@ -91,18 +85,17 @@ public class MtlsSubscriptionSyncDomainServiceImpl implements MtlsSubscriptionSy
         }
 
         var activeCertificates = clientCertificateCrudService.findByApplicationIdAndStatuses(
-            applicationId,
-            ClientCertificateStatus.ACTIVE,
-            ClientCertificateStatus.ACTIVE_WITH_END
-        );
+                applicationId, ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END);
 
         if (activeCertificates.isEmpty()) {
-            log.warn("No active certificates remain for application {}. mTLS subscriptions will be cleared.", applicationId);
+            log.warn(
+                    "No active certificates remain for application {}. mTLS subscriptions will be cleared.",
+                    applicationId);
         }
 
-        String encodedCertificate = encodeCertificates(
-            activeCertificates.stream().sorted(Comparator.comparing(ClientCertificate::createdAt)).toList()
-        );
+        String encodedCertificate = encodeCertificates(activeCertificates.stream()
+                .sorted(Comparator.comparing(ClientCertificate::createdAt))
+                .toList());
         updateSubscriptionsWithCertificate(mtlsSubscriptions, encodedCertificate);
     }
 
@@ -116,7 +109,8 @@ public class MtlsSubscriptionSyncDomainServiceImpl implements MtlsSubscriptionSy
             return Base64.getEncoder().encodeToString(pem.getBytes(StandardCharsets.UTF_8));
         }
 
-        byte[] pkcs7Bundle = PKCS7Utils.createBundle(certificates.stream().map(ClientCertificate::certificate).toList());
+        byte[] pkcs7Bundle = PKCS7Utils.createBundle(
+                certificates.stream().map(ClientCertificate::certificate).toList());
         return Base64.getEncoder().encodeToString(pkcs7Bundle);
     }
 

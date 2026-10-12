@@ -46,13 +46,11 @@ public class AiWorkspaceRolesUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    initializeAiWorkspaceRoles(executionContext);
-                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                initializeAiWorkspaceRoles(executionContext);
+                roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+            });
             return true;
         });
     }
@@ -69,7 +67,9 @@ public class AiWorkspaceRolesUpgrader implements Upgrader {
     }
 
     private boolean shouldCreateRole(final ExecutionContext executionContext, String roleName) {
-        return roleService.findByScopeAndName(AI_WORKSPACE, roleName, executionContext.getOrganizationId()).isEmpty();
+        return roleService
+                .findByScopeAndName(AI_WORKSPACE, roleName, executionContext.getOrganizationId())
+                .isEmpty();
     }
 
     @Override

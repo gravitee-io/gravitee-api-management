@@ -43,7 +43,8 @@ public interface PageRepository extends FindAllRepository<Page> {
 
     List<Page> search(PageCriteria criteria) throws TechnicalException;
 
-    Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType) throws TechnicalException;
+    Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
+            throws TechnicalException;
 
     io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException;
 
@@ -58,7 +59,7 @@ public interface PageRepository extends FindAllRepository<Page> {
      * @throws TechnicalException
      */
     Map<String, List<String>> deleteByReferenceIdAndReferenceType(String referenceId, PageReferenceType referenceType)
-        throws TechnicalException;
+            throws TechnicalException;
 
     /**
      * Update cross ids of pages.

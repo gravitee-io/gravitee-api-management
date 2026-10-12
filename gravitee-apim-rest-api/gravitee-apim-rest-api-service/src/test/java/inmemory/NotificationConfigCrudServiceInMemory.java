@@ -23,7 +23,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NotificationConfigCrudServiceInMemory implements NotificationConfigCrudService, InMemoryAlternative<NotificationConfig> {
+public class NotificationConfigCrudServiceInMemory
+        implements NotificationConfigCrudService, InMemoryAlternative<NotificationConfig> {
 
     final ArrayList<NotificationConfig> storage = new ArrayList<>();
 

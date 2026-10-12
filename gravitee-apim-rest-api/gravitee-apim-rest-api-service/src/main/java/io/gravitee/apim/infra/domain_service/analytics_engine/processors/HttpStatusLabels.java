@@ -31,7 +31,8 @@ final class HttpStatusLabels {
         }
         try {
             var code = Integer.parseInt(statusCodeKey);
-            var reasonPhrase = normalizeReasonPhrase(code, statusCodeKey, HttpResponseStatus.valueOf(code).reasonPhrase());
+            var reasonPhrase = normalizeReasonPhrase(
+                    code, statusCodeKey, HttpResponseStatus.valueOf(code).reasonPhrase());
             if (reasonPhrase == null) {
                 return statusCodeKey;
             }
@@ -53,7 +54,9 @@ final class HttpStatusLabels {
         if (!reasonPhrase.endsWith(suffix)) {
             return reasonPhrase;
         }
-        var trimmed = reasonPhrase.substring(0, reasonPhrase.length() - suffix.length()).trim();
+        var trimmed = reasonPhrase
+                .substring(0, reasonPhrase.length() - suffix.length())
+                .trim();
         return trimmed.isEmpty() ? null : trimmed;
     }
 }

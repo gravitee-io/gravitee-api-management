@@ -62,7 +62,8 @@ public class ApiImagesServiceImpl implements ApiImagesService {
             api = findApi(executionContext, apiId);
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
 
         InlinePictureEntity imageEntity = new InlinePictureEntity();
@@ -88,19 +89,19 @@ public class ApiImagesServiceImpl implements ApiImagesService {
 
             // Audit
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(emptyMap())
-                    .event(API_UPDATED)
-                    .createdAt(newApi.getUpdatedAt())
-                    .oldValue(apiToUpdate)
-                    .newValue(newApi)
-                    .build(),
-                apiId
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(emptyMap())
+                            .event(API_UPDATED)
+                            .createdAt(newApi.getUpdatedAt())
+                            .oldValue(apiToUpdate)
+                            .newValue(newApi)
+                            .build(),
+                    apiId);
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
     }
 
@@ -111,7 +112,8 @@ public class ApiImagesServiceImpl implements ApiImagesService {
             api = findApi(executionContext, apiId);
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
 
         InlinePictureEntity imageEntity = new InlinePictureEntity();
@@ -133,19 +135,19 @@ public class ApiImagesServiceImpl implements ApiImagesService {
 
             // Audit
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(emptyMap())
-                    .event(API_UPDATED)
-                    .createdAt(newApi.getUpdatedAt())
-                    .oldValue(apiToUpdate)
-                    .newValue(newApi)
-                    .build(),
-                apiId
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(emptyMap())
+                            .event(API_UPDATED)
+                            .createdAt(newApi.getUpdatedAt())
+                            .oldValue(apiToUpdate)
+                            .newValue(newApi)
+                            .build(),
+                    apiId);
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
     }
 

@@ -29,7 +29,8 @@ public class PromotionAlreadyInProgressException extends AbstractNotFoundExcepti
 
     @Override
     public String getMessage() {
-        return "Another promotion for the same API and environment is already in progress: Promotion [" + otherPromotionId + "].";
+        return "Another promotion for the same API and environment is already in progress: Promotion ["
+                + otherPromotionId + "].";
     }
 
     @Override

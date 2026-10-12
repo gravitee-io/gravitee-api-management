@@ -21,7 +21,7 @@ import io.gravitee.apim.core.promotion.model.PromotionRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface PromotionMapper {
     PromotionMapper INSTANCE = Mappers.getMapper(PromotionMapper.class);
 

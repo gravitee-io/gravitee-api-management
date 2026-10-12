@@ -42,10 +42,10 @@ public class CookieGeneratorTest {
     @Test
     public void shouldSetCookieOptionsFromEnvironmentWithJettySecured() {
         final Environment environment = new MockEnvironment()
-            .withProperty("jetty.secured", "true")
-            .withProperty("jwt.cookie-path", "/test")
-            .withProperty("jwt.cookie-domain", "gravitee.io")
-            .withProperty("jwt.expire-after", "1");
+                .withProperty("jetty.secured", "true")
+                .withProperty("jwt.cookie-path", "/test")
+                .withProperty("jwt.cookie-domain", "gravitee.io")
+                .withProperty("jwt.expire-after", "1");
 
         final CookieGenerator cookieGenerator = new CookieGenerator(environment);
         final Cookie cookie = cookieGenerator.generate("test");
@@ -60,10 +60,10 @@ public class CookieGeneratorTest {
     @Test
     public void shouldSetCookieOptionsFromEnvironment() {
         final Environment environment = new MockEnvironment()
-            .withProperty("jwt.cookie-secure", "false")
-            .withProperty("jwt.cookie-path", "/test")
-            .withProperty("jwt.cookie-domain", "gravitee.io")
-            .withProperty("jwt.expire-after", "1");
+                .withProperty("jwt.cookie-secure", "false")
+                .withProperty("jwt.cookie-path", "/test")
+                .withProperty("jwt.cookie-domain", "gravitee.io")
+                .withProperty("jwt.expire-after", "1");
 
         final CookieGenerator cookieGenerator = new CookieGenerator(environment);
         final Cookie cookie = cookieGenerator.generate("test");

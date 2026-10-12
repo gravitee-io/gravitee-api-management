@@ -24,8 +24,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class AsyncJobFixture {
 
-    public static final Supplier<AsyncJob.AsyncJobBuilder> BASE = () ->
-        AsyncJob.builder()
+    public static final Supplier<AsyncJob.AsyncJobBuilder> BASE = () -> AsyncJob.builder()
             .id("job-id")
             .sourceId("integration-id")
             .initiatorId("initiator-id")
@@ -44,11 +43,18 @@ public class AsyncJobFixture {
     }
 
     public static AsyncJob aSuccessFederatedApiIngestionJob() {
-        return BASE.get().type(AsyncJob.Type.FEDERATED_APIS_INGESTION).status(AsyncJob.Status.SUCCESS).build();
+        return BASE.get()
+                .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
+                .status(AsyncJob.Status.SUCCESS)
+                .build();
     }
 
     public static AsyncJob anErrorFederatedApiIngestionJob() {
-        return BASE.get().type(AsyncJob.Type.FEDERATED_APIS_INGESTION).status(AsyncJob.Status.ERROR).errorMessage("Job failed").build();
+        return BASE.get()
+                .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
+                .status(AsyncJob.Status.ERROR)
+                .errorMessage("Job failed")
+                .build();
     }
 
     public static AsyncJob aPendingScoringRequestJob() {

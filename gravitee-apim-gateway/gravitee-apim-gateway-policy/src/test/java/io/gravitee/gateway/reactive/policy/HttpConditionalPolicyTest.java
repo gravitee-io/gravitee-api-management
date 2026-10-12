@@ -62,7 +62,7 @@ class HttpConditionalPolicyTest {
     @Mock
     private ConditionFilter<BaseExecutionContext, HttpConditionalPolicy> conditionFilter;
 
-    @Mock(extraInterfaces = { HttpExecutionContextInternal.class })
+    @Mock(extraInterfaces = {HttpExecutionContextInternal.class})
     private HttpExecutionContext ctx;
 
     @Mock(extraInterfaces = HttpRequestInternal.class)
@@ -216,7 +216,8 @@ class HttpConditionalPolicyTest {
 
         cut.onRequest(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+        verify((HttpExecutionContextInternal) ctx)
+                .setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
     }
 
     @Test
@@ -227,7 +228,8 @@ class HttpConditionalPolicyTest {
 
         cut.onResponse(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+        verify((HttpExecutionContextInternal) ctx)
+                .setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
     }
 
     @Test
@@ -237,7 +239,8 @@ class HttpConditionalPolicyTest {
 
         cut.onMessageRequest(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+        verify((HttpExecutionContextInternal) ctx)
+                .setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
     }
 
     @Test
@@ -247,7 +250,8 @@ class HttpConditionalPolicyTest {
 
         cut.onMessageResponse(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
+        verify((HttpExecutionContextInternal) ctx)
+                .setInternalAttribute("gravitee.policy.trigger.condition." + POLICY_ID, CONDITION);
     }
 
     @Test
@@ -257,10 +261,8 @@ class HttpConditionalPolicyTest {
 
         cut.onRequest(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx, never()).setInternalAttribute(
-            eq("gravitee.policy.trigger.condition." + POLICY_ID),
-            any()
-        );
+        verify((HttpExecutionContextInternal) ctx, never())
+                .setInternalAttribute(eq("gravitee.policy.trigger.condition." + POLICY_ID), any());
     }
 
     @Test
@@ -271,7 +273,8 @@ class HttpConditionalPolicyTest {
 
         cut.onRequest(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, true);
+        verify((HttpExecutionContextInternal) ctx)
+                .setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, true);
     }
 
     @Test
@@ -282,7 +285,8 @@ class HttpConditionalPolicyTest {
 
         cut.onRequest(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
+        verify((HttpExecutionContextInternal) ctx)
+                .setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
     }
 
     @Test
@@ -293,7 +297,8 @@ class HttpConditionalPolicyTest {
 
         cut.onResponse(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, true);
+        verify((HttpExecutionContextInternal) ctx)
+                .setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, true);
     }
 
     @Test
@@ -304,7 +309,8 @@ class HttpConditionalPolicyTest {
 
         cut.onResponse(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
+        verify((HttpExecutionContextInternal) ctx)
+                .setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
     }
 
     @Test
@@ -314,7 +320,8 @@ class HttpConditionalPolicyTest {
 
         cut.onMessageRequest(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
+        verify((HttpExecutionContextInternal) ctx)
+                .setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
         verify(policy, never()).onMessageRequest(ctx);
     }
 
@@ -325,7 +332,8 @@ class HttpConditionalPolicyTest {
 
         cut.onMessageResponse(ctx).test().assertComplete();
 
-        verify((HttpExecutionContextInternal) ctx).setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
+        verify((HttpExecutionContextInternal) ctx)
+                .setInternalAttribute("gravitee.policy.trigger.executed." + POLICY_ID, false);
         verify(policy, never()).onMessageResponse(ctx);
     }
 }

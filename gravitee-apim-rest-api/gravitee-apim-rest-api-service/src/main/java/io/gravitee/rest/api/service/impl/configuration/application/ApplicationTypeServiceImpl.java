@@ -58,12 +58,10 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
 
     @Override
     public ApplicationTypeEntity getApplicationType(String typeId) {
-        return this.getApplicationTypesEntity()
-            .getData()
-            .stream()
-            .filter(typeEntity -> typeEntity.getId().equals(typeId.toLowerCase()))
-            .findFirst()
-            .orElseThrow(() -> new ApplicationTypeNotFoundException(typeId));
+        return this.getApplicationTypesEntity().getData().stream()
+                .filter(typeEntity -> typeEntity.getId().equals(typeId.toLowerCase()))
+                .findFirst()
+                .orElseThrow(() -> new ApplicationTypeNotFoundException(typeId));
     }
 
     private ApplicationTypesEntity getApplicationTypesEntity() {
@@ -79,18 +77,18 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
     public ApplicationTypesEntity getFilteredApplicationTypes(JsonNode jsonTypes) {
         ApplicationTypesEntity applicationTypesEntity = this.getApplicationTypesEntity();
 
-        List<ApplicationTypeEntity> filteredData = applicationTypesEntity
-            .getData()
-            .stream()
-            .filter(typeEntity -> jsonTypes.get(typeEntity.getId()).get("enabled").asBoolean(false))
-            .collect(Collectors.toList());
+        List<ApplicationTypeEntity> filteredData = applicationTypesEntity.getData().stream()
+                .filter(typeEntity ->
+                        jsonTypes.get(typeEntity.getId()).get("enabled").asBoolean(false))
+                .collect(Collectors.toList());
 
         applicationTypesEntity.setData(filteredData);
         return applicationTypesEntity;
     }
 
     public JsonNode getApplicationTypesConfiguration(ExecutionContext executionContext) {
-        PortalApplicationSettings applicationConfig = configService.getPortalSettings(executionContext).getApplication();
+        PortalApplicationSettings applicationConfig =
+                configService.getPortalSettings(executionContext).getApplication();
         PortalApplicationSettings.ApplicationTypes types = applicationConfig.getTypes();
         if (!applicationConfig.getRegistration().getEnabled()) {
             types.getBrowserType().setEnabled(false);

@@ -41,42 +41,41 @@ public class DebugInvokerHook extends AbstractDebugHook implements InvokerHook {
     }
 
     @Override
-    protected Completable post(final String id, final DebugExecutionContext debugCtx, @Nullable final ExecutionPhase executionPhase) {
-        return debugCtx
-            .response()
-            .bodyOrEmpty()
-            .doOnSuccess(outputBody -> {
-                InvokerResponse invokerResponse = debugCtx.getInvokerResponse();
-                invokerResponse.setHeaders(debugCtx.response().headers());
-                invokerResponse.setStatus(debugCtx.response().status());
-                invokerResponse.getBuffer().appendBuffer(outputBody);
-            })
-            .ignoreElement();
+    protected Completable post(
+            final String id, final DebugExecutionContext debugCtx, @Nullable final ExecutionPhase executionPhase) {
+        return debugCtx.response()
+                .bodyOrEmpty()
+                .doOnSuccess(outputBody -> {
+                    InvokerResponse invokerResponse = debugCtx.getInvokerResponse();
+                    invokerResponse.setHeaders(debugCtx.response().headers());
+                    invokerResponse.setStatus(debugCtx.response().status());
+                    invokerResponse.getBuffer().appendBuffer(outputBody);
+                })
+                .ignoreElement();
     }
 
     @Override
     protected Completable error(
-        final String id,
-        final DebugExecutionContext debugCtx,
-        final ExecutionPhase executionPhase,
-        final Throwable throwable
-    ) {
+            final String id,
+            final DebugExecutionContext debugCtx,
+            final ExecutionPhase executionPhase,
+            final Throwable throwable) {
         // FIXME Shouldn't we do something with the throwable?
         return post(id, debugCtx, executionPhase);
     }
 
     @Override
-    protected Completable interrupt(final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
+    protected Completable interrupt(
+            final String id, final DebugExecutionContext debugCtx, final ExecutionPhase executionPhase) {
         return Completable.complete();
     }
 
     @Override
     protected Completable interruptWith(
-        final String id,
-        final DebugExecutionContext debugCtx,
-        final ExecutionPhase executionPhase,
-        final ExecutionFailure failure
-    ) {
+            final String id,
+            final DebugExecutionContext debugCtx,
+            final ExecutionPhase executionPhase,
+            final ExecutionFailure failure) {
         return Completable.complete();
     }
 }

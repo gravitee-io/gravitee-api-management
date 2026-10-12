@@ -44,14 +44,15 @@ import org.junit.jupiter.api.Test;
 class GetPortalDocumentationUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final PortalPageContentId DOC_ID = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1");
 
     private final PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
-    private final PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService =
+            new PortalNavigationItemsQueryServiceInMemory();
     private GetPortalDocumentationUseCase useCase;
 
     @BeforeEach
@@ -84,22 +85,18 @@ class GetPortalDocumentationUseCaseTest {
         queryService.initWith(List.of(aPageContent()));
         var pageContent = aPageContent();
         var navItemId = PortalNavigationItemId.forPortalDocumentationContent(AUDIT_INFO, pageContent);
-        navigationItemsQueryService.initWith(
-            List.of(
-                PortalNavigationPage.builder()
-                    .id(navItemId)
-                    .organizationId(AUDIT_INFO.organizationId())
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .title("Getting Started")
-                    .segment("getting-started")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(1)
-                    .portalPageContentId(DOC_ID)
-                    .published(true)
-                    .visibility(PortalVisibility.PRIVATE)
-                    .build()
-            )
-        );
+        navigationItemsQueryService.initWith(List.of(PortalNavigationPage.builder()
+                .id(navItemId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("Getting Started")
+                .segment("getting-started")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .portalPageContentId(DOC_ID)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build()));
 
         var output = useCase.execute(new GetPortalDocumentationUseCase.Input(AUDIT_INFO, DOC_ID));
 
@@ -117,7 +114,8 @@ class GetPortalDocumentationUseCaseTest {
 
     @Test
     void should_throw_when_missing() {
-        var throwable = catchThrowable(() -> useCase.execute(new GetPortalDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
+        var throwable =
+                catchThrowable(() -> useCase.execute(new GetPortalDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
 
         assertThat(throwable).isInstanceOf(PortalDocumentationNotFoundException.class);
     }
@@ -125,31 +123,26 @@ class GetPortalDocumentationUseCaseTest {
     @Test
     void should_throw_when_page_content_has_no_automation_metadata() {
         var pageContent = new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello")
-        );
+                DOC_ID, AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId(), GraviteeMarkdown.of("# Hello"));
         queryService.initWith(List.of(pageContent));
 
-        var throwable = catchThrowable(() -> useCase.execute(new GetPortalDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
+        var throwable =
+                catchThrowable(() -> useCase.execute(new GetPortalDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
 
         assertThat(throwable).isInstanceOf(PortalDocumentationNotFoundException.class);
     }
 
     private static GraviteeMarkdownPageContent aPageContent() {
         return new GraviteeMarkdownPageContent(
-            DOC_ID,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("# Hello"),
-            new AutomationMetadata(
-                AutomationMetadata.ReferenceType.PORTAL,
-                "00000000-0000-0000-0000-0000000000a1",
-                "Getting Started",
-                Optional.of("/projects/alpha"),
-                Optional.of(1)
-            )
-        );
+                DOC_ID,
+                AUDIT_INFO.organizationId(),
+                AUDIT_INFO.environmentId(),
+                GraviteeMarkdown.of("# Hello"),
+                new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        "00000000-0000-0000-0000-0000000000a1",
+                        "Getting Started",
+                        Optional.of("/projects/alpha"),
+                        Optional.of(1)));
     }
 }

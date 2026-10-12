@@ -69,9 +69,9 @@ public class ApplicationCrudServiceImplTest {
         void should_return_application_entity_when_found() throws TechnicalException {
             // Given
             String applicationId = "appId";
-            when(applicationRepository.findById(any())).thenAnswer(invocation ->
-                Optional.of(anApplication().id(invocation.getArgument(0)).build())
-            );
+            when(applicationRepository.findById(any()))
+                    .thenAnswer(invocation -> Optional.of(
+                            anApplication().id(invocation.getArgument(0)).build()));
 
             // When
             var result = service.findById(applicationId, ENVIRONMENT_ID);
@@ -99,17 +99,17 @@ public class ApplicationCrudServiceImplTest {
         void should_throw_when_environment_does_not_match_with_current_environment() throws TechnicalException {
             // Given
             String applicationId = "appId";
-            when(applicationRepository.findById(any())).thenAnswer(invocation ->
-                Optional.of(anApplication().id(invocation.getArgument(0)).build())
-            );
+            when(applicationRepository.findById(any()))
+                    .thenAnswer(invocation -> Optional.of(
+                            anApplication().id(invocation.getArgument(0)).build()));
 
             // When
             Throwable throwable = catchThrowable(() -> service.findById(applicationId, "OTHER"));
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(ApplicationNotFoundException.class)
-                .hasMessage("Application [" + applicationId + "] cannot be found.");
+                    .isInstanceOf(ApplicationNotFoundException.class)
+                    .hasMessage("Application [" + applicationId + "] cannot be found.");
         }
 
         @Test
@@ -123,8 +123,8 @@ public class ApplicationCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(ApplicationNotFoundException.class)
-                .hasMessage("Application [" + applicationId + "] cannot be found.");
+                    .isInstanceOf(ApplicationNotFoundException.class)
+                    .hasMessage("Application [" + applicationId + "] cannot be found.");
         }
 
         @Test
@@ -143,20 +143,20 @@ public class ApplicationCrudServiceImplTest {
 
     private Application.ApplicationBuilder anApplication() {
         return Application.builder()
-            .apiKeyMode(io.gravitee.repository.management.model.ApiKeyMode.EXCLUSIVE)
-            .background("app-background")
-            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .description("app-description")
-            .disableMembershipNotifications(true)
-            .domain("app-domain")
-            .environmentId(ENVIRONMENT_ID)
-            .groups(Set.of("group1"))
-            .metadata(Map.of("key1", "value1"))
-            .name("app-name")
-            .origin(Origin.MANAGEMENT)
-            .picture("app-picture")
-            .status(ApplicationStatus.ACTIVE)
-            .type(ApplicationType.SIMPLE)
-            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+                .apiKeyMode(io.gravitee.repository.management.model.ApiKeyMode.EXCLUSIVE)
+                .background("app-background")
+                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .description("app-description")
+                .disableMembershipNotifications(true)
+                .domain("app-domain")
+                .environmentId(ENVIRONMENT_ID)
+                .groups(Set.of("group1"))
+                .metadata(Map.of("key1", "value1"))
+                .name("app-name")
+                .origin(Origin.MANAGEMENT)
+                .picture("app-picture")
+                .status(ApplicationStatus.ACTIVE)
+                .type(ApplicationType.SIMPLE)
+                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
     }
 }

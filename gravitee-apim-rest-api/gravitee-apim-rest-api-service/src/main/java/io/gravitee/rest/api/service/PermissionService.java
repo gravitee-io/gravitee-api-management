@@ -25,19 +25,17 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  */
 public interface PermissionService {
     boolean hasPermission(
-        final ExecutionContext executionContext,
-        RolePermission permission,
-        String referenceId,
-        RolePermissionAction... acls
-    );
+            final ExecutionContext executionContext,
+            RolePermission permission,
+            String referenceId,
+            RolePermissionAction... acls);
 
     boolean hasPermission(
-        final ExecutionContext executionContext,
-        String userId,
-        RolePermission permission,
-        String referenceId,
-        RolePermissionAction... acls
-    );
+            final ExecutionContext executionContext,
+            String userId,
+            RolePermission permission,
+            String referenceId,
+            RolePermissionAction... acls);
 
     boolean hasManagementRights(ExecutionContext executionContext, String userId);
 }

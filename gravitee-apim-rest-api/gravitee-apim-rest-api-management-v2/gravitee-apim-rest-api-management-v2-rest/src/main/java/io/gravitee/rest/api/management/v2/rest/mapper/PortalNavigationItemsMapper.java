@@ -63,7 +63,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class})
 public interface PortalNavigationItemsMapper {
     PortalNavigationItemsMapper INSTANCE = Mappers.getMapper(PortalNavigationItemsMapper.class);
 
@@ -71,46 +71,48 @@ public interface PortalNavigationItemsMapper {
     @Mapping(target = "portalPageContentId", expression = "java(page.getPortalPageContentId().id())")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage map(
-        io.gravitee.apim.core.portal_page.model.PortalNavigationPage page
-    );
+            io.gravitee.apim.core.portal_page.model.PortalNavigationPage page);
 
     @Mapping(target = "type", constant = "FOLDER")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder map(
-        io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder
-    );
+            io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder);
 
     @Mapping(target = "type", constant = "LINK")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink map(
-        io.gravitee.apim.core.portal_page.model.PortalNavigationLink link
-    );
+            io.gravitee.apim.core.portal_page.model.PortalNavigationLink link);
 
     @Mapping(target = "type", constant = "API")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
-    io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApi map(io.gravitee.apim.core.portal_page.model.PortalNavigationApi api);
+    io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApi map(
+            io.gravitee.apim.core.portal_page.model.PortalNavigationApi api);
 
     @Mapping(target = "type", constant = "API_PRODUCT")
     @Mapping(target = "apiProductId", source = "apiProductId")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApiProduct map(
-        io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct
-    );
+            io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct);
 
     default List<PortalNavigationItem> map(List<io.gravitee.apim.core.portal_page.model.PortalNavigationItem> items) {
         return items.stream().map(this::map).toList();
     }
 
-    default PortalNavigationItem map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem portalNavigationItem) {
+    default PortalNavigationItem map(
+            io.gravitee.apim.core.portal_page.model.PortalNavigationItem portalNavigationItem) {
         if (portalNavigationItem == null) {
             return null;
         }
         return switch (portalNavigationItem) {
-            case io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder -> new PortalNavigationItem(map(folder));
-            case io.gravitee.apim.core.portal_page.model.PortalNavigationPage page -> new PortalNavigationItem(map(page));
-            case io.gravitee.apim.core.portal_page.model.PortalNavigationLink link -> new PortalNavigationItem(map(link));
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder ->
+                new PortalNavigationItem(map(folder));
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationPage page ->
+                new PortalNavigationItem(map(page));
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationLink link ->
+                new PortalNavigationItem(map(link));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationApi api -> new PortalNavigationItem(map(api));
-            case io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct -> new PortalNavigationItem(map(apiProduct));
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct ->
+                new PortalNavigationItem(map(apiProduct));
         };
     }
 
@@ -119,30 +121,26 @@ public interface PortalNavigationItemsMapper {
     @Mapping(target = "portalPageContentId", ignore = true)
     @Mapping(target = "renderedParentId", ignore = true)
     @Mapping(
-        target = "contentType",
-        expression = "java(page.getContentType() == null ? io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN : map(page.getContentType()))"
-    )
+            target = "contentType",
+            expression =
+                    "java(page.getContentType() == null ? io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN : map(page.getContentType()))")
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
-        io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage page
-    );
+            io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage page);
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
     @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
-        io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder folder
-    );
+            io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder folder);
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
     @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
-        io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink link
-    );
+            io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink link);
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
     @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
-        io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi api
-    );
+            io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi api);
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
     @Mapping(target = "apiProductId", source = "apiProductId")
@@ -150,36 +148,32 @@ public interface PortalNavigationItemsMapper {
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(CreatePortalNavigationApiProduct apiProduct);
 
     default io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
-        BaseCreatePortalNavigationItem createPortalNavigationItem
-    ) {
+            BaseCreatePortalNavigationItem createPortalNavigationItem) {
         return switch (createPortalNavigationItem) {
             case CreatePortalNavigationFolder folder -> map(folder);
             case CreatePortalNavigationPage page -> map(page);
             case CreatePortalNavigationLink link -> map(link);
             case CreatePortalNavigationApi api -> map(api);
             case CreatePortalNavigationApiProduct apiProduct -> map(apiProduct);
-            default -> throw new TechnicalDomainException(
-                String.format("Unknown PortalNavigationItem class %s", createPortalNavigationItem.getClass().getSimpleName())
-            );
+            default ->
+                throw new TechnicalDomainException(String.format(
+                        "Unknown PortalNavigationItem class %s",
+                        createPortalNavigationItem.getClass().getSimpleName()));
         };
     }
 
     default List<io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem> mapCreatePortalNavigationItems(
-        List<io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem> createPortalNavigationItems
-    ) {
+            List<io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem>
+                    createPortalNavigationItems) {
         return createPortalNavigationItems.stream().map(this::map).toList();
     }
 
     default SeedDefaultPagesForPortalNavigationItemsUseCase.Input mapSeedDefaultPagesInput(
-        String organizationId,
-        String environmentId,
-        SeedDefaultPagesRequest request
-    ) {
+            String organizationId, String environmentId, SeedDefaultPagesRequest request) {
         return new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
-            organizationId,
-            environmentId,
-            request.getIds().stream().map(this::map).toList()
-        );
+                organizationId,
+                environmentId,
+                request.getIds().stream().map(this::map).toList());
     }
 
     PortalNavigationItemFetchResult map(FetchPortalNavigationItemUseCase.PageFetchResult result);
@@ -188,74 +182,75 @@ public interface PortalNavigationItemsMapper {
 
     FetchPortalNavigationItemResponse map(FetchPortalNavigationItemUseCase.Output output);
 
-    PortalNavigationItemFetchResult map(PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult result);
+    PortalNavigationItemFetchResult map(
+            PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult result);
 
     default ApiPortalNavigationItemsResponse map(ListApiDocumentationUseCase.Output output) {
         return new ApiPortalNavigationItemsResponse()
-            .items(map(output.items()))
-            .publications(output.publications().stream().map(this::mapPublication).toList());
+                .items(map(output.items()))
+                .publications(
+                        output.publications().stream().map(this::mapPublication).toList());
     }
 
     default ApiPortalPublishLocationsResponse map(ListApiPublishLocationsUseCase.Output output) {
-        var locations = output
-            .locations()
-            .stream()
-            .map(location -> new ApiPortalPublishLocation().id(location.id().id()).name(location.name()))
-            .toList();
+        var locations = output.locations().stream()
+                .map(location ->
+                        new ApiPortalPublishLocation().id(location.id().id()).name(location.name()))
+                .toList();
         return new ApiPortalPublishLocationsResponse().data(locations);
     }
 
     default ApiPortalPublication mapPublication(ListApiDocumentationUseCase.Publication publication) {
         return new ApiPortalPublication()
-            .portalId(publication.portalId().toString())
-            .portalNavigationItem(map(publication.listing()))
-            .sectionName(publication.section().getTitle());
+                .portalId(publication.portalId().toString())
+                .portalNavigationItem(map(publication.listing()))
+                .sectionName(publication.section().getTitle());
     }
 
     default ImportPortalNavigationResponse map(ImportPortalNavigationUseCase.Output output) {
         var results = output.result().files().stream().map(this::map).toList();
-        var succeeded = (int) output
-            .result()
-            .files()
-            .stream()
-            .filter(file -> file.success())
-            .count();
+        var succeeded = (int)
+                output.result().files().stream().filter(file -> file.success()).count();
         return new ImportPortalNavigationResponse()
-            .rootFolder(map((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) output.rootFolder()))
-            .summary(new PortalNavigationItemsFetchSummary().succeeded(succeeded).failed(results.size() - succeeded).results(results));
+                .rootFolder(map((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) output.rootFolder()))
+                .summary(new PortalNavigationItemsFetchSummary()
+                        .succeeded(succeeded)
+                        .failed(results.size() - succeeded)
+                        .results(results));
     }
 
-    default ImportPortalNavigationUseCase.Input map(String organizationId, String environmentId, ImportPortalNavigationRequest request) {
+    default ImportPortalNavigationUseCase.Input map(
+            String organizationId, String environmentId, ImportPortalNavigationRequest request) {
         return ImportPortalNavigationUseCase.Input.builder()
-            .organizationId(organizationId)
-            .environmentId(environmentId)
-            .title(request.getTitle())
-            .parentId(map(request.getParentId()))
-            .visibility(map(request.getVisibility()))
-            .source(map(request.getSource()))
-            .build();
+                .organizationId(organizationId)
+                .environmentId(environmentId)
+                .title(request.getTitle())
+                .parentId(map(request.getParentId()))
+                .visibility(map(request.getVisibility()))
+                .source(map(request.getSource()))
+                .build();
     }
 
-    io.gravitee.apim.core.portal.model.PortalVisibility map(io.gravitee.rest.api.management.v2.rest.model.PortalVisibility visibility);
+    io.gravitee.apim.core.portal.model.PortalVisibility map(
+            io.gravitee.rest.api.management.v2.rest.model.PortalVisibility visibility);
 
     // Hand-built because the fetch state is readOnly in the OpenAPI spec: the generated model only
     // exposes it through its @JsonCreator constructor, which MapStruct cannot target.
     default io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource map(
-        io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource source
-    ) {
+            io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource source) {
         if (source == null) {
             return null;
         }
         return new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource(
-            DateMapper.INSTANCE.map(source.getLastFetchedAt()),
-            DateMapper.INSTANCE.map(source.getLastFetchAttemptAt()),
-            source.getLastFetchError(),
-            source.isSubtreeImport()
-        )
-            .type(source.getSourceType())
-            .configuration(ConfigurationSerializationMapper.INSTANCE.deserializeConfiguration(source.getSourceConfiguration()))
-            .useAutoFetch(source.isUseAutoFetch())
-            .fetchCron(source.getFetchCron());
+                        DateMapper.INSTANCE.map(source.getLastFetchedAt()),
+                        DateMapper.INSTANCE.map(source.getLastFetchAttemptAt()),
+                        source.getLastFetchError(),
+                        source.isSubtreeImport())
+                .type(source.getSourceType())
+                .configuration(ConfigurationSerializationMapper.INSTANCE.deserializeConfiguration(
+                        source.getSourceConfiguration()))
+                .useAutoFetch(source.isUseAutoFetch())
+                .fetchCron(source.getFetchCron());
     }
 
     // readOnly in the spec does not stop Jackson from deserializing: fetch state never comes from the client
@@ -266,8 +261,7 @@ public interface PortalNavigationItemsMapper {
     @Mapping(target = "lastFetchError", ignore = true)
     @Mapping(target = "subtreeImport", ignore = true)
     io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource map(
-        io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource source
-    );
+            io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource source);
 
     default PortalNavigationItemId map(UUID id) {
         return id == null ? null : PortalNavigationItemId.of(id.toString());
@@ -288,43 +282,38 @@ public interface PortalNavigationItemsMapper {
     }
 
     io.gravitee.apim.core.portal_page.model.PortalNavigationItemType map(
-        io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType type
-    );
+            io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType type);
 
     default io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
-        BaseUpdatePortalNavigationItem updatePortalNavigationItem
-    ) {
+            BaseUpdatePortalNavigationItem updatePortalNavigationItem) {
         return switch (updatePortalNavigationItem) {
             case UpdatePortalNavigationFolder folder -> map(folder);
             case UpdatePortalNavigationPage page -> map(page);
             case UpdatePortalNavigationLink link -> map(link);
             case UpdatePortalNavigationApi api -> map(api);
             case UpdatePortalNavigationApiProduct apiProduct -> map(apiProduct);
-            default -> throw new TechnicalDomainException(
-                String.format("Unknown PortalNavigationItem class %s", updatePortalNavigationItem.getClass().getSimpleName())
-            );
+            default ->
+                throw new TechnicalDomainException(String.format(
+                        "Unknown PortalNavigationItem class %s",
+                        updatePortalNavigationItem.getClass().getSimpleName()));
         };
     }
 
     @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
-        io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage page
-    );
+            io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage page);
 
     @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
-        io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder folder
-    );
+            io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder folder);
 
     @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
-        io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink link
-    );
+            io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink link);
 
     @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
-        io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi api
-    );
+            io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi api);
 
     @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(UpdatePortalNavigationApiProduct apiProduct);
@@ -348,21 +337,19 @@ public interface PortalNavigationItemsMapper {
      * version-agnostic) to the REST summary DTO, keyed by navigation item id.
      */
     default Map<String, PortalNavigationItemApiSummary> mapApisMetadata(
-        Map<PortalNavigationItemId, io.gravitee.apim.core.api.model.Api> apisByNavigationItemId
-    ) {
+            Map<PortalNavigationItemId, io.gravitee.apim.core.api.model.Api> apisByNavigationItemId) {
         Map<String, PortalNavigationItemApiSummary> summariesByNavigationItemId = new HashMap<>();
         apisByNavigationItemId.forEach((navigationItemId, api) ->
-            summariesByNavigationItemId.put(navigationItemId.json(), mapApiSummary(api))
-        );
+                summariesByNavigationItemId.put(navigationItemId.json(), mapApiSummary(api)));
         return summariesByNavigationItemId;
     }
 
     default PortalNavigationItemApiSummary mapApiSummary(io.gravitee.apim.core.api.model.Api api) {
         return new PortalNavigationItemApiSummary()
-            .id(api.getId())
-            .name(api.getName())
-            .apiVersion(api.getVersion())
-            .contextPath(resolveApiContextPath(api));
+                .id(api.getId())
+                .name(api.getName())
+                .apiVersion(api.getVersion())
+                .contextPath(resolveApiContextPath(api));
     }
 
     /**
@@ -374,7 +361,8 @@ public interface PortalNavigationItemsMapper {
     private String resolveApiContextPath(io.gravitee.apim.core.api.model.Api api) {
         var v2Definition = api.getApiDefinition();
         if (v2Definition != null) {
-            var virtualHosts = v2Definition.getProxy() != null ? v2Definition.getProxy().getVirtualHosts() : null;
+            var virtualHosts =
+                    v2Definition.getProxy() != null ? v2Definition.getProxy().getVirtualHosts() : null;
             if (virtualHosts == null || virtualHosts.isEmpty()) {
                 return null;
             }
@@ -384,39 +372,33 @@ public interface PortalNavigationItemsMapper {
 
         var listeners = api.getApiListeners();
 
-        String tcpHost = listeners
-            .stream()
-            .filter(listener -> listener.getType() == ListenerType.TCP)
-            .map(TcpListener.class::cast)
-            .flatMap(listener -> listener.getHosts().stream())
-            .findFirst()
-            .orElse(null);
+        String tcpHost = listeners.stream()
+                .filter(listener -> listener.getType() == ListenerType.TCP)
+                .map(TcpListener.class::cast)
+                .flatMap(listener -> listener.getHosts().stream())
+                .findFirst()
+                .orElse(null);
         if (tcpHost != null) {
             return tcpHost;
         }
 
-        String kafkaAddress = listeners
-            .stream()
-            .filter(listener -> listener.getType() == ListenerType.KAFKA)
-            .map(KafkaListener.class::cast)
-            .map(
-                kafkaListener ->
-                    (kafkaListener.getHost() != null ? kafkaListener.getHost() : "") +
-                    (kafkaListener.getPort() != null ? ":" + kafkaListener.getPort() : "")
-            )
-            .findFirst()
-            .orElse(null);
+        String kafkaAddress = listeners.stream()
+                .filter(listener -> listener.getType() == ListenerType.KAFKA)
+                .map(KafkaListener.class::cast)
+                .map(kafkaListener -> (kafkaListener.getHost() != null ? kafkaListener.getHost() : "")
+                        + (kafkaListener.getPort() != null ? ":" + kafkaListener.getPort() : ""))
+                .findFirst()
+                .orElse(null);
         if (kafkaAddress != null) {
             return kafkaAddress;
         }
 
-        return listeners
-            .stream()
-            .filter(listener -> listener.getType() == ListenerType.HTTP)
-            .map(HttpListener.class::cast)
-            .flatMap(listener -> listener.getPaths().stream())
-            .findFirst()
-            .map(path -> (path.getHost() != null ? path.getHost() : "") + path.getPath())
-            .orElse(null);
+        return listeners.stream()
+                .filter(listener -> listener.getType() == ListenerType.HTTP)
+                .map(HttpListener.class::cast)
+                .flatMap(listener -> listener.getPaths().stream())
+                .findFirst()
+                .map(path -> (path.getHost() != null ? path.getHost() : "") + path.getPath())
+                .orElse(null);
     }
 }

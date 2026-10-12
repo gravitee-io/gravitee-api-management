@@ -59,7 +59,8 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
         var errors = new ArrayList<Error>();
 
         validateAndSanitizeId(input.spec().getId()).peek(id -> input.spec().setId(id), errors::addAll);
-        validateAndSanitizedName(input.spec().getName()).peek(name -> input.spec().setName(name), errors::addAll);
+        validateAndSanitizedName(input.spec().getName())
+                .peek(name -> input.spec().setName(name), errors::addAll);
         validateAndSanitizeDefaultRoles(input, errors);
         validateAndSanitizeMembers(input).peek(members -> input.spec().setMembers(members), errors::addAll);
 
@@ -84,85 +85,85 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
         return Result.ofValue(name);
     }
 
-    private static final List<RoleScope> GROUP_DEFAULT_ROLE_SCOPES = List.of(RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT);
+    private static final List<RoleScope> GROUP_DEFAULT_ROLE_SCOPES =
+            List.of(RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT);
 
     private void validateAndSanitizeDefaultRoles(ValidateGroupCRDDomainService.Input input, ArrayList<Error> errors) {
         if (input.spec().getDefaultMemberRoles() != null) {
             validateAndSanitizeDefaultMemberRoles(input, errors);
             return;
         }
-        validateAndSanitizeDefaultRole(input, input.spec().getApiRole(), RoleScope.API, role -> input.spec().setApiRole(role), errors);
         validateAndSanitizeDefaultRole(
-            input,
-            input.spec().getApplicationRole(),
-            RoleScope.APPLICATION,
-            role -> input.spec().setApplicationRole(role),
-            errors
-        );
+                input,
+                input.spec().getApiRole(),
+                RoleScope.API,
+                role -> input.spec().setApiRole(role),
+                errors);
         validateAndSanitizeDefaultRole(
-            input,
-            input.spec().getApiProductRole(),
-            RoleScope.API_PRODUCT,
-            role -> input.spec().setApiProductRole(role),
-            errors
-        );
+                input,
+                input.spec().getApplicationRole(),
+                RoleScope.APPLICATION,
+                role -> input.spec().setApplicationRole(role),
+                errors);
+        validateAndSanitizeDefaultRole(
+                input,
+                input.spec().getApiProductRole(),
+                RoleScope.API_PRODUCT,
+                role -> input.spec().setApiProductRole(role),
+                errors);
     }
 
-    private void validateAndSanitizeDefaultMemberRoles(ValidateGroupCRDDomainService.Input input, ArrayList<Error> errors) {
+    private void validateAndSanitizeDefaultMemberRoles(
+            ValidateGroupCRDDomainService.Input input, ArrayList<Error> errors) {
         var sanitized = new LinkedHashMap<RoleScope, String>();
-        input
-            .spec()
-            .getDefaultMemberRoles()
-            .forEach((roleScope, roleName) -> {
-                if (!GROUP_DEFAULT_ROLE_SCOPES.contains(roleScope)) {
-                    errors.add(
-                        Error.severe(
-                            "defaultMemberRoles: scope [%s] is not a group default role scope (API, APPLICATION, API_PRODUCT)",
-                            roleScope
-                        )
-                    );
-                    return;
-                }
-                validateAndSanitizeDefaultRole(input, roleName, roleScope, role -> sanitized.put(roleScope, role), errors);
-            });
+        input.spec().getDefaultMemberRoles().forEach((roleScope, roleName) -> {
+            if (!GROUP_DEFAULT_ROLE_SCOPES.contains(roleScope)) {
+                errors.add(Error.severe(
+                        "defaultMemberRoles: scope [%s] is not a group default role scope (API, APPLICATION, API_PRODUCT)",
+                        roleScope));
+                return;
+            }
+            validateAndSanitizeDefaultRole(input, roleName, roleScope, role -> sanitized.put(roleScope, role), errors);
+        });
         sanitized.values().removeIf(java.util.Objects::isNull);
         input.spec().setDefaultMemberRoles(sanitized);
     }
 
     private void validateAndSanitizeDefaultRole(
-        ValidateGroupCRDDomainService.Input input,
-        String roleName,
-        RoleScope roleScope,
-        Consumer<String> roleSetter,
-        ArrayList<Error> errors
-    ) {
+            ValidateGroupCRDDomainService.Input input,
+            String roleName,
+            RoleScope roleScope,
+            Consumer<String> roleSetter,
+            ArrayList<Error> errors) {
         if (StringUtils.isEmpty(roleName)) {
             return;
         }
 
         if (PRIMARY_OWNER.name().equals(roleName)) {
-            errors.add(Error.severe("setting primary owner as default %s role is not allowed", roleScope.name().toLowerCase()));
+            errors.add(Error.severe(
+                    "setting primary owner as default %s role is not allowed",
+                    roleScope.name().toLowerCase()));
             roleSetter.accept(null);
             return;
         }
 
         roleService
-            .findByScopeAndName(
-                io.gravitee.rest.api.model.permissions.RoleScope.valueOf(roleScope.name()),
-                roleName,
-                input.auditInfo().organizationId()
-            )
-            .ifPresentOrElse(
-                role -> roleSetter.accept(role.getName()),
-                () -> {
-                    errors.add(Error.warning("default %s role [%s] doesn't exist", roleScope.name().toLowerCase(), roleName));
+                .findByScopeAndName(
+                        io.gravitee.rest.api.model.permissions.RoleScope.valueOf(roleScope.name()),
+                        roleName,
+                        input.auditInfo().organizationId())
+                .ifPresentOrElse(role -> roleSetter.accept(role.getName()), () -> {
+                    errors.add(Error.warning(
+                            "default %s role [%s] doesn't exist",
+                            roleScope.name().toLowerCase(), roleName));
                     roleSetter.accept(null);
-                }
-            );
+                });
     }
 
-    private Result<SequencedSet<GroupCRDSpec.Member>> validateAndSanitizeMembers(ValidateGroupCRDDomainService.Input input) {
-        if (input.spec().isIgnoreMembers() || CollectionUtils.isEmpty(input.spec().getMembers())) {
+    private Result<SequencedSet<GroupCRDSpec.Member>> validateAndSanitizeMembers(
+            ValidateGroupCRDDomainService.Input input) {
+        if (input.spec().isIgnoreMembers()
+                || CollectionUtils.isEmpty(input.spec().getMembers())) {
             return Result.ofBoth(new LinkedHashSet<>(), List.of());
         }
 
@@ -173,71 +174,85 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
 
         for (var member : input.spec().getMembers()) {
             member.setRoles(member.getRoles() == null ? new LinkedHashMap<>() : new LinkedHashMap<>(member.getRoles()));
-            member.getRoles().computeIfAbsent(RoleScope.API, scope -> defaultRoles.get(scope).getName());
-            member.getRoles().computeIfAbsent(RoleScope.APPLICATION, scope -> defaultRoles.get(scope).getName());
-            member.getRoles().computeIfAbsent(RoleScope.INTEGRATION, scope -> defaultRoles.get(scope).getName());
+            member.getRoles()
+                    .computeIfAbsent(
+                            RoleScope.API, scope -> defaultRoles.get(scope).getName());
+            member.getRoles()
+                    .computeIfAbsent(
+                            RoleScope.APPLICATION,
+                            scope -> defaultRoles.get(scope).getName());
+            member.getRoles()
+                    .computeIfAbsent(
+                            RoleScope.INTEGRATION,
+                            scope -> defaultRoles.get(scope).getName());
         }
 
         var apiMembers = GroupCRDAdapter.INSTANCE.toApiMemberCRDSet(input.spec().getMembers());
-        var applicationMembers = GroupCRDAdapter.INSTANCE.toApplicationMemberCRDSet(input.spec().getMembers());
-        var integrationMembers = GroupCRDAdapter.INSTANCE.toIntegrationMemberCRDSet(input.spec().getMembers());
+        var applicationMembers =
+                GroupCRDAdapter.INSTANCE.toApplicationMemberCRDSet(input.spec().getMembers());
+        var integrationMembers =
+                GroupCRDAdapter.INSTANCE.toIntegrationMemberCRDSet(input.spec().getMembers());
 
         membersValidator
-            .validateAndSanitize(new ValidateCRDMembersDomainService.Input(input.auditInfo(), MembershipReferenceType.API, apiMembers))
-            .peek(output -> groupMembersById(RoleScope.API, output.members(), sanitizedGroupMembers), errors::addAll);
+                .validateAndSanitize(new ValidateCRDMembersDomainService.Input(
+                        input.auditInfo(), MembershipReferenceType.API, apiMembers))
+                .peek(
+                        output -> groupMembersById(RoleScope.API, output.members(), sanitizedGroupMembers),
+                        errors::addAll);
 
         membersValidator
-            .validateAndSanitize(
-                new ValidateCRDMembersDomainService.Input(input.auditInfo(), MembershipReferenceType.APPLICATION, applicationMembers)
-            )
-            .peek(output -> groupMembersById(RoleScope.APPLICATION, output.members(), sanitizedGroupMembers), errors::addAll);
+                .validateAndSanitize(new ValidateCRDMembersDomainService.Input(
+                        input.auditInfo(), MembershipReferenceType.APPLICATION, applicationMembers))
+                .peek(
+                        output -> groupMembersById(RoleScope.APPLICATION, output.members(), sanitizedGroupMembers),
+                        errors::addAll);
 
         membersValidator
-            .validateAndSanitize(
-                new ValidateCRDMembersDomainService.Input(input.auditInfo(), MembershipReferenceType.INTEGRATION, integrationMembers)
-            )
-            .peek(output -> groupMembersById(RoleScope.INTEGRATION, output.members(), sanitizedGroupMembers), errors::addAll);
+                .validateAndSanitize(new ValidateCRDMembersDomainService.Input(
+                        input.auditInfo(), MembershipReferenceType.INTEGRATION, integrationMembers))
+                .peek(
+                        output -> groupMembersById(RoleScope.INTEGRATION, output.members(), sanitizedGroupMembers),
+                        errors::addAll);
 
         return Result.ofBoth(new LinkedHashSet<>(sanitizedGroupMembers.values()), errors);
     }
 
     private SequencedMap<RoleScope, RoleEntity> getDefaultRoles(AuditInfo auditInfo) {
         return roleService
-            .findDefaultRoleByScopes(
-                auditInfo.organizationId(),
-                io.gravitee.rest.api.model.permissions.RoleScope.API,
-                io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION,
-                io.gravitee.rest.api.model.permissions.RoleScope.INTEGRATION
-            )
-            .stream()
-            .collect(
-                Collectors.toMap(role -> RoleScope.valueOf(role.getScope().name()), Function.identity(), (a, b) -> a, LinkedHashMap::new)
-            );
+                .findDefaultRoleByScopes(
+                        auditInfo.organizationId(),
+                        io.gravitee.rest.api.model.permissions.RoleScope.API,
+                        io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION,
+                        io.gravitee.rest.api.model.permissions.RoleScope.INTEGRATION)
+                .stream()
+                .collect(Collectors.toMap(
+                        role -> RoleScope.valueOf(role.getScope().name()),
+                        Function.identity(),
+                        (a, b) -> a,
+                        LinkedHashMap::new));
     }
 
     private static void groupMembersById(
-        RoleScope roleScope,
-        SequencedSet<MemberCRD> members,
-        HashMap<String, GroupCRDSpec.Member> groups
-    ) {
+            RoleScope roleScope, SequencedSet<MemberCRD> members, HashMap<String, GroupCRDSpec.Member> groups) {
         for (var member : members) {
             groups.computeIfPresent(member.getId(), (id, groupMember) -> addMemberRole(roleScope, groupMember, member));
             groups.computeIfAbsent(member.getId(), id -> initGroupMember(roleScope, member));
         }
     }
 
-    private static GroupCRDSpec.Member addMemberRole(RoleScope roleScope, GroupCRDSpec.Member groupMember, MemberCRD member) {
+    private static GroupCRDSpec.Member addMemberRole(
+            RoleScope roleScope, GroupCRDSpec.Member groupMember, MemberCRD member) {
         groupMember.getRoles().put(roleScope, member.getRole());
         return groupMember;
     }
 
     private static GroupCRDSpec.Member initGroupMember(RoleScope roleScope, MemberCRD member) {
         return GroupCRDSpec.Member.builder()
-            .id(member.getId())
-            .source(member.getSource())
-            .sourceId(member.getSourceId())
-            .roles(initMemberRoles(roleScope, member.getRole()))
-            .build();
+                .id(member.getId())
+                .source(member.getSource())
+                .sourceId(member.getSourceId())
+                .roles(initMemberRoles(roleScope, member.getRole()))
+                .build();
     }
 
     private static SequencedMap<RoleScope, String> initMemberRoles(RoleScope roleScope, String roleName) {

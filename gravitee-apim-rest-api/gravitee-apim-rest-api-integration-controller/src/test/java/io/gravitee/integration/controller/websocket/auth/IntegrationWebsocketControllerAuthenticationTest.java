@@ -65,18 +65,20 @@ class IntegrationWebsocketControllerAuthenticationTest {
     @BeforeEach
     void setUp() {
         authentication = new IntegrationWebsocketControllerAuthentication(
-            tokenService,
-            userCrudServiceInMemory,
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
-        );
+                tokenService,
+                userCrudServiceInMemory,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager));
 
         MultiMap requestHeaders = HttpHeaders.headers();
         requestHeaders
-            .add(IntegrationWebsocketControllerAuthentication.AUTHORIZATION_HEADER, AUTHORIZATION_HEADER_BEARER + TOKEN_VALUE)
-            .add(IntegrationWebsocketControllerAuthentication.ORGANIZATION_HEADER, ORGANIZATION_ID);
+                .add(
+                        IntegrationWebsocketControllerAuthentication.AUTHORIZATION_HEADER,
+                        AUTHORIZATION_HEADER_BEARER + TOKEN_VALUE)
+                .add(IntegrationWebsocketControllerAuthentication.ORGANIZATION_HEADER, ORGANIZATION_ID);
         lenient().when(request.headers()).thenReturn(requestHeaders);
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
@@ -87,8 +89,12 @@ class IntegrationWebsocketControllerAuthenticationTest {
 
     @Test
     void should_return_a_valid_IntegrationCommandContext_when_authentication_succeed() {
-        var token = givenToken(Token.builder().token(TOKEN_VALUE).referenceId(USER_ID).build());
-        givenUser(BaseUserEntity.builder().id(token.getReferenceId()).organizationId(ORGANIZATION_ID).build());
+        var token = givenToken(
+                Token.builder().token(TOKEN_VALUE).referenceId(USER_ID).build());
+        givenUser(BaseUserEntity.builder()
+                .id(token.getReferenceId())
+                .organizationId(ORGANIZATION_ID)
+                .build());
 
         var result = authentication.authenticate(request);
 
@@ -124,9 +130,14 @@ class IntegrationWebsocketControllerAuthenticationTest {
 
     @Test
     void should_return_an_invalid_IntegrationCommandContext_when_no_enterprise_license_found() {
-        var token = givenToken(Token.builder().token(TOKEN_VALUE).referenceId(USER_ID).build());
-        givenUser(BaseUserEntity.builder().id(token.getReferenceId()).organizationId(ORGANIZATION_ID).build());
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
+        var token = givenToken(
+                Token.builder().token(TOKEN_VALUE).referenceId(USER_ID).build());
+        givenUser(BaseUserEntity.builder()
+                .id(token.getReferenceId())
+                .organizationId(ORGANIZATION_ID)
+                .build());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID))
+                .thenReturn(LicenseFixtures.anOssLicense());
 
         var result = authentication.authenticate(request);
 

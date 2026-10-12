@@ -35,12 +35,8 @@ public class ResolveFilterLabelsUseCase {
     private static final int MAX_ENTRIES = 10;
     private static final int MAX_IDS_PER_ENTRY = 100;
 
-    private static final Set<FilterSpec.Name> RESOLVABLE_FILTERS = Set.of(
-        FilterSpec.Name.API,
-        FilterSpec.Name.APPLICATION,
-        FilterSpec.Name.PLAN,
-        FilterSpec.Name.API_PRODUCT
-    );
+    private static final Set<FilterSpec.Name> RESOLVABLE_FILTERS =
+            Set.of(FilterSpec.Name.API, FilterSpec.Name.APPLICATION, FilterSpec.Name.PLAN, FilterSpec.Name.API_PRODUCT);
 
     private final FilterValueNameResolver filterValueNameResolver;
 
@@ -57,18 +53,20 @@ public class ResolveFilterLabelsUseCase {
         validate(entries);
 
         var environmentId = input.auditInfo().environmentId();
-        var resolved = entries
-            .stream()
-            .map(entry -> {
-                var filterName = parseFilterName(entry.filterName());
-                if (filterName == null || !RESOLVABLE_FILTERS.contains(filterName)) {
-                    log.warn("Ignoring unsupported observability filter label resolution request for filter [{}]", entry.filterName());
-                    return new ResolvedEntry(entry.filterName(), Map.of());
-                }
-                var labels = filterValueNameResolver.resolveNames(environmentId, filterName, entry.ids() == null ? List.of() : entry.ids());
-                return new ResolvedEntry(entry.filterName(), labels);
-            })
-            .toList();
+        var resolved = entries.stream()
+                .map(entry -> {
+                    var filterName = parseFilterName(entry.filterName());
+                    if (filterName == null || !RESOLVABLE_FILTERS.contains(filterName)) {
+                        log.warn(
+                                "Ignoring unsupported observability filter label resolution request for filter [{}]",
+                                entry.filterName());
+                        return new ResolvedEntry(entry.filterName(), Map.of());
+                    }
+                    var labels = filterValueNameResolver.resolveNames(
+                            environmentId, filterName, entry.ids() == null ? List.of() : entry.ids());
+                    return new ResolvedEntry(entry.filterName(), labels);
+                })
+                .toList();
 
         return new Output(resolved);
     }
@@ -76,25 +74,22 @@ public class ResolveFilterLabelsUseCase {
     private static void validate(List<Entry> entries) {
         if (entries.size() > MAX_ENTRIES) {
             throw new ValidationDomainException(
-                "Too many filter entries to resolve",
-                Map.of("maxEntries", String.valueOf(MAX_ENTRIES), "entries", String.valueOf(entries.size()))
-            );
+                    "Too many filter entries to resolve",
+                    Map.of("maxEntries", String.valueOf(MAX_ENTRIES), "entries", String.valueOf(entries.size())));
         }
 
         entries.forEach(entry -> {
             var ids = entry.ids() == null ? List.<String>of() : entry.ids();
             if (ids.size() > MAX_IDS_PER_ENTRY) {
                 throw new ValidationDomainException(
-                    "Too many filter ids to resolve",
-                    Map.of(
-                        "filterName",
-                        String.valueOf(entry.filterName()),
-                        "maxIds",
-                        String.valueOf(MAX_IDS_PER_ENTRY),
-                        "ids",
-                        String.valueOf(ids.size())
-                    )
-                );
+                        "Too many filter ids to resolve",
+                        Map.of(
+                                "filterName",
+                                String.valueOf(entry.filterName()),
+                                "maxIds",
+                                String.valueOf(MAX_IDS_PER_ENTRY),
+                                "ids",
+                                String.valueOf(ids.size())));
             }
         });
     }
@@ -104,8 +99,8 @@ public class ResolveFilterLabelsUseCase {
             return null;
         }
         return Arrays.stream(FilterSpec.Name.values())
-            .filter(filterName -> filterName.name().equals(name))
-            .findFirst()
-            .orElse(null);
+                .filter(filterName -> filterName.name().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 }

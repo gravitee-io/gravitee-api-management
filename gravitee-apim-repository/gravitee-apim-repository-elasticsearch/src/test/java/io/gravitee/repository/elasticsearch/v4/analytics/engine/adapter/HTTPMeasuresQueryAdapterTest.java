@@ -67,16 +67,20 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var latencyP90 = aggs.at("/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0").asDouble();
+        var latencyP90 =
+                aggs.at("/HTTP_GATEWAY_LATENCY#P90/percentiles/percents/0").asDouble();
         assertThat(latencyP90).isEqualTo(90.0);
 
-        var latencyP95 = aggs.at("/HTTP_GATEWAY_LATENCY#P95/percentiles/percents/0").asDouble();
+        var latencyP95 =
+                aggs.at("/HTTP_GATEWAY_LATENCY#P95/percentiles/percents/0").asDouble();
         assertThat(latencyP95).isEqualTo(95.0);
 
-        var latencyP99 = aggs.at("/HTTP_GATEWAY_LATENCY#P99/percentiles/percents/0").asDouble();
+        var latencyP99 =
+                aggs.at("/HTTP_GATEWAY_LATENCY#P99/percentiles/percents/0").asDouble();
         assertThat(latencyP99).isEqualTo(99.0);
 
-        var gatewayP90 = aggs.at("/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0").asDouble();
+        var gatewayP90 = aggs.at("/HTTP_GATEWAY_RESPONSE_TIME#P90/percentiles/percents/0")
+                .asDouble();
         assertThat(gatewayP90).isEqualTo(90.0);
     }
 
@@ -197,7 +201,8 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var errorRateDateHistogram = aggs.at("/_HTTP_ERROR_RATE#PERCENTAGE/date_histogram");
         assertThat(errorRateDateHistogram).isNotNull();
 
-        var errorRateBucketScript = aggs.at("/_HTTP_ERROR_RATE#PERCENTAGE/aggs/HTTP_ERROR_RATE#PERCENTAGE/bucket_script");
+        var errorRateBucketScript =
+                aggs.at("/_HTTP_ERROR_RATE#PERCENTAGE/aggs/HTTP_ERROR_RATE#PERCENTAGE/bucket_script");
         assertThat(errorRateBucketScript).isNotNull();
         assertThat(errorRateBucketScript.has("script")).isTrue();
     }
@@ -293,7 +298,8 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
         var metricFilters = List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of("id1", "id2")));
-        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT), metricFilters, List.of()));
+        var metrics =
+                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT), metricFilters, List.of()));
 
         var query = new MeasuresQuery(timeRange, filters, metrics);
 

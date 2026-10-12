@@ -192,7 +192,7 @@ class HttpTlsSessionTest {
         @Test
         @SneakyThrows
         void should_get_certificate_from_ssl_session() {
-            when(sslSession.getPeerCertificates()).thenReturn(new Certificate[] { mock(Certificate.class) });
+            when(sslSession.getPeerCertificates()).thenReturn(new Certificate[] {mock(Certificate.class)});
             assertThat(cut.getPeerCertificates()).hasSize(1);
         }
 

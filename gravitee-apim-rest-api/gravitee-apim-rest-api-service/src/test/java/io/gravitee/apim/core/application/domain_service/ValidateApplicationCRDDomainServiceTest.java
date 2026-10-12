@@ -41,75 +41,62 @@ class ValidateApplicationCRDDomainServiceTest {
     private static final String APP_DESCRIPTION = "test_app_description";
     private static final String APP_TYPE = "Linux";
     private static final Date NOW = new Date();
-    private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).build();
 
     ValidateGroupsDomainService groupsValidator = mock(ValidateGroupsDomainService.class);
     ValidateCRDMembersDomainService membersValidator = mock(ValidateCRDMembersDomainService.class);
     ValidateApplicationSettingsDomainService settingsValidator = mock(ValidateApplicationSettingsDomainService.class);
 
-    private ValidateApplicationCRDDomainService cut = new ValidateApplicationCRDDomainService(
-        groupsValidator,
-        membersValidator,
-        settingsValidator
-    );
+    private ValidateApplicationCRDDomainService cut =
+            new ValidateApplicationCRDDomainService(groupsValidator, membersValidator, settingsValidator);
 
     @Test
     void should_preserve_pre_set_id() {
-        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
-        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
-        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
+        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class)))
+                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class)))
+                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class)))
+                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         ApplicationCRDSpec crd = anApplicationCRD();
         crd.setHrid(HRID);
 
-        cut
-            .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd))
-            .peek(
-                sanitized -> Assertions.assertThat(sanitized.spec().getId()).isEqualTo(APP_ID),
-                errors -> Assertions.assertThat(errors).isEmpty()
-            );
+        cut.validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd))
+                .peek(
+                        sanitized ->
+                                Assertions.assertThat(sanitized.spec().getId()).isEqualTo(APP_ID),
+                        errors -> Assertions.assertThat(errors).isEmpty());
     }
 
     @Test
     void should_set_hrid_when_application_id_is_not_null() {
-        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
-        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
-        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
+        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class)))
+                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class)))
+                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class)))
+                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         ApplicationCRDSpec crd = anApplicationCRD();
         crd.setHrid(null);
 
-        cut
-            .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd))
-            .peek(
-                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(crd.toBuilder().hrid(crd.getId()).build()),
-                errors -> Assertions.assertThat(errors).isEmpty()
-            );
+        cut.validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd))
+                .peek(
+                        sanitized -> Assertions.assertThat(sanitized.spec())
+                                .isEqualTo(crd.toBuilder().hrid(crd.getId()).build()),
+                        errors -> Assertions.assertThat(errors).isEmpty());
     }
 
     @Test
     void should_not_validate_groups_that_are_ignored() {
-        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
-        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
-        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
+        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class)))
+                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class)))
+                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class)))
+                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         ApplicationCRDSpec crd = anApplicationCRD();
         crd.setGroups(java.util.Set.of("spec-group"));
@@ -124,13 +111,13 @@ class ValidateApplicationCRDDomainServiceTest {
 
     private static ApplicationCRDSpec anApplicationCRD() {
         return ApplicationCRDSpec.builder()
-            .id(APP_ID)
-            .name(APP_NAME)
-            .description(APP_DESCRIPTION)
-            .type(APP_TYPE)
-            .createdAt(NOW)
-            .updatedAt(NOW)
-            .settings(new ApplicationSettings(new SimpleApplicationSettings(APP_TYPE, "junit"), null))
-            .build();
+                .id(APP_ID)
+                .name(APP_NAME)
+                .description(APP_DESCRIPTION)
+                .type(APP_TYPE)
+                .createdAt(NOW)
+                .updatedAt(NOW)
+                .settings(new ApplicationSettings(new SimpleApplicationSettings(APP_TYPE, "junit"), null))
+                .build();
     }
 }

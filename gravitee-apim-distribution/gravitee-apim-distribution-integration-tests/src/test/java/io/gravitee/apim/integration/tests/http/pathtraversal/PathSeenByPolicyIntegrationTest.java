@@ -79,16 +79,17 @@ class PathSeenByPolicyIntegrationTest {
             policies.put("path-to-header", PolicyBuilder.build("path-to-header", PathToHeaderPolicy.class));
         }
 
-        protected HttpClientResponse call(final HttpClient httpClient, final String rawPath) throws InterruptedException {
+        protected HttpClientResponse call(final HttpClient httpClient, final String rawPath)
+                throws InterruptedException {
             return httpClient
-                .rxRequest(HttpMethod.GET, rawPath)
-                .flatMap(HttpClientRequest::rxSend)
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors()
-                .values()
-                .get(0);
+                    .rxRequest(HttpMethod.GET, rawPath)
+                    .flatMap(HttpClientRequest::rxSend)
+                    .test()
+                    .await()
+                    .assertComplete()
+                    .assertNoErrors()
+                    .values()
+                    .get(0);
         }
     }
 
@@ -96,12 +97,14 @@ class PathSeenByPolicyIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
     }
 

@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactive.policy;
 
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
-import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 
 /**

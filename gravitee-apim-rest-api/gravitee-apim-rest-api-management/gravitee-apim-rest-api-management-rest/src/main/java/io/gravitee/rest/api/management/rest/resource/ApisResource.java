@@ -145,15 +145,15 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List APIs", description = "List all the APIs accessible to the current user.")
     @ApiResponse(
-        responseCode = "200",
-        description = "List accessible APIs for current user",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApiListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List accessible APIs for current user",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ApiListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Collection<ApiListItem> getApis(@BeanParam final ApisParam apisParam, @QueryParam("ids") final List<String> ids) {
+    public Collection<ApiListItem> getApis(
+            @BeanParam final ApisParam apisParam, @QueryParam("ids") final List<String> ids) {
         return getApis(apisParam, ids, null).getData();
     }
 
@@ -161,21 +161,21 @@ public class ApisResource extends AbstractResource {
     @Path("_paged")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List APIs with pagination",
-        description = "List all the APIs accessible to the current user with pagination.",
-        operationId = "getApisPaged"
-    )
+            summary = "List APIs with pagination",
+            description = "List all the APIs accessible to the current user with pagination.",
+            operationId = "getApisPaged")
     @ApiResponse(
-        responseCode = "200",
-        description = "Page of APIs for current user",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiListItemPagedResult.class))
-    )
+            responseCode = "200",
+            description = "Page of APIs for current user",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiListItemPagedResult.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public ApiListItemPagedResult getApis(
-        @BeanParam final ApisParam apisParam,
-        @QueryParam("ids") final List<String> ids,
-        @Valid @BeanParam Pageable pageable
-    ) {
+            @BeanParam final ApisParam apisParam,
+            @QueryParam("ids") final List<String> ids,
+            @Valid @BeanParam Pageable pageable) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiQuery apiQuery = new ApiQuery();
         if (ids != null && !ids.isEmpty()) {
@@ -192,12 +192,15 @@ public class ApisResource extends AbstractResource {
         apiQuery.setState(apisParam.getState());
         apiQuery.setCrossId(apisParam.getCrossId());
         if (apisParam.getCategory() != null) {
-            apiQuery.setCategory(categoryService.findById(apisParam.getCategory(), executionContext.getEnvironmentId()).getId());
+            apiQuery.setCategory(categoryService
+                    .findById(apisParam.getCategory(), executionContext.getEnvironmentId())
+                    .getId());
         }
 
         Sortable sortable = null;
         if (apisParam.getOrder() != null) {
-            sortable = new SortableImpl(apisParam.getOrder().getField(), apisParam.getOrder().isOrder());
+            sortable = new SortableImpl(
+                    apisParam.getOrder().getField(), apisParam.getOrder().isOrder());
         }
 
         io.gravitee.rest.api.model.common.Pageable commonPageable = null;
@@ -216,13 +219,12 @@ public class ApisResource extends AbstractResource {
             }
             if (isAuthenticated()) {
                 apis = apiService.findByUser(
-                    executionContext,
-                    getAuthenticatedUser(),
-                    apiQuery,
-                    sortable,
-                    commonPageable,
-                    !apisParam.isPortal()
-                );
+                        executionContext,
+                        getAuthenticatedUser(),
+                        apiQuery,
+                        sortable,
+                        commonPageable,
+                        !apisParam.isPortal());
             } else {
                 apiQuery.setVisibility(PUBLIC);
                 apis = apiService.search(executionContext, apiQuery, sortable, commonPageable);
@@ -232,31 +234,26 @@ public class ApisResource extends AbstractResource {
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);
 
         if (apisParam.isTop()) {
-            final List<String> visibleApis = apis.getContent().stream().map(ApiEntity::getId).collect(toList());
+            final List<String> visibleApis =
+                    apis.getContent().stream().map(ApiEntity::getId).collect(toList());
             return new ApiListItemPagedResult(
-                topApiService
-                    .findAll(executionContext)
-                    .stream()
-                    .filter(topApi -> visibleApis.contains(topApi.getApi()))
-                    .map(topApiEntity -> apiService.findById(executionContext, topApiEntity.getApi()))
-                    .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
-                    .collect(toList()),
-                apis.getPageNumber(),
-                (int) apis.getPageElements(),
-                (int) apis.getTotalElements()
-            );
+                    topApiService.findAll(executionContext).stream()
+                            .filter(topApi -> visibleApis.contains(topApi.getApi()))
+                            .map(topApiEntity -> apiService.findById(executionContext, topApiEntity.getApi()))
+                            .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
+                            .collect(toList()),
+                    apis.getPageNumber(),
+                    (int) apis.getPageElements(),
+                    (int) apis.getTotalElements());
         }
 
         return new ApiListItemPagedResult(
-            apis
-                .getContent()
-                .stream()
-                .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
-                .collect(toList()),
-            apis.getPageNumber(),
-            (int) apis.getPageElements(),
-            (int) apis.getTotalElements()
-        );
+                apis.getContent().stream()
+                        .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
+                        .collect(toList()),
+                apis.getPageNumber(),
+                (int) apis.getPageElements(),
+                (int) apis.getTotalElements());
     }
 
     /**
@@ -269,17 +266,22 @@ public class ApisResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create an API", description = "User must have API_PUBLISHER or ADMIN role to create an API.")
     @ApiResponse(
-        responseCode = "201",
-        description = "API successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
-    )
+            responseCode = "201",
+            description = "API successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)})
     public Response createApi(@Parameter(name = "api", required = true) @Valid @NotNull final NewApiEntity newApiEntity)
-        throws ApiAlreadyExistsException {
-        ApiEntity newApi = apiService.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
+            throws ApiAlreadyExistsException {
+        ApiEntity newApi =
+                apiService.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
         if (newApi != null) {
-            return Response.created(this.getLocationHeader(newApi.getId())).entity(newApi).build();
+            return Response.created(this.getLocationHeader(newApi.getId()))
+                    .entity(newApi)
+                    .build();
         }
 
         return Response.serverError().build();
@@ -287,55 +289,51 @@ public class ApisResource extends AbstractResource {
 
     @POST
     @Path("import")
-    @Consumes({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create an API by importing an API definition",
-        description = "Create an API by importing an existing API definition in JSON format."
-    )
+            summary = "Create an API by importing an API definition",
+            description = "Create an API by importing an existing API definition in JSON format.")
     @ApiResponse(
-        responseCode = "200",
-        description = "API successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
-    )
+            responseCode = "200",
+            description = "API successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+    })
     public Response importApiDefinition(
-        @RequestBody(required = true) @Valid @NotNull JsonNode apiDefinition,
-        @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
-    ) {
+            @RequestBody(required = true) @Valid @NotNull JsonNode apiDefinition,
+            @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion) {
         return importApiDefinitionOrUrl(apiDefinition, definitionVersion);
     }
 
     @POST
     @Path("import-url")
-    @Consumes({ MediaType.TEXT_PLAIN })
+    @Consumes({MediaType.TEXT_PLAIN})
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create an API by importing a URL pointing to an API definition",
-        description = "Create an API by importing an existing API definition via a URL"
-    )
+            summary = "Create an API by importing a URL pointing to an API definition",
+            description = "Create an API by importing an existing API definition via a URL")
     @ApiResponse(
-        responseCode = "200",
-        description = "API successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
-    )
+            responseCode = "200",
+            description = "API successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+    })
     public Response importApiDefinitionUrl(
-        @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
-        @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
-    ) {
+            @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
+            @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion) {
         return importApiDefinitionOrUrl(apiDefinitionOrUrl, definitionVersion);
     }
 
@@ -344,50 +342,46 @@ public class ApisResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create an API by importing an API CRD definition",
-        description = "Create an API by importing an API CRD definition"
-    )
+            summary = "Create an API by importing an API CRD definition",
+            description = "Create an API by importing an API CRD definition")
     @ApiResponse(
-        responseCode = "200",
-        description = "API successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
-    )
+            responseCode = "200",
+            description = "API successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+    })
     public Response importApiDefinitionCrd(
-        @RequestBody(required = true) @Valid @NotNull ApiCRDEntity api,
-        @QueryParam("dryRun") boolean dryRun
-    ) {
+            @RequestBody(required = true) @Valid @NotNull ApiCRDEntity api, @QueryParam("dryRun") boolean dryRun) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiValidationResult<ApiCRDEntity> validationResult = apiValidationService.validateAndSanitizeApiDefinitionCRD(
-            executionContext,
-            api
-        );
+        ApiValidationResult<ApiCRDEntity> validationResult =
+                apiValidationService.validateAndSanitizeApiDefinitionCRD(executionContext, api);
 
         if (dryRun) {
-            return Response.ok(
-                new ApiCRDStatusEntity(
-                    executionContext.getOrganizationId(),
-                    executionContext.getEnvironmentId(),
-                    api.getId(),
-                    api.getCrossId(),
-                    api.getState(),
-                    validationResult,
-                    Map.of()
-                )
-            ).build();
+            return Response.ok(new ApiCRDStatusEntity(
+                            executionContext.getOrganizationId(),
+                            executionContext.getEnvironmentId(),
+                            api.getId(),
+                            api.getCrossId(),
+                            api.getState(),
+                            validationResult,
+                            Map.of()))
+                    .build();
         }
 
         if (CollectionUtils.isNotEmpty(validationResult.getSevere())) {
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(validationResult).build();
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode())
+                    .entity(validationResult)
+                    .build();
         }
 
-        ApiCRDStatusEntity response = apiCRDService.importApiDefinitionCRD(executionContext, validationResult.getSanitizedApi());
+        ApiCRDStatusEntity response =
+                apiCRDService.importApiDefinitionCRD(executionContext, validationResult.getSanitizedApi());
         response.setErrors(validationResult);
 
         return Response.ok(response).build();
@@ -396,28 +390,27 @@ public class ApisResource extends AbstractResource {
     @Deprecated(since = "3.18.0", forRemoval = true)
     @POST
     @Path("import")
-    @Consumes({ MediaType.TEXT_PLAIN })
+    @Consumes({MediaType.TEXT_PLAIN})
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Deprecated - Create an API by importing an API definition",
-        description = "Old endpoint to create an API by importing an existing API definition via a URL - prefer `/apis/import-url`"
-    )
+            summary = "Deprecated - Create an API by importing an API definition",
+            description =
+                    "Old endpoint to create an API by importing an existing API definition via a URL - prefer `/apis/import-url`")
     @ApiResponse(
-        responseCode = "200",
-        description = "API successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
-    )
+            responseCode = "200",
+            description = "API successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+    })
     public Response deprecatedImportApiDefinitionUrl(
-        @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
-        @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
-    ) {
+            @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
+            @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion) {
         return importApiDefinitionOrUrl(apiDefinitionOrUrl, definitionVersion);
     }
 
@@ -433,26 +426,27 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create an API definition from a Swagger descriptor")
     @ApiResponse(
-        responseCode = "201",
-        description = "API definition from Swagger descriptor",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
-    )
+            responseCode = "201",
+            description = "API definition from Swagger descriptor",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)})
     public Response importSwaggerApi(
-        @Parameter(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor,
-        @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
-    ) {
+            @Parameter(name = "swagger", required = true) @Valid @NotNull
+                    ImportSwaggerDescriptorEntity swaggerDescriptor,
+            @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(
-            executionContext,
-            swaggerDescriptor,
-            DefinitionVersion.valueOfLabel(definitionVersion)
-        );
-        final ApiEntity api = apiService.createFromSwagger(executionContext, swaggerApiEntity, getAuthenticatedUser(), swaggerDescriptor);
-        return Response.created(URI.create(this.uriInfo.getRequestUri().getRawPath().replaceAll("import/swagger", "") + api.getId()))
-            .entity(api)
-            .build();
+                executionContext, swaggerDescriptor, DefinitionVersion.valueOfLabel(definitionVersion));
+        final ApiEntity api = apiService.createFromSwagger(
+                executionContext, swaggerApiEntity, getAuthenticatedUser(), swaggerDescriptor);
+        return Response.created(URI.create(
+                        this.uriInfo.getRequestUri().getRawPath().replaceAll("import/swagger", "") + api.getId()))
+                .entity(api)
+                .build();
     }
 
     @POST
@@ -460,26 +454,28 @@ public class ApisResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Check if an API match the following criteria", deprecated = true)
     @ApiResponse(
-        responseCode = "200",
-        description = "No API match the following criteria",
-        content = @Content(mediaType = "text/plain", schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "No API match the following criteria",
+            content = @Content(mediaType = "text/plain", schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "400", description = "API already exist with the following criteria")
-    @Permissions(
-        { @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }) }
-    )
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API,
+                acls = {RolePermissionAction.CREATE, RolePermissionAction.UPDATE})
+    })
     @Deprecated
     public Response verifyApi(@Valid VerifyApiParam verifyApiParam) {
         try {
-            verifyApiPathsUsecase.execute(
-                new VerifyApiPathsUseCase.Request(
+            verifyApiPathsUsecase.execute(new VerifyApiPathsUseCase.Request(
                     verifyApiParam.getApiId(),
-                    List.of(io.gravitee.apim.core.api.model.Path.builder().path(verifyApiParam.getContextPath()).build())
-                )
-            );
-            return Response.ok("API context [" + verifyApiParam.getContextPath() + "] is available").build();
+                    List.of(io.gravitee.apim.core.api.model.Path.builder()
+                            .path(verifyApiParam.getContextPath())
+                            .build())));
+            return Response.ok("API context [" + verifyApiParam.getContextPath() + "] is available")
+                    .build();
         } catch (InvalidPathsException e) {
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), e.getMessage()).build();
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), e.getMessage())
+                    .build();
         }
     }
 
@@ -488,9 +484,7 @@ public class ApisResource extends AbstractResource {
     @Operation(summary = "Get the list of available hooks")
     @Produces(MediaType.APPLICATION_JSON)
     public Hook[] getApiHooks() {
-        return Arrays.stream(ApiHook.values())
-            .filter(h -> !h.isHidden())
-            .toArray(Hook[]::new);
+        return Arrays.stream(ApiHook.values()).filter(h -> !h.isHidden()).toArray(Hook[]::new);
     }
 
     @POST
@@ -498,19 +492,23 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Search for API using the search engine")
     @ApiResponse(
-        responseCode = "200",
-        description = "List accessible APIs for current user",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApiListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List accessible APIs for current user",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ApiListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response searchApis(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
-            return Response.ok().entity(this.searchPagedApis(query, new ApisOrderParam("name"), true, null).getData()).build();
+            return Response.ok()
+                    .entity(this.searchPagedApis(query, new ApisOrderParam("name"), true, null)
+                            .getData())
+                    .build();
         } catch (TechnicalManagementException te) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(te)
+                    .build();
         }
     }
 
@@ -519,26 +517,32 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Search for API using the search engine")
     @ApiResponse(
-        responseCode = "200",
-        description = "List accessible APIs for current user",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiListItem.class))
-    )
+            responseCode = "200",
+            description = "List accessible APIs for current user",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiListItem.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public PagedResult<ApiListItem> searchPagedApis(
-        @Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query,
-        @Parameter(
-            name = "order",
-            schema = @Schema(
-                implementation = String.class,
-                description = "By default, sort is ASC. If *field* starts with '-', the order sort is DESC. Currently, only **name** and **paths** are supported"
-            )
-        ) @QueryParam("order") final ApisOrderParam apisOrderParam,
-        @Parameter(
-            name = "manageOnly",
-            description = "By default only APIs that the user can manage are returned. If set to false, all APIs that the user can view are returned."
-        ) @QueryParam("manageOnly") @DefaultValue("true") final boolean manageOnly,
-        @Valid @BeanParam Pageable pageable
-    ) {
+            @Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query,
+            @Parameter(
+                            name = "order",
+                            schema =
+                                    @Schema(
+                                            implementation = String.class,
+                                            description =
+                                                    "By default, sort is ASC. If *field* starts with '-', the order sort is DESC. Currently, only **name** and **paths** are supported"))
+                    @QueryParam("order")
+                    final ApisOrderParam apisOrderParam,
+            @Parameter(
+                            name = "manageOnly",
+                            description =
+                                    "By default only APIs that the user can manage are returned. If set to false, all APIs that the user can view are returned.")
+                    @QueryParam("manageOnly")
+                    @DefaultValue("true")
+                    final boolean manageOnly,
+            @Valid @BeanParam Pageable pageable) {
         Map<String, Object> filters = new HashMap<>();
 
         io.gravitee.rest.api.model.common.Pageable commonPageable = null;
@@ -549,51 +553,50 @@ public class ApisResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!isAdmin()) {
-            filters.put("api", apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), manageOnly));
+            filters.put(
+                    "api", apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), manageOnly));
         }
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);
 
         final Page<ApiEntity> apis = apiService.search(
-            executionContext,
-            query,
-            filters,
-            apisOrderParam != null ? apisOrderParam.toSortable() : null,
-            commonPageable
-        );
+                executionContext,
+                query,
+                filters,
+                apisOrderParam != null ? apisOrderParam.toSortable() : null,
+                commonPageable);
 
         return new PagedResult<>(
-            apis
-                .getContent()
-                .stream()
-                .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
-                .toList(),
-            apis.getPageNumber(),
-            (int) apis.getPageElements(),
-            (int) apis.getTotalElements()
-        );
+                apis.getContent().stream()
+                        .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
+                        .toList(),
+                apis.getPageNumber(),
+                (int) apis.getPageElements(),
+                (int) apis.getTotalElements());
     }
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
     @Operation(
-        summary = "Update the API from the API definition",
-        description = "Update the API from the API definition in JSON format either with json or via an URL"
-    )
+            summary = "Update the API from the API definition",
+            description = "Update the API from the API definition in JSON format either with json or via an URL")
     @ApiResponse(
-        responseCode = "200",
-        description = "API successfully updated from API definition",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
-    )
+            responseCode = "200",
+            description = "API successfully updated from API definition",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApiEntity.class)))
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateWithDefinition(@RequestBody(required = true) @Valid @NotNull Object apiDefinitionOrUrl) {
-        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
+        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(
+                GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
         return Response.ok(updatedApi)
-            .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
-            .lastModified(updatedApi.getUpdatedAt())
-            .build();
+                .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+                .lastModified(updatedApi.getUpdatedAt())
+                .build();
     }
 
     @Path("{api}")
@@ -615,14 +618,13 @@ public class ApisResource extends AbstractResource {
         apiItem.setDescription(api.getDescription());
 
         final UriBuilder ub = uriInfo.getBaseUriBuilder();
-        final UriBuilder uriBuilder = ub
-            .path("organizations")
-            .path(GraviteeContext.getCurrentOrganization())
-            .path("environments")
-            .path(GraviteeContext.getCurrentEnvironment())
-            .path("apis")
-            .path(api.getId())
-            .path("picture");
+        final UriBuilder uriBuilder = ub.path("organizations")
+                .path(GraviteeContext.getCurrentOrganization())
+                .path("environments")
+                .path(GraviteeContext.getCurrentEnvironment())
+                .path("apis")
+                .path(api.getId())
+                .path("picture");
 
         // force browser to get if updated
         uriBuilder.queryParam("hash", api.getUpdatedAt().getTime());
@@ -649,26 +651,31 @@ public class ApisResource extends AbstractResource {
         }
 
         if (isRatingServiceEnabled) {
-            final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(GraviteeContext.getExecutionContext(), api.getId());
+            final RatingSummaryEntity ratingSummary =
+                    ratingService.findSummaryByApi(GraviteeContext.getExecutionContext(), api.getId());
             apiItem.setRate(ratingSummary.getAverageRate());
             apiItem.setNumberOfRatings(ratingSummary.getNumberOfRatings());
         }
         apiItem.setTags(api.getTags());
 
         if (api.getLifecycleState() != null) {
-            apiItem.setLifecycleState(ApiLifecycleState.valueOf(api.getLifecycleState().toString()));
+            apiItem.setLifecycleState(
+                    ApiLifecycleState.valueOf(api.getLifecycleState().toString()));
         }
 
         if (api.getWorkflowState() != null) {
-            apiItem.setWorkflowState(WorkflowState.valueOf(api.getWorkflowState().toString()));
+            apiItem.setWorkflowState(
+                    WorkflowState.valueOf(api.getWorkflowState().toString()));
         }
 
         // Issue https://github.com/gravitee-io/issues/issues/3356
-        if (api.getProxy().getVirtualHosts() != null && !api.getProxy().getVirtualHosts().isEmpty()) {
+        if (api.getProxy().getVirtualHosts() != null
+                && !api.getProxy().getVirtualHosts().isEmpty()) {
             apiItem.setContextPath(api.getProxy().getVirtualHosts().get(0).getPath());
         }
 
-        if (api.getDefinitionContext() != null && !api.getDefinitionContext().getOrigin().isEmpty()) {
+        if (api.getDefinitionContext() != null
+                && !api.getDefinitionContext().getOrigin().isEmpty()) {
             apiItem.setDefinitionContext(api.getDefinitionContext());
         }
 
@@ -684,12 +691,11 @@ public class ApisResource extends AbstractResource {
     @Path("schema")
     @Operation(summary = "Get the API configuration schema")
     @ApiResponse(
-        responseCode = "200",
-        description = "API definition",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = "string"))
-    )
+            responseCode = "200",
+            description = "API definition",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = "string")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public Response getApiFlowSchemaForm() {
         return Response.ok(flowService.getApiFlowSchemaForm()).build();
     }

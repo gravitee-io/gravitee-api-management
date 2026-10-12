@@ -112,14 +112,12 @@ public abstract class JerseySpringTest {
         resourceConfig.register(AuthenticationFilter.class);
 
         final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-        resourceConfig.register(
-            new AbstractBinder() {
-                @Override
-                protected void configure() {
-                    bind(response).to(HttpServletResponse.class);
-                }
+        resourceConfig.register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bind(response).to(HttpServletResponse.class);
             }
-        );
+        });
     }
 
     @Priority(50)
@@ -127,34 +125,32 @@ public abstract class JerseySpringTest {
 
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        UserDetails userDetails = new UserDetails(USER_NAME, "", Collections.emptyList());
+            requestContext.setSecurityContext(new SecurityContext() {
+                @Override
+                public Principal getUserPrincipal() {
+                    UserDetails userDetails = new UserDetails(USER_NAME, "", Collections.emptyList());
 
-                        var principal = new UsernamePasswordAuthenticationToken(userDetails, new Object());
-                        SecurityContextHolder.getContext().setAuthentication(principal);
+                    var principal = new UsernamePasswordAuthenticationToken(userDetails, new Object());
+                    SecurityContextHolder.getContext().setAuthentication(principal);
 
-                        return principal;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return true;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
+                    return principal;
                 }
-            );
+
+                @Override
+                public boolean isUserInRole(String string) {
+                    return true;
+                }
+
+                @Override
+                public boolean isSecure() {
+                    return true;
+                }
+
+                @Override
+                public String getAuthenticationScheme() {
+                    return "BASIC";
+                }
+            });
         }
     }
 }

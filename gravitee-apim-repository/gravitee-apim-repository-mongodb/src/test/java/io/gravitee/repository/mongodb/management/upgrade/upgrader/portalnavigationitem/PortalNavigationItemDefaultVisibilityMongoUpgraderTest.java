@@ -67,7 +67,10 @@ public class PortalNavigationItemDefaultVisibilityMongoUpgraderTest extends Abst
     }
 
     private Document findById(String id) {
-        return mongoTemplate.getCollection(targetCollectionName).find(new Document("_id", id)).first();
+        return mongoTemplate
+                .getCollection(targetCollectionName)
+                .find(new Document("_id", id))
+                .first();
     }
 
     @Test
@@ -86,7 +89,9 @@ public class PortalNavigationItemDefaultVisibilityMongoUpgraderTest extends Abst
     @Test
     public void upgrade_should_backfill_visibility_when_field_is_null() throws Exception {
         // Given
-        mongoTemplate.getCollection(targetCollectionName).insertOne(new Document("_id", "item-null").append(VISIBILITY, null));
+        mongoTemplate
+                .getCollection(targetCollectionName)
+                .insertOne(new Document("_id", "item-null").append(VISIBILITY, null));
 
         // When
         boolean result = upgrader.upgrade();
@@ -99,7 +104,9 @@ public class PortalNavigationItemDefaultVisibilityMongoUpgraderTest extends Abst
     @Test
     public void upgrade_should_leave_existing_visibility_untouched() throws Exception {
         // Given
-        mongoTemplate.getCollection(targetCollectionName).insertOne(new Document("_id", "item-set").append(VISIBILITY, "PRIVATE"));
+        mongoTemplate
+                .getCollection(targetCollectionName)
+                .insertOne(new Document("_id", "item-set").append(VISIBILITY, "PRIVATE"));
 
         // When
         boolean result = upgrader.upgrade();

@@ -161,16 +161,19 @@ class JdbcTokenBucketRateLimitRepositoryFailureTest {
 
     @Test
     void rejects_invalid_arguments_before_touching_the_database() {
-        assertThatThrownBy(() -> repository.refillAndTryConsume(KEY, 1, 1, 0, CAPACITY, NOW, seed()).blockingGet()).isInstanceOf(
-            IllegalArgumentException.class
-        );
+        assertThatThrownBy(() -> repository
+                        .refillAndTryConsume(KEY, 1, 1, 0, CAPACITY, NOW, seed())
+                        .blockingGet())
+                .isInstanceOf(IllegalArgumentException.class);
 
         // A contract violation must not leave a seeded row behind.
         verifyNoInteractions(dataSource);
     }
 
     private TokenBucketConsumeResult consume() {
-        return repository.refillAndTryConsume(KEY, 1, 0, 1_000L, CAPACITY, NOW, seed()).blockingGet();
+        return repository
+                .refillAndTryConsume(KEY, 1, 0, 1_000L, CAPACITY, NOW, seed())
+                .blockingGet();
     }
 
     private Supplier<TokenBucket> seed() {
@@ -220,12 +223,12 @@ class JdbcTokenBucketRateLimitRepositoryFailureTest {
         public Connection answer(InvocationOnMock invocation) throws SQLException {
             Connection connection = mock(Connection.class);
             doAnswer(ignored -> {
-                rollbackCount++;
-                rolledBackBeforeFirstInsert = insertCount == 0;
-                return null;
-            })
-                .when(connection)
-                .rollback();
+                        rollbackCount++;
+                        rolledBackBeforeFirstInsert = insertCount == 0;
+                        return null;
+                    })
+                    .when(connection)
+                    .rollback();
             when(connection.prepareStatement(anyString())).thenAnswer(statement -> prepare(statement.getArgument(0)));
             return connection;
         }

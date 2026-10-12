@@ -89,10 +89,15 @@ public class ApiPagesResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiPages(@PathParam("apiId") String apiId, @QueryParam("parentId") String parentId) {
         final var mapper = Mappers.getMapper(PageMapper.class);
-        var result = apiGetDocumentationPagesUsecase.execute(new ApiGetDocumentationPagesUseCase.Input(apiId, parentId));
+        var result =
+                apiGetDocumentationPagesUsecase.execute(new ApiGetDocumentationPagesUseCase.Input(apiId, parentId));
         var response = new ApiDocumentationPagesResponse().pages(mapper.mapPageList(result.pages()));
         if (!StringUtils.isEmpty(parentId)) {
             response.breadcrumb(mapper.map(result.breadcrumbList()));
@@ -103,8 +108,13 @@ public class ApiPagesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
-    public Response createDocumentationPage(@PathParam("apiId") String apiId, @Valid @NotNull CreateDocumentation createDocumentation) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.CREATE})
+    })
+    public Response createDocumentationPage(
+            @PathParam("apiId") String apiId, @Valid @NotNull CreateDocumentation createDocumentation) {
         Page pageToCreate = null;
         PageMapper mapper = Mappers.getMapper(PageMapper.class);
         if (createDocumentation instanceof CreateDocumentationMarkdown markdown) {
@@ -124,10 +134,15 @@ public class ApiPagesResource extends AbstractResource {
             pageToCreate.setReferenceType(Page.ReferenceType.API);
 
             Page createdPage = apiCreateDocumentationPageUsecase
-                .execute(ApiCreateDocumentationPageUseCase.Input.builder().page(pageToCreate).auditInfo(getAuditInfo()).build())
-                .createdPage();
+                    .execute(ApiCreateDocumentationPageUseCase.Input.builder()
+                            .page(pageToCreate)
+                            .auditInfo(getAuditInfo())
+                            .build())
+                    .createdPage();
 
-            return Response.created(this.getLocationHeader(createdPage.getId())).entity(mapper.mapPage(createdPage)).build();
+            return Response.created(this.getLocationHeader(createdPage.getId()))
+                    .entity(mapper.mapPage(createdPage))
+                    .build();
         } else {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -136,9 +151,15 @@ public class ApiPagesResource extends AbstractResource {
     @GET
     @Path("{pageId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
-        var page = apiGetDocumentationPageUsecase.execute(new ApiGetDocumentationPageUseCase.Input(apiId, pageId)).page();
+        var page = apiGetDocumentationPageUsecase
+                .execute(new ApiGetDocumentationPageUseCase.Input(apiId, pageId))
+                .page();
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
     }
 
@@ -146,12 +167,15 @@ public class ApiPagesResource extends AbstractResource {
     @Path("{pageId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updateDocumentationPage(
-        @PathParam("apiId") String apiId,
-        @PathParam("pageId") String pageId,
-        @Valid @NotNull UpdateDocumentation updateDocumentation
-    ) {
+            @PathParam("apiId") String apiId,
+            @PathParam("pageId") String pageId,
+            @Valid @NotNull UpdateDocumentation updateDocumentation) {
         var mapper = Mappers.getMapper(PageMapper.class);
         var auditInfo = getAuditInfo();
         Input input = null;
@@ -179,42 +203,59 @@ public class ApiPagesResource extends AbstractResource {
     @POST
     @Path("{pageId}/_publish")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response publishDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         var page = apiPublishDocumentationPageUsecase
-            .execute(new ApiPublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
-            .page();
+                .execute(new ApiPublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
+                .page();
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
     }
 
     @POST
     @Path("{pageId}/_unpublish")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response unpublishDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         var page = apiUnpublishDocumentationPageUsecase
-            .execute(new ApiUnpublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
-            .page();
+                .execute(new ApiUnpublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
+                .page();
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
     }
 
     @POST
     @Path("{pageId}/_fetch")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response fetchDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         var page = apiUpdateFetchedPageContentUseCase
-            .execute(new ApiUpdateFetchedPageContentUseCase.Input(pageId, apiId, getAuditInfo()))
-            .page();
+                .execute(new ApiUpdateFetchedPageContentUseCase.Input(pageId, apiId, getAuditInfo()))
+                .page();
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
     }
 
     @DELETE
     @Path("{pageId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.DELETE})
+    })
     public Response deleteDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
-        apiDeleteDocumentationPageUseCase.execute(new ApiDeleteDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()));
+        apiDeleteDocumentationPageUseCase.execute(
+                new ApiDeleteDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()));
         return Response.noContent().build();
     }
 }

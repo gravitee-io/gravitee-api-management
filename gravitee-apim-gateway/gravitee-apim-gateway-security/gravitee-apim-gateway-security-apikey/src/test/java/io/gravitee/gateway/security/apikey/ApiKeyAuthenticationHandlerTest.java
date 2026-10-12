@@ -85,7 +85,8 @@ public class ApiKeyAuthenticationHandlerTest {
         when(provider.getComponent(Api.class)).thenReturn(api);
 
         Environment environment = mock(Environment.class);
-        when(environment.getProperty(eq("policy.api-key.header"), anyString())).thenReturn(GraviteeHttpHeader.X_GRAVITEE_API_KEY);
+        when(environment.getProperty(eq("policy.api-key.header"), anyString()))
+                .thenReturn(GraviteeHttpHeader.X_GRAVITEE_API_KEY);
         when(environment.getProperty(eq("policy.api-key.param"), anyString())).thenReturn("api-key");
 
         when(provider.getComponent(Environment.class)).thenReturn(environment);
@@ -159,10 +160,12 @@ public class ApiKeyAuthenticationHandlerTest {
         final String apiKey = "any-api-key";
         final Plan firstPlan = new Plan();
         firstPlan.setSecurity("API_KEY");
-        firstPlan.setSecurityDefinition("{\"enableCustomApiKeyHeader\":true, \"apiKeyHeader\":\"X-Another-Custom-Header\"}");
+        firstPlan.setSecurityDefinition(
+                "{\"enableCustomApiKeyHeader\":true, \"apiKeyHeader\":\"X-Another-Custom-Header\"}");
         final Plan secondPlan = new Plan();
         secondPlan.setSecurity("API_KEY");
-        secondPlan.setSecurityDefinition("{\"enableCustomApiKeyHeader\":true, \"apiKeyHeader\":\"" + customHeader + "\"}");
+        secondPlan.setSecurityDefinition(
+                "{\"enableCustomApiKeyHeader\":true, \"apiKeyHeader\":\"" + customHeader + "\"}");
         when(api.getPlans()).thenReturn(List.of(firstPlan, secondPlan));
 
         authenticationHandler.resolve(provider);

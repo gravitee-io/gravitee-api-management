@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.model.theme.portalnext;
 
-import io.gravitee.rest.api.model.theme.portal.ThemeComponentDefinition;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

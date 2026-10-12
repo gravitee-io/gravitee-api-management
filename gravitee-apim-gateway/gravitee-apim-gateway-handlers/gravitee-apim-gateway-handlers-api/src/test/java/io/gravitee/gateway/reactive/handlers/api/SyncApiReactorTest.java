@@ -229,7 +229,8 @@ class SyncApiReactorTest {
     Completable spyThrowable = Completable.error(new Throwable("Invoker error"));
 
     @Spy
-    Completable spyInterruptionFailureException = Completable.error(new InterruptionFailureException(mock(ExecutionFailure.class)));
+    Completable spyInterruptionFailureException =
+            Completable.error(new InterruptionFailureException(mock(ExecutionFailure.class)));
 
     Completable spyTimeout;
 
@@ -240,7 +241,8 @@ class SyncApiReactorTest {
     Completable spySecurityChain = Completable.complete();
 
     @Spy
-    Completable spyInterruptSecurityChain = Completable.error(new InterruptionFailureException(new ExecutionFailure(UNAUTHORIZED_401)));
+    Completable spyInterruptSecurityChain =
+            Completable.error(new InterruptionFailureException(new ExecutionFailure(UNAUTHORIZED_401)));
 
     SyncApiReactor cut;
 
@@ -268,18 +270,36 @@ class SyncApiReactorTest {
         when(flowChainFactory.createPlanFlow(api, tracingContext)).thenReturn(apiPlanFlowChain);
         when(flowChainFactory.createApiFlow(api, tracingContext)).thenReturn(apiFlowChain);
 
-        lenient().when(apiProcessorChainFactory.beforeHandle(api, tracingContext)).thenReturn(beforeHandleProcessors);
-        lenient().when(apiProcessorChainFactory.afterHandle(api, tracingContext)).thenReturn(afterHandleProcessors);
-        lenient().when(apiProcessorChainFactory.beforeSecurityChain(api, tracingContext)).thenReturn(beforeSecurityChainProcessors);
-        lenient().when(apiProcessorChainFactory.beforeApiExecution(api, tracingContext)).thenReturn(beforeApiFlowsProcessors);
-        lenient().when(apiProcessorChainFactory.afterApiExecution(api, tracingContext)).thenReturn(afterApiFlowsProcessors);
+        lenient()
+                .when(apiProcessorChainFactory.beforeHandle(api, tracingContext))
+                .thenReturn(beforeHandleProcessors);
+        lenient()
+                .when(apiProcessorChainFactory.afterHandle(api, tracingContext))
+                .thenReturn(afterHandleProcessors);
+        lenient()
+                .when(apiProcessorChainFactory.beforeSecurityChain(api, tracingContext))
+                .thenReturn(beforeSecurityChainProcessors);
+        lenient()
+                .when(apiProcessorChainFactory.beforeApiExecution(api, tracingContext))
+                .thenReturn(beforeApiFlowsProcessors);
+        lenient()
+                .when(apiProcessorChainFactory.afterApiExecution(api, tracingContext))
+                .thenReturn(afterApiFlowsProcessors);
         lenient().when(apiProcessorChainFactory.onError(api, tracingContext)).thenReturn(onErrorProcessors);
 
-        lenient().when(beforeHandleProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeHandleProcessors);
+        lenient()
+                .when(beforeHandleProcessors.execute(ctx, ExecutionPhase.REQUEST))
+                .thenReturn(spyBeforeHandleProcessors);
         lenient().when(afterHandleProcessors.execute(ctx, RESPONSE)).thenReturn(spyAfterHandleProcessors);
-        lenient().when(beforeSecurityChainProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeSecurityChainProcessors);
-        lenient().when(beforeApiFlowsProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeApiFlowsProcessors);
-        lenient().when(afterApiFlowsProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyAfterApiFlowsProcessors);
+        lenient()
+                .when(beforeSecurityChainProcessors.execute(ctx, ExecutionPhase.REQUEST))
+                .thenReturn(spyBeforeSecurityChainProcessors);
+        lenient()
+                .when(beforeApiFlowsProcessors.execute(ctx, ExecutionPhase.REQUEST))
+                .thenReturn(spyBeforeApiFlowsProcessors);
+        lenient()
+                .when(afterApiFlowsProcessors.execute(ctx, ExecutionPhase.RESPONSE))
+                .thenReturn(spyAfterApiFlowsProcessors);
         lenient().when(onErrorProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyOnErrorProcessors);
 
         lenient().when(beforeHandleProcessors.getId()).thenReturn("mockBeforeHandleProcessors");
@@ -289,47 +309,42 @@ class SyncApiReactorTest {
         lenient().when(afterApiFlowsProcessors.getId()).thenReturn("mockAfterApiFlowsProcessors");
         lenient().when(onErrorProcessors.getId()).thenReturn("mockOnErrorProcessors");
 
-        when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
+        when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L))
+                .thenReturn(10_000L);
 
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(REQUEST_TIMEOUT);
-        lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(REQUEST_TIMEOUT_GRACE_DELAY);
+        lenient()
+                .when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay())
+                .thenReturn(REQUEST_TIMEOUT_GRACE_DELAY);
 
         templateVariableProviders = new ArrayList<>();
         cut = new SyncApiReactor(
-            api,
-            componentProvider,
-            templateVariableProviders,
-            defaultInvoker,
-            resourceLifecycleManager,
-            apiProcessorChainFactory,
-            policyManager,
-            flowChainFactory,
-            groupLifecycleManager,
-            configuration,
-            node,
-            requestTimeoutConfiguration,
-            accessPointManager,
-            eventManager,
-            new HttpAcceptorFactory(false),
-            tracingContext,
-            logGuardService
-        );
+                api,
+                componentProvider,
+                templateVariableProviders,
+                defaultInvoker,
+                resourceLifecycleManager,
+                apiProcessorChainFactory,
+                policyManager,
+                flowChainFactory,
+                groupLifecycleManager,
+                configuration,
+                node,
+                requestTimeoutConfiguration,
+                accessPointManager,
+                eventManager,
+                new HttpAcceptorFactory(false),
+                tracingContext,
+                logGuardService);
 
         lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER)).thenReturn(invokerAdapter);
         lenient()
-            .when(
-                ctx.interruptWith(
-                    argThat(
-                        argument ->
-                            argument != null &&
-                            argument.statusCode() == 504 &&
-                            argument.message().equals("Request timeout") &&
-                            argument.key().equals("REQUEST_TIMEOUT")
-                    )
-                )
-            )
-            .thenReturn(Completable.error(new InterruptionFailureException(new ExecutionFailure(504))));
+                .when(ctx.interruptWith(argThat(argument -> argument != null
+                        && argument.statusCode() == 504
+                        && argument.message().equals("Request timeout")
+                        && argument.key().equals("REQUEST_TIMEOUT"))))
+                .thenReturn(Completable.error(new InterruptionFailureException(new ExecutionFailure(504))));
         testScheduler = new TestScheduler();
         RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
 
@@ -389,24 +404,20 @@ class SyncApiReactorTest {
     @BeforeAll
     @SuppressWarnings("unchecked")
     static void extractRequestMethodLogEntry() {
-        Set<LogEntry<?>> logEntries = (Set<LogEntry<?>>) ReflectionTestUtils.getField(
-            SyncApiReactor.class,
-            "DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES"
-        );
-        requestMethodLogEntry = logEntries
-            .stream()
-            .filter(entry -> "requestMethod".equals(entry.getKey()))
-            .findFirst()
-            .orElseThrow();
+        Set<LogEntry<?>> logEntries = (Set<LogEntry<?>>)
+                ReflectionTestUtils.getField(SyncApiReactor.class, "DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES");
+        requestMethodLogEntry = logEntries.stream()
+                .filter(entry -> "requestMethod".equals(entry.getKey()))
+                .findFirst()
+                .orElseThrow();
     }
 
     static Stream<Arguments> requestMethodAttributeShapes() {
         return Stream.of(
-            arguments(HttpMethod.POST, "POST"),
-            arguments(io.vertx.core.http.HttpMethod.PUT, "PUT"),
-            arguments("GET", "GET"),
-            arguments(null, null)
-        );
+                arguments(HttpMethod.POST, "POST"),
+                arguments(io.vertx.core.http.HttpMethod.PUT, "PUT"),
+                arguments("GET", "GET"),
+                arguments(null, null));
     }
 
     @ParameterizedTest
@@ -501,7 +512,7 @@ class SyncApiReactorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(longs = { -10L, 0 })
+    @ValueSource(longs = {-10L, 0})
     void shouldHandleRequestWhenTimeoutZeroOrLess(Long timeout) throws Exception {
         when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(timeout);
         when(api.getDeployedAt()).thenReturn(new Date());
@@ -538,10 +549,11 @@ class SyncApiReactorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(longs = { -10L, 0 })
+    @ValueSource(longs = {-10L, 0})
     void shouldNotApplyFlowChainWhenTimeoutZeroOrLess_InterruptionException(Long timeout) throws Exception {
         when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(timeout);
-        InOrder orderedChain = testFlowChainWithInvokeBackendError(spyInterruptionException, InterruptionException.class);
+        InOrder orderedChain =
+                testFlowChainWithInvokeBackendError(spyInterruptionException, InterruptionException.class);
 
         orderedChain.verify(spyAfterApiFlowsProcessors).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyOnErrorProcessors, never()).subscribe(any(CompletableObserver.class));
@@ -572,7 +584,8 @@ class SyncApiReactorTest {
 
     @Test
     void shouldNotApplyFlowChain_InterruptionException() throws Exception {
-        InOrder orderedChain = testFlowChainWithInvokeBackendError(spyInterruptionException, InterruptionException.class);
+        InOrder orderedChain =
+                testFlowChainWithInvokeBackendError(spyInterruptionException, InterruptionException.class);
 
         orderedChain.verify(spyAfterApiFlowsProcessors).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyOnErrorProcessors, never()).subscribe(any(CompletableObserver.class));
@@ -584,7 +597,8 @@ class SyncApiReactorTest {
     void shouldNotApplyFlowChain_InterruptionFailureException() throws Exception {
         when(onErrorProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyOnErrorProcessors);
 
-        InOrder orderedChain = testFlowChainWithInvokeBackendError(spyInterruptionFailureException, InterruptionFailureException.class);
+        InOrder orderedChain = testFlowChainWithInvokeBackendError(
+                spyInterruptionFailureException, InterruptionFailureException.class);
 
         orderedChain.verify(spyAfterApiFlowsProcessors, never()).subscribe(any(CompletableObserver.class));
         orderedChain.verify(spyOnErrorProcessors).subscribe(any(CompletableObserver.class));
@@ -604,7 +618,8 @@ class SyncApiReactorTest {
         orderedChain.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
     }
 
-    InOrder testFlowChainWithInvokeBackendError(Completable spyInvokerAdapterError, Class<? extends Throwable> clazz) throws Exception {
+    InOrder testFlowChainWithInvokeBackendError(Completable spyInvokerAdapterError, Class<? extends Throwable> clazz)
+            throws Exception {
         when(api.getDeployedAt()).thenReturn(new Date());
         when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
         when(beforeApiFlowsProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeApiFlowsProcessors);
@@ -787,7 +802,8 @@ class SyncApiReactorTest {
 
     @Test
     void shouldExecuteErrorChainWhenOrganizationResponseFlowThrowsInterruptionFailureException() throws Exception {
-        ExecutionFailure executionFailure = new ExecutionFailure(500).key("INTERNAL_SYSTEM_ERROR").message("Custom error from org policy");
+        ExecutionFailure executionFailure =
+                new ExecutionFailure(500).key("INTERNAL_SYSTEM_ERROR").message("Custom error from org policy");
         when(onErrorProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyOnErrorProcessors);
         setupOrgFlowErrorTest(spy(Completable.error(new InterruptionFailureException(executionFailure))));
 
@@ -853,22 +869,21 @@ class SyncApiReactorTest {
 
     private InOrder getInOrder() {
         return inOrder(
-            spyBeforeHandleProcessors,
-            spyAfterHandleProcessors,
-            spyRequestPlatformFlowChain,
-            spyBeforeSecurityChainProcessors,
-            spySecurityChain,
-            spyInterruptSecurityChain,
-            spyBeforeApiFlowsProcessors,
-            spyRequestApiPlanFlowChain,
-            spyRequestApiFlowChain,
-            spyInvokerAdapterChain,
-            spyResponseApiFlowChain,
-            spyResponseApiPlanFlowChain,
-            spyAfterApiFlowsProcessors,
-            spyOnErrorProcessors,
-            spyResponsePlatformFlowChain
-        );
+                spyBeforeHandleProcessors,
+                spyAfterHandleProcessors,
+                spyRequestPlatformFlowChain,
+                spyBeforeSecurityChainProcessors,
+                spySecurityChain,
+                spyInterruptSecurityChain,
+                spyBeforeApiFlowsProcessors,
+                spyRequestApiPlanFlowChain,
+                spyRequestApiFlowChain,
+                spyInvokerAdapterChain,
+                spyResponseApiFlowChain,
+                spyResponseApiPlanFlowChain,
+                spyAfterApiFlowsProcessors,
+                spyOnErrorProcessors,
+                spyResponsePlatformFlowChain);
     }
 
     private void fillRequestExecutionContext() {

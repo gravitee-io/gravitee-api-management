@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package testcases; /**
+package testcases;
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +29,6 @@ package testcases; /**
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 

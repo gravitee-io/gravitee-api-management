@@ -55,51 +55,47 @@ public class SearchApplicationConnectionLogsUseCase {
         var pageable = input.pageable.orElse(new PageableImpl(1, 20));
 
         var response = connectionLogsCrudService.searchApplicationConnectionLogs(
-            new ExecutionContext(input.organizationId(), input.environmentId()),
-            input.applicationId(),
-            input.logsFilters(),
-            pageable
-        );
+                new ExecutionContext(input.organizationId(), input.environmentId()),
+                input.applicationId(),
+                input.logsFilters(),
+                pageable);
         return mapToResponse(application, response);
     }
 
     private Output mapToResponse(BaseApplicationEntity application, SearchLogsResponse<BaseConnectionLog> logs) {
         var total = logs.total();
-        var data = logs
-            .logs()
-            .stream()
-            .map(log -> mapToModel(log, application))
-            .toList();
+        var data = logs.logs().stream().map(log -> mapToModel(log, application)).toList();
 
         return new Output(total, data);
     }
 
     private ConnectionLog mapToModel(BaseConnectionLog connectionLog, BaseApplicationEntity application) {
         return ConnectionLog.builder()
-            .applicationId(connectionLog.getApplicationId())
-            .application(application)
-            .apiId(connectionLog.getApiId())
-            .api(getApiInfo(connectionLog.getApiId()))
-            .requestId(connectionLog.getRequestId())
-            .timestamp(connectionLog.getTimestamp())
-            .clientIdentifier(connectionLog.getClientIdentifier() != null ? connectionLog.getClientIdentifier() : UNKNOWN)
-            .method(connectionLog.getMethod())
-            .planId(connectionLog.getPlanId())
-            .plan(getPlanInfo(connectionLog.getPlanId()))
-            .requestEnded(connectionLog.isRequestEnded())
-            .transactionId(connectionLog.getTransactionId())
-            .status(connectionLog.getStatus())
-            .uri(connectionLog.getUri())
-            .gateway(connectionLog.getGateway())
-            .gatewayResponseTime(connectionLog.getGatewayResponseTime())
-            .requestContentLength(connectionLog.getRequestContentLength())
-            .responseContentLength(connectionLog.getResponseContentLength())
-            .message(connectionLog.getMessage())
-            .errorKey(connectionLog.getErrorKey())
-            .errorComponentName(connectionLog.getErrorComponentName())
-            .errorComponentType(connectionLog.getErrorComponentType())
-            .warnings(connectionLog.getWarnings())
-            .build();
+                .applicationId(connectionLog.getApplicationId())
+                .application(application)
+                .apiId(connectionLog.getApiId())
+                .api(getApiInfo(connectionLog.getApiId()))
+                .requestId(connectionLog.getRequestId())
+                .timestamp(connectionLog.getTimestamp())
+                .clientIdentifier(
+                        connectionLog.getClientIdentifier() != null ? connectionLog.getClientIdentifier() : UNKNOWN)
+                .method(connectionLog.getMethod())
+                .planId(connectionLog.getPlanId())
+                .plan(getPlanInfo(connectionLog.getPlanId()))
+                .requestEnded(connectionLog.isRequestEnded())
+                .transactionId(connectionLog.getTransactionId())
+                .status(connectionLog.getStatus())
+                .uri(connectionLog.getUri())
+                .gateway(connectionLog.getGateway())
+                .gatewayResponseTime(connectionLog.getGatewayResponseTime())
+                .requestContentLength(connectionLog.getRequestContentLength())
+                .responseContentLength(connectionLog.getResponseContentLength())
+                .message(connectionLog.getMessage())
+                .errorKey(connectionLog.getErrorKey())
+                .errorComponentName(connectionLog.getErrorComponentName())
+                .errorComponentType(connectionLog.getErrorComponentType())
+                .warnings(connectionLog.getWarnings())
+                .build();
     }
 
     private Api getApiInfo(String apiId) {
@@ -128,17 +124,21 @@ public class SearchApplicationConnectionLogsUseCase {
     }
 
     public record Input(
-        String applicationId,
-        String organizationId,
-        String environmentId,
-        SearchLogsFilters logsFilters,
-        Optional<Pageable> pageable
-    ) {
+            String applicationId,
+            String organizationId,
+            String environmentId,
+            SearchLogsFilters logsFilters,
+            Optional<Pageable> pageable) {
         public Input(String applicationId, String organizationId, String environmentId, SearchLogsFilters logsFilters) {
             this(applicationId, organizationId, environmentId, logsFilters, Optional.empty());
         }
 
-        public Input(String applicationId, String organizationId, String environmentId, SearchLogsFilters logsFilters, Pageable pageable) {
+        public Input(
+                String applicationId,
+                String organizationId,
+                String environmentId,
+                SearchLogsFilters logsFilters,
+                Pageable pageable) {
             this(applicationId, organizationId, environmentId, logsFilters, Optional.of(pageable));
         }
     }

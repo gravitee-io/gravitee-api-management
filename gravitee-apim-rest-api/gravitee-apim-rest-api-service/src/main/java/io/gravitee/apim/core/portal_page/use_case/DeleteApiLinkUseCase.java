@@ -35,12 +35,11 @@ public class DeleteApiLinkUseCase {
     public record Input(AuditInfo auditInfo, PortalNavigationItemId linkId) {}
 
     public void execute(Input input) {
-        var item = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), input.linkId());
-        if (
-            !(item instanceof PortalNavigationLink link) ||
-            link.getAutomationMetadata() == null ||
-            link.getAutomationMetadata().referenceType() != AutomationMetadata.ReferenceType.API
-        ) {
+        var item = navigationItemsQueryService.findByIdAndEnvironmentId(
+                input.auditInfo().environmentId(), input.linkId());
+        if (!(item instanceof PortalNavigationLink link)
+                || link.getAutomationMetadata() == null
+                || link.getAutomationMetadata().referenceType() != AutomationMetadata.ReferenceType.API) {
             throw new PortalLinkNotFoundException(input.linkId().toString());
         }
         syncDomainService.dematerialize(input.auditInfo(), input.linkId());

@@ -32,18 +32,16 @@ import io.reactivex.rxjava3.core.Maybe;
  */
 public class ConditionSelectorConditionFilter implements ConditionFilter<BaseExecutionContext, Flow> {
 
-    private final ExpressionLanguageConditionFilter<ConditionSelector> elConditionFilter = new ExpressionLanguageConditionFilter<>();
+    private final ExpressionLanguageConditionFilter<ConditionSelector> elConditionFilter =
+            new ExpressionLanguageConditionFilter<>();
 
     @Override
     public Maybe<Flow> filter(final BaseExecutionContext ctx, final Flow flow) {
-        return flow
-            .selectorByType(SelectorType.CONDITION)
-            .map(conditionSelector ->
-                elConditionFilter
-                    .filter(ctx, (ConditionSelector) conditionSelector)
-                    .onErrorResumeWith(Maybe.empty())
-                    .map(filter -> flow)
-            )
-            .orElse(Maybe.just(flow));
+        return flow.selectorByType(SelectorType.CONDITION)
+                .map(conditionSelector -> elConditionFilter
+                        .filter(ctx, (ConditionSelector) conditionSelector)
+                        .onErrorResumeWith(Maybe.empty())
+                        .map(filter -> flow))
+                .orElse(Maybe.just(flow));
     }
 }

@@ -45,31 +45,28 @@ public class SearchApisForPortalUseCase {
 
     public Output execute(Input input) {
         List<PortalNavigationApi> visible = input.userId() != null
-            ? visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId())
-            : visibilityDomainService.resolveVisibleItems(input.environmentId());
-        Set<String> allowedIds = visible.stream().map(PortalNavigationApi::getApiId).collect(toSet());
+                ? visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId())
+                : visibilityDomainService.resolveVisibleItems(input.environmentId());
+        Set<String> allowedIds =
+                visible.stream().map(PortalNavigationApi::getApiId).collect(toSet());
 
-        return new Output(
-            apiPortalSearchQueryService.search(
+        return new Output(apiPortalSearchQueryService.search(
                 input.environmentId(),
                 input.organizationId(),
                 input.query(),
                 allowedIds,
                 input.pageable(),
                 input.sortable(),
-                checkTypoToleranceDomainService.isEnabled(input.environmentId(), input.organizationId())
-            )
-        );
+                checkTypoToleranceDomainService.isEnabled(input.environmentId(), input.organizationId())));
     }
 
     public record Input(
-        String environmentId,
-        String organizationId,
-        @Nullable String userId,
-        @Nullable String query,
-        Pageable pageable,
-        Sortable sortable
-    ) {}
+            String environmentId,
+            String organizationId,
+            @Nullable String userId,
+            @Nullable String query,
+            Pageable pageable,
+            Sortable sortable) {}
 
     public record Output(Page<Api> apis) {}
 }

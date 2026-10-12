@@ -25,7 +25,9 @@ import java.util.Map;
  */
 public interface GenericApiModel {
     String getId();
+
     String getName();
+
     String getApiVersion();
 
     @Deprecated

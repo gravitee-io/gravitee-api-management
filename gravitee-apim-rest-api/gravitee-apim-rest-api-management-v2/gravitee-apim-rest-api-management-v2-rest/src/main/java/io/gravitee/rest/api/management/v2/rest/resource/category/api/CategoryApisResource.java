@@ -53,27 +53,27 @@ public class CategoryApisResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_CATEGORY,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getCategoryApisPage(@BeanParam @Valid PaginationParam paginationParam) {
-        var output = getCategoryApisUseCase.execute(
-            new GetCategoryApisUseCase.Input(GraviteeContext.getExecutionContext(), categoryIdOrKey, getAuthenticatedUser(), isAdmin())
-        );
+        var output = getCategoryApisUseCase.execute(new GetCategoryApisUseCase.Input(
+                GraviteeContext.getExecutionContext(), categoryIdOrKey, getAuthenticatedUser(), isAdmin()));
 
-        List<CategoryApi> data = output
-            .results()
-            .stream()
-            .map(result -> CategoryApiMapper.INSTANCE.map(result.apiCategoryOrder(), result.api()))
-            .toList();
+        List<CategoryApi> data = output.results().stream()
+                .map(result -> CategoryApiMapper.INSTANCE.map(result.apiCategoryOrder(), result.api()))
+                .toList();
 
         var paginationData = computePaginationData(data, paginationParam);
 
         return Response.ok()
-            .entity(
-                new CategoryApisResponse()
-                    .data(paginationData)
-                    .pagination(PaginationInfo.computePaginationInfo(output.results().size(), paginationData.size(), paginationParam))
-            )
-            .build();
+                .entity(new CategoryApisResponse()
+                        .data(paginationData)
+                        .pagination(PaginationInfo.computePaginationInfo(
+                                output.results().size(), paginationData.size(), paginationParam)))
+                .build();
     }
 
     @Path("{apiId}")

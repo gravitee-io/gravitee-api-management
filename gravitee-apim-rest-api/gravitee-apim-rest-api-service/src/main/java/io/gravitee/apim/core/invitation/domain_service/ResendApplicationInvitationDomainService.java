@@ -33,27 +33,21 @@ public class ResendApplicationInvitationDomainService {
     private final ApplicationInvitationNotificationDomainService applicationInvitationNotificationDomainService;
 
     public ApplicationInvitation resend(
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String applicationId,
-        @Nonnull InvitationId invitationId,
-        URI confirmationPageUrl
-    ) {
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull String applicationId,
+            @Nonnull InvitationId invitationId,
+            URI confirmationPageUrl) {
         var invitation = invitationCrudService
-            .findApplicationInvitationById(invitationId)
-            .filter(applicationInvitation -> applicationId.equals(applicationInvitation.applicationId()))
-            .orElseThrow(() -> new ApplicationInvitationNotFoundException(invitationId.toString()));
+                .findApplicationInvitationById(invitationId)
+                .filter(applicationInvitation -> applicationId.equals(applicationInvitation.applicationId()))
+                .orElseThrow(() -> new ApplicationInvitationNotFoundException(invitationId.toString()));
 
         invitation.markResendAttempted();
 
         var resentInvitation = invitationCrudService.update(invitation);
         applicationInvitationNotificationDomainService.dispatchAsync(
-            organizationId,
-            environmentId,
-            applicationId,
-            List.of(resentInvitation),
-            confirmationPageUrl
-        );
+                organizationId, environmentId, applicationId, List.of(resentInvitation), confirmationPageUrl);
 
         return resentInvitation;
     }

@@ -24,28 +24,27 @@ import java.util.List;
 
 public interface PortalNavigationItemRepository extends CrudRepository<PortalNavigationItem, String> {
     List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId)
-        throws TechnicalException;
+            throws TechnicalException;
 
     List<PortalNavigationItem> findByAutomationReference(
-        String environmentId,
-        AutomationTargetReferenceType referenceType,
-        String referenceId
-    ) throws TechnicalException;
+            String environmentId, AutomationTargetReferenceType referenceType, String referenceId)
+            throws TechnicalException;
 
-    List<PortalNavigationItem> findAllByParentIdAndEnvironmentId(String parentId, String environmentId) throws TechnicalException;
+    List<PortalNavigationItem> findAllByParentIdAndEnvironmentId(String parentId, String environmentId)
+            throws TechnicalException;
 
-    List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(PortalNavigationItem.Area area, String environmentId)
-        throws TechnicalException;
+    List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(
+            PortalNavigationItem.Area area, String environmentId) throws TechnicalException;
 
     List<PortalNavigationItem> findAllTopLevelByAreaAndEnvironmentAndReference(
-        PortalNavigationItem.Area area,
-        String environmentId,
-        PortalNavigationReferenceType referenceType,
-        String referenceId
-    ) throws TechnicalException;
+            PortalNavigationItem.Area area,
+            String environmentId,
+            PortalNavigationReferenceType referenceType,
+            String referenceId)
+            throws TechnicalException;
 
     List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId)
-        throws TechnicalException;
+            throws TechnicalException;
 
     List<PortalNavigationItem> searchByCriteria(PortalNavigationItemCriteria criteria) throws TechnicalException;
 
@@ -59,7 +58,8 @@ public interface PortalNavigationItemRepository extends CrudRepository<PortalNav
      * @return {@code true} when the row was replaced, {@code false} when the item does not exist or
      *   its configuration has changed since it was read
      */
-    boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) throws TechnicalException;
+    boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration)
+            throws TechnicalException;
 
     void deleteByIds(List<String> ids) throws TechnicalException;
 

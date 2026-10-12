@@ -33,10 +33,14 @@ public class VertxGrpcServerRequest extends VertxHttp2ServerRequest {
      */
     @Deprecated
     public VertxGrpcServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+        this(
+                httpServerRequest,
+                idGenerator,
+                VertxHttpServerRequestOptions.builder().build());
     }
 
-    public VertxGrpcServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
+    public VertxGrpcServerRequest(
+            HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         super(httpServerRequest, idGenerator, options);
     }
 

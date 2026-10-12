@@ -79,7 +79,8 @@ public class SearchConnectionLogDetailQueryAdapter {
         return null;
     }
 
-    private static void addBodyTextFilter(ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
+    private static void addBodyTextFilter(
+            ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
         if (filter.getBodyText() != null && !filter.getBodyText().isBlank()) {
             var bodyText = filter.getBodyText();
             var textToEscape = bodyText.endsWith("*") ? bodyText.substring(0, bodyText.length() - 1) : bodyText;
@@ -95,7 +96,8 @@ public class SearchConnectionLogDetailQueryAdapter {
         }
     }
 
-    private static void addFromAndToFilters(ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
+    private static void addFromAndToFilters(
+            ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
         if (filter.getFrom() != null || filter.getTo() != null) {
             var timestampJsonObject = new JsonObject();
             if (filter.getFrom() != null) {
@@ -108,25 +110,26 @@ public class SearchConnectionLogDetailQueryAdapter {
         }
     }
 
-    private static void addHttpMethodsFilter(ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
+    private static void addHttpMethodsFilter(
+            ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getMethods())) {
-            mustFilterList.add(
-                buildV2AndV4Matches(
+            mustFilterList.add(buildV2AndV4Matches(
                     "client-request.method",
                     "entrypoint-request.method",
-                    filter.getMethods().stream().map(HttpMethod::name).toList()
-                )
-            );
+                    filter.getMethods().stream().map(HttpMethod::name).toList()));
         }
     }
 
-    private static void addStatusesFilter(ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
+    private static void addStatusesFilter(
+            ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getStatuses())) {
-            mustFilterList.add(buildV2AndV4Matches("client-response.status", "endpoint-response.status", filter.getStatuses()));
+            mustFilterList.add(
+                    buildV2AndV4Matches("client-response.status", "endpoint-response.status", filter.getStatuses()));
         }
     }
 
-    private static void addRequestIdsFilter(ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
+    private static void addRequestIdsFilter(
+            ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getRequestIds())) {
             mustFilterList.add(buildV2AndV4Terms("_id", "request-id", filter.getRequestIds()));
         }
@@ -134,14 +137,9 @@ public class SearchConnectionLogDetailQueryAdapter {
 
     private static void addUriFilter(ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
         if (filter.getUri() != null && !filter.getUri().isBlank()) {
-            mustFilterList.add(
-                buildShould(
-                    List.of(
-                        JsonObject.of("match", JsonObject.of("client-request.uri", filter.getUri())),
-                        JsonObject.of("match", JsonObject.of("entrypoint-request.uri", filter.getUri()))
-                    )
-                )
-            );
+            mustFilterList.add(buildShould(List.of(
+                    JsonObject.of("match", JsonObject.of("client-request.uri", filter.getUri())),
+                    JsonObject.of("match", JsonObject.of("entrypoint-request.uri", filter.getUri())))));
         }
     }
 

@@ -159,12 +159,10 @@ public class Category {
         if (this == o) return true;
         if (!(o instanceof Category)) return false;
         Category category = (Category) o;
-        return (
-            Objects.equals(id, category.id) &&
-            Objects.equals(key, category.key) &&
-            Objects.equals(name, category.name) &&
-            Objects.equals(description, category.description)
-        );
+        return (Objects.equals(id, category.id)
+                && Objects.equals(key, category.key)
+                && Objects.equals(name, category.name)
+                && Objects.equals(description, category.description));
     }
 
     @Override
@@ -174,42 +172,39 @@ public class Category {
 
     @Override
     public String toString() {
-        return (
-            "Category{" +
-            "id='" +
-            id +
-            '\'' +
-            ", environmentId='" +
-            environmentId +
-            '\'' +
-            ", key='" +
-            key +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", hidden='" +
-            hidden +
-            '\'' +
-            ", order='" +
-            order +
-            '\'' +
-            ", highlightApi='" +
-            highlightApi +
-            '\'' +
-            ", page='" +
-            page +
-            '\'' +
-            ", updatedAt='" +
-            updatedAt +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            '}'
-        );
+        return ("Category{" + "id='"
+                + id
+                + '\''
+                + ", environmentId='"
+                + environmentId
+                + '\''
+                + ", key='"
+                + key
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", hidden='"
+                + hidden
+                + '\''
+                + ", order='"
+                + order
+                + '\''
+                + ", highlightApi='"
+                + highlightApi
+                + '\''
+                + ", page='"
+                + page
+                + '\''
+                + ", updatedAt='"
+                + updatedAt
+                + '\''
+                + ", createdAt='"
+                + createdAt
+                + '\''
+                + '}');
     }
 }

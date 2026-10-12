@@ -66,11 +66,10 @@ public class RedisClient {
     private final AtomicBoolean roleCheckSkippedLogged = new AtomicBoolean();
 
     public RedisClient(
-        final Vertx vertx,
-        final VertxRedisClientFactory factory,
-        final RedisClientOptions clientOptions,
-        final Map<String, String> scripts
-    ) {
+            final Vertx vertx,
+            final VertxRedisClientFactory factory,
+            final RedisClientOptions clientOptions,
+            final Map<String, String> scripts) {
         this.vertx = vertx;
         this.factory = factory;
         this.clientOptions = clientOptions;
@@ -84,10 +83,7 @@ public class RedisClient {
         if (loop != null && loop.connected.get()) {
             return true;
         }
-        return loops
-            .values()
-            .stream()
-            .anyMatch(l -> l.connected.get());
+        return loops.values().stream().anyMatch(l -> l.connected.get());
     }
 
     public Future<RedisAPI> redisApi() {
@@ -139,13 +135,11 @@ public class RedisClient {
                 return sha;
             }
         }
-        return loops
-            .values()
-            .stream()
-            .map(l -> l.scriptsSha.get(key))
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse(null);
+        return loops.values().stream()
+                .map(l -> l.scriptsSha.get(key))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     public String scriptSource(final String key) {
@@ -183,36 +177,36 @@ public class RedisClient {
 
         final Redis redisClient = factory.createClient(clientOptions);
         final Future<RedisAPI> connectFuture = redisClient
-            .connect()
-            .onSuccess(conn -> {
-                log.debug("Connected to Redis on event loop {}", currentLoopKey());
-                conn.exceptionHandler(e -> handleConnectionLost(loop, connectionGeneration));
-                conn.endHandler(v -> handleConnectionLost(loop, connectionGeneration));
-            })
-            .flatMap(redisConnection -> {
-                RedisAPI api = RedisAPI.api(redisConnection);
-                return requireWritableMaster(api).compose(writable -> loadScripts(writable, loop));
-            })
-            .onSuccess(redisAPI -> {
-                if (connectionGeneration != loop.generation.get()) {
-                    return;
-                }
-                log.info("Redis is now ready to be used on event loop {}.", currentLoopKey());
-                loop.connecting.set(false);
-                loop.connected.set(true);
-            })
-            .timeout(clientOptions.getConnectTimeout(), TimeUnit.MILLISECONDS)
-            .onFailure(t -> {
-                if (connectionGeneration != loop.generation.get()) {
-                    return;
-                }
-                if (isExpectedConnectFailure(t)) {
-                    log.warn("Unable to connect to Redis on event loop {}: {}", currentLoopKey(), t.getMessage());
-                } else {
-                    log.error("Unable to connect to Redis on event loop {}", currentLoopKey(), t);
-                }
-                scheduleReconnectAfterFailure(loop, retry);
-            });
+                .connect()
+                .onSuccess(conn -> {
+                    log.debug("Connected to Redis on event loop {}", currentLoopKey());
+                    conn.exceptionHandler(e -> handleConnectionLost(loop, connectionGeneration));
+                    conn.endHandler(v -> handleConnectionLost(loop, connectionGeneration));
+                })
+                .flatMap(redisConnection -> {
+                    RedisAPI api = RedisAPI.api(redisConnection);
+                    return requireWritableMaster(api).compose(writable -> loadScripts(writable, loop));
+                })
+                .onSuccess(redisAPI -> {
+                    if (connectionGeneration != loop.generation.get()) {
+                        return;
+                    }
+                    log.info("Redis is now ready to be used on event loop {}.", currentLoopKey());
+                    loop.connecting.set(false);
+                    loop.connected.set(true);
+                })
+                .timeout(clientOptions.getConnectTimeout(), TimeUnit.MILLISECONDS)
+                .onFailure(t -> {
+                    if (connectionGeneration != loop.generation.get()) {
+                        return;
+                    }
+                    if (isExpectedConnectFailure(t)) {
+                        log.warn("Unable to connect to Redis on event loop {}: {}", currentLoopKey(), t.getMessage());
+                    } else {
+                        log.error("Unable to connect to Redis on event loop {}", currentLoopKey(), t);
+                    }
+                    scheduleReconnectAfterFailure(loop, retry);
+                });
 
         synchronized (loop.monitor) {
             if (connectionGeneration == loop.generation.get()) {
@@ -302,15 +296,13 @@ public class RedisClient {
                 final String normalized = message.toLowerCase(Locale.ROOT).stripLeading();
                 // READONLY: TCP is healthy but the node is no longer writable (Sentinel demotion).
                 // Redis 7+ uses the READONLY code; Redis 6 wraps script writes as ERR ... -READONLY ...
-                if (
-                    normalized.startsWith("readonly") ||
-                    normalized.contains("-readonly ") ||
-                    normalized.contains("connection is closed") ||
-                    normalized.contains("connection lost") ||
-                    normalized.contains("connection reset") ||
-                    normalized.contains("not connected") ||
-                    normalized.contains("broken pipe")
-                ) {
+                if (normalized.startsWith("readonly")
+                        || normalized.contains("-readonly ")
+                        || normalized.contains("connection is closed")
+                        || normalized.contains("connection lost")
+                        || normalized.contains("connection reset")
+                        || normalized.contains("not connected")
+                        || normalized.contains("broken pipe")) {
                     return true;
                 }
             }
@@ -328,7 +320,8 @@ public class RedisClient {
             return;
         }
         scripts.forEach((key, scriptPath) -> {
-            try (InputStream stream = RedisRateLimitRepository.class.getClassLoader().getResourceAsStream(scriptPath)) {
+            try (InputStream stream =
+                    RedisRateLimitRepository.class.getClassLoader().getResourceAsStream(scriptPath)) {
                 if (stream == null) {
                     throw new IllegalStateException("Lua script not found on classpath: " + scriptPath);
                 }
@@ -352,34 +345,29 @@ public class RedisClient {
     }
 
     static Future<RedisAPI> applySentinelRoleCheck(
-        final RedisAPI redisAPI,
-        final boolean sentinelEnabled,
-        final Consumer<Throwable> onRoleCommandFailure
-    ) {
+            final RedisAPI redisAPI, final boolean sentinelEnabled, final Consumer<Throwable> onRoleCommandFailure) {
         if (!sentinelEnabled) {
             return Future.succeededFuture(redisAPI);
         }
-        return redisAPI
-            .role()
-            .recover(t -> {
-                if (isRoleCommandUnsupported(t)) {
-                    onRoleCommandFailure.accept(t);
-                    return Future.succeededFuture((Response) null);
-                }
-                return Future.failedFuture(t);
-            })
-            .compose(response -> {
-                if (response == null) {
+        return redisAPI.role()
+                .recover(t -> {
+                    if (isRoleCommandUnsupported(t)) {
+                        onRoleCommandFailure.accept(t);
+                        return Future.succeededFuture((Response) null);
+                    }
+                    return Future.failedFuture(t);
+                })
+                .compose(response -> {
+                    if (response == null) {
+                        return Future.succeededFuture(redisAPI);
+                    }
+                    final String role = roleName(response);
+                    if (!"master".equalsIgnoreCase(role)) {
+                        return Future.failedFuture(new IllegalStateException(
+                                "Redis node is not writable (ROLE=" + role + "); will retry with backoff"));
+                    }
                     return Future.succeededFuture(redisAPI);
-                }
-                final String role = roleName(response);
-                if (!"master".equalsIgnoreCase(role)) {
-                    return Future.failedFuture(
-                        new IllegalStateException("Redis node is not writable (ROLE=" + role + "); will retry with backoff")
-                    );
-                }
-                return Future.succeededFuture(redisAPI);
-            });
+                });
     }
 
     static boolean isExpectedConnectFailure(final Throwable failure) {
@@ -441,26 +429,23 @@ public class RedisClient {
         if (scripts == null || scripts.isEmpty()) {
             return Future.succeededFuture(redisAPI);
         }
-        return Future.all(
-            scripts
-                .entrySet()
-                .stream()
-                .map(entry -> {
-                    String key = entry.getKey();
-                    String source = scriptsSource.get(key);
-                    if (source == null) {
-                        return Future.failedFuture(new IllegalStateException("Lua script source not loaded for key: " + key));
-                    }
-                    return redisAPI
-                        .script(Arrays.asList(SCRIPT_LOAD_COMMAND, source))
-                        .onSuccess(response -> {
-                            log.debug("Lua script '{}' registered to Redis", entry.getValue());
-                            loop.scriptsSha.put(key, response.toString());
+        return Future.all(scripts.entrySet().stream()
+                        .map(entry -> {
+                            String key = entry.getKey();
+                            String source = scriptsSource.get(key);
+                            if (source == null) {
+                                return Future.failedFuture(
+                                        new IllegalStateException("Lua script source not loaded for key: " + key));
+                            }
+                            return redisAPI.script(Arrays.asList(SCRIPT_LOAD_COMMAND, source))
+                                    .onSuccess(response -> {
+                                        log.debug("Lua script '{}' registered to Redis", entry.getValue());
+                                        loop.scriptsSha.put(key, response.toString());
+                                    })
+                                    .mapEmpty();
                         })
-                        .mapEmpty();
-                })
-                .collect(Collectors.toList())
-        ).map(v -> redisAPI);
+                        .collect(Collectors.toList()))
+                .map(v -> redisAPI);
     }
 
     private static final class LoopRedis {

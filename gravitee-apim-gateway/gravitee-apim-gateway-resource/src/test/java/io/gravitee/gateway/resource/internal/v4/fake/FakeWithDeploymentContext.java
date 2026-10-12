@@ -23,7 +23,8 @@ import lombok.Getter;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FakeWithDeploymentContext extends io.gravitee.resource.api.AbstractConfigurableResource<FakeConfiguration> {
+public class FakeWithDeploymentContext
+        extends io.gravitee.resource.api.AbstractConfigurableResource<FakeConfiguration> {
 
     @Inject
     @Getter

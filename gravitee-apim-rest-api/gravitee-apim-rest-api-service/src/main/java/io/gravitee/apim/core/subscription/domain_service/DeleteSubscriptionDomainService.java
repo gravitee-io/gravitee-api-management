@@ -33,7 +33,8 @@ public class DeleteSubscriptionDomainService {
     SubscriptionCrudService subscriptionCrudService;
     AuditDomainService auditService;
 
-    public DeleteSubscriptionDomainService(SubscriptionCrudService subscriptionCrudService, AuditDomainService auditService) {
+    public DeleteSubscriptionDomainService(
+            SubscriptionCrudService subscriptionCrudService, AuditDomainService auditService) {
         this.subscriptionCrudService = subscriptionCrudService;
         this.auditService = auditService;
     }
@@ -48,8 +49,7 @@ public class DeleteSubscriptionDomainService {
         boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT == subscriptionEntity.getReferenceType();
 
         if (isApiProduct) {
-            auditService.createApiProductAuditLog(
-                ApiProductAuditLogEntity.builder()
+            auditService.createApiProductAuditLog(ApiProductAuditLogEntity.builder()
                     .organizationId(auditInfo.organizationId())
                     .environmentId(auditInfo.environmentId())
                     .apiProductId(referenceId)
@@ -58,11 +58,9 @@ public class DeleteSubscriptionDomainService {
                     .oldValue(subscriptionEntity)
                     .createdAt(TimeProvider.now())
                     .properties(Collections.emptyMap())
-                    .build()
-            );
+                    .build());
         } else {
-            auditService.createApiAuditLog(
-                ApiAuditLogEntity.builder()
+            auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                     .organizationId(auditInfo.organizationId())
                     .environmentId(auditInfo.environmentId())
                     .apiId(referenceId)
@@ -71,8 +69,7 @@ public class DeleteSubscriptionDomainService {
                     .oldValue(subscriptionEntity)
                     .createdAt(TimeProvider.now())
                     .properties(Collections.emptyMap())
-                    .build()
-            );
+                    .build());
         }
     }
 }

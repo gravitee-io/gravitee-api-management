@@ -62,24 +62,18 @@ public class SubscriptionFormSubmissionValidator {
         }
         if (submittedValues.size() > MAX_METADATA_COUNT) {
             throw new SubscriptionFormValidationException(
-                List.of("Subscription metadata must not exceed " + MAX_METADATA_COUNT + " entries")
-            );
+                    List.of("Subscription metadata must not exceed " + MAX_METADATA_COUNT + " entries"));
         }
-        List<String> errors = fieldConstraints
-            .byFieldKey()
-            .entrySet()
-            .stream()
-            .flatMap(entry -> {
-                String fieldKey = entry.getKey();
-                String value = submittedValues.getOrDefault(fieldKey, "").trim();
-                return entry
-                    .getValue()
-                    .stream()
-                    .filter(c -> !c.check(value))
-                    .map(c -> c.formatErrorMessage(fieldKey, value))
-                    .filter(msg -> !msg.isEmpty());
-            })
-            .toList();
+        List<String> errors = fieldConstraints.byFieldKey().entrySet().stream()
+                .flatMap(entry -> {
+                    String fieldKey = entry.getKey();
+                    String value = submittedValues.getOrDefault(fieldKey, "").trim();
+                    return entry.getValue().stream()
+                            .filter(c -> !c.check(value))
+                            .map(c -> c.formatErrorMessage(fieldKey, value))
+                            .filter(msg -> !msg.isEmpty());
+                })
+                .toList();
 
         if (!errors.isEmpty()) {
             throw new SubscriptionFormValidationException(errors);

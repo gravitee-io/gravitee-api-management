@@ -84,18 +84,14 @@ class SearchAverageHealthCheckResponseTimeUseCaseTest {
         apiHealthQueryService.averageHealthCheckResponseTime = expectedData;
 
         // When
-        var output = useCase
-            .execute(
-                new SearchAverageHealthCheckResponseTimeUseCase.Input(
-                    ORGANIZATION_ID,
-                    ENV_ID,
-                    MY_API,
-                    "endpoint",
-                    INSTANT_NOW.minus(1, ChronoUnit.DAYS),
-                    INSTANT_NOW
-                )
-            )
-            .blockingGet();
+        var output = useCase.execute(new SearchAverageHealthCheckResponseTimeUseCase.Input(
+                        ORGANIZATION_ID,
+                        ENV_ID,
+                        MY_API,
+                        "endpoint",
+                        INSTANT_NOW.minus(1, ChronoUnit.DAYS),
+                        INSTANT_NOW))
+                .blockingGet();
 
         // Then
         assertThat(requireNonNull(output).averageHealthCheckResponseTime()).isEqualTo(expectedData);
@@ -119,20 +115,14 @@ class SearchAverageHealthCheckResponseTimeUseCaseTest {
         // Given
 
         // When
-        var throwable = catchThrowable(() ->
-            useCase
-                .execute(
-                    new SearchAverageHealthCheckResponseTimeUseCase.Input(
+        var throwable = catchThrowable(() -> useCase.execute(new SearchAverageHealthCheckResponseTimeUseCase.Input(
                         ORGANIZATION_ID,
                         ENV_ID,
                         MY_API,
                         "endpoint",
                         INSTANT_NOW.minus(1, ChronoUnit.DAYS),
-                        INSTANT_NOW
-                    )
-                )
-                .blockingGet()
-        );
+                        INSTANT_NOW))
+                .blockingGet());
 
         // Then
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -144,20 +134,14 @@ class SearchAverageHealthCheckResponseTimeUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aMessageApiV4()));
 
         // When
-        var throwable = catchThrowable(() ->
-            useCase
-                .execute(
-                    new SearchAverageHealthCheckResponseTimeUseCase.Input(
+        var throwable = catchThrowable(() -> useCase.execute(new SearchAverageHealthCheckResponseTimeUseCase.Input(
                         ORGANIZATION_ID,
                         "another",
                         MY_API,
                         "endpoint",
                         INSTANT_NOW.minus(1, ChronoUnit.DAYS),
-                        INSTANT_NOW
-                    )
-                )
-                .blockingGet()
-        );
+                        INSTANT_NOW))
+                .blockingGet());
 
         // Then
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
@@ -169,20 +153,14 @@ class SearchAverageHealthCheckResponseTimeUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
 
         // When
-        var throwable = catchThrowable(() ->
-            useCase
-                .execute(
-                    new SearchAverageHealthCheckResponseTimeUseCase.Input(
+        var throwable = catchThrowable(() -> useCase.execute(new SearchAverageHealthCheckResponseTimeUseCase.Input(
                         ORGANIZATION_ID,
                         ENV_ID,
                         MY_API,
                         "endpoint",
                         INSTANT_NOW.minus(1, ChronoUnit.DAYS),
-                        INSTANT_NOW
-                    )
-                )
-                .blockingGet()
-        );
+                        INSTANT_NOW))
+                .blockingGet());
 
         // Then
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);

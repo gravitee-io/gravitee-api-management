@@ -55,7 +55,10 @@ class MongoDictionaryPropertyWriteShapeTest extends AbstractManagementRepository
 
         dictionaryRepository.create(dictionary);
 
-        final Document raw = mongoOperations.getCollection("test_prefix_dictionaries").find(new Document("_id", "dic-write-shape")).first();
+        final Document raw = mongoOperations
+                .getCollection("test_prefix_dictionaries")
+                .find(new Document("_id", "dic-write-shape"))
+                .first();
 
         assertThat(raw).isNotNull();
         final Document properties = raw.get("properties", Document.class);
@@ -75,9 +78,9 @@ class MongoDictionaryPropertyWriteShapeTest extends AbstractManagementRepository
         dictionaryRepository.create(dictionary);
 
         final Document raw = mongoOperations
-            .getCollection("test_prefix_dictionaries")
-            .find(new Document("_id", "dic-encrypted-write-shape"))
-            .first();
+                .getCollection("test_prefix_dictionaries")
+                .find(new Document("_id", "dic-encrypted-write-shape"))
+                .first();
 
         assertThat(raw).isNotNull();
         final Document properties = raw.get("properties", Document.class);
@@ -102,9 +105,9 @@ class MongoDictionaryPropertyWriteShapeTest extends AbstractManagementRepository
         dictionaryRepository.create(dictionary);
 
         final Document raw = mongoOperations
-            .getCollection("test_prefix_dictionaries")
-            .find(new Document("_id", "dic-null-property-create"))
-            .first();
+                .getCollection("test_prefix_dictionaries")
+                .find(new Document("_id", "dic-null-property-create"))
+                .first();
 
         assertThat(raw).isNotNull();
         final Document stored = raw.get("properties", Document.class);

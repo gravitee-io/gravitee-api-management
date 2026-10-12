@@ -44,9 +44,8 @@ public class ApiDeployer implements Deployer<ApiReactorDeployable> {
 
     @Override
     public Completable doAfterDeployment(final ApiReactorDeployable deployable) {
-        return Completable.fromRunnable(() -> planService.register(deployable)).andThen(
-            distributedSyncService.distributeIfNeeded(deployable)
-        );
+        return Completable.fromRunnable(() -> planService.register(deployable))
+                .andThen(distributedSyncService.distributeIfNeeded(deployable));
     }
 
     @Override
@@ -67,9 +66,10 @@ public class ApiDeployer implements Deployer<ApiReactorDeployable> {
                 log.debug("Api [{}] deployed ", deployable.apiId());
             } catch (Exception e) {
                 throw new SyncException(
-                    String.format("An error occurred when trying to deploy api %s [%s].", reactableApi.getName(), reactableApi.getId()),
-                    e
-                );
+                        String.format(
+                                "An error occurred when trying to deploy api %s [%s].",
+                                reactableApi.getName(), reactableApi.getId()),
+                        e);
             }
         });
     }
@@ -81,7 +81,8 @@ public class ApiDeployer implements Deployer<ApiReactorDeployable> {
                 apiManager.unregister(deployable.apiId());
                 log.debug("Api [{}] undeployed ", deployable.apiId());
             } catch (Exception e) {
-                throw new SyncException(String.format("An error occurred when trying to undeploy api [%s].", deployable.apiId()), e);
+                throw new SyncException(
+                        String.format("An error occurred when trying to undeploy api [%s].", deployable.apiId()), e);
             }
         });
     }

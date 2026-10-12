@@ -48,12 +48,12 @@ public class CreateGroupDomainServiceInMemory implements CreateGroupDomainServic
         }
         var now = TimeProvider.now();
         var group = Group.builder()
-            .id(UuidString.generateRandom())
-            .environmentId(auditInfo.environmentId())
-            .name(name)
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
+                .id(UuidString.generateRandom())
+                .environmentId(auditInfo.environmentId())
+                .name(name)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
         created.put(group.getId(), group);
         groupQueryService.initWith(List.of(group));
         return new CreateResult(group, true);

@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -172,9 +171,8 @@ public class ApiService_CreateTest {
     @Mock
     private ApiCategoryService apiCategoryService;
 
-    private ApiConverter apiConverter = Mockito.spy(
-        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
-    );
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter(
+            objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class)));
 
     @Spy
     private V4EmulationEngineService v4EmulationEngine = new V4EmulationEngineServiceImpl(YES.getLabel());
@@ -191,28 +189,27 @@ public class ApiService_CreateTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 
     @BeforeEach
     public void setUp() {
-        //        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
+        //        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(),
+        // any(Reader.class), any()))
         //            .thenReturn("toDecode=decoded-value");
-        //        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
+        //        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE,
+        // ParameterReferenceType.ENVIRONMENT))
         //            .thenReturn("USER");
-        when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(invocation ->
-            Validator.Result.ofValue(invocation.getArgument(0))
-        );
+        when(verifyApiPathDomainService.validateAndSanitize(any()))
+                .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
@@ -234,20 +231,23 @@ public class ApiService_CreateTest {
         when(newApi.getDescription()).thenReturn("Ma description");
         when(newApi.getContextPath()).thenReturn("/context");
 
-        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any()))
+                .thenReturn(Collections.emptySet());
 
         final ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
-        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
+        verify(alertService, times(1))
+                .createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
     public void shouldNotCreateForUserBecauseExists() throws TechnicalException {
         assertThrows(ApiAlreadyExistsException.class, () -> {
-            // FIXME Should be remove. This test doesn't make any sense because there is no id given when creating an api
+            // FIXME Should be remove. This test doesn't make any sense because there is no id given when creating an
+            // api
             // this is because we mock every id when calling findById that an error is thrown...
             when(apiRepository.findById(anyString())).thenReturn(Optional.of(api));
             when(newApi.getName()).thenReturn(API_NAME);
@@ -291,12 +291,14 @@ public class ApiService_CreateTest {
         assertEquals(API_NAME, apiEntity.getName());
 
         verify(apiRepository, times(1)).create(any());
-        verify(auditService, times(1)).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getEvent().equals(API_CREATED) && auditLogData.getOldValue() == null),
-            any()
-        );
-        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
+        verify(auditService, times(1))
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData ->
+                                auditLogData.getEvent().equals(API_CREATED) && auditLogData.getOldValue() == null),
+                        any());
+        verify(alertService, times(1))
+                .createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -313,10 +315,11 @@ public class ApiService_CreateTest {
 
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
-        verify(genericNotificationConfigService, times(1)).create(
-            argThat(notifConfig -> notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID))
-        );
-        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
+        verify(genericNotificationConfigService, times(1))
+                .create(argThat(notifConfig ->
+                        notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)));
+        verify(alertService, times(1))
+                .createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -333,15 +336,15 @@ public class ApiService_CreateTest {
 
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
-        verify(apiMetadataService, times(1)).create(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                newApiMetadataEntity ->
-                    newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                    newApiMetadataEntity.getName().equals(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
-            )
-        );
-        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
+        verify(apiMetadataService, times(1))
+                .create(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(newApiMetadataEntity -> newApiMetadataEntity
+                                        .getFormat()
+                                        .equals(MetadataFormat.MAIL)
+                                && newApiMetadataEntity.getName().equals(MetadataService.METADATA_EMAIL_SUPPORT_KEY)));
+        verify(alertService, times(1))
+                .createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -359,7 +362,8 @@ public class ApiService_CreateTest {
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
-        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
+        verify(alertService, times(1))
+                .createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -376,13 +380,14 @@ public class ApiService_CreateTest {
 
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-            new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
-            new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-        );
-        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+                .addRoleToMemberOnReference(
+                        GraviteeContext.getExecutionContext(),
+                        new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+                        new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
+        verify(alertService, times(1))
+                .createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -401,7 +406,8 @@ public class ApiService_CreateTest {
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
-        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
+        verify(alertService, times(1))
+                .createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test

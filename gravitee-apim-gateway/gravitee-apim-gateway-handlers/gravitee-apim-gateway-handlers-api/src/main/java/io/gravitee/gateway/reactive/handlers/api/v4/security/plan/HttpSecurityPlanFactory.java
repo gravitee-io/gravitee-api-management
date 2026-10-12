@@ -37,28 +37,31 @@ public class HttpSecurityPlanFactory {
 
     @Nullable
     public static HttpSecurityPlan forPlan(
-        @Nonnull final String apiId,
-        @Nonnull AbstractPlan plan,
-        @Nonnull PolicyManager policyManager,
-        @Nonnull ExecutionPhase executionPhase
-    ) {
+            @Nonnull final String apiId,
+            @Nonnull AbstractPlan plan,
+            @Nonnull PolicyManager policyManager,
+            @Nonnull ExecutionPhase executionPhase) {
         if (plan.usePushMode()) {
-            log.debug("The plan [{}] (api [{}]) is using the {} mode, it has no security policy.", plan.getName(), apiId, plan.getMode());
+            log.debug(
+                    "The plan [{}] (api [{}]) is using the {} mode, it has no security policy.",
+                    plan.getName(),
+                    apiId,
+                    plan.getMode());
             return null;
         }
 
         final HttpSecurityPolicy policy = SecurityPolicyFactory.forPlan(apiId, plan, policyManager, executionPhase);
 
         if (policy != null) {
-            return new HttpSecurityPlan(SecurityPlanContext.builder().fromV4(plan).build(), policy);
+            return new HttpSecurityPlan(
+                    SecurityPlanContext.builder().fromV4(plan).build(), policy);
         }
 
         log.warn(
-            "No policy has been found for the plan [{}] (api [{}]) with security [{}]. This plan will remain unreachable",
-            plan.getName(),
-            apiId,
-            plan.getSecurity()
-        );
+                "No policy has been found for the plan [{}] (api [{}]) with security [{}]. This plan will remain unreachable",
+                plan.getName(),
+                apiId,
+                plan.getSecurity());
         return null;
     }
 }

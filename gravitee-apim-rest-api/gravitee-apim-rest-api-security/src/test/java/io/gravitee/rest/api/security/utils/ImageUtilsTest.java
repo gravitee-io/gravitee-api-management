@@ -32,11 +32,10 @@ public class ImageUtilsTest {
 
     @Test
     public void shouldNotVerify_svgFormat() {
-        assertThrows(InvalidImageException.class, () ->
-            ImageUtils.verify(
-                "data:image/SVG+xml;base64,PHNWZw0KdmVyc2lvbj0iMS4xIiBiYXNlUHJvZmlsZT0iZnVsbCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCiAgIDxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMTAwIiBzdHlsZT0iZmlsbDpyZ2IoMCwwLDI1NSk7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlOnJnYigwLDAsMCkiIC8+DQogICA8c2NyaXB0PmFsZXJ0KDEpPC9zY3JpcHQ+DQo8L3NWZz4="
-            )
-        );
+        assertThrows(
+                InvalidImageException.class,
+                () -> ImageUtils.verify(
+                        "data:image/SVG+xml;base64,PHNWZw0KdmVyc2lvbj0iMS4xIiBiYXNlUHJvZmlsZT0iZnVsbCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCiAgIDxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMTAwIiBzdHlsZT0iZmlsbDpyZ2IoMCwwLDI1NSk7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlOnJnYigwLDAsMCkiIC8+DQogICA8c2NyaXB0PmFsZXJ0KDEpPC9zY3JpcHQ+DQo8L3NWZz4="));
     }
 
     @Test

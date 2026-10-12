@@ -55,9 +55,10 @@ public class ApiRatingResource extends AbstractResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.DELETE)})
     public Response deleteApiRating(@PathParam("apiId") String apiId, @PathParam("ratingId") String ratingId) {
-        // FIXME: are we sure we need to fetch the api while the permission system alreay allowed the user to delete the rating ?
+        // FIXME: are we sure we need to fetch the api while the permission system alreay allowed the user to delete the
+        // rating ?
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
@@ -75,12 +76,9 @@ public class ApiRatingResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.UPDATE)})
     public Response updateApiRating(
-        @PathParam("apiId") String apiId,
-        @PathParam("ratingId") String ratingId,
-        @Valid RatingInput ratingInput
-    ) {
+            @PathParam("apiId") String apiId, @PathParam("ratingId") String ratingId, @Valid RatingInput ratingInput) {
         if (ratingInput == null) {
             throw new BadRequestException("Input must not be null.");
         }
@@ -97,8 +95,8 @@ public class ApiRatingResource extends AbstractResource {
                 RatingEntity updatedRating = ratingService.update(GraviteeContext.getExecutionContext(), rating);
 
                 return Response.status(Status.OK)
-                    .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), updatedRating, uriInfo))
-                    .build();
+                        .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), updatedRating, uriInfo))
+                        .build();
             }
             throw new RatingNotFoundException(ratingId, apiId);
         }

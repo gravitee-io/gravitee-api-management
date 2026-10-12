@@ -84,18 +84,13 @@ public class KafkaPortRangeCrudServiceImpl implements KafkaPortRangeCrudService 
 
     @Override
     public List<KafkaPortRange> findConflicting(
-        String environmentId,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) {
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId) {
         try {
             return repository
-                .findConflicting(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
-                .stream()
-                .map(KafkaPortRangeAdapter.INSTANCE::fromRepository)
-                .toList();
+                    .findConflicting(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
+                    .stream()
+                    .map(KafkaPortRangeAdapter.INSTANCE::fromRepository)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to query conflicting kafka port ranges", e);
         }
@@ -103,18 +98,13 @@ public class KafkaPortRangeCrudServiceImpl implements KafkaPortRangeCrudService 
 
     @Override
     public List<KafkaPortRange> findConflictingForUpdate(
-        String environmentId,
-        int bootstrapPort,
-        int rangeStart,
-        int rangeEnd,
-        String excludePlanId
-    ) {
+            String environmentId, int bootstrapPort, int rangeStart, int rangeEnd, String excludePlanId) {
         try {
             return repository
-                .findConflictingForUpdate(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
-                .stream()
-                .map(KafkaPortRangeAdapter.INSTANCE::fromRepository)
-                .toList();
+                    .findConflictingForUpdate(environmentId, bootstrapPort, rangeStart, rangeEnd, excludePlanId)
+                    .stream()
+                    .map(KafkaPortRangeAdapter.INSTANCE::fromRepository)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to query conflicting kafka port ranges for update", e);
         }

@@ -34,7 +34,8 @@ class JsonPatchDomainServiceTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JsonNode stubResult = objectMapper.createObjectNode().put("patched", true);
 
-    private final JsonPatchDomainService cut = new JsonPatchDomainService((patch, target) -> stubResult, (patch, target) -> stubResult);
+    private final JsonPatchDomainService cut =
+            new JsonPatchDomainService((patch, target) -> stubResult, (patch, target) -> stubResult);
 
     @Test
     void applyMergePatch_delegates_to_merge_patch_service() {
@@ -50,8 +51,8 @@ class JsonPatchDomainServiceTest {
         var patch = objectMapper.createArrayNode();
 
         assertThatThrownBy(() -> cut.applyMergePatch(patch, target))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessage("Invalid patch: a merge patch must be a JSON object");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Invalid patch: a merge patch must be a JSON object");
     }
 
     @Test
@@ -68,7 +69,7 @@ class JsonPatchDomainServiceTest {
         var patch = objectMapper.createObjectNode();
 
         assertThatThrownBy(() -> cut.applyJsonPatch(patch, target))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessage("Invalid patch: a JSON patch must be an array");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Invalid patch: a JSON patch must be an array");
     }
 }

@@ -52,40 +52,62 @@ class EdgeApiDeployerTest {
 
     @Test
     void should_initialize_without_error_when_no_properties() {
-        final io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi edgeApi = new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(
-            EdgeApi.builder().build()
-        );
+        final io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi edgeApi =
+                new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(
+                        EdgeApi.builder().build());
         cut.initialize(edgeApi);
     }
 
     @SneakyThrows
     @Test
     void should_decrypt_properties_on_initialize() {
-        final io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi edgeApi = new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(
-            EdgeApi.builder()
-                .properties(
-                    List.of(
-                        Property.builder().key("key1").value("value1").encrypted(true).build(),
-                        Property.builder().key("key2").value("value2").encrypted(true).build(),
-                        Property.builder().key("key3").value("value3").encrypted(false).build()
-                    )
-                )
-                .build()
-        );
-        when(dataEncryptor.decrypt(any())).thenAnswer(invocation -> invocation.getArguments()[0].toString().toUpperCase());
+        final io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi edgeApi =
+                new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(EdgeApi.builder()
+                        .properties(List.of(
+                                Property.builder()
+                                        .key("key1")
+                                        .value("value1")
+                                        .encrypted(true)
+                                        .build(),
+                                Property.builder()
+                                        .key("key2")
+                                        .value("value2")
+                                        .encrypted(true)
+                                        .build(),
+                                Property.builder()
+                                        .key("key3")
+                                        .value("value3")
+                                        .encrypted(false)
+                                        .build()))
+                        .build());
+        when(dataEncryptor.decrypt(any()))
+                .thenAnswer(
+                        invocation -> invocation.getArguments()[0].toString().toUpperCase());
         cut.initialize(edgeApi);
-        assertThat(edgeApi.getDefinition().getProperties()).contains(
-            Property.builder().key("key1").value("VALUE1").encrypted(false).build(),
-            Property.builder().key("key2").value("VALUE2").encrypted(false).build(),
-            Property.builder().key("key3").value("value3").encrypted(false).build()
-        );
+        assertThat(edgeApi.getDefinition().getProperties())
+                .contains(
+                        Property.builder()
+                                .key("key1")
+                                .value("VALUE1")
+                                .encrypted(false)
+                                .build(),
+                        Property.builder()
+                                .key("key2")
+                                .value("VALUE2")
+                                .encrypted(false)
+                                .build(),
+                        Property.builder()
+                                .key("key3")
+                                .value("value3")
+                                .encrypted(false)
+                                .build());
     }
 
     @Test
     void should_return_empty_plans() {
-        final io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi edgeApi = new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(
-            EdgeApi.builder().build()
-        );
+        final io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi edgeApi =
+                new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(
+                        EdgeApi.builder().build());
         assertThat(cut.getPlans(edgeApi)).isEmpty();
     }
 }

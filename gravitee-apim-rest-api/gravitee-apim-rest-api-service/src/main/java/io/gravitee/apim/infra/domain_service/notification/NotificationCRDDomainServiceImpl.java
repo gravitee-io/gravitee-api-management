@@ -35,7 +35,8 @@ public class NotificationCRDDomainServiceImpl implements NotificationCRDDomainSe
     private final PortalNotificationConfigService portalNotificationConfigService;
 
     @Override
-    public void syncApiPortalNotifications(String apiId, String user, PortalNotificationConfigEntity notificationConfig) {
+    public void syncApiPortalNotifications(
+            String apiId, String user, PortalNotificationConfigEntity notificationConfig) {
         syncPortalNotifications(apiId, NotificationReferenceType.API, user, notificationConfig);
     }
 
@@ -45,11 +46,10 @@ public class NotificationCRDDomainServiceImpl implements NotificationCRDDomainSe
     }
 
     public void syncPortalNotifications(
-        String referenceId,
-        NotificationReferenceType referenceType,
-        String user,
-        PortalNotificationConfigEntity notificationConfig
-    ) {
+            String referenceId,
+            NotificationReferenceType referenceType,
+            String user,
+            PortalNotificationConfigEntity notificationConfig) {
         Objects.requireNonNull(referenceId);
         Objects.requireNonNull(user);
 
@@ -63,19 +63,17 @@ public class NotificationCRDDomainServiceImpl implements NotificationCRDDomainSe
         }
 
         // no notification
-        PortalNotificationConfigEntity existing = portalNotificationConfigService.findById(user, referenceType, referenceId);
+        PortalNotificationConfigEntity existing =
+                portalNotificationConfigService.findById(user, referenceType, referenceId);
 
         // there was a notification, need to delete the old one
         if (!existing.isDefaultEmpty()) {
             // this will discard all notifications for that API
-            portalNotificationConfigService.save(
-                PortalNotificationConfigEntity.newDefaultEmpty(
+            portalNotificationConfigService.save(PortalNotificationConfigEntity.newDefaultEmpty(
                     user,
                     referenceType.name(),
                     referenceId,
-                    GraviteeContext.getExecutionContext().getOrganizationId()
-                )
-            );
+                    GraviteeContext.getExecutionContext().getOrganizationId()));
         }
     }
 }

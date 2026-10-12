@@ -33,11 +33,10 @@ public class LimitedLoggableProxyConnection extends LoggableProxyConnection {
     private final int maxSizeLogMessage;
 
     public LimitedLoggableProxyConnection(
-        ProxyConnection proxyConnection,
-        ProxyRequest proxyRequest,
-        final ExecutionContext context,
-        int maxSizeLogMessage
-    ) {
+            ProxyConnection proxyConnection,
+            ProxyRequest proxyRequest,
+            final ExecutionContext context,
+            int maxSizeLogMessage) {
         super(proxyConnection, proxyRequest, context);
         this.maxSizeLogMessage = maxSizeLogMessage;
     }
@@ -49,10 +48,7 @@ public class LimitedLoggableProxyConnection extends LoggableProxyConnection {
 
     @Override
     protected ProxyConnection responseHandler(
-        ProxyConnection proxyConnection,
-        Handler<ProxyResponse> responseHandler,
-        final ExecutionContext context
-    ) {
+            ProxyConnection proxyConnection, Handler<ProxyResponse> responseHandler, final ExecutionContext context) {
         return proxyConnection.responseHandler(new LimitedLoggableProxyResponseHandler(responseHandler, context));
     }
 

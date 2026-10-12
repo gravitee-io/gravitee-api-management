@@ -94,51 +94,46 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
         String key = escapeReservedWord("key");
         String columns = key + ", tokens, last_refill, subscription";
         this.selectForUpdateSql = "select " + columns + " from " + table + " where " + key + " = ? for update";
-        this.selectSqlServerSql = "select " + columns + " from " + table + " with (updlock, holdlock) where " + key + " = ?";
-        this.insertSql = "insert into " + table + " (" + key + ", tokens, last_refill, subscription) values (?, ?, ?, ?)";
+        this.selectSqlServerSql =
+                "select " + columns + " from " + table + " with (updlock, holdlock) where " + key + " = ?";
+        this.insertSql =
+                "insert into " + table + " (" + key + ", tokens, last_refill, subscription) values (?, ?, ?, ?)";
         this.updateSql = "update " + table + " set tokens = ?, last_refill = ?, subscription = ? where " + key + " = ?";
     }
 
     @Override
     public Single<TokenBucketConsumeResult> refillAndTryConsume(
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        Supplier<TokenBucket> supplier
-    ) {
+            String key,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            Supplier<TokenBucket> supplier) {
         return Single.fromCallable(() ->
-            consumeWithRetry(key, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis, supplier)
-        );
+                consumeWithRetry(key, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis, supplier));
     }
 
     private TokenBucketConsumeResult consumeWithRetry(
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis,
-        Supplier<TokenBucket> supplier
-    ) throws SQLException {
+            String key,
+            long tokensRequested,
+            long refillRate,
+            long refillPeriodMillis,
+            long capacity,
+            long nowMillis,
+            Supplier<TokenBucket> supplier)
+            throws SQLException {
         // Validate before any write so a contract violation cannot seed a row before failing.
         TokenBucketCalculator.requireValidArgs(tokensRequested, refillPeriodMillis, capacity);
         for (int attempt = 0; ; attempt++) {
             try {
-                TokenBucketConsumeResult result = consumeInTransaction(
-                    key,
-                    tokensRequested,
-                    refillRate,
-                    refillPeriodMillis,
-                    capacity,
-                    nowMillis
-                );
+                TokenBucketConsumeResult result =
+                        consumeInTransaction(key, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis);
                 if (result == null) {
                     // First request for this key: seed the row (see the class javadoc), then lock and consume it.
                     seed(key, TokenBucketCalculator.newFullBucket(supplier.get(), capacity, nowMillis));
-                    result = consumeInTransaction(key, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis);
+                    result = consumeInTransaction(
+                            key, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis);
                 }
                 if (result != null) {
                     return result;
@@ -153,7 +148,8 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
                 }
             }
             if (attempt >= MAX_RETRIES) {
-                throw new SQLException("Token bucket '" + key + "' could not be consumed after " + (attempt + 1) + " attempts");
+                throw new SQLException(
+                        "Token bucket '" + key + "' could not be consumed after " + (attempt + 1) + " attempts");
             }
         }
     }
@@ -164,13 +160,8 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
      * so the caller can seed it lock-free.
      */
     private TokenBucketConsumeResult consumeInTransaction(
-        String key,
-        long tokensRequested,
-        long refillRate,
-        long refillPeriodMillis,
-        long capacity,
-        long nowMillis
-    ) throws SQLException {
+            String key, long tokensRequested, long refillRate, long refillPeriodMillis, long capacity, long nowMillis)
+            throws SQLException {
         final DataSource dataSource = jdbcTemplate.getDataSource();
         try (Connection connection = dataSource.getConnection()) {
             final boolean previousAutoCommit = connection.getAutoCommit();
@@ -185,13 +176,7 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
                 }
 
                 TokenBucketConsumeResult result = TokenBucketCalculator.refillAndTryConsume(
-                    bucket,
-                    tokensRequested,
-                    refillRate,
-                    refillPeriodMillis,
-                    capacity,
-                    nowMillis
-                );
+                        bucket, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis);
 
                 update(connection, key, bucket);
                 connection.commit();
@@ -229,7 +214,8 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
     }
 
     private TokenBucket selectForUpdate(Connection connection, String key) throws SQLException {
-        try (PreparedStatement ps = connection.prepareStatement(isSqlServer() ? selectSqlServerSql : selectForUpdateSql)) {
+        try (PreparedStatement ps =
+                connection.prepareStatement(isSqlServer() ? selectSqlServerSql : selectForUpdateSql)) {
             ps.setQueryTimeout(STATEMENT_TIMEOUT_SECONDS);
             ps.setString(1, key);
             try (ResultSet rs = ps.executeQuery()) {

@@ -25,11 +25,10 @@ import java.util.List;
 public record DashboardFilterDto(String name, String label, String operator, List<String> value, boolean editable) {
     public static DashboardFilterDto from(DashboardFilter filter) {
         return new DashboardFilterDto(
-            filter.condition().name(),
-            filter.label(),
-            filter.condition().operator().name(),
-            filter.condition().values(),
-            filter.editable()
-        );
+                filter.condition().name(),
+                filter.label(),
+                filter.condition().operator().name(),
+                filter.condition().values(),
+                filter.editable());
     }
 }

@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
@@ -51,6 +50,7 @@ class ApiFlowResolver extends AbstractFlowResolver {
             return Flowable.empty();
         }
 
-        return Flowable.fromIterable(api.getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList()));
+        return Flowable.fromIterable(
+                api.getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList()));
     }
 }

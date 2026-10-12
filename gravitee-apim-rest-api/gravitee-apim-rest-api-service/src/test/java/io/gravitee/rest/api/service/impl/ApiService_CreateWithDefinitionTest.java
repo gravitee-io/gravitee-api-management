@@ -182,17 +182,15 @@ public class ApiService_CreateWithDefinitionTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 
     @BeforeEach
@@ -202,14 +200,14 @@ public class ApiService_CreateWithDefinitionTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(new UserDetails(USERNAME, "", emptyList()));
         SecurityContextHolder.setContext(securityContext);
-        when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(invocation ->
-            Validator.Result.ofValue(invocation.getArgument(0))
-        );
+        when(verifyApiPathDomainService.validateAndSanitize(any()))
+                .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
     }
 
     @Test
     public void shouldStartApiIfManagedByKubernetes() throws Exception {
-        JsonNode definition = readDefinition("/io/gravitee/rest/api/management/service/import-new-kubernetes-api.definition.json");
+        JsonNode definition =
+                readDefinition("/io/gravitee/rest/api/management/service/import-new-kubernetes-api.definition.json");
         UpdateApiEntity api = new UpdateApiEntity();
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
@@ -223,26 +221,30 @@ public class ApiService_CreateWithDefinitionTest {
         api.setName("k8s basic");
         api.setDescription("k8s basic example");
 
-        when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
+        when(primaryOwnerService.getPrimaryOwner(any(), any(), any()))
+                .thenReturn(new PrimaryOwnerEntity(new UserEntity()));
 
         Api updateApiDefinition = new Api();
         when(objectMapper.readValue(any(String.class), eq(Api.class))).thenReturn(updateApiDefinition);
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true), eq(true))).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true), eq(true)))
+                .thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
         apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition);
 
-        verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STARTED)));
+        verify(apiRepository, times(1))
+                .create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STARTED)));
         verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
     @Test
     public void shouldNotStartApiIfNotManagedByKubernetesAndStateIsStopped() throws Exception {
-        JsonNode definition = readDefinition("/io/gravitee/rest/api/management/service/import-new-kubernetes-api.definition.json");
+        JsonNode definition =
+                readDefinition("/io/gravitee/rest/api/management/service/import-new-kubernetes-api.definition.json");
         UpdateApiEntity api = new UpdateApiEntity();
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
@@ -257,20 +259,23 @@ public class ApiService_CreateWithDefinitionTest {
         api.setDescription("k8s basic example");
         api.setState(Lifecycle.State.STOPPED);
 
-        when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
+        when(primaryOwnerService.getPrimaryOwner(any(), any(), any()))
+                .thenReturn(new PrimaryOwnerEntity(new UserEntity()));
 
         Api updateApiDefinition = new Api();
         when(objectMapper.readValue(any(String.class), eq(Api.class))).thenReturn(updateApiDefinition);
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true), eq(true))).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true), eq(true)))
+                .thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
         apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition);
 
-        verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STOPPED)));
+        verify(apiRepository, times(1))
+                .create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STOPPED)));
         verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
@@ -290,26 +295,30 @@ public class ApiService_CreateWithDefinitionTest {
         api.setName("k8s basic");
         api.setDescription("k8s basic example");
 
-        when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
+        when(primaryOwnerService.getPrimaryOwner(any(), any(), any()))
+                .thenReturn(new PrimaryOwnerEntity(new UserEntity()));
 
         Api updateApiDefinition = new Api();
         when(objectMapper.readValue(any(String.class), eq(Api.class))).thenReturn(updateApiDefinition);
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), anyBoolean(), eq(true))).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), anyBoolean(), eq(true)))
+                .thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
         apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition);
 
-        verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STOPPED)));
+        verify(apiRepository, times(1))
+                .create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STOPPED)));
         verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
     @Test
     public void should_not_create_if_tag_does_not_exist() throws Exception {
-        JsonNode definition = readDefinition("/io/gravitee/rest/api/management/service/import-api.definition+plans.json");
+        JsonNode definition =
+                readDefinition("/io/gravitee/rest/api/management/service/import-api.definition+plans.json");
         UpdateApiEntity api = new UpdateApiEntity();
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
@@ -325,19 +334,22 @@ public class ApiService_CreateWithDefinitionTest {
         api.setTags(Set.of("unit-tests"));
 
         doThrow(TagNotFoundException.class)
-            .when(tagService)
-            .checkTagsExist(Set.of("unit-tests"), GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION);
+                .when(tagService)
+                .checkTagsExist(
+                        Set.of("unit-tests"), GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION);
 
-        assertThrows(TagNotFoundException.class, () ->
-            apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition)
-        );
+        assertThrows(
+                TagNotFoundException.class,
+                () -> apiService.createWithApiDefinition(
+                        GraviteeContext.getExecutionContext(), api, USERNAME, definition));
         verify(apiRepository, never()).create(any());
         verify(alertService, never()).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
     @Test
     public void should_create_if_tag_exists() throws Exception {
-        JsonNode definition = readDefinition("/io/gravitee/rest/api/management/service/import-api.definition+plans.json");
+        JsonNode definition =
+                readDefinition("/io/gravitee/rest/api/management/service/import-api.definition+plans.json");
         UpdateApiEntity api = new UpdateApiEntity();
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
@@ -352,36 +364,37 @@ public class ApiService_CreateWithDefinitionTest {
         api.setDescription("tag test basic example");
         api.setTags(Set.of("unit-tests"));
 
-        when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
+        when(primaryOwnerService.getPrimaryOwner(any(), any(), any()))
+                .thenReturn(new PrimaryOwnerEntity(new UserEntity()));
 
         Api updateApiDefinition = new Api();
         when(objectMapper.readValue(any(String.class), eq(Api.class))).thenReturn(updateApiDefinition);
 
         when(apiRepository.create(any())).thenReturn(new io.gravitee.repository.management.model.Api());
 
-        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true), eq(true))).thenReturn(new ApiEntity());
+        when(apiConverter.toApiEntity(any(), any(), any(), anyBoolean(), eq(true), eq(true)))
+                .thenReturn(new ApiEntity());
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
-        when(tagService.findByUser(USERNAME, GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION)).thenReturn(
-            Set.of("a-tag", "unit-tests")
-        );
+        when(tagService.findByUser(USERNAME, GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION))
+                .thenReturn(Set.of("a-tag", "unit-tests"));
 
         apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition);
 
-        verify(tagService, times(1)).checkTagsExist(
-            Set.of("unit-tests"),
-            GraviteeContext.getCurrentEnvironment(),
-            TagReferenceType.ORGANIZATION
-        );
+        verify(tagService, times(1))
+                .checkTagsExist(
+                        Set.of("unit-tests"), GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION);
 
-        verify(apiRepository, times(1)).create(argThat(arg -> arg.getId().equals(definition.get("id").asText())));
+        verify(apiRepository, times(1))
+                .create(argThat(arg -> arg.getId().equals(definition.get("id").asText())));
         verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
     @Test
     public void should_not_create_if_user_does_not_have_associated_tags() throws Exception {
-        JsonNode definition = readDefinition("/io/gravitee/rest/api/management/service/import-api.definition+plans.json");
+        JsonNode definition =
+                readDefinition("/io/gravitee/rest/api/management/service/import-api.definition+plans.json");
         UpdateApiEntity api = new UpdateApiEntity();
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
@@ -396,13 +409,13 @@ public class ApiService_CreateWithDefinitionTest {
         api.setDescription("tag test basic example");
         api.setTags(Set.of("unit-tests"));
 
-        when(tagService.findByUser(USERNAME, GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION)).thenReturn(
-            Set.of("a-tag")
-        );
+        when(tagService.findByUser(USERNAME, GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION))
+                .thenReturn(Set.of("a-tag"));
 
-        assertThrows(TagNotAllowedException.class, () ->
-            apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, definition)
-        );
+        assertThrows(
+                TagNotAllowedException.class,
+                () -> apiService.createWithApiDefinition(
+                        GraviteeContext.getExecutionContext(), api, USERNAME, definition));
         verify(apiRepository, never()).create(any());
         verify(alertService, never()).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
@@ -416,8 +429,14 @@ public class ApiService_CreateWithDefinitionTest {
     public void shouldNotCreateApiBecauseOfEndpointGroupAndInnerEndpointHaveSameName() throws TechnicalException {
         assertThrows(EndpointNameAlreadyExistsException.class, () -> {
             Endpoint endpoint = Endpoint.builder().name("endpointGroupName").build();
-            EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
-            Proxy proxy = Proxy.builder().groups(singleton(endpointGroup)).virtualHosts(singletonList(new VirtualHost("/context"))).build();
+            EndpointGroup endpointGroup = EndpointGroup.builder()
+                    .name("endpointGroupName")
+                    .endpoints(singleton(endpoint))
+                    .build();
+            Proxy proxy = Proxy.builder()
+                    .groups(singleton(endpointGroup))
+                    .virtualHosts(singletonList(new VirtualHost("/context")))
+                    .build();
 
             UpdateApiEntity api = new UpdateApiEntity();
             api.setProxy(proxy);
@@ -430,16 +449,23 @@ public class ApiService_CreateWithDefinitionTest {
     }
 
     @Test
-    public void shouldNotCreateApiBecauseOfEndpointGroupAndEndpointOfAnotherGroupHaveSameName() throws TechnicalException {
+    public void shouldNotCreateApiBecauseOfEndpointGroupAndEndpointOfAnotherGroupHaveSameName()
+            throws TechnicalException {
         assertThrows(EndpointGroupNameAlreadyExistsException.class, () -> {
             Endpoint endpoint = Endpoint.builder().name("endpointName").build();
-            EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
+            EndpointGroup endpointGroup = EndpointGroup.builder()
+                    .name("endpointGroupName")
+                    .endpoints(singleton(endpoint))
+                    .build();
             Endpoint endpoint2 = Endpoint.builder().name("endpointGroupName").build();
-            EndpointGroup endpointGroup2 = EndpointGroup.builder().name("endpointName").endpoints(singleton(endpoint2)).build();
+            EndpointGroup endpointGroup2 = EndpointGroup.builder()
+                    .name("endpointName")
+                    .endpoints(singleton(endpoint2))
+                    .build();
             Proxy proxy = Proxy.builder()
-                .groups(Set.of(endpointGroup, endpointGroup2))
-                .virtualHosts(singletonList(new VirtualHost("/context")))
-                .build();
+                    .groups(Set.of(endpointGroup, endpointGroup2))
+                    .virtualHosts(singletonList(new VirtualHost("/context")))
+                    .build();
 
             UpdateApiEntity api = new UpdateApiEntity();
             api.setProxy(proxy);

@@ -56,6 +56,7 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
 
     /** Index simple date format **/
     private final DateTimeFormatter dtf;
+
     private final DateTimeFormatter sdf;
 
     private final Map<Class<?>, ReportableFormatter<?>> formatters = new HashMap<>();
@@ -80,9 +81,9 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         this.sdf = dtfWithDefaultZone("yyyy.MM.dd");
 
         this.freeMarkerComponent = FreeMarkerComponent.builder()
-            .classLoader(getClass().getClassLoader())
-            .classLoaderTemplateBase(TEMPLATES_BASE_PATH)
-            .build();
+                .classLoader(getClass().getClassLoader())
+                .classLoaderTemplateBase(TEMPLATES_BASE_PATH)
+                .build();
 
         this.templatePath = String.format(TEMPLATES_PATH_PATTERN, elasticSearchVersion);
 
@@ -181,10 +182,8 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
             if (monitor.getOs().cpu != null) {
                 data.put(Fields.PERCENT, monitor.getOs().cpu.getPercent());
 
-                if (
-                    monitor.getOs().cpu.getLoadAverage() != null &&
-                    Arrays.stream(monitor.getOs().cpu.getLoadAverage()).anyMatch(load -> load != -1)
-                ) {
+                if (monitor.getOs().cpu.getLoadAverage() != null
+                        && Arrays.stream(monitor.getOs().cpu.getLoadAverage()).anyMatch(load -> load != -1)) {
                     if (monitor.getOs().cpu.getLoadAverage()[0] != -1) {
                         data.put(Fields.LOAD_AVERAGE_1M, monitor.getOs().cpu.getLoadAverage()[0]);
                     }
@@ -332,7 +331,8 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         return getSourceUnder(metrics, esOptions, template, "metrics");
     }
 
-    private Buffer getSourceUnder(Reportable reportable, Map<String, Object> esOptions, String template, String modelKey) {
+    private Buffer getSourceUnder(
+            Reportable reportable, Map<String, Object> esOptions, String template, String modelKey) {
         final Map<String, Object> data = new HashMap<>(5);
         addCommonFields(data, reportable, esOptions);
         data.put(modelKey, reportable);
@@ -429,11 +429,13 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         formatters.put(EndpointStatus.class, (r, o) -> getSource((EndpointStatus) r, o));
         formatters.put(Monitor.class, (r, o) -> getSource((Monitor) r, o));
         formatters.put(Log.class, (r, o) -> getSource((Log) r, o));
-        formatters.put(io.gravitee.reporter.api.v4.metric.Metrics.class, (r, o) ->
-            getSource((io.gravitee.reporter.api.v4.metric.Metrics) r, o)
-        );
+        formatters.put(
+                io.gravitee.reporter.api.v4.metric.Metrics.class,
+                (r, o) -> getSource((io.gravitee.reporter.api.v4.metric.Metrics) r, o));
         formatters.put(MessageMetrics.class, (r, o) -> getSource((MessageMetrics) r, o));
-        formatters.put(io.gravitee.reporter.api.v4.log.Log.class, (r, o) -> getSource((io.gravitee.reporter.api.v4.log.Log) r, o));
+        formatters.put(
+                io.gravitee.reporter.api.v4.log.Log.class,
+                (r, o) -> getSource((io.gravitee.reporter.api.v4.log.Log) r, o));
         formatters.put(MessageLog.class, (r, o) -> getSource((MessageLog) r, o));
         formatters.put(OperationEventMetrics.class, (r, o) -> getSource((OperationEventMetrics) r, o));
         formatters.put(TopicEventMetrics.class, (r, o) -> getSource((TopicEventMetrics) r, o));

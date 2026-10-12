@@ -24,13 +24,12 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record FacetsRequest(
-    TimeRange timeRange,
-    List<Filter> filters,
-    List<FacetMetricMeasuresRequest> metrics,
-    List<FacetSpec.Name> facets,
-    Integer limit,
-    List<NumberRange> ranges
-) {
+        TimeRange timeRange,
+        List<Filter> filters,
+        List<FacetMetricMeasuresRequest> metrics,
+        List<FacetSpec.Name> facets,
+        Integer limit,
+        List<NumberRange> ranges) {
     public FacetsRequest emptyMetrics() {
         return new FacetsRequest(timeRange, filters, new ArrayList<>(), facets, limit, ranges);
     }

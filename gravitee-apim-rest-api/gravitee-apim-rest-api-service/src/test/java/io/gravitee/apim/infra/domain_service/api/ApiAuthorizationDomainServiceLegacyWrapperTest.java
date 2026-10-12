@@ -50,35 +50,33 @@ class ApiAuthorizationDomainServiceLegacyWrapperTest {
     @Test
     void should_call_legacy_service() {
         service.findIdsByUser(
-            new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-            "user-id",
-            ApiQueryCriteria.builder().ids(List.of(API_ID)).build(),
-            null,
-            false
-        );
-
-        verify(apiAuthorizationService).findIdsByUser(
-            new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-            "user-id",
-            ApiQuery.builder().ids(List.of(API_ID)).build(),
-            null,
-            false
-        );
-    }
-
-    @Test
-    void should_throw_when_validation_fails() {
-        doThrow(new RuntimeException("error")).when(apiAuthorizationService).findIdsByUser(any(), any(), any(), any(), anyBoolean());
-
-        var throwable = Assertions.catchThrowable(() ->
-            service.findIdsByUser(
                 new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
                 "user-id",
                 ApiQueryCriteria.builder().ids(List.of(API_ID)).build(),
                 null,
-                false
-            )
-        );
+                false);
+
+        verify(apiAuthorizationService)
+                .findIdsByUser(
+                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+                        "user-id",
+                        ApiQuery.builder().ids(List.of(API_ID)).build(),
+                        null,
+                        false);
+    }
+
+    @Test
+    void should_throw_when_validation_fails() {
+        doThrow(new RuntimeException("error"))
+                .when(apiAuthorizationService)
+                .findIdsByUser(any(), any(), any(), any(), anyBoolean());
+
+        var throwable = Assertions.catchThrowable(() -> service.findIdsByUser(
+                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+                "user-id",
+                ApiQueryCriteria.builder().ids(List.of(API_ID)).build(),
+                null,
+                false));
 
         Assertions.assertThat(throwable).isInstanceOf(RuntimeException.class);
     }

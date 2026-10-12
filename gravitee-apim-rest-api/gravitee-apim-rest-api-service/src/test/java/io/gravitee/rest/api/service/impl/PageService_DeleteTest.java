@@ -111,17 +111,15 @@ public class PageService_DeleteTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 
     @BeforeEach
@@ -175,7 +173,8 @@ public class PageService_DeleteTest {
         page.setReferenceId(API_ID);
         page.setVisibility("PUBLIC");
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Collections.emptySet());
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false))
+                .thenReturn(Collections.emptySet());
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
 
@@ -191,7 +190,8 @@ public class PageService_DeleteTest {
         planEntity.setGeneralConditions(PAGE_ID);
         planEntity.setStatus(PlanStatus.CLOSED);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false))
+                .thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
 
@@ -207,7 +207,8 @@ public class PageService_DeleteTest {
             planEntity.setGeneralConditions(PAGE_ID);
             planEntity.setStatus(PlanStatus.PUBLISHED);
 
-            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
+            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false))
+                    .thenReturn(Set.of(planEntity));
 
             pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
         });
@@ -226,7 +227,8 @@ public class PageService_DeleteTest {
             planEntity.setStatus(PlanStatus.PUBLISHED);
 
             when(pageRepository.findById(TRANSLATE_PAGE_ID)).thenReturn(Optional.of(translationPage));
-            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
+            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false))
+                    .thenReturn(Set.of(planEntity));
 
             pageService.delete(GraviteeContext.getExecutionContext(), TRANSLATE_PAGE_ID);
         });
@@ -241,7 +243,8 @@ public class PageService_DeleteTest {
             planEntity.setGeneralConditions(PAGE_ID);
             planEntity.setStatus(PlanStatus.DEPRECATED);
 
-            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
+            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false))
+                    .thenReturn(Set.of(planEntity));
 
             pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
         });
@@ -256,7 +259,8 @@ public class PageService_DeleteTest {
             planEntity.setGeneralConditions(PAGE_ID);
             planEntity.setStatus(PlanStatus.STAGING);
 
-            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
+            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false))
+                    .thenReturn(Set.of(planEntity));
 
             pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
         });
@@ -307,7 +311,8 @@ public class PageService_DeleteTest {
         link.setId(linkId);
         link.setParentId(childId);
         link.setContent(PAGE_ID);
-        when(pageRepository.search(new PageCriteria.Builder().type("LINK").build())).thenReturn(List.of(link));
+        when(pageRepository.search(new PageCriteria.Builder().type("LINK").build()))
+                .thenReturn(List.of(link));
 
         Page page = new Page();
         page.setId(PAGE_ID);
@@ -329,21 +334,24 @@ public class PageService_DeleteTest {
         translation.setReferenceType(PageReferenceType.ENVIRONMENT);
         translation.setReferenceId(refId);
         translation.setVisibility("PUBLIC");
-        when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build())).thenReturn(
-            Arrays.asList(translation)
-        );
+        when(pageRepository.search(new PageCriteria.Builder()
+                        .parent(PAGE_ID)
+                        .type(PageType.TRANSLATION.name())
+                        .build()))
+                .thenReturn(Arrays.asList(translation));
 
-        when(
-            pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build())
-        ).thenReturn(Arrays.asList(folder, child, childPage, page));
+        when(pageRepository.search(new PageCriteria.Builder()
+                        .referenceType(PageReferenceType.API.name())
+                        .referenceId("apiId")
+                        .build()))
+                .thenReturn(Arrays.asList(folder, child, childPage, page));
 
         pageService.deleteAllByApi(GraviteeContext.getExecutionContext(), "apiId");
 
         verify(pageRepository, times(6)).delete(idCaptor.capture());
         assertEquals(
-            Arrays.asList(childPageId, PAGE_ID, linkId, translationId, childId, folderId),
-            idCaptor.getAllValues(),
-            "Pages are not deleted in order !"
-        );
+                Arrays.asList(childPageId, PAGE_ID, linkId, translationId, childId, folderId),
+                idCaptor.getAllValues(),
+                "Pages are not deleted in order !");
     }
 }

@@ -21,7 +21,6 @@ import io.gravitee.apim.core.documentation.model.Page;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 public interface PageSourceDomainService {
     void setContentFromSource(Page page);
 

@@ -40,11 +40,10 @@ public class ApiIndexerDomainService {
     private final Indexer indexer;
 
     public ApiIndexerDomainService(
-        ApiMetadataDecoderDomainService apiMetadataDecoderDomainService,
-        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
-        ApiCategoryQueryService apiCategoryQueryService,
-        Indexer indexer
-    ) {
+            ApiMetadataDecoderDomainService apiMetadataDecoderDomainService,
+            ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
+            ApiCategoryQueryService apiCategoryQueryService,
+            Indexer indexer) {
         this.apiMetadataDecoderDomainService = apiMetadataDecoderDomainService;
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
         this.apiCategoryQueryService = apiCategoryQueryService;
@@ -72,7 +71,8 @@ public class ApiIndexerDomainService {
      */
     public IndexableApi toIndexableApi(Indexer.IndexationContext context, Api apiToIndex) {
         try {
-            var primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(context.organizationId(), apiToIndex.getId());
+            var primaryOwner =
+                    apiPrimaryOwnerDomainService.getApiPrimaryOwner(context.organizationId(), apiToIndex.getId());
             return toIndexableApi(apiToIndex, primaryOwner);
         } catch (ApiPrimaryOwnerNotFoundException e) {
             log.warn("Failed to retrieve API primary owner, API will we indexed without his primary owner", e);
@@ -88,25 +88,22 @@ public class ApiIndexerDomainService {
      */
     public IndexableApi toIndexableApi(Api apiToIndex, PrimaryOwnerEntity primaryOwner) {
         var metadata = apiMetadataDecoderDomainService.decodeMetadata(
-            apiToIndex.getEnvironmentId(),
-            apiToIndex.getId(),
-            ApiMetadataDecodeContext.builder()
-                .name(apiToIndex.getName())
-                .description(apiToIndex.getDescription())
-                .createdAt(Date.from(apiToIndex.getCreatedAt().toInstant()))
-                .updatedAt(Date.from(apiToIndex.getUpdatedAt().toInstant()))
-                .primaryOwner(
-                    primaryOwner != null
-                        ? new PrimaryOwnerApiTemplateData(
-                            primaryOwner.id(),
-                            primaryOwner.displayName(),
-                            primaryOwner.email(),
-                            primaryOwner.type().name()
-                        )
-                        : null
-                )
-                .build()
-        );
+                apiToIndex.getEnvironmentId(),
+                apiToIndex.getId(),
+                ApiMetadataDecodeContext.builder()
+                        .name(apiToIndex.getName())
+                        .description(apiToIndex.getDescription())
+                        .createdAt(Date.from(apiToIndex.getCreatedAt().toInstant()))
+                        .updatedAt(Date.from(apiToIndex.getUpdatedAt().toInstant()))
+                        .primaryOwner(
+                                primaryOwner != null
+                                        ? new PrimaryOwnerApiTemplateData(
+                                                primaryOwner.id(),
+                                                primaryOwner.displayName(),
+                                                primaryOwner.email(),
+                                                primaryOwner.type().name())
+                                        : null)
+                        .build());
         var categoryKeys = apiCategoryQueryService.findApiCategoryKeys(apiToIndex);
         return new IndexableApi(apiToIndex, primaryOwner, metadata, categoryKeys);
     }
@@ -119,7 +116,8 @@ public class ApiIndexerDomainService {
         return new Bulk(this, auditInfo);
     }
 
-    public record Bulk(ApiIndexerDomainService indexer, AuditInfo auditInfo) implements AutoCloseable, Supplier<Context> {
+    public record Bulk(ApiIndexerDomainService indexer, AuditInfo auditInfo)
+            implements AutoCloseable, Supplier<Context> {
         @Override
         public void close() throws Exception {
             indexer.commit();

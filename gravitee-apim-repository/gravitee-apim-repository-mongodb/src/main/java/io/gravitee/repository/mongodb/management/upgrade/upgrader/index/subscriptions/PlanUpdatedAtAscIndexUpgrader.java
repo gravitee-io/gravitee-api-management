@@ -25,10 +25,10 @@ public class PlanUpdatedAtAscIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("subscriptions")
-            .name("p1ua1")
-            .key("plan", ascending())
-            .key("updatedAt", ascending())
-            .build();
+                .collection("subscriptions")
+                .name("p1ua1")
+                .key("plan", ascending())
+                .key("updatedAt", ascending())
+                .build();
     }
 }

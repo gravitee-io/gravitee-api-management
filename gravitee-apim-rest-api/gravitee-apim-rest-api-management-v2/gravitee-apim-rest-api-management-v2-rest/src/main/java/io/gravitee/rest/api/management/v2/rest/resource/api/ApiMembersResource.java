@@ -50,28 +50,33 @@ public class ApiMembersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_MEMBER,
+                acls = {RolePermissionAction.READ})
+    })
     public MembersResponse getApiMembers(@BeanParam @Valid PaginationParam paginationParam) {
         var members = membershipService
-            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
-            .stream()
-            .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
-            .map(MemberMapper.INSTANCE::map)
-            .sorted(Comparator.comparing(Member::getId))
-            .collect(Collectors.toList());
+                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
+                .stream()
+                .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
+                .map(MemberMapper.INSTANCE::map)
+                .sorted(Comparator.comparing(Member::getId))
+                .collect(Collectors.toList());
 
         List<Member> membersSubList = computePaginationData(members, paginationParam);
 
         return new MembersResponse()
-            .data(membersSubList)
-            .pagination(PaginationInfo.computePaginationInfo((long) members.size(), membersSubList.size(), paginationParam))
-            .links(computePaginationLinks(members.size(), paginationParam));
+                .data(membersSubList)
+                .pagination(PaginationInfo.computePaginationInfo(
+                        (long) members.size(), membersSubList.size(), paginationParam))
+                .links(computePaginationLinks(members.size(), paginationParam));
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.CREATE)})
     public Response createApiMembership(AddMember apiMembership) {
         checkRoleIsNotPrimaryOwner(apiMembership.getRoleName());
 
@@ -80,37 +85,36 @@ public class ApiMembersResource extends AbstractResource {
         }
 
         var createdMember = membershipService.createNewMembership(
-            GraviteeContext.getExecutionContext(),
-            MembershipReferenceType.API,
-            apiId,
-            apiMembership.getUserId(),
-            apiMembership.getExternalReference(),
-            apiMembership.getRoleName()
-        );
-        return Response.status(Response.Status.CREATED).entity(MemberMapper.INSTANCE.map(createdMember)).build();
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                apiId,
+                apiMembership.getUserId(),
+                apiMembership.getExternalReference(),
+                apiMembership.getRoleName());
+        return Response.status(Response.Status.CREATED)
+                .entity(MemberMapper.INSTANCE.map(createdMember))
+                .build();
     }
 
     @PUT
     @Path("/{memberId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE)})
     public Response updateApiMembership(@PathParam("memberId") String memberId, UpdateMember apiMembership) {
         checkRoleIsNotPrimaryOwner(apiMembership.getRoleName());
 
         var updatedMembership = membershipService.updateMembershipForApi(
-            GraviteeContext.getExecutionContext(),
-            apiId,
-            memberId,
-            apiMembership.getRoleName()
-        );
-        return Response.ok().entity(MemberMapper.INSTANCE.map(updatedMembership)).build();
+                GraviteeContext.getExecutionContext(), apiId, memberId, apiMembership.getRoleName());
+        return Response.ok()
+                .entity(MemberMapper.INSTANCE.map(updatedMembership))
+                .build();
     }
 
     @Path("/{memberId}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.DELETE)})
     public Response deleteApiMembership(@PathParam("memberId") String memberId) {
         membershipService.deleteMemberForApi(GraviteeContext.getExecutionContext(), apiId, memberId);
         return Response.noContent().build();

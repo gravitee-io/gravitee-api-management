@@ -30,15 +30,14 @@ public class EventWithInitiator extends Event {
 
     public EventWithInitiator(Event b, BaseUserEntity initiator) {
         super(
-            b.getId(),
-            b.getType(),
-            b.getPayload(),
-            b.getParentId(),
-            b.getProperties(),
-            b.getEnvironments(),
-            b.getCreatedAt(),
-            b.getUpdatedAt()
-        );
+                b.getId(),
+                b.getType(),
+                b.getPayload(),
+                b.getParentId(),
+                b.getProperties(),
+                b.getEnvironments(),
+                b.getCreatedAt(),
+                b.getUpdatedAt());
         this.initiator = initiator;
     }
 }

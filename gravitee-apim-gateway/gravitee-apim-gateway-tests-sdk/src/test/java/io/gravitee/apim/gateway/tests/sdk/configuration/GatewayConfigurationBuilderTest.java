@@ -38,7 +38,10 @@ class GatewayConfigurationBuilderTest {
         cut.set("alias", "sys");
 
         GatewayConfigurationBuilder.GatewayConfiguration conf = cut.build();
-        assertThat(conf.systemProperties()).hasSize(2).containsEntry("foo", "bar").containsEntry("alias", "sys");
+        assertThat(conf.systemProperties())
+                .hasSize(2)
+                .containsEntry("foo", "bar")
+                .containsEntry("alias", "sys");
         assertThat(conf.yamlProperties()).hasSize(1).containsEntry("toto", "tata");
     }
 
@@ -76,7 +79,13 @@ class GatewayConfigurationBuilderTest {
         assertThat(conf.yamlProperties()).hasSize(1).containsEntry("toto", "tata");
 
         conf = cut.build();
-        assertThat(conf.systemProperties()).hasSize(2).containsEntry("foo", "bar2").containsEntry("foo2", "bar");
-        assertThat(conf.yamlProperties()).hasSize(2).containsEntry("toto2", "tata").containsEntry("toto", "tata2");
+        assertThat(conf.systemProperties())
+                .hasSize(2)
+                .containsEntry("foo", "bar2")
+                .containsEntry("foo2", "bar");
+        assertThat(conf.yamlProperties())
+                .hasSize(2)
+                .containsEntry("toto2", "tata")
+                .containsEntry("toto", "tata2");
     }
 }

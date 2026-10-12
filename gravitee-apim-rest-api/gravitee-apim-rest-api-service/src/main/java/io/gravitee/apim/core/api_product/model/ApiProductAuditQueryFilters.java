@@ -19,13 +19,12 @@ import java.util.Optional;
 import java.util.Set;
 
 public record ApiProductAuditQueryFilters(
-    String apiProductId,
-    String organizationId,
-    String environmentId,
-    Optional<Long> from,
-    Optional<Long> to,
-    Set<String> events
-) {
+        String apiProductId,
+        String organizationId,
+        String environmentId,
+        Optional<Long> from,
+        Optional<Long> to,
+        Set<String> events) {
     public ApiProductAuditQueryFilters {
         if (apiProductId == null) {
             throw new IllegalArgumentException("apiProductId must not be null");

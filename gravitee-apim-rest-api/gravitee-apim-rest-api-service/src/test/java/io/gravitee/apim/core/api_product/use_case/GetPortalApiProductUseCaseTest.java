@@ -73,25 +73,19 @@ class GetPortalApiProductUseCaseTest {
         navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
 
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
-            membershipQueryService,
-            new SubscriptionQueryServiceInMemory(),
-            apiQueryService
-        );
-        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
-            navigationItemsQueryService,
-            apiMembershipDomainService
-        );
+                membershipQueryService, new SubscriptionQueryServiceInMemory(), apiQueryService);
+        var apiVisibilityDomainService =
+                new PortalNavigationApiVisibilityDomainService(navigationItemsQueryService, apiMembershipDomainService);
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
-            navigationItemsQueryService,
-            new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService)
-        );
+                navigationItemsQueryService,
+                new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService));
         var portalApiProductAccessDomainService = new PortalApiProductAccessDomainService(
-            apiProductQueryService,
-            navigationItemsQueryService,
-            apiProductVisibilityDomainService,
-            apiVisibilityDomainService
-        );
-        useCase = new GetPortalApiProductUseCase(portalApiProductAccessDomainService, apiVisibilityDomainService, apiQueryService);
+                apiProductQueryService,
+                navigationItemsQueryService,
+                apiProductVisibilityDomainService,
+                apiVisibilityDomainService);
+        useCase = new GetPortalApiProductUseCase(
+                portalApiProductAccessDomainService, apiVisibilityDomainService, apiQueryService);
     }
 
     @Test
@@ -100,7 +94,8 @@ class GetPortalApiProductUseCaseTest {
         var firstApi = api("api-a", "Alpha API", "1.0");
         var product = apiProduct(Set.of(firstApi.getId(), secondApi.getId()));
         var navigationItem = publicApiProductNavigationItem();
-        givenProductAndNavigation(product, navigationItem, publicApiNavigationItem(firstApi), publicApiNavigationItem(secondApi));
+        givenProductAndNavigation(
+                product, navigationItem, publicApiNavigationItem(firstApi), publicApiNavigationItem(secondApi));
         apiQueryService.initWith(List.of(secondApi, firstApi));
 
         var result = useCase.execute(input(null)).apiProduct();
@@ -113,8 +108,8 @@ class GetPortalApiProductUseCaseTest {
         assertThat(result.navigationItemId()).isEqualTo(NAVIGATION_ITEM_ID);
         assertThat(result.tags()).containsExactly("ai", "public");
         assertThat(result.apis())
-            .extracting(apiSummary -> apiSummary.id() + ":" + apiSummary.name() + ":" + apiSummary.version())
-            .containsExactly("api-a:Alpha API:1.0", "api-b:Zebra API:2.0");
+                .extracting(apiSummary -> apiSummary.id() + ":" + apiSummary.name() + ":" + apiSummary.version())
+                .containsExactly("api-a:Alpha API:1.0", "api-b:Zebra API:2.0");
     }
 
     @Test
@@ -193,25 +188,21 @@ class GetPortalApiProductUseCaseTest {
         var privateApiNavigation = publicApiNavigationItem(privateApi);
         privateApiNavigation.setVisibility(PortalVisibility.PRIVATE);
         givenProductAndNavigation(
-            apiProduct(Set.of(publicApi.getId(), privateApi.getId())),
-            publicApiProductNavigationItem(),
-            publicApiNavigation,
-            privateApiNavigation
-        );
+                apiProduct(Set.of(publicApi.getId(), privateApi.getId())),
+                publicApiProductNavigationItem(),
+                publicApiNavigation,
+                privateApiNavigation);
         apiQueryService.initWith(List.of(publicApi, privateApi));
 
         var result = useCase.execute(input(USER_ID));
 
-        assertThat(result.apiProduct().apis())
-            .extracting(api -> api.id())
-            .containsExactly("public-api");
+        assertThat(result.apiProduct().apis()).extracting(api -> api.id()).containsExactly("public-api");
     }
 
     private void givenProductAndNavigation(
-        ApiProduct apiProduct,
-        PortalNavigationApiProduct apiProductNavigationItem,
-        PortalNavigationItem... otherItems
-    ) {
+            ApiProduct apiProduct,
+            PortalNavigationApiProduct apiProductNavigationItem,
+            PortalNavigationItem... otherItems) {
         apiProductQueryService.initWith(List.of(apiProduct));
         var navigationItems = new ArrayList<PortalNavigationItem>();
         navigationItems.add(apiProductNavigationItem);
@@ -221,15 +212,15 @@ class GetPortalApiProductUseCaseTest {
 
     private static ApiProduct apiProduct(Set<String> apiIds) {
         return ApiProduct.builder()
-            .id(API_PRODUCT_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .name("AI Workspace")
-            .description("Consumer description")
-            .version("1.0.0")
-            .kind(ApiProductKind.AI_WORKSPACE)
-            .tags(Set.of("public", "ai"))
-            .apiIds(new HashSet<>(apiIds))
-            .build();
+                .id(API_PRODUCT_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .name("AI Workspace")
+                .description("Consumer description")
+                .version("1.0.0")
+                .kind(ApiProductKind.AI_WORKSPACE)
+                .tags(Set.of("public", "ai"))
+                .apiIds(new HashSet<>(apiIds))
+                .build();
     }
 
     private static PortalNavigationApiProduct publicApiProductNavigationItem() {
@@ -237,39 +228,44 @@ class GetPortalApiProductUseCaseTest {
     }
 
     private static Api api(String id, String name, String version) {
-        return Api.builder().id(id).environmentId(ENVIRONMENT_ID).name(name).version(version).build();
+        return Api.builder()
+                .id(id)
+                .environmentId(ENVIRONMENT_ID)
+                .name(name)
+                .version(version)
+                .build();
     }
 
     private static PortalNavigationApi publicApiNavigationItem(Api api) {
         return PortalNavigationItemFixtures.anApi(
-            PortalNavigationItemId.random().toString(),
-            api.getName(),
-            PortalNavigationItemId.of(NAVIGATION_ITEM_ID),
-            api.getId()
-        );
+                PortalNavigationItemId.random().toString(),
+                api.getName(),
+                PortalNavigationItemId.of(NAVIGATION_ITEM_ID),
+                api.getId());
     }
 
     private static Membership apiProductMembership(String userId) {
         return Membership.builder()
-            .id("api-product-membership")
-            .memberId(userId)
-            .memberType(Membership.Type.USER)
-            .referenceType(Membership.ReferenceType.API_PRODUCT)
-            .referenceId(API_PRODUCT_ID)
-            .build();
+                .id("api-product-membership")
+                .memberId(userId)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId(API_PRODUCT_ID)
+                .build();
     }
 
     private static Membership groupMembership(String userId, String groupId) {
         return Membership.builder()
-            .id("group-membership")
-            .memberId(userId)
-            .memberType(Membership.Type.USER)
-            .referenceType(Membership.ReferenceType.GROUP)
-            .referenceId(groupId)
-            .build();
+                .id("group-membership")
+                .memberId(userId)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.GROUP)
+                .referenceId(groupId)
+                .build();
     }
 
     private static GetPortalApiProductUseCase.Input input(String userId) {
-        return new GetPortalApiProductUseCase.Input(ENVIRONMENT_ID, API_PRODUCT_ID, PortalNavigationItemViewerContext.forPortal(userId));
+        return new GetPortalApiProductUseCase.Input(
+                ENVIRONMENT_ID, API_PRODUCT_ID, PortalNavigationItemViewerContext.forPortal(userId));
     }
 }

@@ -67,10 +67,9 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
 
     @Test
     public void create_should_create_a_report_with_Gravitee_Definition_asset() throws TechnicalException {
-        var toCreate = aDiagnosticScoring()
-            .toBuilder()
-            .assets(List.of(new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of())))
-            .build();
+        var toCreate = aDiagnosticScoring().toBuilder()
+                .assets(List.of(new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of())))
+                .build();
 
         var created = scoringReportRepository.create(toCreate);
 
@@ -87,25 +86,25 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
             assertThat(report.get().getApiId()).isEqualTo("api2");
             assertThat(report.get().getEnvironmentId()).isEqualTo("env1");
             assertThat(report.get().getCreatedAt()).isEqualTo(new Date(1470157767000L));
-            assertThat(report.get().getSummary()).usingRecursiveComparison().isEqualTo(new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L));
-            assertThat(report.get().getAssets()).contains(
-                new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of()),
-                new ScoringReport.Asset("7f2ad639-3ac4-4517-8dbe-55f377e9118a", "ASYNCAPI", List.of(), List.of()),
-                new ScoringReport.Asset(
-                    "f931618f-3207-412a-adad-5bffdce746f7",
-                    "SWAGGER",
-                    List.of(
-                        new ScoringReport.Diagnostic(
-                            "WARN",
-                            new ScoringReport.Range(new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 1)),
-                            "operation-operationId",
-                            "Operation must have \"operationId\".",
-                            "paths./echo.options"
-                        )
-                    ),
-                    List.of()
-                )
-            );
+            assertThat(report.get().getSummary())
+                    .usingRecursiveComparison()
+                    .isEqualTo(new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L));
+            assertThat(report.get().getAssets())
+                    .contains(
+                            new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of()),
+                            new ScoringReport.Asset(
+                                    "7f2ad639-3ac4-4517-8dbe-55f377e9118a", "ASYNCAPI", List.of(), List.of()),
+                            new ScoringReport.Asset(
+                                    "f931618f-3207-412a-adad-5bffdce746f7",
+                                    "SWAGGER",
+                                    List.of(new ScoringReport.Diagnostic(
+                                            "WARN",
+                                            new ScoringReport.Range(
+                                                    new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 1)),
+                                            "operation-operationId",
+                                            "Operation must have \"operationId\".",
+                                            "paths./echo.options")),
+                                    List.of()));
         });
     }
 
@@ -118,20 +117,17 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
             assertThat(report.get().getApiId()).isEqualTo("api6");
             assertThat(report.get().getEnvironmentId()).isEqualTo("env2");
             assertThat(report.get().getCreatedAt()).isEqualTo(new Date(1470157767000L));
-            assertThat(report.get().getSummary()).usingRecursiveComparison().isEqualTo(new ScoringReport.Summary(0.0D, 0L, 0L, 0L, 0L));
-            assertThat(report.get().getAssets()).contains(
-                new ScoringReport.Asset(
-                    null,
-                    "GRAVITEE_DEFINITION",
-                    List.of(),
-                    List.of(
-                        new ScoringReport.ScoringError(
-                            "undefined-function",
-                            List.of("rules", "api-key-security-scheme", "then", "function")
-                        )
-                    )
-                )
-            );
+            assertThat(report.get().getSummary())
+                    .usingRecursiveComparison()
+                    .isEqualTo(new ScoringReport.Summary(0.0D, 0L, 0L, 0L, 0L));
+            assertThat(report.get().getAssets())
+                    .contains(new ScoringReport.Asset(
+                            null,
+                            "GRAVITEE_DEFINITION",
+                            List.of(),
+                            List.of(new ScoringReport.ScoringError(
+                                    "undefined-function",
+                                    List.of("rules", "api-key-security-scheme", "then", "function")))));
         });
     }
 
@@ -140,19 +136,16 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
         var result = scoringReportRepository.findLatestFor("api3");
 
         Assertions.assertThat(result)
-            .isPresent()
-            .get()
-            .usingRecursiveComparison()
-            .isEqualTo(
-                new ScoringReport(
-                    "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
-                    "api3",
-                    "env1",
-                    new Date(1470157767000L),
-                    new ScoringReport.Summary(1D, 0L, 0L, 0L, 0L),
-                    List.of()
-                )
-            );
+                .isPresent()
+                .get()
+                .usingRecursiveComparison()
+                .isEqualTo(new ScoringReport(
+                        "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
+                        "api3",
+                        "env1",
+                        new Date(1470157767000L),
+                        new ScoringReport.Summary(1D, 0L, 0L, 0L, 0L),
+                        List.of()));
     }
 
     // findLatestReports
@@ -160,121 +153,109 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
     public void findLatestReports_should_return_reports() throws Exception {
         var result = scoringReportRepository.findLatestReports(List.of("api1", "api2", "api3"));
 
-        Assertions.assertThat(result).contains(
-            new ScoringReport(
-                "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
-                "api1",
-                "env1",
-                new Date(1470157767000L),
-                new ScoringReport.Summary(1D, 0L, 0L, 0L, 0L),
-                List.of(new ScoringReport.Asset("a8e754af-a593-4dc5-bf38-2d0b83a7edc1", "SWAGGER", List.of(), List.of()))
-            ),
-            new ScoringReport(
-                "cad107c9-27f2-40b2-9107-c927f2e0b2fc",
-                "api2",
-                "env1",
-                new Date(1470157767000L),
-                new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L),
-                List.of(
-                    new ScoringReport.Asset(
-                        "f931618f-3207-412a-adad-5bffdce746f7",
-                        "SWAGGER",
-                        List.of(
-                            new ScoringReport.Diagnostic(
-                                "WARN",
-                                new ScoringReport.Range(new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 1)),
-                                "operation-operationId",
-                                "Operation must have \"operationId\".",
-                                "paths./echo.options"
-                            )
-                        ),
-                        List.of()
-                    ),
-                    new ScoringReport.Asset("7f2ad639-3ac4-4517-8dbe-55f377e9118a", "ASYNCAPI", List.of(), List.of()),
-                    new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of())
-                )
-            ),
-            new ScoringReport(
-                "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
-                "api3",
-                "env1",
-                new Date(1470157767000L),
-                new ScoringReport.Summary(1D, 0L, 0L, 0L, 0L),
-                List.of()
-            )
-        );
+        Assertions.assertThat(result)
+                .contains(
+                        new ScoringReport(
+                                "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
+                                "api1",
+                                "env1",
+                                new Date(1470157767000L),
+                                new ScoringReport.Summary(1D, 0L, 0L, 0L, 0L),
+                                List.of(new ScoringReport.Asset(
+                                        "a8e754af-a593-4dc5-bf38-2d0b83a7edc1", "SWAGGER", List.of(), List.of()))),
+                        new ScoringReport(
+                                "cad107c9-27f2-40b2-9107-c927f2e0b2fc",
+                                "api2",
+                                "env1",
+                                new Date(1470157767000L),
+                                new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L),
+                                List.of(
+                                        new ScoringReport.Asset(
+                                                "f931618f-3207-412a-adad-5bffdce746f7",
+                                                "SWAGGER",
+                                                List.of(new ScoringReport.Diagnostic(
+                                                        "WARN",
+                                                        new ScoringReport.Range(
+                                                                new ScoringReport.Position(1, 1),
+                                                                new ScoringReport.Position(1, 1)),
+                                                        "operation-operationId",
+                                                        "Operation must have \"operationId\".",
+                                                        "paths./echo.options")),
+                                                List.of()),
+                                        new ScoringReport.Asset(
+                                                "7f2ad639-3ac4-4517-8dbe-55f377e9118a",
+                                                "ASYNCAPI",
+                                                List.of(),
+                                                List.of()),
+                                        new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of()))),
+                        new ScoringReport(
+                                "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
+                                "api3",
+                                "env1",
+                                new Date(1470157767000L),
+                                new ScoringReport.Summary(1D, 0L, 0L, 0L, 0L),
+                                List.of()));
     }
 
     // findEnvironmentLatestReports
     @Test
     public void findEnvironmentLatestReports_should_return_reports() throws Exception {
         var result = scoringReportRepository.findEnvironmentLatestReports(
-            "env1",
-            null,
-            new PageableBuilder().pageNumber(0).pageSize(3).build()
-        );
+                "env1", null, new PageableBuilder().pageNumber(0).pageSize(3).build());
 
-        Assertions.assertThat(result.getContent()).contains(
-            new ScoringEnvironmentApi(
-                "api1",
-                "api 1",
-                ApiType.MESSAGE,
-                new Date(1439022010883L),
-                "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
-                new Date(1470157767000L),
-                1D,
-                0L,
-                0L,
-                0L,
-                0L
-            ),
-            new ScoringEnvironmentApi(
-                "api3",
-                "api 3",
-                ApiType.NATIVE,
-                new Date(1439022010883L),
-                "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
-                new Date(1470157767000L),
-                1D,
-                0L,
-                0L,
-                0L,
-                0L
-            ),
-            new ScoringEnvironmentApi(
-                "api5",
-                "api 5",
-                ApiType.PROXY,
-                new Date(1439022010883L),
-                "26a590f2-05fa-433e-a982-d64c0a274ee9",
-                new Date(1470157767000L),
-                0.95D,
-                0L,
-                1L,
-                0L,
-                0L
-            )
-        );
+        Assertions.assertThat(result.getContent())
+                .contains(
+                        new ScoringEnvironmentApi(
+                                "api1",
+                                "api 1",
+                                ApiType.MESSAGE,
+                                new Date(1439022010883L),
+                                "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
+                                new Date(1470157767000L),
+                                1D,
+                                0L,
+                                0L,
+                                0L,
+                                0L),
+                        new ScoringEnvironmentApi(
+                                "api3",
+                                "api 3",
+                                ApiType.NATIVE,
+                                new Date(1439022010883L),
+                                "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
+                                new Date(1470157767000L),
+                                1D,
+                                0L,
+                                0L,
+                                0L,
+                                0L),
+                        new ScoringEnvironmentApi(
+                                "api5",
+                                "api 5",
+                                ApiType.PROXY,
+                                new Date(1439022010883L),
+                                "26a590f2-05fa-433e-a982-d64c0a274ee9",
+                                new Date(1470157767000L),
+                                0.95D,
+                                0L,
+                                1L,
+                                0L,
+                                0L));
     }
 
     @Test
     public void findEnvironmentLatestReports_should_return_apis_without_reports() throws Exception {
         var result = scoringReportRepository.findEnvironmentLatestReports(
-            "env2",
-            null,
-            new PageableBuilder().pageNumber(0).pageSize(3).build()
-        );
+                "env2", null, new PageableBuilder().pageNumber(0).pageSize(3).build());
 
-        Assertions.assertThat(result.getContent()).contains(new ScoringEnvironmentApi("api7", "api 7", null, new Date(1439022010883L)));
+        Assertions.assertThat(result.getContent())
+                .contains(new ScoringEnvironmentApi("api7", "api 7", null, new Date(1439022010883L)));
     }
 
     @Test
     public void findEnvironmentLatestReports_should_return_paginated_reports() throws Exception {
         var result = scoringReportRepository.findEnvironmentLatestReports(
-            "env1",
-            null,
-            new PageableBuilder().pageNumber(1).pageSize(3).build()
-        );
+                "env1", null, new PageableBuilder().pageNumber(1).pageSize(3).build());
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result.getContent()).hasSize(3);
@@ -287,16 +268,14 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
     @Test
     public void findEnvironmentLatestReports_should_filter_on_api_types() throws Exception {
         var result = scoringReportRepository.findEnvironmentLatestReports(
-            "env1",
-            List.of(ApiType.MESSAGE, ApiType.NATIVE),
-            new PageableBuilder().pageNumber(0).pageSize(10).build()
-        );
+                "env1",
+                List.of(ApiType.MESSAGE, ApiType.NATIVE),
+                new PageableBuilder().pageNumber(0).pageSize(10).build());
 
         SoftAssertions.assertSoftly(softly -> {
-            softly
-                .assertThat(result.getContent())
-                .extracting(ScoringEnvironmentApi::getApiId)
-                .containsExactlyInAnyOrder("api1", "api2", "api3");
+            softly.assertThat(result.getContent())
+                    .extracting(ScoringEnvironmentApi::getApiId)
+                    .containsExactlyInAnyOrder("api1", "api2", "api3");
             // The total must count the filtered set: this query paginates in memory, so a total taken
             // before the filter would page over rows the caller never receives.
             softly.assertThat(result.getTotalElements()).isEqualTo(3);
@@ -306,15 +285,11 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
     @Test
     public void findEnvironmentLatestReports_should_return_every_type_when_no_type_is_given() throws Exception {
         var noFilter = scoringReportRepository.findEnvironmentLatestReports(
-            "env1",
-            null,
-            new PageableBuilder().pageNumber(0).pageSize(10).build()
-        );
+                "env1", null, new PageableBuilder().pageNumber(0).pageSize(10).build());
         var emptyFilter = scoringReportRepository.findEnvironmentLatestReports(
-            "env1",
-            List.of(),
-            new PageableBuilder().pageNumber(0).pageSize(10).build()
-        );
+                "env1",
+                List.of(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build());
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(noFilter.getTotalElements()).isEqualTo(6);
@@ -326,10 +301,9 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
     @Test
     public void findEnvironmentLatestReports_should_exclude_apis_without_a_type_when_filtering() throws Exception {
         var result = scoringReportRepository.findEnvironmentLatestReports(
-            "env2",
-            List.of(ApiType.MESSAGE),
-            new PageableBuilder().pageNumber(0).pageSize(10).build()
-        );
+                "env2",
+                List.of(ApiType.MESSAGE),
+                new PageableBuilder().pageNumber(0).pageSize(10).build());
 
         // api7 carries no type, as every pre-v4 API does; a type filter cannot match it.
         Assertions.assertThat(result.getContent()).isEmpty();
@@ -364,55 +338,42 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
 
     private static ScoringReport aDiagnosticScoring() {
         return ScoringReport.builder()
-            .id(UUID.random().toString())
-            .apiId("apiId")
-            .environmentId("envId")
-            .createdAt(new Date())
-            .summary(new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L))
-            .assets(
-                List.of(
-                    new ScoringReport.Asset(
+                .id(UUID.random().toString())
+                .apiId("apiId")
+                .environmentId("envId")
+                .createdAt(new Date())
+                .summary(new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L))
+                .assets(List.of(new ScoringReport.Asset(
                         "pageId",
                         "SWAGGER",
-                        List.of(
-                            new ScoringReport.Diagnostic(
+                        List.of(new ScoringReport.Diagnostic(
                                 "WARN",
-                                new ScoringReport.Range(new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 2)),
+                                new ScoringReport.Range(
+                                        new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 2)),
                                 "rule",
                                 "message",
-                                "path"
-                            )
-                        ),
-                        List.of()
-                    )
-                )
-            )
-            .build();
+                                "path")),
+                        List.of())))
+                .build();
     }
 
     private static ScoringReport anErrorScoring() {
         return ScoringReport.builder()
-            .id(UUID.random().toString())
-            .apiId("error-apiId")
-            .environmentId("envId")
-            .createdAt(new Date())
-            .summary(new ScoringReport.Summary(0.0D, 0L, 0L, 0L, 0L))
-            .assets(
-                List.of(
-                    new ScoringReport.Asset(
+                .id(UUID.random().toString())
+                .apiId("error-apiId")
+                .environmentId("envId")
+                .createdAt(new Date())
+                .summary(new ScoringReport.Summary(0.0D, 0L, 0L, 0L, 0L))
+                .assets(List.of(new ScoringReport.Asset(
                         "pageId",
                         "SWAGGER",
                         List.of(),
                         List.of(
-                            new ScoringReport.ScoringError(
-                                "undefined-function",
-                                List.of("rules", "api-key-security-scheme", "then", "function")
-                            ),
-                            new ScoringReport.ScoringError("invalid-severity", List.of("rules", "no-http-basic", "severity"))
-                        )
-                    )
-                )
-            )
-            .build();
+                                new ScoringReport.ScoringError(
+                                        "undefined-function",
+                                        List.of("rules", "api-key-security-scheme", "then", "function")),
+                                new ScoringReport.ScoringError(
+                                        "invalid-severity", List.of("rules", "no-http-basic", "severity"))))))
+                .build();
     }
 }

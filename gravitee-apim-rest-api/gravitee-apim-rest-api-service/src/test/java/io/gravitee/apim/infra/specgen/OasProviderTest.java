@@ -19,7 +19,6 @@ import static io.gravitee.rest.api.service.common.UuidString.generateRandom;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.specgen.model.ApiSpecGen;
 import io.gravitee.apim.core.specgen.service_provider.OasProvider;
 import io.gravitee.definition.model.v4.ApiType;
@@ -43,19 +42,19 @@ class OasProviderTest {
     static final String BAD_SPEC = "bad spec";
     static final String RAW_SPEC = "openapi: 3.0.3";
     static final String RAW_SPEC_WITH_DESC = "openapi: 3.0.3\ninfo:\n  description: Made with love, powered by NewtAI";
-    static final String DECORATED_SPEC = "openapi: 3.0.3\ninfo:\n  name: Api name\n  version: 1.0.0\n  description: Some desc";
+    static final String DECORATED_SPEC =
+            "openapi: 3.0.3\ninfo:\n  name: Api name\n  version: 1.0.0\n  description: Some desc";
     static final String DECORATED_SPEC_WITH_DESC =
-        "openapi: 3.0.3\ninfo:\n  name: Api name\n  version: 1.0.0\n  description: Made with love, powered by NewtAI";
+            "openapi: 3.0.3\ninfo:\n  name: Api name\n  version: 1.0.0\n  description: Made with love, powered by NewtAI";
 
     OasProvider oasProvider;
 
     public static Stream<Arguments> params_that_must_parse() {
         return Stream.of(
-            Arguments.of(RAW_SPEC, getApiSpecGen(""), DECORATED_SPEC),
-            Arguments.of(RAW_SPEC_WITH_DESC, getApiSpecGen(""), DECORATED_SPEC_WITH_DESC),
-            Arguments.of(RAW_SPEC, getApiSpecGen("Some desc"), DECORATED_SPEC),
-            Arguments.of(RAW_SPEC_WITH_DESC, getApiSpecGen("Some desc"), DECORATED_SPEC)
-        );
+                Arguments.of(RAW_SPEC, getApiSpecGen(""), DECORATED_SPEC),
+                Arguments.of(RAW_SPEC_WITH_DESC, getApiSpecGen(""), DECORATED_SPEC_WITH_DESC),
+                Arguments.of(RAW_SPEC, getApiSpecGen("Some desc"), DECORATED_SPEC),
+                Arguments.of(RAW_SPEC_WITH_DESC, getApiSpecGen("Some desc"), DECORATED_SPEC));
     }
 
     @BeforeEach
@@ -71,7 +70,8 @@ class OasProviderTest {
         var actual = Yaml.mapper().readTree(output);
         var expected = Yaml.mapper().readTree(expectedOutput);
 
-        assertThat(actual.get("openapi").asText()).isEqualTo(expected.get("openapi").asText());
+        assertThat(actual.get("openapi").asText())
+                .isEqualTo(expected.get("openapi").asText());
 
         var actualInfo = actual.get("info");
         var expectedInfo = actual.get("info");

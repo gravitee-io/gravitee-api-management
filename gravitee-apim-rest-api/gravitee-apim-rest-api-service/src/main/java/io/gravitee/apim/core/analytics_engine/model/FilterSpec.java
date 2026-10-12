@@ -23,15 +23,14 @@ import java.util.List;
 import java.util.Set;
 
 public record FilterSpec(
-    Name name,
-    String label,
-    FilterType type,
-    List<String> enumValues,
-    NumberRange range,
-    List<FilterOperator> operators,
-    List<ApiSpec.Name> apis,
-    Set<Signal> signals
-) {
+        Name name,
+        String label,
+        FilterType type,
+        List<String> enumValues,
+        NumberRange range,
+        List<FilterOperator> operators,
+        List<ApiSpec.Name> apis,
+        Set<Signal> signals) {
     /**
      * Normalises the optional {@code signals} entry of the definition file — see {@link Signal#DEFAULT}.
      *

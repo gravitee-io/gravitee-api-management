@@ -65,7 +65,8 @@ public class CheckSubscriptionPolicyTest {
         when(request.timestamp()).thenReturn(currentTimeMillis());
 
         when(executionContext.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(CLIENT_ID);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID))
+                .thenReturn(CLIENT_ID);
         when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn(PLAN_ID);
         when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn(API_ID);
         when(executionContext.request()).thenReturn(request);
@@ -79,18 +80,15 @@ public class CheckSubscriptionPolicyTest {
         when(response.headers()).thenReturn(mock(HttpHeaders.class));
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn(null);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID))
+                .thenReturn(null);
         when(executionContext.response()).thenReturn(response);
 
         policy.execute(policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(
-            argThat(
-                result ->
-                    result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                    CheckSubscriptionPolicy.GATEWAY_OAUTH2_INVALID_CLIENT_KEY.equals(result.key())
-            )
-        );
+        verify(policyChain, times(1))
+                .failWith(argThat(result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
+                        && CheckSubscriptionPolicy.GATEWAY_OAUTH2_INVALID_CLIENT_KEY.equals(result.key())));
     }
 
     @Test
@@ -102,17 +100,14 @@ public class CheckSubscriptionPolicyTest {
         when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn("api-id");
 
         // no subscription found in cache for this API / clientID
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.empty());
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID))
+                .thenReturn(Optional.empty());
 
         policy.execute(policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(
-            argThat(
-                result ->
-                    result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                    CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())
-            )
-        );
+        verify(policyChain, times(1))
+                .failWith(argThat(result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
+                        && CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())));
     }
 
     @Test
@@ -124,17 +119,14 @@ public class CheckSubscriptionPolicyTest {
         // subscription found in cache, with end date in the past
         Subscription subscription = new Subscription();
         subscription.setEndingAt(new Date(currentTimeMillis() - 100000));
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID))
+                .thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(
-            argThat(
-                result ->
-                    result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                    CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())
-            )
-        );
+        verify(policyChain, times(1))
+                .failWith(argThat(result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
+                        && CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())));
     }
 
     @Test
@@ -144,13 +136,15 @@ public class CheckSubscriptionPolicyTest {
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(false);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED))
+                .thenReturn(false);
         when(executionContext.response()).thenReturn(response);
 
         // subscription found in cache, with a valid plan, and time
         Subscription subscription = new Subscription();
         subscription.setPlan(PLAN_ID);
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID))
+                .thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -164,7 +158,8 @@ public class CheckSubscriptionPolicyTest {
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED))
+                .thenReturn(true);
 
         when(executionContext.response()).thenReturn(response);
 
@@ -173,7 +168,8 @@ public class CheckSubscriptionPolicyTest {
         subscription.setPlan(PLAN_ID);
         subscription.setApplication("application-id");
 
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID))
+                .thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -189,22 +185,20 @@ public class CheckSubscriptionPolicyTest {
 
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED))
+                .thenReturn(true);
 
         // subscription found in cache, with an invalid plan
         Subscription subscription = new Subscription();
         subscription.setPlan("another-plan");
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID))
+                .thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(
-            argThat(
-                result ->
-                    result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
-                    CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())
-            )
-        );
+        verify(policyChain, times(1))
+                .failWith(argThat(result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
+                        && CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())));
     }
 
     @Test
@@ -213,7 +207,8 @@ public class CheckSubscriptionPolicyTest {
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
-        when(executionContext.getAttribute(ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION)).thenReturn(false);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION))
+                .thenReturn(false);
         when(executionContext.response()).thenReturn(response);
 
         policy.execute(policyChain, executionContext);

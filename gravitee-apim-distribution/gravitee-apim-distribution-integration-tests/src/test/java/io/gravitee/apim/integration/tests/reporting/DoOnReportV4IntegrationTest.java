@@ -53,7 +53,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/v4/http/api-report.json" })
+@DeployApi({"/apis/v4/http/api-report.json"})
 class DoOnReportV4IntegrationTest extends AbstractGatewayTest {
 
     BehaviorSubject<Log> subject;
@@ -72,12 +72,14 @@ class DoOnReportV4IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        entrypoints.putIfAbsent(
+                "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        endpoints.putIfAbsent(
+                "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
     }
 
     @Override
@@ -105,39 +107,44 @@ class DoOnReportV4IntegrationTest extends AbstractGatewayTest {
     @Test
     @DisplayName("Should prefix all headers and bodies")
     void shouldPrefixAllHeadersAndBodies(HttpClient httpClient, VertxTestContext context) throws InterruptedException {
-        wiremock.stubFor(post("/endpoint").willReturn(ok("response from backend").withHeader("X-ResponseHeader", "ResponseHeaderValue")));
+        wiremock.stubFor(post("/endpoint")
+                .willReturn(ok("response from backend").withHeader("X-ResponseHeader", "ResponseHeaderValue")));
 
-        subject
-            .doOnNext(log -> {
-                assertThat(log.getEntrypointRequest().getBody()).isEqualTo("prefix-body request");
-                assertThat(log.getEntrypointRequest().getHeaders().get("X-RequestHeader")).isEqualTo("prefix-RequestHeaderValue");
-                assertThat(log.getEndpointRequest().getBody()).isEqualTo("prefix-body request");
-                assertThat(log.getEndpointRequest().getHeaders().get("X-RequestHeader")).isEqualTo("prefix-RequestHeaderValue");
+        subject.doOnNext(log -> {
+                    assertThat(log.getEntrypointRequest().getBody()).isEqualTo("prefix-body request");
+                    assertThat(log.getEntrypointRequest().getHeaders().get("X-RequestHeader"))
+                            .isEqualTo("prefix-RequestHeaderValue");
+                    assertThat(log.getEndpointRequest().getBody()).isEqualTo("prefix-body request");
+                    assertThat(log.getEndpointRequest().getHeaders().get("X-RequestHeader"))
+                            .isEqualTo("prefix-RequestHeaderValue");
 
-                assertThat(log.getEntrypointResponse().getBody()).isEqualTo("prefix-response from backend");
-                assertThat(log.getEntrypointResponse().getHeaders().get("X-ResponseHeader")).isEqualTo("prefix-ResponseHeaderValue");
-                assertThat(log.getEndpointResponse().getBody()).isEqualTo("prefix-response from backend");
-                assertThat(log.getEndpointResponse().getHeaders().get("X-ResponseHeader")).isEqualTo("prefix-ResponseHeaderValue");
-            })
-            .doOnNext(m -> context.completeNow())
-            .doOnError(context::failNow)
-            .subscribe();
+                    assertThat(log.getEntrypointResponse().getBody()).isEqualTo("prefix-response from backend");
+                    assertThat(log.getEntrypointResponse().getHeaders().get("X-ResponseHeader"))
+                            .isEqualTo("prefix-ResponseHeaderValue");
+                    assertThat(log.getEndpointResponse().getBody()).isEqualTo("prefix-response from backend");
+                    assertThat(log.getEndpointResponse().getHeaders().get("X-ResponseHeader"))
+                            .isEqualTo("prefix-ResponseHeaderValue");
+                })
+                .doOnNext(m -> context.completeNow())
+                .doOnError(context::failNow)
+                .subscribe();
 
         httpClient
-            .rxRequest(HttpMethod.POST, "/test")
-            .flatMap(request -> request.putHeader("X-RequestHeader", "RequestHeaderValue").rxSend("body request"))
-            .flatMapPublisher(response -> {
-                assertThat(response.getHeader("X-ResponseHeader")).isEqualTo("ResponseHeaderValue");
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("response from backend");
-                return true;
-            })
-            .assertNoErrors();
+                .rxRequest(HttpMethod.POST, "/test")
+                .flatMap(request -> request.putHeader("X-RequestHeader", "RequestHeaderValue")
+                        .rxSend("body request"))
+                .flatMapPublisher(response -> {
+                    assertThat(response.getHeader("X-ResponseHeader")).isEqualTo("ResponseHeaderValue");
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).isEqualTo("response from backend");
+                    return true;
+                })
+                .assertNoErrors();
     }
 }

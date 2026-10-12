@@ -28,7 +28,8 @@ import org.junit.jupiter.api.Test;
 
 class AverageHealthCheckResponseTimeOvertimeAdapterTest {
 
-    private final AverageHealthCheckResponseTimeOvertimeAdapter adapter = new AverageHealthCheckResponseTimeOvertimeAdapter();
+    private final AverageHealthCheckResponseTimeOvertimeAdapter adapter =
+            new AverageHealthCheckResponseTimeOvertimeAdapter();
 
     @Nested
     class AdaptQuery {
@@ -49,8 +50,7 @@ class AverageHealthCheckResponseTimeOvertimeAdapterTest {
             var result = adapter.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result.toString()).isEqualTo(
-                """
+            assertThatJson(result.toString()).isEqualTo("""
                 {
                    "aggregations": {
                      "by_date": {
@@ -80,8 +80,7 @@ class AverageHealthCheckResponseTimeOvertimeAdapterTest {
                      }
                    },
                    "size": 0
-                 }"""
-            );
+                 }""");
         }
 
         @Test
@@ -94,8 +93,7 @@ class AverageHealthCheckResponseTimeOvertimeAdapterTest {
             var result = adapter.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result.toString()).isEqualTo(
-                """
+            assertThatJson(result.toString()).isEqualTo("""
                 {
                    "aggregations": {
                      "by_date": {
@@ -125,8 +123,7 @@ class AverageHealthCheckResponseTimeOvertimeAdapterTest {
                      }
                    },
                    "size": 0
-                 }"""
-            );
+                 }""");
         }
     }
 

@@ -66,8 +66,8 @@ class OpenApiToMcpToolsDomainServiceImplTest {
         var result = service.parse(load("petstore.yaml"));
 
         assertThat(result.result())
-            .extracting(t -> t.toolDefinition().name())
-            .containsExactlyInAnyOrder("listPets", "createPet", "getPet", "deletePet");
+                .extracting(t -> t.toolDefinition().name())
+                .containsExactlyInAnyOrder("listPets", "createPet", "getPet", "deletePet");
     }
 
     @Test
@@ -75,15 +75,17 @@ class OpenApiToMcpToolsDomainServiceImplTest {
         var result = service.parse(load("no-operation-id.yaml"));
 
         assertThat(result.result())
-            .extracting(t -> t.toolDefinition().name())
-            .containsExactlyInAnyOrder("get_alpha_beta", "post_alpha_beta");
+                .extracting(t -> t.toolDefinition().name())
+                .containsExactlyInAnyOrder("get_alpha_beta", "post_alpha_beta");
     }
 
     @Test
     void should_uppercase_http_method_in_gateway_mapping() {
         var result = service.parse(load("petstore.yaml"));
 
-        assertThat(result.result()).allSatisfy(tool -> assertThat(tool.gatewayMapping().http().method()).matches("^[A-Z]+$"));
+        assertThat(result.result())
+                .allSatisfy(tool ->
+                        assertThat(tool.gatewayMapping().http().method()).matches("^[A-Z]+$"));
     }
 
     @Test
@@ -106,7 +108,8 @@ class OpenApiToMcpToolsDomainServiceImplTest {
     void should_classify_parameters_by_location_in_gateway_mapping() {
         var result = service.parse(load("multi-params.yaml"));
 
-        McpToolGatewayMappingHttp http = result.result().getFirst().gatewayMapping().http();
+        McpToolGatewayMappingHttp http =
+                result.result().getFirst().gatewayMapping().http();
         assertThat(http.pathParams()).containsExactly("tenantId", "userId");
         assertThat(http.queryParams()).containsExactly("includeDisabled");
         assertThat(http.headers()).containsExactly("X-Tenant-Token");
@@ -136,7 +139,8 @@ class OpenApiToMcpToolsDomainServiceImplTest {
         var inputSchema = getPet.toolDefinition().inputSchema();
         assertThat(inputSchema.get("type").asText()).isEqualTo("object");
         assertThat(inputSchema.get("properties").has("petId")).isTrue();
-        assertThat(inputSchema.get("required")).anySatisfy(node -> assertThat(node.asText()).isEqualTo("petId"));
+        assertThat(inputSchema.get("required"))
+                .anySatisfy(node -> assertThat(node.asText()).isEqualTo("petId"));
     }
 
     @Test
@@ -196,12 +200,11 @@ class OpenApiToMcpToolsDomainServiceImplTest {
     void should_transparently_convert_swagger_2_to_openapi_3() {
         var result = service.parse(load("swagger2-with-body.yaml"));
 
-        assertThat(result.result())
-            .extracting(t -> t.toolDefinition().name())
-            .containsExactly("placeOrder");
+        assertThat(result.result()).extracting(t -> t.toolDefinition().name()).containsExactly("placeOrder");
         var placeOrder = result.result().getFirst();
         assertThat(placeOrder.gatewayMapping().http().method()).isEqualTo("POST");
-        assertThat(placeOrder.toolDefinition().inputSchema().get("properties").has("bodySchema")).isTrue();
+        assertThat(placeOrder.toolDefinition().inputSchema().get("properties").has("bodySchema"))
+                .isTrue();
     }
 
     @Test
@@ -219,8 +222,8 @@ class OpenApiToMcpToolsDomainServiceImplTest {
 
         // we used summary "Listing" / "Creation", so this asserts summary wins
         assertThat(result.result())
-            .extracting(t -> t.toolDefinition().description())
-            .containsExactlyInAnyOrder("Listing", "Creation");
+                .extracting(t -> t.toolDefinition().description())
+                .containsExactlyInAnyOrder("Listing", "Creation");
     }
 
     /**
@@ -245,7 +248,7 @@ class OpenApiToMcpToolsDomainServiceImplTest {
      * {@code gatewayMapping}) and asserted by dedicated unit tests below.
      */
     @ParameterizedTest(name = "matches front-end snapshot: {0}")
-    @ValueSource(strings = { "empty-paths", "multi-params", "no-operation-id", "petstore", "swagger2-with-body" })
+    @ValueSource(strings = {"empty-paths", "multi-params", "no-operation-id", "petstore", "swagger2-with-body"})
     void should_match_front_end_snapshot(String fixtureBaseName) throws IOException {
         var oas = load(fixtureBaseName + ".yaml");
         var actual = service.parse(oas);
@@ -253,7 +256,9 @@ class OpenApiToMcpToolsDomainServiceImplTest {
         JsonNode actualTree = Json.mapper().valueToTree(actual);
         JsonNode expectedTree = Json.mapper().readTree(load("expected/" + fixtureBaseName + ".expected.json"));
 
-        assertThat(actualTree).as("parser output should match the front-end snapshot for %s", fixtureBaseName).isEqualTo(expectedTree);
+        assertThat(actualTree)
+                .as("parser output should match the front-end snapshot for %s", fixtureBaseName)
+                .isEqualTo(expectedTree);
     }
 
     @Test
@@ -261,29 +266,27 @@ class OpenApiToMcpToolsDomainServiceImplTest {
         var result = service.parse(load("duplicate-names.yaml"));
 
         assertThat(result.result())
-            .extracting(t -> t.toolDefinition().name())
-            .containsExactly("getUser", "getUser_2", "getUser_3");
+                .extracting(t -> t.toolDefinition().name())
+                .containsExactly("getUser", "getUser_2", "getUser_3");
         assertThat(result.errors())
-            .hasSize(2)
-            .allSatisfy(err -> assertThat(err.key()).isEqualTo(ParseError.DUPLICATE_NAME))
-            .extracting(ParseError::message)
-            .containsExactly(
-                "Duplicate tool name 'getUser' resolved to 'getUser_2'",
-                "Duplicate tool name 'getUser' resolved to 'getUser_3'"
-            );
+                .hasSize(2)
+                .allSatisfy(err -> assertThat(err.key()).isEqualTo(ParseError.DUPLICATE_NAME))
+                .extracting(ParseError::message)
+                .containsExactly(
+                        "Duplicate tool name 'getUser' resolved to 'getUser_2'",
+                        "Duplicate tool name 'getUser' resolved to 'getUser_3'");
     }
 
     private static McpTool toolByName(OpenApiToMcpToolsResult result, String name) {
-        return result
-            .result()
-            .stream()
-            .filter(t -> Objects.equals(t.toolDefinition().name(), name))
-            .findFirst()
-            .orElseThrow();
+        return result.result().stream()
+                .filter(t -> Objects.equals(t.toolDefinition().name(), name))
+                .findFirst()
+                .orElseThrow();
     }
 
     private static String load(String fixtureName) {
-        try (var stream = OpenApiToMcpToolsDomainServiceImplTest.class.getResourceAsStream("oas-fixtures/" + fixtureName)) {
+        try (var stream =
+                OpenApiToMcpToolsDomainServiceImplTest.class.getResourceAsStream("oas-fixtures/" + fixtureName)) {
             if (stream == null) {
                 throw new IllegalStateException("Fixture not found on classpath: " + fixtureName);
             }

@@ -31,28 +31,22 @@ import org.springframework.stereotype.Component;
 public class FinalizeRegistrationMapper {
 
     public AcceptUserInvitationUseCase.Input toUseCaseInput(
-        ExecutionContext executionContext,
-        DecodedToken decoded,
-        FinalizeRegistrationInput input
-    ) {
+            ExecutionContext executionContext, DecodedToken decoded, FinalizeRegistrationInput input) {
         var action = switch (decoded.action()) {
-            case String s when JWTHelper.ACTION.GROUP_INVITATION.name().equals(s) -> new GroupInvitationAction(
-                decoded.email(),
-                decoded.subject()
-            );
-            case String s when JWTHelper.ACTION.APPLICATION_INVITATION.name().equals(s) -> new ApplicationInvitationAction(
-                decoded.email(),
-                decoded.subject()
-            );
+            case String s
+            when JWTHelper.ACTION.GROUP_INVITATION.name().equals(s) ->
+                new GroupInvitationAction(decoded.email(), decoded.subject());
+            case String s
+            when JWTHelper.ACTION.APPLICATION_INVITATION.name().equals(s) ->
+                new ApplicationInvitationAction(decoded.email(), decoded.subject());
             default -> new UserRegistrationAction(decoded.email(), decoded.subject());
         };
 
         return new AcceptUserInvitationUseCase.Input(
-            executionContext,
-            action,
-            Optional.ofNullable(input.getPassword()).map(RawPassword::new),
-            Optional.ofNullable(input.getFirstname()),
-            Optional.ofNullable(input.getLastname())
-        );
+                executionContext,
+                action,
+                Optional.ofNullable(input.getPassword()).map(RawPassword::new),
+                Optional.ofNullable(input.getFirstname()),
+                Optional.ofNullable(input.getLastname()));
     }
 }

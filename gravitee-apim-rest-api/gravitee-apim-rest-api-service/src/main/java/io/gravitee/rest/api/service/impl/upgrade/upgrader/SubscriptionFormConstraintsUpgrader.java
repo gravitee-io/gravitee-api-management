@@ -47,9 +47,8 @@ public class SubscriptionFormConstraintsUpgrader implements Upgrader {
     private final SubscriptionFormSchemaGenerator schemaGenerator;
 
     public SubscriptionFormConstraintsUpgrader(
-        @Lazy SubscriptionFormRepository subscriptionFormRepository,
-        @Lazy SubscriptionFormSchemaGenerator schemaGenerator
-    ) {
+            @Lazy SubscriptionFormRepository subscriptionFormRepository,
+            @Lazy SubscriptionFormSchemaGenerator schemaGenerator) {
         this.subscriptionFormRepository = subscriptionFormRepository;
         this.schemaGenerator = schemaGenerator;
     }
@@ -79,7 +78,10 @@ public class SubscriptionFormConstraintsUpgrader implements Upgrader {
             }
         }
 
-        log.info("Subscription form constraints upgrader completed. Generated constraints for {}/{} forms.", updated, forms.size());
+        log.info(
+                "Subscription form constraints upgrader completed. Generated constraints for {}/{} forms.",
+                updated,
+                forms.size());
         return true;
     }
 

@@ -42,7 +42,8 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
     private Subscriber<? super Buffer> subscriber;
     private Runnable onComplete;
 
-    public FlowableProxyResponse initialize(HttpPlainExecutionContext ctx, ProxyConnection connection, ProxyResponse proxyResponse) {
+    public FlowableProxyResponse initialize(
+            HttpPlainExecutionContext ctx, ProxyConnection connection, ProxyResponse proxyResponse) {
         this.ctx = ctx;
         this.connection = connection;
         this.proxyResponse = proxyResponse;
@@ -78,7 +79,8 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
     @Override
     protected void subscribeActual(Subscriber<? super Buffer> subscriber) {
         if (subscription != null) {
-            EmptySubscription.error(new IllegalStateException("This processor allows only a single Subscriber"), subscriber);
+            EmptySubscription.error(
+                    new IllegalStateException("This processor allows only a single Subscriber"), subscriber);
             return;
         }
 
@@ -105,7 +107,8 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
     private void handleChunk(Buffer chunk) {
         try {
             if (ctx.response().ended()) {
-                // The current response is already ended for some reason (ex: connection close by the client). Close the proxy connection to avoid getting useless chunks.
+                // The current response is already ended for some reason (ex: connection close by the client). Close the
+                // proxy connection to avoid getting useless chunks.
                 cancelProxyResponse();
                 subscriber.onComplete();
             } else {

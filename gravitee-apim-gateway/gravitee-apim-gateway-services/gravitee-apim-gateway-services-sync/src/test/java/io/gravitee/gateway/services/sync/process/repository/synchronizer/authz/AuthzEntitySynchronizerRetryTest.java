@@ -66,14 +66,13 @@ class AuthzEntitySynchronizerRetryTest {
     @BeforeEach
     void setUp() {
         synchronizer = new AuthzEntitySynchronizer(
-            fetcher,
-            new AuthzEntityMapper(objectMapper),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-        );
+                fetcher,
+                new AuthzEntityMapper(objectMapper),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
 
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(deployerFactory.createAuthzEntityDeployer()).thenReturn(deployer);
@@ -91,7 +90,11 @@ class AuthzEntitySynchronizerRetryTest {
         when(deployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("PDP busy")));
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // commit() is now always called; with nothing armed this cycle it short-circuits internally.
         verify(port).commit();
@@ -99,7 +102,11 @@ class AuthzEntitySynchronizerRetryTest {
         when(deployer.deploy(any())).thenReturn(Completable.complete());
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(2)).deploy(any());
         verify(port, times(2)).commit();
@@ -112,7 +119,11 @@ class AuthzEntitySynchronizerRetryTest {
         when(deployer.undeploy(any())).thenReturn(Completable.error(new RuntimeException("engine not ready")));
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(unpublish)));
 
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         // commit() is now always called; with nothing armed this cycle it short-circuits internally.
         verify(port).commit();
@@ -120,7 +131,11 @@ class AuthzEntitySynchronizerRetryTest {
         when(deployer.undeploy(any())).thenReturn(Completable.complete());
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
-        synchronizer.synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(2)).undeploy(any());
         verify(port, times(2)).commit();
@@ -131,17 +146,29 @@ class AuthzEntitySynchronizerRetryTest {
         when(deployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("PDP busy")));
         Event publish = entityEvent("evt-p", EventType.PUBLISH_AUTHZ_ENTITY, "ent-x");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
-        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         when(deployer.undeploy(any())).thenReturn(Completable.error(new RuntimeException("engine not ready")));
         Event unpublish = unpublishEvent("evt-u", "ent-x");
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(unpublish)));
-        synchronizer.synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(124L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         when(deployer.deploy(any())).thenReturn(Completable.complete());
         when(deployer.undeploy(any())).thenReturn(Completable.complete());
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-        synchronizer.synchronize(125L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(125L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         verify(deployer, times(1)).deploy(any());
     }
@@ -152,24 +179,38 @@ class AuthzEntitySynchronizerRetryTest {
         Event publish = entityEvent("evt-p", EventType.PUBLISH_AUTHZ_ENTITY, "ent-dead");
 
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
-        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
         for (int i = 0; i < AuthzEntitySynchronizer.MAX_PENDING_ATTEMPTS + 2; i++) {
-            synchronizer.synchronize((long) (i + 2), Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+            synchronizer
+                    .synchronize((long) (i + 2), Instant.now().toEpochMilli(), Set.of("env-1"))
+                    .test()
+                    .await()
+                    .assertComplete();
         }
 
         when(deployer.deploy(any())).thenReturn(Completable.complete());
-        synchronizer.synchronize(999L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer
+                .synchronize(999L, Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
 
-        verify(deployer, times(AuthzEntitySynchronizer.MAX_PENDING_ATTEMPTS + 1)).deploy(any());
+        verify(deployer, times(AuthzEntitySynchronizer.MAX_PENDING_ATTEMPTS + 1))
+                .deploy(any());
     }
 
     private static Event entityEvent(String id, EventType type, String entityId) {
         Event event = new Event();
         event.setId(id);
         event.setType(type);
-        event.setPayload("{\"entityId\": \"" + entityId + "\", \"kind\": \"RESOURCE\", \"environmentId\": \"env-1\", \"attributes\": {}}");
+        event.setPayload("{\"entityId\": \"" + entityId
+                + "\", \"kind\": \"RESOURCE\", \"environmentId\": \"env-1\", \"attributes\": {}}");
         return event;
     }
 

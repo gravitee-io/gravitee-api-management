@@ -44,12 +44,11 @@ public class ProcessPromotionUseCase {
     private final AuditDomainService auditService;
 
     public ProcessPromotionUseCase(
-        PromotionCrudService promotionCrudService,
-        CockpitPromotionServiceProvider cockpitPromotionServiceProvider,
-        ImportDefinitionCreateDomainService importDefinitionCreateDomainService,
-        ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService,
-        AuditDomainService auditService
-    ) {
+            PromotionCrudService promotionCrudService,
+            CockpitPromotionServiceProvider cockpitPromotionServiceProvider,
+            ImportDefinitionCreateDomainService importDefinitionCreateDomainService,
+            ImportDefinitionUpdateDomainService importDefinitionUpdateDomainService,
+            AuditDomainService auditService) {
         this.promotionCrudService = promotionCrudService;
         this.cockpitPromotionServiceProvider = cockpitPromotionServiceProvider;
         this.importDefinitionCreateDomainService = importDefinitionCreateDomainService;
@@ -58,13 +57,12 @@ public class ProcessPromotionUseCase {
     }
 
     public record Input(
-        Promotion promotion,
-        DefinitionVersion definitionVersion,
-        boolean isAccepted,
-        Api existingPromotedApi,
-        ImportDefinition importDefinition,
-        AuditInfo auditInfo
-    ) {
+            Promotion promotion,
+            DefinitionVersion definitionVersion,
+            boolean isAccepted,
+            Api existingPromotedApi,
+            ImportDefinition importDefinition,
+            AuditInfo auditInfo) {
         public Input(Promotion promotion, boolean isAccepted, DefinitionVersion definitionVersion) {
             this(promotion, definitionVersion, isAccepted, null, null, null);
         }
@@ -75,25 +73,24 @@ public class ProcessPromotionUseCase {
     public Output execute(Input input) {
         var processedPromotion = switch (input.definitionVersion()) {
             case V2 -> cockpitPromotionServiceProvider.process(input.promotion().getId(), input.isAccepted);
-            case V4 -> processPromotion(
-                input.promotion,
-                input.isAccepted,
-                input.existingPromotedApi,
-                input.importDefinition(),
-                input.auditInfo
-            );
+            case V4 ->
+                processPromotion(
+                        input.promotion,
+                        input.isAccepted,
+                        input.existingPromotedApi,
+                        input.importDefinition(),
+                        input.auditInfo);
             default -> throw new IllegalStateException("Only V2 and V4 API definition are supported");
         };
         return new Output(processedPromotion);
     }
 
     private Promotion processPromotion(
-        Promotion promotion,
-        boolean isAccepted,
-        Api existingPromotedApi,
-        ImportDefinition importDefinition,
-        AuditInfo auditInfo
-    ) {
+            Promotion promotion,
+            boolean isAccepted,
+            Api existingPromotedApi,
+            ImportDefinition importDefinition,
+            AuditInfo auditInfo) {
         if (isAccepted) {
             acceptPromotion(promotion, existingPromotedApi, importDefinition, auditInfo);
         } else {
@@ -101,19 +98,16 @@ public class ProcessPromotionUseCase {
         }
 
         var cockpitReplyStatus = cockpitPromotionServiceProvider.processPromotion(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            promotion
-        );
+                auditInfo.organizationId(), auditInfo.environmentId(), promotion);
 
         if (cockpitReplyStatus != CockpitReplyStatus.SUCCEEDED) {
-            throw new TechnicalManagementException("An error occurs while sending promotion " + promotion.getId() + " request to cockpit");
+            throw new TechnicalManagementException(
+                    "An error occurs while sending promotion " + promotion.getId() + " request to cockpit");
         }
 
         var updatedPromotion = promotionCrudService.update(promotion);
 
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(updatedPromotion.getApiId())
@@ -123,41 +117,43 @@ public class ProcessPromotionUseCase {
                 .newValue(updatedPromotion)
                 .createdAt(TimeProvider.now())
                 .properties(Collections.emptyMap())
-                .build()
-        );
+                .build());
 
         return updatedPromotion;
     }
 
-    private void acceptPromotion(Promotion promotion, Api existingPromotedApi, ImportDefinition importDefinition, AuditInfo auditInfo) {
+    private void acceptPromotion(
+            Promotion promotion, Api existingPromotedApi, ImportDefinition importDefinition, AuditInfo auditInfo) {
         var exportedApi = importDefinition.getApiExport();
 
         if (exportedApi.getCrossId() == null || exportedApi.getCrossId().isEmpty()) {
-            throw new IllegalStateException("Promotion " + promotion.getId() + " failed. A crossId is required to promote an API");
+            throw new IllegalStateException(
+                    "Promotion " + promotion.getId() + " failed. A crossId is required to promote an API");
         }
 
         if (existingPromotedApi != null) {
             // Resolution is already env-scoped. This is the use-case contract: Input.existingPromotedApi is
             // supplied by the caller, so a null or foreign environmentId must still be rejected here.
-            if (
-                existingPromotedApi.getEnvironmentId() == null || !existingPromotedApi.getEnvironmentId().equals(auditInfo.environmentId())
-            ) {
-                throw new IllegalStateException(
-                    "Promotion " +
-                        promotion.getId() +
-                        " failed. Target API " +
-                        existingPromotedApi.getId() +
-                        " does not belong to the target environment " +
-                        auditInfo.environmentId()
-                );
+            if (existingPromotedApi.getEnvironmentId() == null
+                    || !existingPromotedApi.getEnvironmentId().equals(auditInfo.environmentId())) {
+                throw new IllegalStateException("Promotion " + promotion.getId()
+                        + " failed. Target API "
+                        + existingPromotedApi.getId()
+                        + " does not belong to the target environment "
+                        + auditInfo.environmentId());
             }
-            var updatedApi = importDefinitionUpdateDomainService.update(importDefinition, existingPromotedApi, auditInfo);
+            var updatedApi =
+                    importDefinitionUpdateDomainService.update(importDefinition, existingPromotedApi, auditInfo);
             // The target must stay the API we resolved, whatever the import layer returns.
-            promotion.setTargetApiId(updatedApi != null && updatedApi.getId() != null ? updatedApi.getId() : existingPromotedApi.getId());
+            promotion.setTargetApiId(
+                    updatedApi != null && updatedApi.getId() != null
+                            ? updatedApi.getId()
+                            : existingPromotedApi.getId());
         } else {
             var createdApi = importDefinitionCreateDomainService.create(auditInfo, importDefinition);
             if (createdApi == null || createdApi.getId() == null) {
-                throw new IllegalStateException("Promotion " + promotion.getId() + " failed. The promoted API could not be created");
+                throw new IllegalStateException(
+                        "Promotion " + promotion.getId() + " failed. The promoted API could not be created");
             }
             promotion.setTargetApiId(createdApi.getId());
         }

@@ -56,13 +56,12 @@ public class ExecutablePolicy implements Policy {
 
         if (method != null) {
             final MethodType invokedMethodType = MethodType.methodType(
-                method.getReturnType(),
-                method.getDeclaringClass(),
-                PolicyChain.class,
-                ExecutionContext.class,
-                Request.class,
-                Response.class
-            );
+                    method.getReturnType(),
+                    method.getDeclaringClass(),
+                    PolicyChain.class,
+                    ExecutionContext.class,
+                    Request.class,
+                    Response.class);
 
             final MethodHandle originalHeadMethodHandle = Lookup.unreflect(lookup, method);
             final MethodType originalMethodType = originalHeadMethodHandle.type();

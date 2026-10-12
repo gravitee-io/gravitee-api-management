@@ -230,6 +230,7 @@ public interface GraviteeMapper {
 
     // AsyncJob mapping
     AsyncJob map(AsyncJobMongo source);
+
     AsyncJobMongo map(AsyncJob source);
 
     // License mapping
@@ -284,16 +285,21 @@ public interface GraviteeMapper {
 
     // Portal mapping
     Portal map(PortalMongo toMap);
+
     PortalMongo map(Portal toMap);
+
     List<Portal> mapPortals(Collection<PortalMongo> toMap);
 
     // Portal listing mapping
     PortalListing map(PortalListingMongo toMap);
+
     PortalListingMongo map(PortalListing toMap);
 
     // Portal menu links mapping
     PortalMenuLink map(PortalMenuLinkMongo toMap);
+
     PortalMenuLinkMongo map(PortalMenuLink toMap);
+
     List<PortalMenuLink> mapPortalMenuLinks(Collection<PortalMenuLinkMongo> toMap);
 
     // PortalNotification mapping
@@ -375,47 +381,60 @@ public interface GraviteeMapper {
 
     // SharedPolicyGroup mapping
     SharedPolicyGroupMongo map(SharedPolicyGroup item);
+
     SharedPolicyGroup map(SharedPolicyGroupMongo item);
 
     // SharedPolicyGroupHistory mapping
     SharedPolicyGroupHistoryMongo mapHistory(SharedPolicyGroup item);
+
     SharedPolicyGroup mapHistory(SharedPolicyGroupHistoryMongo item);
 
     // Scoring mapping
     ScoringReport map(ScoringReportMongo source);
+
     List<ScoringReport> map(List<ScoringReportMongo> source);
 
     ScoringReportMongo map(ScoringReport source);
+
     ScoringRuleset map(ScoringRulesetMongo source);
+
     ScoringRulesetMongo map(ScoringRuleset source);
 
     ScoringFunction map(ScoringFunctionMongo source);
+
     ScoringFunctionMongo map(ScoringFunction source);
 
     Cluster map(ClusterMongo source);
+
     ClusterMongo map(Cluster source);
 
     // KafkaPortRange mapping
     KafkaPortRange map(KafkaPortRangeMongo source);
+
     KafkaPortRangeMongo map(KafkaPortRange source);
 
     // PortalNavigationItem mapping
     PortalNavigationItem map(PortalNavigationItemMongo toMap);
+
     PortalNavigationItemMongo map(PortalNavigationItem toMap);
 
     // PortalPageContent mapping
     PortalPageContent map(PortalPageContentMongo toMap);
+
     PortalPageContentMongo map(PortalPageContent toMap);
 
     // ApiProduct mapping
     ApiProduct map(ApiProductMongo toMap);
+
     ApiProductMongo map(ApiProduct toMap);
 
     // AiWorkspaceComponent mapping
     AiWorkspaceComponent map(AiWorkspaceComponentMongo toMap);
+
     AiWorkspaceComponentMongo map(AiWorkspaceComponent toMap);
 
     // SubscriptionForm mapping
     SubscriptionForm map(SubscriptionFormMongo toMap);
+
     SubscriptionFormMongo map(SubscriptionForm toMap);
 }

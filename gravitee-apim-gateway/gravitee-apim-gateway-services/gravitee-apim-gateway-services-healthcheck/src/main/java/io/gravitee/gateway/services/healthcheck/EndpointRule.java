@@ -40,6 +40,6 @@ public interface EndpointRule<T extends Endpoint> {
 
     ProxyOptions getSystemProxyOptions();
 
-    EndpointRuleHandler<T> createRunner(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine, Environment environment)
-        throws Exception;
+    EndpointRuleHandler<T> createRunner(
+            Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine, Environment environment) throws Exception;
 }

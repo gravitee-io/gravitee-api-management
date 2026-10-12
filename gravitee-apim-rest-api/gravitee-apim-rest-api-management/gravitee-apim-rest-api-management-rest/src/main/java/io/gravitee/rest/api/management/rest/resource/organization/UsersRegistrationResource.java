@@ -67,25 +67,22 @@ public class UsersRegistrationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Register a user", description = "User registration must be enabled")
     @ApiResponse(
-        responseCode = "200",
-        description = "User successfully registered",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
-    )
+            responseCode = "200",
+            description = "User successfully registered",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class)))
     @ApiResponse(responseCode = "400", description = "Unsupported registration target, or no Gamma URL configured")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response registerUser(
-        @Parameter(
-            description = "Optional activation page target. When set to `gamma`, the activation email link targets the " +
-                "Gravitee Gamma console registration page. When omitted, the APIM Console page is used. Only this fixed " +
-                "keyword is accepted; a URL is rejected."
-        ) @QueryParam("registrationTarget") String registrationTarget,
-        @Valid NewExternalUserEntity newExternalUserEntity
-    ) {
+            @Parameter(
+                            description =
+                                    "Optional activation page target. When set to `gamma`, the activation email link targets the "
+                                            + "Gravitee Gamma console registration page. When omitted, the APIM Console page is used. Only this fixed "
+                                            + "keyword is accepted; a URL is rejected.")
+                    @QueryParam("registrationTarget")
+                    String registrationTarget,
+            @Valid NewExternalUserEntity newExternalUserEntity) {
         UserEntity newUser = userService.registerWithTarget(
-            GraviteeContext.getExecutionContext(),
-            newExternalUserEntity,
-            registrationTarget
-        );
+                GraviteeContext.getExecutionContext(), newExternalUserEntity, registrationTarget);
         if (newUser != null) {
             return Response.ok().entity(newUser).build();
         }
@@ -99,13 +96,13 @@ public class UsersRegistrationResource extends AbstractResource {
     @Path("/finalize")
     @Operation(summary = "Finalize user registration", description = "User registration must be enabled")
     @ApiResponse(
-        responseCode = "200",
-        description = "User successfully created",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
-    )
+            responseCode = "200",
+            description = "User successfully created",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response finalizeUserRegistration(@Valid RegisterUserEntity registerUserEntity) {
-        UserEntity newUser = userService.finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
+        UserEntity newUser =
+                userService.finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
         if (newUser != null) {
             return Response.ok().entity(newUser).build();
         }

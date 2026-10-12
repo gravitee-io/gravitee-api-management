@@ -31,7 +31,8 @@ public class PKCS12KeyStoreSerializer extends KeyStoreSerializer<PKCS12KeyStore>
     }
 
     @Override
-    protected void doSerialize(PKCS12KeyStore keyStore, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(PKCS12KeyStore keyStore, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         super.doSerialize(keyStore, jgen, serializerProvider);
 
         writeStringField(jgen, "path", keyStore.getPath());

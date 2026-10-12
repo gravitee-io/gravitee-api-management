@@ -28,9 +28,11 @@ public interface MediaAdapter {
     MediaAdapter INSTANCE = Mappers.getMapper(MediaAdapter.class);
 
     Media toCoreModel(MediaEntity mediaEntity);
+
     List<Media> toCoreModels(List<MediaEntity> mediaEntities);
 
     MediaEntity toEntity(Media media);
+
     List<MediaEntity> toEntities(List<Media> mediaList);
 
     List<Media> mapMedia(Collection<io.gravitee.repository.media.model.Media> src);

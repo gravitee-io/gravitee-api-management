@@ -45,7 +45,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @ExtendWith(MockitoExtension.class)
 public class JWKSKeyProcessorTest extends AbstractKeyProcessorTest {
 
@@ -61,7 +60,8 @@ public class JWKSKeyProcessorTest extends AbstractKeyProcessorTest {
         keyProcessor = new JWKSKeyProcessor<>(claimsVerifier);
         keyProcessor.setJwkSourceResolver(sourceResolver);
 
-        when(sourceResolver.resolve()).thenReturn(new ImmutableJWKSet<>(generateJWKSConfiguration(keyPair, JWSAlgorithm.RS256, RSA_KID)));
+        when(sourceResolver.resolve())
+                .thenReturn(new ImmutableJWKSet<>(generateJWKSConfiguration(keyPair, JWSAlgorithm.RS256, RSA_KID)));
         JWTClaimsSet process = keyProcessor.process(Algorithm.RS256, token);
         assertNotNull(process);
     }
@@ -72,7 +72,8 @@ public class JWKSKeyProcessorTest extends AbstractKeyProcessorTest {
         String token = generateRSAToken(keyPair);
         keyProcessor = new JWKSKeyProcessor<>(claimsVerifier);
         keyProcessor.setJwkSourceResolver(sourceResolver);
-        when(sourceResolver.resolve()).thenReturn(new ImmutableJWKSet<>(generateJWKSConfiguration(keyPair, JWSAlgorithm.RS256, EC_KID)));
+        when(sourceResolver.resolve())
+                .thenReturn(new ImmutableJWKSet<>(generateJWKSConfiguration(keyPair, JWSAlgorithm.RS256, EC_KID)));
         assertThrows(InvalidTokenException.class, () -> {
             keyProcessor.process(Algorithm.RS256, token);
         });
@@ -84,7 +85,8 @@ public class JWKSKeyProcessorTest extends AbstractKeyProcessorTest {
         String token = generateECToken(keyPair);
         keyProcessor = new JWKSKeyProcessor<>(claimsVerifier);
         keyProcessor.setJwkSourceResolver(sourceResolver);
-        when(sourceResolver.resolve()).thenReturn(new ImmutableJWKSet<>(generateJWKSConfiguration(keyPair, JWSAlgorithm.ES256, EC_KID)));
+        when(sourceResolver.resolve())
+                .thenReturn(new ImmutableJWKSet<>(generateJWKSConfiguration(keyPair, JWSAlgorithm.ES256, EC_KID)));
         JWTClaimsSet process = keyProcessor.process(Algorithm.ES256, token);
         assertNotNull(process);
     }
@@ -95,7 +97,8 @@ public class JWKSKeyProcessorTest extends AbstractKeyProcessorTest {
         String token = generateECToken(keyPair);
         keyProcessor = new JWKSKeyProcessor<>(claimsVerifier);
         keyProcessor.setJwkSourceResolver(sourceResolver);
-        when(sourceResolver.resolve()).thenReturn(new ImmutableJWKSet<>(generateJWKSConfiguration(keyPair, JWSAlgorithm.ES256, RSA_KID)));
+        when(sourceResolver.resolve())
+                .thenReturn(new ImmutableJWKSet<>(generateJWKSConfiguration(keyPair, JWSAlgorithm.ES256, RSA_KID)));
         assertThrows(InvalidTokenException.class, () -> {
             keyProcessor.process(Algorithm.ES256, token);
         });
@@ -104,18 +107,18 @@ public class JWKSKeyProcessorTest extends AbstractKeyProcessorTest {
     private JWKSet generateJWKSConfiguration(KeyPair keyPair, JWSAlgorithm algorithm, String kid) {
         if (algorithm == JWSAlgorithm.RS256) {
             RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                .privateKey(keyPair.getPrivate())
-                .keyID(kid)
-                .algorithm(algorithm)
-                .build();
+                    .privateKey(keyPair.getPrivate())
+                    .keyID(kid)
+                    .algorithm(algorithm)
+                    .build();
 
             return new JWKSet(List.of(rsaKey));
         } else if (algorithm == JWSAlgorithm.ES256) {
             ECKey ecKey = new ECKey.Builder(Curve.P_256, (ECPublicKey) keyPair.getPublic())
-                .privateKey(keyPair.getPrivate())
-                .keyID(kid)
-                .algorithm(JWSAlgorithm.ES256)
-                .build();
+                    .privateKey(keyPair.getPrivate())
+                    .keyID(kid)
+                    .algorithm(JWSAlgorithm.ES256)
+                    .build();
             return new JWKSet(List.of(ecKey));
         }
 

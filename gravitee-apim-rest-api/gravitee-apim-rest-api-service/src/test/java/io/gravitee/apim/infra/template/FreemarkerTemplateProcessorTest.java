@@ -58,15 +58,15 @@ class FreemarkerTemplateProcessorTest {
     @Test
     void should_throw_a_TemplateProcessorException_for_an_invalid_template() {
         assertThatExceptionOfType(TemplateProcessorException.class)
-            .isThrownBy(() -> cut.processInlineTemplate("Hello ${name!", Map.of()))
-            .withCauseInstanceOf(freemarker.core.ParseException.class);
+                .isThrownBy(() -> cut.processInlineTemplate("Hello ${name!", Map.of()))
+                .withCauseInstanceOf(freemarker.core.ParseException.class);
     }
 
     @Test
     void should_throw_a_TemplateProcessorException_when_accessing_restricted_classes() {
         assertThatExceptionOfType(TemplateProcessorException.class)
-            .isThrownBy(() -> cut.processInlineTemplate("${'java.lang.System'?new()}", Map.of()))
-            .withCauseInstanceOf(freemarker.core._MiscTemplateException.class);
+                .isThrownBy(() -> cut.processInlineTemplate("${'java.lang.System'?new()}", Map.of()))
+                .withCauseInstanceOf(freemarker.core._MiscTemplateException.class);
     }
 
     @Test
@@ -86,27 +86,23 @@ class FreemarkerTemplateProcessorTest {
     @Test
     void should_not_process_a_template_with_get_class() {
         var data = TestData.builder().id("api-id").build();
-        assertThatExceptionOfType(TemplateProcessorException.class).isThrownBy(() ->
-            cut.processInlineTemplate("${api.class}", Map.of("api", data))
-        );
+        assertThatExceptionOfType(TemplateProcessorException.class)
+                .isThrownBy(() -> cut.processInlineTemplate("${api.class}", Map.of("api", data)));
     }
 
     @Test
     void should_not_process_a_template_with_restricted_methods() {
         var data = TestData.builder().id("api-id").build();
-        assertThatExceptionOfType(TemplateProcessorException.class).isThrownBy(() ->
-            cut.processInlineTemplate("${api.class.protectionDomain}", Map.of("api", data))
-        );
+        assertThatExceptionOfType(TemplateProcessorException.class)
+                .isThrownBy(() -> cut.processInlineTemplate("${api.class.protectionDomain}", Map.of("api", data)));
     }
 
     @Test
     void should_not_process_a_template_with_restricted_methods_combination() {
         var data = TestData.builder().id("api-id").build();
-        assertThatExceptionOfType(TemplateProcessorException.class).isThrownBy(() ->
-            cut.processInlineTemplate(
-                "${api.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('/etc/passwd').toURL().openStream()}",
-                Map.of("api", data)
-            )
-        );
+        assertThatExceptionOfType(TemplateProcessorException.class)
+                .isThrownBy(() -> cut.processInlineTemplate(
+                        "${api.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('/etc/passwd').toURL().openStream()}",
+                        Map.of("api", data)));
     }
 }

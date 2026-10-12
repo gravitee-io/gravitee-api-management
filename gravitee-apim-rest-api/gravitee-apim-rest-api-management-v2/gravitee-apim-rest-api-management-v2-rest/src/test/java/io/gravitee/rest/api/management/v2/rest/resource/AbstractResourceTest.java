@@ -103,7 +103,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { ResourceContextConfiguration.class })
+@ContextConfiguration(classes = {ResourceContextConfiguration.class})
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractResourceTest extends JerseySpringTest {
@@ -296,23 +296,19 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     }
 
     protected void enableApiPrimaryOwnerMode(String environmentId, ApiPrimaryOwnerMode mode) {
-        parametersQueryService.initWith(
-            List.of(new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), environmentId, ParameterReferenceType.ENVIRONMENT, mode.name()))
-        );
+        parametersQueryService.initWith(List.of(new Parameter(
+                Key.API_PRIMARY_OWNER_MODE.key(), environmentId, ParameterReferenceType.ENVIRONMENT, mode.name())));
     }
 
     protected void shouldReturn403(
-        RolePermission permission,
-        String referenceId,
-        RolePermissionAction action,
-        Producer<Response> response
-    ) {
-        when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), permission, referenceId, action)).thenReturn(false);
+            RolePermission permission, String referenceId, RolePermissionAction action, Producer<Response> response) {
+        when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), permission, referenceId, action))
+                .thenReturn(false);
 
         MAPIAssertions.assertThat(response.call())
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
     }
 }

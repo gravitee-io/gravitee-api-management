@@ -59,7 +59,8 @@ public interface GammaDashboardRepository extends CrudRepository<GammaDashboard,
      * through to a comparison that means something different in each backend — SQL's {@code = NULL} never matches,
      * Mongo's does.
      */
-    Optional<GammaDashboard> updateIfVersionMatches(GammaDashboard gammaDashboard, int expectedVersion) throws TechnicalException;
+    Optional<GammaDashboard> updateIfVersionMatches(GammaDashboard gammaDashboard, int expectedVersion)
+            throws TechnicalException;
 
     /**
      * Replaces the dashboard if it still exists, whatever its version, and returns empty if it does not. Backs a

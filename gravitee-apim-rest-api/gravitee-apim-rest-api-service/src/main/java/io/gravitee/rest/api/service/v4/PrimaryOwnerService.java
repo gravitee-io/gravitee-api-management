@@ -48,7 +48,8 @@ public interface PrimaryOwnerService {
      * @deprecated use {@link io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService#getApiProductPrimaryOwner(String, String)} instead
      */
     @Deprecated
-    PrimaryOwnerEntity getApiProductPrimaryOwner(String organizationId, String apiProductId) throws TechnicalManagementException;
+    PrimaryOwnerEntity getApiProductPrimaryOwner(String organizationId, String apiProductId)
+            throws TechnicalManagementException;
 
     /**
      * Resolves the primary owner email for the given API.
@@ -63,7 +64,8 @@ public interface PrimaryOwnerService {
     @Deprecated
     String getPrimaryOwnerEmail(String organizationId, String apiId);
 
-    PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String userId, PrimaryOwnerEntity currentPrimaryOwner);
+    PrimaryOwnerEntity getPrimaryOwner(
+            ExecutionContext executionContext, String userId, PrimaryOwnerEntity currentPrimaryOwner);
 
     Map<String, PrimaryOwnerEntity> getPrimaryOwners(ExecutionContext executionContext, List<String> apiIds);
 }

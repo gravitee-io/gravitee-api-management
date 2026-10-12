@@ -53,12 +53,16 @@ public class PortalListingSyncDomainService {
     private final ApiFolderSubtreeReconciler apiFolderSubtreeReconciler;
     private final PortalNavigationValidator validatorService;
 
-    public void sync(AuditInfo auditInfo, PortalId portalId, List<PortalListingApiEntry> previousEntries, PortalListing listing) {
-        Set<String> newHrids = listing.getApis().stream().map(PortalListingApiEntry::apiHrid).collect(Collectors.toSet());
-        List<PortalListingApiEntry> entriesToRemove = previousEntries
-            .stream()
-            .filter(entry -> !newHrids.contains(entry.apiHrid()))
-            .toList();
+    public void sync(
+            AuditInfo auditInfo,
+            PortalId portalId,
+            List<PortalListingApiEntry> previousEntries,
+            PortalListing listing) {
+        Set<String> newHrids =
+                listing.getApis().stream().map(PortalListingApiEntry::apiHrid).collect(Collectors.toSet());
+        List<PortalListingApiEntry> entriesToRemove = previousEntries.stream()
+                .filter(entry -> !newHrids.contains(entry.apiHrid()))
+                .toList();
         for (var entry : entriesToRemove) {
             navigationItemEntryMaterializer.dematerialize(auditInfo, portalId, entry.apiId(auditInfo));
         }
@@ -103,57 +107,57 @@ public class PortalListingSyncDomainService {
     }
 
     private ValidationItems itemsForEntry(
-        AuditInfo auditInfo,
-        PortalId portalId,
-        List<PortalNavigationItem> envFolders,
-        PortalListingApiEntry entry
-    ) {
+            AuditInfo auditInfo,
+            PortalId portalId,
+            List<PortalNavigationItem> envFolders,
+            PortalListingApiEntry entry) {
         var apiId = entry.apiId(auditInfo);
         var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
         var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, currentFolders);
         var existing = findExistingRow(auditInfo, portalId, apiId);
         return switch (existing) {
             case null -> validationItemsForNewRow(auditInfo, portalId, apiId, entry, subtree);
-            case PortalNavigationApi navApi -> validationItemsForExistingRow(auditInfo, portalId, entry, navApi, subtree);
-            default -> throw PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, entry.location());
+            case PortalNavigationApi navApi ->
+                validationItemsForExistingRow(auditInfo, portalId, entry, navApi, subtree);
+            default ->
+                throw PathConflictException.navigationIdTaken(
+                        PathConflictException.EntryKind.LISTING, entry.location());
         };
     }
 
     private PortalNavigationItem findExistingRow(AuditInfo auditInfo, PortalId portalId, String apiId) {
         return navigationItemEntryMaterializer.findExistingRow(
-            auditInfo,
-            navigationItemEntryMaterializer.rowId(auditInfo, portalId, apiId)
-        );
+                auditInfo, navigationItemEntryMaterializer.rowId(auditInfo, portalId, apiId));
     }
 
     private ValidationItems validationItemsForNewRow(
-        AuditInfo auditInfo,
-        PortalId portalId,
-        String apiId,
-        PortalListingApiEntry entry,
-        ValidationItems subtree
-    ) {
+            AuditInfo auditInfo,
+            PortalId portalId,
+            String apiId,
+            PortalListingApiEntry entry,
+            ValidationItems subtree) {
         var rowCreate = navigationItemEntryMaterializer.itemForValidation(auditInfo, portalId, apiId, entry);
-        var creates = new ArrayList<CreatePortalNavigationItem>(subtree.creates().size() + 1);
+        var creates =
+                new ArrayList<CreatePortalNavigationItem>(subtree.creates().size() + 1);
         creates.add(rowCreate);
         creates.addAll(subtree.creates());
         return new ValidationItems(creates, subtree.updates());
     }
 
     private ValidationItems validationItemsForExistingRow(
-        AuditInfo auditInfo,
-        PortalId portalId,
-        PortalListingApiEntry entry,
-        PortalNavigationApi navApi,
-        ValidationItems subtree
-    ) {
+            AuditInfo auditInfo,
+            PortalId portalId,
+            PortalListingApiEntry entry,
+            PortalNavigationApi navApi,
+            ValidationItems subtree) {
         var rowUpdate = navigationItemEntryMaterializer.updateForValidation(auditInfo, portalId, entry, navApi);
         var updates = new ArrayList<>(subtree.updates());
         updates.add(rowUpdate);
         return new ValidationItems(subtree.creates(), updates);
     }
 
-    public void validateApiFolderConflictsForApi(AuditInfo auditInfo, String apiId, @Nullable List<NavigationPath> desired) {
+    public void validateApiFolderConflictsForApi(
+            AuditInfo auditInfo, String apiId, @Nullable List<NavigationPath> desired) {
         var safeDesired = desired == null ? List.<NavigationPath>of() : desired;
         var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
         var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
@@ -163,7 +167,7 @@ public class PortalListingSyncDomainService {
 
     private void materializeApiDocs(AuditInfo auditInfo, String apiId) {
         portalPageContentQueryService
-            .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
-            .forEach(pc -> apiDocumentationSyncDomainService.rematerialize(auditInfo, pc));
+                .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
+                .forEach(pc -> apiDocumentationSyncDomainService.rematerialize(auditInfo, pc));
     }
 }

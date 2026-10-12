@@ -54,13 +54,15 @@ public interface PageService {
 
     PageEntity createPage(ExecutionContext executionContext, String apiId, NewPageEntity page);
 
-    PageEntity createPage(ExecutionContext executionContext, String apiId, NewPageEntity newPageEntity, String newPageId);
+    PageEntity createPage(
+            ExecutionContext executionContext, String apiId, NewPageEntity newPageEntity, String newPageId);
 
     PageEntity createPage(ExecutionContext executionContext, NewPageEntity page);
 
     PageEntity update(ExecutionContext executionContext, String pageId, UpdatePageEntity updatePageEntity);
 
-    PageEntity update(ExecutionContext executionContext, String pageId, UpdatePageEntity updatePageEntity, boolean partial);
+    PageEntity update(
+            ExecutionContext executionContext, String pageId, UpdatePageEntity updatePageEntity, boolean partial);
 
     void delete(ExecutionContext executionContext, String pageId);
 
@@ -90,18 +92,18 @@ public interface PageService {
 
     PageEntity createAsideFolder(ExecutionContext executionContext, String apiId);
 
-    PageEntity createSystemFolder(ExecutionContext executionContext, String apiId, SystemFolderType systemFolderType, int order);
+    PageEntity createSystemFolder(
+            ExecutionContext executionContext, String apiId, SystemFolderType systemFolderType, int order);
 
     PageEntity createWithDefinition(ExecutionContext executionContext, String apiId, String toString);
 
     void createOrUpdatePages(ExecutionContext executionContext, List<PageEntity> pages, String apiId);
 
     void createOrUpdateSwaggerPage(
-        ExecutionContext executionContext,
-        String apiId,
-        ImportSwaggerDescriptorEntity swaggerDescriptor,
-        boolean isForCreation
-    );
+            ExecutionContext executionContext,
+            String apiId,
+            ImportSwaggerDescriptorEntity swaggerDescriptor,
+            boolean isForCreation);
 
     /**
      * Check if the page is used as GeneralCondition by an active Plan for the given ApiID
@@ -111,7 +113,8 @@ public interface PageService {
      * @param genericApiEntity
      * @return
      */
-    boolean isPageUsedAsGeneralConditions(ExecutionContext executionContext, PageEntity page, GenericApiEntity genericApiEntity);
+    boolean isPageUsedAsGeneralConditions(
+            ExecutionContext executionContext, PageEntity page, GenericApiEntity genericApiEntity);
 
     boolean shouldHaveRevision(String pageType);
 

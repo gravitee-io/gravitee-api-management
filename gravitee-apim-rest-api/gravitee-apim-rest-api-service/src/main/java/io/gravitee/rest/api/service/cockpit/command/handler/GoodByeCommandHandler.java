@@ -52,7 +52,8 @@ public class GoodByeCommandHandler implements CommandHandler<GoodByeCommand, Goo
     public Single<GoodByeReply> handle(GoodByeCommand command) {
         try {
             if (!command.getPayload().isReconnect()) {
-                final Map<String, String> additionalInformation = this.installationService.getOrInitialize().getAdditionalInformation();
+                final Map<String, String> additionalInformation =
+                        this.installationService.getOrInitialize().getAdditionalInformation();
                 additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_STATUS, DELETED_STATUS);
                 rejectAllPromotionToValidate();
                 this.installationService.setAdditionalInformation(additionalInformation);
@@ -70,12 +71,9 @@ public class GoodByeCommandHandler implements CommandHandler<GoodByeCommand, Goo
         PromotionQuery promotionQuery = new PromotionQuery();
         promotionQuery.setStatuses(List.of(PromotionEntityStatus.TO_BE_VALIDATED));
 
-        promotionService
-            .search(promotionQuery, null, null)
-            .getContent()
-            .forEach(promotionEntity -> {
-                promotionEntity.setStatus(PromotionEntityStatus.REJECTED);
-                promotionService.createOrUpdate(promotionEntity);
-            });
+        promotionService.search(promotionQuery, null, null).getContent().forEach(promotionEntity -> {
+            promotionEntity.setStatus(PromotionEntityStatus.REJECTED);
+            promotionService.createOrUpdate(promotionEntity);
+        });
     }
 }

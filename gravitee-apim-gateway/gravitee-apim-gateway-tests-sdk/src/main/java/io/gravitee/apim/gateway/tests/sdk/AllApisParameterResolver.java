@@ -33,17 +33,21 @@ public class AllApisParameterResolver implements GatewayTestParameterResolver {
     @Override
     public boolean supports(ParameterContext parameterContext) {
         try {
-            final ParameterizedType parameterizedType = (ParameterizedType) parameterContext.getParameter().getParameterizedType();
+            final ParameterizedType parameterizedType =
+                    (ParameterizedType) parameterContext.getParameter().getParameterizedType();
             final Type key = parameterizedType.getActualTypeArguments()[0];
             final Type value = ((ParameterizedType) parameterizedType.getActualTypeArguments()[1]).getRawType();
-            return parameterContext.getParameter().getType() == Map.class && key == String.class && value == ReactableApi.class;
+            return parameterContext.getParameter().getType() == Map.class
+                    && key == String.class
+                    && value == ReactableApi.class;
         } catch (Exception e) {
             return false;
         }
     }
 
     @Override
-    public Object resolve(ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest) {
+    public Object resolve(
+            ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest) {
         return new HashMap<>(gatewayTest.deployedApis);
     }
 }

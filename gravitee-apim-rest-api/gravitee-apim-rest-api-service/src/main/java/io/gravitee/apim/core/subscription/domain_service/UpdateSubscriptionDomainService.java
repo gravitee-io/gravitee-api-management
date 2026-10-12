@@ -35,11 +35,10 @@ public interface UpdateSubscriptionDomainService {
      * @param endingAt Optional ending date
      */
     void update(
-        AuditInfo auditInfo,
-        String subscriptionId,
-        io.gravitee.rest.api.model.SubscriptionConfigurationEntity configuration,
-        java.util.Map<String, String> metadata,
-        java.time.ZonedDateTime startingAt,
-        java.time.ZonedDateTime endingAt
-    );
+            AuditInfo auditInfo,
+            String subscriptionId,
+            io.gravitee.rest.api.model.SubscriptionConfigurationEntity configuration,
+            java.util.Map<String, String> metadata,
+            java.time.ZonedDateTime startingAt,
+            java.time.ZonedDateTime endingAt);
 }

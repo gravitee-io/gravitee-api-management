@@ -80,7 +80,7 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
         role.setScope(RoleScope.API);
         role.setReferenceId(REFERENCE_ID);
         role.setReferenceType(REFERENCE_TYPE);
-        role.setPermissions(new int[] { 3 });
+        role.setPermissions(new int[] {3});
 
         boolean presentBefore = roleRepository.findById("API_to_create").isPresent();
         Role newRole = roleRepository.create(role);
@@ -103,7 +103,7 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
         role.setScope(RoleScope.EXPLORER);
         role.setReferenceId(REFERENCE_ID);
         role.setReferenceType(REFERENCE_TYPE);
-        role.setPermissions(new int[] { 3 });
+        role.setPermissions(new int[] {3});
 
         boolean presentBefore = roleRepository.findById("EXPLORER_to_create").isPresent();
         Role newRole = roleRepository.create(role);
@@ -123,7 +123,7 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
         role.setReferenceId(REFERENCE_ID);
         role.setReferenceType(REFERENCE_TYPE);
         role.setDescription("new description");
-        role.setPermissions(new int[] { 4, 5 });
+        role.setPermissions(new int[] {4, 5});
         role.setDefaultRole(true);
 
         Role update = roleRepository.update(role);
@@ -136,14 +136,16 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(role.getDescription(), update.getDescription(), "invalid description");
         assertEquals(role.isDefaultRole(), update.isDefaultRole(), "invalid default role");
         assertEquals(role.isSystem(), update.isSystem(), "invalid system attribute");
-        List<Integer> updatePermissions = IntStream.of(update.getPermissions()).boxed().collect(Collectors.toList());
+        List<Integer> updatePermissions =
+                IntStream.of(update.getPermissions()).boxed().collect(Collectors.toList());
         assertTrue(updatePermissions.contains(4), "invalid permission");
         assertTrue(updatePermissions.contains(5), "invalid permission");
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        boolean presentBefore = roleRepository.findById("ORGANIZATION_to_delete").isPresent();
+        boolean presentBefore =
+                roleRepository.findById("ORGANIZATION_to_delete").isPresent();
         roleRepository.delete("ORGANIZATION_to_delete");
         boolean presentAfter = roleRepository.findById("ORGANIZATION_to_delete").isPresent();
 
@@ -154,11 +156,7 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldFindByScopeAndName() throws Exception {
         Optional<Role> role = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-            RoleScope.API,
-            "find by scope 1",
-            REFERENCE_ID,
-            REFERENCE_TYPE
-        );
+                RoleScope.API, "find by scope 1", REFERENCE_ID, REFERENCE_TYPE);
         assertNotNull(role);
         assertTrue(role.isPresent(), "No roles found");
         assertTrue("find by scope 1".equals(role.get().getName()), "not contains scope1");
@@ -166,7 +164,8 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByScopeAndRef() throws Exception {
-        Set<Role> roles = roleRepository.findByScopeAndReferenceIdAndReferenceType(RoleScope.API, REFERENCE_ID, REFERENCE_TYPE);
+        Set<Role> roles =
+                roleRepository.findByScopeAndReferenceIdAndReferenceType(RoleScope.API, REFERENCE_ID, REFERENCE_TYPE);
         assertNotNull(roles);
         assertFalse(roles.isEmpty(), "No roles found");
         assertEquals(1, roles.size(), "invalid roles count");
@@ -225,28 +224,34 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldNotFindByIdAndOrganisationIdWhenOrganisationIdIsWrong() throws TechnicalException {
-        assertThat(roleRepository.findByIdAndReferenceIdAndReferenceType("an_api_organisation_role", "dummy", REFERENCE_TYPE)).isEmpty();
+        assertThat(roleRepository.findByIdAndReferenceIdAndReferenceType(
+                        "an_api_organisation_role", "dummy", REFERENCE_TYPE))
+                .isEmpty();
     }
 
     @Test
     public void shouldNotFindByIdAndOrganisationIdWhenRoleIdIsWrong() throws TechnicalException {
-        assertThat(roleRepository.findByIdAndReferenceIdAndReferenceType("dummy", REFERENCE_ID, REFERENCE_TYPE)).isEmpty();
+        assertThat(roleRepository.findByIdAndReferenceIdAndReferenceType("dummy", REFERENCE_ID, REFERENCE_TYPE))
+                .isEmpty();
     }
 
     @Test
     public void shouldNotFindByIdAndOrganisationIdWhenReferenceTypeIsWrong() throws TechnicalException {
-        assertThat(
-            roleRepository.findByIdAndReferenceIdAndReferenceType("API_find_by_id_and_org_id", REFERENCE_ID, RoleReferenceType.ENVIRONMENT)
-        ).isEmpty();
+        assertThat(roleRepository.findByIdAndReferenceIdAndReferenceType(
+                        "API_find_by_id_and_org_id", REFERENCE_ID, RoleReferenceType.ENVIRONMENT))
+                .isEmpty();
     }
 
     @Test
     public void should_delete_by_reference_id_and_reference_type() throws Exception {
-        assertThat(roleRepository.findAllByReferenceIdAndReferenceType("ToBeDeleted", RoleReferenceType.ORGANIZATION)).isNotEmpty();
+        assertThat(roleRepository.findAllByReferenceIdAndReferenceType("ToBeDeleted", RoleReferenceType.ORGANIZATION))
+                .isNotEmpty();
 
-        List<String> deleted = roleRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", RoleReferenceType.ORGANIZATION);
+        List<String> deleted =
+                roleRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", RoleReferenceType.ORGANIZATION);
 
         assertEquals(2, deleted.size());
-        assertThat(roleRepository.findAllByReferenceIdAndReferenceType("ToBeDeleted", RoleReferenceType.ORGANIZATION)).isEmpty();
+        assertThat(roleRepository.findAllByReferenceIdAndReferenceType("ToBeDeleted", RoleReferenceType.ORGANIZATION))
+                .isEmpty();
     }
 }

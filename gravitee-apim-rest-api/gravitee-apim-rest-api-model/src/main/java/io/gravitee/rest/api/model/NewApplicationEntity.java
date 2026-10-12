@@ -41,9 +41,8 @@ public class NewApplicationEntity {
 
     @NotNull(message = "Application's description must not be null")
     @Schema(
-        description = "Application's description. A short description of your App.",
-        example = "I can use a hundred characters to describe this App."
-    )
+            description = "Application's description. A short description of your App.",
+            example = "I can use a hundred characters to describe this App.")
     private String description;
 
     @Schema(description = "Domain used by the application, if relevant", example = "https://my-app.com")
@@ -66,7 +65,9 @@ public class NewApplicationEntity {
     @Deprecated
     private String clientId;
 
-    @Schema(description = "Application groups. Used to add teams to your application.", example = "['MY_GROUP1', 'MY_GROUP2']")
+    @Schema(
+            description = "Application groups. Used to add teams to your application.",
+            example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     private String picture;

@@ -139,7 +139,8 @@ public class EnvironmentResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Environment getEnvironment(@PathParam("envId") String envId) {
-        return EnvironmentMapper.INSTANCE.map(environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
+        return EnvironmentMapper.INSTANCE.map(
+                environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
     }
 
     @Path("/proxy-kafka-console")

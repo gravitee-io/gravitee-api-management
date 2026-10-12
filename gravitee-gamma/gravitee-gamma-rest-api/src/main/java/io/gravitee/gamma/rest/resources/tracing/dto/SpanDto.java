@@ -45,33 +45,31 @@ import java.util.Map;
  * mapping is documented in {@code TRACING_API.md} and tracked as a follow-up.
  */
 public record SpanDto(
-    String traceId,
-    String spanId,
-    @JsonInclude(JsonInclude.Include.NON_NULL) String parentSpanId,
-    String operationName,
-    String serviceName,
-    long startTimeEpochMs,
-    long durationNanos,
-    String status,
-    String kind,
-    Map<String, String> attributes,
-    List<SpanEventDto> events,
-    List<PayloadLogDto> payloadLogs
-) {
+        String traceId,
+        String spanId,
+        @JsonInclude(JsonInclude.Include.NON_NULL) String parentSpanId,
+        String operationName,
+        String serviceName,
+        long startTimeEpochMs,
+        long durationNanos,
+        String status,
+        String kind,
+        Map<String, String> attributes,
+        List<SpanEventDto> events,
+        List<PayloadLogDto> payloadLogs) {
     public static SpanDto from(String traceId, Span span) {
         return new SpanDto(
-            traceId,
-            span.spanId(),
-            span.parentSpanId(),
-            span.operationName(),
-            span.serviceName(),
-            span.startTime() != null ? span.startTime().toEpochMilli() : 0L,
-            span.durationNanos(),
-            span.status().name().toLowerCase(),
-            span.kind().name().toLowerCase(),
-            span.attributes(),
-            span.events().stream().map(SpanEventDto::from).toList(),
-            span.payloadLogs().stream().map(PayloadLogDto::from).toList()
-        );
+                traceId,
+                span.spanId(),
+                span.parentSpanId(),
+                span.operationName(),
+                span.serviceName(),
+                span.startTime() != null ? span.startTime().toEpochMilli() : 0L,
+                span.durationNanos(),
+                span.status().name().toLowerCase(),
+                span.kind().name().toLowerCase(),
+                span.attributes(),
+                span.events().stream().map(SpanEventDto::from).toList(),
+                span.payloadLogs().stream().map(PayloadLogDto::from).toList());
     }
 }

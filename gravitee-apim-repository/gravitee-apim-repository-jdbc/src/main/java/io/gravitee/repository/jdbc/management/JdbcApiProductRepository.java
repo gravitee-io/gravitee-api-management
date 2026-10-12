@@ -38,7 +38,8 @@ import org.springframework.util.CollectionUtils;
 
 @Repository
 @CustomLog
-public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProduct, String> implements ApiProductsRepository {
+public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProduct, String>
+        implements ApiProductsRepository {
 
     private final String API_PRODUCT_APIS;
     private final String API_PRODUCT_GROUPS;
@@ -54,17 +55,17 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
     @Override
     protected JdbcObjectMapper<ApiProduct> buildOrm() {
         return JdbcObjectMapper.builder(ApiProduct.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("version", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("disable_membership_notifications", Types.BOOLEAN, boolean.class)
-            .addColumn("kind", Types.NVARCHAR, ApiProductKind.class)
-            .addColumn("analytics", Types.NVARCHAR, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("version", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("disable_membership_notifications", Types.BOOLEAN, boolean.class)
+                .addColumn("kind", Types.NVARCHAR, ApiProductKind.class)
+                .addColumn("analytics", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -94,11 +95,12 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             storeApiIds(apiProduct, true);
             storeGroupIds(apiProduct, true);
             storeTags(apiProduct, true);
-            return findById(apiProduct.getId()).orElseThrow(() ->
-                new IllegalStateException(String.format("No api product found with id [%s]", apiProduct.getId()))
-            );
+            return findById(apiProduct.getId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            String.format("No api product found with id [%s]", apiProduct.getId())));
         } catch (final IllegalStateException ex) {
-            throw new TechnicalException(String.format("Failed to update api product with id [%s]", apiProduct.getId()), ex);
+            throw new TechnicalException(
+                    String.format("Failed to update api product with id [%s]", apiProduct.getId()), ex);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to update api product", ex);
         }
@@ -110,16 +112,14 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         if (opt.isPresent()) {
             ApiProduct apiProduct = opt.get();
             List<String> apiIds = jdbcTemplate.query(
-                "SELECT api_id FROM " + API_PRODUCT_APIS + " WHERE api_product_id = ?",
-                (ResultSet rs, int rowNum) -> rs.getString("api_id"),
-                id
-            );
+                    "SELECT api_id FROM " + API_PRODUCT_APIS + " WHERE api_product_id = ?",
+                    (ResultSet rs, int rowNum) -> rs.getString("api_id"),
+                    id);
             apiProduct.setApiIds(apiIds);
             List<String> groupIds = jdbcTemplate.query(
-                "SELECT group_id FROM " + API_PRODUCT_GROUPS + " WHERE api_product_id = ?",
-                (ResultSet rs, int rowNum) -> rs.getString("group_id"),
-                id
-            );
+                    "SELECT group_id FROM " + API_PRODUCT_GROUPS + " WHERE api_product_id = ?",
+                    (ResultSet rs, int rowNum) -> rs.getString("group_id"),
+                    id);
             apiProduct.setGroups(groupIds.isEmpty() ? null : new HashSet<>(groupIds));
             List<String> tags = getTags(id);
             apiProduct.setTags(tags.isEmpty() ? null : new HashSet<>(tags));
@@ -133,18 +133,16 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         log.debug("JdbcApiProductRepository.findAll()");
         try {
             List<ApiProduct> apiProducts = jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " ap " +
-                    "LEFT JOIN " +
-                    API_PRODUCT_APIS +
-                    " apa ON ap.id = apa.api_product_id " +
-                    "ORDER BY ap.id",
-                (ResultSet rs, int rowNum) -> {
-                    ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
-                    addApiId(apiProduct, rs);
-                    return apiProduct;
-                }
-            );
+                    getOrm().getSelectAllSql() + " ap "
+                            + "LEFT JOIN "
+                            + API_PRODUCT_APIS
+                            + " apa ON ap.id = apa.api_product_id "
+                            + "ORDER BY ap.id",
+                    (ResultSet rs, int rowNum) -> {
+                        ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
+                        addApiId(apiProduct, rs);
+                        return apiProduct;
+                    });
             List<ApiProduct> aggregated = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregated);
             enrichWithTags(aggregated);
@@ -155,24 +153,23 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
     }
 
     @Override
-    public Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name) throws TechnicalException {
+    public Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name)
+            throws TechnicalException {
         log.debug("JdbcApiProductRepository.findByEnvironmentIdAndName({}, {})", environmentId, name);
         try {
             List<ApiProduct> apiProducts = jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " ap " +
-                    "LEFT JOIN " +
-                    API_PRODUCT_APIS +
-                    " apa ON ap.id = apa.api_product_id " +
-                    "WHERE ap.environment_id = ? AND ap.name = ?",
-                (ResultSet rs, int rowNum) -> {
-                    ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
-                    addApiId(apiProduct, rs);
-                    return apiProduct;
-                },
-                environmentId,
-                name
-            );
+                    getOrm().getSelectAllSql() + " ap "
+                            + "LEFT JOIN "
+                            + API_PRODUCT_APIS
+                            + " apa ON ap.id = apa.api_product_id "
+                            + "WHERE ap.environment_id = ? AND ap.name = ?",
+                    (ResultSet rs, int rowNum) -> {
+                        ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
+                        addApiId(apiProduct, rs);
+                        return apiProduct;
+                    },
+                    environmentId,
+                    name);
             List<ApiProduct> aggregated = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregated);
             enrichWithTags(aggregated);
@@ -187,20 +184,18 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         log.debug("JdbcApiProductRepository.findByEnvironmentId({})", environmentId);
         try {
             List<ApiProduct> apiProducts = jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " ap " +
-                    "LEFT JOIN " +
-                    API_PRODUCT_APIS +
-                    " apa ON ap.id = apa.api_product_id " +
-                    "WHERE ap.environment_id = ? " +
-                    "ORDER BY ap.id",
-                (ResultSet rs, int rowNum) -> {
-                    ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
-                    addApiId(apiProduct, rs);
-                    return apiProduct;
-                },
-                environmentId
-            );
+                    getOrm().getSelectAllSql() + " ap "
+                            + "LEFT JOIN "
+                            + API_PRODUCT_APIS
+                            + " apa ON ap.id = apa.api_product_id "
+                            + "WHERE ap.environment_id = ? "
+                            + "ORDER BY ap.id",
+                    (ResultSet rs, int rowNum) -> {
+                        ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
+                        addApiId(apiProduct, rs);
+                        return apiProduct;
+                    },
+                    environmentId);
             List<ApiProduct> aggregatedByEnv = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregatedByEnv);
             enrichWithTags(aggregatedByEnv);
@@ -231,7 +226,8 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         }
         try {
             List<Object> args = new ArrayList<>();
-            boolean needApiJoin = criteria.getApiIds() != null && !criteria.getApiIds().isEmpty();
+            boolean needApiJoin =
+                    criteria.getApiIds() != null && !criteria.getApiIds().isEmpty();
             String clause = buildSearchIdsClause(criteria, args);
 
             String sql = getOrm().getSelectAllSql() + " ap ";
@@ -245,14 +241,13 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
 
             final boolean joinApiIds = needApiJoin;
             List<ApiProduct> apiProducts = jdbcTemplate.query(
-                sql,
-                (ResultSet rs, int rowNum) -> {
-                    ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
-                    if (joinApiIds) addApiId(apiProduct, rs);
-                    return apiProduct;
-                },
-                args.toArray()
-            );
+                    sql,
+                    (ResultSet rs, int rowNum) -> {
+                        ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
+                        if (joinApiIds) addApiId(apiProduct, rs);
+                        return apiProduct;
+                    },
+                    args.toArray());
             List<ApiProduct> aggregated = needApiJoin ? aggregateApiProducts(apiProducts) : apiProducts;
             enrichWithGroupIds(aggregated);
             enrichWithTags(aggregated);
@@ -267,22 +262,20 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         log.debug("JdbcApiProductRepository.findByApiId({})", apiId);
         try {
             List<ApiProduct> apiProducts = jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    " ap " +
-                    "LEFT JOIN " +
-                    API_PRODUCT_APIS +
-                    " apa ON ap.id = apa.api_product_id " +
-                    "WHERE ap.id IN (SELECT api_product_id FROM " +
-                    API_PRODUCT_APIS +
-                    " WHERE api_id = ?) " +
-                    "ORDER BY ap.id",
-                (ResultSet rs, int rowNum) -> {
-                    ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
-                    addApiId(apiProduct, rs);
-                    return apiProduct;
-                },
-                apiId
-            );
+                    getOrm().getSelectAllSql() + " ap "
+                            + "LEFT JOIN "
+                            + API_PRODUCT_APIS
+                            + " apa ON ap.id = apa.api_product_id "
+                            + "WHERE ap.id IN (SELECT api_product_id FROM "
+                            + API_PRODUCT_APIS
+                            + " WHERE api_id = ?) "
+                            + "ORDER BY ap.id",
+                    (ResultSet rs, int rowNum) -> {
+                        ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
+                        addApiId(apiProduct, rs);
+                        return apiProduct;
+                    },
+                    apiId);
             List<ApiProduct> aggregatedByApiId = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregatedByApiId);
             enrichWithTags(aggregatedByApiId);
@@ -310,26 +303,23 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         log.debug("JdbcApiProductRepository.findApiProductsByApiIds({})", apiIds);
         try {
             List<String> idList = new ArrayList<>(apiIds);
-            String sql =
-                getOrm().getSelectAllSql() +
-                " ap " +
-                "LEFT JOIN " +
-                API_PRODUCT_APIS +
-                " apa ON ap.id = apa.api_product_id " +
-                "WHERE ap.id IN (SELECT api_product_id FROM " +
-                API_PRODUCT_APIS +
-                " WHERE api_id IN (" +
-                getOrm().buildInClause(idList) +
-                ")) ORDER BY ap.id";
+            String sql = getOrm().getSelectAllSql() + " ap "
+                    + "LEFT JOIN "
+                    + API_PRODUCT_APIS
+                    + " apa ON ap.id = apa.api_product_id "
+                    + "WHERE ap.id IN (SELECT api_product_id FROM "
+                    + API_PRODUCT_APIS
+                    + " WHERE api_id IN ("
+                    + getOrm().buildInClause(idList)
+                    + ")) ORDER BY ap.id";
             List<ApiProduct> apiProducts = jdbcTemplate.query(
-                sql,
-                (ResultSet rs, int rowNum) -> {
-                    ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
-                    addApiId(apiProduct, rs);
-                    return apiProduct;
-                },
-                idList.toArray()
-            );
+                    sql,
+                    (ResultSet rs, int rowNum) -> {
+                        ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
+                        addApiId(apiProduct, rs);
+                        return apiProduct;
+                    },
+                    idList.toArray());
             List<ApiProduct> aggregatedByApiIds = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregatedByApiIds);
             enrichWithTags(aggregatedByApiIds);
@@ -347,24 +337,21 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         log.debug("JdbcApiProductRepository.findByIds({})", ids);
         try {
             List<String> idList = new ArrayList<>(ids);
-            String sql =
-                getOrm().getSelectAllSql() +
-                " ap " +
-                "LEFT JOIN " +
-                API_PRODUCT_APIS +
-                " apa ON ap.id = apa.api_product_id " +
-                "WHERE ap.id IN (" +
-                getOrm().buildInClause(idList) +
-                ") ORDER BY ap.id";
+            String sql = getOrm().getSelectAllSql() + " ap "
+                    + "LEFT JOIN "
+                    + API_PRODUCT_APIS
+                    + " apa ON ap.id = apa.api_product_id "
+                    + "WHERE ap.id IN ("
+                    + getOrm().buildInClause(idList)
+                    + ") ORDER BY ap.id";
             List<ApiProduct> apiProducts = jdbcTemplate.query(
-                sql,
-                (ResultSet rs, int rowNum) -> {
-                    ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
-                    addApiId(apiProduct, rs);
-                    return apiProduct;
-                },
-                idList.toArray()
-            );
+                    sql,
+                    (ResultSet rs, int rowNum) -> {
+                        ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
+                        addApiId(apiProduct, rs);
+                        return apiProduct;
+                    },
+                    idList.toArray());
             List<ApiProduct> aggregatedByIds = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregatedByIds);
             enrichWithTags(aggregatedByIds);
@@ -375,7 +362,8 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
     }
 
     @Override
-    public Page<ApiProduct> search(ApiProductCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+    public Page<ApiProduct> search(ApiProductCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
         log.debug("JdbcApiProductRepository.search({}, pageable)", criteria);
         Page<String> idPage = searchIds(criteria != null ? List.of(criteria) : List.of(), pageable, sortable);
         if (idPage.getContent().isEmpty()) {
@@ -383,13 +371,16 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         }
         Map<String, ApiProduct> byId = new LinkedHashMap<>();
         findByIds(idPage.getContent()).forEach(p -> byId.put(p.getId(), p));
-        List<ApiProduct> ordered = idPage.getContent().stream().filter(byId::containsKey).map(byId::get).toList();
+        List<ApiProduct> ordered = idPage.getContent().stream()
+                .filter(byId::containsKey)
+                .map(byId::get)
+                .toList();
         return new Page<>(ordered, pageable.pageNumber(), ordered.size(), idPage.getTotalElements());
     }
 
     @Override
     public Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcApiProductRepository.searchIds({})", apiProductCriteriaList);
         if (apiProductCriteriaList == null || apiProductCriteriaList.isEmpty()) {
             return JdbcAbstractPageableRepository.getResultAsPage(pageable, Collections.emptyList());
@@ -397,9 +388,9 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         try {
             List<String> clauses = new ArrayList<>();
             List<Object> args = new ArrayList<>();
-            boolean needApiJoin = apiProductCriteriaList
-                .stream()
-                .anyMatch(criteria -> criteria.getApiIds() != null && !criteria.getApiIds().isEmpty());
+            boolean needApiJoin = apiProductCriteriaList.stream()
+                    .anyMatch(criteria -> criteria.getApiIds() != null
+                            && !criteria.getApiIds().isEmpty());
             for (ApiProductCriteria criteria : apiProductCriteriaList) {
                 String clause = buildSearchIdsClause(criteria, args);
                 if (clause != null) {
@@ -424,17 +415,24 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             }
 
             // Data query with SQL-level pagination (LIMIT/OFFSET) to avoid loading all IDs into memory
-            String dataSql = "SELECT " + (needApiJoin ? "DISTINCT " : "") + "ap.id" + fromClause + "WHERE " + whereClause;
-            if (sortable != null && sortable.field() != null && !sortable.field().isEmpty()) {
+            String dataSql =
+                    "SELECT " + (needApiJoin ? "DISTINCT " : "") + "ap.id" + fromClause + "WHERE " + whereClause;
+            if (sortable != null
+                    && sortable.field() != null
+                    && !sortable.field().isEmpty()) {
                 String field = "name".equals(sortable.field()) ? "ap.name" : "ap.id";
-                dataSql +=
-                    "ORDER BY " + field + (sortable.order() == io.gravitee.repository.management.api.search.Order.DESC ? " DESC" : " ASC");
+                dataSql += "ORDER BY " + field
+                        + (sortable.order() == io.gravitee.repository.management.api.search.Order.DESC
+                                ? " DESC"
+                                : " ASC");
             } else {
                 dataSql += "ORDER BY ap.name ASC";
             }
-            dataSql += " " + AbstractJdbcRepositoryConfiguration.createPagingClause(pageable.pageSize(), pageable.from());
+            dataSql +=
+                    " " + AbstractJdbcRepositoryConfiguration.createPagingClause(pageable.pageSize(), pageable.from());
 
-            List<String> ids = jdbcTemplate.query(dataSql, (ResultSet rs, int rowNum) -> rs.getString("id"), args.toArray());
+            List<String> ids =
+                    jdbcTemplate.query(dataSql, (ResultSet rs, int rowNum) -> rs.getString("id"), args.toArray());
             return new Page<>(ids, pageable.pageNumber(), ids.size(), totalCount);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to search API Product IDs by criteria", ex);
@@ -471,13 +469,10 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         }
         if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
             List<String> groupList = new ArrayList<>(criteria.getGroups());
-            clauses.add(
-                "ap.id IN (SELECT api_product_id FROM " +
-                    API_PRODUCT_GROUPS +
-                    " WHERE group_id IN (" +
-                    getOrm().buildInClause(groupList) +
-                    "))"
-            );
+            clauses.add("ap.id IN (SELECT api_product_id FROM " + API_PRODUCT_GROUPS
+                    + " WHERE group_id IN ("
+                    + getOrm().buildInClause(groupList)
+                    + "))");
             args.addAll(groupList);
         }
         return clauses.isEmpty() ? null : String.join(" AND ", clauses);
@@ -490,20 +485,19 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         if (apiProduct.getApiIds() != null && !apiProduct.getApiIds().isEmpty()) {
             List<String> apiIds = new ArrayList<>(apiProduct.getApiIds());
             jdbcTemplate.batchUpdate(
-                "INSERT INTO " + API_PRODUCT_APIS + " (api_product_id, api_id) VALUES (?, ?)",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, apiProduct.getId());
-                        ps.setString(2, apiIds.get(i));
-                    }
+                    "INSERT INTO " + API_PRODUCT_APIS + " (api_product_id, api_id) VALUES (?, ?)",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, apiProduct.getId());
+                            ps.setString(2, apiIds.get(i));
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return apiIds.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return apiIds.size();
+                        }
+                    });
         }
     }
 
@@ -514,42 +508,40 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         if (apiProduct.getGroups() != null && !apiProduct.getGroups().isEmpty()) {
             List<String> groupIds = new ArrayList<>(apiProduct.getGroups());
             jdbcTemplate.batchUpdate(
-                "INSERT INTO " + API_PRODUCT_GROUPS + " (api_product_id, group_id) VALUES (?, ?)",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, apiProduct.getId());
-                        ps.setString(2, groupIds.get(i));
-                    }
+                    "INSERT INTO " + API_PRODUCT_GROUPS + " (api_product_id, group_id) VALUES (?, ?)",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, apiProduct.getId());
+                            ps.setString(2, groupIds.get(i));
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return groupIds.size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return groupIds.size();
+                        }
+                    });
         }
     }
 
     private List<String> getTags(String apiProductId) {
         return jdbcTemplate.query(
-            "SELECT tag FROM " + API_PRODUCT_TAGS + " WHERE api_product_id = ?",
-            (ResultSet rs, int rowNum) -> rs.getString("tag"),
-            apiProductId
-        );
+                "SELECT tag FROM " + API_PRODUCT_TAGS + " WHERE api_product_id = ?",
+                (ResultSet rs, int rowNum) -> rs.getString("tag"),
+                apiProductId);
     }
 
     private void storeTags(ApiProduct apiProduct, boolean deleteFirst) throws TechnicalException {
         try {
             if (deleteFirst) {
-                jdbcTemplate.update("DELETE FROM " + API_PRODUCT_TAGS + " WHERE api_product_id = ?", apiProduct.getId());
+                jdbcTemplate.update(
+                        "DELETE FROM " + API_PRODUCT_TAGS + " WHERE api_product_id = ?", apiProduct.getId());
             }
             List<String> filteredTags = getOrm().filterStrings(apiProduct.getTags());
             if (!filteredTags.isEmpty()) {
                 jdbcTemplate.batchUpdate(
-                    "INSERT INTO " + API_PRODUCT_TAGS + " ( api_product_id, tag ) VALUES ( ?, ? )",
-                    getOrm().getBatchStringSetter(apiProduct.getId(), filteredTags)
-                );
+                        "INSERT INTO " + API_PRODUCT_TAGS + " ( api_product_id, tag ) VALUES ( ?, ? )",
+                        getOrm().getBatchStringSetter(apiProduct.getId(), filteredTags));
             }
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to store api product tags", ex);
@@ -563,12 +555,14 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         List<String> productIds = products.stream().map(ApiProduct::getId).toList();
         Map<String, Set<String>> tagsByProductId = new HashMap<>();
         jdbcTemplate.query(
-            "SELECT api_product_id, tag FROM " + API_PRODUCT_TAGS + " WHERE api_product_id IN (" + getOrm().buildInClause(productIds) + ")",
-            rs -> {
-                tagsByProductId.computeIfAbsent(rs.getString("api_product_id"), k -> new HashSet<>()).add(rs.getString("tag"));
-            },
-            productIds.toArray()
-        );
+                "SELECT api_product_id, tag FROM " + API_PRODUCT_TAGS + " WHERE api_product_id IN ("
+                        + getOrm().buildInClause(productIds) + ")",
+                rs -> {
+                    tagsByProductId
+                            .computeIfAbsent(rs.getString("api_product_id"), k -> new HashSet<>())
+                            .add(rs.getString("tag"));
+                },
+                productIds.toArray());
         products.forEach(p -> {
             Set<String> tags = tagsByProductId.get(p.getId());
             p.setTags(tags == null || tags.isEmpty() ? null : tags);
@@ -582,16 +576,16 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         List<String> productIds = products.stream().map(ApiProduct::getId).toList();
         Map<String, Set<String>> groupsByProductId = new HashMap<>();
         jdbcTemplate.query(
-            "SELECT api_product_id, group_id FROM " +
-                API_PRODUCT_GROUPS +
-                " WHERE api_product_id IN (" +
-                getOrm().buildInClause(productIds) +
-                ")",
-            rs -> {
-                groupsByProductId.computeIfAbsent(rs.getString("api_product_id"), k -> new HashSet<>()).add(rs.getString("group_id"));
-            },
-            productIds.toArray()
-        );
+                "SELECT api_product_id, group_id FROM " + API_PRODUCT_GROUPS
+                        + " WHERE api_product_id IN ("
+                        + getOrm().buildInClause(productIds)
+                        + ")",
+                rs -> {
+                    groupsByProductId
+                            .computeIfAbsent(rs.getString("api_product_id"), k -> new HashSet<>())
+                            .add(rs.getString("group_id"));
+                },
+                productIds.toArray());
         products.forEach(p -> p.setGroups(groupsByProductId.getOrDefault(p.getId(), null)));
     }
 

@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.subscription.domain_service;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 
 /**
  * Domain service for creating subscriptions.
@@ -41,16 +40,15 @@ public interface CreateSubscriptionDomainService {
      * @return The created subscription entity (REST model, will be converted to core by caller)
      */
     io.gravitee.rest.api.model.SubscriptionEntity create(
-        AuditInfo auditInfo,
-        String planId,
-        String applicationId,
-        String requestMessage,
-        String customApiKey,
-        io.gravitee.apim.core.subscription.model.SubscriptionConfiguration configuration,
-        java.util.Map<String, String> metadata,
-        io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
-        Boolean generalConditionsAccepted,
-        io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision,
-        Boolean subscriptionFormMetadataValidationRequired
-    );
+            AuditInfo auditInfo,
+            String planId,
+            String applicationId,
+            String requestMessage,
+            String customApiKey,
+            io.gravitee.apim.core.subscription.model.SubscriptionConfiguration configuration,
+            java.util.Map<String, String> metadata,
+            io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
+            Boolean generalConditionsAccepted,
+            io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision,
+            Boolean subscriptionFormMetadataValidationRequired);
 }

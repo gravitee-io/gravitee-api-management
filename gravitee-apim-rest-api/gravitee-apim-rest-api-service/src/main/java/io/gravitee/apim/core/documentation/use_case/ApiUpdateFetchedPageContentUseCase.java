@@ -21,11 +21,9 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
-import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.exception.ApiPageSourceNotDefinedException;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Date;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -53,20 +51,14 @@ public class ApiUpdateFetchedPageContentUseCase {
         }
 
         var pageToUpdate = this.documentationValidationDomainService.validateAndSanitizeForUpdate(
-            oldPage,
-            input.auditInfo.organizationId(),
-            false
-        );
+                oldPage, input.auditInfo.organizationId(), false);
 
         if (Objects.equals(pageToUpdate.getContent(), oldPage.getContent())) {
             return new Output(oldPage);
         }
 
         var updatedPage = this.updateApiDocumentationDomainService.updatePage(
-            pageToUpdate.toBuilder().updatedAt(new Date()).build(),
-            oldPage,
-            input.auditInfo
-        );
+                pageToUpdate.toBuilder().updatedAt(new Date()).build(), oldPage, input.auditInfo);
 
         return new Output(updatedPage);
     }

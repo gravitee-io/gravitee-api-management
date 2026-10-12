@@ -34,17 +34,18 @@ public interface RatingRepository extends FindAllRepository<Rating> {
 
     Optional<Rating> findById(String id) throws TechnicalException;
 
-    Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType, Pageable pageable)
-        throws TechnicalException;
+    Page<Rating> findByReferenceIdAndReferenceTypePageable(
+            String referenceId, RatingReferenceType referenceType, Pageable pageable) throws TechnicalException;
 
-    List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) throws TechnicalException;
+    List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
+            throws TechnicalException;
 
     Rating update(Rating rating) throws TechnicalException;
 
     void delete(String id) throws TechnicalException;
 
-    Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user)
-        throws TechnicalException;
+    Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(
+            String referenceId, RatingReferenceType referenceType, String user) throws TechnicalException;
 
     Set<String> findReferenceIdsOrderByRate(RatingCriteria ratingCriteria) throws TechnicalException;
 
@@ -55,5 +56,6 @@ public interface RatingRepository extends FindAllRepository<Rating> {
      * @return List of IDs for deleted ratings
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
+            throws TechnicalException;
 }

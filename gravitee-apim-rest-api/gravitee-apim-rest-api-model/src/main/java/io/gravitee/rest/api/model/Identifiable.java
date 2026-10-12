@@ -21,5 +21,6 @@ package io.gravitee.rest.api.model;
  */
 public interface Identifiable {
     String getId();
+
     void setId(String id);
 }

@@ -76,7 +76,9 @@ class SubscriptionFormCrudServiceImplTest {
             service.create(subscriptionForm);
 
             verify(repository).create(captor.capture());
-            assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(subscriptionFormAdapter.toRepository(subscriptionForm));
+            assertThat(captor.getValue())
+                    .usingRecursiveComparison()
+                    .isEqualTo(subscriptionFormAdapter.toRepository(subscriptionForm));
         }
 
         @Test
@@ -101,7 +103,10 @@ class SubscriptionFormCrudServiceImplTest {
 
         @Test
         void should_keep_the_mapped_apis_when_generating_the_id() throws TechnicalException {
-            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().id(null).apiIds(List.of("api-1", "api-2")).build();
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                    .id(null)
+                    .apiIds(List.of("api-1", "api-2"))
+                    .build();
 
             var result = service.create(subscriptionForm);
 
@@ -115,8 +120,8 @@ class SubscriptionFormCrudServiceImplTest {
             when(repository.create(any())).thenThrow(new DuplicateKeyException("collision"));
 
             assertThatThrownBy(() -> service.create(SubscriptionFormFixtures.aSubscriptionFormWithNullId()))
-                .isInstanceOf(SubscriptionFormConflictException.class)
-                .hasCauseInstanceOf(DuplicateKeyException.class);
+                    .isInstanceOf(SubscriptionFormConflictException.class)
+                    .hasCauseInstanceOf(DuplicateKeyException.class);
         }
 
         @Test
@@ -125,10 +130,9 @@ class SubscriptionFormCrudServiceImplTest {
             var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
 
             assertThatThrownBy(() -> service.create(subscriptionForm))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage(
-                    "An error occurred while trying to create a SubscriptionForm for env: " + SubscriptionFormFixtures.ENVIRONMENT_ID
-                );
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to create a SubscriptionForm for env: "
+                            + SubscriptionFormFixtures.ENVIRONMENT_ID);
         }
     }
 
@@ -147,7 +151,9 @@ class SubscriptionFormCrudServiceImplTest {
             service.update(subscriptionForm);
 
             verify(repository).update(captor.capture());
-            assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(subscriptionFormAdapter.toRepository(subscriptionForm));
+            assertThat(captor.getValue())
+                    .usingRecursiveComparison()
+                    .isEqualTo(subscriptionFormAdapter.toRepository(subscriptionForm));
         }
 
         @Test
@@ -164,8 +170,8 @@ class SubscriptionFormCrudServiceImplTest {
             when(repository.update(any())).thenThrow(new DuplicateKeyException("collision"));
 
             assertThatThrownBy(() -> service.update(SubscriptionFormFixtures.aSubscriptionForm()))
-                .isInstanceOf(SubscriptionFormConflictException.class)
-                .hasCauseInstanceOf(DuplicateKeyException.class);
+                    .isInstanceOf(SubscriptionFormConflictException.class)
+                    .hasCauseInstanceOf(DuplicateKeyException.class);
         }
 
         @Test
@@ -174,8 +180,9 @@ class SubscriptionFormCrudServiceImplTest {
             var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
 
             assertThatThrownBy(() -> service.update(subscriptionForm))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to update a SubscriptionForm with id: " + SubscriptionFormFixtures.FORM_ID);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to update a SubscriptionForm with id: "
+                            + SubscriptionFormFixtures.FORM_ID);
         }
     }
 
@@ -195,8 +202,9 @@ class SubscriptionFormCrudServiceImplTest {
             var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
 
             assertThatThrownBy(() -> service.delete(subscriptionForm))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to delete a SubscriptionForm with id: " + SubscriptionFormFixtures.FORM_ID);
+                    .isInstanceOf(TechnicalDomainException.class)
+                    .hasMessage("An error occurred while trying to delete a SubscriptionForm with id: "
+                            + SubscriptionFormFixtures.FORM_ID);
         }
     }
 }

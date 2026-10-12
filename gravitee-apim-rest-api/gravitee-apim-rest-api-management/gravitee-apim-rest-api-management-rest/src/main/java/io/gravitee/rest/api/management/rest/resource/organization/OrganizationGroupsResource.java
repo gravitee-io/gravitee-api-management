@@ -48,20 +48,20 @@ public class OrganizationGroupsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Find groups",
-        description = "Find all groups for current organization" + "Only users with ORGANIZATION_TAG permissions could see API groups."
-    )
+            summary = "Find groups",
+            description = "Find all groups for current organization"
+                    + "Only users with ORGANIZATION_TAG permissions could see API groups.")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of groups",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = GroupSimpleEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of groups",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = GroupSimpleEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.READ)})
     public Response getGroups() {
-        return Response.ok(groupService.findAllByOrganization(GraviteeContext.getCurrentOrganization())).build();
+        return Response.ok(groupService.findAllByOrganization(GraviteeContext.getCurrentOrganization()))
+                .build();
     }
 }

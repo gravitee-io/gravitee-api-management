@@ -119,17 +119,22 @@ public class ApiProductSubscriptionResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiProductSubscription(@QueryParam("expands") Set<String> expands) {
         log.debug("Getting subscription {} for API Product {}", subscriptionId, apiProductId);
         var output = getSubscriptionsUseCase.execute(
-            GetSubscriptionsUseCase.Input.of(apiProductId, SubscriptionReferenceType.API_PRODUCT, subscriptionId)
-        );
+                GetSubscriptionsUseCase.Input.of(apiProductId, SubscriptionReferenceType.API_PRODUCT, subscriptionId));
         Optional<io.gravitee.apim.core.subscription.model.SubscriptionEntity> subscription = output.subscription();
 
         if (subscription.isEmpty()) {
             log.debug("Subscription {} not found for API Product {}", subscriptionId, apiProductId);
-            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(subscriptionNotFoundError(subscriptionId))
+                    .build();
         }
         io.gravitee.apim.core.subscription.model.SubscriptionEntity coreSubscription = subscription.orElseThrow();
         Subscription subscriptionResponse = subscriptionMapper.map(coreSubscription);
@@ -140,30 +145,42 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     }
 
     private void expandData(Subscription subscription, Set<String> expands) {
-        subscriptionExpandHelper.expandForApiProduct(GraviteeContext.getExecutionContext(), apiProductId, List.of(subscription), expands);
+        subscriptionExpandHelper.expandForApiProduct(
+                GraviteeContext.getExecutionContext(), apiProductId, List.of(subscription), expands);
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response updateApiProductSubscription(@Valid @NotNull UpdateSubscription updateSubscription) {
         log.debug("Updating subscription {} for API Product {}", subscriptionId, apiProductId);
         SubscriptionConfigurationEntity configuration = null;
         if (updateSubscription.getConsumerConfiguration() != null) {
-            configuration = subscriptionMapper.mapConsumerConfigurationToEntity(updateSubscription.getConsumerConfiguration());
+            configuration =
+                    subscriptionMapper.mapConsumerConfigurationToEntity(updateSubscription.getConsumerConfiguration());
         }
 
         var input = UpdateSubscriptionUseCase.Input.builder()
-            .referenceId(apiProductId)
-            .referenceType(SubscriptionReferenceType.API_PRODUCT)
-            .subscriptionId(subscriptionId)
-            .configuration(configuration)
-            .metadata(updateSubscription.getMetadata())
-            .startingAt(updateSubscription.getStartingAt() != null ? updateSubscription.getStartingAt().toZonedDateTime() : null)
-            .endingAt(updateSubscription.getEndingAt() != null ? updateSubscription.getEndingAt().toZonedDateTime() : null)
-            .auditInfo(getAuditInfo())
-            .build();
+                .referenceId(apiProductId)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .subscriptionId(subscriptionId)
+                .configuration(configuration)
+                .metadata(updateSubscription.getMetadata())
+                .startingAt(
+                        updateSubscription.getStartingAt() != null
+                                ? updateSubscription.getStartingAt().toZonedDateTime()
+                                : null)
+                .endingAt(
+                        updateSubscription.getEndingAt() != null
+                                ? updateSubscription.getEndingAt().toZonedDateTime()
+                                : null)
+                .auditInfo(getAuditInfo())
+                .build();
 
         var output = updateSubscriptionUseCase.execute(input);
         log.debug("Updated subscription {} for API Product {}", subscriptionId, apiProductId);
@@ -174,19 +191,29 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     @Path("/_accept")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response acceptApiProductSubscription(@Valid @NotNull AcceptSubscription acceptSubscription) {
         log.debug("Accepting subscription {} for API Product {}", subscriptionId, apiProductId);
         var input = AcceptSubscriptionUseCase.Input.builder()
-            .referenceId(apiProductId)
-            .referenceType(SubscriptionReferenceType.API_PRODUCT)
-            .subscriptionId(subscriptionId)
-            .startingAt(acceptSubscription.getStartingAt() != null ? acceptSubscription.getStartingAt().toZonedDateTime() : null)
-            .endingAt(acceptSubscription.getEndingAt() != null ? acceptSubscription.getEndingAt().toZonedDateTime() : null)
-            .reasonMessage(acceptSubscription.getReason())
-            .customKey(acceptSubscription.getCustomApiKey())
-            .auditInfo(getAuditInfo())
-            .build();
+                .referenceId(apiProductId)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .subscriptionId(subscriptionId)
+                .startingAt(
+                        acceptSubscription.getStartingAt() != null
+                                ? acceptSubscription.getStartingAt().toZonedDateTime()
+                                : null)
+                .endingAt(
+                        acceptSubscription.getEndingAt() != null
+                                ? acceptSubscription.getEndingAt().toZonedDateTime()
+                                : null)
+                .reasonMessage(acceptSubscription.getReason())
+                .customKey(acceptSubscription.getCustomApiKey())
+                .auditInfo(getAuditInfo())
+                .build();
 
         var output = acceptSubscriptionUseCase.execute(input);
         log.debug("Accepted subscription {} for API Product {}", subscriptionId, apiProductId);
@@ -197,16 +224,20 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     @Path("/_reject")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response rejectApiProductSubscription(@Valid @NotNull RejectSubscription rejectSubscription) {
         log.debug("Rejecting subscription {} for API Product {}", subscriptionId, apiProductId);
         var input = RejectSubscriptionUseCase.Input.builder()
-            .referenceId(apiProductId)
-            .referenceType(SubscriptionReferenceType.API_PRODUCT)
-            .subscriptionId(subscriptionId)
-            .reasonMessage(rejectSubscription.getReason())
-            .auditInfo(getAuditInfo())
-            .build();
+                .referenceId(apiProductId)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .subscriptionId(subscriptionId)
+                .reasonMessage(rejectSubscription.getReason())
+                .auditInfo(getAuditInfo())
+                .build();
 
         var output = rejectSubscriptionUseCase.execute(input);
         log.debug("Rejected subscription {} for API Product {}", subscriptionId, apiProductId);
@@ -216,15 +247,19 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     @POST
     @Path("/_close")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response closeApiProductSubscription() {
         log.debug("Closing subscription {} for API Product {}", subscriptionId, apiProductId);
         var input = CloseSubscriptionUseCase.Input.builder()
-            .referenceId(apiProductId)
-            .referenceType(SubscriptionReferenceType.API_PRODUCT)
-            .subscriptionId(subscriptionId)
-            .auditInfo(getAuditInfo())
-            .build();
+                .referenceId(apiProductId)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .subscriptionId(subscriptionId)
+                .auditInfo(getAuditInfo())
+                .build();
 
         var output = closeSubscriptionUseCase.execute(input);
         log.debug("Closed subscription {} for API Product {}", subscriptionId, apiProductId);
@@ -234,87 +269,112 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     @POST
     @Path("/_pause")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response pauseApiProductSubscription() {
         checkSubscription();
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        return Response.ok(subscriptionMapper.map(subscriptionService.pause(executionContext, subscriptionId))).build();
+        return Response.ok(subscriptionMapper.map(subscriptionService.pause(executionContext, subscriptionId)))
+                .build();
     }
 
     @POST
     @Path("/_resume")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response resumeApiProductSubscription() {
         checkSubscription();
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        return Response.ok(subscriptionMapper.map(subscriptionService.resume(executionContext, subscriptionId))).build();
+        return Response.ok(subscriptionMapper.map(subscriptionService.resume(executionContext, subscriptionId)))
+                .build();
     }
 
     @POST
     @Path("/_resumeFailure")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response resumeFailedApiProductSubscription() {
         checkSubscription();
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        return Response.ok(subscriptionMapper.map(subscriptionService.resumeFailed(executionContext, subscriptionId))).build();
+        return Response.ok(subscriptionMapper.map(subscriptionService.resumeFailed(executionContext, subscriptionId)))
+                .build();
     }
 
     @POST
     @Path("/_transfer")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response transferApiProductSubscription(@Valid @NotNull TransferSubscription transferSubscription) {
         checkSubscription();
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final TransferSubscriptionEntity transferSubscriptionEntity = subscriptionMapper.map(transferSubscription, subscriptionId);
-        return Response.ok(
-            subscriptionMapper.map(subscriptionService.transfer(executionContext, transferSubscriptionEntity, getAuthenticatedUser()))
-        ).build();
+        final TransferSubscriptionEntity transferSubscriptionEntity =
+                subscriptionMapper.map(transferSubscription, subscriptionId);
+        return Response.ok(subscriptionMapper.map(subscriptionService.transfer(
+                        executionContext, transferSubscriptionEntity, getAuthenticatedUser())))
+                .build();
     }
 
     @GET
     @Path("/api-keys")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getApiProductSubscriptionApiKeys(@BeanParam @Valid PaginationParam paginationParam) {
         checkSubscription();
         final List<ApiKey> apiKeys = subscriptionMapper.mapToApiKeyList(
-            apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), subscriptionId)
-        );
+                apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), subscriptionId));
         final List<ApiKey> apiKeysSubList = computePaginationData(apiKeys, paginationParam);
-        return Response.ok(
-            new SubscriptionApiKeysResponse()
-                .data(apiKeysSubList)
-                .pagination(PaginationInfo.computePaginationInfo(apiKeys.size(), apiKeysSubList.size(), paginationParam))
-                .links(computePaginationLinks(apiKeys.size(), paginationParam))
-        ).build();
+        return Response.ok(new SubscriptionApiKeysResponse()
+                        .data(apiKeysSubList)
+                        .pagination(PaginationInfo.computePaginationInfo(
+                                apiKeys.size(), apiKeysSubList.size(), paginationParam))
+                        .links(computePaginationLinks(apiKeys.size(), paginationParam)))
+                .build();
     }
 
     @POST
     @Path("/api-keys/_renew")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response renewApiProductSubscriptionApiKeys(@Valid @NotNull RenewApiKey renewApiKey) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            StringUtils.isNotEmpty(renewApiKey.getCustomApiKey()) &&
-            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
-        ) {
+        if (StringUtils.isNotEmpty(renewApiKey.getCustomApiKey())
+                && !parameterService.findAsBoolean(
+                        executionContext,
+                        Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                        ParameterReferenceType.ENVIRONMENT)) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(subscriptionInvalid("You are not allowed to provide a custom API Key"))
-                .build();
+                    .entity(subscriptionInvalid("You are not allowed to provide a custom API Key"))
+                    .build();
         }
         io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity = checkSubscription();
         checkApplicationDoesntUseSharedApiKey(executionContext, subscriptionEntity.getApplication());
-        final io.gravitee.rest.api.model.ApiKeyEntity apiKeyEntity = apiKeyService.renew(
-            executionContext,
-            subscriptionEntity,
-            renewApiKey.getCustomApiKey()
-        );
+        final io.gravitee.rest.api.model.ApiKeyEntity apiKeyEntity =
+                apiKeyService.renew(executionContext, subscriptionEntity, renewApiKey.getCustomApiKey());
         return Response.ok(subscriptionMapper.mapToApiKey(apiKeyEntity)).build();
     }
 
@@ -322,60 +382,77 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     @Path("/api-keys/{apiKeyId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
-    public Response updateApiProductSubscriptionApiKey(@PathParam("apiKeyId") String apiKeyId, @Valid @NotNull UpdateApiKey updateApiKey) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
+    public Response updateApiProductSubscriptionApiKey(
+            @PathParam("apiKeyId") String apiKeyId, @Valid @NotNull UpdateApiKey updateApiKey) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity = checkSubscription();
         checkApplicationDoesntUseSharedApiKey(executionContext, subscriptionEntity.getApplication());
         final io.gravitee.rest.api.model.ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apiKeyId);
         if (!apiKeyEntity.getSubscriptionIds().contains(subscriptionId)) {
-            return Response.status(Response.Status.NOT_FOUND).entity(apiKeyNotFoundError(apiKeyId)).build();
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(apiKeyNotFoundError(apiKeyId))
+                    .build();
         }
-        apiKeyEntity.setExpireAt(updateApiKey.getExpireAt() != null ? java.util.Date.from(updateApiKey.getExpireAt().toInstant()) : null);
-        return Response.ok(subscriptionMapper.mapToApiKey(apiKeyService.update(executionContext, apiKeyEntity))).build();
+        apiKeyEntity.setExpireAt(
+                updateApiKey.getExpireAt() != null
+                        ? java.util.Date.from(updateApiKey.getExpireAt().toInstant())
+                        : null);
+        return Response.ok(subscriptionMapper.mapToApiKey(apiKeyService.update(executionContext, apiKeyEntity)))
+                .build();
     }
 
     @POST
     @Path("/api-keys/{apiKeyId}/_revoke")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response revokeApiProductSubscriptionApiKey(@PathParam("apiKeyId") String apiKeyId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final var user = getAuthenticatedUserDetails();
-        var result = revokeApiSubscriptionApiKeyUseCase.execute(
-            new RevokeApiSubscriptionApiKeyUseCase.Input(
+        var result = revokeApiSubscriptionApiKeyUseCase.execute(new RevokeApiSubscriptionApiKeyUseCase.Input(
                 apiKeyId,
                 apiProductId,
                 SubscriptionReferenceType.API_PRODUCT.name(),
                 subscriptionId,
                 AuditInfo.builder()
-                    .organizationId(executionContext.getOrganizationId())
-                    .environmentId(executionContext.getEnvironmentId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(user.getUsername())
-                            .userSource(user.getSource())
-                            .userSourceId(user.getSourceId())
-                            .build()
-                    )
-                    .build()
-            )
-        );
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(user.getUsername())
+                                .userSource(user.getSource())
+                                .userSourceId(user.getSourceId())
+                                .build())
+                        .build()));
         return Response.ok(subscriptionMapper.mapToApiKey(result.apiKey())).build();
     }
 
     @POST
     @Path("/api-keys/{apiKeyId}/_reactivate")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_PRODUCT_SUBSCRIPTION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response reactivateApiProductSubscriptionApiKey(@PathParam("apiKeyId") String apiKeyId) {
         checkSubscription();
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         io.gravitee.rest.api.model.ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apiKeyId);
         if (!apiKeyEntity.getSubscriptionIds().contains(subscriptionId)) {
-            return Response.status(Response.Status.NOT_FOUND).entity(apiKeyNotFoundError(apiKeyId)).build();
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(apiKeyNotFoundError(apiKeyId))
+                    .build();
         }
-        checkApplicationDoesntUseSharedApiKey(executionContext, apiKeyEntity.getApplication().getId());
+        checkApplicationDoesntUseSharedApiKey(
+                executionContext, apiKeyEntity.getApplication().getId());
         apiKeyEntity = apiKeyService.reactivate(executionContext, apiKeyEntity);
         return Response.ok(subscriptionMapper.mapToApiKey(apiKeyEntity)).build();
     }
@@ -389,42 +466,40 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     }
 
     private boolean isApiProductSubscription(io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity) {
-        return (
-            apiProductId.equals(subscriptionEntity.getReferenceId()) &&
-            SubscriptionReferenceType.API_PRODUCT.name().equals(subscriptionEntity.getReferenceType())
-        );
+        return (apiProductId.equals(subscriptionEntity.getReferenceId())
+                && SubscriptionReferenceType.API_PRODUCT.name().equals(subscriptionEntity.getReferenceType()));
     }
 
     private Error apiKeyNotFoundError(String apiKeyId) {
         return new Error()
-            .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
-            .message("No API Key can be found.")
-            .putParametersItem("apiKeyId", apiKeyId)
-            .technicalCode("apiKey.notFound");
+                .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
+                .message("No API Key can be found.")
+                .putParametersItem("apiKeyId", apiKeyId)
+                .technicalCode("apiKey.notFound");
     }
 
     private Error subscriptionInvalid(String message) {
-        return new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).message(message).technicalCode("subscription.invalid");
+        return new Error()
+                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                .message(message)
+                .technicalCode("subscription.invalid");
     }
 
     private void checkApplicationDoesntUseSharedApiKey(ExecutionContext executionContext, String applicationId) {
-        final io.gravitee.rest.api.model.ApplicationEntity applicationEntity = applicationService.findById(executionContext, applicationId);
+        final io.gravitee.rest.api.model.ApplicationEntity applicationEntity =
+                applicationService.findById(executionContext, applicationId);
         if (applicationEntity.hasApiKeySharedMode()) {
-            throw new InvalidApplicationApiKeyModeException(
-                String.format(
+            throw new InvalidApplicationApiKeyModeException(String.format(
                     "Invalid operation for API Key mode [%s] of application [%s].",
-                    applicationEntity.getApiKeyMode(),
-                    applicationEntity.getId()
-                )
-            );
+                    applicationEntity.getApiKeyMode(), applicationEntity.getId()));
         }
     }
 
     private Error subscriptionNotFoundError(String subscriptionId) {
         return new Error()
-            .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
-            .message("Subscription [" + subscriptionId + "] cannot be found.")
-            .putParametersItem("subscription", subscriptionId)
-            .technicalCode("subscription.notFound");
+                .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
+                .message("Subscription [" + subscriptionId + "] cannot be found.")
+                .putParametersItem("subscription", subscriptionId)
+                .technicalCode("subscription.notFound");
     }
 }

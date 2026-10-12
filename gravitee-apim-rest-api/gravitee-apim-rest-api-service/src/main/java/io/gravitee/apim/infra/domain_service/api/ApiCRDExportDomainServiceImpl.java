@@ -62,11 +62,13 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
     private final NotificationCRDDomainService notificationCRDDomainService;
 
     @Override
-    public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo, boolean exportNotifications) {
+    public ApiCRDSpec export(
+            String apiId, IDExportStrategy idExport, AuditInfo auditInfo, boolean exportNotifications) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var exportEntity = exportService.exportApi(executionContext, apiId, null, Set.of());
         var notificationConfigEntity = getPortalNotificationConfigEntity(apiId, auditInfo, exportNotifications);
-        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(exportEntity, exportEntity.getApiEntity(), notificationConfigEntity);
+        var spec =
+                ApiCRDAdapter.INSTANCE.toCRDSpec(exportEntity, exportEntity.getApiEntity(), notificationConfigEntity);
         if (spec.getMembers() != null) {
             setMembersSourceId(spec.getMembers());
             removePrimaryOwner(spec.getMembers());
@@ -74,10 +76,11 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
         if (spec.getGroups() != null) {
             spec.setGroups(getGroupNames(spec.getGroups()));
         }
-        if (spec.getConsoleNotificationConfiguration() != null && spec.getConsoleNotificationConfiguration().getGroups() != null) {
-            spec
-                .getConsoleNotificationConfiguration()
-                .setGroups(new ArrayList<>(getGroupNames(new HashSet<>(spec.getConsoleNotificationConfiguration().getGroups()))));
+        if (spec.getConsoleNotificationConfiguration() != null
+                && spec.getConsoleNotificationConfiguration().getGroups() != null) {
+            spec.getConsoleNotificationConfiguration()
+                    .setGroups(new ArrayList<>(getGroupNames(new HashSet<>(
+                            spec.getConsoleNotificationConfiguration().getGroups()))));
         }
 
         spec.setPortalNavigation(apiCrudService.get(apiId).getPortalNavigation());
@@ -87,13 +90,11 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
     }
 
     private PortalNotificationConfigEntity getPortalNotificationConfigEntity(
-        String apiId,
-        AuditInfo auditInfo,
-        boolean exportNotifications
-    ) {
+            String apiId, AuditInfo auditInfo, boolean exportNotifications) {
         var notificationConfigEntity = exportNotifications
-            ? notificationCRDDomainService.getApiConsoleNotification(apiId, auditInfo.actor().userId())
-            : null;
+                ? notificationCRDDomainService.getApiConsoleNotification(
+                        apiId, auditInfo.actor().userId())
+                : null;
         if (notificationConfigEntity != null && notificationConfigEntity.isDefaultEmpty()) {
             notificationConfigEntity = null;
         }
@@ -113,10 +114,8 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
     private void setMembersSourceId(Set<MemberCRD> members) {
         var membersById = members.stream().collect(Collectors.toMap(MemberCRD::getId, Function.identity()));
 
-        var usersById = userCrudService
-            .findBaseUsersByIds(new ArrayList<>(membersById.keySet()))
-            .stream()
-            .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity()));
+        var usersById = userCrudService.findBaseUsersByIds(new ArrayList<>(membersById.keySet())).stream()
+                .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity()));
 
         membersById.forEach((id, member) -> {
             var user = usersById.get(id);
@@ -147,59 +146,47 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
         switch (idExport) {
             case GUID -> {
                 spec.setHrid(null);
-                Optional.ofNullable(spec.getPlans())
-                    .orElse(Map.of())
-                    .forEach((k, plan) -> {
-                        plan.setHrid(null);
-                        plan.setGeneralConditionsHrid(null);
-                    });
-                Optional.ofNullable(spec.getPages())
-                    .orElse(Map.of())
-                    .forEach((k, page) -> {
-                        page.setHrid(null);
-                        page.setParentHrid(null);
-                    });
+                Optional.ofNullable(spec.getPlans()).orElse(Map.of()).forEach((k, plan) -> {
+                    plan.setHrid(null);
+                    plan.setGeneralConditionsHrid(null);
+                });
+                Optional.ofNullable(spec.getPages()).orElse(Map.of()).forEach((k, page) -> {
+                    page.setHrid(null);
+                    page.setParentHrid(null);
+                });
             }
             case HRID -> {
                 spec.setId(null);
                 spec.setCrossId(null);
-                Optional.ofNullable(spec.getPlans())
-                    .orElse(Map.of())
-                    .forEach((k, plan) -> {
-                        plan.setId(null);
-                        plan.setCrossId(null);
-                        plan.setGeneralConditions(null);
-                    });
-                Optional.ofNullable(spec.getPages())
-                    .orElse(Map.of())
-                    .forEach((k, page) -> {
-                        page.setId(null);
-                        page.setCrossId(null);
-                        page.setParentId(null);
-                    });
+                Optional.ofNullable(spec.getPlans()).orElse(Map.of()).forEach((k, plan) -> {
+                    plan.setId(null);
+                    plan.setCrossId(null);
+                    plan.setGeneralConditions(null);
+                });
+                Optional.ofNullable(spec.getPages()).orElse(Map.of()).forEach((k, page) -> {
+                    page.setId(null);
+                    page.setCrossId(null);
+                    page.setParentId(null);
+                });
             }
             case NONE -> {
                 spec.setHrid(null);
                 spec.setId(null);
                 spec.setCrossId(null);
-                Optional.ofNullable(spec.getPlans())
-                    .orElse(Map.of())
-                    .forEach((k, plan) -> {
-                        plan.setHrid(null);
-                        plan.setGeneralConditionsHrid(null);
-                        plan.setId(null);
-                        plan.setCrossId(null);
-                        plan.setGeneralConditions(null);
-                    });
-                Optional.ofNullable(spec.getPages())
-                    .orElse(Map.of())
-                    .forEach((k, page) -> {
-                        page.setId(null);
-                        page.setCrossId(null);
-                        page.setParentId(null);
-                        page.setHrid(null);
-                        page.setParentHrid(null);
-                    });
+                Optional.ofNullable(spec.getPlans()).orElse(Map.of()).forEach((k, plan) -> {
+                    plan.setHrid(null);
+                    plan.setGeneralConditionsHrid(null);
+                    plan.setId(null);
+                    plan.setCrossId(null);
+                    plan.setGeneralConditions(null);
+                });
+                Optional.ofNullable(spec.getPages()).orElse(Map.of()).forEach((k, page) -> {
+                    page.setId(null);
+                    page.setCrossId(null);
+                    page.setParentId(null);
+                    page.setHrid(null);
+                    page.setParentHrid(null);
+                });
             }
             default -> {
                 // keep all

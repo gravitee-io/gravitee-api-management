@@ -73,11 +73,7 @@ class UpdateApiProductPlanUseCaseTest {
     @BeforeEach
     void setUp() {
         updatePlanUseCase = new UpdateApiProductPlanUseCase(
-            updatePlanDomainService,
-            planCrudService,
-            apiProductCrudService,
-            planExcludedGroupsDomainService
-        );
+                updatePlanDomainService, planCrudService, apiProductCrudService, planExcludedGroupsDomainService);
         GraviteeContext.fromExecutionContext(new io.gravitee.rest.api.service.common.ExecutionContext(ORG_ID, ENV_ID));
     }
 
@@ -91,33 +87,33 @@ class UpdateApiProductPlanUseCaseTest {
 
         @Test
         void should_update_plan_successfully() {
-            Plan existingPlan = PlanFixtures.aPlanHttpV4()
-                .toBuilder()
-                .id(PLAN_ID)
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .build();
+            Plan existingPlan = PlanFixtures.aPlanHttpV4().toBuilder()
+                    .id(PLAN_ID)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .build();
             Plan updatedPlan = existingPlan.toBuilder().name("Updated name").build();
-            ApiProduct apiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).build();
+            ApiProduct apiProduct = ApiProduct.builder()
+                    .id(API_PRODUCT_ID)
+                    .environmentId(ENV_ID)
+                    .build();
 
-            when(
-                planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
-                    PLAN_ID,
-                    API_PRODUCT_ID,
-                    GenericPlanEntity.ReferenceType.API_PRODUCT.name()
-                )
-            ).thenReturn(Optional.of(existingPlan));
+            when(planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
+                            PLAN_ID, API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT.name()))
+                    .thenReturn(Optional.of(existingPlan));
             when(apiProductCrudService.get(API_PRODUCT_ID)).thenReturn(apiProduct);
-            when(updatePlanDomainService.updatePlanForApiProduct(any(), any(), eq(apiProduct), any())).thenReturn(updatedPlan);
+            when(updatePlanDomainService.updatePlanForApiProduct(any(), any(), eq(apiProduct), any()))
+                    .thenReturn(updatedPlan);
 
             PlanUpdates planUpdates = PlanUpdates.builder()
-                .id(PLAN_ID)
-                .name("Updated name")
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .order(1)
-                .build();
-            AuditInfo auditInfo = new AuditInfo("user-id", "user-name", AuditActor.builder().build());
+                    .id(PLAN_ID)
+                    .name("Updated name")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .order(1)
+                    .build();
+            AuditInfo auditInfo =
+                    new AuditInfo("user-id", "user-name", AuditActor.builder().build());
             var input = new UpdateApiProductPlanUseCase.Input(planUpdates, API_PRODUCT_ID, auditInfo);
 
             var output = updatePlanUseCase.execute(input);
@@ -127,51 +123,44 @@ class UpdateApiProductPlanUseCaseTest {
             assertThat(output.updated().getName()).isEqualTo("Updated name");
 
             ArgumentCaptor<Plan> planCaptor = ArgumentCaptor.forClass(Plan.class);
-            verify(updatePlanDomainService).updatePlanForApiProduct(
-                planCaptor.capture(),
-                eq(java.util.Map.of()),
-                eq(apiProduct),
-                eq(auditInfo)
-            );
+            verify(updatePlanDomainService)
+                    .updatePlanForApiProduct(
+                            planCaptor.capture(), eq(java.util.Map.of()), eq(apiProduct), eq(auditInfo));
             assertThat(planCaptor.getValue().getName()).isEqualTo("Updated name");
         }
 
         @Test
         void should_set_validation_from_input_when_plan_validation_is_null() {
-            Plan existingPlan = PlanFixtures.aPlanHttpV4()
-                .toBuilder()
-                .id(PLAN_ID)
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .validation(null)
-                .build();
-            ApiProduct apiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).build();
+            Plan existingPlan = PlanFixtures.aPlanHttpV4().toBuilder()
+                    .id(PLAN_ID)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .validation(null)
+                    .build();
+            ApiProduct apiProduct = ApiProduct.builder()
+                    .id(API_PRODUCT_ID)
+                    .environmentId(ENV_ID)
+                    .build();
 
-            when(
-                planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
-                    PLAN_ID,
-                    API_PRODUCT_ID,
-                    GenericPlanEntity.ReferenceType.API_PRODUCT.name()
-                )
-            ).thenReturn(Optional.of(existingPlan));
+            when(planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
+                            PLAN_ID, API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT.name()))
+                    .thenReturn(Optional.of(existingPlan));
             when(apiProductCrudService.get(API_PRODUCT_ID)).thenReturn(apiProduct);
-            when(updatePlanDomainService.updatePlanForApiProduct(any(), any(), eq(apiProduct), any())).thenAnswer(invocation ->
-                invocation.getArgument(0)
-            );
+            when(updatePlanDomainService.updatePlanForApiProduct(any(), any(), eq(apiProduct), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
             PlanUpdates planUpdates = PlanUpdates.builder()
-                .id(PLAN_ID)
-                .name("Plan")
-                .referenceId(API_PRODUCT_ID)
-                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .validation(Plan.PlanValidationType.MANUAL)
-                .order(1)
-                .build();
+                    .id(PLAN_ID)
+                    .name("Plan")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .validation(Plan.PlanValidationType.MANUAL)
+                    .order(1)
+                    .build();
             var input = new UpdateApiProductPlanUseCase.Input(
-                planUpdates,
-                API_PRODUCT_ID,
-                new AuditInfo("user-id", "user-name", AuditActor.builder().build())
-            );
+                    planUpdates,
+                    API_PRODUCT_ID,
+                    new AuditInfo("user-id", "user-name", AuditActor.builder().build()));
 
             updatePlanUseCase.execute(input);
 
@@ -186,24 +175,22 @@ class UpdateApiProductPlanUseCaseTest {
 
         @Test
         void should_throw_PlanNotFoundException_when_plan_not_found() {
-            when(
-                planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
-                    PLAN_ID,
-                    API_PRODUCT_ID,
-                    GenericPlanEntity.ReferenceType.API_PRODUCT.name()
-                )
-            ).thenReturn(Optional.empty());
+            when(planCrudService.findByPlanIdAndReferenceIdAndReferenceType(
+                            PLAN_ID, API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT.name()))
+                    .thenReturn(Optional.empty());
 
-            PlanUpdates planUpdates = PlanUpdates.builder().id(PLAN_ID).referenceId(API_PRODUCT_ID).build();
+            PlanUpdates planUpdates = PlanUpdates.builder()
+                    .id(PLAN_ID)
+                    .referenceId(API_PRODUCT_ID)
+                    .build();
             var input = new UpdateApiProductPlanUseCase.Input(
-                planUpdates,
-                API_PRODUCT_ID,
-                new AuditInfo("user-id", "user-name", AuditActor.builder().build())
-            );
+                    planUpdates,
+                    API_PRODUCT_ID,
+                    new AuditInfo("user-id", "user-name", AuditActor.builder().build()));
 
             assertThatThrownBy(() -> updatePlanUseCase.execute(input))
-                .isInstanceOf(PlanNotFoundException.class)
-                .hasMessageContaining(PLAN_ID);
+                    .isInstanceOf(PlanNotFoundException.class)
+                    .hasMessageContaining(PLAN_ID);
         }
     }
 }

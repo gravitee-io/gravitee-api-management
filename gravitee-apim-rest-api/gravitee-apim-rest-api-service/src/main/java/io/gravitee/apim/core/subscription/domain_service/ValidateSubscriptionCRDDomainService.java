@@ -46,7 +46,9 @@ public class ValidateSubscriptionCRDDomainService implements Validator<ValidateS
 
         var plan = planCrudService.getById(input.spec().getPlanId());
         if (!plan.isApiKey()) {
-            return Result.withError(Error.severe("apiKeys is only allowed for API_KEY plans (plan: %s)", input.spec().getPlanId()));
+            return Result.withError(Error.severe(
+                    "apiKeys is only allowed for API_KEY plans (plan: %s)",
+                    input.spec().getPlanId()));
         }
 
         var seen = new HashSet<String>();
@@ -56,7 +58,8 @@ public class ValidateSubscriptionCRDDomainService implements Validator<ValidateS
             }
             int keyLength = keySpec.getKey().length();
             if (keyLength < 32 || keyLength > 256) {
-                return Result.withError(Error.severe("key length must be between 32 and 256 characters, got %d", keyLength));
+                return Result.withError(
+                        Error.severe("key length must be between 32 and 256 characters, got %d", keyLength));
             }
             if (!seen.add(keySpec.getKey())) {
                 return Result.withError(Error.severe("duplicate key [%s] in apiKeys", keySpec.getKey()));

@@ -50,21 +50,19 @@ public class SearchUsersResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Search for users")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of users",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = SearchableUser.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of users",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = SearchableUser.class))))
     @ApiResponse(responseCode = "400", description = "Bad query parameter")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Collection<SearchableUser> searchUsers(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
-        return identityService
-            .search(query)
-            .stream()
-            .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastname(), o2.getLastname()))
-            .collect(Collectors.toList());
+    public Collection<SearchableUser> searchUsers(
+            @Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
+        return identityService.search(query).stream()
+                .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastname(), o2.getLastname()))
+                .collect(Collectors.toList());
     }
 
     private static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();

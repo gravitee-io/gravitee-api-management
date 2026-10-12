@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import java.util.HashSet;
@@ -38,7 +37,8 @@ public class NoOpOrganizationRepositoryTest extends AbstractNoOpRepositoryTest {
     private OrganizationRepository cut;
 
     @Test
-    public void should_return_default_organization_when_finding_by_default_organization_hrid() throws TechnicalException {
+    public void should_return_default_organization_when_finding_by_default_organization_hrid()
+            throws TechnicalException {
         Set<Organization> organizations = cut.findByHrids(new HashSet<>(Organization.DEFAULT.getHrids()));
 
         assertNotNull(organizations);
@@ -46,7 +46,8 @@ public class NoOpOrganizationRepositoryTest extends AbstractNoOpRepositoryTest {
     }
 
     @Test
-    public void should_return_empty_when_finding_by_an_organization_hrid_other_than_default() throws TechnicalException {
+    public void should_return_empty_when_finding_by_an_organization_hrid_other_than_default()
+            throws TechnicalException {
         Set<Organization> organizations = cut.findByHrids(Set.of("test_org"));
 
         assertNotNull(organizations);

@@ -56,15 +56,14 @@ class ApiDeployerTest {
     @SneakyThrows
     @Test
     void should_decrypt_properties_on_initialize() {
-        final Api api = buildApiWithProperties(new Property("key1", "value1", true), new Property("key2", "value2", false));
+        final Api api =
+                buildApiWithProperties(new Property("key1", "value1", true), new Property("key2", "value2", false));
         when(dataEncryptor.decrypt("value1")).thenReturn("VALUE1");
 
         cut.initialize(api);
 
-        assertThat(api.getDefinition().getProperties().getProperties()).containsExactly(
-            new Property("key1", "VALUE1", false),
-            new Property("key2", "value2", false)
-        );
+        assertThat(api.getDefinition().getProperties().getProperties())
+                .containsExactly(new Property("key1", "VALUE1", false), new Property("key2", "value2", false));
     }
 
     @SneakyThrows
@@ -82,12 +81,12 @@ class ApiDeployerTest {
         // Must not throw.
         cut.initialize(api);
 
-        assertThat(api.getDefinition().getProperties().getProperties()).containsExactly(
-            // Malformed property is left untouched (still encrypted) instead of breaking the deployment.
-            new Property("bad", "***", true),
-            // Other properties are still decrypted normally.
-            new Property("good", "VALUE2", false)
-        );
+        assertThat(api.getDefinition().getProperties().getProperties())
+                .containsExactly(
+                        // Malformed property is left untouched (still encrypted) instead of breaking the deployment.
+                        new Property("bad", "***", true),
+                        // Other properties are still decrypted normally.
+                        new Property("good", "VALUE2", false));
     }
 
     private Api buildApiWithProperties(final Property... properties) {

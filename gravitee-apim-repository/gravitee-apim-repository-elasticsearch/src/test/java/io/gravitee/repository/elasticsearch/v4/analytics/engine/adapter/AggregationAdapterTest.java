@@ -47,11 +47,10 @@ class AggregationAdapterTest {
     @Test
     void should_extract_measures_from_facet_buckets_without_metric_filters() {
         var query = new FacetsQuery(
-            TIME_RANGE,
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
-            List.of(Facet.HTTP_STATUS_CODE_GROUP)
-        );
+                TIME_RANGE,
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
+                List.of(Facet.HTTP_STATUS_CODE_GROUP));
 
         var bucket2xx = JSON.createObjectNode().put("key", "2xx").put("doc_count", 100);
         bucket2xx.putObject("HTTP_REQUESTS#COUNT").put("value", 42);
@@ -84,11 +83,10 @@ class AggregationAdapterTest {
     void should_extract_measures_from_facet_buckets_with_metric_filters() {
         var metricFilters = List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of("llm-api-id")));
         var query = new FacetsQuery(
-            TIME_RANGE,
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT), metricFilters, List.of())),
-            List.of(Facet.HTTP_STATUS_CODE_GROUP)
-        );
+                TIME_RANGE,
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT), metricFilters, List.of())),
+                List.of(Facet.HTTP_STATUS_CODE_GROUP));
 
         var bucket2xx = buildBucketWithFilterAgg("2xx", 100, "HTTP_REQUESTS", "COUNT", 42);
         var bucket4xx = buildBucketWithFilterAgg("4xx", 50, "HTTP_REQUESTS", "COUNT", 10);
@@ -117,11 +115,10 @@ class AggregationAdapterTest {
     @Test
     void should_name_http_method_buckets_after_the_method_rather_than_its_reported_code() {
         var query = new FacetsQuery(
-            TIME_RANGE,
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
-            List.of(Facet.HTTP_METHOD)
-        );
+                TIME_RANGE,
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
+                List.of(Facet.HTTP_METHOD));
 
         var get = JSON.createObjectNode().put("key", 3).put("doc_count", 30);
         get.putObject("HTTP_REQUESTS#COUNT").put("value", 30);
@@ -134,18 +131,21 @@ class AggregationAdapterTest {
         var result = AggregationAdapter.toMetricsAndBuckets(Map.of("HTTP_REQUESTS#HTTP_METHOD", facetAgg), query);
 
         assertThat(result.get(0).buckets())
-            .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
-            .containsExactly(org.assertj.core.groups.Tuple.tuple("GET", 30L), org.assertj.core.groups.Tuple.tuple("POST", 12L));
+                .extracting(
+                        bucket -> bucket.key(),
+                        bucket -> bucket.measures().get(Measure.COUNT).longValue())
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple("GET", 30L),
+                        org.assertj.core.groups.Tuple.tuple("POST", 12L));
     }
 
     @Test
     void should_name_http_method_buckets_nested_under_another_facet() {
         var query = new FacetsQuery(
-            TIME_RANGE,
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
-            List.of(Facet.API, Facet.HTTP_METHOD)
-        );
+                TIME_RANGE,
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
+                List.of(Facet.API, Facet.HTTP_METHOD));
 
         var get = JSON.createObjectNode().put("key", 3).put("doc_count", 30);
         get.putObject("HTTP_REQUESTS#COUNT").put("value", 30);
@@ -160,19 +160,18 @@ class AggregationAdapterTest {
         var apiBucket = result.get(0).buckets().get(0);
         assertThat(apiBucket.key()).isEqualTo("api-1");
         assertThat(apiBucket.buckets())
-            .singleElement()
-            .extracting(bucket -> bucket.key())
-            .isEqualTo("GET");
+                .singleElement()
+                .extracting(bucket -> bucket.key())
+                .isEqualTo("GET");
     }
 
     @Test
     void should_return_zero_measures_without_fix_when_filter_agg_wraps_measures() {
         var query = new FacetsQuery(
-            TIME_RANGE,
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
-            List.of(Facet.HTTP_STATUS_CODE_GROUP)
-        );
+                TIME_RANGE,
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
+                List.of(Facet.HTTP_STATUS_CODE_GROUP));
 
         var bucket = buildBucketWithFilterAgg("2xx", 100, "HTTP_REQUESTS", "COUNT", 42);
 
@@ -193,13 +192,11 @@ class AggregationAdapterTest {
     void should_report_the_same_total_for_measures_and_for_the_sum_of_its_facet_buckets() throws Exception {
         // Counts on a busy API run well past 2^24, where a float can no longer hold every integer.
         var applicationCounts = Map.of("application-a", 120_800_000L, "application-b", 12_767L);
-        var total = applicationCounts.values().stream().mapToLong(Long::longValue).sum();
+        var total =
+                applicationCounts.values().stream().mapToLong(Long::longValue).sum();
 
         var measuresQuery = new MeasuresQuery(
-            TIME_RANGE,
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)))
-        );
+                TIME_RANGE, List.of(), List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))));
         // Deserialized the way the Elasticsearch client does, so a regression in the aggregation
         // model is caught here too.
         var totalAgg = JSON.readValue("{\"value\":" + total + "}", Aggregation.class);
@@ -207,37 +204,34 @@ class AggregationAdapterTest {
         var measures = AggregationAdapter.toMetricsAndMeasures(Map.of("HTTP_REQUESTS#COUNT", totalAgg), measuresQuery);
 
         var facetsQuery = new FacetsQuery(
-            TIME_RANGE,
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
-            List.of(Facet.APPLICATION)
-        );
+                TIME_RANGE,
+                List.of(),
+                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
+                List.of(Facet.APPLICATION));
         var applicationAgg = new Aggregation();
-        applicationAgg.setBuckets(
-            applicationCounts
-                .entrySet()
-                .stream()
+        applicationAgg.setBuckets(applicationCounts.entrySet().stream()
                 .map(entry -> {
-                    var bucket = JSON.createObjectNode().put("key", entry.getKey()).put("doc_count", entry.getValue());
+                    var bucket =
+                            JSON.createObjectNode().put("key", entry.getKey()).put("doc_count", entry.getValue());
                     bucket.putObject("HTTP_REQUESTS#COUNT").put("value", entry.getValue());
                     return (JsonNode) bucket;
                 })
-                .toList()
-        );
+                .toList());
 
-        var facets = AggregationAdapter.toMetricsAndBuckets(Map.of("HTTP_REQUESTS#APPLICATION", applicationAgg), facetsQuery);
+        var facets = AggregationAdapter.toMetricsAndBuckets(
+                Map.of("HTTP_REQUESTS#APPLICATION", applicationAgg), facetsQuery);
 
-        var facetsSum = facets
-            .get(0)
-            .buckets()
-            .stream()
-            .mapToLong(bucket -> bucket.measures().get(Measure.COUNT).longValue())
-            .sum();
+        var facetsSum = facets.get(0).buckets().stream()
+                .mapToLong(bucket -> bucket.measures().get(Measure.COUNT).longValue())
+                .sum();
 
-        assertThat(measures.get(Metric.HTTP_REQUESTS).get(Measure.COUNT).longValue()).isEqualTo(total).isEqualTo(facetsSum);
+        assertThat(measures.get(Metric.HTTP_REQUESTS).get(Measure.COUNT).longValue())
+                .isEqualTo(total)
+                .isEqualTo(facetsSum);
     }
 
-    private static ObjectNode buildBucketWithFilterAgg(String key, int docCount, String metricName, String measureName, double value) {
+    private static ObjectNode buildBucketWithFilterAgg(
+            String key, int docCount, String metricName, String measureName, double value) {
         var bucket = JSON.createObjectNode().put("key", key).put("doc_count", docCount);
         var filterAgg = bucket.putObject(metricName + "#__FILTER__").put("doc_count", (int) value);
         filterAgg.putObject(metricName + "#" + measureName).put("value", value);

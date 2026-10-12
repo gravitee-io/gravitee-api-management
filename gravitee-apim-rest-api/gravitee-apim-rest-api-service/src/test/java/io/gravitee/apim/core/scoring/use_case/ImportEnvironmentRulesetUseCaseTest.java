@@ -72,36 +72,35 @@ class ImportEnvironmentRulesetUseCaseTest {
     void should_create_ruleset() {
         // Given
         ImportEnvironmentRulesetUseCase.Input input = new ImportEnvironmentRulesetUseCase.Input(
-            new ImportEnvironmentRulesetUseCase.NewRuleset("name", "description", "payload", ScoringRuleset.Format.GRAVITEE_PROXY),
-            AUDIT_INFO
-        );
+                new ImportEnvironmentRulesetUseCase.NewRuleset(
+                        "name", "description", "payload", ScoringRuleset.Format.GRAVITEE_PROXY),
+                AUDIT_INFO);
 
         // When
         useCase.execute(input);
 
         // Then
-        assertThat(scoringRulesetCrudService.storage()).contains(
-            ScoringRuleset.builder()
-                .id("generated-id")
-                .name("name")
-                .description("description")
-                .format(ScoringRuleset.Format.GRAVITEE_PROXY)
-                .payload("payload")
-                .referenceId(ENVIRONMENT_ID)
-                .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .build()
-        );
+        assertThat(scoringRulesetCrudService.storage())
+                .contains(ScoringRuleset.builder()
+                        .id("generated-id")
+                        .name("name")
+                        .description("description")
+                        .format(ScoringRuleset.Format.GRAVITEE_PROXY)
+                        .payload("payload")
+                        .referenceId(ENVIRONMENT_ID)
+                        .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
     void should_ruleset_id() {
         // Given
         ImportEnvironmentRulesetUseCase.Input input = new ImportEnvironmentRulesetUseCase.Input(
-            new ImportEnvironmentRulesetUseCase.NewRuleset("name", "description", "payload", ScoringRuleset.Format.GRAVITEE_PROXY),
-            AUDIT_INFO
-        );
+                new ImportEnvironmentRulesetUseCase.NewRuleset(
+                        "name", "description", "payload", ScoringRuleset.Format.GRAVITEE_PROXY),
+                AUDIT_INFO);
 
         // When
         ImportEnvironmentRulesetUseCase.Output output = useCase.execute(input);

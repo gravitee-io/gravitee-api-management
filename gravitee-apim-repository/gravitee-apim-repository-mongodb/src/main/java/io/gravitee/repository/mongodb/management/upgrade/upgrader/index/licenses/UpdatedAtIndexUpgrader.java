@@ -28,9 +28,9 @@ public class UpdatedAtIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("licenses")
-            .name("f_t1")
-            .key("updatedAt", ascending())
-            .build();
+                .collection("licenses")
+                .name("f_t1")
+                .key("updatedAt", ascending())
+                .build();
     }
 }

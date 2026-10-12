@@ -54,9 +54,8 @@ public class PortalNavigationItemAutomationMetadataUpgrader implements Upgrader 
     private final PortalNavigationItemRepository portalNavigationItemRepository;
 
     public PortalNavigationItemAutomationMetadataUpgrader(
-        @Lazy PortalPageContentRepository portalPageContentRepository,
-        @Lazy PortalNavigationItemRepository portalNavigationItemRepository
-    ) {
+            @Lazy PortalPageContentRepository portalPageContentRepository,
+            @Lazy PortalNavigationItemRepository portalNavigationItemRepository) {
         this.portalPageContentRepository = portalPageContentRepository;
         this.portalNavigationItemRepository = portalNavigationItemRepository;
     }
@@ -76,36 +75,32 @@ public class PortalNavigationItemAutomationMetadataUpgrader implements Upgrader 
         // enough (one per automation-managed Documentation page, across all environments) that a
         // single full scan, grouped by (organizationId, environmentId) below, is simpler and cheaper
         // than looping environments and re-querying content per iteration.
-        Map<Map.Entry<String, String>, List<PortalPageContent>> managedContentsByOrgAndEnv = portalPageContentRepository
-            .findAll()
-            .stream()
-            .filter(pc -> pc.getAutomationMetadata() != null)
-            .collect(Collectors.groupingBy(pc -> Map.entry(pc.getOrganizationId(), pc.getEnvironmentId())));
+        Map<Map.Entry<String, String>, List<PortalPageContent>> managedContentsByOrgAndEnv =
+                portalPageContentRepository.findAll().stream()
+                        .filter(pc -> pc.getAutomationMetadata() != null)
+                        .collect(Collectors.groupingBy(pc -> Map.entry(pc.getOrganizationId(), pc.getEnvironmentId())));
 
         int updatedCount = 0;
         for (var entry : managedContentsByOrgAndEnv.entrySet()) {
-            updatedCount += migrateEnvironment(entry.getKey().getKey(), entry.getKey().getValue(), entry.getValue());
+            updatedCount +=
+                    migrateEnvironment(entry.getKey().getKey(), entry.getKey().getValue(), entry.getValue());
         }
         log.debug("Backfilled automationMetadata on {} portal navigation items", updatedCount);
         return true;
     }
 
     private int migrateEnvironment(String organizationId, String environmentId, List<PortalPageContent> managedContents)
-        throws TechnicalException {
-        Map<String, List<PortalNavigationItem>> pagesByContentId = pageItemsWithContentIdAttached(organizationId, environmentId);
+            throws TechnicalException {
+        Map<String, List<PortalNavigationItem>> pagesByContentId =
+                pageItemsWithContentIdAttached(organizationId, environmentId);
 
         // Paired with its source content rather than migrated inline: repository writes are kept out
         // of the stream since PortalNavigationItemRepository#update throws a checked TechnicalException.
-        List<Map.Entry<PortalNavigationItem, PortalPageContent>> pagesToMigrate = managedContents
-            .stream()
-            .flatMap(content ->
-                pagesByContentId
-                    .getOrDefault(content.getId(), List.of())
-                    .stream()
-                    .map(page -> Map.entry(page, content))
-            )
-            .filter(entry -> entry.getKey().getAutomationMetadata() == null)
-            .toList();
+        List<Map.Entry<PortalNavigationItem, PortalPageContent>> pagesToMigrate = managedContents.stream()
+                .flatMap(content -> pagesByContentId.getOrDefault(content.getId(), List.of()).stream()
+                        .map(page -> Map.entry(page, content)))
+                .filter(entry -> entry.getKey().getAutomationMetadata() == null)
+                .toList();
 
         for (var entry : pagesToMigrate) {
             PortalNavigationItem page = entry.getKey();
@@ -120,13 +115,13 @@ public class PortalNavigationItemAutomationMetadataUpgrader implements Upgrader 
     // being skipped. A single portalPageContentId can legitimately be shared by several nav items
     // (e.g. one API-doc page materialized into multiple nav-api rows), so every match must be updated,
     // not just one.
-    private Map<String, List<PortalNavigationItem>> pageItemsWithContentIdAttached(String organizationId, String environmentId)
-        throws TechnicalException {
+    private Map<String, List<PortalNavigationItem>> pageItemsWithContentIdAttached(
+            String organizationId, String environmentId) throws TechnicalException {
         return portalNavigationItemRepository
-            .findAllByOrganizationIdAndEnvironmentId(organizationId, environmentId)
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItem.Type.PAGE && extractContentId(item) != null)
-            .collect(Collectors.groupingBy(this::extractContentId));
+                .findAllByOrganizationIdAndEnvironmentId(organizationId, environmentId)
+                .stream()
+                .filter(item -> item.getType() == PortalNavigationItem.Type.PAGE && extractContentId(item) != null)
+                .collect(Collectors.groupingBy(this::extractContentId));
     }
 
     private String extractContentId(PortalNavigationItem item) {
@@ -135,10 +130,9 @@ public class PortalNavigationItemAutomationMetadataUpgrader implements Upgrader 
             return node == null ? null : node.asText();
         } catch (Exception e) {
             log.warn(
-                "Unable to parse configuration for portal navigation item {}; skipping automationMetadata backfill for it",
-                item.getId(),
-                e
-            );
+                    "Unable to parse configuration for portal navigation item {}; skipping automationMetadata backfill for it",
+                    item.getId(),
+                    e);
             return null;
         }
     }

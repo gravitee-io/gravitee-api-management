@@ -20,9 +20,7 @@ import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.policy.OrganizationPolicyManager;
 import io.gravitee.gateway.reactive.platform.organization.reactor.AbstractOrganizationReactor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
-import lombok.Builder;
 import lombok.CustomLog;
-import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -36,11 +34,10 @@ public class V3OrganizationReactor extends AbstractOrganizationReactor {
     private final OrganizationPolicyManager organizationPolicyManager;
 
     public V3OrganizationReactor(
-        final ReactableOrganization reactableOrganization,
-        final PolicyChainFactory policyChainFactory,
-        final ResourceLifecycleManager resourceLifecycleManager,
-        final OrganizationPolicyManager organizationPolicyManager
-    ) {
+            final ReactableOrganization reactableOrganization,
+            final PolicyChainFactory policyChainFactory,
+            final ResourceLifecycleManager resourceLifecycleManager,
+            final OrganizationPolicyManager organizationPolicyManager) {
         super(reactableOrganization);
         this.policyChainFactory = policyChainFactory;
         this.resourceLifecycleManager = resourceLifecycleManager;

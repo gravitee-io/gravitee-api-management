@@ -37,38 +37,36 @@ public class DeployModelToApiCreateUseCase {
     private final DeployModelToApiDomainService deployModelToApiDomainService;
 
     public DeployModelToApiCreateUseCase(
-        OAIDomainService oaiDomainService,
-        ImportDefinitionCreateDomainService importDefinitionCreateDomainService,
-        DeployModelToApiDomainService deployModelToApiDomainService
-    ) {
+            OAIDomainService oaiDomainService,
+            ImportDefinitionCreateDomainService importDefinitionCreateDomainService,
+            DeployModelToApiDomainService deployModelToApiDomainService) {
         this.oaiDomainService = oaiDomainService;
         this.importDefinitionCreateDomainService = importDefinitionCreateDomainService;
         this.deployModelToApiDomainService = deployModelToApiDomainService;
     }
 
     public DeployModelToApiCreateUseCase.Output execute(DeployModelToApiCreateUseCase.Input input) {
-        log.debug("API [crossId: {}] will be created with mode {}.", input.apiCrossId(), input.mode().name());
+        log.debug(
+                "API [crossId: {}] will be created with mode {}.",
+                input.apiCrossId(),
+                input.mode().name());
 
         var organizationId = input.auditInfo().organizationId();
         var environmentId = input.auditInfo().environmentId();
-        var importSwaggerDescriptorEntity = deployModelToApiDomainService.configure(input.mode(), input.swaggerDefinition());
-        var importDefinition = oaiDomainService.convert(organizationId, environmentId, importSwaggerDescriptorEntity, true, false);
+        var importSwaggerDescriptorEntity =
+                deployModelToApiDomainService.configure(input.mode(), input.swaggerDefinition());
+        var importDefinition =
+                oaiDomainService.convert(organizationId, environmentId, importSwaggerDescriptorEntity, true, false);
 
         importDefinition.getApiExport().setCrossId(input.apiCrossId());
         importDefinition.getApiExport().setLabels(input.labels());
-        importDefinition.setPlans(
-            Set.of(
-                new PlanWithFlows(
-                    new Plan(null, deployModelToApiDomainService.createDefaultPlan())
-                        .toBuilder()
-                        .validation(Plan.PlanValidationType.AUTO)
-                        .build(),
-                    List.of()
-                )
-            )
-        );
+        importDefinition.setPlans(Set.of(new PlanWithFlows(
+                new Plan(null, deployModelToApiDomainService.createDefaultPlan())
+                        .toBuilder().validation(Plan.PlanValidationType.AUTO).build(),
+                List.of())));
 
-        final ApiWithFlows apiWithFlows = importDefinitionCreateDomainService.create(input.auditInfo(), importDefinition);
+        final ApiWithFlows apiWithFlows =
+                importDefinitionCreateDomainService.create(input.auditInfo(), importDefinition);
         final var api = deployModelToApiDomainService.manageApiState(apiWithFlows, input.auditInfo, input.mode());
 
         log.info("API [id: {} / crossId: {}] v4 created.", api.getId(), api.getCrossId());
@@ -77,12 +75,11 @@ public class DeployModelToApiCreateUseCase {
     }
 
     public record Input(
-        String swaggerDefinition,
-        AuditInfo auditInfo,
-        String apiCrossId,
-        DeployModelToApiDomainService.Mode mode,
-        List<String> labels
-    ) {}
+            String swaggerDefinition,
+            AuditInfo auditInfo,
+            String apiCrossId,
+            DeployModelToApiDomainService.Mode mode,
+            List<String> labels) {}
 
     public record Output(Api api) {}
 }

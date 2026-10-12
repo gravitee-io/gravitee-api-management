@@ -42,8 +42,10 @@ public class GroupMapperTest extends AbstractMapperTest {
         assertThat(group.getId()).isEqualTo(groupEntity.getId());
         assertThat(group.getName()).isEqualTo(groupEntity.getName());
         assertThat(group.getManageable()).isEqualTo(groupEntity.isManageable());
-        assertThat(group.getCreatedAt().toInstant().toEpochMilli()).isEqualTo(groupEntity.getCreatedAt().getTime());
-        assertThat(group.getUpdatedAt().toInstant().toEpochMilli()).isEqualTo(groupEntity.getUpdatedAt().getTime());
+        assertThat(group.getCreatedAt().toInstant().toEpochMilli())
+                .isEqualTo(groupEntity.getCreatedAt().getTime());
+        assertThat(group.getUpdatedAt().toInstant().toEpochMilli())
+                .isEqualTo(groupEntity.getUpdatedAt().getTime());
         assertThat(group.getMaxInvitation()).isEqualTo(groupEntity.getMaxInvitation());
         assertThat(group.getApiRole()).isEqualTo(groupEntity.getRoles().get(RoleScope.API));
         assertThat(group.getApplicationRole()).isEqualTo(groupEntity.getRoles().get(RoleScope.APPLICATION));
@@ -73,10 +75,11 @@ public class GroupMapperTest extends AbstractMapperTest {
     @Test
     void should_map_GroupEventRuleEntities_to_GroupEvents() {
         List<GroupEventRuleEntity> eventRules = Arrays.asList(
-            createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE.name()),
-            createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.APPLICATION_CREATE.name()),
-            createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.API_PRODUCT_CREATE.name())
-        );
+                createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE.name()),
+                createGroupEventRuleEntity(
+                        io.gravitee.apim.core.group.model.Group.GroupEvent.APPLICATION_CREATE.name()),
+                createGroupEventRuleEntity(
+                        io.gravitee.apim.core.group.model.Group.GroupEvent.API_PRODUCT_CREATE.name()));
 
         List<GroupEvent> groupEvents = groupMapper.mapGroupEventRuleEntities(eventRules);
 
@@ -90,9 +93,8 @@ public class GroupMapperTest extends AbstractMapperTest {
     @Test
     void should_handle_invalid_GroupEventRuleEntity() {
         List<GroupEventRuleEntity> eventRules = Arrays.asList(
-            createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE.name()),
-            createGroupEventRuleEntity("INVALID_EVENT")
-        );
+                createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE.name()),
+                createGroupEventRuleEntity("INVALID_EVENT"));
 
         List<GroupEvent> groupEvents = groupMapper.mapGroupEventRuleEntities(eventRules);
 
@@ -160,8 +162,10 @@ public class GroupMapperTest extends AbstractMapperTest {
         assertThat(group).isNotNull();
         assertThat(group.getId()).isEqualTo(coreGroup.getId());
         assertThat(group.getName()).isEqualTo(coreGroup.getName());
-        assertThat(group.getCreatedAt().toInstant()).isEqualTo(coreGroup.getCreatedAt().toInstant());
-        assertThat(group.getUpdatedAt().toInstant()).isEqualTo(coreGroup.getUpdatedAt().toInstant());
+        assertThat(group.getCreatedAt().toInstant())
+                .isEqualTo(coreGroup.getCreatedAt().toInstant());
+        assertThat(group.getUpdatedAt().toInstant())
+                .isEqualTo(coreGroup.getUpdatedAt().toInstant());
         assertThat(group.getMaxInvitation()).isEqualTo(coreGroup.getMaxInvitation());
         assertThat(group.getLockApiRole()).isEqualTo(coreGroup.isLockApiRole());
         assertThat(group.getLockApplicationRole()).isEqualTo(coreGroup.isLockApplicationRole());
@@ -175,7 +179,8 @@ public class GroupMapperTest extends AbstractMapperTest {
 
     @Test
     void should_map_list_of_core_Group_to_list_of_Group() {
-        List<io.gravitee.apim.core.group.model.Group> coreGroups = Arrays.asList(createCoreGroup("core1"), createCoreGroup("core2"));
+        List<io.gravitee.apim.core.group.model.Group> coreGroups =
+                Arrays.asList(createCoreGroup("core1"), createCoreGroup("core2"));
 
         List<Group> groups = groupMapper.mapFromCoreList(coreGroups);
 
@@ -188,10 +193,9 @@ public class GroupMapperTest extends AbstractMapperTest {
     @Test
     void should_map_core_GroupEventRules_to_GroupEvents() {
         List<GroupEventRule> eventRules = Arrays.asList(
-            new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE),
-            new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.APPLICATION_CREATE),
-            new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.API_PRODUCT_CREATE)
-        );
+                new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE),
+                new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.APPLICATION_CREATE),
+                new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.API_PRODUCT_CREATE));
 
         List<GroupEvent> groupEvents = groupMapper.mapCoreGroupEventRules(eventRules);
 
@@ -217,22 +221,22 @@ public class GroupMapperTest extends AbstractMapperTest {
 
     private GroupEntity createGroupEntity(String id) {
         GroupEntity groupEntity = GroupEntity.builder()
-            .id(id)
-            .name("Group " + id)
-            .manageable(true)
-            .createdAt(new Date())
-            .updatedAt(new Date())
-            .maxInvitation(10)
-            .lockApiRole(true)
-            .lockApplicationRole(false)
-            .lockApiProductRole(true)
-            .systemInvitation(true)
-            .emailInvitation(true)
-            .disableMembershipNotifications(false)
-            .apiPrimaryOwner("user-id")
-            .apiProductPrimaryOwner("product-po-user-id")
-            .primaryOwner(true)
-            .build();
+                .id(id)
+                .name("Group " + id)
+                .manageable(true)
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .maxInvitation(10)
+                .lockApiRole(true)
+                .lockApplicationRole(false)
+                .lockApiProductRole(true)
+                .systemInvitation(true)
+                .emailInvitation(true)
+                .disableMembershipNotifications(false)
+                .apiPrimaryOwner("user-id")
+                .apiProductPrimaryOwner("product-po-user-id")
+                .primaryOwner(true)
+                .build();
 
         Map<RoleScope, String> roles = new HashMap<>();
         roles.put(RoleScope.API, "API_PUBLISHER");
@@ -240,7 +244,8 @@ public class GroupMapperTest extends AbstractMapperTest {
         groupEntity.setRoles(roles);
 
         List<GroupEventRuleEntity> eventRules = new ArrayList<>();
-        eventRules.add(createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE.name()));
+        eventRules.add(
+                createGroupEventRuleEntity(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE.name()));
         groupEntity.setEventRules(eventRules);
 
         return groupEntity;
@@ -259,21 +264,21 @@ public class GroupMapperTest extends AbstractMapperTest {
         eventRules.add(new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE));
 
         return io.gravitee.apim.core.group.model.Group.builder()
-            .id(id)
-            .environmentId("env-id")
-            .name("Core Group " + id)
-            .eventRules(eventRules)
-            .createdAt(ZonedDateTime.now())
-            .updatedAt(ZonedDateTime.now())
-            .maxInvitation(10)
-            .lockApiRole(true)
-            .lockApplicationRole(false)
-            .lockApiProductRole(true)
-            .systemInvitation(true)
-            .emailInvitation(true)
-            .disableMembershipNotifications(false)
-            .apiPrimaryOwner("user-id")
-            .apiProductPrimaryOwner("product-po-user-id")
-            .build();
+                .id(id)
+                .environmentId("env-id")
+                .name("Core Group " + id)
+                .eventRules(eventRules)
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
+                .maxInvitation(10)
+                .lockApiRole(true)
+                .lockApplicationRole(false)
+                .lockApiProductRole(true)
+                .systemInvitation(true)
+                .emailInvitation(true)
+                .disableMembershipNotifications(false)
+                .apiPrimaryOwner("user-id")
+                .apiProductPrimaryOwner("product-po-user-id")
+                .build();
     }
 }

@@ -27,13 +27,21 @@ import java.util.Optional;
  */
 public interface GenericNotificationConfigRepository extends FindAllRepository<GenericNotificationConfig> {
     GenericNotificationConfig create(GenericNotificationConfig genericNotificationConfig) throws TechnicalException;
+
     GenericNotificationConfig update(GenericNotificationConfig genericNotificationConfig) throws TechnicalException;
+
     void delete(String id) throws TechnicalException;
+
     Optional<GenericNotificationConfig> findById(String id) throws TechnicalException;
+
     List<GenericNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) throws TechnicalException;
-    List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
-        throws TechnicalException;
-    List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException;
+
+    List<GenericNotificationConfig> findByReferenceAndHook(
+            String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException;
+
+    List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId)
+            throws TechnicalException;
+
     void deleteByConfig(String config) throws TechnicalException;
 
     /**
@@ -43,5 +51,6 @@ public interface GenericNotificationConfigRepository extends FindAllRepository<G
      * @return List of IDs for generic notification config
      * @throws TechnicalException
      */
-    List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationReferenceType referenceType) throws TechnicalException;
+    List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationReferenceType referenceType)
+            throws TechnicalException;
 }

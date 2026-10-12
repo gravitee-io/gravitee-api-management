@@ -37,11 +37,10 @@ public class ConsulEventHandler {
     private final long pendingRequestsTimeout;
 
     public ConsulEventHandler(
-        EndpointManager endpointManager,
-        EndpointGroup group,
-        ConsulServiceDiscoveryServiceConfiguration configuration,
-        long pendingRequestsTimeout
-    ) {
+            EndpointManager endpointManager,
+            EndpointGroup group,
+            ConsulServiceDiscoveryServiceConfiguration configuration,
+            long pendingRequestsTimeout) {
         this.endpointManager = endpointManager;
         this.group = group;
         this.configuration = configuration;
@@ -76,13 +75,14 @@ public class ConsulEventHandler {
                 old.forEach(oldEntry -> endpointManager.disable(EndpointFactory.endpointName(oldEntry.getService())));
 
                 Completable.defer(() -> {
-                    old.removeAll(newEntries.getList());
-                    old.forEach(oldEntry -> endpointManager.removeEndpoint(EndpointFactory.endpointName(oldEntry.getService())));
-                    return Completable.complete();
-                })
-                    .onErrorComplete()
-                    .delaySubscription(pendingRequestsTimeout, TimeUnit.MILLISECONDS, Schedulers.io())
-                    .subscribe();
+                            old.removeAll(newEntries.getList());
+                            old.forEach(oldEntry -> endpointManager.removeEndpoint(
+                                    EndpointFactory.endpointName(oldEntry.getService())));
+                            return Completable.complete();
+                        })
+                        .onErrorComplete()
+                        .delaySubscription(pendingRequestsTimeout, TimeUnit.MILLISECONDS, Schedulers.io())
+                        .subscribe();
             }
         }
     }

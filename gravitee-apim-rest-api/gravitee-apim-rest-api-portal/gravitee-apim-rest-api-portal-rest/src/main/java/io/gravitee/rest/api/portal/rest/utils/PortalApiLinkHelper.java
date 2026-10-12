@@ -91,16 +91,15 @@ public final class PortalApiLinkHelper {
     }
 
     private static String resourcesURL(
-        UriBuilder baseUriBuilder,
-        String resourceId,
-        String resourceName,
-        String subResourceId,
-        String subResourceName
-    ) {
+            UriBuilder baseUriBuilder,
+            String resourceId,
+            String resourceName,
+            String subResourceId,
+            String subResourceName) {
         UriBuilder resourcesURLBuilder = baseUriBuilder
-            .path("environments")
-            .path(GraviteeContext.getCurrentEnvironment())
-            .path(resourceName);
+                .path("environments")
+                .path(GraviteeContext.getCurrentEnvironment())
+                .path(resourceName);
         if (resourceId != null && !resourceId.isEmpty()) {
             resourcesURLBuilder = resourcesURLBuilder.path(resourceId);
         }

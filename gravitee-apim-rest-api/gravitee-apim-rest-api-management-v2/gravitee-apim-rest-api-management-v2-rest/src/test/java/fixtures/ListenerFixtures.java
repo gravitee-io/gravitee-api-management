@@ -28,10 +28,10 @@ public class ListenerFixtures {
 
     private ListenerFixtures() {}
 
-    private static final Supplier<PathV4> BASE_PATH_V4 = () -> new PathV4().host("my.fake.host").path("/test").overrideAccess(true);
+    private static final Supplier<PathV4> BASE_PATH_V4 =
+            () -> new PathV4().host("my.fake.host").path("/test").overrideAccess(true);
 
-    private static final Supplier<HttpListener> BASE_HTTP_LISTENER = () ->
-        (HttpListener) new HttpListener()
+    private static final Supplier<HttpListener> BASE_HTTP_LISTENER = () -> (HttpListener) new HttpListener()
             // HttpListener specific
             .paths(List.of(BASE_PATH_V4.get()))
             .pathMappings(List.of("/test"))
@@ -41,22 +41,20 @@ public class ListenerFixtures {
             .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
             .servers(List.of("my-server1", "my-server2"));
 
-    private static final Supplier<SubscriptionListener> BASE_SUBSCRIPTION_LISTENER = () ->
-        (SubscriptionListener) new SubscriptionListener()
-            // BaseListener
-            .type(ListenerType.SUBSCRIPTION)
-            .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
-            .servers(List.of("my-server1", "my-server2"));
+    private static final Supplier<SubscriptionListener> BASE_SUBSCRIPTION_LISTENER =
+            () -> (SubscriptionListener) new SubscriptionListener()
+                    // BaseListener
+                    .type(ListenerType.SUBSCRIPTION)
+                    .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
+                    .servers(List.of("my-server1", "my-server2"));
 
-    private static final Supplier<TcpListener> BASE_TCP_LISTENER = () ->
-        (TcpListener) new TcpListener()
+    private static final Supplier<TcpListener> BASE_TCP_LISTENER = () -> (TcpListener) new TcpListener()
             // BaseListener
             .type(ListenerType.TCP)
             .entrypoints(List.of(EntrypointFixtures.anEntrypointHttpV4()))
             .servers(List.of("my-server1", "my-server2"));
 
-    private static final Supplier<KafkaListener> BASE_KAFKA_LISTENER = () ->
-        (KafkaListener) new KafkaListener()
+    private static final Supplier<KafkaListener> BASE_KAFKA_LISTENER = () -> (KafkaListener) new KafkaListener()
             // BaseListener
             .type(ListenerType.KAFKA)
             .entrypoints(List.of(EntrypointFixtures.anEntrypointNativeV4()))
@@ -82,7 +80,8 @@ public class ListenerFixtures {
         return ListenerModelFixtures.aModelHttpListener();
     }
 
-    public static io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener aModelSubscriptionListener() {
+    public static io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener
+            aModelSubscriptionListener() {
         return ListenerModelFixtures.aModelSubscriptionListener();
     }
 

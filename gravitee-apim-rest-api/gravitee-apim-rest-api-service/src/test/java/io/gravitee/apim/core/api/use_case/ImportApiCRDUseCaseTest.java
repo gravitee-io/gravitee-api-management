@@ -114,8 +114,6 @@ import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessCont
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.event.crud_service.EventCrudService;
-import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
@@ -226,7 +224,8 @@ class ImportApiCRDUseCaseTest {
     private static final String MEMBER_EMAIL = "one_valid@email.com";
     private static final String MY_MEMBER_ID = "my-member-id";
 
-    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, ACTOR_USER_ID);
     private static final String API_ID = "test-api-id";
     private static final String API_CROSS_ID = "test-api-cross-id";
     private static final String KEYLESS_PLAN_ID = "test-keyless-plan-id";
@@ -242,7 +241,8 @@ class ImportApiCRDUseCaseTest {
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
-    SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService);
+    SubscriptionQueryServiceInMemory subscriptionQueryService =
+            new SubscriptionQueryServiceInMemory(subscriptionCrudService);
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
@@ -270,7 +270,8 @@ class ImportApiCRDUseCaseTest {
     CRDMembersDomainServiceInMemory crdMembersDomainService = new CRDMembersDomainServiceInMemory();
     CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
     DataEncryptor dataEncryptor = mock(DataEncryptor.class);
-    CreateCategoryApiDomainServiceInMemory createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
+    CreateCategoryApiDomainServiceInMemory createCategoryApiDomainService =
+            new CreateCategoryApiDomainServiceInMemory();
     PropertyDomainService propertyDomainService;
     UpdateNativeApiDomainService updateNativeApiDomainService;
     UpdateNativeApiUseCase updateNativeApiUseCase = null;
@@ -291,317 +292,266 @@ class ImportApiCRDUseCaseTest {
     @BeforeEach
     void setUp() {
         var triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
-        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        var planValidatorService = new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var planValidatorService =
+                new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
         var flowValidationDomainService = new FlowValidationDomainService(
-            policyValidationDomainService,
-            new EntrypointPluginQueryServiceInMemory()
-        );
+                policyValidationDomainService, new EntrypointPluginQueryServiceInMemory());
         var kafkaPortRanges = new inmemory.KafkaPortRangeCrudServiceInMemory();
-        var verifyPlanPortRanges = new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges);
+        var verifyPlanPortRanges =
+                new io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService(kafkaPortRanges);
         var createPlanDomainService = new CreatePlanDomainService(
-            planValidatorService,
-            flowValidationDomainService,
-            planCrudService,
-            flowCrudService,
-            auditDomainService,
-            verifyPlanPortRanges,
-            kafkaPortRanges
-        );
+                planValidatorService,
+                flowValidationDomainService,
+                planCrudService,
+                flowCrudService,
+                auditDomainService,
+                verifyPlanPortRanges,
+                kafkaPortRanges);
         var reorderPlanDomainService = new ReorderPlanDomainService(planQueryService, planCrudService);
         var updatePlanDomainService = new UpdatePlanDomainService(
-            planQueryService,
-            planCrudService,
-            planValidatorService,
-            flowValidationDomainService,
-            flowCrudService,
-            auditDomainService,
-            planSynchronizationService,
-            reorderPlanDomainService,
-            verifyPlanPortRanges,
-            kafkaPortRanges
-        );
+                planQueryService,
+                planCrudService,
+                planValidatorService,
+                flowValidationDomainService,
+                flowCrudService,
+                auditDomainService,
+                planSynchronizationService,
+                reorderPlanDomainService,
+                verifyPlanPortRanges,
+                kafkaPortRanges);
         var deletePlanDomainService = new DeletePlanDomainService(
-            planCrudService,
-            subscriptionQueryService,
-            auditDomainService,
-            kafkaPortRanges
-        );
+                planCrudService, subscriptionQueryService, auditDomainService, kafkaPortRanges);
         var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
 
         var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
-            groupQueryService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                groupQueryService, membershipQueryService, roleQueryService, userCrudService);
 
         var closeSubscriptionDomainService = new CloseSubscriptionDomainService(
-            subscriptionCrudService,
-            applicationCrudService,
-            auditDomainService,
-            triggerNotificationDomainService,
-            new RejectSubscriptionDomainService(
                 subscriptionCrudService,
+                applicationCrudService,
                 auditDomainService,
                 triggerNotificationDomainService,
-                new UserCrudServiceInMemory(),
-                applicationPrimaryOwnerDomainService
-            ),
-            new RevokeApiKeyDomainService(
-                new ApiKeyCrudServiceInMemory(),
-                new ApiKeyQueryServiceInMemory(),
-                subscriptionCrudService,
-                auditDomainService,
-                triggerNotificationDomainService
-            ),
-            apiCrudService,
-            new IntegrationAgentInMemory()
-        );
+                new RejectSubscriptionDomainService(
+                        subscriptionCrudService,
+                        auditDomainService,
+                        triggerNotificationDomainService,
+                        new UserCrudServiceInMemory(),
+                        applicationPrimaryOwnerDomainService),
+                new RevokeApiKeyDomainService(
+                        new ApiKeyCrudServiceInMemory(),
+                        new ApiKeyQueryServiceInMemory(),
+                        subscriptionCrudService,
+                        auditDomainService,
+                        triggerNotificationDomainService),
+                apiCrudService,
+                new IntegrationAgentInMemory());
         var metadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
         var apiPrimaryOwnerFactory = new ApiPrimaryOwnerFactory(
-            groupQueryService,
-            membershipQueryService,
-            parametersQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                groupQueryService, membershipQueryService, parametersQueryService, roleQueryService, userCrudService);
 
-        var createApiDomainService = buildCreateApiDomainService(auditDomainService, membershipQueryService, metadataQueryService);
+        var createApiDomainService =
+                buildCreateApiDomainService(auditDomainService, membershipQueryService, metadataQueryService);
 
         updateApiDomainService = mock(UpdateApiDomainService.class);
         PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
         var createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
-            pageCrudService,
-            pageRevisionCrudService,
-            auditDomainService,
-            indexer
-        );
+                pageCrudService, pageRevisionCrudService, auditDomainService, indexer);
         var updateApiDocumentationDomainService = new UpdateApiDocumentationDomainService(
-            pageCrudService,
-            pageRevisionCrudService,
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-            indexer
-        );
+                pageCrudService,
+                pageRevisionCrudService,
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                indexer);
 
         var pageSourceValidator = new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), mock(Vertx.class));
         var accessControlValidator = new ValidatePageAccessControlsDomainService(groupQueryService);
 
-        userDomainService.initWith(
-            List.of(
+        userDomainService.initWith(List.of(
                 aBaseUserEntity(USER_ID, ORGANIZATION_ID, USER_ENTITY_SOURCE_ID),
-                aBaseUserEntity(ACTOR_USER_ID, ORGANIZATION_ID, ACTOR_USER_ID)
-            )
-        );
+                aBaseUserEntity(ACTOR_USER_ID, ORGANIZATION_ID, ACTOR_USER_ID)));
 
         propertyDomainService = new PropertyDomainService(dataEncryptor);
 
         var crdValidator = new ValidateApiCRDDomainService(
-            new ValidateCategoryIdsDomainService(categoryQueryService),
-            verifyApiPathDomainService,
-            verifyApiHostsDomainService,
-            new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-            new ValidateGroupsDomainService(groupQueryService),
-            validateResourceDomainService,
-            new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
-            new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
-            new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
-            new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
-            apiQueryService,
-            propertyDomainService
-        );
+                new ValidateCategoryIdsDomainService(categoryQueryService),
+                verifyApiPathDomainService,
+                verifyApiHostsDomainService,
+                new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
+                new ValidateGroupsDomainService(groupQueryService),
+                validateResourceDomainService,
+                new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
+                new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
+                new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
+                new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
+                apiQueryService,
+                propertyDomainService);
 
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .id("member-id")
-                    .memberId("my-member-id")
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.API)
-                    .referenceId(API_ID)
-                    .roleId("api-po-id-organization-id")
-                    .build()
-            )
-        );
-        groupQueryService.initWith(
-            List.of(
-                Group.builder()
-                    .id(DEFAULT_GROUP)
-                    .environmentId("environment-id")
-                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .id("member-id")
+                .memberId("my-member-id")
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.API)
+                .referenceId(API_ID)
+                .roleId("api-po-id-organization-id")
+                .build()));
+        groupQueryService.initWith(List.of(Group.builder()
+                .id(DEFAULT_GROUP)
+                .environmentId("environment-id")
+                .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                .build()));
         userCrudService.initWith(List.of(aBaseUserEntity(MY_MEMBER_ID, MEMBER_EMAIL)));
 
         var apiPrimaryOwnerService = new ApiPrimaryOwnerDomainService(
-            auditDomainService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                auditDomainService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService);
 
         updateNativeApiDomainService = new UpdateNativeApiDomainService(
-            apiCrudService,
-            planQueryService,
-            new DeprecatePlanDomainService(planCrudService, auditDomainService),
-            triggerNotificationDomainService,
-            flowCrudService,
-            categoryDomainService,
-            auditDomainService,
-            new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(
-                    new ApiMetadataQueryServiceInMemory(metadataCrudService),
-                    new FreemarkerTemplateProcessor()
-                ),
-                apiPrimaryOwnerService,
-                new ApiCategoryQueryServiceInMemory(),
-                indexer
-            )
-        );
+                apiCrudService,
+                planQueryService,
+                new DeprecatePlanDomainService(planCrudService, auditDomainService),
+                triggerNotificationDomainService,
+                flowCrudService,
+                categoryDomainService,
+                auditDomainService,
+                new ApiIndexerDomainService(
+                        new ApiMetadataDecoderDomainService(
+                                new ApiMetadataQueryServiceInMemory(metadataCrudService),
+                                new FreemarkerTemplateProcessor()),
+                        apiPrimaryOwnerService,
+                        new ApiCategoryQueryServiceInMemory(),
+                        indexer));
 
         updateNativeApiUseCase = new UpdateNativeApiUseCase(
-            apiPrimaryOwnerService,
-            propertyDomainService,
-            validateApiDomainService,
-            updateNativeApiDomainService
-        );
+                apiPrimaryOwnerService, propertyDomainService, validateApiDomainService, updateNativeApiDomainService);
 
         categoryQueryService.reset();
 
         useCase = new ImportApiCRDUseCase(
-            apiCrudService,
-            apiQueryService,
-            apiPrimaryOwnerFactory,
-            validateApiDomainService,
-            createApiDomainService,
-            createPlanDomainService,
-            apiStateDomainService,
-            updateApiDomainService,
-            updateNativeApiUseCase,
-            planQueryService,
-            updatePlanDomainService,
-            deletePlanDomainService,
-            subscriptionQueryService,
-            closeSubscriptionDomainService,
-            reorderPlanDomainService,
-            crdMembersDomainService,
-            apiMetadataDomainService,
-            pageQueryService,
-            pageCrudService,
-            createApiDocumentationDomainService,
-            updateApiDocumentationDomainService,
-            crdValidator,
-            notificationCRDService,
-            mock(PortalListingSyncDomainService.class),
-            propertyDomainService
-        );
+                apiCrudService,
+                apiQueryService,
+                apiPrimaryOwnerFactory,
+                validateApiDomainService,
+                createApiDomainService,
+                createPlanDomainService,
+                apiStateDomainService,
+                updateApiDomainService,
+                updateNativeApiUseCase,
+                planQueryService,
+                updatePlanDomainService,
+                deletePlanDomainService,
+                subscriptionQueryService,
+                closeSubscriptionDomainService,
+                reorderPlanDomainService,
+                crdMembersDomainService,
+                apiMetadataDomainService,
+                pageQueryService,
+                pageCrudService,
+                createApiDocumentationDomainService,
+                updateApiDocumentationDomainService,
+                crdValidator,
+                notificationCRDService,
+                mock(PortalListingSyncDomainService.class),
+                propertyDomainService);
 
         enableApiPrimaryOwnerMode();
-        parametersQueryService.define(
-            new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-        );
-        parametersQueryService.define(
-            new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
-        );
-        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(1)
-        );
-        when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(true);
-        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(0)
-        );
+        parametersQueryService.define(new Parameter(
+                Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"));
+        parametersQueryService.define(new Parameter(
+                Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"));
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
+        when(planSynchronizationService.checkSynchronized(any(), any(), any(), any()))
+                .thenReturn(true);
+        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        givenExistingUsers(
-            List.of(
+        givenExistingUsers(List.of(
                 aBaseUserEntity(ACTOR_USER_ID, ORGANIZATION_ID, "devops@gravitee.io"),
-                aBaseUserEntity(USER_ID, ORGANIZATION_ID, USER_ENTITY_SOURCE_ID)
-            )
-        );
+                aBaseUserEntity(USER_ID, ORGANIZATION_ID, USER_ENTITY_SOURCE_ID)));
 
-        groupQueryService.initWith(
-            List.of(
+        groupQueryService.initWith(List.of(
                 Group.builder().id(GROUP_ID_1).build(),
-                Group.builder().id(GROUP_ID_2).environmentId(ENVIRONMENT_ID).name(GROUP_NAME).build()
-            )
-        );
+                Group.builder()
+                        .id(GROUP_ID_2)
+                        .environmentId(ENVIRONMENT_ID)
+                        .name(GROUP_NAME)
+                        .build()));
 
         membershipQueryService.initWith(
-            List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID).withId("member-id-2"))
-        );
+                List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)
+                        .withId("member-id-2")));
 
-        applicationCrudService.initWith(
-            List.of(
-                ApplicationModelFixtures.anApplicationEntity()
-                    .toBuilder()
-                    .id(APPLICATION_ID)
-                    .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
-                    .build()
-            )
-        );
+        applicationCrudService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder()
+                .id(APPLICATION_ID)
+                .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder()
+                        .id(USER_ID)
+                        .displayName("Jane")
+                        .build())
+                .build()));
 
-        when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
-        when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any(), any())).thenReturn(true);
+        when(verifyApiPathDomainService.validateAndSanitize(any()))
+                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any(), any()))
+                .thenReturn(true);
     }
 
     private CreateApiDomainService buildCreateApiDomainService(
-        AuditDomainService auditDomainService,
-        MembershipQueryServiceInMemory membershipQueryService,
-        ApiMetadataQueryServiceInMemory metadataQueryService
-    ) {
+            AuditDomainService auditDomainService,
+            MembershipQueryServiceInMemory membershipQueryService,
+            ApiMetadataQueryServiceInMemory metadataQueryService) {
         var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
-            auditDomainService,
-            groupQueryService,
-            membershipCrudService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                auditDomainService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService);
 
         return new CreateApiDomainService(
-            apiCrudService,
-            auditDomainService,
-            new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                apiCrudService,
+                auditDomainService,
+                new ApiIndexerDomainService(
+                        new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                        apiPrimaryOwnerDomainService,
+                        apiCategoryQueryService,
+                        indexer),
+                new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
                 apiPrimaryOwnerDomainService,
-                apiCategoryQueryService,
-                indexer
-            ),
-            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
-            apiPrimaryOwnerDomainService,
-            flowCrudService,
-            notificationConfigCrudService,
-            parametersQueryService,
-            workflowCrudService,
-            createCategoryApiDomainService
-        );
+                flowCrudService,
+                notificationConfigCrudService,
+                parametersQueryService,
+                workflowCrudService,
+                createCategoryApiDomainService);
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiCrudService,
-            applicationCrudService,
-            auditCrudService,
-            flowCrudService,
-            groupQueryService,
-            membershipCrudService,
-            metadataCrudService,
-            notificationConfigCrudService,
-            pageCrudService,
-            parametersQueryService,
-            parametersQueryService,
-            planCrudService,
-            subscriptionCrudService,
-            userCrudService,
-            workflowCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        apiCrudService,
+                        applicationCrudService,
+                        auditCrudService,
+                        flowCrudService,
+                        groupQueryService,
+                        membershipCrudService,
+                        metadataCrudService,
+                        notificationConfigCrudService,
+                        pageCrudService,
+                        parametersQueryService,
+                        parametersQueryService,
+                        planCrudService,
+                        subscriptionCrudService,
+                        userCrudService,
+                        workflowCrudService)
+                .forEach(InMemoryAlternative::reset);
         reset(policyValidationDomainService, planSynchronizationService);
     }
 
@@ -610,11 +560,11 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_not_create_api_if_validation_fails() {
-            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenThrow(
-                new ValidationDomainException("Validation error")
-            );
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                    .thenThrow(new ValidationDomainException("Validation error"));
 
-            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+            var throwable =
+                    catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
@@ -626,48 +576,57 @@ class ImportApiCRDUseCaseTest {
         void should_store_encryptable_properties_encrypted() throws GeneralSecurityException {
             when(dataEncryptor.encrypt("prop-value")).thenReturn("ciphertext");
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD()
-                        .plans(Map.of())
-                        .properties(List.of(EncryptableProperty.builder().key("prop-key").value("prop-value").encryptable(true).build()))
-                        .build()
-                )
-            );
+                    aCRD().plans(Map.of())
+                            .properties(List.of(EncryptableProperty.builder()
+                                    .key("prop-key")
+                                    .value("prop-value")
+                                    .encryptable(true)
+                                    .build()))
+                            .build()));
 
-            assertThat(apiCrudService.storage().getFirst().getApiDefinitionHttpV4().getProperties()).containsExactly(
-                Property.builder().key("prop-key").value("ciphertext").encrypted(true).build()
-            );
-            var created = auditCrudService
-                .storage()
-                .stream()
-                .filter(audit -> audit.getEvent().equals("API_CREATED"))
-                .findFirst()
-                .orElseThrow();
+            assertThat(apiCrudService
+                            .storage()
+                            .getFirst()
+                            .getApiDefinitionHttpV4()
+                            .getProperties())
+                    .containsExactly(Property.builder()
+                            .key("prop-key")
+                            .value("ciphertext")
+                            .encrypted(true)
+                            .build());
+            var created = auditCrudService.storage().stream()
+                    .filter(audit -> audit.getEvent().equals("API_CREATED"))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(created.getPatch()).doesNotContain("ciphertext").doesNotContain("prop-value");
             assertThat(created.getProperties()).containsEntry("ENCRYPTED", "true");
         }
 
         @Test
         void should_create_and_index_a_new_api() {
-            var expected = expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build();
+            var expected = expectedApiV4Proxy().toBuilder()
+                    .id(API_ID)
+                    .crossId(API_CROSS_ID)
+                    .build();
             expected.getApiDefinitionHttpV4().setPlans(List.of());
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of()).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aCRD().plans(Map.of()).build()));
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiCrudService.storage()).contains(expected);
-                soft
-                    .assertThat(indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(ACTOR_USER_ID, "devops@gravitee.io", "devops@gravitee.io", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(indexer.storage())
+                        .containsExactly(new IndexableApi(
+                                expected,
+                                new PrimaryOwnerEntity(
+                                        ACTOR_USER_ID,
+                                        "devops@gravitee.io",
+                                        "devops@gravitee.io",
+                                        PrimaryOwnerEntity.Type.USER),
+                                Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
+                                Collections.emptySet()));
             });
         }
 
@@ -676,22 +635,25 @@ class ImportApiCRDUseCaseTest {
         void should_create_and_index_a_new_native_api() {
             planQueryService.reset();
             apiCrudService.reset();
-            var expected = expectedNativeApi().toBuilder().groups(Set.of(DEFAULT_GROUP)).build();
+            var expected = expectedNativeApi().toBuilder()
+                    .groups(Set.of(DEFAULT_GROUP))
+                    .build();
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().groups(Set.of()).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aNativeApiCRD().groups(Set.of()).build()));
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiCrudService.storage()).contains(expected);
-                soft
-                    .assertThat(indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(ACTOR_USER_ID, "devops@gravitee.io", "devops@gravitee.io", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(indexer.storage())
+                        .containsExactly(new IndexableApi(
+                                expected,
+                                new PrimaryOwnerEntity(
+                                        ACTOR_USER_ID,
+                                        "devops@gravitee.io",
+                                        "devops@gravitee.io",
+                                        PrimaryOwnerEntity.Type.USER),
+                                Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
+                                Collections.emptySet()));
             });
         }
 
@@ -700,63 +662,74 @@ class ImportApiCRDUseCaseTest {
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build()));
 
             assertThat(planCrudService.storage())
-                .hasSize(1)
-                .extracting(Plan::getId, Plan::getName, Plan::getPublishedAt)
-                .containsExactly(tuple(KEYLESS_PLAN_ID, "Keyless", INSTANT_NOW.atZone(ZoneId.systemDefault())));
-            assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).containsExactly("plan-flow");
+                    .hasSize(1)
+                    .extracting(Plan::getId, Plan::getName, Plan::getPublishedAt)
+                    .containsExactly(tuple(KEYLESS_PLAN_ID, "Keyless", INSTANT_NOW.atZone(ZoneId.systemDefault())));
+            assertThat(flowCrudService.storage())
+                    .extracting(AbstractFlow::getName)
+                    .containsExactly("plan-flow");
         }
 
         @Test
         void should_reject_crd_import_when_plan_flow_has_null_path_operator() {
             var corruptFlow = Flow.builder()
-                .name("plan-flow")
-                .selectors(List.of(HttpSelector.builder().path("/calls").pathOperator(null).build()))
-                .build();
-            var crd = aCRD()
-                .plans(
-                    Map.of(
-                        "keyless-key",
-                        PlanCRD.builder()
-                            .id("keyless-id")
-                            .name("Keyless")
-                            .security(PlanSecurity.builder().type("KEY_LESS").build())
-                            .mode(PlanMode.STANDARD)
-                            .validation(Plan.PlanValidationType.AUTO)
-                            .status(PlanStatus.PUBLISHED)
-                            .type(Plan.PlanType.API)
-                            .flows(List.of(corruptFlow))
-                            .build()
-                    )
-                )
-                .build();
+                    .name("plan-flow")
+                    .selectors(List.of(HttpSelector.builder()
+                            .path("/calls")
+                            .pathOperator(null)
+                            .build()))
+                    .build();
+            var crd = aCRD().plans(Map.of(
+                            "keyless-key",
+                            PlanCRD.builder()
+                                    .id("keyless-id")
+                                    .name("Keyless")
+                                    .security(PlanSecurity.builder()
+                                            .type("KEY_LESS")
+                                            .build())
+                                    .mode(PlanMode.STANDARD)
+                                    .validation(Plan.PlanValidationType.AUTO)
+                                    .status(PlanStatus.PUBLISHED)
+                                    .type(Plan.PlanType.API)
+                                    .flows(List.of(corruptFlow))
+                                    .build()))
+                    .build();
 
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, crd)));
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(throwable).isInstanceOf(InvalidFlowException.class);
-                soft.assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).doesNotContain("plan-flow");
+                soft.assertThat(flowCrudService.storage())
+                        .extracting(AbstractFlow::getName)
+                        .doesNotContain("plan-flow");
             });
         }
 
         @Test
         void should_reject_crd_import_when_api_flow_has_null_path_operator() {
             var corruptFlow = Flow.builder()
-                .name("api-flow")
-                .selectors(List.of(HttpSelector.builder().path("/calls").pathOperator(null).build()))
-                .build();
+                    .name("api-flow")
+                    .selectors(List.of(HttpSelector.builder()
+                            .path("/calls")
+                            .pathOperator(null)
+                            .build()))
+                    .build();
             var crd = aCRD().flows(List.of(corruptFlow)).build();
 
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, crd)));
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(throwable).isInstanceOf(InvalidFlowException.class);
-                soft.assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).doesNotContain("api-flow");
+                soft.assertThat(flowCrudService.storage())
+                        .extracting(AbstractFlow::getName)
+                        .doesNotContain("api-flow");
             });
         }
 
         @Test
         void should_not_validate_ignored_groups_on_create() {
-            var result = useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().ignoreGroups(true).build()));
+            var result = useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aCRD().ignoreGroups(true).build()));
 
             assertThat(result.status().getErrors().warning()).isEmpty();
         }
@@ -765,144 +738,138 @@ class ImportApiCRDUseCaseTest {
         void should_return_CRD_status() {
             var result = useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build()));
 
-            assertThat(result.status()).isEqualTo(
-                ApiCRDStatus.builder()
-                    .id(API_ID)
-                    .crossId(API_CROSS_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .organizationId(ORGANIZATION_ID)
-                    .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
-                    .errors(
-                        ApiCRDStatus.Errors.builder()
-                            .severe(List.of())
-                            .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
-                            .build()
-                    )
-                    .build()
-            );
+            assertThat(result.status())
+                    .isEqualTo(ApiCRDStatus.builder()
+                            .id(API_ID)
+                            .crossId(API_CROSS_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .organizationId(ORGANIZATION_ID)
+                            .state("STARTED")
+                            .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
+                            .errors(ApiCRDStatus.Errors.builder()
+                                    .severe(List.of())
+                                    .warning(
+                                            List.of(
+                                                    "Group [non-existing-group] could not be found in environment [environment-id]"))
+                                    .build())
+                            .build());
         }
 
         @Test
         void should_return_NATIVE_CRD_status() {
-            var result = useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().build()));
+            var result = useCase.execute(
+                    new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().build()));
 
-            assertThat(result.status()).isEqualTo(
-                ApiCRDStatus.builder()
-                    .id(API_ID)
-                    .crossId(API_CROSS_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .organizationId(ORGANIZATION_ID)
-                    .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
-                    .errors(
-                        ApiCRDStatus.Errors.builder()
-                            .severe(List.of())
-                            .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
-                            .build()
-                    )
-                    .build()
-            );
+            assertThat(result.status())
+                    .isEqualTo(ApiCRDStatus.builder()
+                            .id(API_ID)
+                            .crossId(API_CROSS_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .organizationId(ORGANIZATION_ID)
+                            .state("STARTED")
+                            .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
+                            .errors(ApiCRDStatus.Errors.builder()
+                                    .severe(List.of())
+                                    .warning(
+                                            List.of(
+                                                    "Group [non-existing-group] could not be found in environment [environment-id]"))
+                                    .build())
+                            .build());
         }
 
         @Test
         void should_return_CRD_status_with_warnings() {
-            var result = useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().categories(Set.of("unknown-category")).build()));
+            var result = useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aCRD().categories(Set.of("unknown-category")).build()));
 
-            assertThat(result.status()).isEqualTo(
-                ApiCRDStatus.builder()
-                    .id(API_ID)
-                    .crossId(API_CROSS_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .organizationId(ORGANIZATION_ID)
-                    .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
-                    .errors(
-                        ApiCRDStatus.Errors.builder()
-                            .severe(List.of())
-                            .warning(
-                                List.of(
-                                    "Group [non-existing-group] could not be found in environment [environment-id]",
-                                    "category [unknown-category] is not defined in environment [environment-id]"
-                                )
-                            )
-                            .build()
-                    )
-                    .build()
-            );
+            assertThat(result.status())
+                    .isEqualTo(ApiCRDStatus.builder()
+                            .id(API_ID)
+                            .crossId(API_CROSS_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .organizationId(ORGANIZATION_ID)
+                            .state("STARTED")
+                            .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
+                            .errors(ApiCRDStatus.Errors.builder()
+                                    .severe(List.of())
+                                    .warning(
+                                            List.of(
+                                                    "Group [non-existing-group] could not be found in environment [environment-id]",
+                                                    "category [unknown-category] is not defined in environment [environment-id]"))
+                                    .build())
+                            .build());
         }
 
         @Test
         void should_return_NATIVE_CRD_status_with_warnings() {
-            var result = useCase.execute(
-                new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().categories(Set.of("unknown-category")).build())
-            );
+            var result = useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aNativeApiCRD().categories(Set.of("unknown-category")).build()));
 
-            assertThat(result.status()).isEqualTo(
-                ApiCRDStatus.builder()
-                    .id(API_ID)
-                    .crossId(API_CROSS_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .organizationId(ORGANIZATION_ID)
-                    .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
-                    .errors(
-                        ApiCRDStatus.Errors.builder()
-                            .severe(List.of())
-                            .warning(
-                                List.of(
-                                    "Group [non-existing-group] could not be found in environment [environment-id]",
-                                    "category [unknown-category] is not defined in environment [environment-id]"
-                                )
-                            )
-                            .build()
-                    )
-                    .build()
-            );
+            assertThat(result.status())
+                    .isEqualTo(ApiCRDStatus.builder()
+                            .id(API_ID)
+                            .crossId(API_CROSS_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .organizationId(ORGANIZATION_ID)
+                            .state("STARTED")
+                            .plans(Map.of("keyless-key", KEYLESS_PLAN_ID))
+                            .errors(ApiCRDStatus.Errors.builder()
+                                    .severe(List.of())
+                                    .warning(
+                                            List.of(
+                                                    "Group [non-existing-group] could not be found in environment [environment-id]",
+                                                    "category [unknown-category] is not defined in environment [environment-id]"))
+                                    .build())
+                            .build());
         }
 
         @Test
         void should_sanitize_and_create_members() {
-            roleQueryService.initWith(
-                List.of(
-                    Role.builder()
-                        .name("USER")
-                        .referenceType(Role.ReferenceType.ORGANIZATION)
-                        .referenceId(ORGANIZATION_ID)
-                        .id("user_role_id")
-                        .scope(Role.Scope.API)
-                        .build()
-                )
-            );
+            roleQueryService.initWith(List.of(Role.builder()
+                    .name("USER")
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .id("user_role_id")
+                    .scope(Role.Scope.API)
+                    .build()));
 
-            var member = MemberCRD.builder().source(USER_ENTITY_SOURCE).sourceId(USER_ENTITY_SOURCE_ID).role("USER").build();
+            var member = MemberCRD.builder()
+                    .source(USER_ENTITY_SOURCE)
+                    .sourceId(USER_ENTITY_SOURCE_ID)
+                    .role("USER")
+                    .build();
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(new LinkedHashSet<>(Set.of(member))).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD().members(new LinkedHashSet<>(Set.of(member))).build()));
 
-            assertThat(crdMembersDomainService.getApiMembers(API_ID)).contains(member.toBuilder().id(USER_ID).build());
+            assertThat(crdMembersDomainService.getApiMembers(API_ID))
+                    .contains(member.toBuilder().id(USER_ID).build());
         }
 
         @Test
         void should_sanitize_and_create_members_native_api() {
-            roleQueryService.initWith(
-                List.of(
-                    Role.builder()
-                        .name("USER")
-                        .referenceType(Role.ReferenceType.ORGANIZATION)
-                        .referenceId(ORGANIZATION_ID)
-                        .id("user_role_id")
-                        .scope(Role.Scope.API)
-                        .build()
-                )
-            );
+            roleQueryService.initWith(List.of(Role.builder()
+                    .name("USER")
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .id("user_role_id")
+                    .scope(Role.Scope.API)
+                    .build()));
 
-            var member = MemberCRD.builder().source(USER_ENTITY_SOURCE).sourceId(USER_ENTITY_SOURCE_ID).role("USER").build();
+            var member = MemberCRD.builder()
+                    .source(USER_ENTITY_SOURCE)
+                    .sourceId(USER_ENTITY_SOURCE_ID)
+                    .role("USER")
+                    .build();
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().members(new LinkedHashSet<>(Set.of(member))).build())
-            );
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aNativeApiCRD().members(new LinkedHashSet<>(Set.of(member))).build()));
 
-            assertThat(crdMembersDomainService.getApiMembers(API_ID)).contains(member.toBuilder().id(USER_ID).build());
+            assertThat(crdMembersDomainService.getApiMembers(API_ID))
+                    .contains(member.toBuilder().id(USER_ID).build());
         }
 
         @Test
@@ -914,19 +881,18 @@ class ImportApiCRDUseCaseTest {
             var markdown = getMarkdownPage(folder);
             pages.put("markdown", markdown);
 
-            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
-                call.getArgument(0)
-            );
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                    .thenAnswer(call -> call.getArgument(0));
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aCRD().pages(pages).build()));
 
             assertThat(pageCrudService.storage())
-                .hasSize(2)
-                .extracting(Page::getId, Page::getCrossId, Page::getName)
-                .containsExactly(
-                    tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
-                    tuple(folder.getId(), folder.getCrossId(), folder.getName())
-                );
+                    .hasSize(2)
+                    .extracting(Page::getId, Page::getCrossId, Page::getName)
+                    .containsExactly(
+                            tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
+                            tuple(folder.getId(), folder.getCrossId(), folder.getName()));
         }
 
         @Test
@@ -938,233 +904,246 @@ class ImportApiCRDUseCaseTest {
             var markdown = getMarkdownPage(folder);
             pages.put("markdown", markdown);
 
-            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
-                call.getArgument(0)
-            );
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                    .thenAnswer(call -> call.getArgument(0));
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().pages(pages).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aNativeApiCRD().pages(pages).build()));
 
             assertThat(pageCrudService.storage())
-                .hasSize(2)
-                .extracting(Page::getId, Page::getCrossId, Page::getName)
-                .containsExactly(
-                    tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
-                    tuple(folder.getId(), folder.getCrossId(), folder.getName())
-                );
+                    .hasSize(2)
+                    .extracting(Page::getId, Page::getCrossId, Page::getName)
+                    .containsExactly(
+                            tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
+                            tuple(folder.getId(), folder.getCrossId(), folder.getName()));
         }
 
         @Test
         void should_throw_when_page_parent_is_not_a_folder() {
             var markdownParent = PageCRD.builder()
-                .id("markdown-parent-id")
-                .hrid("markdown-parent")
-                .name("markdown-parent")
-                .type(PageCRD.Type.MARKDOWN)
-                .content("I am not a folder")
-                .visibility(PageCRD.Visibility.PUBLIC)
-                .build();
+                    .id("markdown-parent-id")
+                    .hrid("markdown-parent")
+                    .name("markdown-parent")
+                    .type(PageCRD.Type.MARKDOWN)
+                    .content("I am not a folder")
+                    .visibility(PageCRD.Visibility.PUBLIC)
+                    .build();
 
             var child = PageCRD.builder()
-                .id("child-page-id")
-                .hrid("child-page")
-                .name("child-page")
-                .type(PageCRD.Type.MARKDOWN)
-                .parentId("markdown-parent-id")
-                .content("I have a bad parent")
-                .visibility(PageCRD.Visibility.PUBLIC)
-                .build();
+                    .id("child-page-id")
+                    .hrid("child-page")
+                    .name("child-page")
+                    .type(PageCRD.Type.MARKDOWN)
+                    .parentId("markdown-parent-id")
+                    .content("I have a bad parent")
+                    .visibility(PageCRD.Visibility.PUBLIC)
+                    .build();
 
             var pages = new HashMap<String, PageCRD>();
             pages.put("markdown-parent", markdownParent);
             pages.put("child-page", child);
 
-            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
-                call.getArgument(0)
-            );
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                    .thenAnswer(call -> call.getArgument(0));
 
-            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build())));
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aCRD().pages(pages).build())));
 
             assertThat(throwable).isInstanceOf(InvalidPageParentException.class);
         }
 
         @Test
         void should_handle_null_pages() {
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(null).build()));
+            useCase.execute(
+                    new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(null).build()));
 
             assertThat(pageCrudService.storage()).isEmpty();
         }
 
         @Test
         void should_handle_empty_members() {
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(new LinkedHashSet<>()).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aCRD().members(new LinkedHashSet<>()).build()));
 
             assertThat(crdMembersDomainService.getApiMembers(API_ID)).isEmpty();
         }
 
         @Test
         void should_create_notification() {
-            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
-                call.getArgument(0)
-            );
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                    .thenAnswer(call -> call.getArgument(0));
 
             PortalNotificationConfigEntity notification = new PortalNotificationConfigEntity();
             notification.setReferenceId(API_ID);
             notification.setHooks(List.of());
             notification.setGroups(List.of());
             notification.setConfigType(NotificationConfigType.PORTAL);
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().consoleNotificationConfiguration(notification).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD().consoleNotificationConfiguration(notification).build()));
 
-            verify(notificationCRDService, atMostOnce()).syncApiPortalNotifications(API_ID, ACTOR_USER_ID, notification);
+            verify(notificationCRDService, atMostOnce())
+                    .syncApiPortalNotifications(API_ID, ACTOR_USER_ID, notification);
         }
 
         @Test
         void should_start_the_api() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                    .thenReturn(expectedApiV4Proxy());
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD().definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build()).build()
-                )
-            );
+                    aCRD().definitionContext(DefinitionContext.builder()
+                                    .origin("KUBERNETES")
+                                    .syncFrom("MANAGEMENT")
+                                    .build())
+                            .build()));
 
             verify(apiStateDomainService, times(1)).start(argThat(api -> API_ID.equals(api.getId())), any());
         }
 
         @Test
         void should_start_the_native_api() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedNativeApi());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                    .thenReturn(expectedNativeApi());
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
                     aNativeApiCRD()
-                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                        .build()
-                )
-            );
+                            .definitionContext(DefinitionContext.builder()
+                                    .origin("KUBERNETES")
+                                    .syncFrom("MANAGEMENT")
+                                    .build())
+                            .build()));
 
             verify(apiStateDomainService, times(1)).start(argThat(api -> API_ID.equals(api.getId())), any());
         }
 
         @Test
         void should_not_start_the_api_with_no_plan() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                    .thenReturn(expectedApiV4Proxy());
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD()
-                        .plans(Map.of())
-                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                        .build()
-                )
-            );
+                    aCRD().plans(Map.of())
+                            .definitionContext(DefinitionContext.builder()
+                                    .origin("KUBERNETES")
+                                    .syncFrom("MANAGEMENT")
+                                    .build())
+                            .build()));
 
             verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), any());
         }
 
         @Test
         void should_not_start_the_native_api_with_no_plan() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedNativeApi());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                    .thenReturn(expectedNativeApi());
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
                     aNativeApiCRD()
-                        .plans(Map.of())
-                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                        .build()
-                )
-            );
+                            .plans(Map.of())
+                            .definitionContext(DefinitionContext.builder()
+                                    .origin("KUBERNETES")
+                                    .syncFrom("MANAGEMENT")
+                                    .build())
+                            .build()));
 
             verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), any());
         }
 
         @Test
         void should_not_stop_the_api_on_creation() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                    .thenReturn(expectedApiV4Proxy());
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD()
-                        .state("STOPPED")
-                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                        .build()
-                )
-            );
+                    aCRD().state("STOPPED")
+                            .definitionContext(DefinitionContext.builder()
+                                    .origin("KUBERNETES")
+                                    .syncFrom("MANAGEMENT")
+                                    .build())
+                            .build()));
 
             verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), any());
             verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), any());
-            verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), any());
+            verify(apiStateDomainService, never())
+                    .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), any());
         }
 
         @Test
         void should_not_stop_the_native_api_on_creation() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedNativeApi());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                    .thenReturn(expectedNativeApi());
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
                     aNativeApiCRD()
-                        .state("STOPPED")
-                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                        .build()
-                )
-            );
+                            .state("STOPPED")
+                            .definitionContext(DefinitionContext.builder()
+                                    .origin("KUBERNETES")
+                                    .syncFrom("MANAGEMENT")
+                                    .build())
+                            .build()));
 
             verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), any());
             verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), any());
-            verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), any());
+            verify(apiStateDomainService, never())
+                    .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), any());
         }
 
         @Test
         void should_not_stop_the_api_with_no_plan() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                    .thenReturn(expectedApiV4Proxy());
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD()
-                        .plans(Map.of())
-                        .state("STOPPED")
-                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                        .build()
-                )
-            );
+                    aCRD().plans(Map.of())
+                            .state("STOPPED")
+                            .definitionContext(DefinitionContext.builder()
+                                    .origin("KUBERNETES")
+                                    .syncFrom("MANAGEMENT")
+                                    .build())
+                            .build()));
 
             verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), any());
         }
 
         @Test
         void should_not_stop_the_native_api_with_no_plan() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedNativeApi());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                    .thenReturn(expectedNativeApi());
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
                     aNativeApiCRD()
-                        .plans(Map.of())
-                        .state("STOPPED")
-                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                        .build()
-                )
-            );
+                            .plans(Map.of())
+                            .state("STOPPED")
+                            .definitionContext(DefinitionContext.builder()
+                                    .origin("KUBERNETES")
+                                    .syncFrom("MANAGEMENT")
+                                    .build())
+                            .build()));
 
             verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), any());
         }
 
         @Test
         void should_not_deploy_the_api() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                    .thenReturn(expectedApiV4Proxy());
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD().definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build()).build()
-                )
-            );
+                    aCRD().definitionContext(DefinitionContext.builder()
+                                    .origin("KUBERNETES")
+                                    .syncFrom("KUBERNETES")
+                                    .build())
+                            .build()));
 
             verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
 
@@ -1173,16 +1152,17 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_not_deploy_the_native_api() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedNativeApi());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                    .thenReturn(expectedNativeApi());
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
                     aNativeApiCRD()
-                        .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
-                        .build()
-                )
-            );
+                            .definitionContext(DefinitionContext.builder()
+                                    .origin("KUBERNETES")
+                                    .syncFrom("KUBERNETES")
+                                    .build())
+                            .build()));
 
             verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
 
@@ -1193,32 +1173,34 @@ class ImportApiCRDUseCaseTest {
     @Nested
     class Update {
 
-        private static final Api API_PROXY_V4 = aProxyApiV4()
-            .toBuilder()
-            .id(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .crossId(API_CROSS_ID)
-            .build();
+        private static final Api API_PROXY_V4 = aProxyApiV4().toBuilder()
+                .id(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .crossId(API_CROSS_ID)
+                .build();
 
-        private static final Api NATIVE_API = aNativeApi()
-            .toBuilder()
-            .id(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .crossId(API_CROSS_ID)
-            .build();
+        private static final Api NATIVE_API = aNativeApi().toBuilder()
+                .id(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .crossId(API_CROSS_ID)
+                .build();
 
-        private static final Plan KEYLESS = PlanFixtures.HttpV4.aKeyless().toBuilder().referenceId(API_ID).build().setPlanTags(Set.of(TAG));
-        private static final Plan NATIVE_KEYLESS = PlanFixtures.NativeV4.aKeyless()
-            .toBuilder()
-            .referenceId(API_ID)
-            .build()
-            .setPlanTags(Set.of(TAG));
-        private static final Plan API_KEY = PlanFixtures.HttpV4.anApiKey().toBuilder().referenceId(API_ID).build().setPlanTags(Set.of(TAG));
-        private static final Plan NATIVE_API_KEY = PlanFixtures.NativeV4.anApiKey()
-            .toBuilder()
-            .referenceId(API_ID)
-            .build()
-            .setPlanTags(Set.of(TAG));
+        private static final Plan KEYLESS = PlanFixtures.HttpV4.aKeyless().toBuilder()
+                .referenceId(API_ID)
+                .build()
+                .setPlanTags(Set.of(TAG));
+        private static final Plan NATIVE_KEYLESS = PlanFixtures.NativeV4.aKeyless().toBuilder()
+                .referenceId(API_ID)
+                .build()
+                .setPlanTags(Set.of(TAG));
+        private static final Plan API_KEY = PlanFixtures.HttpV4.anApiKey().toBuilder()
+                .referenceId(API_ID)
+                .build()
+                .setPlanTags(Set.of(TAG));
+        private static final Plan NATIVE_API_KEY = PlanFixtures.NativeV4.anApiKey().toBuilder()
+                .referenceId(API_ID)
+                .build()
+                .setPlanTags(Set.of(TAG));
 
         @BeforeEach
         void setUp() {
@@ -1232,64 +1214,64 @@ class ImportApiCRDUseCaseTest {
             givenExistingApi();
             givenExistingPlans(List.of(KEYLESS));
 
-            var result = useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            var result = useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD()
-                        .plans(
-                            Map.of(
-                                "keyless-key",
-                                PlanCRD.builder()
-                                    .id(KEYLESS.getId())
-                                    .name(KEYLESS.getName())
-                                    .security(KEYLESS.getPlanSecurity())
-                                    .mode(KEYLESS.getPlanMode())
-                                    .validation(KEYLESS.getValidation())
-                                    .status(KEYLESS.getPlanStatus())
-                                    .type(KEYLESS.getType())
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("keyless-flow").build()))
-                                    .build(),
-                                "apikey-key",
-                                PlanCRD.builder()
-                                    .id(APIKEY_PLAN_ID)
-                                    .name("API Key")
-                                    .security(PlanSecurity.builder().type("API_KEY").build())
-                                    .mode(PlanMode.STANDARD)
-                                    .validation(Plan.PlanValidationType.AUTO)
-                                    .status(PlanStatus.STAGING)
-                                    .type(Plan.PlanType.API)
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("apikey-flow").build()))
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            );
+                    aCRD().plans(Map.of(
+                                    "keyless-key",
+                                    PlanCRD.builder()
+                                            .id(KEYLESS.getId())
+                                            .name(KEYLESS.getName())
+                                            .security(KEYLESS.getPlanSecurity())
+                                            .mode(KEYLESS.getPlanMode())
+                                            .validation(KEYLESS.getValidation())
+                                            .status(KEYLESS.getPlanStatus())
+                                            .type(KEYLESS.getType())
+                                            .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder()
+                                                    .name("keyless-flow")
+                                                    .build()))
+                                            .build(),
+                                    "apikey-key",
+                                    PlanCRD.builder()
+                                            .id(APIKEY_PLAN_ID)
+                                            .name("API Key")
+                                            .security(PlanSecurity.builder()
+                                                    .type("API_KEY")
+                                                    .build())
+                                            .mode(PlanMode.STANDARD)
+                                            .validation(Plan.PlanValidationType.AUTO)
+                                            .status(PlanStatus.STAGING)
+                                            .type(Plan.PlanType.API)
+                                            .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder()
+                                                    .name("apikey-flow")
+                                                    .build()))
+                                            .build()))
+                            .build()));
 
-            assertThat(result.status()).isEqualTo(
-                ApiCRDStatus.builder()
-                    .id(API_ID)
-                    .crossId(API_CROSS_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .organizationId(ORGANIZATION_ID)
-                    .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
-                    .errors(
-                        ApiCRDStatus.Errors.builder()
-                            .severe(List.of())
-                            .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
-                            .build()
-                    )
-                    .build()
-            );
+            assertThat(result.status())
+                    .isEqualTo(ApiCRDStatus.builder()
+                            .id(API_ID)
+                            .crossId(API_CROSS_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .organizationId(ORGANIZATION_ID)
+                            .state("STARTED")
+                            .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
+                            .errors(ApiCRDStatus.Errors.builder()
+                                    .severe(List.of())
+                                    .warning(
+                                            List.of(
+                                                    "Group [non-existing-group] could not be found in environment [environment-id]"))
+                                    .build())
+                            .build());
         }
 
         @Test
         void should_keep_existing_groups_when_ignoring_groups() {
-            apiQueryService.initWith(List.of(API_PROXY_V4.toBuilder().groups(Set.of(GROUP_ID_2)).build()));
+            apiQueryService.initWith(
+                    List.of(API_PROXY_V4.toBuilder().groups(Set.of(GROUP_ID_2)).build()));
             givenExistingPlans(List.of(KEYLESS));
 
-            var result = useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().ignoreGroups(true).build()));
+            var result = useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aCRD().ignoreGroups(true).build()));
 
             var spec = org.mockito.ArgumentCaptor.forClass(ApiCRDSpec.class);
             verify(updateApiDomainService).update(eq(API_ID), spec.capture(), any());
@@ -1301,7 +1283,8 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_apply_spec_groups_when_not_ignoring_groups() {
-            apiQueryService.initWith(List.of(API_PROXY_V4.toBuilder().groups(Set.of(GROUP_ID_2)).build()));
+            apiQueryService.initWith(
+                    List.of(API_PROXY_V4.toBuilder().groups(Set.of(GROUP_ID_2)).build()));
             givenExistingPlans(List.of(KEYLESS));
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build()));
@@ -1314,23 +1297,23 @@ class ImportApiCRDUseCaseTest {
         @Test
         void should_reject_making_an_encrypted_property_plain() {
             var existing = API_PROXY_V4.toBuilder()
-                .apiDefinitionValue(
-                    API_PROXY_V4.getApiDefinitionHttpV4()
-                        .toBuilder()
-                        .properties(List.of(Property.builder().key("prop-key").value("ciphertext").encrypted(true).build()))
-                        .build()
-                )
-                .build();
+                    .apiDefinitionValue(API_PROXY_V4.getApiDefinitionHttpV4().toBuilder()
+                            .properties(List.of(Property.builder()
+                                    .key("prop-key")
+                                    .value("ciphertext")
+                                    .encrypted(true)
+                                    .build()))
+                            .build())
+                    .build();
             apiQueryService.initWith(List.of(existing));
 
-            var throwable = catchThrowable(() ->
-                useCase.execute(
-                    new ImportApiCRDUseCase.Input(
-                        AUDIT_INFO,
-                        aCRD().properties(List.of(EncryptableProperty.builder().key("prop-key").value("ciphertext").build())).build()
-                    )
-                )
-            );
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD().properties(List.of(EncryptableProperty.builder()
+                                    .key("prop-key")
+                                    .value("ciphertext")
+                                    .build()))
+                            .build())));
 
             assertThat(throwable).isInstanceOf(ApiPropertyEncryptedToPlainException.class);
             verify(updateApiDomainService, never()).update(any(), any(), any());
@@ -1343,7 +1326,8 @@ class ImportApiCRDUseCaseTest {
             var domain = new ValidationDomainException("boom");
             when(updateApiDomainService.update(any(), any(), any())).thenThrow(domain);
 
-            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+            var throwable =
+                    catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
 
             assertThat(throwable).isSameAs(domain);
         }
@@ -1352,60 +1336,58 @@ class ImportApiCRDUseCaseTest {
         void should_return_native_CRD_status() {
             givenExistingNativeApi();
             givenExistingPlans(List.of(NATIVE_KEYLESS));
-            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-                invocation.getArgument(0)
-            );
+            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
-            var result = useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            var result = useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
                     aNativeApiCRD()
-                        .plans(
-                            Map.of(
-                                "keyless-key",
-                                PlanCRD.builder()
-                                    .id(NATIVE_KEYLESS.getId())
-                                    .name(NATIVE_KEYLESS.getName())
-                                    .security(NATIVE_KEYLESS.getPlanSecurity())
-                                    .mode(NATIVE_KEYLESS.getPlanMode())
-                                    .validation(NATIVE_KEYLESS.getValidation())
-                                    .status(NATIVE_KEYLESS.getPlanStatus())
-                                    .type(NATIVE_KEYLESS.getType())
-                                    .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("keyless-flow").build()))
-                                    .build(),
-                                "apikey-key",
-                                PlanCRD.builder()
-                                    .id(APIKEY_PLAN_ID)
-                                    .name("API Key")
-                                    .security(PlanSecurity.builder().type("API_KEY").build())
-                                    .mode(PlanMode.STANDARD)
-                                    .validation(Plan.PlanValidationType.AUTO)
-                                    .status(PlanStatus.STAGING)
-                                    .type(Plan.PlanType.API)
-                                    .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("apikey-flow").build()))
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            );
+                            .plans(Map.of(
+                                    "keyless-key",
+                                    PlanCRD.builder()
+                                            .id(NATIVE_KEYLESS.getId())
+                                            .name(NATIVE_KEYLESS.getName())
+                                            .security(NATIVE_KEYLESS.getPlanSecurity())
+                                            .mode(NATIVE_KEYLESS.getPlanMode())
+                                            .validation(NATIVE_KEYLESS.getValidation())
+                                            .status(NATIVE_KEYLESS.getPlanStatus())
+                                            .type(NATIVE_KEYLESS.getType())
+                                            .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                                    .name("keyless-flow")
+                                                    .build()))
+                                            .build(),
+                                    "apikey-key",
+                                    PlanCRD.builder()
+                                            .id(APIKEY_PLAN_ID)
+                                            .name("API Key")
+                                            .security(PlanSecurity.builder()
+                                                    .type("API_KEY")
+                                                    .build())
+                                            .mode(PlanMode.STANDARD)
+                                            .validation(Plan.PlanValidationType.AUTO)
+                                            .status(PlanStatus.STAGING)
+                                            .type(Plan.PlanType.API)
+                                            .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                                    .name("apikey-flow")
+                                                    .build()))
+                                            .build()))
+                            .build()));
 
-            assertThat(result.status()).isEqualTo(
-                ApiCRDStatus.builder()
-                    .id(API_ID)
-                    .crossId(API_CROSS_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .organizationId(ORGANIZATION_ID)
-                    .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
-                    .errors(
-                        ApiCRDStatus.Errors.builder()
-                            .severe(List.of())
-                            .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
-                            .build()
-                    )
-                    .build()
-            );
+            assertThat(result.status())
+                    .isEqualTo(ApiCRDStatus.builder()
+                            .id(API_ID)
+                            .crossId(API_CROSS_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .organizationId(ORGANIZATION_ID)
+                            .state("STARTED")
+                            .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
+                            .errors(ApiCRDStatus.Errors.builder()
+                                    .severe(List.of())
+                                    .warning(
+                                            List.of(
+                                                    "Group [non-existing-group] could not be found in environment [environment-id]"))
+                                    .build())
+                            .build());
         }
 
         @Test
@@ -1413,128 +1395,116 @@ class ImportApiCRDUseCaseTest {
             givenExistingApi();
             givenExistingPlans(List.of(KEYLESS));
 
-            var result = useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            var result = useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD()
-                        .categories(Set.of("unknown-category"))
-                        .plans(
-                            Map.of(
-                                "keyless-key",
-                                PlanCRD.builder()
-                                    .id(KEYLESS.getId())
-                                    .name(KEYLESS.getName())
-                                    .security(KEYLESS.getPlanSecurity())
-                                    .mode(KEYLESS.getPlanMode())
-                                    .validation(KEYLESS.getValidation())
-                                    .status(KEYLESS.getPlanStatus())
-                                    .type(KEYLESS.getType())
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("keyless-flow").build()))
-                                    .build(),
-                                "apikey-key",
-                                PlanCRD.builder()
-                                    .id(APIKEY_PLAN_ID)
-                                    .name("API Key")
-                                    .security(PlanSecurity.builder().type("API_KEY").build())
-                                    .mode(PlanMode.STANDARD)
-                                    .validation(Plan.PlanValidationType.AUTO)
-                                    .status(PlanStatus.STAGING)
-                                    .type(Plan.PlanType.API)
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("apikey-flow").build()))
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            );
+                    aCRD().categories(Set.of("unknown-category"))
+                            .plans(Map.of(
+                                    "keyless-key",
+                                    PlanCRD.builder()
+                                            .id(KEYLESS.getId())
+                                            .name(KEYLESS.getName())
+                                            .security(KEYLESS.getPlanSecurity())
+                                            .mode(KEYLESS.getPlanMode())
+                                            .validation(KEYLESS.getValidation())
+                                            .status(KEYLESS.getPlanStatus())
+                                            .type(KEYLESS.getType())
+                                            .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder()
+                                                    .name("keyless-flow")
+                                                    .build()))
+                                            .build(),
+                                    "apikey-key",
+                                    PlanCRD.builder()
+                                            .id(APIKEY_PLAN_ID)
+                                            .name("API Key")
+                                            .security(PlanSecurity.builder()
+                                                    .type("API_KEY")
+                                                    .build())
+                                            .mode(PlanMode.STANDARD)
+                                            .validation(Plan.PlanValidationType.AUTO)
+                                            .status(PlanStatus.STAGING)
+                                            .type(Plan.PlanType.API)
+                                            .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder()
+                                                    .name("apikey-flow")
+                                                    .build()))
+                                            .build()))
+                            .build()));
 
-            assertThat(result.status()).isEqualTo(
-                ApiCRDStatus.builder()
-                    .id(API_ID)
-                    .crossId(API_CROSS_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .organizationId(ORGANIZATION_ID)
-                    .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
-                    .errors(
-                        ApiCRDStatus.Errors.builder()
-                            .severe(List.of())
-                            .warning(
-                                List.of(
-                                    "Group [non-existing-group] could not be found in environment [environment-id]",
-                                    "category [unknown-category] is not defined in environment [environment-id]"
-                                )
-                            )
-                            .build()
-                    )
-                    .build()
-            );
+            assertThat(result.status())
+                    .isEqualTo(ApiCRDStatus.builder()
+                            .id(API_ID)
+                            .crossId(API_CROSS_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .organizationId(ORGANIZATION_ID)
+                            .state("STARTED")
+                            .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
+                            .errors(ApiCRDStatus.Errors.builder()
+                                    .severe(List.of())
+                                    .warning(
+                                            List.of(
+                                                    "Group [non-existing-group] could not be found in environment [environment-id]",
+                                                    "category [unknown-category] is not defined in environment [environment-id]"))
+                                    .build())
+                            .build());
         }
 
         @Test
         void should_return_native_CRD_status_with_warnings() {
             givenExistingNativeApi();
             givenExistingPlans(List.of(NATIVE_KEYLESS));
-            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-                invocation.getArgument(0)
-            );
+            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
-            var result = useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            var result = useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
                     aNativeApiCRD()
-                        .categories(Set.of("unknown-category"))
-                        .plans(
-                            Map.of(
-                                "keyless-key",
-                                PlanCRD.builder()
-                                    .id(NATIVE_KEYLESS.getId())
-                                    .name(NATIVE_KEYLESS.getName())
-                                    .security(NATIVE_KEYLESS.getPlanSecurity())
-                                    .mode(NATIVE_KEYLESS.getPlanMode())
-                                    .validation(NATIVE_KEYLESS.getValidation())
-                                    .status(NATIVE_KEYLESS.getPlanStatus())
-                                    .type(NATIVE_KEYLESS.getType())
-                                    .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("keyless-flow").build()))
-                                    .build(),
-                                "apikey-key",
-                                PlanCRD.builder()
-                                    .id(APIKEY_PLAN_ID)
-                                    .name("API Key")
-                                    .security(PlanSecurity.builder().type("API_KEY").build())
-                                    .mode(PlanMode.STANDARD)
-                                    .validation(Plan.PlanValidationType.AUTO)
-                                    .status(PlanStatus.STAGING)
-                                    .type(Plan.PlanType.API)
-                                    .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("apikey-flow").build()))
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            );
+                            .categories(Set.of("unknown-category"))
+                            .plans(Map.of(
+                                    "keyless-key",
+                                    PlanCRD.builder()
+                                            .id(NATIVE_KEYLESS.getId())
+                                            .name(NATIVE_KEYLESS.getName())
+                                            .security(NATIVE_KEYLESS.getPlanSecurity())
+                                            .mode(NATIVE_KEYLESS.getPlanMode())
+                                            .validation(NATIVE_KEYLESS.getValidation())
+                                            .status(NATIVE_KEYLESS.getPlanStatus())
+                                            .type(NATIVE_KEYLESS.getType())
+                                            .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                                    .name("keyless-flow")
+                                                    .build()))
+                                            .build(),
+                                    "apikey-key",
+                                    PlanCRD.builder()
+                                            .id(APIKEY_PLAN_ID)
+                                            .name("API Key")
+                                            .security(PlanSecurity.builder()
+                                                    .type("API_KEY")
+                                                    .build())
+                                            .mode(PlanMode.STANDARD)
+                                            .validation(Plan.PlanValidationType.AUTO)
+                                            .status(PlanStatus.STAGING)
+                                            .type(Plan.PlanType.API)
+                                            .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                                    .name("apikey-flow")
+                                                    .build()))
+                                            .build()))
+                            .build()));
 
-            assertThat(result.status()).isEqualTo(
-                ApiCRDStatus.builder()
-                    .id(API_ID)
-                    .crossId(API_CROSS_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .organizationId(ORGANIZATION_ID)
-                    .state("STARTED")
-                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
-                    .errors(
-                        ApiCRDStatus.Errors.builder()
-                            .severe(List.of())
-                            .warning(
-                                List.of(
-                                    "Group [non-existing-group] could not be found in environment [environment-id]",
-                                    "category [unknown-category] is not defined in environment [environment-id]"
-                                )
-                            )
-                            .build()
-                    )
-                    .build()
-            );
+            assertThat(result.status())
+                    .isEqualTo(ApiCRDStatus.builder()
+                            .id(API_ID)
+                            .crossId(API_CROSS_ID)
+                            .environmentId(ENVIRONMENT_ID)
+                            .organizationId(ORGANIZATION_ID)
+                            .state("STARTED")
+                            .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", APIKEY_PLAN_ID))
+                            .errors(ApiCRDStatus.Errors.builder()
+                                    .severe(List.of())
+                                    .warning(
+                                            List.of(
+                                                    "Group [non-existing-group] could not be found in environment [environment-id]",
+                                                    "category [unknown-category] is not defined in environment [environment-id]"))
+                                    .build())
+                            .build());
         }
 
         @Test
@@ -1542,98 +1512,100 @@ class ImportApiCRDUseCaseTest {
             givenExistingApi();
             givenExistingPlans(List.of(KEYLESS));
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD()
-                        .plans(
-                            Map.of(
-                                "keyless-key",
-                                PlanCRD.builder()
-                                    .id(KEYLESS.getId())
-                                    .name(KEYLESS.getName())
-                                    .security(KEYLESS.getPlanSecurity())
-                                    .mode(KEYLESS.getPlanMode())
-                                    .validation(KEYLESS.getValidation())
-                                    .status(KEYLESS.getPlanStatus())
-                                    .type(KEYLESS.getType())
-                                    .flows(List.of((Flow) FlowFixtures.aSimpleFlowV4().toBuilder().name("keyless-flow").build()))
-                                    .build(),
-                                "apikey-key",
-                                PlanCRD.builder()
-                                    .id(APIKEY_PLAN_ID)
-                                    .name("API Key")
-                                    .security(PlanSecurity.builder().type("API_KEY").build())
-                                    .mode(PlanMode.STANDARD)
-                                    .validation(Plan.PlanValidationType.AUTO)
-                                    .status(PlanStatus.STAGING)
-                                    .type(Plan.PlanType.API)
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("apikey-flow").build()))
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            );
+                    aCRD().plans(Map.of(
+                                    "keyless-key",
+                                    PlanCRD.builder()
+                                            .id(KEYLESS.getId())
+                                            .name(KEYLESS.getName())
+                                            .security(KEYLESS.getPlanSecurity())
+                                            .mode(KEYLESS.getPlanMode())
+                                            .validation(KEYLESS.getValidation())
+                                            .status(KEYLESS.getPlanStatus())
+                                            .type(KEYLESS.getType())
+                                            .flows(List.of((Flow) FlowFixtures.aSimpleFlowV4().toBuilder()
+                                                    .name("keyless-flow")
+                                                    .build()))
+                                            .build(),
+                                    "apikey-key",
+                                    PlanCRD.builder()
+                                            .id(APIKEY_PLAN_ID)
+                                            .name("API Key")
+                                            .security(PlanSecurity.builder()
+                                                    .type("API_KEY")
+                                                    .build())
+                                            .mode(PlanMode.STANDARD)
+                                            .validation(Plan.PlanValidationType.AUTO)
+                                            .status(PlanStatus.STAGING)
+                                            .type(Plan.PlanType.API)
+                                            .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder()
+                                                    .name("apikey-flow")
+                                                    .build()))
+                                            .build()))
+                            .build()));
 
             // Then
             assertThat(planCrudService.storage())
-                .hasSize(2)
-                .extracting(Plan::getId, Plan::getName)
-                .containsExactly(tuple("keyless", "Keyless"), tuple(APIKEY_PLAN_ID, "API Key"));
+                    .hasSize(2)
+                    .extracting(Plan::getId, Plan::getName)
+                    .containsExactly(tuple("keyless", "Keyless"), tuple(APIKEY_PLAN_ID, "API Key"));
 
-            assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).contains("apikey-flow");
+            assertThat(flowCrudService.storage())
+                    .extracting(AbstractFlow::getName)
+                    .contains("apikey-flow");
         }
 
         @Test
         void should_create_new_plans_native_api() {
             givenExistingNativeApi();
             givenExistingPlans(List.of(NATIVE_KEYLESS));
-            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-                invocation.getArgument(0)
-            );
+            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
                     aNativeApiCRD()
-                        .plans(
-                            Map.of(
-                                "keyless-key",
-                                PlanCRD.builder()
-                                    .id(NATIVE_KEYLESS.getId())
-                                    .name(NATIVE_KEYLESS.getName())
-                                    .security(NATIVE_KEYLESS.getPlanSecurity())
-                                    .mode(NATIVE_KEYLESS.getPlanMode())
-                                    .validation(NATIVE_KEYLESS.getValidation())
-                                    .status(NATIVE_KEYLESS.getPlanStatus())
-                                    .type(NATIVE_KEYLESS.getType())
-                                    .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("keyless-flow").build()))
-                                    .build(),
-                                "apikey-key",
-                                PlanCRD.builder()
-                                    .id(APIKEY_PLAN_ID)
-                                    .name("API Key")
-                                    .security(PlanSecurity.builder().type("API_KEY").build())
-                                    .mode(PlanMode.STANDARD)
-                                    .validation(Plan.PlanValidationType.AUTO)
-                                    .status(PlanStatus.STAGING)
-                                    .type(Plan.PlanType.API)
-                                    .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("apikey-flow").build()))
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            );
+                            .plans(Map.of(
+                                    "keyless-key",
+                                    PlanCRD.builder()
+                                            .id(NATIVE_KEYLESS.getId())
+                                            .name(NATIVE_KEYLESS.getName())
+                                            .security(NATIVE_KEYLESS.getPlanSecurity())
+                                            .mode(NATIVE_KEYLESS.getPlanMode())
+                                            .validation(NATIVE_KEYLESS.getValidation())
+                                            .status(NATIVE_KEYLESS.getPlanStatus())
+                                            .type(NATIVE_KEYLESS.getType())
+                                            .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                                    .name("keyless-flow")
+                                                    .build()))
+                                            .build(),
+                                    "apikey-key",
+                                    PlanCRD.builder()
+                                            .id(APIKEY_PLAN_ID)
+                                            .name("API Key")
+                                            .security(PlanSecurity.builder()
+                                                    .type("API_KEY")
+                                                    .build())
+                                            .mode(PlanMode.STANDARD)
+                                            .validation(Plan.PlanValidationType.AUTO)
+                                            .status(PlanStatus.STAGING)
+                                            .type(Plan.PlanType.API)
+                                            .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                                    .name("apikey-flow")
+                                                    .build()))
+                                            .build()))
+                            .build()));
 
             // Then
             assertThat(planCrudService.storage())
-                .hasSize(2)
-                .extracting(Plan::getId, Plan::getName)
-                .containsExactly(tuple("keyless", "Keyless"), tuple(APIKEY_PLAN_ID, "API Key"));
+                    .hasSize(2)
+                    .extracting(Plan::getId, Plan::getName)
+                    .containsExactly(tuple("keyless", "Keyless"), tuple(APIKEY_PLAN_ID, "API Key"));
 
-            assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).contains("apikey-flow");
+            assertThat(flowCrudService.storage())
+                    .extracting(AbstractFlow::getName)
+                    .contains("apikey-flow");
         }
 
         @Test
@@ -1643,31 +1615,27 @@ class ImportApiCRDUseCaseTest {
             givenExistingPlans(List.of(KEYLESS));
 
             // When
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD()
-                        .plans(
-                            Map.of(
-                                "keyless-key",
-                                PlanAdapter.INSTANCE.toCRD(KEYLESS)
-                                    .toBuilder()
-                                    .name("Updated Keyless")
-                                    .description("Updated description")
-                                    .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("updated flow").build()))
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            );
+                    aCRD().plans(Map.of(
+                                    "keyless-key",
+                                    PlanAdapter.INSTANCE.toCRD(KEYLESS).toBuilder()
+                                            .name("Updated Keyless")
+                                            .description("Updated description")
+                                            .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder()
+                                                    .name("updated flow")
+                                                    .build()))
+                                            .build()))
+                            .build()));
 
             // Then
             assertThat(planCrudService.storage())
-                .hasSize(1)
-                .extracting(Plan::getId, Plan::getName, Plan::getDescription)
-                .containsExactly(tuple("keyless", "Updated Keyless", "Updated description"));
-            assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).containsExactly("updated flow");
+                    .hasSize(1)
+                    .extracting(Plan::getId, Plan::getName, Plan::getDescription)
+                    .containsExactly(tuple("keyless", "Updated Keyless", "Updated description"));
+            assertThat(flowCrudService.storage())
+                    .extracting(AbstractFlow::getName)
+                    .containsExactly("updated flow");
         }
 
         @Test
@@ -1675,36 +1643,32 @@ class ImportApiCRDUseCaseTest {
             // Given
             givenExistingNativeApi();
             givenExistingPlans(List.of(NATIVE_KEYLESS));
-            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-                invocation.getArgument(0)
-            );
+            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
             // When
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
                     aNativeApiCRD()
-                        .plans(
-                            Map.of(
-                                "keyless-key",
-                                PlanAdapter.INSTANCE.toCRD(NATIVE_KEYLESS)
-                                    .toBuilder()
-                                    .name("Updated Keyless")
-                                    .description("Updated description")
-                                    .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("updated flow").build()))
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            );
+                            .plans(Map.of(
+                                    "keyless-key",
+                                    PlanAdapter.INSTANCE.toCRD(NATIVE_KEYLESS).toBuilder()
+                                            .name("Updated Keyless")
+                                            .description("Updated description")
+                                            .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                                    .name("updated flow")
+                                                    .build()))
+                                            .build()))
+                            .build()));
 
             // Then
             assertThat(planCrudService.storage())
-                .hasSize(1)
-                .extracting(Plan::getId, Plan::getName, Plan::getDescription)
-                .containsExactly(tuple("keyless", "Updated Keyless", "Updated description"));
-            assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).containsExactly("updated flow");
+                    .hasSize(1)
+                    .extracting(Plan::getId, Plan::getName, Plan::getDescription)
+                    .containsExactly(tuple("keyless", "Updated Keyless", "Updated description"));
+            assertThat(flowCrudService.storage())
+                    .extracting(AbstractFlow::getName)
+                    .containsExactly("updated flow");
         }
 
         @Test
@@ -1712,29 +1676,34 @@ class ImportApiCRDUseCaseTest {
             givenExistingApi();
             givenExistingPlans(List.of(KEYLESS, API_KEY));
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS))).build())
-            );
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS)))
+                            .build()));
 
-            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
+            assertThat(planCrudService.storage())
+                    .hasSize(1)
+                    .extracting(Plan::getId)
+                    .containsExactly("keyless");
         }
 
         @Test
         void should_delete_existing_plans_not_present_in_native_crd_anymore() {
             givenExistingNativeApi();
             givenExistingPlans(List.of(NATIVE_KEYLESS, NATIVE_API_KEY));
-            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-                invocation.getArgument(0)
-            );
+            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aNativeApiCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(NATIVE_KEYLESS))).build()
-                )
-            );
+                    aNativeApiCRD()
+                            .plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(NATIVE_KEYLESS)))
+                            .build()));
 
-            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
+            assertThat(planCrudService.storage())
+                    .hasSize(1)
+                    .extracting(Plan::getId)
+                    .containsExactly("keyless");
         }
 
         @Test
@@ -1745,81 +1714,90 @@ class ImportApiCRDUseCaseTest {
             var application = givenExistingApplication(anApplicationEntity());
 
             givenExistingSubscriptions(
-                aSubscription()
-                    .toBuilder()
-                    .id("sub1")
-                    .apiId(API_ID)
-                    .applicationId(application.getId())
-                    .planId(API_KEY.getId())
-                    .status(SubscriptionEntity.Status.ACCEPTED)
-                    .build(),
-                aSubscription()
-                    .toBuilder()
-                    .id("sub2")
-                    .apiId(API_ID)
-                    .applicationId(application.getId())
-                    .planId(API_KEY.getId())
-                    .status(SubscriptionEntity.Status.PENDING)
-                    .build(),
-                aSubscription()
-                    .toBuilder()
-                    .id("sub3")
-                    .apiId(API_ID)
-                    .applicationId(application.getId())
-                    .planId(API_KEY.getId())
-                    .status(SubscriptionEntity.Status.PAUSED)
-                    .build()
-            );
+                    aSubscription().toBuilder()
+                            .id("sub1")
+                            .apiId(API_ID)
+                            .applicationId(application.getId())
+                            .planId(API_KEY.getId())
+                            .status(SubscriptionEntity.Status.ACCEPTED)
+                            .build(),
+                    aSubscription().toBuilder()
+                            .id("sub2")
+                            .apiId(API_ID)
+                            .applicationId(application.getId())
+                            .planId(API_KEY.getId())
+                            .status(SubscriptionEntity.Status.PENDING)
+                            .build(),
+                    aSubscription().toBuilder()
+                            .id("sub3")
+                            .apiId(API_ID)
+                            .applicationId(application.getId())
+                            .planId(API_KEY.getId())
+                            .status(SubscriptionEntity.Status.PAUSED)
+                            .build());
 
             // When
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS))).build())
-            );
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS)))
+                            .build()));
 
             // Then
-            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
+            assertThat(planCrudService.storage())
+                    .hasSize(1)
+                    .extracting(Plan::getId)
+                    .containsExactly("keyless");
             assertThat(subscriptionCrudService.storage())
-                .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
-                .containsExactly(
-                    tuple("sub1", SubscriptionEntity.Status.CLOSED),
-                    tuple("sub2", SubscriptionEntity.Status.REJECTED),
-                    tuple("sub3", SubscriptionEntity.Status.CLOSED)
-                );
+                    .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
+                    .containsExactly(
+                            tuple("sub1", SubscriptionEntity.Status.CLOSED),
+                            tuple("sub2", SubscriptionEntity.Status.REJECTED),
+                            tuple("sub3", SubscriptionEntity.Status.CLOSED));
         }
 
         @Test
         void should_refresh_remaining_plan_order_after_deletion() {
             givenExistingApi();
-            givenExistingPlans(List.of(KEYLESS.toBuilder().order(2).build(), API_KEY.toBuilder().order(1).build()));
+            givenExistingPlans(List.of(
+                    KEYLESS.toBuilder().order(2).build(),
+                    API_KEY.toBuilder().order(1).build()));
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS.toBuilder().order(2).build()))).build()
-                )
-            );
+                    aCRD().plans(Map.of(
+                                    "keyless-key",
+                                    PlanAdapter.INSTANCE.toCRD(
+                                            KEYLESS.toBuilder().order(2).build())))
+                            .build()));
 
-            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId, Plan::getOrder).containsExactly(tuple("keyless", 1));
+            assertThat(planCrudService.storage())
+                    .hasSize(1)
+                    .extracting(Plan::getId, Plan::getOrder)
+                    .containsExactly(tuple("keyless", 1));
         }
 
         @Test
         void should_refresh_remaining_native_plan_order_after_deletion() {
-            givenExistingPlans(List.of(NATIVE_KEYLESS.toBuilder().order(2).build(), NATIVE_API_KEY.toBuilder().order(1).build()));
+            givenExistingPlans(List.of(
+                    NATIVE_KEYLESS.toBuilder().order(2).build(),
+                    NATIVE_API_KEY.toBuilder().order(1).build()));
             givenExistingNativeApi();
-            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-                invocation.getArgument(0)
-            );
+            when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
-            useCase.execute(
-                new ImportApiCRDUseCase.Input(
+            useCase.execute(new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
                     aNativeApiCRD()
-                        .plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(NATIVE_KEYLESS.toBuilder().order(2).build())))
-                        .build()
-                )
-            );
+                            .plans(Map.of(
+                                    "keyless-key",
+                                    PlanAdapter.INSTANCE.toCRD(
+                                            NATIVE_KEYLESS.toBuilder().order(2).build())))
+                            .build()));
 
-            assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId, Plan::getOrder).containsExactly(tuple("keyless", 1));
+            assertThat(planCrudService.storage())
+                    .hasSize(1)
+                    .extracting(Plan::getId, Plan::getOrder)
+                    .containsExactly(tuple("keyless", 1));
         }
 
         @Test
@@ -1831,19 +1809,18 @@ class ImportApiCRDUseCaseTest {
             var markdown = getMarkdownPage(folder);
             pages.put("markdown", markdown);
 
-            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
-                call.getArgument(0)
-            );
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                    .thenAnswer(call -> call.getArgument(0));
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aCRD().pages(pages).build()));
 
             assertThat(pageCrudService.storage())
-                .hasSize(2)
-                .extracting(Page::getId, Page::getCrossId, Page::getName)
-                .containsExactly(
-                    tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
-                    tuple(folder.getId(), folder.getCrossId(), folder.getName())
-                );
+                    .hasSize(2)
+                    .extracting(Page::getId, Page::getCrossId, Page::getName)
+                    .containsExactly(
+                            tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
+                            tuple(folder.getId(), folder.getCrossId(), folder.getName()));
 
             folder.setName("new-markdowns-folder");
             pages.put("markdowns-folder", folder);
@@ -1851,15 +1828,15 @@ class ImportApiCRDUseCaseTest {
             markdown.setName("new-markdown");
             pages.put("markdown", markdown);
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aCRD().pages(pages).build()));
 
             assertThat(pageCrudService.storage())
-                .hasSize(2)
-                .extracting(Page::getId, Page::getCrossId, Page::getName)
-                .containsExactly(
-                    tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
-                    tuple(folder.getId(), folder.getCrossId(), folder.getName())
-                );
+                    .hasSize(2)
+                    .extracting(Page::getId, Page::getCrossId, Page::getName)
+                    .containsExactly(
+                            tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
+                            tuple(folder.getId(), folder.getCrossId(), folder.getName()));
         }
 
         @Test
@@ -1867,44 +1844,47 @@ class ImportApiCRDUseCaseTest {
             givenExistingApi();
 
             var existingFolder = Page.builder()
-                .id("folder-id")
-                .name("markdowns")
-                .type(Page.Type.FOLDER)
-                .referenceId(API_ID)
-                .referenceType(Page.ReferenceType.API)
-                .visibility(Page.Visibility.PUBLIC)
-                .build();
+                    .id("folder-id")
+                    .name("markdowns")
+                    .type(Page.Type.FOLDER)
+                    .referenceId(API_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .visibility(Page.Visibility.PUBLIC)
+                    .build();
             var existingMarkdown = Page.builder()
-                .id("markdown-id")
-                .name("hello-markdown")
-                .type(Page.Type.MARKDOWN)
-                .referenceId(API_ID)
-                .referenceType(Page.ReferenceType.API)
-                .visibility(Page.Visibility.PUBLIC)
-                .build();
+                    .id("markdown-id")
+                    .name("hello-markdown")
+                    .type(Page.Type.MARKDOWN)
+                    .referenceId(API_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .visibility(Page.Visibility.PUBLIC)
+                    .build();
 
             pageQueryService.initWith(List.of(existingFolder, existingMarkdown));
             pageCrudService.initWith(List.of(existingFolder, existingMarkdown));
 
-            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
-                call.getArgument(0)
-            );
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                    .thenAnswer(call -> call.getArgument(0));
 
             // Only keep the folder in the CRD, markdown should be deleted
             var folderCRD = PageCRD.builder()
-                .id("folder-id")
-                .hrid("markdowns-folder")
-                .name("markdowns")
-                .type(PageCRD.Type.FOLDER)
-                .visibility(PageCRD.Visibility.PUBLIC)
-                .build();
+                    .id("folder-id")
+                    .hrid("markdowns-folder")
+                    .name("markdowns")
+                    .type(PageCRD.Type.FOLDER)
+                    .visibility(PageCRD.Visibility.PUBLIC)
+                    .build();
 
             var pages = new HashMap<String, PageCRD>();
             pages.put("markdowns-folder", folderCRD);
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO, aCRD().pages(pages).build()));
 
-            assertThat(pageCrudService.storage()).extracting(Page::getId).contains("folder-id").doesNotContain("markdown-id");
+            assertThat(pageCrudService.storage())
+                    .extracting(Page::getId)
+                    .contains("folder-id")
+                    .doesNotContain("markdown-id");
         }
 
         @Test
@@ -1912,27 +1892,27 @@ class ImportApiCRDUseCaseTest {
             givenExistingApi();
 
             var existingPage = Page.builder()
-                .id("existing-page-id")
-                .name("existing-page")
-                .type(Page.Type.MARKDOWN)
-                .referenceId(API_ID)
-                .referenceType(Page.ReferenceType.API)
-                .visibility(Page.Visibility.PUBLIC)
-                .build();
+                    .id("existing-page-id")
+                    .name("existing-page")
+                    .type(Page.Type.MARKDOWN)
+                    .referenceId(API_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .visibility(Page.Visibility.PUBLIC)
+                    .build();
 
             pageQueryService.initWith(List.of(existingPage));
             pageCrudService.initWith(List.of(existingPage));
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(null).build()));
+            useCase.execute(
+                    new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(null).build()));
 
             assertThat(pageCrudService.storage()).isEmpty();
         }
 
         @Test
         void should_save_notification() {
-            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
-                call.getArgument(0)
-            );
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                    .thenAnswer(call -> call.getArgument(0));
 
             PortalNotificationConfigEntity notification = new PortalNotificationConfigEntity();
             notification.setReferenceId(API_ID);
@@ -1940,30 +1920,41 @@ class ImportApiCRDUseCaseTest {
             notification.setGroups(List.of());
             notification.setConfigType(NotificationConfigType.PORTAL);
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().consoleNotificationConfiguration(notification).build()));
+            useCase.execute(new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD().consoleNotificationConfiguration(notification).build()));
 
-            verify(notificationCRDService, atMostOnce()).syncApiPortalNotifications(API_ID, ACTOR_USER_ID, notification);
+            verify(notificationCRDService, atMostOnce())
+                    .syncApiPortalNotifications(API_ID, ACTOR_USER_ID, notification);
         }
     }
 
     @Test
     void should_save_metadata() {
-        var metadata = List.of(
-            ApiMetadata.builder().apiId(API_ID).key("metadata-key").value("metadata-value").format(Metadata.MetadataFormat.STRING).build()
-        );
+        var metadata = List.of(ApiMetadata.builder()
+                .apiId(API_ID)
+                .key("metadata-key")
+                .value("metadata-value")
+                .format(Metadata.MetadataFormat.STRING)
+                .build());
 
-        useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().metadata(metadata).build()));
+        useCase.execute(new ImportApiCRDUseCase.Input(
+                AUDIT_INFO, aCRD().metadata(metadata).build()));
 
         verify(apiMetadataDomainService, times(1)).importApiMetadata(API_ID, metadata, AUDIT_INFO);
     }
 
     @Test
     void should_save_native_api_metadata() {
-        var metadata = List.of(
-            ApiMetadata.builder().apiId(API_ID).key("metadata-key").value("metadata-value").format(Metadata.MetadataFormat.STRING).build()
-        );
+        var metadata = List.of(ApiMetadata.builder()
+                .apiId(API_ID)
+                .key("metadata-key")
+                .value("metadata-value")
+                .format(Metadata.MetadataFormat.STRING)
+                .build());
 
-        useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().metadata(metadata).build()));
+        useCase.execute(new ImportApiCRDUseCase.Input(
+                AUDIT_INFO, aNativeApiCRD().metadata(metadata).build()));
 
         verify(apiMetadataDomainService, times(1)).importApiMetadata(API_ID, metadata, AUDIT_INFO);
     }
@@ -1971,11 +1962,16 @@ class ImportApiCRDUseCaseTest {
     @Test
     void should_clean_categories_and_keep_existing_categories() {
         categoryQueryService.reset();
-        categoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
+        categoryQueryService.initWith(List.of(Category.builder()
+                .name("existing")
+                .key("existing")
+                .id("existing-id")
+                .build()));
 
         var categories = Set.of("existing", "unknown");
 
-        useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().categories(categories).build()));
+        useCase.execute(new ImportApiCRDUseCase.Input(
+                AUDIT_INFO, aCRD().categories(categories).build()));
 
         var api = apiCrudService.get(API_ID);
 
@@ -1986,11 +1982,16 @@ class ImportApiCRDUseCaseTest {
     @Test
     void should_clean_categories_and_keep_existing_native_api_categories() {
         categoryQueryService.reset();
-        categoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
+        categoryQueryService.initWith(List.of(Category.builder()
+                .name("existing")
+                .key("existing")
+                .id("existing-id")
+                .build()));
 
         var categories = Set.of("existing", "unknown");
 
-        useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().categories(categories).build()));
+        useCase.execute(new ImportApiCRDUseCase.Input(
+                AUDIT_INFO, aNativeApiCRD().categories(categories).build()));
 
         var api = apiCrudService.get(API_ID);
 
@@ -2002,18 +2003,22 @@ class ImportApiCRDUseCaseTest {
     void should_not_deploy_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
-            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
-        );
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                .thenReturn(expectedApiV4Proxy().toBuilder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .build());
 
-        useCase.execute(
-            new ImportApiCRDUseCase.Input(
+        useCase.execute(new ImportApiCRDUseCase.Input(
                 AUDIT_INFO,
-                aCRD().definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build()).build()
-            )
-        );
+                aCRD().definitionContext(DefinitionContext.builder()
+                                .origin("KUBERNETES")
+                                .syncFrom("KUBERNETES")
+                                .build())
+                        .build()));
 
-        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never())
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
@@ -2021,20 +2026,23 @@ class ImportApiCRDUseCaseTest {
     @Test
     void should_not_deploy_the_native_api() {
         givenExistingNativeApi();
-        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(0)
-        );
+        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedNativeApi());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                .thenReturn(expectedNativeApi());
 
-        useCase.execute(
-            new ImportApiCRDUseCase.Input(
+        useCase.execute(new ImportApiCRDUseCase.Input(
                 AUDIT_INFO,
-                aNativeApiCRD().definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build()).build()
-            )
-        );
+                aNativeApiCRD()
+                        .definitionContext(DefinitionContext.builder()
+                                .origin("KUBERNETES")
+                                .syncFrom("KUBERNETES")
+                                .build())
+                        .build()));
 
-        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never())
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
@@ -2043,21 +2051,23 @@ class ImportApiCRDUseCaseTest {
     void should_deploy_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
-            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
-        );
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                .thenReturn(expectedApiV4Proxy().toBuilder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .build());
 
-        useCase.execute(
-            new ImportApiCRDUseCase.Input(
+        useCase.execute(new ImportApiCRDUseCase.Input(
                 AUDIT_INFO,
-                aCRD()
-                    .state("STARTED")
-                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                    .build()
-            )
-        );
+                aCRD().state("STARTED")
+                        .definitionContext(DefinitionContext.builder()
+                                .origin("KUBERNETES")
+                                .syncFrom("MANAGEMENT")
+                                .build())
+                        .build()));
 
-        verify(apiStateDomainService).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService)
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
@@ -2065,23 +2075,24 @@ class ImportApiCRDUseCaseTest {
     @Test
     void should_deploy_the_native_api() {
         givenExistingNativeApi();
-        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(0)
-        );
+        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedNativeApi());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                .thenReturn(expectedNativeApi());
 
-        useCase.execute(
-            new ImportApiCRDUseCase.Input(
+        useCase.execute(new ImportApiCRDUseCase.Input(
                 AUDIT_INFO,
                 aNativeApiCRD()
-                    .state("STARTED")
-                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                    .build()
-            )
-        );
+                        .state("STARTED")
+                        .definitionContext(DefinitionContext.builder()
+                                .origin("KUBERNETES")
+                                .syncFrom("MANAGEMENT")
+                                .build())
+                        .build()));
 
-        verify(apiStateDomainService).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService)
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
@@ -2090,91 +2101,102 @@ class ImportApiCRDUseCaseTest {
     void should_stop_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
-            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
-        );
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                .thenReturn(expectedApiV4Proxy().toBuilder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .build());
 
-        useCase.execute(
-            new ImportApiCRDUseCase.Input(
+        useCase.execute(new ImportApiCRDUseCase.Input(
                 AUDIT_INFO,
-                aCRD()
-                    .state("STOPPED")
-                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                    .build()
-            )
-        );
+                aCRD().state("STOPPED")
+                        .definitionContext(DefinitionContext.builder()
+                                .origin("KUBERNETES")
+                                .syncFrom("MANAGEMENT")
+                                .build())
+                        .build()));
 
-        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never())
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         verify(apiStateDomainService).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
     @Test
     void should_stop_the_native_api() {
         givenExistingNativeApi();
-        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(0)
-        );
+        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedNativeApi());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                .thenReturn(expectedNativeApi());
 
-        useCase.execute(
-            new ImportApiCRDUseCase.Input(
+        useCase.execute(new ImportApiCRDUseCase.Input(
                 AUDIT_INFO,
                 aNativeApiCRD()
-                    .state("STOPPED")
-                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                    .build()
-            )
-        );
+                        .state("STOPPED")
+                        .definitionContext(DefinitionContext.builder()
+                                .origin("KUBERNETES")
+                                .syncFrom("MANAGEMENT")
+                                .build())
+                        .build()));
 
-        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never())
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         verify(apiStateDomainService).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
     @Test
     void should_start_the_api() {
-        apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STOPPED).build()));
+        apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder()
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .build()));
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
-            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
-        );
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                .thenReturn(expectedApiV4Proxy().toBuilder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .build());
 
-        useCase.execute(
-            new ImportApiCRDUseCase.Input(
+        useCase.execute(new ImportApiCRDUseCase.Input(
                 AUDIT_INFO,
-                aCRD()
-                    .state("STARTED")
-                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                    .build()
-            )
-        );
+                aCRD().state("STARTED")
+                        .definitionContext(DefinitionContext.builder()
+                                .origin("KUBERNETES")
+                                .syncFrom("MANAGEMENT")
+                                .build())
+                        .build()));
 
         var inOrder = inOrder(apiStateDomainService);
-        inOrder.verify(apiStateDomainService).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        inOrder.verify(apiStateDomainService)
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         inOrder.verify(apiStateDomainService).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
     @Test
     void should_start_the_native_api() {
-        apiQueryService.initWith(List.of(Update.NATIVE_API.toBuilder().id(API_ID).lifecycleState(Api.LifecycleState.STOPPED).build()));
-        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-            invocation.getArgument(0)
-        );
+        apiQueryService.initWith(List.of(Update.NATIVE_API.toBuilder()
+                .id(API_ID)
+                .lifecycleState(Api.LifecycleState.STOPPED)
+                .build()));
+        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedNativeApi());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                .thenReturn(expectedNativeApi());
 
-        useCase.execute(
-            new ImportApiCRDUseCase.Input(
+        useCase.execute(new ImportApiCRDUseCase.Input(
                 AUDIT_INFO,
                 aNativeApiCRD()
-                    .state("STARTED")
-                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                    .build()
-            )
-        );
+                        .state("STARTED")
+                        .definitionContext(DefinitionContext.builder()
+                                .origin("KUBERNETES")
+                                .syncFrom("MANAGEMENT")
+                                .build())
+                        .build()));
 
         var inOrder = inOrder(apiStateDomainService);
-        inOrder.verify(apiStateDomainService).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        inOrder.verify(apiStateDomainService)
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         inOrder.verify(apiStateDomainService).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
 
@@ -2182,57 +2204,60 @@ class ImportApiCRDUseCaseTest {
     void should_not_deploy_when_no_plan_is_published_or_deprecated() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
-            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
-        );
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                .thenReturn(expectedApiV4Proxy().toBuilder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .build());
 
-        useCase.execute(
-            new ImportApiCRDUseCase.Input(
+        useCase.execute(new ImportApiCRDUseCase.Input(
                 AUDIT_INFO,
-                aCRD()
-                    .state("STARTED")
-                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
-                    .plans(
-                        Map.of(
-                            "staging-plan",
-                            PlanCRD.builder()
-                                .id("staging-plan-id")
-                                .name("Staging Plan")
-                                .security(PlanSecurity.builder().type("KEY_LESS").build())
-                                .mode(PlanMode.STANDARD)
-                                .validation(Plan.PlanValidationType.AUTO)
-                                .status(PlanStatus.STAGING)
-                                .type(Plan.PlanType.API)
-                                .flows(List.of())
-                                .build()
-                        )
-                    )
-                    .build()
-            )
-        );
+                aCRD().state("STARTED")
+                        .definitionContext(DefinitionContext.builder()
+                                .origin("KUBERNETES")
+                                .syncFrom("MANAGEMENT")
+                                .build())
+                        .plans(Map.of(
+                                "staging-plan",
+                                PlanCRD.builder()
+                                        .id("staging-plan-id")
+                                        .name("Staging Plan")
+                                        .security(PlanSecurity.builder()
+                                                .type("KEY_LESS")
+                                                .build())
+                                        .mode(PlanMode.STANDARD)
+                                        .validation(Plan.PlanValidationType.AUTO)
+                                        .status(PlanStatus.STAGING)
+                                        .type(Plan.PlanType.API)
+                                        .flows(List.of())
+                                        .build()))
+                        .build()));
 
-        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never())
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
     }
 
     @Test
     void should_not_change_lifecycle_when_state_is_unchanged() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(
-            expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build()
-        );
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO)))
+                .thenReturn(expectedApiV4Proxy().toBuilder()
+                        .id(API_ID)
+                        .crossId(API_CROSS_ID)
+                        .build());
 
-        useCase.execute(
-            new ImportApiCRDUseCase.Input(
+        useCase.execute(new ImportApiCRDUseCase.Input(
                 AUDIT_INFO,
-                aCRD()
-                    .state("STARTED")
-                    .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
-                    .build()
-            )
-        );
+                aCRD().state("STARTED")
+                        .definitionContext(DefinitionContext.builder()
+                                .origin("KUBERNETES")
+                                .syncFrom("KUBERNETES")
+                                .build())
+                        .build()));
 
-        verify(apiStateDomainService, never()).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
+        verify(apiStateDomainService, never())
+                .deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
         verify(apiStateDomainService, never()).stop(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
     }
@@ -2240,35 +2265,47 @@ class ImportApiCRDUseCaseTest {
     @Test
     void should_add_category_to_the_api() {
         categoryQueryService.reset();
-        categoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
+        categoryQueryService.initWith(List.of(Category.builder()
+                .name("existing")
+                .key("existing")
+                .id("existing-id")
+                .build()));
 
         var categories = Set.of("existing");
 
-        useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().categories(categories).build()));
+        useCase.execute(new ImportApiCRDUseCase.Input(
+                AUDIT_INFO, aCRD().categories(categories).build()));
 
         var api = apiCrudService.get(API_ID);
 
         assertThat(api.getCategories()).isNotEmpty();
         assertThat(api.getCategories()).doesNotContain("unknown");
         assertThat(createCategoryApiDomainService.storage()).isNotEmpty();
-        assertThat(createCategoryApiDomainService.storage().getFirst().getCategoryId()).isEqualTo("existing-id");
+        assertThat(createCategoryApiDomainService.storage().getFirst().getCategoryId())
+                .isEqualTo("existing-id");
     }
 
     @Test
     void should_add_category_to_native_api() {
         categoryQueryService.reset();
-        categoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
+        categoryQueryService.initWith(List.of(Category.builder()
+                .name("existing")
+                .key("existing")
+                .id("existing-id")
+                .build()));
 
         var categories = Set.of("existing");
 
-        useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().categories(categories).build()));
+        useCase.execute(new ImportApiCRDUseCase.Input(
+                AUDIT_INFO, aNativeApiCRD().categories(categories).build()));
 
         var api = apiCrudService.get(API_ID);
 
         assertThat(api.getCategories()).isNotEmpty();
         assertThat(api.getCategories()).doesNotContain("unknown");
         assertThat(createCategoryApiDomainService.storage()).isNotEmpty();
-        assertThat(createCategoryApiDomainService.storage().getFirst().getCategoryId()).isEqualTo("existing-id");
+        assertThat(createCategoryApiDomainService.storage().getFirst().getCategoryId())
+                .isEqualTo("existing-id");
     }
 
     void givenExistingApi() {
@@ -2294,266 +2331,265 @@ class ImportApiCRDUseCaseTest {
 
     private static ApiCRDSpec.ApiCRDSpecBuilder aCRD() {
         return ApiCRDSpec.builder()
-            .analytics(Analytics.builder().enabled(false).build())
-            .id(API_ID)
-            .crossId(API_CROSS_ID)
-            .hrid(API_HRID_ID)
-            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
-            .description("api-description")
-            .endpointGroups(
-                List.of(
-                    EndpointGroup.builder()
+                .analytics(Analytics.builder().enabled(false).build())
+                .id(API_ID)
+                .crossId(API_CROSS_ID)
+                .hrid(API_HRID_ID)
+                .definitionContext(DefinitionContext.builder()
+                        .origin("KUBERNETES")
+                        .syncFrom("KUBERNETES")
+                        .build())
+                .description("api-description")
+                .endpointGroups(List.of(EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
-                        .endpoints(
-                            List.of(
-                                Endpoint.builder()
-                                    .name("default-endpoint")
-                                    .type("http-proxy")
-                                    .inheritConfiguration(true)
-                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            )
-            .flows(List.of())
-            .labels(Set.of("label-1"))
-            .lifecycleState("CREATED")
-            .listeners(
-                List.of(
-                    HttpListener.builder()
+                        .endpoints(List.of(Endpoint.builder()
+                                .name("default-endpoint")
+                                .type("http-proxy")
+                                .inheritConfiguration(true)
+                                .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                .build()))
+                        .build()))
+                .flows(List.of())
+                .labels(Set.of("label-1"))
+                .lifecycleState("CREATED")
+                .listeners(List.of(HttpListener.builder()
                         .paths(List.of(Path.builder().path("/http_proxy").build()))
-                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                        .build()
-                )
-            )
-            .name("My Api")
-            .plans(
-                Map.of(
-                    "keyless-key",
-                    PlanCRD.builder()
-                        .id(KEYLESS_PLAN_ID)
-                        .name("Keyless")
-                        .security(PlanSecurity.builder().type("KEY_LESS").build())
-                        .mode(PlanMode.STANDARD)
-                        .validation(Plan.PlanValidationType.AUTO)
-                        .status(PlanStatus.PUBLISHED)
-                        .type(Plan.PlanType.API)
-                        .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("plan-flow").build()))
-                        .build()
-                )
-            )
-            .properties(List.of(EncryptableProperty.builder().key("prop-key").value("prop-value").build()))
-            .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
-            .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
-            .state("STARTED")
-            .tags(Set.of(TAG))
-            .type("PROXY")
-            .version("1.0.0")
-            .visibility("PRIVATE")
-            .groups(Set.of(GROUP_ID_1, "non-existing-group", GROUP_NAME));
+                        .entrypoints(List.of(Entrypoint.builder()
+                                .type("http-proxy")
+                                .configuration("{}")
+                                .build()))
+                        .build()))
+                .name("My Api")
+                .plans(Map.of(
+                        "keyless-key",
+                        PlanCRD.builder()
+                                .id(KEYLESS_PLAN_ID)
+                                .name("Keyless")
+                                .security(
+                                        PlanSecurity.builder().type("KEY_LESS").build())
+                                .mode(PlanMode.STANDARD)
+                                .validation(Plan.PlanValidationType.AUTO)
+                                .status(PlanStatus.PUBLISHED)
+                                .type(Plan.PlanType.API)
+                                .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder()
+                                        .name("plan-flow")
+                                        .build()))
+                                .build()))
+                .properties(List.of(EncryptableProperty.builder()
+                        .key("prop-key")
+                        .value("prop-value")
+                        .build()))
+                .resources(List.of(Resource.builder()
+                        .name("resource-name")
+                        .type("resource-type")
+                        .enabled(true)
+                        .build()))
+                .responseTemplates(Map.of(
+                        "DEFAULT",
+                        Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
+                .state("STARTED")
+                .tags(Set.of(TAG))
+                .type("PROXY")
+                .version("1.0.0")
+                .visibility("PRIVATE")
+                .groups(Set.of(GROUP_ID_1, "non-existing-group", GROUP_NAME));
     }
 
     private static ApiCRDSpec.ApiCRDSpecBuilder aNativeApiCRD() {
         return ApiCRDSpec.builder()
-            .analytics(Analytics.builder().enabled(false).build())
-            .id(API_ID)
-            .crossId(API_CROSS_ID)
-            .hrid(API_HRID_ID)
-            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
-            .description("api-description")
-            .endpointGroups(
-                List.of(
-                    NativeEndpointGroup.builder()
+                .analytics(Analytics.builder().enabled(false).build())
+                .id(API_ID)
+                .crossId(API_CROSS_ID)
+                .hrid(API_HRID_ID)
+                .definitionContext(DefinitionContext.builder()
+                        .origin("KUBERNETES")
+                        .syncFrom("KUBERNETES")
+                        .build())
+                .description("api-description")
+                .endpointGroups(List.of(NativeEndpointGroup.builder()
                         .name("default-native-group")
                         .type("native-kafka")
                         .sharedConfiguration("{\"security\":{\"protocol\":\"PLAINTEXT\"}}")
-                        .endpoints(
-                            List.of(
-                                NativeEndpoint.builder()
-                                    .name("default-native-endpoint")
-                                    .type("native-kafka")
-                                    .inheritConfiguration(true)
-                                    .configuration("{\"bootstrapServers\": \"kafka.local:9001\"}")
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            )
-            .flows(List.of())
-            .labels(Set.of("label-1"))
-            .lifecycleState("CREATED")
-            .listeners(
-                List.of(
-                    KafkaListener.builder()
+                        .endpoints(List.of(NativeEndpoint.builder()
+                                .name("default-native-endpoint")
+                                .type("native-kafka")
+                                .inheritConfiguration(true)
+                                .configuration("{\"bootstrapServers\": \"kafka.local:9001\"}")
+                                .build()))
+                        .build()))
+                .flows(List.of())
+                .labels(Set.of("label-1"))
+                .lifecycleState("CREATED")
+                .listeners(List.of(KafkaListener.builder()
                         .type(ListenerType.KAFKA)
                         .host("kafka.local")
                         .port(9092)
-                        .entrypoints(List.of(NativeEntrypoint.builder().type("native-kafka").build()))
-                        .build()
-                )
-            )
-            .name("My Api")
-            .plans(
-                Map.of(
-                    "keyless-key",
-                    PlanCRD.builder()
-                        .id(KEYLESS_PLAN_ID)
-                        .name("Keyless")
-                        .security(PlanSecurity.builder().type("KEY_LESS").build())
-                        .mode(PlanMode.STANDARD)
-                        .validation(Plan.PlanValidationType.AUTO)
-                        .status(PlanStatus.PUBLISHED)
-                        .type(Plan.PlanType.API)
-                        .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("plan-flow").build()))
-                        .build()
-                )
-            )
-            .properties(List.of(EncryptableProperty.builder().key("prop-key").value("prop-value").build()))
-            .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
-            .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
-            .state("STARTED")
-            .tags(Set.of(TAG))
-            .type("NATIVE")
-            .version("1.0.0")
-            .visibility("PRIVATE")
-            .groups(Set.of(GROUP_ID_1, "non-existing-group", GROUP_NAME));
+                        .entrypoints(List.of(
+                                NativeEntrypoint.builder().type("native-kafka").build()))
+                        .build()))
+                .name("My Api")
+                .plans(Map.of(
+                        "keyless-key",
+                        PlanCRD.builder()
+                                .id(KEYLESS_PLAN_ID)
+                                .name("Keyless")
+                                .security(
+                                        PlanSecurity.builder().type("KEY_LESS").build())
+                                .mode(PlanMode.STANDARD)
+                                .validation(Plan.PlanValidationType.AUTO)
+                                .status(PlanStatus.PUBLISHED)
+                                .type(Plan.PlanType.API)
+                                .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                        .name("plan-flow")
+                                        .build()))
+                                .build()))
+                .properties(List.of(EncryptableProperty.builder()
+                        .key("prop-key")
+                        .value("prop-value")
+                        .build()))
+                .resources(List.of(Resource.builder()
+                        .name("resource-name")
+                        .type("resource-type")
+                        .enabled(true)
+                        .build()))
+                .responseTemplates(Map.of(
+                        "DEFAULT",
+                        Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
+                .state("STARTED")
+                .tags(Set.of(TAG))
+                .type("NATIVE")
+                .version("1.0.0")
+                .visibility("PRIVATE")
+                .groups(Set.of(GROUP_ID_1, "non-existing-group", GROUP_NAME));
     }
 
     private Api expectedApiV4Proxy() {
-        return aProxyApiV4()
-            .toBuilder()
-            .originContext(
-                new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, OriginContext.Origin.KUBERNETES.name())
-            )
-            .hrid(API_HRID_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .visibility(Api.Visibility.PRIVATE)
-            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .deployedAt(null)
-            .disableMembershipNotifications(true)
-            .categories(Set.of())
-            .picture(null)
-            .background(null)
-            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
-            .apiDefinitionHttpV4(
-                ApiDefinitionFixtures.aHttpProxyApiV4(null)
-                    .toBuilder()
-                    .id(API_ID)
-                    .name("My Api")
-                    .apiVersion("1.0.0")
-                    .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
-                    .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
-                    .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
-                    .plans(
-                        Map.of(
-                            "keyless-key",
-                            io.gravitee.definition.model.v4.plan.Plan.builder()
-                                .id("keyless-id")
-                                .name("Keyless")
-                                .mode(PlanMode.STANDARD)
-                                .status(PlanStatus.PUBLISHED)
-                                .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("plan-flow").build()))
-                                .build()
-                        )
-                    )
-                    .tags(Set.of(TAG))
-                    .build()
-            )
-            .groups(Set.of(GROUP_ID_1, GROUP_ID_2, DEFAULT_GROUP))
-            .build();
+        return aProxyApiV4().toBuilder()
+                .originContext(new OriginContext.Kubernetes(
+                        OriginContext.Kubernetes.Mode.FULLY_MANAGED, OriginContext.Origin.KUBERNETES.name()))
+                .hrid(API_HRID_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .visibility(Api.Visibility.PRIVATE)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .deployedAt(null)
+                .disableMembershipNotifications(true)
+                .categories(Set.of())
+                .picture(null)
+                .background(null)
+                .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+                .apiDefinitionHttpV4(ApiDefinitionFixtures.aHttpProxyApiV4(null).toBuilder()
+                        .id(API_ID)
+                        .name("My Api")
+                        .apiVersion("1.0.0")
+                        .properties(List.of(Property.builder()
+                                .key("prop-key")
+                                .value("prop-value")
+                                .build()))
+                        .resources(List.of(Resource.builder()
+                                .name("resource-name")
+                                .type("resource-type")
+                                .enabled(true)
+                                .build()))
+                        .responseTemplates(Map.of(
+                                "DEFAULT",
+                                Map.of(
+                                        "*.*",
+                                        ResponseTemplate.builder()
+                                                .statusCode(200)
+                                                .build())))
+                        .plans(Map.of(
+                                "keyless-key",
+                                io.gravitee.definition.model.v4.plan.Plan.builder()
+                                        .id("keyless-id")
+                                        .name("Keyless")
+                                        .mode(PlanMode.STANDARD)
+                                        .status(PlanStatus.PUBLISHED)
+                                        .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder()
+                                                .name("plan-flow")
+                                                .build()))
+                                        .build()))
+                        .tags(Set.of(TAG))
+                        .build())
+                .groups(Set.of(GROUP_ID_1, GROUP_ID_2, DEFAULT_GROUP))
+                .build();
     }
 
     private Api expectedNativeApi() {
-        return aNativeApi()
-            .toBuilder()
-            .originContext(
-                new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED, OriginContext.Origin.KUBERNETES.name())
-            )
-            .hrid(API_ID)
-            .environmentId(ENVIRONMENT_ID)
-            .visibility(Api.Visibility.PRIVATE)
-            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-            .deployedAt(null)
-            .disableMembershipNotifications(true)
-            .categories(Set.of())
-            .picture(null)
-            .background(null)
-            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
-            .apiDefinitionNativeV4(
-                ApiDefinitionFixtures.aNativeApiV4(null)
-                    .toBuilder()
-                    .id(API_ID)
-                    .name("My Api")
-                    .apiVersion("1.0.0")
-                    .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
-                    .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
-                    .listeners(
-                        List.of(
-                            KafkaListener.builder()
+        return aNativeApi().toBuilder()
+                .originContext(new OriginContext.Kubernetes(
+                        OriginContext.Kubernetes.Mode.FULLY_MANAGED, OriginContext.Origin.KUBERNETES.name()))
+                .hrid(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .visibility(Api.Visibility.PRIVATE)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .deployedAt(null)
+                .disableMembershipNotifications(true)
+                .categories(Set.of())
+                .picture(null)
+                .background(null)
+                .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+                .apiDefinitionNativeV4(ApiDefinitionFixtures.aNativeApiV4(null).toBuilder()
+                        .id(API_ID)
+                        .name("My Api")
+                        .apiVersion("1.0.0")
+                        .properties(List.of(Property.builder()
+                                .key("prop-key")
+                                .value("prop-value")
+                                .build()))
+                        .resources(List.of(Resource.builder()
+                                .name("resource-name")
+                                .type("resource-type")
+                                .enabled(true)
+                                .build()))
+                        .listeners(List.of(KafkaListener.builder()
                                 .host("kafka.local")
                                 .port(9092)
-                                .entrypoints(List.of(NativeEntrypoint.builder().type("native-type").build()))
-                                .build()
-                        )
-                    )
-                    .endpointGroups(
-                        List.of(
-                            NativeEndpointGroup.builder()
+                                .entrypoints(List.of(NativeEntrypoint.builder()
+                                        .type("native-type")
+                                        .build()))
+                                .build()))
+                        .endpointGroups(List.of(NativeEndpointGroup.builder()
                                 .name("default-native-group")
                                 .type("native-kafka")
                                 .sharedConfiguration("{\"security\":{\"protocol\":\"PLAINTEXT\"}}")
-                                .endpoints(
-                                    List.of(
-                                        NativeEndpoint.builder()
-                                            .name("default-native-endpoint")
-                                            .type("native-kafka")
-                                            .inheritConfiguration(true)
-                                            .configuration("{\"bootstrapServers\": \"kafka.local:9001\"}")
-                                            .build()
-                                    )
-                                )
-                                .build()
-                        )
-                    )
-                    .flows(List.of())
-                    .plans(
-                        Map.of(
-                            "keyless-key",
-                            NativePlan.builder()
-                                .id(KEYLESS_PLAN_ID)
-                                .name("Keyless")
-                                .security(PlanSecurity.builder().type("KEY_LESS").build())
-                                .mode(PlanMode.STANDARD)
-                                .status(PlanStatus.PUBLISHED)
-                                .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("plan-flow").build()))
-                                .build()
-                        )
-                    )
-                    .tags(Set.of(TAG))
-                    .build()
-            )
-            .groups(Set.of(GROUP_ID_1, GROUP_ID_2, DEFAULT_GROUP))
-            .build();
+                                .endpoints(List.of(NativeEndpoint.builder()
+                                        .name("default-native-endpoint")
+                                        .type("native-kafka")
+                                        .inheritConfiguration(true)
+                                        .configuration("{\"bootstrapServers\": \"kafka.local:9001\"}")
+                                        .build()))
+                                .build()))
+                        .flows(List.of())
+                        .plans(Map.of(
+                                "keyless-key",
+                                NativePlan.builder()
+                                        .id(KEYLESS_PLAN_ID)
+                                        .name("Keyless")
+                                        .security(PlanSecurity.builder()
+                                                .type("KEY_LESS")
+                                                .build())
+                                        .mode(PlanMode.STANDARD)
+                                        .status(PlanStatus.PUBLISHED)
+                                        .flows(List.of(FlowFixtures.aNativeFlowV4().toBuilder()
+                                                .name("plan-flow")
+                                                .build()))
+                                        .build()))
+                        .tags(Set.of(TAG))
+                        .build())
+                .groups(Set.of(GROUP_ID_1, GROUP_ID_2, DEFAULT_GROUP))
+                .build();
     }
 
     private void enableApiPrimaryOwnerMode() {
-        parametersQueryService.initWith(
-            List.of(
-                new Parameter(
-                    Key.API_PRIMARY_OWNER_MODE.key(),
-                    ENVIRONMENT_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                )
-            )
-        );
+        parametersQueryService.initWith(List.of(new Parameter(
+                Key.API_PRIMARY_OWNER_MODE.key(),
+                ENVIRONMENT_ID,
+                ParameterReferenceType.ENVIRONMENT,
+                ApiPrimaryOwnerMode.USER.name())));
     }
 
     private void givenExistingUsers(List<BaseUserEntity> users) {
@@ -2563,23 +2599,23 @@ class ImportApiCRDUseCaseTest {
 
     private PageCRD getMarkdownPage(PageCRD folder) {
         return PageCRD.builder()
-            .id("markdown-page-id")
-            .parentId(folder.getId())
-            .name("hello-markdown")
-            .type(PageCRD.Type.MARKDOWN)
-            .parentId("markdowns-folder-id")
-            .content("Hello world!")
-            .visibility(PageCRD.Visibility.PUBLIC)
-            .build();
+                .id("markdown-page-id")
+                .parentId(folder.getId())
+                .name("hello-markdown")
+                .type(PageCRD.Type.MARKDOWN)
+                .parentId("markdowns-folder-id")
+                .content("Hello world!")
+                .visibility(PageCRD.Visibility.PUBLIC)
+                .build();
     }
 
     private PageCRD getMarkdownsFolderPage() {
         return PageCRD.builder()
-            .id("markdowns-folder-id")
-            .hrid("markdowns-folder")
-            .name("markdowns")
-            .type(PageCRD.Type.FOLDER)
-            .visibility(PageCRD.Visibility.PUBLIC)
-            .build();
+                .id("markdowns-folder-id")
+                .hrid("markdowns-folder")
+                .name("markdowns")
+                .type(PageCRD.Type.FOLDER)
+                .visibility(PageCRD.Visibility.PUBLIC)
+                .build();
     }
 }

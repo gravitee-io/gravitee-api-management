@@ -49,37 +49,37 @@ public final class NavigationSyncPlanExecutor {
     private final PortalPageContentCrudService pageContentCrudService;
 
     public void execute(
-        NavigationSyncPlan plan,
-        AuditInfo auditInfo,
-        PortalArea area,
-        // null for top-level portal navigation; the nav-api row for api-folder subtrees
-        @Nullable PortalNavigationItemContainer root,
-        NavigationItemReference reference,
-        Function<String, PortalNavigationItemId> idFactory,
-        DeleteStrategy strategy
-    ) {
+            NavigationSyncPlan plan,
+            AuditInfo auditInfo,
+            PortalArea area,
+            // null for top-level portal navigation; the nav-api row for api-folder subtrees
+            @Nullable PortalNavigationItemContainer root,
+            NavigationItemReference reference,
+            Function<String, PortalNavigationItemId> idFactory,
+            DeleteStrategy strategy) {
         final var byPath = new HashMap<String, PortalNavigationItemContainer>();
         for (var action : plan.actions()) {
             switch (action) {
-                case FolderActions.FolderMutation m -> applyMutation(m, byPath, auditInfo, area, root, reference, idFactory);
+                case FolderActions.FolderMutation m ->
+                    applyMutation(m, byPath, auditInfo, area, root, reference, idFactory);
                 case FolderActions.DeleteFolder d -> applyDelete(d, auditInfo.environmentId(), strategy);
             }
         }
     }
 
     private void applyMutation(
-        FolderActions.FolderMutation mutation,
-        Map<String, PortalNavigationItemContainer> byPath,
-        AuditInfo auditInfo,
-        PortalArea area,
-        PortalNavigationItemContainer root,
-        NavigationItemReference reference,
-        Function<String, PortalNavigationItemId> idFactory
-    ) {
+            FolderActions.FolderMutation mutation,
+            Map<String, PortalNavigationItemContainer> byPath,
+            AuditInfo auditInfo,
+            PortalArea area,
+            PortalNavigationItemContainer root,
+            NavigationItemReference reference,
+            Function<String, PortalNavigationItemId> idFactory) {
         final var df = mutation.desired();
         final var parent = df.parentPath() == null ? root : byPath.get(df.parentPath());
         final PortalNavigationFolder result = switch (mutation) {
-            case FolderActions.CreateFolder c -> createFolder(c.desired(), parent, auditInfo, area, reference, idFactory);
+            case FolderActions.CreateFolder c ->
+                createFolder(c.desired(), parent, auditInfo, area, reference, idFactory);
             case FolderActions.UpdateFolder u -> applyUpdate(u.existing(), u.desired(), parent);
         };
         byPath.put(df.path(), result);
@@ -90,13 +90,13 @@ public final class NavigationSyncPlanExecutor {
     }
 
     private void cascadeDelete(PortalNavigationItem item, String environmentId, DeleteStrategy strategy, int depth) {
-        if (depth > MAX_CASCADE_DEPTH) throw new IllegalStateException(
-            "Maximum portal navigation nesting level of %d exceeded".formatted(MAX_CASCADE_DEPTH)
-        );
+        if (depth > MAX_CASCADE_DEPTH)
+            throw new IllegalStateException(
+                    "Maximum portal navigation nesting level of %d exceeded".formatted(MAX_CASCADE_DEPTH));
         if (strategy.shouldSkip().test(item)) return;
         queryService
-            .findByParentIdAndEnvironmentId(environmentId, item.getId())
-            .forEach(child -> cascadeDelete(child, environmentId, strategy, depth + 1));
+                .findByParentIdAndEnvironmentId(environmentId, item.getId())
+                .forEach(child -> cascadeDelete(child, environmentId, strategy, depth + 1));
         deletePageContentIfNeeded(item, strategy);
         crudService.delete(item.getId());
     }
@@ -109,53 +109,49 @@ public final class NavigationSyncPlanExecutor {
     }
 
     private PortalNavigationFolder createFolder(
-        FolderActions.DesiredFolder df,
-        PortalNavigationItemContainer parent,
-        AuditInfo auditInfo,
-        PortalArea area,
-        NavigationItemReference reference,
-        Function<String, PortalNavigationItemId> idFactory
-    ) {
+            FolderActions.DesiredFolder df,
+            PortalNavigationItemContainer parent,
+            AuditInfo auditInfo,
+            PortalArea area,
+            NavigationItemReference reference,
+            Function<String, PortalNavigationItemId> idFactory) {
         final var folderId = idFactory.apply(df.path());
         final var parentId = parent == null ? null : parent.getId();
         rejectIfSegmentTakenByForeignItem(auditInfo, parentId, df.segment().value(), folderId, df.path(), reference);
         final var create = CreatePortalNavigationItem.builder()
-            .id(folderId)
-            .title(df.title())
-            .segment(df.segment().value())
-            .area(area)
-            .type(PortalNavigationItemType.FOLDER)
-            .order(df.order())
-            .visibility(df.visibility())
-            .reference(reference)
-            .published(true)
-            .build();
+                .id(folderId)
+                .title(df.title())
+                .segment(df.segment().value())
+                .area(area)
+                .type(PortalNavigationItemType.FOLDER)
+                .order(df.order())
+                .visibility(df.visibility())
+                .reference(reference)
+                .published(true)
+                .build();
         return (PortalNavigationFolder) crudService.create(
-            PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent)
-        );
+                PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent));
     }
 
     private void rejectIfSegmentTakenByForeignItem(
-        AuditInfo auditInfo,
-        @Nullable PortalNavigationItemId parentId,
-        String segment,
-        PortalNavigationItemId expectedId,
-        String path,
-        NavigationItemReference reference
-    ) {
+            AuditInfo auditInfo,
+            @Nullable PortalNavigationItemId parentId,
+            String segment,
+            PortalNavigationItemId expectedId,
+            String path,
+            NavigationItemReference reference) {
         queryService
-            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment, reference)
-            .filter(sibling -> !sibling.getId().equals(expectedId))
-            .ifPresent(squatter -> {
-                throw PathConflictException.folderPath(path);
-            });
+                .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment, reference)
+                .filter(sibling -> !sibling.getId().equals(expectedId))
+                .ifPresent(squatter -> {
+                    throw PathConflictException.folderPath(path);
+                });
     }
 
     private PortalNavigationFolder applyUpdate(
-        PortalNavigationFolder existing,
-        FolderActions.DesiredFolder desired,
-        PortalNavigationItemContainer parent
-    ) {
+            PortalNavigationFolder existing,
+            FolderActions.DesiredFolder desired,
+            PortalNavigationItemContainer parent) {
         if (NavigationFolderMapper.matches(existing, desired, parent)) return existing;
         NavigationFolderMapper.apply(desired, parent, existing);
         return (PortalNavigationFolder) crudService.update(existing);

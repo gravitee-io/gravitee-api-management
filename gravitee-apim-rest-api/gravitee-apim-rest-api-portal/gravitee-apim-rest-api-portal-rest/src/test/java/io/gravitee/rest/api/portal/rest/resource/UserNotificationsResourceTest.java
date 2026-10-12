@@ -64,8 +64,8 @@ public class UserNotificationsResourceTest extends AbstractResourceTest {
         portalNotificationEntity3.setId("3");
 
         doReturn(Arrays.asList(portalNotificationEntity1, portalNotificationEntity2, portalNotificationEntity3))
-            .when(portalNotificationService)
-            .findByUser(any());
+                .when(portalNotificationService)
+                .findByUser(any());
         Mockito.doCallRealMethod().when(portalNotificationMapper).convert(any());
     }
 
@@ -98,9 +98,12 @@ public class UserNotificationsResourceTest extends AbstractResourceTest {
         portalNotificationEntity.setCreatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
         portalNotificationEntity.setId("ID");
 
-        doReturn(List.of(portalNotificationEntity)).when(portalNotificationService).findByUser(USER_NAME);
+        doReturn(List.of(portalNotificationEntity))
+                .when(portalNotificationService)
+                .findByUser(USER_NAME);
 
-        final Response response = target().path("notifications").path("ID").request().delete();
+        final Response response =
+                target().path("notifications").path("ID").request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
         Mockito.verify(portalNotificationService).findByUser(USER_NAME);
         Mockito.verify(portalNotificationService).delete("ID");
@@ -112,7 +115,8 @@ public class UserNotificationsResourceTest extends AbstractResourceTest {
 
         doReturn(List.of()).when(portalNotificationService).findByUser(USER_NAME);
 
-        final Response response = target().path("notifications").path("ID").request().delete();
+        final Response response =
+                target().path("notifications").path("ID").request().delete();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         Mockito.verify(portalNotificationService).findByUser(USER_NAME);
         Mockito.verify(portalNotificationService, never()).delete("ID");
@@ -126,9 +130,12 @@ public class UserNotificationsResourceTest extends AbstractResourceTest {
         portalNotificationEntity.setCreatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
         portalNotificationEntity.setId("Another_ID");
 
-        doReturn(List.of(portalNotificationEntity)).when(portalNotificationService).findByUser(USER_NAME);
+        doReturn(List.of(portalNotificationEntity))
+                .when(portalNotificationService)
+                .findByUser(USER_NAME);
 
-        final Response response = target().path("notifications").path("ID").request().delete();
+        final Response response =
+                target().path("notifications").path("ID").request().delete();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         Mockito.verify(portalNotificationService).findByUser(USER_NAME);
         Mockito.verify(portalNotificationService, never()).delete("ID");

@@ -25,11 +25,14 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SharedPolicyGroupRepository extends CrudRepository<SharedPolicyGroup, String> {
-    Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable, Sortable sortable) throws TechnicalException;
+    Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable, Sortable sortable)
+            throws TechnicalException;
 
-    Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException;
+    Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId)
+            throws TechnicalException;
 
-    Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String crossId) throws TechnicalException;
+    Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String crossId)
+            throws TechnicalException;
 
     /**
      * Delete shared policy group by environment ID

@@ -63,6 +63,7 @@ public class SingleApiKeyDeployable implements ApiKeyDeployable {
     }
 
     public SingleApiKeyDeployable apiKeys(final List<ApiKey> apiKeys) {
-        throw new UnsupportedOperationException(String.format("Unable to override apikey for %s", SingleApiKeyDeployable.class.getName()));
+        throw new UnsupportedOperationException(
+                String.format("Unable to override apikey for %s", SingleApiKeyDeployable.class.getName()));
     }
 }

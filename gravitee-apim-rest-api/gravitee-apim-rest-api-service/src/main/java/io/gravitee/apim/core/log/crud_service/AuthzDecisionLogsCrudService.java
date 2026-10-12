@@ -31,10 +31,7 @@ import java.util.Optional;
  */
 public interface AuthzDecisionLogsCrudService {
     SearchLogsResponse<AuthzDecisionLog> searchDecisionLogs(
-        ExecutionContext executionContext,
-        AuthzDecisionLogFilters filters,
-        Pageable pageable
-    );
+            ExecutionContext executionContext, AuthzDecisionLogFilters filters, Pageable pageable);
 
     /**
      * One decision by its event id. Batched decisions share a request id, so that is not a key here;

@@ -99,13 +99,13 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
         Stream.of(
-            apiAuthorizationDomainService,
-            categoryQueryServiceInMemory,
-            apiQueryServiceInMemory,
-            categoryApiCrudServiceInMemory,
-            updateCategoryApiDomainServiceInMemory,
-            apiCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        apiAuthorizationDomainService,
+                        categoryQueryServiceInMemory,
+                        apiQueryServiceInMemory,
+                        categoryApiCrudServiceInMemory,
+                        updateCategoryApiDomainServiceInMemory,
+                        apiCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -113,22 +113,20 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_CATEGORY),
-                    eq(ENV_ID),
-                    eq(RolePermissionAction.UPDATE)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.ENVIRONMENT_CATEGORY),
+                            eq(ENV_ID),
+                            eq(RolePermissionAction.UPDATE)))
+                    .thenReturn(false);
 
             final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi().order(99)));
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
@@ -136,10 +134,10 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().request().post(Entity.json(null));
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(BAD_REQUEST_400)
-                .asError()
-                .hasHttpStatus(BAD_REQUEST_400)
-                .hasMessage("Order cannot be null");
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("Order cannot be null");
         }
 
         @Test
@@ -147,10 +145,10 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi()));
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(BAD_REQUEST_400)
-                .asError()
-                .hasHttpStatus(BAD_REQUEST_400)
-                .hasMessage("Validation error");
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("Validation error");
         }
 
         @Test
@@ -158,51 +156,67 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi().order(99)));
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(NOT_FOUND_404)
-                .asError()
-                .hasHttpStatus(NOT_FOUND_404)
-                .hasMessage("Category not found.");
+                    .hasStatus(NOT_FOUND_404)
+                    .asError()
+                    .hasHttpStatus(NOT_FOUND_404)
+                    .hasMessage("Category not found.");
         }
 
         @Test
         public void should_return_404_if_api_not_found() {
-            categoryQueryServiceInMemory.initWith(List.of(Category.builder().id(CAT_ID).build()));
+            categoryQueryServiceInMemory.initWith(
+                    List.of(Category.builder().id(CAT_ID).build()));
 
             final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi().order(99)));
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(NOT_FOUND_404)
-                .asError()
-                .hasHttpStatus(NOT_FOUND_404)
-                .hasMessage("Api not found.");
+                    .hasStatus(NOT_FOUND_404)
+                    .asError()
+                    .hasHttpStatus(NOT_FOUND_404)
+                    .hasMessage("Api not found.");
         }
 
         @Test
         public void should_return_400_if_api_not_associated_to_category() {
-            categoryQueryServiceInMemory.initWith(List.of(Category.builder().id(CAT_ID).build()));
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).definitionVersion(DefinitionVersion.V4).build()));
+            categoryQueryServiceInMemory.initWith(
+                    List.of(Category.builder().id(CAT_ID).build()));
+            apiCrudServiceInMemory.initWith(List.of(Api.builder()
+                    .id(API_ID)
+                    .definitionVersion(DefinitionVersion.V4)
+                    .build()));
 
             final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi().order(99)));
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(NOT_FOUND_404)
-                .asError()
-                .hasHttpStatus(NOT_FOUND_404)
-                .hasMessage("Api [cat-id] and Category [cat-id] not associated.");
+                    .hasStatus(NOT_FOUND_404)
+                    .asError()
+                    .hasHttpStatus(NOT_FOUND_404)
+                    .hasMessage("Api [cat-id] and Category [cat-id] not associated.");
         }
 
         @Test
         public void should_return_changed_category_api() {
-            categoryQueryServiceInMemory.initWith(List.of(Category.builder().id(CAT_ID).build()));
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).definitionVersion(DefinitionVersion.V4).build()));
-            var apiCategoryOrder = ApiCategoryOrder.builder().apiId(API_ID).categoryId(CAT_ID).order(0).build();
+            categoryQueryServiceInMemory.initWith(
+                    List.of(Category.builder().id(CAT_ID).build()));
+            apiCrudServiceInMemory.initWith(List.of(Api.builder()
+                    .id(API_ID)
+                    .definitionVersion(DefinitionVersion.V4)
+                    .build()));
+            var apiCategoryOrder = ApiCategoryOrder.builder()
+                    .apiId(API_ID)
+                    .categoryId(CAT_ID)
+                    .order(0)
+                    .build();
 
             categoryApiCrudServiceInMemory.initWith(List.of(apiCategoryOrder));
             updateCategoryApiDomainServiceInMemory.initWith(categoryApiCrudServiceInMemory.storage());
 
             final Response response = rootTarget().request().post(Entity.json(new UpdateCategoryApi().order(99)));
 
-            MAPIAssertions.assertThat(response).hasStatus(OK_200).asEntity(CategoryApi.class).isNotNull();
+            MAPIAssertions.assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(CategoryApi.class)
+                    .isNotNull();
         }
     }
 }

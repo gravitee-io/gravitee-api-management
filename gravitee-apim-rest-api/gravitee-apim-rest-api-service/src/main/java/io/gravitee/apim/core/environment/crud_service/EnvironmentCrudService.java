@@ -19,5 +19,6 @@ import io.gravitee.apim.core.environment.model.Environment;
 
 public interface EnvironmentCrudService {
     Environment get(String environmentId);
+
     Environment getByCockpitId(String cockpitId);
 }

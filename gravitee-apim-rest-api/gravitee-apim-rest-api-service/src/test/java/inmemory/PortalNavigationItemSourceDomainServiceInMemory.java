@@ -128,7 +128,8 @@ public class PortalNavigationItemSourceDomainServiceInMemory implements PortalNa
     @Override
     public void removeSensitiveData(PortalNavigationItemSource source) {
         if (source.getSourceConfiguration() != null) {
-            source.setSourceConfiguration(source.getSourceConfiguration().replace(SENSITIVE_DATA, SENSITIVE_DATA_REPLACEMENT));
+            source.setSourceConfiguration(
+                    source.getSourceConfiguration().replace(SENSITIVE_DATA, SENSITIVE_DATA_REPLACEMENT));
         }
     }
 
@@ -137,18 +138,18 @@ public class PortalNavigationItemSourceDomainServiceInMemory implements PortalNa
         if (oldSource == null || newSource == null) {
             return;
         }
-        if (
-            newSource.getSourceConfiguration().contains(SENSITIVE_DATA_REPLACEMENT) &&
-            oldSource.getSourceConfiguration().contains(SENSITIVE_DATA)
-        ) {
-            newSource.setSourceConfiguration(newSource.getSourceConfiguration().replace(SENSITIVE_DATA_REPLACEMENT, SENSITIVE_DATA));
+        if (newSource.getSourceConfiguration().contains(SENSITIVE_DATA_REPLACEMENT)
+                && oldSource.getSourceConfiguration().contains(SENSITIVE_DATA)) {
+            newSource.setSourceConfiguration(
+                    newSource.getSourceConfiguration().replace(SENSITIVE_DATA_REPLACEMENT, SENSITIVE_DATA));
         }
     }
 
     @Override
     public void validateSourceConfiguration(PortalNavigationItemSource source) {
         this.lastValidatedConfiguration = source.getSourceConfiguration();
-        if (source.getSourceConfiguration() != null && source.getSourceConfiguration().contains(SENSITIVE_DATA_REPLACEMENT)) {
+        if (source.getSourceConfiguration() != null
+                && source.getSourceConfiguration().contains(SENSITIVE_DATA_REPLACEMENT)) {
             throw InvalidPortalNavigationItemSourceException.unresolvedSensitivePlaceholder("sensitiveData");
         }
         if (source.isUseAutoFetch() && source.getFetchCron() == null) {

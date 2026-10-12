@@ -83,28 +83,24 @@ public class ApiSubscribersResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Deprecated
     @Operation(
-        summary = "List subscribers for the API",
-        description = "Deprecated. Consider using GET /subscribers/_paged instead. User must have the API_SUBSCRIPTIONS READ permission to use this service"
-    )
+            summary = "List subscribers for the API",
+            description =
+                    "Deprecated. Consider using GET /subscribers/_paged instead. User must have the API_SUBSCRIPTIONS READ permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Paged result of API subscribers",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApplicationListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "Paged result of API subscribers",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ApplicationListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Collection<ApplicationListItem> getApiSubscribers(
-        @QueryParam("query") final String query,
-        @QueryParam("exclude") final List<ApplicationExcludeFilter> exclude,
-        @Valid @BeanParam Pageable pageable
-    ) {
+            @QueryParam("query") final String query,
+            @QueryParam("exclude") final List<ApplicationExcludeFilter> exclude,
+            @Valid @BeanParam Pageable pageable) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            !hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
-            !hasPermission(executionContext, RolePermission.API_LOG, api, RolePermissionAction.READ)
-        ) {
+        if (!hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ)
+                && !hasPermission(executionContext, RolePermission.API_LOG, api, RolePermissionAction.READ)) {
             throw new ForbiddenAccessException();
         }
 
@@ -113,7 +109,8 @@ public class ApiSubscribersResource extends AbstractResource {
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
 
-        Set<String> applicationIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
+        Set<String> applicationIds =
+                subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
 
         if (applicationIds.isEmpty()) {
             return Collections.emptyList();
@@ -130,12 +127,8 @@ public class ApiSubscribersResource extends AbstractResource {
 
         Sortable sortable = new SortableImpl("name", true);
 
-        Page<ApplicationListItem> subscribersApplicationPage = applicationService.search(
-            executionContext,
-            applicationQuery,
-            sortable,
-            pageable.toPageable()
-        );
+        Page<ApplicationListItem> subscribersApplicationPage =
+                applicationService.search(executionContext, applicationQuery, sortable, pageable.toPageable());
 
         if (subscribersApplicationPage == null) {
             return Collections.emptyList();
@@ -148,25 +141,24 @@ public class ApiSubscribersResource extends AbstractResource {
     @Path("/_paged")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List subscribers for the API with pagination",
-        description = "List all subscriber of the given API with pagination. User must have the API_SUBSCRIPTIONS READ permission to use this service"
-    )
+            summary = "List subscribers for the API with pagination",
+            description =
+                    "List all subscriber of the given API with pagination. User must have the API_SUBSCRIPTIONS READ permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Paged result of API subscribers",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationListItemPagedResult.class))
-    )
+            responseCode = "200",
+            description = "Paged result of API subscribers",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationListItemPagedResult.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public ApplicationListItemPagedResult getApiSubscribersPaged(
-        @QueryParam("query") final String query,
-        @QueryParam("exclude") final List<ApplicationExcludeFilter> exclude,
-        @Valid @BeanParam Pageable pageable
-    ) {
+            @QueryParam("query") final String query,
+            @QueryParam("exclude") final List<ApplicationExcludeFilter> exclude,
+            @Valid @BeanParam Pageable pageable) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            !hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
-            !hasPermission(executionContext, RolePermission.API_LOG, api, RolePermissionAction.READ)
-        ) {
+        if (!hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ)
+                && !hasPermission(executionContext, RolePermission.API_LOG, api, RolePermissionAction.READ)) {
             throw new ForbiddenAccessException();
         }
 
@@ -175,7 +167,8 @@ public class ApiSubscribersResource extends AbstractResource {
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
 
-        Set<String> applicationIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
+        Set<String> applicationIds =
+                subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
 
         if (applicationIds.isEmpty()) {
             return new ApplicationListItemPagedResult();
@@ -192,12 +185,8 @@ public class ApiSubscribersResource extends AbstractResource {
 
         Sortable sortable = new SortableImpl("name", true);
 
-        Page<ApplicationListItem> subscribersApplicationPage = applicationService.search(
-            executionContext,
-            applicationQuery,
-            sortable,
-            pageable.toPageable()
-        );
+        Page<ApplicationListItem> subscribersApplicationPage =
+                applicationService.search(executionContext, applicationQuery, sortable, pageable.toPageable());
 
         return new ApplicationListItemPagedResult(subscribersApplicationPage, pageable.getSize());
     }

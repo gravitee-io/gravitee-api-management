@@ -42,10 +42,7 @@ public class SubscriptionFailureNotificationCommandListenerImpl implements Subsc
     private final ObjectMapper objectMapper;
 
     public SubscriptionFailureNotificationCommandListenerImpl(
-        EventManager eventManager,
-        SubscriptionService subscriptionService,
-        ObjectMapper objectMapper
-    ) {
+            EventManager eventManager, SubscriptionService subscriptionService, ObjectMapper objectMapper) {
         this.subscriptionService = subscriptionService;
         this.objectMapper = objectMapper;
         eventManager.subscribeForEvents(this, CommandEvent.class);
@@ -53,24 +50,24 @@ public class SubscriptionFailureNotificationCommandListenerImpl implements Subsc
 
     @Override
     public void onEvent(Event<CommandEvent, CommandEntity> event) {
-        if (
-            CommandEvent.TO_PROCESS.equals(event.type()) &&
-            event.content() != null &&
-            event.content().getTags().contains(CommandTags.SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY)
-        ) {
+        if (CommandEvent.TO_PROCESS.equals(event.type())
+                && event.content() != null
+                && event.content().getTags().contains(CommandTags.SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY)) {
             log.debug("Command event: {}", event.content().getContent());
-            getSubscriptionCommand(event).ifPresent(command ->
-                subscriptionService.notifyError(command.getSubscriptionId(), command.getFailureCause())
-            );
+            getSubscriptionCommand(event)
+                    .ifPresent(command ->
+                            subscriptionService.notifyError(command.getSubscriptionId(), command.getFailureCause()));
         }
     }
 
-    private Optional<SubscriptionFailureNotificationCommand> getSubscriptionCommand(Event<CommandEvent, CommandEntity> event) {
+    private Optional<SubscriptionFailureNotificationCommand> getSubscriptionCommand(
+            Event<CommandEvent, CommandEntity> event) {
         try {
             if (event.content().getContent() == null) {
                 return Optional.empty();
             }
-            return Optional.of(objectMapper.readValue(event.content().getContent(), SubscriptionFailureNotificationCommand.class));
+            return Optional.of(
+                    objectMapper.readValue(event.content().getContent(), SubscriptionFailureNotificationCommand.class));
         } catch (JsonProcessingException e) {
             log.error("Error processing SubscriptionCommand", e);
             return Optional.empty();

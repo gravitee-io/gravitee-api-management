@@ -28,9 +28,9 @@ public class PageIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("categories")
-            .name("p1")
-            .key("page", ascending())
-            .build();
+                .collection("categories")
+                .name("p1")
+                .key("page", ascending())
+                .build();
     }
 }

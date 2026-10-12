@@ -67,17 +67,17 @@ public class UsersResource extends AbstractResource {
     @GET
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ))
     @Operation(
-        summary = "Search for users using the search engine",
-        description = "User must have the ORGANIZATION_USERS[READ] permission to use this service"
-    )
+            summary = "Search for users using the search engine",
+            description = "User must have the ORGANIZATION_USERS[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List users matching the query criteria",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserPageResult.class))
-    )
+            responseCode = "200",
+            description = "List users matching the query criteria",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserPageResult.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public UserPageResult getAllUsers(@Parameter(name = "q") @QueryParam("q") String query, @Valid @BeanParam Pageable pageable) {
-        Page<UserEntity> users = userService.search(GraviteeContext.getExecutionContext(), query, pageable.toPageable());
+    public UserPageResult getAllUsers(
+            @Parameter(name = "q") @QueryParam("q") String query, @Valid @BeanParam Pageable pageable) {
+        Page<UserEntity> users =
+                userService.search(GraviteeContext.getExecutionContext(), query, pageable.toPageable());
         return new UserPageResult(users, pageable.getSize());
     }
 
@@ -85,17 +85,17 @@ public class UsersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = CREATE))
-    @Operation(summary = "Create a user", description = "User must have the ORGANIZATION_USERS[CREATE] permission to use this service")
+    @Operation(
+            summary = "Create a user",
+            description = "User must have the ORGANIZATION_USERS[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List users matching the query criteria",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
-    )
+            responseCode = "200",
+            description = "List users matching the query criteria",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class)))
     @ApiResponse(
-        responseCode = "400",
-        description = "Pre-registered user is not valid: a service account must not have a firstname, and must " +
-            "have at least one of sourceId, lastname or email set to derive a unique identifier"
-    )
+            responseCode = "400",
+            description = "Pre-registered user is not valid: a service account must not have a firstname, and must "
+                    + "have at least one of sourceId, lastname or email set to derive a unique identifier")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createUser(@ValidNewPreRegisterUser NewPreRegisterUserEntity newPreRegisterUserEntity) {
         UserEntity newUser = userService.create(GraviteeContext.getExecutionContext(), newPreRegisterUserEntity);

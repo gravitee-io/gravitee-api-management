@@ -28,12 +28,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface IdentityProviderActivationMongoRepository
-    extends MongoRepository<IdentityProviderActivationMongo, IdentityProviderActivationPkMongo> {
+        extends MongoRepository<IdentityProviderActivationMongo, IdentityProviderActivationPkMongo> {
     @Query("{ '_id.identityProviderId': ?0 }")
     List<IdentityProviderActivationMongo> findAllByIdentityProviderId(String identityProviderId);
 
     @Query("{ '_id.referenceId': ?0, '_id.referenceType': ?1 }")
-    List<IdentityProviderActivationMongo> findAllByReferenceIdAndReferenceType(String referenceId, String referenceType);
+    List<IdentityProviderActivationMongo> findAllByReferenceIdAndReferenceType(
+            String referenceId, String referenceType);
 
     @Query(value = "{ '_id.identityProviderId': ?0 }", delete = true)
     void deleteByIdentityProviderId(String identityProviderId);

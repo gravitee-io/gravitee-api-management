@@ -72,11 +72,10 @@ abstract class AbstractSecuredVaultSecretProviderTest {
     }
 
     static void addPlugin(
-        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-    ) {
-        secretProviderPlugins.add(
-            SecretProviderBuilder.build(HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class)
-        );
+            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                    secretProviderPlugins) {
+        secretProviderPlugins.add(SecretProviderBuilder.build(
+                HCVaultSecretProvider.PLUGIN_ID, HCVaultSecretProviderFactory.class, VaultConfig.class));
     }
 
     abstract static class AbstractGatewayVaultTest extends AbstractGatewayTest {
@@ -107,36 +106,35 @@ abstract class AbstractSecuredVaultSecretProviderTest {
 
         Map<String, Object> vaultInstanceConfig(SecuredVaultContainer vaultContainer) {
             return Map.of(
-                "secrets.vault.host",
-                vaultContainer.getHost(),
-                "secrets.vault.port",
-                vaultContainer.getPort(),
-                "secrets.vault.ssl.enabled",
-                true,
-                "secrets.vault.ssl.format",
-                "pemfile",
-                "secrets.vault.ssl.file",
-                SecuredVaultContainer.CERT_PEMFILE
-            );
+                    "secrets.vault.host",
+                    vaultContainer.getHost(),
+                    "secrets.vault.port",
+                    vaultContainer.getPort(),
+                    "secrets.vault.ssl.enabled",
+                    true,
+                    "secrets.vault.ssl.format",
+                    "pemfile",
+                    "secrets.vault.ssl.file",
+                    SecuredVaultContainer.CERT_PEMFILE);
         }
 
         protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) {
             return Map.of(
-                "secrets.vault.auth.method",
-                "userpass",
-                "secrets.vault.auth.config.username",
-                SecuredVaultContainer.USER_ID,
-                "secrets.vault.auth.config.password",
-                SecuredVaultContainer.PASSWORD
-            );
+                    "secrets.vault.auth.method",
+                    "userpass",
+                    "secrets.vault.auth.config.username",
+                    SecuredVaultContainer.USER_ID,
+                    "secrets.vault.auth.config.password",
+                    SecuredVaultContainer.PASSWORD);
         }
 
         abstract void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder);
 
         @Override
         public void configureSecretProviders(
-            Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
-        ) throws Exception {
+                Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>>
+                        secretProviderPlugins)
+                throws Exception {
             addPlugin(secretProviderPlugins);
             createSecrets();
         }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.model.wrapper;
 
-import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.log.PlatformRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 

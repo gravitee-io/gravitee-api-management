@@ -36,58 +36,53 @@ public class PolicyRequestStep extends PolicyStep<MutableRequest> {
     }
 
     @Override
-    public Single<PolicyStepState> saveInputState(final MutableRequest request, final Map<String, Serializable> inputAttributes) {
-        return request
-            .bodyOrEmpty()
-            .map(inputBody ->
-                new PolicyStepState()
-                    .contextPath(request.contextPath())
-                    .parameters(request.parameters())
-                    .method(request.method())
-                    .path(request.path())
-                    .pathParameters(request.pathParameters())
-                    .headers(request.headers())
-                    .attributes(inputAttributes)
-                    .buffer(inputBody)
-            );
+    public Single<PolicyStepState> saveInputState(
+            final MutableRequest request, final Map<String, Serializable> inputAttributes) {
+        return request.bodyOrEmpty()
+                .map(inputBody -> new PolicyStepState()
+                        .contextPath(request.contextPath())
+                        .parameters(request.parameters())
+                        .method(request.method())
+                        .path(request.path())
+                        .pathParameters(request.pathParameters())
+                        .headers(request.headers())
+                        .attributes(inputAttributes)
+                        .buffer(inputBody));
     }
 
     @Override
     public Single<Map<String, Object>> computeDiff(
-        final MutableRequest request,
-        final PolicyStepState inputState,
-        final Map<String, Serializable> outputAttributes
-    ) {
-        return request
-            .bodyOrEmpty()
-            .map(outputBody -> {
-                Map<String, Object> diffMap = new HashMap<>();
-                if (!inputState.headers().deeplyEquals(request.headers())) {
-                    diffMap.put(DIFF_KEY_HEADERS, HttpHeaders.create(request.headers()));
-                }
-                if (!inputState.parameters().equals(request.parameters())) {
-                    diffMap.put(DIFF_KEY_PARAMETERS, new LinkedMultiValueMap<>(request.parameters()));
-                }
-                if (!inputState.pathParameters().equals(request.pathParameters())) {
-                    diffMap.put(DIFF_KEY_PATH_PARAMETERS, new LinkedMultiValueMap<>(request.pathParameters()));
-                }
-                if (!inputState.method().equals(request.method())) {
-                    diffMap.put(DIFF_KEY_METHOD, request.method());
-                }
-                if (!inputState.path().equals(request.path())) {
-                    diffMap.put(DIFF_KEY_PATH, request.path());
-                }
-                if (!inputState.contextPath().equals(request.contextPath())) {
-                    diffMap.put(DIFF_KEY_CONTEXT_PATH, request.contextPath());
-                }
-                if (!inputState.attributes().equals(outputAttributes)) {
-                    diffMap.put(DIFF_KEY_ATTRIBUTES, new HashMap<>(outputAttributes));
-                }
+            final MutableRequest request,
+            final PolicyStepState inputState,
+            final Map<String, Serializable> outputAttributes) {
+        return request.bodyOrEmpty().map(outputBody -> {
+            Map<String, Object> diffMap = new HashMap<>();
+            if (!inputState.headers().deeplyEquals(request.headers())) {
+                diffMap.put(DIFF_KEY_HEADERS, HttpHeaders.create(request.headers()));
+            }
+            if (!inputState.parameters().equals(request.parameters())) {
+                diffMap.put(DIFF_KEY_PARAMETERS, new LinkedMultiValueMap<>(request.parameters()));
+            }
+            if (!inputState.pathParameters().equals(request.pathParameters())) {
+                diffMap.put(DIFF_KEY_PATH_PARAMETERS, new LinkedMultiValueMap<>(request.pathParameters()));
+            }
+            if (!inputState.method().equals(request.method())) {
+                diffMap.put(DIFF_KEY_METHOD, request.method());
+            }
+            if (!inputState.path().equals(request.path())) {
+                diffMap.put(DIFF_KEY_PATH, request.path());
+            }
+            if (!inputState.contextPath().equals(request.contextPath())) {
+                diffMap.put(DIFF_KEY_CONTEXT_PATH, request.contextPath());
+            }
+            if (!inputState.attributes().equals(outputAttributes)) {
+                diffMap.put(DIFF_KEY_ATTRIBUTES, new HashMap<>(outputAttributes));
+            }
 
-                if (!inputState.buffer().getNativeBuffer().equals(outputBody.getNativeBuffer())) {
-                    diffMap.put(DIFF_KEY_BODY_BUFFER, Buffer.buffer(outputBody.getBytes()));
-                }
-                return diffMap;
-            });
+            if (!inputState.buffer().getNativeBuffer().equals(outputBody.getNativeBuffer())) {
+                diffMap.put(DIFF_KEY_BODY_BUFFER, Buffer.buffer(outputBody.getBytes()));
+            }
+            return diffMap;
+        });
     }
 }

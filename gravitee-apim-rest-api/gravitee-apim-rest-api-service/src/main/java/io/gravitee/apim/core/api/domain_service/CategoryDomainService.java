@@ -25,6 +25,7 @@ import java.util.Set;
  */
 public interface CategoryDomainService {
     Set<String> toCategoryId(Api api, String environmentId);
+
     Set<String> toCategoryKey(Api api, String environmentId);
 
     Set<String> resolveToCategoryIds(String environmentId, Set<String> categoryIdsOrKeys);

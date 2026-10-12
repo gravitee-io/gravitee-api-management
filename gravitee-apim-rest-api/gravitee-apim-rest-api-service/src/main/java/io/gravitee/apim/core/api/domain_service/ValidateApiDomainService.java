@@ -19,12 +19,13 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 
 public interface ValidateApiDomainService {
-    Api validateAndSanitizeForCreation(final Api api, final PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId);
+    Api validateAndSanitizeForCreation(
+            final Api api, final PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId);
+
     Api validateAndSanitizeForUpdate(
-        final Api existingApi,
-        Api apiToBeUpdated,
-        final PrimaryOwnerEntity primaryOwner,
-        String environmentId,
-        String organizationId
-    );
+            final Api existingApi,
+            Api apiToBeUpdated,
+            final PrimaryOwnerEntity primaryOwner,
+            String environmentId,
+            String organizationId);
 }

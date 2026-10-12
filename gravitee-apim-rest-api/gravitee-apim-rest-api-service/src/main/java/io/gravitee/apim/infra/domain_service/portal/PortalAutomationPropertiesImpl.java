@@ -25,8 +25,7 @@ public class PortalAutomationPropertiesImpl implements PortalAutomationPropertie
     private final boolean allowMultiplePortalPerEnv;
 
     public PortalAutomationPropertiesImpl(
-        @Value("${automation.portal.allowMultiplePortalPerEnv:false}") boolean allowMultiplePortalPerEnv
-    ) {
+            @Value("${automation.portal.allowMultiplePortalPerEnv:false}") boolean allowMultiplePortalPerEnv) {
         this.allowMultiplePortalPerEnv = allowMultiplePortalPerEnv;
     }
 

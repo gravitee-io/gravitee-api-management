@@ -85,109 +85,126 @@ public class ApplicationServiceImplTest {
     public void findByIdsAndStatus_shouldNotFetchCertificatesPerApplication() throws TechnicalException {
         ExecutionContext executionContext = new ExecutionContext("org1", "env1");
 
-        Application app1 = Application.builder().id("app1").status(ApplicationStatus.ACTIVE).type(ApplicationType.SIMPLE).build();
-        Application app2 = Application.builder().id("app2").status(ApplicationStatus.ACTIVE).type(ApplicationType.SIMPLE).build();
+        Application app1 = Application.builder()
+                .id("app1")
+                .status(ApplicationStatus.ACTIVE)
+                .type(ApplicationType.SIMPLE)
+                .build();
+        Application app2 = Application.builder()
+                .id("app2")
+                .status(ApplicationStatus.ACTIVE)
+                .type(ApplicationType.SIMPLE)
+                .build();
 
-        when(applicationRepository.search(any(ApplicationCriteria.class), isNull())).thenReturn(new Page<>(List.of(app1, app2), 0, 2, 2));
+        when(applicationRepository.search(any(ApplicationCriteria.class), isNull()))
+                .thenReturn(new Page<>(List.of(app1, app2), 0, 2, 2));
 
         RoleEntity primaryOwnerRole = new RoleEntity();
         primaryOwnerRole.setId("role1");
-        when(roleService.findPrimaryOwnerRoleByOrganization("org1", RoleScope.APPLICATION)).thenReturn(primaryOwnerRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization("org1", RoleScope.APPLICATION))
+                .thenReturn(primaryOwnerRole);
 
-        MembershipEntity membership1 = MembershipEntity.builder().id("m1").referenceId("app1").memberId("user1").build();
-        MembershipEntity membership2 = MembershipEntity.builder().id("m2").referenceId("app2").memberId("user2").build();
-        when(
-            membershipService.getMembershipsByReferencesAndRole(MembershipReferenceType.APPLICATION, List.of("app1", "app2"), "role1")
-        ).thenReturn(Set.of(membership1, membership2));
+        MembershipEntity membership1 = MembershipEntity.builder()
+                .id("m1")
+                .referenceId("app1")
+                .memberId("user1")
+                .build();
+        MembershipEntity membership2 = MembershipEntity.builder()
+                .id("m2")
+                .referenceId("app2")
+                .memberId("user2")
+                .build();
+        when(membershipService.getMembershipsByReferencesAndRole(
+                        MembershipReferenceType.APPLICATION, List.of("app1", "app2"), "role1"))
+                .thenReturn(Set.of(membership1, membership2));
 
         when(userService.findByIds(eq(executionContext), any(), eq(false))).thenReturn(Set.of());
 
         ClientCertificate app1Certificate = new ClientCertificate(
-            "cert1",
-            null,
-            "app1",
-            "cert-name",
-            null,
-            null,
-            new Date(),
-            null,
-            "app1-certificate-pem",
-            null,
-            null,
-            null,
-            null,
-            null,
-            ClientCertificateStatus.ACTIVE
-        );
-        when(clientCertificateCrudService.findByApplicationIdsAndStatuses(any(), any(ClientCertificateStatus[].class))).thenReturn(
-            List.of(app1Certificate)
-        );
+                "cert1",
+                null,
+                "app1",
+                "cert-name",
+                null,
+                null,
+                new Date(),
+                null,
+                "app1-certificate-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                ClientCertificateStatus.ACTIVE);
+        when(clientCertificateCrudService.findByApplicationIdsAndStatuses(any(), any(ClientCertificateStatus[].class)))
+                .thenReturn(List.of(app1Certificate));
 
-        Set<ApplicationListItem> result = applicationService.findByIdsAndStatus(executionContext, List.of("app1", "app2"), null);
+        Set<ApplicationListItem> result =
+                applicationService.findByIdsAndStatus(executionContext, List.of("app1", "app2"), null);
 
         assertThat(result).hasSize(2);
-        ApplicationListItem app1Item = result
-            .stream()
-            .filter(item -> "app1".equals(item.getId()))
-            .findFirst()
-            .orElseThrow();
-        ApplicationListItem app2Item = result
-            .stream()
-            .filter(item -> "app2".equals(item.getId()))
-            .findFirst()
-            .orElseThrow();
+        ApplicationListItem app1Item = result.stream()
+                .filter(item -> "app1".equals(item.getId()))
+                .findFirst()
+                .orElseThrow();
+        ApplicationListItem app2Item = result.stream()
+                .filter(item -> "app2".equals(item.getId()))
+                .findFirst()
+                .orElseThrow();
         // Locks the actual contract, not just "no N+1": the batched certificate must still land on the right list item.
         assertThat(app1Item.getSettings().getTls().getClientCertificate()).isEqualTo("app1-certificate-pem");
         assertThat(app2Item.getSettings().getTls()).isNull();
 
         // any(ClientCertificateStatus[].class) matches the vararg's underlying array regardless of how many
         // statuses are passed, so a regression can't slip past never() just by changing call arity.
-        verify(clientCertificateCrudService, never()).findByApplicationIdAndStatuses(anyString(), any(ClientCertificateStatus[].class));
-        verify(clientCertificateCrudService).findByApplicationIdsAndStatuses(any(), any(ClientCertificateStatus[].class));
+        verify(clientCertificateCrudService, never())
+                .findByApplicationIdAndStatuses(anyString(), any(ClientCertificateStatus[].class));
+        verify(clientCertificateCrudService)
+                .findByApplicationIdsAndStatuses(any(), any(ClientCertificateStatus[].class));
     }
 
     @Test
     public void buildSearchCriteria() {
         ExecutionContext executionContext = new ExecutionContext("org1", "env1");
         ApplicationQuery query = ApplicationQuery.builder()
-            .query("app1")
-            .name("name1")
-            .groups(Set.of("group1", "group2"))
-            .status("active")
-            .user("user1")
-            .ids(Set.of("app1", "app2"))
-            .build();
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION)
-        ).thenReturn(Set.of("app1", "app2", "app3"));
-        when(
-            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP)
-        ).thenReturn(Set.of());
+                .query("app1")
+                .name("name1")
+                .groups(Set.of("group1", "group2"))
+                .status("active")
+                .user("user1")
+                .ids(Set.of("app1", "app2"))
+                .build();
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION))
+                .thenReturn(Set.of("app1", "app2", "app3"));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP))
+                .thenReturn(Set.of());
         ApplicationCriteria criteria = applicationService.buildSearchCriteria(executionContext, query);
 
         assertAll(
-            () -> assertThat(criteria.getEnvironmentIds().size()).isEqualTo(1),
-            () -> assertTrue(criteria.getEnvironmentIds().contains("env1")),
-            () -> assertThat(criteria.getRestrictedToIds().size()).isEqualTo(2),
-            () -> assertTrue(criteria.getRestrictedToIds().containsAll(List.of("app1", "app2"))),
-            () -> assertThat(criteria.getName()).isEqualTo("name1"),
-            () -> assertThat(criteria.getStatus()).isEqualTo(ApplicationStatus.ACTIVE),
-            () -> assertThat(criteria.getGroups().size()).isEqualTo(2),
-            () -> assertThat(criteria.getGroups()).containsAll(List.of("group1", "group2")),
-            () -> assertThat(criteria.getQuery()).isEqualTo("app1")
-        );
+                () -> assertThat(criteria.getEnvironmentIds().size()).isEqualTo(1),
+                () -> assertTrue(criteria.getEnvironmentIds().contains("env1")),
+                () -> assertThat(criteria.getRestrictedToIds().size()).isEqualTo(2),
+                () -> assertTrue(criteria.getRestrictedToIds().containsAll(List.of("app1", "app2"))),
+                () -> assertThat(criteria.getName()).isEqualTo("name1"),
+                () -> assertThat(criteria.getStatus()).isEqualTo(ApplicationStatus.ACTIVE),
+                () -> assertThat(criteria.getGroups().size()).isEqualTo(2),
+                () -> assertThat(criteria.getGroups()).containsAll(List.of("group1", "group2")),
+                () -> assertThat(criteria.getQuery()).isEqualTo("app1"));
     }
 
     @Test
     public void buildSearchCriteria_userAndIds() {
         ExecutionContext executionContext = new ExecutionContext("org1", "env1");
-        ApplicationQuery query = ApplicationQuery.builder().user("user1").ids(Set.of("app1")).build();
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION)
-        ).thenReturn(Set.of("app1", "app2"));
-        when(
-            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP)
-        ).thenReturn(Set.of());
+        ApplicationQuery query =
+                ApplicationQuery.builder().user("user1").ids(Set.of("app1")).build();
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION))
+                .thenReturn(Set.of("app1", "app2"));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP))
+                .thenReturn(Set.of());
         ApplicationCriteria criteria = applicationService.buildSearchCriteria(executionContext, query);
         assertThat(criteria.getEnvironmentIds().size()).isEqualTo(1);
         assertTrue(criteria.getEnvironmentIds().contains("env1"));
@@ -198,13 +215,14 @@ public class ApplicationServiceImplTest {
     @Test
     public void buildSearchCriteria_userAndIds_noAuthorizedApps() {
         ExecutionContext executionContext = new ExecutionContext("org1", "env1");
-        ApplicationQuery query = ApplicationQuery.builder().user("user1").ids(Set.of("app3")).build();
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION)
-        ).thenReturn(Set.of("app1", "app2"));
-        when(
-            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP)
-        ).thenReturn(Set.of());
+        ApplicationQuery query =
+                ApplicationQuery.builder().user("user1").ids(Set.of("app3")).build();
+        when(membershipService.getReferenceIdsByMemberAndReference(
+                        MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION))
+                .thenReturn(Set.of("app1", "app2"));
+        when(membershipService.getMembershipsByMemberAndReference(
+                        MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP))
+                .thenReturn(Set.of());
         ApplicationCriteria criteria = applicationService.buildSearchCriteria(executionContext, query);
         assertNull(criteria);
     }

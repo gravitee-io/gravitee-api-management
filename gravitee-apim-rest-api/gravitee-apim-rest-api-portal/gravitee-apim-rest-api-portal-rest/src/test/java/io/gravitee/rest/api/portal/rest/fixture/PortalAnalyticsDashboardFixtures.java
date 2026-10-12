@@ -32,39 +32,35 @@ public final class PortalAnalyticsDashboardFixtures {
 
     public static Dashboard aDashboard(String id, String name) {
         return Dashboard.builder()
-            .id(id)
-            .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-            .name(name)
-            .createdBy("user-1")
-            .createdAt(ZonedDateTime.parse("2025-10-07T06:50:30Z"))
-            .lastModified(ZonedDateTime.parse("2025-12-07T11:35:30Z"))
-            .labels(Map.of("team", "apim"))
-            .widgets(
-                List.of(
-                    DashboardWidget.builder()
+                .id(id)
+                .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                .name(name)
+                .createdBy("user-1")
+                .createdAt(ZonedDateTime.parse("2025-10-07T06:50:30Z"))
+                .lastModified(ZonedDateTime.parse("2025-12-07T11:35:30Z"))
+                .labels(Map.of("team", "apim"))
+                .widgets(List.of(DashboardWidget.builder()
                         .id("widget-1")
                         .title("Requests")
                         .type("stats")
-                        .layout(DashboardWidget.Layout.builder().cols(1).rows(1).x(0).y(0).build())
-                        .request(
-                            DashboardWidget.Request.builder()
+                        .layout(DashboardWidget.Layout.builder()
+                                .cols(1)
+                                .rows(1)
+                                .x(0)
+                                .y(0)
+                                .build())
+                        .request(DashboardWidget.Request.builder()
                                 .type("measures")
-                                .timeRange(
-                                    DashboardWidget.TimeRange.builder()
+                                .timeRange(DashboardWidget.TimeRange.builder()
                                         .from(Instant.parse("2025-10-07T06:50:30Z"))
                                         .to(Instant.parse("2025-12-07T11:35:30Z"))
-                                        .build()
-                                )
-                                .metrics(
-                                    List.of(
-                                        DashboardWidget.MetricRequest.builder().name("HTTP_REQUESTS").measures(List.of("COUNT")).build()
-                                    )
-                                )
-                                .build()
-                        )
-                        .build()
-                )
-            )
-            .build();
+                                        .build())
+                                .metrics(List.of(DashboardWidget.MetricRequest.builder()
+                                        .name("HTTP_REQUESTS")
+                                        .measures(List.of("COUNT"))
+                                        .build()))
+                                .build())
+                        .build()))
+                .build();
     }
 }

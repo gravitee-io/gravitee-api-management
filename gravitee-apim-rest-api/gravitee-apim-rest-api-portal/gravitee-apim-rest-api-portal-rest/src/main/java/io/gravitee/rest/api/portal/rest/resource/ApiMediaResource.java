@@ -36,8 +36,9 @@ public class ApiMediaResource extends AbstractResource {
 
     @GET
     @Path("{mediaHash}")
-    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
-    public Response getApiMedia(@Context Request request, @PathParam("apiId") String apiId, @PathParam("mediaHash") String mediaHash) {
+    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
+    public Response getApiMedia(
+            @Context Request request, @PathParam("apiId") String apiId, @PathParam("mediaHash") String mediaHash) {
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             MediaEntity mediaEntity = mediaService.findByHashAndApi(mediaHash, apiId, true);
 

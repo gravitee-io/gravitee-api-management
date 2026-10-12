@@ -71,9 +71,7 @@ class UpdateApplicationInvitationDomainServiceTest {
     void setUp() {
         TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
         cut = new UpdateApplicationInvitationDomainService(
-            invitationCrudService,
-            new ValidateApplicationInvitationRoleDomainService(roleQueryService)
-        );
+                invitationCrudService, new ValidateApplicationInvitationRoleDomainService(roleQueryService));
     }
 
     @AfterEach
@@ -87,9 +85,11 @@ class UpdateApplicationInvitationDomainServiceTest {
         var invitation = anApplicationInvitation(INVITATION_ID, APPLICATION_ID, "alice@example.com", CURRENT_ROLE_NAME);
         givenInvitation(invitationId, invitation);
         givenExistingRole(UPDATED_ROLE_NAME);
-        when(invitationCrudService.update(any(ApplicationInvitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(invitationCrudService.update(any(ApplicationInvitation.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        var result = cut.update(ORGANIZATION_ID, APPLICATION_ID, invitationId, new UpdateApplicationInvitation(UPDATED_ROLE_NAME));
+        var result = cut.update(
+                ORGANIZATION_ID, APPLICATION_ID, invitationId, new UpdateApplicationInvitation(UPDATED_ROLE_NAME));
 
         assertThat(result.id()).isEqualTo(invitation.id());
         assertThat(result.applicationId()).isEqualTo(APPLICATION_ID);
@@ -108,9 +108,12 @@ class UpdateApplicationInvitationDomainServiceTest {
         var invitationId = InvitationId.of(INVITATION_ID);
         when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-            cut.update(ORGANIZATION_ID, APPLICATION_ID, invitationId, new UpdateApplicationInvitation(UPDATED_ROLE_NAME))
-        ).isInstanceOf(ApplicationInvitationNotFoundException.class);
+        assertThatThrownBy(() -> cut.update(
+                        ORGANIZATION_ID,
+                        APPLICATION_ID,
+                        invitationId,
+                        new UpdateApplicationInvitation(UPDATED_ROLE_NAME)))
+                .isInstanceOf(ApplicationInvitationNotFoundException.class);
 
         verifyNoInteractions(roleQueryService);
         verify(invitationCrudService, never()).update(any());
@@ -119,11 +122,16 @@ class UpdateApplicationInvitationDomainServiceTest {
     @Test
     void should_throw_when_invitation_belongs_to_another_application() {
         var invitationId = InvitationId.of(INVITATION_ID);
-        givenInvitation(invitationId, anApplicationInvitation(INVITATION_ID, OTHER_APPLICATION_ID, "alice@example.com", CURRENT_ROLE_NAME));
+        givenInvitation(
+                invitationId,
+                anApplicationInvitation(INVITATION_ID, OTHER_APPLICATION_ID, "alice@example.com", CURRENT_ROLE_NAME));
 
-        assertThatThrownBy(() ->
-            cut.update(ORGANIZATION_ID, APPLICATION_ID, invitationId, new UpdateApplicationInvitation(UPDATED_ROLE_NAME))
-        ).isInstanceOf(ApplicationInvitationNotFoundException.class);
+        assertThatThrownBy(() -> cut.update(
+                        ORGANIZATION_ID,
+                        APPLICATION_ID,
+                        invitationId,
+                        new UpdateApplicationInvitation(UPDATED_ROLE_NAME)))
+                .isInstanceOf(ApplicationInvitationNotFoundException.class);
 
         verifyNoInteractions(roleQueryService);
         verify(invitationCrudService, never()).update(any());
@@ -132,11 +140,14 @@ class UpdateApplicationInvitationDomainServiceTest {
     @Test
     void should_reject_blank_role() {
         var invitationId = InvitationId.of(INVITATION_ID);
-        givenInvitation(invitationId, anApplicationInvitation(INVITATION_ID, APPLICATION_ID, "alice@example.com", CURRENT_ROLE_NAME));
+        givenInvitation(
+                invitationId,
+                anApplicationInvitation(INVITATION_ID, APPLICATION_ID, "alice@example.com", CURRENT_ROLE_NAME));
 
-        assertThatThrownBy(() -> cut.update(ORGANIZATION_ID, APPLICATION_ID, invitationId, new UpdateApplicationInvitation(" ")))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("role must not be blank");
+        assertThatThrownBy(() ->
+                        cut.update(ORGANIZATION_ID, APPLICATION_ID, invitationId, new UpdateApplicationInvitation(" ")))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("role must not be blank");
 
         verifyNoInteractions(roleQueryService);
         verify(invitationCrudService, never()).update(any());
@@ -145,12 +156,18 @@ class UpdateApplicationInvitationDomainServiceTest {
     @Test
     void should_reject_unknown_role() {
         var invitationId = InvitationId.of(INVITATION_ID);
-        givenInvitation(invitationId, anApplicationInvitation(INVITATION_ID, APPLICATION_ID, "alice@example.com", CURRENT_ROLE_NAME));
-        when(roleQueryService.findApplicationRole(eq(UPDATED_ROLE_NAME), any(ReferenceContext.class))).thenReturn(Optional.empty());
+        givenInvitation(
+                invitationId,
+                anApplicationInvitation(INVITATION_ID, APPLICATION_ID, "alice@example.com", CURRENT_ROLE_NAME));
+        when(roleQueryService.findApplicationRole(eq(UPDATED_ROLE_NAME), any(ReferenceContext.class)))
+                .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-            cut.update(ORGANIZATION_ID, APPLICATION_ID, invitationId, new UpdateApplicationInvitation(UPDATED_ROLE_NAME))
-        ).isInstanceOf(RoleNotFoundException.class);
+        assertThatThrownBy(() -> cut.update(
+                        ORGANIZATION_ID,
+                        APPLICATION_ID,
+                        invitationId,
+                        new UpdateApplicationInvitation(UPDATED_ROLE_NAME)))
+                .isInstanceOf(RoleNotFoundException.class);
 
         verify(invitationCrudService, never()).update(any());
     }
@@ -160,8 +177,7 @@ class UpdateApplicationInvitationDomainServiceTest {
     }
 
     private void givenExistingRole(String roleName) {
-        when(roleQueryService.findApplicationRole(eq(roleName), any(ReferenceContext.class))).thenReturn(
-            Optional.of(anApplicationRole("role-id", roleName))
-        );
+        when(roleQueryService.findApplicationRole(eq(roleName), any(ReferenceContext.class)))
+                .thenReturn(Optional.of(anApplicationRole("role-id", roleName)));
     }
 }

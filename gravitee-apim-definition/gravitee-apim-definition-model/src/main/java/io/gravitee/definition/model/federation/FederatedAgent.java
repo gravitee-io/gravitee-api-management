@@ -86,12 +86,11 @@ public class FederatedAgent implements Serializable, ApiDefinition {
     public record Provider(String organization, String url) {}
 
     public record Skill(
-        String id,
-        String name,
-        String description,
-        Collection<String> tags,
-        @Nullable Collection<String> examples,
-        @Nullable Collection<String> inputModes,
-        @Nullable Collection<String> outputModes
-    ) {}
+            String id,
+            String name,
+            String description,
+            Collection<String> tags,
+            @Nullable Collection<String> examples,
+            @Nullable Collection<String> inputModes,
+            @Nullable Collection<String> outputModes) {}
 }

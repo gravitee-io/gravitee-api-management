@@ -31,7 +31,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceInMemory<ApiProduct> implements ApiProductSearchQueryService {
+public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceInMemory<ApiProduct>
+        implements ApiProductSearchQueryService {
 
     private String lastEnvironmentId;
     private String lastOrganizationId;
@@ -51,14 +52,13 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
 
     @Override
     public Page<ApiProduct> search(
-        String environmentId,
-        String organizationId,
-        String query,
-        Set<String> ids,
-        Pageable pageable,
-        Sortable sortable,
-        ApiProductKindFilter kindFilter
-    ) {
+            String environmentId,
+            String organizationId,
+            String query,
+            Set<String> ids,
+            Pageable pageable,
+            Sortable sortable,
+            ApiProductKindFilter kindFilter) {
         this.lastEnvironmentId = environmentId;
         this.lastOrganizationId = organizationId;
         this.lastKindFilter = kindFilter;
@@ -66,19 +66,18 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
         int pageNumber = pageable != null ? pageable.getPageNumber() : 1;
         int pageSize = pageable != null ? pageable.getPageSize() : 10;
 
-        Stream<ApiProduct> stream = storage
-            .stream()
-            .filter(apiProduct -> Objects.equals(apiProduct.getEnvironmentId(), environmentId))
-            .filter(apiProduct -> ids == null || ids.isEmpty() || (ids.contains(apiProduct.getId())))
-            .filter(apiProduct -> kindFilter == null || kindFilter.matches(apiProduct))
-            .filter(apiProduct -> {
-                if (query == null || query.isBlank()) return true;
-                String queryLower = query.trim().toLowerCase();
-                return (
-                    (apiProduct.getName() != null && apiProduct.getName().toLowerCase().contains(queryLower)) ||
-                    (apiProduct.getDescription() != null && apiProduct.getDescription().toLowerCase().contains(queryLower))
-                );
-            });
+        Stream<ApiProduct> stream = storage.stream()
+                .filter(apiProduct -> Objects.equals(apiProduct.getEnvironmentId(), environmentId))
+                .filter(apiProduct -> ids == null || ids.isEmpty() || (ids.contains(apiProduct.getId())))
+                .filter(apiProduct -> kindFilter == null || kindFilter.matches(apiProduct))
+                .filter(apiProduct -> {
+                    if (query == null || query.isBlank()) return true;
+                    String queryLower = query.trim().toLowerCase();
+                    return ((apiProduct.getName() != null
+                                    && apiProduct.getName().toLowerCase().contains(queryLower))
+                            || (apiProduct.getDescription() != null
+                                    && apiProduct.getDescription().toLowerCase().contains(queryLower)));
+                });
 
         if (sortable != null && sortable.getField() != null) {
             Comparator<ApiProduct> comparator = comparatorForField(sortable.getField());
@@ -104,14 +103,13 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
 
     @Override
     public Page<GenericApiEntity> searchApis(
-        ExecutionContext executionContext,
-        String userId,
-        boolean isAdmin,
-        List<String> apiIds,
-        String query,
-        Sortable sortable,
-        Pageable pageable
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            boolean isAdmin,
+            List<String> apiIds,
+            String query,
+            Sortable sortable,
+            Pageable pageable) {
         int pageNumber = pageable != null ? pageable.getPageNumber() : 1;
         int pageSize = pageable != null ? pageable.getPageSize() : 10;
         return new Page<>(List.of(), pageNumber, pageSize, 0);
@@ -120,30 +118,36 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
     private static Comparator<ApiProduct> comparatorForField(String fieldName) {
         if (fieldName == null) return null;
         return switch (fieldName) {
-            case "name" -> Comparator.comparing(
-                apiProduct -> apiProduct.getName() != null ? apiProduct.getName() : "",
-                String.CASE_INSENSITIVE_ORDER
-            );
-            case "version" -> Comparator.comparing(
-                apiProduct -> apiProduct.getVersion() != null ? apiProduct.getVersion() : "",
-                String.CASE_INSENSITIVE_ORDER
-            );
-            case "apiCount" -> Comparator.comparingInt(apiProduct -> apiProduct.getApiIds() != null ? apiProduct.getApiIds().size() : 0);
-            case "ownerName" -> Comparator.comparing(
-                apiProduct ->
-                    apiProduct.getPrimaryOwner() != null && apiProduct.getPrimaryOwner().displayName() != null
-                        ? apiProduct.getPrimaryOwner().displayName()
-                        : "",
-                String.CASE_INSENSITIVE_ORDER
-            );
-            case "createdAt" -> Comparator.comparing(
-                apiProduct -> apiProduct.getCreatedAt() != null ? apiProduct.getCreatedAt() : ZonedDateTime.now().minusYears(100),
-                Comparator.naturalOrder()
-            );
-            case "updatedAt" -> Comparator.comparing(
-                apiProduct -> apiProduct.getUpdatedAt() != null ? apiProduct.getUpdatedAt() : ZonedDateTime.now().minusYears(100),
-                Comparator.naturalOrder()
-            );
+            case "name" ->
+                Comparator.comparing(
+                        apiProduct -> apiProduct.getName() != null ? apiProduct.getName() : "",
+                        String.CASE_INSENSITIVE_ORDER);
+            case "version" ->
+                Comparator.comparing(
+                        apiProduct -> apiProduct.getVersion() != null ? apiProduct.getVersion() : "",
+                        String.CASE_INSENSITIVE_ORDER);
+            case "apiCount" ->
+                Comparator.comparingInt(apiProduct ->
+                        apiProduct.getApiIds() != null ? apiProduct.getApiIds().size() : 0);
+            case "ownerName" ->
+                Comparator.comparing(
+                        apiProduct -> apiProduct.getPrimaryOwner() != null
+                                        && apiProduct.getPrimaryOwner().displayName() != null
+                                ? apiProduct.getPrimaryOwner().displayName()
+                                : "",
+                        String.CASE_INSENSITIVE_ORDER);
+            case "createdAt" ->
+                Comparator.comparing(
+                        apiProduct -> apiProduct.getCreatedAt() != null
+                                ? apiProduct.getCreatedAt()
+                                : ZonedDateTime.now().minusYears(100),
+                        Comparator.naturalOrder());
+            case "updatedAt" ->
+                Comparator.comparing(
+                        apiProduct -> apiProduct.getUpdatedAt() != null
+                                ? apiProduct.getUpdatedAt()
+                                : ZonedDateTime.now().minusYears(100),
+                        Comparator.naturalOrder());
             default -> null;
         };
     }

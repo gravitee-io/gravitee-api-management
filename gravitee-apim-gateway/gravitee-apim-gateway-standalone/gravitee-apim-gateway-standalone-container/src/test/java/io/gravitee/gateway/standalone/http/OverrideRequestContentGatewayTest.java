@@ -42,9 +42,9 @@ public class OverrideRequestContentGatewayTest extends AbstractWiremockGatewayTe
     public void shouldOverrideRequestContent() throws Exception {
         wireMockRule.stubFor(post("/api").willReturn(ok("{{request.body}}").withTransformers("response-template")));
 
-        HttpResponse response = execute(
-            Request.Post("http://localhost:8082/api").bodyString("Request content overriden by policy", ContentType.TEXT_PLAIN)
-        ).returnResponse();
+        HttpResponse response = execute(Request.Post("http://localhost:8082/api")
+                        .bodyString("Request content overriden by policy", ContentType.TEXT_PLAIN))
+                .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -52,16 +52,17 @@ public class OverrideRequestContentGatewayTest extends AbstractWiremockGatewayTe
         assertEquals(OverrideRequestContentPolicy.STREAM_POLICY_CONTENT, responseContent);
 
         wireMockRule.verify(
-            1,
-            postRequestedFor(urlPathEqualTo("/api")).withRequestBody(equalTo(OverrideRequestContentPolicy.STREAM_POLICY_CONTENT))
-        );
+                1,
+                postRequestedFor(urlPathEqualTo("/api"))
+                        .withRequestBody(equalTo(OverrideRequestContentPolicy.STREAM_POLICY_CONTENT)));
     }
 
     @Override
     public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin rewriteRequestStreamPolicy = PolicyBuilder.build("override-request-content", OverrideRequestContentPolicy.class);
+        PolicyPlugin rewriteRequestStreamPolicy =
+                PolicyBuilder.build("override-request-content", OverrideRequestContentPolicy.class);
         policyPluginManager.register(rewriteRequestStreamPolicy);
     }
 }

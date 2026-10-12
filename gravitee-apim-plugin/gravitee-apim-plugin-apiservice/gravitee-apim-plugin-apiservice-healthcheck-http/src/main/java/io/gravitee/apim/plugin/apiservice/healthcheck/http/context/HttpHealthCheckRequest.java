@@ -17,13 +17,11 @@ package io.gravitee.apim.plugin.apiservice.healthcheck.http.context;
 
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.HttpHealthCheckServiceConfiguration;
 import io.gravitee.common.http.HttpHeader;
-import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.core.context.AbstractRequest;
-import io.gravitee.reporter.api.http.Metrics;
 import java.util.List;
 
 /**

@@ -22,11 +22,10 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
 public record PortalListingApiEntry(
-    @Nonnull String apiHrid,
-    @Nonnull String location,
-    @Nullable Integer order,
-    @Nullable PortalVisibility visibility
-) {
+        @Nonnull String apiHrid,
+        @Nonnull String location,
+        @Nullable Integer order,
+        @Nullable PortalVisibility visibility) {
     public PortalListingApiEntry(@Nonnull String apiHrid, @Nonnull String location, @Nullable Integer order) {
         this(apiHrid, location, order, null);
     }

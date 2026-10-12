@@ -68,24 +68,27 @@ public class OrganizationResource extends AbstractResource {
 
     @GET
     @Path("/identities")
-    @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION, acls = RolePermissionAction.READ))
+    @Permissions(
+            @Permission(
+                    value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION,
+                    acls = RolePermissionAction.READ))
     @Operation(
-        summary = "Get the list of identity provider activations for current organization",
-        description = "User must have the ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service"
-    )
+            summary = "Get the list of identity provider activations for current organization",
+            description =
+                    "User must have the ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List identity provider activations for current organization",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = IdentityProviderActivationEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List identity provider activations for current organization",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array =
+                                    @ArraySchema(
+                                            schema = @Schema(implementation = IdentityProviderActivationEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Set<IdentityProviderActivationEntity> listIdentityProviderActivations() {
-        return identityProviderActivationService.findAllByTarget(
-            new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION)
-        );
+        return identityProviderActivationService.findAllByTarget(new ActivationTarget(
+                GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION));
     }
 
     @PUT
@@ -93,27 +96,27 @@ public class OrganizationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions(
-        @Permission(
-            value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION,
-            acls = { RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
-        )
-    )
-    @Operation(summary = "Update available organization identities", tags = { "Organization" })
+            @Permission(
+                    value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION,
+                    acls = {RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE}))
+    @Operation(
+            summary = "Update available organization identities",
+            tags = {"Organization"})
     @ApiResponse(responseCode = "204", description = "Organization successfully updated")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateOrganizationIdentities(Set<IdentityProviderActivationEntity> identityProviderActivations) {
         this.identityProviderActivationService.updateTargetIdp(
-            GraviteeContext.getExecutionContext(),
-            new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION),
-            identityProviderActivations
-                .stream()
-                .filter(ipa -> {
-                    final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
-                    return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
-                })
-                .map(IdentityProviderActivationEntity::getIdentityProvider)
-                .collect(Collectors.toList())
-        );
+                GraviteeContext.getExecutionContext(),
+                new ActivationTarget(
+                        GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION),
+                identityProviderActivations.stream()
+                        .filter(ipa -> {
+                            final IdentityProviderEntity idp =
+                                    this.identityProviderService.findById(ipa.getIdentityProvider());
+                            return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
+                        })
+                        .map(IdentityProviderActivationEntity::getIdentityProvider)
+                        .collect(Collectors.toList()));
         return Response.noContent().build();
     }
 
@@ -121,19 +124,17 @@ public class OrganizationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions(
-        @Permission(
-            value = RolePermission.ORGANIZATION_POLICIES,
-            acls = { RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
-        )
-    )
-    @Operation(summary = "Update organization", tags = { "Organization" })
+            @Permission(
+                    value = RolePermission.ORGANIZATION_POLICIES,
+                    acls = {RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE}))
+    @Operation(
+            summary = "Update organization",
+            tags = {"Organization"})
     @ApiResponse(responseCode = "204", description = "Organization successfully updated")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response update(UpdateOrganizationEntity organizationEntity) {
         OrganizationEntity updatedOrganization = organizationService.updateOrganizationAndFlows(
-            GraviteeContext.getCurrentOrganization(),
-            organizationEntity
-        );
+                GraviteeContext.getCurrentOrganization(), organizationEntity);
         return Response.ok(updatedOrganization).status(204).build();
     }
 
@@ -141,20 +142,28 @@ public class OrganizationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions(
-        @Permission(
-            value = RolePermission.ORGANIZATION_POLICIES,
-            acls = { RolePermissionAction.READ, RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
-        )
-    )
-    @Operation(summary = "GET organization", tags = { "Organization" })
+            @Permission(
+                    value = RolePermission.ORGANIZATION_POLICIES,
+                    acls = {
+                        RolePermissionAction.READ,
+                        RolePermissionAction.CREATE,
+                        RolePermissionAction.DELETE,
+                        RolePermissionAction.UPDATE
+                    }))
+    @Operation(
+            summary = "GET organization",
+            tags = {"Organization"})
     @ApiResponse(
-        responseCode = "200",
-        description = "Organization",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = OrganizationEntity.class))
-    )
+            responseCode = "200",
+            description = "Organization",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = OrganizationEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response get() {
-        return Response.ok(organizationService.findById(GraviteeContext.getCurrentOrganization())).build();
+        return Response.ok(organizationService.findById(GraviteeContext.getCurrentOrganization()))
+                .build();
     }
 
     // Dynamic authentication provider endpoints

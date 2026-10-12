@@ -28,9 +28,9 @@ public class FingerPrintIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("client_certificates")
-            .name("f1")
-            .key("fingerprint", ascending())
-            .build();
+                .collection("client_certificates")
+                .name("f1")
+                .key("fingerprint", ascending())
+                .build();
     }
 }

@@ -40,7 +40,8 @@ public class PathBasedConditionFlowTest extends AbstractWiremockGatewayTest {
     public void shouldRunFlows_getMethod_noFlow() throws Exception {
         wireMockRule.stubFor(get("/team").willReturn(ok()));
 
-        final HttpResponse response = execute(Request.Get("http://localhost:8082/test")).returnResponse();
+        final HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test")).returnResponse();
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team")).withoutHeader("my-counter"));
     }
@@ -49,7 +50,8 @@ public class PathBasedConditionFlowTest extends AbstractWiremockGatewayTest {
     public void shouldRunFlows_getMethod_pathMatch() throws Exception {
         wireMockRule.stubFor(get("/team/api").willReturn(ok()));
 
-        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/api")).returnResponse();
+        final HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test/api")).returnResponse();
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/api")).withHeader("my-counter", equalTo("1")));
     }

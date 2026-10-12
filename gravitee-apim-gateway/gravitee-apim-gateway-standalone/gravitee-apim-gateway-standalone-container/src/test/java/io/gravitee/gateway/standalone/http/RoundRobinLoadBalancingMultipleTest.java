@@ -62,7 +62,8 @@ public class RoundRobinLoadBalancingMultipleTest extends AbstractWiremockGateway
         wireMockRule.stubFor(get("/api2").willReturn(ok()));
         wireMockRule.stubFor(get("/api3").willReturn(ok()));
 
-        Iterator<Endpoint> endpointsIte = api.getProxy().getGroups().iterator().next().getEndpoints().iterator();
+        Iterator<Endpoint> endpointsIte =
+                api.getProxy().getGroups().iterator().next().getEndpoints().iterator();
 
         // Set the first endpoint with down status
         endpointsIte.next().updateStatus(Endpoint.Status.DOWN);

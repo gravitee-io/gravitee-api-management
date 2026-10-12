@@ -37,15 +37,13 @@ public class PortalNavigationManifestParserImpl implements PortalNavigationManif
     public List<ManifestPage> parse(String manifestContent) {
         try {
             var descriptor = graviteeDescriptorService.read(manifestContent);
-            if (descriptor.getDocumentation() == null || descriptor.getDocumentation().getPages() == null) {
+            if (descriptor.getDocumentation() == null
+                    || descriptor.getDocumentation().getPages() == null) {
                 return List.of();
             }
-            return descriptor
-                .getDocumentation()
-                .getPages()
-                .stream()
-                .map(page -> new ManifestPage(page.getSrc(), page.getName(), page.getDest()))
-                .toList();
+            return descriptor.getDocumentation().getPages().stream()
+                    .map(page -> new ManifestPage(page.getSrc(), page.getName(), page.getDest()))
+                    .toList();
         } catch (Exception e) {
             throw InvalidPortalNavigationItemSourceException.invalidManifest(e);
         }

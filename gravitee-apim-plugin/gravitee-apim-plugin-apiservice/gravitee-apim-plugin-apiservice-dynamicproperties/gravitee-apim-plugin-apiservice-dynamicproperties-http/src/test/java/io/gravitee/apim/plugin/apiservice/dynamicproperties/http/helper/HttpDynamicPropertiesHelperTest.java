@@ -44,27 +44,41 @@ class HttpDynamicPropertiesHelperTest {
 
     @Test
     void should_not_handle_null_api_dynamic_properties_service() {
-        assertThat(HttpDynamicPropertiesHelper.canHandle(Api.builder().services(new ApiServices()).build())).isFalse();
+        assertThat(HttpDynamicPropertiesHelper.canHandle(
+                        Api.builder().services(new ApiServices()).build()))
+                .isFalse();
     }
 
     @Test
     void should_not_handle_disabled_dynamic_properties_service() {
         final ApiServices services = new ApiServices();
         services.setDynamicProperty(Service.builder().enabled(false).build());
-        assertThat(HttpDynamicPropertiesHelper.canHandle(Api.builder().services(services).build())).isFalse();
+        assertThat(HttpDynamicPropertiesHelper.canHandle(
+                        Api.builder().services(services).build()))
+                .isFalse();
     }
 
     @Test
     void should_not_handle_non_http_dynamic_properties_service() {
         final ApiServices services = new ApiServices();
-        services.setDynamicProperty(Service.builder().enabled(true).type("not-" + HTTP_DYNAMIC_PROPERTIES_TYPE).build());
-        assertThat(HttpDynamicPropertiesHelper.canHandle(Api.builder().services(services).build())).isFalse();
+        services.setDynamicProperty(Service.builder()
+                .enabled(true)
+                .type("not-" + HTTP_DYNAMIC_PROPERTIES_TYPE)
+                .build());
+        assertThat(HttpDynamicPropertiesHelper.canHandle(
+                        Api.builder().services(services).build()))
+                .isFalse();
     }
 
     @Test
     void should_handle_http_dynamic_properties_service() {
         final ApiServices services = new ApiServices();
-        services.setDynamicProperty(Service.builder().enabled(true).type(HTTP_DYNAMIC_PROPERTIES_TYPE).build());
-        assertThat(HttpDynamicPropertiesHelper.canHandle(Api.builder().services(services).build())).isTrue();
+        services.setDynamicProperty(Service.builder()
+                .enabled(true)
+                .type(HTTP_DYNAMIC_PROPERTIES_TYPE)
+                .build());
+        assertThat(HttpDynamicPropertiesHelper.canHandle(
+                        Api.builder().services(services).build()))
+                .isTrue();
     }
 }

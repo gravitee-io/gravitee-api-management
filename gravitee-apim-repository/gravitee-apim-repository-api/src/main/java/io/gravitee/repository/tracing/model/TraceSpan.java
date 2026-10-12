@@ -28,17 +28,16 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public record TraceSpan(
-    String traceId,
-    String spanId,
-    String parentSpanId,
-    String operationName,
-    String serviceName,
-    Instant startTime,
-    long durationNanos,
-    Map<String, String> attributes,
-    List<TraceSpanEvent> events,
-    List<TraceSpan> children
-) {
+        String traceId,
+        String spanId,
+        String parentSpanId,
+        String operationName,
+        String serviceName,
+        Instant startTime,
+        long durationNanos,
+        Map<String, String> attributes,
+        List<TraceSpanEvent> events,
+        List<TraceSpan> children) {
     public TraceSpan {
         if (children == null) {
             children = new ArrayList<>();
@@ -52,27 +51,25 @@ public record TraceSpan(
     }
 
     public static TraceSpan of(
-        String traceId,
-        String spanId,
-        String parentSpanId,
-        String operationName,
-        String serviceName,
-        Instant startTime,
-        long durationNanos,
-        Map<String, String> attributes,
-        List<TraceSpanEvent> events
-    ) {
+            String traceId,
+            String spanId,
+            String parentSpanId,
+            String operationName,
+            String serviceName,
+            Instant startTime,
+            long durationNanos,
+            Map<String, String> attributes,
+            List<TraceSpanEvent> events) {
         return new TraceSpan(
-            traceId,
-            spanId,
-            parentSpanId,
-            operationName,
-            serviceName,
-            startTime,
-            durationNanos,
-            attributes,
-            events,
-            new ArrayList<>()
-        );
+                traceId,
+                spanId,
+                parentSpanId,
+                operationName,
+                serviceName,
+                startTime,
+                durationNanos,
+                attributes,
+                events,
+                new ArrayList<>());
     }
 }

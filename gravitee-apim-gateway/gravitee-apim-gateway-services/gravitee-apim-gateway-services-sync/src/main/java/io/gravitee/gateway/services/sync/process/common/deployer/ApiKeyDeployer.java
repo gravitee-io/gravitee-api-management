@@ -39,21 +39,18 @@ public class ApiKeyDeployer implements Deployer<ApiKeyDeployable> {
     public Completable deploy(final ApiKeyDeployable deployable) {
         return Completable.fromRunnable(() -> {
             if (deployable.apiKeys() != null) {
-                deployable
-                    .apiKeys()
-                    .forEach(apiKey -> {
-                        try {
-                            apiKeyService.register(apiKey);
-                            log.debug(
+                deployable.apiKeys().forEach(apiKey -> {
+                    try {
+                        apiKeyService.register(apiKey);
+                        log.debug(
                                 "ApiKey [{}] of subscription [{}] deployed for api [{}] ",
                                 apiKey.getId(),
                                 apiKey.getSubscription(),
-                                apiKey.getApi()
-                            );
-                        } catch (Exception e) {
-                            log.warn("An error occurred when trying to deploy ApiKey [{}].", apiKey.getId(), e);
-                        }
-                    });
+                                apiKey.getApi());
+                    } catch (Exception e) {
+                        log.warn("An error occurred when trying to deploy ApiKey [{}].", apiKey.getId(), e);
+                    }
+                });
             }
         });
     }
@@ -94,14 +91,20 @@ public class ApiKeyDeployer implements Deployer<ApiKeyDeployable> {
             apiKeyService.unregisterByApiId(apiReactorDeployable.apiId());
             log.debug("ApiKeys undeployed for api [{}] ", apiReactorDeployable.apiId());
         } catch (Exception e) {
-            log.warn("An error occurred when trying to undeploy apiKeys from api [{}].", apiReactorDeployable.apiId(), e);
+            log.warn(
+                    "An error occurred when trying to undeploy apiKeys from api [{}].",
+                    apiReactorDeployable.apiId(),
+                    e);
         }
     }
 
     private void undeployApiKey(final SingleApiKeyDeployable singleApikeyDeployable) {
         try {
             apiKeyService.unregister(singleApikeyDeployable.apiKey());
-            log.debug("ApiKey [{}] undeployed for api [{}] ", singleApikeyDeployable.id(), singleApikeyDeployable.apiId());
+            log.debug(
+                    "ApiKey [{}] undeployed for api [{}] ",
+                    singleApikeyDeployable.id(),
+                    singleApikeyDeployable.apiId());
         } catch (Exception e) {
             log.warn("An error occurred when trying to undeploy apiKey [{}].", singleApikeyDeployable.id(), e);
         }

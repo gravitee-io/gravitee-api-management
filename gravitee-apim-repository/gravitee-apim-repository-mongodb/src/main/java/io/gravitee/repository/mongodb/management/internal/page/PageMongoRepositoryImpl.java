@@ -58,7 +58,8 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
         Query query = new Query();
         query.limit(1);
         query.with(Sort.by(Sort.Direction.DESC, "order"));
-        query.addCriteria(where("referenceType").is(referenceType).and("referenceId").is(referenceId));
+        query.addCriteria(
+                where("referenceType").is(referenceType).and("referenceId").is(referenceId));
 
         PageMongo page = mongoTemplate.findOne(query, PageMongo.class);
         return (page != null) ? page.getOrder() : 0;
@@ -83,9 +84,10 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
             }
             if (criteria.getVisibility() != null) {
                 if (Visibility.PUBLIC.name().equals(criteria.getVisibility())) {
-                    q.addCriteria(
-                        new Criteria().orOperator(where("visibility").exists(false), where("visibility").is(Visibility.PUBLIC.name()))
-                    );
+                    q.addCriteria(new Criteria()
+                            .orOperator(
+                                    where("visibility").exists(false),
+                                    where("visibility").is(Visibility.PUBLIC.name())));
                 } else {
                     q.addCriteria(where("visibility").is(Visibility.PRIVATE.name()));
                 }
@@ -103,17 +105,15 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
                 q.addCriteria(where("type").is(criteria.getType()));
             }
             if (criteria.getUseAutoFetch() != null) {
-                q.addCriteria(where("useAutoFetch").is(criteria.getUseAutoFetch().booleanValue()));
+                q.addCriteria(
+                        where("useAutoFetch").is(criteria.getUseAutoFetch().booleanValue()));
             }
             if (criteria.getAccessControlGroupId() != null) {
-                q.addCriteria(
-                    where("accessControls").elemMatch(
-                        new Criteria().andOperator(
-                            where("referenceId").is(criteria.getAccessControlGroupId()),
-                            where("referenceType").is("GROUP")
-                        )
-                    )
-                );
+                q.addCriteria(where("accessControls")
+                        .elemMatch(new Criteria()
+                                .andOperator(
+                                        where("referenceId").is(criteria.getAccessControlGroupId()),
+                                        where("referenceType").is("GROUP"))));
             }
         }
 
@@ -155,13 +155,13 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
             return;
         }
 
-        var updates = pages
-            .stream()
-            .map(page -> new UpdateOneModel<Document>(Filters.eq("_id", page.getId()), Updates.set("crossId", page.getCrossId())))
-            .toList();
+        var updates = pages.stream()
+                .map(page -> new UpdateOneModel<Document>(
+                        Filters.eq("_id", page.getId()), Updates.set("crossId", page.getCrossId())))
+                .toList();
 
         mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(PageMongo.class))
-            .bulkWrite(updates, new BulkWriteOptions().ordered(false));
+                .getCollection(mongoTemplate.getCollectionName(PageMongo.class))
+                .bulkWrite(updates, new BulkWriteOptions().ordered(false));
     }
 }

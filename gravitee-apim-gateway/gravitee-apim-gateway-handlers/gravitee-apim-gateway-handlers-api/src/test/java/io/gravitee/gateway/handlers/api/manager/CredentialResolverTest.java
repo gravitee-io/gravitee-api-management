@@ -46,14 +46,12 @@ import org.springframework.mock.env.MockEnvironment;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CredentialResolverTest {
 
-    private static final SecretFieldAccessControl SECRET_FIELD = new SecretFieldAccessControl(true, FieldKind.PASSWORD, "clientSecret");
+    private static final SecretFieldAccessControl SECRET_FIELD =
+            new SecretFieldAccessControl(true, FieldKind.PASSWORD, "clientSecret");
     private static final SecretFieldAccessControl PLAIN_FIELD = new SecretFieldAccessControl(false, null, null);
 
     private final DataEncryptor dataEncryptor = new DataEncryptor(
-        new MockEnvironment(),
-        "api.properties.encryption.secret",
-        "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6"
-    );
+            new MockEnvironment(), "api.properties.encryption.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
 
     @Mock
     private CredentialManager credentialManager;
@@ -72,7 +70,8 @@ class CredentialResolverTest {
         void should_resolve_a_field_inside_a_secret_field() throws Exception {
             deploy("{\"clientId\": \"my-client\", \"clientSecret\": \"s3cr3t\"}");
 
-            assertThat(resolver.resolve("env-1", "api-1", "credential-1", "clientSecret", SECRET_FIELD)).isEqualTo("s3cr3t");
+            assertThat(resolver.resolve("env-1", "api-1", "credential-1", "clientSecret", SECRET_FIELD))
+                    .isEqualTo("s3cr3t");
         }
 
         @Test
@@ -87,8 +86,8 @@ class CredentialResolverTest {
 
         private void assertRefused(ThrowingCallable resolution) {
             assertThatThrownBy(resolution)
-                .isInstanceOf(CredentialResolutionException.class)
-                .hasMessage("Credential [credential-1] can only be resolved in a secret field");
+                    .isInstanceOf(CredentialResolutionException.class)
+                    .hasMessage("Credential [credential-1] can only be resolved in a secret field");
             verifyNoInteractions(credentialManager);
         }
     }
@@ -103,29 +102,25 @@ class CredentialResolverTest {
             deploy("{\"clientSecret\": \"s3cr3t\"}");
 
             assertThatThrownBy(() -> resolver.resolve("env-1", "api-2", "credential-1", "clientSecret", SECRET_FIELD))
-                .isInstanceOf(CredentialResolutionException.class)
-                .hasMessage("Credential [credential-1] is not allowed for API [api-2]");
+                    .isInstanceOf(CredentialResolutionException.class)
+                    .hasMessage("Credential [credential-1] is not allowed for API [api-2]");
             verify(spiedEncryptor, never()).decrypt(anyString());
         }
 
         @Test
         void should_refuse_every_api_when_no_api_is_allowed() throws Exception {
-            when(credentialManager.get("env-1", "credential-1")).thenReturn(
-                Optional.of(
-                    new DeployedCredential(
-                        "credential-1",
-                        "env-1",
-                        "org-1",
-                        null,
-                        dataEncryptor.encrypt("{\"clientSecret\": \"s3cr3t\"}"),
-                        1L
-                    )
-                )
-            );
+            when(credentialManager.get("env-1", "credential-1"))
+                    .thenReturn(Optional.of(new DeployedCredential(
+                            "credential-1",
+                            "env-1",
+                            "org-1",
+                            null,
+                            dataEncryptor.encrypt("{\"clientSecret\": \"s3cr3t\"}"),
+                            1L)));
 
             assertThatThrownBy(() -> resolver.resolve("env-1", "api-1", "credential-1", "clientSecret", SECRET_FIELD))
-                .isInstanceOf(CredentialResolutionException.class)
-                .hasMessage("Credential [credential-1] is not allowed for API [api-1]");
+                    .isInstanceOf(CredentialResolutionException.class)
+                    .hasMessage("Credential [credential-1] is not allowed for API [api-1]");
         }
 
         @Test
@@ -133,8 +128,8 @@ class CredentialResolverTest {
             deploy("{\"clientSecret\": \"s3cr3t\"}");
 
             assertThatThrownBy(() -> resolver.resolve("env-1", null, "credential-1", "clientSecret", SECRET_FIELD))
-                .isInstanceOf(CredentialResolutionException.class)
-                .hasMessage("Credential [credential-1] is not allowed for API [null]");
+                    .isInstanceOf(CredentialResolutionException.class)
+                    .hasMessage("Credential [credential-1] is not allowed for API [null]");
         }
     }
 
@@ -146,8 +141,8 @@ class CredentialResolverTest {
             when(credentialManager.get("env-2", "credential-1")).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> resolver.resolve("env-2", "api-1", "credential-1", "clientSecret", SECRET_FIELD))
-                .isInstanceOf(CredentialResolutionException.class)
-                .hasMessage("Credential [credential-1] not found in environment [env-2]");
+                    .isInstanceOf(CredentialResolutionException.class)
+                    .hasMessage("Credential [credential-1] not found in environment [env-2]");
         }
 
         @Test
@@ -155,8 +150,8 @@ class CredentialResolverTest {
             deploy("{\"token\": \"s3cr3t\"}");
 
             assertThatThrownBy(() -> resolver.resolve("env-1", "api-1", "credential-1", "clientSecret", SECRET_FIELD))
-                .isInstanceOf(CredentialResolutionException.class)
-                .hasMessage("Field [clientSecret] not found in credential [credential-1]");
+                    .isInstanceOf(CredentialResolutionException.class)
+                    .hasMessage("Field [clientSecret] not found in credential [credential-1]");
         }
 
         @Test
@@ -164,8 +159,8 @@ class CredentialResolverTest {
             deploy("{\"scopes\": [\"read\", \"write\"]}");
 
             assertThatThrownBy(() -> resolver.resolve("env-1", "api-1", "credential-1", "scopes", SECRET_FIELD))
-                .isInstanceOf(CredentialResolutionException.class)
-                .hasMessage("Field [scopes] not found in credential [credential-1]");
+                    .isInstanceOf(CredentialResolutionException.class)
+                    .hasMessage("Field [scopes] not found in credential [credential-1]");
         }
     }
 
@@ -174,11 +169,12 @@ class CredentialResolverTest {
 
         @Test
         void should_fail_when_the_secret_cannot_be_decrypted() {
-            when(credentialManager.get("env-1", "credential-1")).thenReturn(Optional.of(credential("not-a-ciphertext")));
+            when(credentialManager.get("env-1", "credential-1"))
+                    .thenReturn(Optional.of(credential("not-a-ciphertext")));
 
             assertThatThrownBy(() -> resolver.resolve("env-1", "api-1", "credential-1", "clientSecret", SECRET_FIELD))
-                .isInstanceOf(CredentialResolutionException.class)
-                .hasMessage("Unable to decrypt credential [credential-1]");
+                    .isInstanceOf(CredentialResolutionException.class)
+                    .hasMessage("Unable to decrypt credential [credential-1]");
         }
 
         @Test
@@ -186,9 +182,9 @@ class CredentialResolverTest {
             deploy("s3cr3t-not-json");
 
             assertThatThrownBy(() -> resolver.resolve("env-1", "api-1", "credential-1", "clientSecret", SECRET_FIELD))
-                .isInstanceOf(CredentialResolutionException.class)
-                .hasMessage("Unable to read credential [credential-1]")
-                .hasNoCause();
+                    .isInstanceOf(CredentialResolutionException.class)
+                    .hasMessage("Unable to read credential [credential-1]")
+                    .hasNoCause();
         }
 
         @Test
@@ -210,13 +206,14 @@ class CredentialResolverTest {
             deploy("null");
 
             assertThatThrownBy(() -> resolver.resolve("env-1", "api-1", "credential-1", "clientSecret", SECRET_FIELD))
-                .isInstanceOf(CredentialResolutionException.class)
-                .hasMessage("Unable to read credential [credential-1]");
+                    .isInstanceOf(CredentialResolutionException.class)
+                    .hasMessage("Unable to read credential [credential-1]");
         }
     }
 
     private void deploy(String plaintext) throws Exception {
-        when(credentialManager.get("env-1", "credential-1")).thenReturn(Optional.of(credential(dataEncryptor.encrypt(plaintext))));
+        when(credentialManager.get("env-1", "credential-1"))
+                .thenReturn(Optional.of(credential(dataEncryptor.encrypt(plaintext))));
     }
 
     private static DeployedCredential credential(String encryptedSecret) {

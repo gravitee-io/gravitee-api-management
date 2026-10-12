@@ -52,7 +52,8 @@ public class AbstractResourceCacheHeaderTest {
 
         @Test
         void suppresses_both_headers_when_updatedAt_is_null_without_throwing() {
-            Response response = RESOURCE.applyCacheHeaders(Response.ok("body"), null).build();
+            Response response =
+                    RESOURCE.applyCacheHeaders(Response.ok("body"), null).build();
 
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(response.getEntityTag()).isNull();
@@ -62,7 +63,8 @@ public class AbstractResourceCacheHeaderTest {
 
         @Test
         void emits_headers_for_zero_epoch_date() {
-            Response response = RESOURCE.applyCacheHeaders(Response.ok(), new Date(0L)).build();
+            Response response =
+                    RESOURCE.applyCacheHeaders(Response.ok(), new Date(0L)).build();
 
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(response.getEntityTag()).isEqualTo(new EntityTag("0"));

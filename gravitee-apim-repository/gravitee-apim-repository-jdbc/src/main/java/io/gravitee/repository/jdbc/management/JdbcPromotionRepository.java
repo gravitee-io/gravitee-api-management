@@ -39,7 +39,8 @@ import org.springframework.stereotype.Repository;
 
 @CustomLog
 @Repository
-public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotion, String> implements PromotionRepository {
+public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotion, String>
+        implements PromotionRepository {
 
     JdbcPromotionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "promotions");
@@ -48,23 +49,23 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
     @Override
     protected JdbcObjectMapper<Promotion> buildOrm() {
         return JdbcObjectMapper.builder(Promotion.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("api_definition", Types.NCLOB, String.class)
-            .addColumn("api_id", Types.NVARCHAR, String.class)
-            .addColumn("status", Types.NVARCHAR, PromotionStatus.class)
-            .addColumn("target_env_cockpit_id", Types.NVARCHAR, String.class)
-            .addColumn("target_env_name", Types.NVARCHAR, String.class)
-            .addColumn("source_env_cockpit_id", Types.NVARCHAR, String.class)
-            .addColumn("source_env_name", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("author_user_id", Types.NVARCHAR, String.class)
-            .addColumn("author_display_name", Types.NVARCHAR, String.class)
-            .addColumn("author_email", Types.NVARCHAR, String.class)
-            .addColumn("author_source", Types.NVARCHAR, String.class)
-            .addColumn("author_source_id", Types.NVARCHAR, String.class)
-            .addColumn("target_api_id", Types.NVARCHAR, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("api_definition", Types.NCLOB, String.class)
+                .addColumn("api_id", Types.NVARCHAR, String.class)
+                .addColumn("status", Types.NVARCHAR, PromotionStatus.class)
+                .addColumn("target_env_cockpit_id", Types.NVARCHAR, String.class)
+                .addColumn("target_env_name", Types.NVARCHAR, String.class)
+                .addColumn("source_env_cockpit_id", Types.NVARCHAR, String.class)
+                .addColumn("source_env_name", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("author_user_id", Types.NVARCHAR, String.class)
+                .addColumn("author_display_name", Types.NVARCHAR, String.class)
+                .addColumn("author_email", Types.NVARCHAR, String.class)
+                .addColumn("author_source", Types.NVARCHAR, String.class)
+                .addColumn("author_source_id", Types.NVARCHAR, String.class)
+                .addColumn("target_api_id", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -73,7 +74,8 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
     }
 
     @Override
-    public Page<Promotion> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+    public Page<Promotion> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable)
+            throws TechnicalException {
         log.debug("JdbcPromotionRepository.search() - {}", getOrm().getTableName());
 
         try {
@@ -87,14 +89,15 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
                 query.append(" where 1=1 ");
 
                 if (!isEmpty(criteria.getTargetEnvCockpitIds())) {
-                    query
-                        .append(" and target_env_cockpit_id in ( ")
-                        .append(getOrm().buildInClause(criteria.getTargetEnvCockpitIds()))
-                        .append(" ) ");
+                    query.append(" and target_env_cockpit_id in ( ")
+                            .append(getOrm().buildInClause(criteria.getTargetEnvCockpitIds()))
+                            .append(" ) ");
                 }
 
                 if (!isEmpty(criteria.getStatuses())) {
-                    query.append(" and status in ( ").append(getOrm().buildInClause(criteria.getStatuses())).append(" ) ");
+                    query.append(" and status in ( ")
+                            .append(getOrm().buildInClause(criteria.getStatuses()))
+                            .append(" ) ");
                 }
 
                 if (criteria.getTargetApiExists() != null) {
@@ -113,24 +116,25 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
                 applySortable(sortable, query);
 
                 result = jdbcTemplate.query(
-                    query.toString(),
-                    (PreparedStatement ps) -> {
-                        int idx = 1;
-                        if (!isEmpty(criteria.getTargetEnvCockpitIds())) {
-                            idx = getOrm().setArguments(ps, criteria.getTargetEnvCockpitIds(), idx);
-                        }
+                        query.toString(),
+                        (PreparedStatement ps) -> {
+                            int idx = 1;
+                            if (!isEmpty(criteria.getTargetEnvCockpitIds())) {
+                                idx = getOrm().setArguments(ps, criteria.getTargetEnvCockpitIds(), idx);
+                            }
 
-                        if (!isEmpty(criteria.getStatuses())) {
-                            List<String> statusesNames = criteria.getStatuses().stream().map(Enum::name).collect(Collectors.toList());
-                            idx = getOrm().setArguments(ps, statusesNames, idx);
-                        }
+                            if (!isEmpty(criteria.getStatuses())) {
+                                List<String> statusesNames = criteria.getStatuses().stream()
+                                        .map(Enum::name)
+                                        .collect(Collectors.toList());
+                                idx = getOrm().setArguments(ps, statusesNames, idx);
+                            }
 
-                        if (!isEmpty(criteria.getApiId())) {
-                            ps.setString(idx++, criteria.getApiId());
-                        }
-                    },
-                    getOrm().getRowMapper()
-                );
+                            if (!isEmpty(criteria.getApiId())) {
+                                ps.setString(idx++, criteria.getApiId());
+                            }
+                        },
+                        getOrm().getRowMapper());
             }
 
             return getResultAsPage(pageable, result);
@@ -144,7 +148,8 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
     public List<String> deleteByApiId(String apiId) throws TechnicalException {
         log.debug("JdbcPromotionRepository.deleteByApiId({})", apiId);
         try {
-            final var rows = jdbcTemplate.queryForList("select id from " + this.tableName + " where api_id = ?", String.class, apiId);
+            final var rows = jdbcTemplate.queryForList(
+                    "select id from " + this.tableName + " where api_id = ?", String.class, apiId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + this.tableName + " where api_id = ?", apiId);

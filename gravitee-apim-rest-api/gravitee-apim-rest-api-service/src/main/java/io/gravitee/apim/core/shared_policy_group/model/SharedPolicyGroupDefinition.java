@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.shared_policy_group.model;
 
-import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import java.util.List;
 import lombok.AllArgsConstructor;

@@ -343,98 +343,93 @@ public class ApiServiceImplTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 
     @BeforeEach
     public void setUp() {
         var apiMapper = new ApiMapper(
-            new ObjectMapper(),
-            planService,
-            flowService,
-            parameterService,
-            workflowService,
-            new CategoryMapper(categoryService)
-        );
+                new ObjectMapper(),
+                planService,
+                flowService,
+                parameterService,
+                workflowService,
+                new CategoryMapper(categoryService));
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
         apiService = new ApiServiceImpl(
-            apiRepository,
-            apiMapper,
-            genericApiMapper,
-            primaryOwnerService,
-            apiValidationService,
-            parameterService,
-            workflowService,
-            auditService,
-            membershipService,
-            genericNotificationConfigService,
-            apiMetadataService,
-            flowCrudService,
-            searchEngineService,
-            planService,
-            planSearchService,
-            subscriptionService,
-            eventService,
-            pageService,
-            topApiService,
-            portalNotificationConfigService,
-            alertService,
-            apiQualityRuleRepository,
-            scoringReportRepository,
-            mediaService,
-            propertiesService,
-            apiNotificationService,
-            tagsValidationService,
-            apiAuthorizationService,
-            groupService,
-            apiCategoryService,
-            removeApiFromApiProductsDomainService,
-            removeApiFromSubscriptionFormDomainService,
-            apiMetadataQueryService,
-            new PropertyDomainService(dataEncryptor)
-        );
+                apiRepository,
+                apiMapper,
+                genericApiMapper,
+                primaryOwnerService,
+                apiValidationService,
+                parameterService,
+                workflowService,
+                auditService,
+                membershipService,
+                genericNotificationConfigService,
+                apiMetadataService,
+                flowCrudService,
+                searchEngineService,
+                planService,
+                planSearchService,
+                subscriptionService,
+                eventService,
+                pageService,
+                topApiService,
+                portalNotificationConfigService,
+                alertService,
+                apiQualityRuleRepository,
+                scoringReportRepository,
+                mediaService,
+                propertiesService,
+                apiNotificationService,
+                tagsValidationService,
+                apiAuthorizationService,
+                groupService,
+                apiCategoryService,
+                removeApiFromApiProductsDomainService,
+                removeApiFromSubscriptionFormDomainService,
+                apiMetadataQueryService,
+                new PropertyDomainService(dataEncryptor));
         var apiSearchService = new ApiSearchServiceImpl(
-            apiRepository,
-            apiMapper,
-            genericApiMapper,
-            primaryOwnerService,
-            categoryService,
-            searchEngineService,
-            apiAuthorizationService,
-            integrationRepository,
-            apiMetadataQueryService
-        );
+                apiRepository,
+                apiMapper,
+                genericApiMapper,
+                primaryOwnerService,
+                categoryService,
+                searchEngineService,
+                apiAuthorizationService,
+                integrationRepository,
+                apiMetadataQueryService);
         apiStateService = new ApiStateServiceImpl(
-            apiSearchService,
-            apiRepository,
-            apiMapper,
-            genericApiMapper,
-            apiNotificationService,
-            primaryOwnerService,
-            auditService,
-            eventService,
-            eventLatestRepository,
-            objectMapper,
-            apiMetadataService,
-            apiValidationService,
-            planSearchService,
-            apiConverter,
-            synchronizationService,
-            eventManager,
-            searchEngineService,
-            mock(io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class)
-        );
-        //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+                apiSearchService,
+                apiRepository,
+                apiMapper,
+                genericApiMapper,
+                apiNotificationService,
+                primaryOwnerService,
+                auditService,
+                eventService,
+                eventLatestRepository,
+                objectMapper,
+                apiMetadataService,
+                apiValidationService,
+                planSearchService,
+                apiConverter,
+                synchronizationService,
+                eventManager,
+                searchEngineService,
+                mock(io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class));
+        //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation ->
+        // invocation.getArgument(1));
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
@@ -456,9 +451,8 @@ public class ApiServiceImplTest {
         updatedApi.setName(API_NAME);
         updatedApi.setEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId());
 
-        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class))).thenAnswer(invocation ->
-            invocation.getArgument(1)
-        );
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     @Test
@@ -486,15 +480,18 @@ public class ApiServiceImplTest {
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
-        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+                .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowCrudService, times(1)).saveApiFlows(API_ID, null);
-        verify(searchEngineService, times(1)).delete(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(indexableApi -> indexableApi instanceof GenericApiEntity && indexableApi.getId().equals(API_ID))
-        );
-        verify(removeApiFromApiProductsDomainService, times(1)).removeApiFromApiProducts(eq(API_ID), any(), any(), any());
+        verify(searchEngineService, times(1))
+                .delete(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(indexableApi -> indexableApi instanceof GenericApiEntity
+                                && indexableApi.getId().equals(API_ID)));
+        verify(removeApiFromApiProductsDomainService, times(1))
+                .removeApiFromApiProducts(eq(API_ID), any(), any(), any());
     }
 
     @Test
@@ -509,7 +506,8 @@ public class ApiServiceImplTest {
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
-        verify(removeApiFromApiProductsDomainService, times(1)).removeApiFromApiProducts(eq(API_ID), any(), any(), any());
+        verify(removeApiFromApiProductsDomainService, times(1))
+                .removeApiFromApiProducts(eq(API_ID), any(), any(), any());
     }
 
     @Test
@@ -542,12 +540,13 @@ public class ApiServiceImplTest {
             PlanEntity planEntity = new PlanEntity();
             planEntity.setId(PLAN_ID);
             planEntity.setStatus(PlanStatus.PUBLISHED);
-            when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
-                singleton(planEntity)
-            );
+            when(planSearchService.findByApi(
+                            eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false)))
+                    .thenReturn(singleton(planEntity));
 
             apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
-            verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+            verify(membershipService, times(1))
+                    .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         });
     }
 
@@ -561,14 +560,15 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.CLOSED);
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
-            singleton(planEntity)
-        );
+        when(planSearchService.findByApi(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false)))
+                .thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
-        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+                .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(flowCrudService, times(1)).saveApiFlows(API_ID, null);
     }
 
@@ -582,15 +582,16 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.STAGING);
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
-            singleton(planEntity)
-        );
+        when(planSearchService.findByApi(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false)))
+                .thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
         verify(apiQualityRuleRepository, times(1)).deleteByApi(API_ID);
-        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+                .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowCrudService, times(1)).saveApiFlows(API_ID, null);
@@ -606,15 +607,16 @@ public class ApiServiceImplTest {
         io.gravitee.rest.api.model.PlanEntity planEntity = new io.gravitee.rest.api.model.PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(io.gravitee.rest.api.model.PlanStatus.STAGING);
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
-            singleton(planEntity)
-        );
+        when(planSearchService.findByApi(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false)))
+                .thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
         verify(apiQualityRuleRepository, times(1)).deleteByApi(API_ID);
-        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        verify(membershipService, times(1))
+                .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowCrudService, times(1)).saveApiFlows(API_ID, null);
@@ -631,8 +633,13 @@ public class ApiServiceImplTest {
         verify(apiRepository).delete(eq(API_ID));
         verify(pageService).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(topApiService).delete(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
-        verify(searchEngineService).delete(eq(GraviteeContext.getExecutionContext()), argThat(_api -> _api.getId().equals(API_ID)));
-        verify(membershipService).deleteReference(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID));
+        verify(searchEngineService)
+                .delete(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(_api -> _api.getId().equals(API_ID)));
+        verify(membershipService)
+                .deleteReference(
+                        eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID));
         verify(genericNotificationConfigService).deleteReference(eq(NotificationReferenceType.API), eq(API_ID));
         verify(portalNotificationConfigService).deleteReference(eq(NotificationReferenceType.API), eq(API_ID));
         verify(apiQualityRuleRepository).deleteByApi(eq(API_ID));
@@ -652,9 +659,9 @@ public class ApiServiceImplTest {
         final PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId(PLAN_ID);
         closedPlan.setStatus(PlanStatus.CLOSED);
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
-            Collections.singleton(planEntity)
-        );
+        when(planSearchService.findByApi(
+                        eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false)))
+                .thenReturn(Collections.singleton(planEntity));
         when(planService.close(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(closedPlan);
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, true);
@@ -671,7 +678,8 @@ public class ApiServiceImplTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(SUBSCRIPTION_ID);
-        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(Collections.singleton(subscription));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -686,18 +694,19 @@ public class ApiServiceImplTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(SUBSCRIPTION_ID);
-        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(Collections.singleton(subscription));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
-        verify(eventService, times(1)).createApiEvent(
-            any(ExecutionContext.class),
-            anySet(),
-            anyString(),
-            eq(EventType.UNPUBLISH_API),
-            eq(API_ID),
-            anyMap()
-        );
+        verify(eventService, times(1))
+                .createApiEvent(
+                        any(ExecutionContext.class),
+                        anySet(),
+                        anyString(),
+                        eq(EventType.UNPUBLISH_API),
+                        eq(API_ID),
+                        anyMap());
     }
 
     @Test
@@ -707,18 +716,19 @@ public class ApiServiceImplTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(SUBSCRIPTION_ID);
-        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(Collections.singleton(subscription));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
-        verify(eventService, never()).createApiEvent(
-            any(ExecutionContext.class),
-            anySet(),
-            anyString(),
-            eq(EventType.UNPUBLISH_API),
-            eq(API_ID),
-            anyMap()
-        );
+        verify(eventService, never())
+                .createApiEvent(
+                        any(ExecutionContext.class),
+                        anySet(),
+                        anyString(),
+                        eq(EventType.UNPUBLISH_API),
+                        eq(API_ID),
+                        anyMap());
     }
 
     @Test
@@ -728,11 +738,12 @@ public class ApiServiceImplTest {
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(data -> data.getEvent().equals(API_DELETED) && "true".equals(data.getProperties().get(ENCRYPTED))),
-            eq(API_ID)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(data -> data.getEvent().equals(API_DELETED)
+                                && "true".equals(data.getProperties().get(ENCRYPTED))),
+                        eq(API_ID));
     }
 
     @Test
@@ -755,37 +766,49 @@ public class ApiServiceImplTest {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         doReturn(Optional.empty()).when(apiRepository).findById(anyString());
         doReturn(apiEntity.getPrimaryOwner())
-            .when(primaryOwnerService)
-            .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
-        doReturn(emptySet()).when(groupService).findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
-        doReturn(false).when(parameterService).findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
-        doThrow(new TechnicalException("repository unavailable")).when(apiRepository).create(any());
+                .when(primaryOwnerService)
+                .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
+        doReturn(emptySet())
+                .when(groupService)
+                .findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
+        doReturn(false)
+                .when(parameterService)
+                .findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        doThrow(new TechnicalException("repository unavailable"))
+                .when(apiRepository)
+                .create(any());
         Appender<ILoggingEvent> appender = mock(Appender.class);
         Logger logger = (Logger) LoggerFactory.getLogger(ApiServiceImpl.class);
         logger.addAppender(appender);
         try {
             assertThatThrownBy(() -> apiService.createWithImport(executionContext, apiEntity, USER_NAME))
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessageNotContaining("super-secret-value");
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessageNotContaining("super-secret-value");
             verify(appender, atLeastOnce()).doAppend(any());
-            verify(appender, never()).doAppend(argThat(event -> event.getFormattedMessage().contains("super-secret-value")));
+            verify(appender, never())
+                    .doAppend(argThat(event -> event.getFormattedMessage().contains("super-secret-value")));
         } finally {
             logger.detachAppender(appender);
         }
     }
 
     @Test
-    public void should_mark_the_creation_audit_when_an_imported_api_holds_an_encrypted_property() throws TechnicalException {
+    public void should_mark_the_creation_audit_when_an_imported_api_holds_an_encrypted_property()
+            throws TechnicalException {
         ApiEntity apiEntity = fakeApiEntityV4();
         apiEntity.setProperties(List.of(new Property("secret-key", "ciphertext", true, false)));
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         doReturn(Optional.empty()).when(apiRepository).findById(anyString());
         doReturn(apiEntity.getPrimaryOwner())
-            .when(primaryOwnerService)
-            .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
-        doReturn(emptySet()).when(groupService).findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
+                .when(primaryOwnerService)
+                .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
+        doReturn(emptySet())
+                .when(groupService)
+                .findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
         doReturn(new ApiEntity()).when(apiMetadataService).fetchMetadataForApi(any(), any());
-        doReturn(false).when(parameterService).findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        doReturn(false)
+                .when(parameterService)
+                .findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
         Api createdApi = new Api();
         createdApi.setId(API_ID);
         createdApi.setCreatedAt(new Date());
@@ -793,11 +816,12 @@ public class ApiServiceImplTest {
 
         apiService.createWithImport(executionContext, apiEntity, USER_NAME);
 
-        verify(auditService).createApiAuditLog(
-            eq(executionContext),
-            argThat(data -> data.getEvent().equals(API_CREATED) && "true".equals(data.getProperties().get(ENCRYPTED))),
-            eq(API_ID)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(executionContext),
+                        argThat(data -> data.getEvent().equals(API_CREATED)
+                                && "true".equals(data.getProperties().get(ENCRYPTED))),
+                        eq(API_ID));
     }
 
     @Test
@@ -806,11 +830,15 @@ public class ApiServiceImplTest {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         doReturn(Optional.empty()).when(apiRepository).findById(anyString());
         doReturn(apiEntity.getPrimaryOwner())
-            .when(primaryOwnerService)
-            .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
-        doReturn(emptySet()).when(groupService).findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
+                .when(primaryOwnerService)
+                .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
+        doReturn(emptySet())
+                .when(groupService)
+                .findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
         doReturn(new ApiEntity()).when(apiMetadataService).fetchMetadataForApi(any(), any());
-        doReturn(false).when(parameterService).findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        doReturn(false)
+                .when(parameterService)
+                .findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
 
         Api createdApi = new Api();
         createdApi.setId(API_ID);
@@ -822,41 +850,38 @@ public class ApiServiceImplTest {
         assertThat(result.getId()).isNotEmpty();
 
         verify(primaryOwnerService).getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
-        verify(apiValidationService).validateAndSanitizeImportApiForCreation(executionContext, apiEntity, apiEntity.getPrimaryOwner());
+        verify(apiValidationService)
+                .validateAndSanitizeImportApiForCreation(executionContext, apiEntity, apiEntity.getPrimaryOwner());
 
         ArgumentCaptor<Api> repositoryApiCaptor = ArgumentCaptor.forClass(Api.class);
         verify(apiRepository).create(repositoryApiCaptor.capture());
 
         testRepositoryApi(repositoryApiCaptor.getValue());
 
-        verify(auditService).createApiAuditLog(
-            eq(executionContext),
-            argThat(
-                auditLogData ->
-                    auditLogData.getProperties().isEmpty() &&
-                    auditLogData.getEvent().equals(API_CREATED) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue() instanceof Api
-            ),
-            eq(API_ID)
-        );
-        verify(membershipService).addRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-            new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
-            new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-        );
-        verify(genericNotificationConfigService).create(
-            argThat(notifConfig -> notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID))
-        );
-        verify(apiMetadataService).create(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                newApiMetadataEntity ->
-                    newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                    newApiMetadataEntity.getName().equals(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
-            )
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(executionContext),
+                        argThat(auditLogData -> auditLogData.getProperties().isEmpty()
+                                && auditLogData.getEvent().equals(API_CREATED)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue() instanceof Api),
+                        eq(API_ID));
+        verify(membershipService)
+                .addRoleToMemberOnReference(
+                        GraviteeContext.getExecutionContext(),
+                        new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+                        new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
+        verify(genericNotificationConfigService)
+                .create(argThat(notifConfig ->
+                        notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)));
+        verify(apiMetadataService)
+                .create(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(newApiMetadataEntity -> newApiMetadataEntity
+                                        .getFormat()
+                                        .equals(MetadataFormat.MAIL)
+                                && newApiMetadataEntity.getName().equals(MetadataService.METADATA_EMAIL_SUPPORT_KEY)));
         verify(flowCrudService).saveApiFlows(API_ID, apiEntity.getFlows());
         verify(apiMetadataService).fetchMetadataForApi(eq(executionContext), any(ApiEntity.class));
         verify(searchEngineService).index(eq(executionContext), any(GenericApiEntity.class), eq(false));
@@ -871,11 +896,15 @@ public class ApiServiceImplTest {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         doReturn(Optional.empty()).when(apiRepository).findById(anyString());
         doReturn(apiEntity.getPrimaryOwner())
-            .when(primaryOwnerService)
-            .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
-        doReturn(emptySet()).when(groupService).findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
+                .when(primaryOwnerService)
+                .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
+        doReturn(emptySet())
+                .when(groupService)
+                .findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
         doReturn(new ApiEntity()).when(apiMetadataService).fetchMetadataForApi(any(), any());
-        doReturn(false).when(parameterService).findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        doReturn(false)
+                .when(parameterService)
+                .findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
 
         Api createdApi = new Api();
         createdApi.setId(API_ID);
@@ -895,11 +924,15 @@ public class ApiServiceImplTest {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         doReturn(Optional.empty()).when(apiRepository).findById(anyString());
         doReturn(apiEntity.getPrimaryOwner())
-            .when(primaryOwnerService)
-            .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
-        doReturn(emptySet()).when(groupService).findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
+                .when(primaryOwnerService)
+                .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
+        doReturn(emptySet())
+                .when(groupService)
+                .findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
         doReturn(new ApiEntity()).when(apiMetadataService).fetchMetadataForApi(any(), any());
-        doReturn(false).when(parameterService).findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        doReturn(false)
+                .when(parameterService)
+                .findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
 
         Api createdApi = new Api();
         createdApi.setId(API_ID);
@@ -933,7 +966,8 @@ public class ApiServiceImplTest {
     public void shouldUpdate() throws TechnicalException {
         prepareUpdate();
 
-        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        final ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
@@ -985,7 +1019,8 @@ public class ApiServiceImplTest {
         api.setGroups(Set.of("group1", "group2"));
         updateApiEntity.setGroups(Set.of("group1"));
 
-        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        final ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
         assertNotNull(apiEntity);
         verify(portalNotificationConfigService, times(1)).removeGroupIds(any(), eq(Set.of("group2")));
@@ -998,7 +1033,8 @@ public class ApiServiceImplTest {
         api.setGroups(null);
         updateApiEntity.setGroups(Set.of("group1"));
 
-        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        final ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
         assertNotNull(apiEntity);
         verify(portalNotificationConfigService, never()).removeGroupIds(any(), any());
@@ -1042,7 +1078,9 @@ public class ApiServiceImplTest {
     public void shouldNotUpdateBecauseValidationException() throws TechnicalException {
         assertThrows(EndpointNameInvalidException.class, () -> {
             prepareUpdate();
-            doThrow(EndpointNameInvalidException.class).when(apiValidationService).validateAndSanitizeUpdateApi(any(), any(), any(), any());
+            doThrow(EndpointNameInvalidException.class)
+                    .when(apiValidationService)
+                    .validateAndSanitizeUpdateApi(any(), any(), any(), any());
 
             apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
         });
@@ -1053,7 +1091,8 @@ public class ApiServiceImplTest {
         prepareUpdate();
         updateApiEntity.setLabels(asList("label1", "label1"));
 
-        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        final ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
         verify(apiRepository).update(argThat(api -> api.getLabels().size() == 1));
         assertNotNull(apiEntity);
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
@@ -1065,7 +1104,8 @@ public class ApiServiceImplTest {
         api.setLabels(asList("z-label", "a-label", "m-label"));
         updateApiEntity.setLabels(null);
 
-        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        final ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
         ArgumentCaptor<Api> repositoryApiCaptor = ArgumentCaptor.forClass(Api.class);
         verify(apiRepository).update(repositoryApiCaptor.capture());
@@ -1078,15 +1118,14 @@ public class ApiServiceImplTest {
         prepareUpdate();
         updateApiEntity.setLabels(asList("label1", "label1"));
 
-        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
-        verify(apiRepository).update(
-            argThat(updateArg -> {
-                // Update should not change images, as there is a dedicated resource for that
-                assertThat(updateArg.getPicture()).isEqualTo(api.getPicture());
-                assertThat(updateArg.getBackground()).isEqualTo(api.getBackground());
-                return true;
-            })
-        );
+        final ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        verify(apiRepository).update(argThat(updateArg -> {
+            // Update should not change images, as there is a dedicated resource for that
+            assertThat(updateArg.getPicture()).isEqualTo(api.getPicture());
+            assertThat(updateArg.getBackground()).isEqualTo(api.getBackground());
+            return true;
+        }));
         assertNotNull(apiEntity);
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
@@ -1100,8 +1139,10 @@ public class ApiServiceImplTest {
             updatedPlan.setStatus(PlanStatus.PUBLISHED);
             updateApiEntity.setPlans(Set.of(updatedPlan));
 
-            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
-            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+            ApiEntity apiEntity =
+                    apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+            verify(apiNotificationService, times(1))
+                    .triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
         });
     }
 
@@ -1121,8 +1162,10 @@ public class ApiServiceImplTest {
             originalPlan.setStatus(PlanStatus.CLOSED);
             when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
 
-            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
-            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+            ApiEntity apiEntity =
+                    apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+            verify(apiNotificationService, times(1))
+                    .triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
         });
     }
 
@@ -1141,8 +1184,10 @@ public class ApiServiceImplTest {
         originalPlan.setStatus(PlanStatus.CLOSED);
         when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
 
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+        verify(apiNotificationService, times(1))
+                .triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -1151,9 +1196,9 @@ public class ApiServiceImplTest {
         givenStoredProperties(List.of(new Property("secret-key", "encrypted-value", true, false)));
         updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "plain-value", false, false)));
 
-        assertThrows(ApiPropertyEncryptedToPlainException.class, () ->
-            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME)
-        );
+        assertThrows(
+                ApiPropertyEncryptedToPlainException.class,
+                () -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME));
         verify(apiRepository, never()).update(any());
         verify(auditService, never()).createApiAuditLog(any(), any(), any());
     }
@@ -1165,9 +1210,9 @@ public class ApiServiceImplTest {
         when(dataEncryptor.decrypt("plain-value")).thenThrow(new GeneralSecurityException("bad padding"));
         updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "plain-value", false, true)));
 
-        assertThrows(ApiPropertyNotCiphertextException.class, () ->
-            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME)
-        );
+        assertThrows(
+                ApiPropertyNotCiphertextException.class,
+                () -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME));
         verify(apiRepository, never()).update(any());
     }
 
@@ -1178,31 +1223,31 @@ public class ApiServiceImplTest {
         when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "encrypted-value", false, true, true)));
 
-        assertDoesNotThrow(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME));
+        assertDoesNotThrow(
+                () -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME));
         verify(dataEncryptor, never()).decrypt(anyString());
     }
 
     @Test
-    public void should_mark_the_update_audit_and_keep_plaintext_out_when_an_encrypted_value_is_renewed() throws Exception {
+    public void should_mark_the_update_audit_and_keep_plaintext_out_when_an_encrypted_value_is_renewed()
+            throws Exception {
         prepareUpdate();
         givenStoredProperties(List.of(new Property("secret-key", "old-ciphertext", true, false)));
-        when(propertiesService.encryptProperties(any(), any())).thenReturn(
-            List.of(new PropertyEntity("secret-key", "new-ciphertext", true, true))
-        );
+        when(propertiesService.encryptProperties(any(), any()))
+                .thenReturn(List.of(new PropertyEntity("secret-key", "new-ciphertext", true, true)));
         updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "new-plaintext", true, false)));
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
-        verify(apiRepository).update(
-            argThat(
-                persisted -> persisted.getDefinition().contains("new-ciphertext") && !persisted.getDefinition().contains("new-plaintext")
-            )
-        );
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(data -> data.getEvent().equals(API_UPDATED) && "true".equals(data.getProperties().get(ENCRYPTED))),
-            eq(API_ID)
-        );
+        verify(apiRepository)
+                .update(argThat(persisted -> persisted.getDefinition().contains("new-ciphertext")
+                        && !persisted.getDefinition().contains("new-plaintext")));
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(data -> data.getEvent().equals(API_UPDATED)
+                                && "true".equals(data.getProperties().get(ENCRYPTED))),
+                        eq(API_ID));
     }
 
     @Test
@@ -1214,24 +1259,24 @@ public class ApiServiceImplTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(data -> data.getEvent().equals(API_UPDATED) && !data.getProperties().containsKey(ENCRYPTED)),
-            eq(API_ID)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(data -> data.getEvent().equals(API_UPDATED)
+                                && !data.getProperties().containsKey(ENCRYPTED)),
+                        eq(API_ID));
     }
 
     @Test
     public void should_not_audit_when_encryption_fails_on_update() throws Exception {
         prepareUpdate();
-        when(propertiesService.encryptProperties(any(), any())).thenThrow(
-            new TechnicalManagementException("Unable to encrypt property [secret-key]")
-        );
+        when(propertiesService.encryptProperties(any(), any()))
+                .thenThrow(new TechnicalManagementException("Unable to encrypt property [secret-key]"));
         updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "plain-value", true, false)));
 
-        assertThrows(TechnicalManagementException.class, () ->
-            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME)
-        );
+        assertThrows(
+                TechnicalManagementException.class,
+                () -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME));
         verify(auditService, never()).createApiAuditLog(any(), any(), any());
     }
 
@@ -1239,7 +1284,9 @@ public class ApiServiceImplTest {
         io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
-        apiDefinition.setListeners(singletonList(HttpListener.builder().paths(List.of(Path.builder().path("/context").build())).build()));
+        apiDefinition.setListeners(singletonList(HttpListener.builder()
+                .paths(List.of(Path.builder().path("/context").build()))
+                .build()));
         apiDefinition.setProperties(properties);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
     }
@@ -1265,12 +1312,12 @@ public class ApiServiceImplTest {
         when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
 
         doThrow(new TagNotAllowedException(new String[0]))
-            .when(tagsValidationService)
-            .validatePlanTagsAgainstApiTags(any(Set.class), any(Set.class));
+                .when(tagsValidationService)
+                .validatePlanTagsAgainstApiTags(any(Set.class), any(Set.class));
 
-        assertThatThrownBy(() ->
-            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME)
-        ).isInstanceOf(InvalidDataException.class);
+        assertThatThrownBy(() -> apiService.update(
+                        GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME))
+                .isInstanceOf(InvalidDataException.class);
 
         verify(apiRepository, never()).update(any());
     }
@@ -1290,8 +1337,10 @@ public class ApiServiceImplTest {
         originalPlan.setStatus(PlanStatus.PUBLISHED);
         when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
 
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+        verify(apiNotificationService, times(1))
+                .triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -1305,9 +1354,9 @@ public class ApiServiceImplTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
 
-        verify(apiRepository, times(1)).update(
-            argThat(api -> ORIGIN_KUBERNETES.equals(api.getOrigin()) && MODE_FULLY_MANAGED.equals(api.getMode()))
-        );
+        verify(apiRepository, times(1))
+                .update(argThat(
+                        api -> ORIGIN_KUBERNETES.equals(api.getOrigin()) && MODE_FULLY_MANAGED.equals(api.getMode())));
     }
 
     // TODO FCY: should be moved into right test class once healthcheck is moved to HTTP endpoint plugin
@@ -1319,11 +1368,13 @@ public class ApiServiceImplTest {
     //        when(healthCheckService.getSchedule()).thenReturn("**");
     //        services.put(HealthCheckService.class, healthCheckService);
     //        updateApiEntity.setServices(services);
-    //        final io.gravitee.rest.api.model.api.ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+    //        final io.gravitee.rest.api.model.api.ApiEntity apiEntity =
+    // apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
     //
     //        assertNotNull(apiEntity);
     //        assertEquals(API_NAME, apiEntity.getName());
-    //        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    //        verify(apiNotificationService,
+    // times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     //    }
     //
     //    @Test
@@ -1334,12 +1385,14 @@ public class ApiServiceImplTest {
     //        healthCheckService.setSchedule("1,2 */100 5-8 * * *");
     //        services.put(HealthCheckService.class, healthCheckService);
     //        updateApiEntity.setServices(services);
-    //        final io.gravitee.rest.api.model.api.ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+    //        final io.gravitee.rest.api.model.api.ApiEntity apiEntity =
+    // apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
     //
     //        assertNotNull(apiEntity);
     //        assertEquals(API_NAME, apiEntity.getName());
     //        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
-    //        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    //        verify(apiNotificationService,
+    // times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     //    }
 
     @Test
@@ -1349,7 +1402,8 @@ public class ApiServiceImplTest {
         api.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
         updateApiEntity.setLifecycleState(PUBLISHED);
         updatedApi.setApiLifecycleState(ApiLifecycleState.PUBLISHED);
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
         assertNotNull(apiEntity);
         assertEquals(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED, apiEntity.getLifecycleState());
 
@@ -1366,7 +1420,8 @@ public class ApiServiceImplTest {
         assertEquals(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED, apiEntity.getLifecycleState());
         verify(apiRepository).update(argThat(api -> api.getApiLifecycleState().equals(ApiLifecycleState.PUBLISHED)));
 
-        verify(apiNotificationService, times(2)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        verify(apiNotificationService, times(2))
+                .triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -1376,24 +1431,25 @@ public class ApiServiceImplTest {
         updateApiEntity.setLifecycleState(UNPUBLISHED);
         updatedApi.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
 
-        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        final ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
         assertNotNull(apiEntity);
         assertEquals(UNPUBLISHED, apiEntity.getLifecycleState());
 
         verify(apiRepository).update(argThat(api -> api.getApiLifecycleState().equals(ApiLifecycleState.UNPUBLISHED)));
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        verify(apiNotificationService, times(1))
+                .triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
-    public void shouldCreateAuditApiLoggingDisabledWhenSwitchingLogging() throws TechnicalException, JsonProcessingException {
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.LOGGING_AUDIT_TRAIL_ENABLED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(true);
+    public void shouldCreateAuditApiLoggingDisabledWhenSwitchingLogging()
+            throws TechnicalException, JsonProcessingException {
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(true);
 
         prepareUpdate();
 
@@ -1401,7 +1457,9 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/old").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().path("/old").build()))
+                .build();
         apiDefinition.setListeners(singletonList(httpListener));
         Analytics analytics = new Analytics();
         analytics.setEnabled(true);
@@ -1418,22 +1476,22 @@ public class ApiServiceImplTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_LOGGING_DISABLED)),
-            eq(API_ID)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getProperties().isEmpty()
+                                && auditLogData.getEvent().equals(API_LOGGING_DISABLED)),
+                        eq(API_ID));
     }
 
     @Test
-    public void shouldCreateAuditApiLoggingEnabledWhenSwitchingLogging() throws TechnicalException, JsonProcessingException {
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.LOGGING_AUDIT_TRAIL_ENABLED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(true);
+    public void shouldCreateAuditApiLoggingEnabledWhenSwitchingLogging()
+            throws TechnicalException, JsonProcessingException {
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(true);
 
         prepareUpdate();
 
@@ -1441,7 +1499,9 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/old").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().path("/old").build()))
+                .build();
         apiDefinition.setListeners(singletonList(httpListener));
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
@@ -1455,22 +1515,22 @@ public class ApiServiceImplTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_LOGGING_ENABLED)),
-            eq(API_ID)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getProperties().isEmpty()
+                                && auditLogData.getEvent().equals(API_LOGGING_ENABLED)),
+                        eq(API_ID));
     }
 
     @Test
-    public void shouldCreateAuditApiLoggingUpdatedWhenSwitchingLogging() throws TechnicalException, JsonProcessingException {
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.LOGGING_AUDIT_TRAIL_ENABLED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(true);
+    public void shouldCreateAuditApiLoggingUpdatedWhenSwitchingLogging()
+            throws TechnicalException, JsonProcessingException {
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(true);
 
         prepareUpdate();
 
@@ -1478,7 +1538,9 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/old").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+                .paths(List.of(Path.builder().path("/old").build()))
+                .build();
 
         Analytics analytics = new Analytics();
         analytics.setEnabled(true);
@@ -1492,14 +1554,17 @@ public class ApiServiceImplTest {
         logging.setCondition("condition2");
         updateApiEntity.setAnalytics(analytics);
 
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        ApiEntity apiEntity =
+                apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_LOGGING_UPDATED)),
-            eq(API_ID)
-        );
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getProperties().isEmpty()
+                                && auditLogData.getEvent().equals(API_LOGGING_UPDATED)),
+                        eq(API_ID));
+        verify(apiNotificationService, times(1))
+                .triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
     @Test
@@ -1510,38 +1575,37 @@ public class ApiServiceImplTest {
         when(apiValidationService.canDeploy(any(), any())).thenReturn(true);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(api)).thenReturn(api);
-        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(
-            List.of(previousPublishedEvent)
-        );
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.API_ID), eq(0L), eq(1L)))
+                .thenReturn(List.of(previousPublishedEvent));
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
-        final ApiEntity result = (ApiEntity) apiStateService.deploy(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_NAME,
-            apiDeploymentEntity
-        );
+        final ApiEntity result = (ApiEntity)
+                apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, apiDeploymentEntity);
 
-        verify(eventService).createApiEvent(
-            any(ExecutionContext.class),
-            anySet(),
-            anyString(),
-            eq(EventType.PUBLISH_API),
-            eq(api),
-            argThat(
-                properties ->
-                    properties.get(Event.EventProperties.USER.getValue()).equals(USER_NAME) &&
-                    properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()).equals("4") &&
-                    properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()).equals(apiDeploymentEntity.getDeploymentLabel())
-            )
-        );
+        verify(eventService)
+                .createApiEvent(
+                        any(ExecutionContext.class),
+                        anySet(),
+                        anyString(),
+                        eq(EventType.PUBLISH_API),
+                        eq(api),
+                        argThat(properties -> properties
+                                        .get(Event.EventProperties.USER.getValue())
+                                        .equals(USER_NAME)
+                                && properties
+                                        .get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue())
+                                        .equals("4")
+                                && properties
+                                        .get(Event.EventProperties.DEPLOYMENT_LABEL.getValue())
+                                        .equals(apiDeploymentEntity.getDeploymentLabel())));
         verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
     }
 
     @Test
     public void shouldFindByEnvironmentIdAndCrossId() throws TechnicalException {
-        when(apiRepository.findByEnvironmentIdAndCrossId("environment", "api-cross-id")).thenReturn(Optional.of(api));
+        when(apiRepository.findByEnvironmentIdAndCrossId("environment", "api-cross-id"))
+                .thenReturn(Optional.of(api));
 
         final Optional<ApiEntity> result = apiService.findByEnvironmentIdAndCrossId("environment", "api-cross-id");
         assertThat(result).isNotEmpty();
@@ -1557,9 +1621,10 @@ public class ApiServiceImplTest {
 
         when(apiRepository.update(any())).thenReturn(updatedApi);
 
-        when(membershipService.getPrimaryOwner(any(), eq(MembershipReferenceType.API), eq(updatedApi.getId()))).thenReturn(
-            MembershipEntity.builder().memberType(MembershipMemberType.USER).build()
-        );
+        when(membershipService.getPrimaryOwner(any(), eq(MembershipReferenceType.API), eq(updatedApi.getId())))
+                .thenReturn(MembershipEntity.builder()
+                        .memberType(MembershipMemberType.USER)
+                        .build());
 
         api.setName(API_NAME);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
@@ -1593,7 +1658,9 @@ public class ApiServiceImplTest {
         updateApiEntity.setEndpointGroups(singletonList(endpointGroup));
         updateApiEntity.setLifecycleState(CREATED);
 
-        HttpListener listener = HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build();
+        HttpListener listener = HttpListener.builder()
+                .paths(List.of(Path.builder().path(path).build()))
+                .build();
         updateApiEntity.setListeners(singletonList(listener));
     }
 
@@ -1619,9 +1686,9 @@ public class ApiServiceImplTest {
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
 
         HttpListener httpListener = HttpListener.builder()
-            .paths(List.of(Path.builder().host("my.fake.host").path("/test").build()))
-            .pathMappings(Set.of("/test"))
-            .build();
+                .paths(List.of(Path.builder().host("my.fake.host").path("/test").build()))
+                .pathMappings(Set.of("/test"))
+                .build();
 
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         Entrypoint entrypoint = new Entrypoint();
@@ -1648,22 +1715,19 @@ public class ApiServiceImplTest {
         endpointGroup.setType("http-get");
         Endpoint endpoint = new Endpoint();
         endpoint.setType("http-get");
-        endpoint.setConfiguration(
-            "{\n" +
-                "                        \"bootstrapServers\": \"kafka:9092\",\n" +
-                "                        \"topics\": [\n" +
-                "                            \"demo\"\n" +
-                "                        ],\n" +
-                "                        \"producer\": {\n" +
-                "                            \"enabled\": false\n" +
-                "                        },\n" +
-                "                        \"consumer\": {\n" +
-                "                            \"encodeMessageId\": true,\n" +
-                "                            \"enabled\": true,\n" +
-                "                            \"autoOffsetReset\": \"earliest\"\n" +
-                "                        }\n" +
-                "                    }"
-        );
+        endpoint.setConfiguration("{\n" + "                        \"bootstrapServers\": \"kafka:9092\",\n"
+                + "                        \"topics\": [\n"
+                + "                            \"demo\"\n"
+                + "                        ],\n"
+                + "                        \"producer\": {\n"
+                + "                            \"enabled\": false\n"
+                + "                        },\n"
+                + "                        \"consumer\": {\n"
+                + "                            \"encodeMessageId\": true,\n"
+                + "                            \"enabled\": true,\n"
+                + "                            \"autoOffsetReset\": \"earliest\"\n"
+                + "                        }\n"
+                + "                    }");
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));
 

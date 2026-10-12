@@ -45,8 +45,8 @@ import org.springframework.stereotype.Repository;
 @CustomLog
 @Repository
 public class JdbcGenericNotificationConfigRepository
-    extends JdbcAbstractCrudRepository<GenericNotificationConfig, String>
-    implements GenericNotificationConfigRepository {
+        extends JdbcAbstractCrudRepository<GenericNotificationConfig, String>
+        implements GenericNotificationConfigRepository {
 
     private final String GENERIC_NOTIFICATION_CONFIG_HOOKS;
 
@@ -58,17 +58,17 @@ public class JdbcGenericNotificationConfigRepository
     @Override
     protected JdbcObjectMapper<GenericNotificationConfig> buildOrm() {
         return JdbcObjectMapper.builder(GenericNotificationConfig.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("notifier", Types.NVARCHAR, String.class)
-            .addColumn("config", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, NotificationReferenceType.class)
-            .addColumn("use_system_proxy", Types.BOOLEAN, boolean.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("notifier", Types.NVARCHAR, String.class)
+                .addColumn("config", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, NotificationReferenceType.class)
+                .addColumn("use_system_proxy", Types.BOOLEAN, boolean.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -77,14 +77,16 @@ public class JdbcGenericNotificationConfigRepository
     }
 
     @Override
-    public GenericNotificationConfig create(GenericNotificationConfig genericNotificationConfig) throws TechnicalException {
+    public GenericNotificationConfig create(GenericNotificationConfig genericNotificationConfig)
+            throws TechnicalException {
         storeHooks(genericNotificationConfig, false);
         super.create(genericNotificationConfig);
         return genericNotificationConfig;
     }
 
     @Override
-    public GenericNotificationConfig update(GenericNotificationConfig genericNotificationConfig) throws TechnicalException {
+    public GenericNotificationConfig update(GenericNotificationConfig genericNotificationConfig)
+            throws TechnicalException {
         storeHooks(genericNotificationConfig, true);
         return super.update(genericNotificationConfig);
     }
@@ -110,38 +112,36 @@ public class JdbcGenericNotificationConfigRepository
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, NotificationReferenceType referenceType)
-        throws TechnicalException {
-        log.debug("JdbcGenericNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceType, referenceId);
+            throws TechnicalException {
+        log.debug(
+                "JdbcGenericNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{})",
+                referenceType,
+                referenceId);
         try {
             final var notificationConfigIds = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where reference_type = ? and reference_id = ?",
-                String.class,
-                referenceType.name(),
-                referenceId
-            );
+                    "select id from " + tableName + " where reference_type = ? and reference_id = ?",
+                    String.class,
+                    referenceType.name(),
+                    referenceId);
 
             if (!notificationConfigIds.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " +
-                        GENERIC_NOTIFICATION_CONFIG_HOOKS +
-                        " where id IN (" +
-                        getOrm().buildInClause(notificationConfigIds) +
-                        ")",
-                    notificationConfigIds.toArray()
-                );
+                        "delete from " + GENERIC_NOTIFICATION_CONFIG_HOOKS
+                                + " where id IN ("
+                                + getOrm().buildInClause(notificationConfigIds)
+                                + ")",
+                        notificationConfigIds.toArray());
 
                 jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_type = ? and reference_id = ?",
-                    referenceType.name(),
-                    referenceId
-                );
+                        "delete from " + tableName + " where reference_type = ? and reference_id = ?",
+                        referenceType.name(),
+                        referenceId);
             }
 
             log.debug(
-                "JdbcGenericNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done",
-                referenceType,
-                referenceId
-            );
+                    "JdbcGenericNotificationConfigRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done",
+                    referenceType,
+                    referenceId);
             return notificationConfigIds;
         } catch (final Exception ex) {
             log.error("Failed to delete generic notification config for refId: {}/{}", referenceId, referenceType, ex);
@@ -151,63 +151,59 @@ public class JdbcGenericNotificationConfigRepository
 
     @Override
     public List<GenericNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) {
-        String sql =
-            "SELECT gc.*, gch.hook FROM " +
-            getOrm().getTableName() +
-            " gc " +
-            "INNER JOIN " +
-            GENERIC_NOTIFICATION_CONFIG_HOOKS +
-            " gch ON gc.id = gch.id " +
-            "WHERE gc.id IN (select id FROM " +
-            GENERIC_NOTIFICATION_CONFIG_HOOKS +
-            " WHERE hook = ?) AND gc.organization_id = ?";
+        String sql = "SELECT gc.*, gch.hook FROM " + getOrm().getTableName()
+                + " gc "
+                + "INNER JOIN "
+                + GENERIC_NOTIFICATION_CONFIG_HOOKS
+                + " gch ON gc.id = gch.id "
+                + "WHERE gc.id IN (select id FROM "
+                + GENERIC_NOTIFICATION_CONFIG_HOOKS
+                + " WHERE hook = ?) AND gc.organization_id = ?";
 
         var configs = jdbcTemplate.query(
-            sql,
-            (ResultSet rs) -> {
-                Map<String, GenericNotificationConfig> configsById = new HashMap<>();
-                while (rs.next()) {
-                    String id = rs.getString("id");
-                    String rsHook = rs.getString("hook");
-                    if (configsById.containsKey(id)) {
-                        configsById.get(id).getHooks().add(rsHook);
-                    } else {
-                        GenericNotificationConfig genericNotificationConfig = new GenericNotificationConfig();
-                        getOrm().setFromResultSet(genericNotificationConfig, rs);
-                        List<String> hooks = new ArrayList<>();
-                        hooks.add(rsHook);
-                        genericNotificationConfig.setHooks(hooks);
-                        configsById.put(id, genericNotificationConfig);
+                sql,
+                (ResultSet rs) -> {
+                    Map<String, GenericNotificationConfig> configsById = new HashMap<>();
+                    while (rs.next()) {
+                        String id = rs.getString("id");
+                        String rsHook = rs.getString("hook");
+                        if (configsById.containsKey(id)) {
+                            configsById.get(id).getHooks().add(rsHook);
+                        } else {
+                            GenericNotificationConfig genericNotificationConfig = new GenericNotificationConfig();
+                            getOrm().setFromResultSet(genericNotificationConfig, rs);
+                            List<String> hooks = new ArrayList<>();
+                            hooks.add(rsHook);
+                            genericNotificationConfig.setHooks(hooks);
+                            configsById.put(id, genericNotificationConfig);
+                        }
                     }
-                }
-                return new ArrayList<>(configsById.values());
-            },
-            hook,
-            orgId
-        );
+                    return new ArrayList<>(configsById.values());
+                },
+                hook,
+                orgId);
         return configs;
     }
 
     @Override
-    public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
-        throws TechnicalException {
-        return this.findByReference(referenceType, referenceId)
-            .stream()
-            .filter(genericNotificationConfig -> genericNotificationConfig.getHooks().contains(hook))
-            .collect(Collectors.toList());
+    public List<GenericNotificationConfig> findByReferenceAndHook(
+            String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+        return this.findByReference(referenceType, referenceId).stream()
+                .filter(genericNotificationConfig ->
+                        genericNotificationConfig.getHooks().contains(hook))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("JdbcGenericNotificationConfigRepository.findByUser({}, {})", referenceType, referenceId);
         try {
             List<GenericNotificationConfig> items = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_type = ?" + " and reference_id = ?",
-                getRowMapper(),
-                referenceType.name(),
-                referenceId
-            );
+                    getOrm().getSelectAllSql() + " where reference_type = ?" + " and reference_id = ?",
+                    getRowMapper(),
+                    referenceType.name(),
+                    referenceId);
             items.forEach(this::addHooks);
             return items;
         } catch (final Exception ex) {
@@ -227,12 +223,11 @@ public class JdbcGenericNotificationConfigRepository
     private void addHooks(GenericNotificationConfig parent) {
         List<String> hooks = new ArrayList<>();
         jdbcTemplate.query(
-            "select hook" + " from " + GENERIC_NOTIFICATION_CONFIG_HOOKS + " where id = ?",
-            rs -> {
-                hooks.add(rs.getString(1));
-            },
-            parent.getId()
-        );
+                "select hook" + " from " + GENERIC_NOTIFICATION_CONFIG_HOOKS + " where id = ?",
+                rs -> {
+                    hooks.add(rs.getString(1));
+                },
+                parent.getId());
         parent.setHooks(hooks);
     }
 
@@ -242,20 +237,19 @@ public class JdbcGenericNotificationConfigRepository
         }
         if (parent.getHooks() != null && !parent.getHooks().isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + GENERIC_NOTIFICATION_CONFIG_HOOKS + " ( id, hook ) values ( ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, parent.getId());
-                        ps.setString(2, parent.getHooks().get(i));
-                    }
+                    "insert into " + GENERIC_NOTIFICATION_CONFIG_HOOKS + " ( id, hook ) values ( ?, ? )",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, parent.getId());
+                            ps.setString(2, parent.getHooks().get(i));
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return parent.getHooks().size();
-                    }
-                }
-            );
+                        @Override
+                        public int getBatchSize() {
+                            return parent.getHooks().size();
+                        }
+                    });
         }
     }
 
@@ -263,7 +257,8 @@ public class JdbcGenericNotificationConfigRepository
     public Set<GenericNotificationConfig> findAll() throws TechnicalException {
         log.debug("JdbcGenericNotificationConfigRepository.findAll()");
         try {
-            List<GenericNotificationConfig> configs = jdbcTemplate.query(getOrm().getSelectAllSql(), getOrm().getRowMapper());
+            List<GenericNotificationConfig> configs =
+                    jdbcTemplate.query(getOrm().getSelectAllSql(), getOrm().getRowMapper());
 
             Map<String, GenericNotificationConfig> map = new HashMap<>();
             for (GenericNotificationConfig cfg : configs) {

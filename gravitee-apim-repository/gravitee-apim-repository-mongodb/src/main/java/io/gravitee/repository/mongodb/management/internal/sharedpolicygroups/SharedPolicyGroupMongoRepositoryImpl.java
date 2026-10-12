@@ -48,15 +48,14 @@ public class SharedPolicyGroupMongoRepositoryImpl implements SharedPolicyGroupMo
             query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
         }
         if (criteria.getQuery() != null) {
-            query.addCriteria(
-                new Criteria().orOperator(
-                    where("name").regex(criteria.getQuery(), "i"),
-                    where("description").regex(criteria.getQuery(), "i")
-                )
-            );
+            query.addCriteria(new Criteria()
+                    .orOperator(
+                            where("name").regex(criteria.getQuery(), "i"),
+                            where("description").regex(criteria.getQuery(), "i")));
         }
         if (criteria.getLifecycleState() != null) {
-            query.addCriteria(where("lifecycleState").is(criteria.getLifecycleState().name()));
+            query.addCriteria(
+                    where("lifecycleState").is(criteria.getLifecycleState().name()));
         }
 
         final long total = mongoQueries.countOrTimeout(mongoTemplate, query, SharedPolicyGroupMongo.class);

@@ -25,7 +25,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.impl.PermissionServiceImpl;
 import java.util.Map;
 import lombok.CustomLog;
 import org.springframework.stereotype.Service;
@@ -37,19 +36,19 @@ public class PermissionDomainServiceLegacyWrapper implements PermissionDomainSer
     private final MembershipService membershipService;
     private final PermissionService permissionService;
 
-    public PermissionDomainServiceLegacyWrapper(MembershipService membershipService, PermissionService permissionService) {
+    public PermissionDomainServiceLegacyWrapper(
+            MembershipService membershipService, PermissionService permissionService) {
         this.membershipService = membershipService;
         this.permissionService = permissionService;
     }
 
     @Override
     public boolean hasExactPermissions(
-        String organizationId,
-        String userId,
-        io.gravitee.rest.api.model.permissions.RolePermission permission,
-        String referenceId,
-        io.gravitee.rest.api.model.permissions.RolePermissionAction... acls
-    ) {
+            String organizationId,
+            String userId,
+            io.gravitee.rest.api.model.permissions.RolePermission permission,
+            String referenceId,
+            io.gravitee.rest.api.model.permissions.RolePermissionAction... acls) {
         if (isOrganizationAdmin()) {
             log.debug("User [{}] has full access because of its ORGANIZATION ADMIN role", userId);
             return true;
@@ -58,23 +57,19 @@ public class PermissionDomainServiceLegacyWrapper implements PermissionDomainSer
         MembershipReferenceType membershipReferenceType = ROLE_SCOPE_TO_REFERENCE_TYPE.get(permission.getScope());
 
         Map<String, char[]> permissions = membershipService.getUserMemberPermissions(
-            new ExecutionContext(organizationId),
-            membershipReferenceType,
-            referenceId,
-            userId
-        );
+                new ExecutionContext(organizationId), membershipReferenceType, referenceId, userId);
 
         return checkForExactPermissions(permissions, permission.getPermission(), acls);
     }
 
     @Override
     public boolean hasPermission(
-        String organizationId,
-        String userId,
-        RolePermission permission,
-        String referenceId,
-        RolePermissionAction... acls
-    ) {
-        return this.permissionService.hasPermission(new ExecutionContext(organizationId), userId, permission, referenceId, acls);
+            String organizationId,
+            String userId,
+            RolePermission permission,
+            String referenceId,
+            RolePermissionAction... acls) {
+        return this.permissionService.hasPermission(
+                new ExecutionContext(organizationId), userId, permission, referenceId, acls);
     }
 }

@@ -90,7 +90,8 @@ public class FetchersResourceTest extends AbstractResourceTest {
         when(fetcherService.findAll(false)).thenReturn(Collections.singleton(fetcherEntity));
         when(fetcherService.getSchema(anyString())).thenReturn("my-schema");
 
-        final Response response = envTarget().queryParam("expand", "schema").request().get();
+        final Response response =
+                envTarget().queryParam("expand", "schema").request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -118,7 +119,8 @@ public class FetchersResourceTest extends AbstractResourceTest {
         when(fetcherService.findAll(false)).thenReturn(Collections.singleton(fetcherEntity));
         when(fetcherService.getSchema(anyString())).thenReturn("my-schema");
 
-        final Response response = envTarget().queryParam("expand", "unknown").request().get();
+        final Response response =
+                envTarget().queryParam("expand", "unknown").request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);

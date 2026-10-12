@@ -39,16 +39,14 @@ public class PolicyDebugDecoratorFactory implements PolicyFactory {
 
     @Override
     public Policy create(
-        StreamType streamType,
-        PolicyManifest policyManifest,
-        PolicyConfiguration policyConfiguration,
-        PolicyMetadata policyMetadata
-    ) {
+            StreamType streamType,
+            PolicyManifest policyManifest,
+            PolicyConfiguration policyConfiguration,
+            PolicyMetadata policyMetadata) {
         return new PolicyDebugDecorator(
-            streamType,
-            delegate.create(streamType, policyManifest, policyConfiguration, policyMetadata),
-            policyMetadata
-        );
+                streamType,
+                delegate.create(streamType, policyManifest, policyConfiguration, policyMetadata),
+                policyMetadata);
     }
 
     @Override

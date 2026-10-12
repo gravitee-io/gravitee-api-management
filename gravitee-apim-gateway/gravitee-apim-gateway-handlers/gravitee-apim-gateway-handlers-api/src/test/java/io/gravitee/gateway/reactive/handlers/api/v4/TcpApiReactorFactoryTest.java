@@ -101,16 +101,15 @@ class TcpApiReactorFactoryTest {
     @BeforeEach
     void before() {
         cut = new TcpApiReactorFactory(
-            configuration,
-            node,
-            entrypoints,
-            endpoints,
-            timeoutConfig,
-            openTelemetryConfiguration,
-            openTelemetryFactory,
-            List.of(),
-            gatewayConfiguration
-        );
+                configuration,
+                node,
+                entrypoints,
+                endpoints,
+                timeoutConfig,
+                openTelemetryConfiguration,
+                openTelemetryFactory,
+                List.of(),
+                gatewayConfiguration);
     }
 
     static Stream<Arguments> apis() {
@@ -135,11 +134,10 @@ class TcpApiReactorFactoryTest {
         api4.setType(ApiType.MESSAGE);
 
         return Stream.of(
-            arguments(new Api(api1), true),
-            arguments(new Api(api2), false),
-            arguments(new Api(api3), false),
-            arguments(new Api(api4), false)
-        );
+                arguments(new Api(api1), true),
+                arguments(new Api(api2), false),
+                arguments(new Api(api3), false),
+                arguments(new Api(api4), false));
     }
 
     @MethodSource("apis")
@@ -177,9 +175,9 @@ class TcpApiReactorFactoryTest {
             when(api.getOrganizationId()).thenReturn("org-id");
             when(api.getEnvironmentId()).thenReturn("env-id");
             when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
-            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class))).thenReturn(
-                mock(Tracer.class)
-            );
+            when(openTelemetryFactory.createTracer(
+                            any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class)))
+                    .thenReturn(mock(Tracer.class));
 
             cut.createTracingContext(api);
 
@@ -213,29 +211,29 @@ class TcpApiReactorFactoryTest {
             when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
             when(node.id()).thenReturn("node-id");
             when(node.application()).thenReturn("apim-gateway");
-            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class))).thenReturn(
-                mock(Tracer.class)
-            );
+            when(openTelemetryFactory.createTracer(
+                            any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class)))
+                    .thenReturn(mock(Tracer.class));
 
             cut.createTracingContext(api);
 
             ArgumentCaptor<Map<String, String>> mapCaptor = ArgumentCaptor.forClass(Map.class);
-            verify(openTelemetryFactory).createTracer(
-                eq("node-id"),
-                eq("apim-gateway"),
-                eq("gravitee"),
-                any(),
-                anyList(),
-                mapCaptor.capture(),
-                any(RedactionConfig.class)
-            );
+            verify(openTelemetryFactory)
+                    .createTracer(
+                            eq("node-id"),
+                            eq("apim-gateway"),
+                            eq("gravitee"),
+                            any(),
+                            anyList(),
+                            mapCaptor.capture(),
+                            any(RedactionConfig.class));
             assertThat(mapCaptor.getValue())
-                .containsEntry("gravitee.module", "apim")
-                .containsEntry("gravitee.api.id", "api-id")
-                .containsEntry("gravitee.api.name", "api-name")
-                .containsEntry("gravitee.api.type", "API_V4_TCP")
-                .containsEntry("gravitee.org.id", "org-id")
-                .containsEntry("gravitee.env.id", "env-id");
+                    .containsEntry("gravitee.module", "apim")
+                    .containsEntry("gravitee.api.id", "api-id")
+                    .containsEntry("gravitee.api.name", "api-name")
+                    .containsEntry("gravitee.api.type", "API_V4_TCP")
+                    .containsEntry("gravitee.org.id", "org-id")
+                    .containsEntry("gravitee.env.id", "env-id");
         }
     }
 
@@ -253,6 +251,7 @@ class TcpApiReactorFactoryTest {
         when(configuration.getProperty(any(), eq(Long.class), any())).thenReturn(0L);
 
         assertThat(cut.create(new Api(apiDef)).acceptors()).hasSize(1);
-        assertThat(((TcpAcceptor) cut.create(new Api(apiDef)).acceptors().get(0)).host()).isEqualTo("foo");
+        assertThat(((TcpAcceptor) cut.create(new Api(apiDef)).acceptors().get(0)).host())
+                .isEqualTo("foo");
     }
 }

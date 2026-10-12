@@ -60,6 +60,7 @@ public final class ConnectionFailureClassifier {
      * failed request, which is what {@link #CONNECTION_CLOSED} would suggest.
      */
     public static final String STREAM_ENDED_EARLY = "GATEWAY_CLIENT_STREAM_ENDED_EARLY";
+
     public static final String CONNECT_TIMEOUT = "GATEWAY_CLIENT_CONNECT_TIMEOUT";
     public static final String READ_TIMEOUT = "GATEWAY_CLIENT_READ_TIMEOUT";
     public static final String CONNECTION_POOL_EXHAUSTED = "GATEWAY_CLIENT_CONNECTION_POOL_EXHAUSTED";
@@ -117,7 +118,9 @@ public final class ConnectionFailureClassifier {
         // io.vertx.circuitbreaker.TimeoutException extends RuntimeException (not j.u.c.TimeoutException), so it is
         // matched explicitly. Read/idle timeouts get their own key (parent REQUEST_TIMEOUT) so they are distinguishable
         // from the global request timeout, which keeps the bare REQUEST_TIMEOUT key.
-        if (t instanceof ReadTimeoutException || t instanceof TimeoutException || t instanceof io.vertx.circuitbreaker.TimeoutException) {
+        if (t instanceof ReadTimeoutException
+                || t instanceof TimeoutException
+                || t instanceof io.vertx.circuitbreaker.TimeoutException) {
             // The same request-level timeout type fires whether we were waiting for a connection (pool saturation,
             // DNS, connect) or reading the backend response. Tell them apart by whether the connection was acquired —
             // a structural signal we own — instead of parsing the timeout message.
@@ -129,7 +132,8 @@ public final class ConnectionFailureClassifier {
         // Pool wait-queue saturation is deliberate load-shedding, not a backend fault: expose it as a retryable 503
         // with its own key so it is distinguishable from genuine backend connection errors (502) in analytics.
         if (t instanceof ConnectionPoolTooBusyException) {
-            return new Classification(HttpStatusCode.SERVICE_UNAVAILABLE_503, CONNECTION_POOL_EXHAUSTED, GATEWAY_CLIENT_CONNECTION_ERROR);
+            return new Classification(
+                    HttpStatusCode.SERVICE_UNAVAILABLE_503, CONNECTION_POOL_EXHAUSTED, GATEWAY_CLIENT_CONNECTION_ERROR);
         }
         // Connection-level (502). TLS before the generic IOException family it extends.
         if (t instanceof SSLException) {
@@ -144,7 +148,8 @@ public final class ConnectionFailureClassifier {
         if (t instanceof ConnectException) {
             // Netty native transports (epoll/kqueue) surface "No route to host", "Network is unreachable" and OS-level
             // connect timeouts as a plain ConnectException: disambiguate by message before defaulting to "refused".
-            final String connectMessage = t.getMessage() != null ? t.getMessage().toLowerCase(Locale.ROOT) : "";
+            final String connectMessage =
+                    t.getMessage() != null ? t.getMessage().toLowerCase(Locale.ROOT) : "";
             if (connectMessage.contains("no route") || connectMessage.contains("unreachable")) {
                 return badGateway(UNREACHABLE);
             }

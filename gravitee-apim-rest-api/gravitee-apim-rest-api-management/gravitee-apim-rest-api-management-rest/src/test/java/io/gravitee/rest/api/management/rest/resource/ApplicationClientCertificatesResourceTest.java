@@ -60,9 +60,8 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
         ClientCertificate cert2 = createClientCertificate("cert-2", "Certificate 2");
         Page<ClientCertificate> page = new Page<>(List.of(cert1, cert2), 1, 2, 2);
 
-        when(getClientCertificatesUseCase.execute(any(GetClientCertificatesUseCase.Input.class))).thenReturn(
-            new GetClientCertificatesUseCase.Output(page)
-        );
+        when(getClientCertificatesUseCase.execute(any(GetClientCertificatesUseCase.Input.class)))
+                .thenReturn(new GetClientCertificatesUseCase.Output(page));
 
         final Response response = envTarget().request().get();
 
@@ -73,17 +72,15 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
     @Test
     public void should_create_client_certificate() {
         CreateClientCertificate createRequest = new CreateClientCertificate(
-            "My Certificate",
-            new Date(),
-            null,
-            "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----"
-        );
+                "My Certificate",
+                new Date(),
+                null,
+                "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----");
 
         ClientCertificate created = createClientCertificate("new-cert-id", "My Certificate");
 
-        when(createClientCertificateUseCase.execute(any(CreateClientCertificateUseCase.Input.class))).thenReturn(
-            new CreateClientCertificateUseCase.Output(created)
-        );
+        when(createClientCertificateUseCase.execute(any(CreateClientCertificateUseCase.Input.class)))
+                .thenReturn(new CreateClientCertificateUseCase.Output(created));
 
         final Response response = envTarget().request().post(Entity.json(createRequest));
 
@@ -97,11 +94,7 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
     @Test
     public void should_not_create_client_certificate_without_name() {
         CreateClientCertificate createRequest = new CreateClientCertificate(
-            null,
-            null,
-            null,
-            "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----"
-        );
+                null, null, null, "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----");
 
         final Response response = envTarget().request().post(Entity.json(createRequest));
 
@@ -121,11 +114,11 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
     public void should_validate_certificate_and_return_metadata() {
         var expiration = new Date();
         var certificateInfo = new CertificateInfo(expiration, "CN=unit-tests", "CN=unit-tests", "sha256-fingerprint");
-        when(validateClientCertificateUseCase.execute(any(ValidateClientCertificateUseCase.Input.class))).thenReturn(
-            new ValidateClientCertificateUseCase.Output(certificateInfo)
-        );
+        when(validateClientCertificateUseCase.execute(any(ValidateClientCertificateUseCase.Input.class)))
+                .thenReturn(new ValidateClientCertificateUseCase.Output(certificateInfo));
 
-        var request = new ValidateCertificateRequest("-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----");
+        var request = new ValidateCertificateRequest(
+                "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----");
         final Response response = envTarget("/_validate").request().post(Entity.json(request));
 
         SoftAssertions.assertSoftly(soft -> {
@@ -140,9 +133,8 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
 
     @Test
     public void should_return_400_when_certificate_is_invalid() {
-        when(validateClientCertificateUseCase.execute(any(ValidateClientCertificateUseCase.Input.class))).thenThrow(
-            new ClientCertificateInvalidException()
-        );
+        when(validateClientCertificateUseCase.execute(any(ValidateClientCertificateUseCase.Input.class)))
+                .thenThrow(new ClientCertificateInvalidException());
 
         var request = new ValidateCertificateRequest("not-a-valid-pem");
         final Response response = envTarget("/_validate").request().post(Entity.json(request));
@@ -160,21 +152,20 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
 
     private ClientCertificate createClientCertificate(String id, String name) {
         return new ClientCertificate(
-            id,
-            null,
-            APPLICATION_ID,
-            name,
-            null,
-            null,
-            new Date(),
-            new Date(),
-            "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+                id,
+                null,
+                APPLICATION_ID,
+                name,
+                null,
+                null,
+                new Date(),
+                new Date(),
+                "-----BEGIN CERTIFICATE-----\nMIIBkTCB+wIJAKHBfpE...\n-----END CERTIFICATE-----",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 }

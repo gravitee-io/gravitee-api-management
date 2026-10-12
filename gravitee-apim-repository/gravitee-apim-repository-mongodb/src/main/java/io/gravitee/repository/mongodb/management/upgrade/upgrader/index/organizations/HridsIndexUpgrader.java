@@ -28,9 +28,9 @@ public class HridsIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("organizations")
-            .name("hi1")
-            .key("hrids", ascending())
-            .build();
+                .collection("organizations")
+                .name("hi1")
+                .key("hrids", ascending())
+                .build();
     }
 }

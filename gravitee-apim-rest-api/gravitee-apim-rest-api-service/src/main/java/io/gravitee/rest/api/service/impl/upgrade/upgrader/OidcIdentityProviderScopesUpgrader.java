@@ -47,7 +47,9 @@ public class OidcIdentityProviderScopesUpgrader implements Upgrader {
         int count = 0;
         for (var idp : identityProviderRepository.findAll()) {
             if (needsDefaultScopes(idp)) {
-                var config = idp.getConfiguration() != null ? new HashMap<>(idp.getConfiguration()) : new HashMap<String, Object>();
+                var config = idp.getConfiguration() != null
+                        ? new HashMap<>(idp.getConfiguration())
+                        : new HashMap<String, Object>();
                 config.put("scopes", DEFAULT_SCOPES);
                 idp.setConfiguration(config);
                 identityProviderRepository.update(idp);
@@ -55,7 +57,10 @@ public class OidcIdentityProviderScopesUpgrader implements Upgrader {
             }
         }
         if (count > 0) {
-            log.info("{} backfilled default scopes for {} OIDC identity providers", getClass().getSimpleName(), count);
+            log.info(
+                    "{} backfilled default scopes for {} OIDC identity providers",
+                    getClass().getSimpleName(),
+                    count);
         }
         return true;
     }

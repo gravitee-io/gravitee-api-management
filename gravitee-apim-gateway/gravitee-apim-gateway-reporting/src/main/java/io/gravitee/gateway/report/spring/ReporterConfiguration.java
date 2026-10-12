@@ -43,11 +43,11 @@ public class ReporterConfiguration {
 
     @Bean
     public LogGuardService logGuardService(
-        @Value("${reporters.logging.memory_pressure_guard.enabled:true}") boolean enabled,
-        @Value("${reporters.logging.memory_pressure_guard.strategy.type:cooldown}") String strategy,
-        @Value("${reporters.logging.memory_pressure_guard.strategy.cooldown.duration:60}") int cooldownDurationInSeconds,
-        NodeHealthCheckService nodeHealthCheckService
-    ) {
+            @Value("${reporters.logging.memory_pressure_guard.enabled:true}") boolean enabled,
+            @Value("${reporters.logging.memory_pressure_guard.strategy.type:cooldown}") String strategy,
+            @Value("${reporters.logging.memory_pressure_guard.strategy.cooldown.duration:60}")
+                    int cooldownDurationInSeconds,
+            NodeHealthCheckService nodeHealthCheckService) {
         return new LogGuardService(enabled, strategy, cooldownDurationInSeconds, nodeHealthCheckService);
     }
 }

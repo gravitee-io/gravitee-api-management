@@ -119,7 +119,8 @@ public class ApiMetadataServiceTest {
 
         when(metadataRepository.findById(METADATA_KEY, API_ID, API)).thenReturn(of(apiMetadata));
         when(metadataRepository.findByReferenceTypeAndReferenceId(API, API_ID)).thenReturn(singletonList(apiMetadata));
-        when(metadataRepository.findByReferenceTypeAndReferenceId(API, API_ID_NO_VALUE)).thenReturn(singletonList(apiMetadataWithoutValue));
+        when(metadataRepository.findByReferenceTypeAndReferenceId(API, API_ID_NO_VALUE))
+                .thenReturn(singletonList(apiMetadataWithoutValue));
 
         when(defaultMetadataEntity.getKey()).thenReturn(METADATA_KEY);
         when(defaultMetadataEntity.getFormat()).thenReturn(MetadataFormat.STRING);
@@ -131,13 +132,13 @@ public class ApiMetadataServiceTest {
         when(defaultMetadataEntityWithoutOverride.getName()).thenReturn(DEFAULT_METADATA_NAME);
         when(defaultMetadataEntityWithoutOverride.getValue()).thenReturn(METADATA_VALUE);
 
-        when(metadataService.findByReferenceTypeAndReferenceId(ENVIRONMENT, ENV_ID)).thenReturn(
-            Arrays.asList(defaultMetadataEntity, defaultMetadataEntityWithoutOverride)
-        );
+        when(metadataService.findByReferenceTypeAndReferenceId(ENVIRONMENT, ENV_ID))
+                .thenReturn(Arrays.asList(defaultMetadataEntity, defaultMetadataEntityWithoutOverride));
 
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
-        when(apiSearchService.findGenericById(any(), any(), eq(false), eq(false), eq(true))).thenReturn(apiEntity);
+        when(apiSearchService.findGenericById(any(), any(), eq(false), eq(false), eq(true)))
+                .thenReturn(apiEntity);
         GraviteeContext.setCurrentEnvironment(ENV_ID);
     }
 
@@ -146,7 +147,8 @@ public class ApiMetadataServiceTest {
         GraviteeContext.cleanContext();
     }
 
-    private void mockMetadata(Metadata apiMetadata, String key, MetadataReferenceType api, String apiId, String apiMetadataValue) {
+    private void mockMetadata(
+            Metadata apiMetadata, String key, MetadataReferenceType api, String apiId, String apiMetadataValue) {
         when(apiMetadata.getKey()).thenReturn(key);
         when(apiMetadata.getFormat()).thenReturn(STRING);
         when(apiMetadata.getName()).thenReturn(METADATA_NAME);
@@ -156,11 +158,8 @@ public class ApiMetadataServiceTest {
 
     @Test
     public void shouldFindByIdAndApi() {
-        final ApiMetadataEntity apiMetadataEntity = apiMetadataService.findByIdAndApi(
-            GraviteeContext.getExecutionContext(),
-            METADATA_KEY,
-            API_ID
-        );
+        final ApiMetadataEntity apiMetadataEntity =
+                apiMetadataService.findByIdAndApi(GraviteeContext.getExecutionContext(), METADATA_KEY, API_ID);
 
         assertEquals(METADATA_KEY, apiMetadataEntity.getKey());
         assertEquals(API_ID, apiMetadataEntity.getApiId());
@@ -172,7 +171,8 @@ public class ApiMetadataServiceTest {
 
     @Test
     public void shouldFindAllByApi() {
-        final List<ApiMetadataEntity> apiMetadataEntities = apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), API_ID);
+        final List<ApiMetadataEntity> apiMetadataEntities =
+                apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), API_ID);
 
         assertNotNull(apiMetadataEntities);
         assertEquals(2, apiMetadataEntities.size());
@@ -187,10 +187,7 @@ public class ApiMetadataServiceTest {
     @Test
     public void shouldFindByIdAndApiWithoutValue() {
         final ApiMetadataEntity apiMetadataEntity = apiMetadataService.findByIdAndApi(
-            GraviteeContext.getExecutionContext(),
-            METADATA_KEY_NO_VALUE,
-            API_ID_NO_VALUE
-        );
+                GraviteeContext.getExecutionContext(), METADATA_KEY_NO_VALUE, API_ID_NO_VALUE);
 
         assertEquals(METADATA_KEY_NO_VALUE, apiMetadataEntity.getKey());
         assertEquals(API_ID_NO_VALUE, apiMetadataEntity.getApiId());
@@ -202,10 +199,8 @@ public class ApiMetadataServiceTest {
 
     @Test
     public void shouldFindAllByApiWithoutValue() {
-        final List<ApiMetadataEntity> apiMetadataEntities = apiMetadataService.findAllByApi(
-            GraviteeContext.getExecutionContext(),
-            API_ID_NO_VALUE
-        );
+        final List<ApiMetadataEntity> apiMetadataEntities =
+                apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), API_ID_NO_VALUE);
 
         assertNotNull(apiMetadataEntities);
         assertEquals(3, apiMetadataEntities.size());
@@ -239,7 +234,8 @@ public class ApiMetadataServiceTest {
         newApiMetadataEntity.setName(metadataName);
         newApiMetadataEntity.setValue(METADATA_VALUE);
 
-        final ApiMetadataEntity createdApiMetadata = apiMetadataService.create(GraviteeContext.getExecutionContext(), newApiMetadataEntity);
+        final ApiMetadataEntity createdApiMetadata =
+                apiMetadataService.create(GraviteeContext.getExecutionContext(), newApiMetadataEntity);
 
         assertEquals("new-metadata", createdApiMetadata.getKey());
         assertEquals(MetadataFormat.STRING, createdApiMetadata.getFormat());
@@ -255,16 +251,13 @@ public class ApiMetadataServiceTest {
         newApiMetadata.setValue(METADATA_VALUE);
 
         verify(metadataRepository).create(newApiMetadata);
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent().equals(METADATA_CREATED) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue().equals(newApiMetadata)
-            ),
-            eq(API_ID)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(METADATA_CREATED)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue().equals(newApiMetadata)),
+                        eq(API_ID));
     }
 
     @Test
@@ -279,18 +272,18 @@ public class ApiMetadataServiceTest {
         metadata2.setName("metadata2");
         metadata2.setValue("metadata2");
 
-        final List<ApiMetadataEntity> created = apiMetadataService.create(
-            GraviteeContext.getExecutionContext(),
-            List.of(metadata1, metadata2),
-            API_ID
-        );
+        final List<ApiMetadataEntity> created =
+                apiMetadataService.create(GraviteeContext.getExecutionContext(), List.of(metadata1, metadata2), API_ID);
 
         Assertions.assertThat(created)
-            .extracting(ApiMetadataEntity::getFormat, ApiMetadataEntity::getName, ApiMetadataEntity::getValue, ApiMetadataEntity::getApiId)
-            .contains(
-                Tuple.tuple(MetadataFormat.STRING, "metadata1", "metadata1", API_ID),
-                Tuple.tuple(MetadataFormat.STRING, "metadata2", "metadata2", API_ID)
-            );
+                .extracting(
+                        ApiMetadataEntity::getFormat,
+                        ApiMetadataEntity::getName,
+                        ApiMetadataEntity::getValue,
+                        ApiMetadataEntity::getApiId)
+                .contains(
+                        Tuple.tuple(MetadataFormat.STRING, "metadata1", "metadata1", API_ID),
+                        Tuple.tuple(MetadataFormat.STRING, "metadata2", "metadata2", API_ID));
     }
 
     @Test
@@ -306,10 +299,8 @@ public class ApiMetadataServiceTest {
         when(apiMetadata.getValue()).thenReturn(newValue);
         when(metadataRepository.update(any())).thenReturn(apiMetadata);
 
-        final ApiMetadataEntity updatedApiMetadata = apiMetadataService.update(
-            GraviteeContext.getExecutionContext(),
-            updateApiMetadataEntity
-        );
+        final ApiMetadataEntity updatedApiMetadata =
+                apiMetadataService.update(GraviteeContext.getExecutionContext(), updateApiMetadataEntity);
 
         assertEquals(METADATA_KEY, updatedApiMetadata.getKey());
         assertEquals(MetadataFormat.STRING, updatedApiMetadata.getFormat());
@@ -325,16 +316,13 @@ public class ApiMetadataServiceTest {
         newApiMetadata.setValue(newValue);
 
         verify(metadataRepository).update(newApiMetadata);
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent().equals(METADATA_UPDATED) &&
-                    auditLogData.getOldValue().equals(apiMetadata) &&
-                    auditLogData.getNewValue().equals(newApiMetadata)
-            ),
-            eq(API_ID)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(METADATA_UPDATED)
+                                && auditLogData.getOldValue().equals(apiMetadata)
+                                && auditLogData.getNewValue().equals(newApiMetadata)),
+                        eq(API_ID));
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
@@ -351,10 +339,8 @@ public class ApiMetadataServiceTest {
         when(metadataRepository.findById(eq("metname"), any(), any())).thenReturn(Optional.of(apiMetadata));
         when(metadataRepository.update(any())).thenReturn(apiMetadata);
 
-        final ApiMetadataEntity updatedApiMetadata = apiMetadataService.update(
-            GraviteeContext.getExecutionContext(),
-            updateApiMetadataEntity
-        );
+        final ApiMetadataEntity updatedApiMetadata =
+                apiMetadataService.update(GraviteeContext.getExecutionContext(), updateApiMetadataEntity);
 
         assertEquals(METADATA_KEY, updatedApiMetadata.getKey());
         assertEquals(MetadataFormat.STRING, updatedApiMetadata.getFormat());
@@ -370,16 +356,13 @@ public class ApiMetadataServiceTest {
         newApiMetadata.setValue(newValue);
 
         verify(metadataRepository).update(newApiMetadata);
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent().equals(METADATA_UPDATED) &&
-                    auditLogData.getOldValue().equals(apiMetadata) &&
-                    auditLogData.getNewValue().equals(newApiMetadata)
-            ),
-            eq(API_ID)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(METADATA_UPDATED)
+                                && auditLogData.getOldValue().equals(apiMetadata)
+                                && auditLogData.getNewValue().equals(newApiMetadata)),
+                        eq(API_ID));
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
@@ -388,16 +371,13 @@ public class ApiMetadataServiceTest {
         apiMetadataService.delete(GraviteeContext.getExecutionContext(), METADATA_KEY, API_ID);
 
         verify(metadataRepository).delete(METADATA_KEY, API_ID, API);
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent().equals(METADATA_DELETED) &&
-                    auditLogData.getOldValue().equals(apiMetadata) &&
-                    auditLogData.getNewValue() == null
-            ),
-            eq(API_ID)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(METADATA_DELETED)
+                                && auditLogData.getOldValue().equals(apiMetadata)
+                                && auditLogData.getNewValue() == null),
+                        eq(API_ID));
     }
 
     @Test
@@ -415,7 +395,8 @@ public class ApiMetadataServiceTest {
         newApiMetadataEntity.setName(DEFAULT_METADATA_NAME);
         newApiMetadataEntity.setValue(METADATA_VALUE);
 
-        final ApiMetadataEntity createdApiMetadata = apiMetadataService.create(GraviteeContext.getExecutionContext(), newApiMetadataEntity);
+        final ApiMetadataEntity createdApiMetadata =
+                apiMetadataService.create(GraviteeContext.getExecutionContext(), newApiMetadataEntity);
 
         assertEquals(DEFAULT_METADATA_NAME.toLowerCase(), createdApiMetadata.getKey());
         assertEquals(MetadataFormat.STRING, createdApiMetadata.getFormat());
@@ -431,15 +412,12 @@ public class ApiMetadataServiceTest {
         newApiMetadata.setValue(METADATA_VALUE);
 
         verify(metadataRepository).create(newApiMetadata);
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent().equals(METADATA_CREATED) &&
-                    auditLogData.getOldValue() == null &&
-                    auditLogData.getNewValue().equals(newApiMetadata)
-            ),
-            eq(API_ID)
-        );
+        verify(auditService)
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> auditLogData.getEvent().equals(METADATA_CREATED)
+                                && auditLogData.getOldValue() == null
+                                && auditLogData.getNewValue().equals(newApiMetadata)),
+                        eq(API_ID));
     }
 }

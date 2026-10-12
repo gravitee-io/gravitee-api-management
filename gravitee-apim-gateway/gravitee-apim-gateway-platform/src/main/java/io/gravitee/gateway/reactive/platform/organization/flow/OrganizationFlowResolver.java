@@ -19,7 +19,6 @@ import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.AbstractFlowResolver;
@@ -45,11 +44,10 @@ public class OrganizationFlowResolver extends AbstractFlowResolver<HttpBaseExecu
     private ReactableOrganization reactableOrganization;
 
     public OrganizationFlowResolver(
-        final String organizationId,
-        final OrganizationManager organizationManager,
-        final ConditionFilter<HttpBaseExecutionContext, Flow> filter,
-        final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector
-    ) {
+            final String organizationId,
+            final OrganizationManager organizationManager,
+            final ConditionFilter<HttpBaseExecutionContext, Flow> filter,
+            final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector) {
         super(filter);
         this.organizationId = organizationId;
         this.organizationManager = organizationManager;
@@ -59,20 +57,16 @@ public class OrganizationFlowResolver extends AbstractFlowResolver<HttpBaseExecu
 
     @Override
     public Flowable<Flow> resolve(final HttpBaseExecutionContext ctx) {
-        return super
-            .resolve(ctx)
-            .compose(upstream -> {
-                if (isBestMatch()) {
-                    return upstream
-                        .toList()
-                        .flatMapMaybe(flowList ->
-                            Maybe.fromCallable(() -> bestMatchFlowSelector.forPath(flowList, ctx.request().pathInfo()))
-                        )
+        return super.resolve(ctx).compose(upstream -> {
+            if (isBestMatch()) {
+                return upstream.toList()
+                        .flatMapMaybe(flowList -> Maybe.fromCallable(() -> bestMatchFlowSelector.forPath(
+                                flowList, ctx.request().pathInfo())))
                         .toFlowable();
-                } else {
-                    return upstream;
-                }
-            });
+            } else {
+                return upstream;
+            }
+        });
     }
 
     private boolean isBestMatch() {
@@ -86,7 +80,8 @@ public class OrganizationFlowResolver extends AbstractFlowResolver<HttpBaseExecu
     }
 
     private void initFlows() {
-        final ReactableOrganization refreshedReactableOrganization = organizationManager.getOrganization(organizationId);
+        final ReactableOrganization refreshedReactableOrganization =
+                organizationManager.getOrganization(organizationId);
 
         // Platform flows must be initialized the first time or when the organization has changed.
         if (flows == null || !Objects.equals(reactableOrganization, refreshedReactableOrganization)) {
@@ -96,10 +91,14 @@ public class OrganizationFlowResolver extends AbstractFlowResolver<HttpBaseExecu
     }
 
     private Flowable<Flow> provideFlows() {
-        if (reactableOrganization == null || reactableOrganization.getFlows() == null || reactableOrganization.getFlows().isEmpty()) {
+        if (reactableOrganization == null
+                || reactableOrganization.getFlows() == null
+                || reactableOrganization.getFlows().isEmpty()) {
             return Flowable.empty();
         }
 
-        return Flowable.fromIterable(reactableOrganization.getFlows().stream().filter(Flow::isEnabled).toList());
+        return Flowable.fromIterable(reactableOrganization.getFlows().stream()
+                .filter(Flow::isEnabled)
+                .toList());
     }
 }

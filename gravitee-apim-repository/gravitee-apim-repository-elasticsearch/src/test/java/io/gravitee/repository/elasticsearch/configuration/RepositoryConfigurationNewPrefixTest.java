@@ -40,7 +40,9 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 public class RepositoryConfigurationNewPrefixTest {
 
     @Configuration
-    @PropertySource(factory = YamlPropertySourceFactory.class, value = "classpath:configuration/gravitee-repositories-prefix.yml")
+    @PropertySource(
+            factory = YamlPropertySourceFactory.class,
+            value = "classpath:configuration/gravitee-repositories-prefix.yml")
     static class ContextConfiguration {
 
         @Autowired
@@ -48,17 +50,18 @@ public class RepositoryConfigurationNewPrefixTest {
 
         @Bean
         public org.springframework.core.env.PropertySource<?> repositoryAliasPropertySource() {
-            org.springframework.core.env.PropertySource<?> aliasSource = new org.springframework.core.env.PropertySource<Object>(
-                "repositoryAlias"
-            ) {
-                @Override
-                public Object getProperty(String name) {
-                    if (name.startsWith("management.") || name.startsWith("analytics.") || name.startsWith("ratelimit.")) {
-                        return environment.getProperty("repositories." + name);
-                    }
-                    return null;
-                }
-            };
+            org.springframework.core.env.PropertySource<?> aliasSource =
+                    new org.springframework.core.env.PropertySource<Object>("repositoryAlias") {
+                        @Override
+                        public Object getProperty(String name) {
+                            if (name.startsWith("management.")
+                                    || name.startsWith("analytics.")
+                                    || name.startsWith("ratelimit.")) {
+                                return environment.getProperty("repositories." + name);
+                            }
+                            return null;
+                        }
+                    };
             // Register with highest priority
             ((ConfigurableEnvironment) environment).getPropertySources().addFirst(aliasSource);
             return aliasSource;
@@ -75,7 +78,10 @@ public class RepositoryConfigurationNewPrefixTest {
 
     @Test
     public void should_read_endpoints_from_new_prefix() {
-        assertThat(configuration.getEndpoints()).hasSize(1).extracting(Endpoint::getUrl).containsExactly("http://es-remote:9200");
+        assertThat(configuration.getEndpoints())
+                .hasSize(1)
+                .extracting(Endpoint::getUrl)
+                .containsExactly("http://es-remote:9200");
     }
 
     @Test

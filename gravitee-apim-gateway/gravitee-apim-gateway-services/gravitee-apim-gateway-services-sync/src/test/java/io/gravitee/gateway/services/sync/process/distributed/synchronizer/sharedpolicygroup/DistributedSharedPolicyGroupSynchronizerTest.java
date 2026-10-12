@@ -78,12 +78,11 @@ class DistributedSharedPolicyGroupSynchronizerTest {
     @BeforeEach
     void setUp() {
         cut = new DistributedSharedPolicyGroupSynchronizer(
-            eventsFetcher,
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            deployerFactory,
-            new SharedPolicyGroupMapper(objectMapper)
-        );
+                eventsFetcher,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                deployerFactory,
+                new SharedPolicyGroupMapper(objectMapper));
 
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createSharedPolicyGroupDeployer()).thenReturn(sharedPolicyGroupDeployer);
@@ -98,7 +97,8 @@ class DistributedSharedPolicyGroupSynchronizerTest {
 
         @Test
         void should_not_synchronize_shared_policy_groups_when_no_events() throws InterruptedException {
-            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.SHARED_POLICY_GROUP), any())).thenReturn(Flowable.empty());
+            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.SHARED_POLICY_GROUP), any()))
+                    .thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
             verifyNoInteractions(sharedPolicyGroupDeployer);
         }
@@ -107,24 +107,27 @@ class DistributedSharedPolicyGroupSynchronizerTest {
         void should_fetch_init_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(
-                eq(-1L),
-                any(),
-                eq(DistributedEventType.SHARED_POLICY_GROUP),
-                eq(Set.of(DistributedSyncAction.DEPLOY))
-            );
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            eq(-1L),
+                            any(),
+                            eq(DistributedEventType.SHARED_POLICY_GROUP),
+                            eq(Set.of(DistributedSyncAction.DEPLOY)));
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
-            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher).fetchLatest(
-                any(),
-                any(),
-                eq(DistributedEventType.SHARED_POLICY_GROUP),
-                eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
-            );
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli())
+                    .test()
+                    .await()
+                    .assertComplete();
+            verify(eventsFetcher)
+                    .fetchLatest(
+                            any(),
+                            any(),
+                            eq(DistributedEventType.SHARED_POLICY_GROUP),
+                            eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY)));
         }
     }
 
@@ -140,14 +143,15 @@ class DistributedSharedPolicyGroupSynchronizerTest {
         }
 
         @Test
-        void should_deploy_shared_policy_group_when_fetching_deployed_events() throws InterruptedException, JsonProcessingException {
+        void should_deploy_shared_policy_group_when_fetching_deployed_events()
+                throws InterruptedException, JsonProcessingException {
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("shared_policy_group")
-                .payload(objectMapper.writeValueAsString(sharedPolicyGroup))
-                .type(DistributedEventType.SHARED_POLICY_GROUP)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("shared_policy_group")
+                    .payload(objectMapper.writeValueAsString(sharedPolicyGroup))
+                    .type(DistributedEventType.SHARED_POLICY_GROUP)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
@@ -157,14 +161,15 @@ class DistributedSharedPolicyGroupSynchronizerTest {
         }
 
         @Test
-        void should_undeploy_shared_policy_group_when_fetching_undeployed_events() throws InterruptedException, JsonProcessingException {
+        void should_undeploy_shared_policy_group_when_fetching_undeployed_events()
+                throws InterruptedException, JsonProcessingException {
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("shared_policy_group")
-                .payload(objectMapper.writeValueAsString(sharedPolicyGroup))
-                .type(DistributedEventType.DICTIONARY)
-                .syncAction(DistributedSyncAction.UNDEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("shared_policy_group")
+                    .payload(objectMapper.writeValueAsString(sharedPolicyGroup))
+                    .type(DistributedEventType.DICTIONARY)
+                    .syncAction(DistributedSyncAction.UNDEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
@@ -174,23 +179,23 @@ class DistributedSharedPolicyGroupSynchronizerTest {
         }
 
         @Test
-        void should_undeploy_the_environment_carried_by_an_incremental_event() throws InterruptedException, JsonProcessingException {
+        void should_undeploy_the_environment_carried_by_an_incremental_event()
+                throws InterruptedException, JsonProcessingException {
             sharedPolicyGroup.setEnvironmentId("env-b");
             DistributedEvent distributedEvent = DistributedEvent.builder()
-                .id("spg-id")
-                .payload(objectMapper.writeValueAsString(sharedPolicyGroup))
-                .type(DistributedEventType.SHARED_POLICY_GROUP)
-                .syncAction(DistributedSyncAction.UNDEPLOY)
-                .updatedAt(new Date())
-                .build();
+                    .id("spg-id")
+                    .payload(objectMapper.writeValueAsString(sharedPolicyGroup))
+                    .type(DistributedEventType.SHARED_POLICY_GROUP)
+                    .syncAction(DistributedSyncAction.UNDEPLOY)
+                    .updatedAt(new Date())
+                    .build();
 
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             long now = Instant.now().toEpochMilli();
             cut.synchronize(now, now).test().await().assertComplete();
 
-            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor = ArgumentCaptor.forClass(
-                SharedPolicyGroupReactorDeployable.class
-            );
+            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor =
+                    ArgumentCaptor.forClass(SharedPolicyGroupReactorDeployable.class);
             verify(sharedPolicyGroupDeployer).undeploy(deployableCaptor.capture());
             assertThat(deployableCaptor.getValue().syncAction()).isEqualTo(SyncAction.UNDEPLOY);
             assertThat(deployableCaptor.getValue().environmentId()).isEqualTo("env-b");

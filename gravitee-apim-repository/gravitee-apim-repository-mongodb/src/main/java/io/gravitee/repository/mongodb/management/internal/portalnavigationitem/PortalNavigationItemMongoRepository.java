@@ -29,23 +29,21 @@ import org.springframework.stereotype.Repository;
 public interface PortalNavigationItemMongoRepository extends MongoRepository<PortalNavigationItemMongo, String> {
     Set<PortalNavigationItemMongo> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId);
 
-    Set<PortalNavigationItemMongo> findByEnvironmentIdAndAutomationMetadata_ReferenceTypeAndAutomationMetadata_ReferenceId(
-        String environmentId,
-        AutomationTargetReferenceType referenceType,
-        String referenceId
-    );
+    Set<PortalNavigationItemMongo>
+            findByEnvironmentIdAndAutomationMetadata_ReferenceTypeAndAutomationMetadata_ReferenceId(
+                    String environmentId, AutomationTargetReferenceType referenceType, String referenceId);
 
     Set<PortalNavigationItemMongo> findAllByParentIdAndEnvironmentId(String parentId, String environmentId);
 
-    Set<PortalNavigationItemMongo> findAllByAreaAndEnvironmentIdAndParentIdIsNull(PortalNavigationItem.Area area, String environmentId);
+    Set<PortalNavigationItemMongo> findAllByAreaAndEnvironmentIdAndParentIdIsNull(
+            PortalNavigationItem.Area area, String environmentId);
 
     @Query("{ 'area': ?0, 'environmentId': ?1, 'parentId': null, 'referenceType': ?2, 'referenceId': ?3 }")
     Set<PortalNavigationItemMongo> findAllTopLevelByAreaAndEnvironmentAndReference(
-        PortalNavigationItem.Area area,
-        String environmentId,
-        PortalNavigationReferenceType referenceType,
-        String referenceId
-    );
+            PortalNavigationItem.Area area,
+            String environmentId,
+            PortalNavigationReferenceType referenceType,
+            String referenceId);
 
     Set<PortalNavigationItemMongo> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId);
 

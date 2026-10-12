@@ -23,7 +23,8 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultStreamableProcessorChain<T, S, P extends StreamableProcessor<T, S>> extends AbstractStreamableProcessorChain<T, S, P> {
+public class DefaultStreamableProcessorChain<T, S, P extends StreamableProcessor<T, S>>
+        extends AbstractStreamableProcessorChain<T, S, P> {
 
     private final Iterator<P> processorIterator;
 

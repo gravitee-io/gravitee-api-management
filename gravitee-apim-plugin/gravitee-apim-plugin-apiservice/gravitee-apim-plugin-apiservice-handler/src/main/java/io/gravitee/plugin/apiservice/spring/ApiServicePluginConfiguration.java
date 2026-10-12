@@ -31,9 +31,8 @@ public class ApiServicePluginConfiguration {
 
     @Bean
     public DefaultApiServicePluginManager apiServicePluginManager(
-        final ApiServiceClassLoaderFactory apiServiceClassLoaderFactory,
-        final PluginConfigurationHelper pluginConfigurationHelper
-    ) {
+            final ApiServiceClassLoaderFactory apiServiceClassLoaderFactory,
+            final PluginConfigurationHelper pluginConfigurationHelper) {
         return new DefaultApiServicePluginManager(apiServiceClassLoaderFactory, pluginConfigurationHelper);
     }
 

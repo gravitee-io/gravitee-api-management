@@ -38,7 +38,7 @@ public class ValidateApplicationInvitationRoleDomainService {
 
         var referenceContext = new ReferenceContext(ORGANIZATION, organizationId);
         roleQueryService
-            .findApplicationRole(roleName, referenceContext)
-            .orElseThrow(() -> new RoleNotFoundException(roleName, referenceContext));
+                .findApplicationRole(roleName, referenceContext)
+                .orElseThrow(() -> new RoleNotFoundException(roleName, referenceContext));
     }
 }

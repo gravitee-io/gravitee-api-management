@@ -35,6 +35,6 @@ public class DynamicProperty extends Property {
 
     @Override
     public void setDynamic(boolean dynamic) {
-        //Do nothing
+        // Do nothing
     }
 }

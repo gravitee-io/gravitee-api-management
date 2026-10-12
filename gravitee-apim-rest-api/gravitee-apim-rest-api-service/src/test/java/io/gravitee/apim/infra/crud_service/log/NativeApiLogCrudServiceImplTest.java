@@ -68,7 +68,8 @@ class NativeApiLogCrudServiceImplTest {
         void maps_metrics_into_log() throws AnalyticsException {
             stubRepositoryReturning(Optional.of(buildNativeApiMetrics(API_ID, REQUEST_ID)));
 
-            var found = service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS).orElseThrow();
+            var found = service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS)
+                    .orElseThrow();
 
             assertThat(found.getApiId()).isEqualTo(API_ID);
             assertThat(found.getRequestId()).isEqualTo(REQUEST_ID);
@@ -100,17 +101,13 @@ class NativeApiLogCrudServiceImplTest {
             // This resource is reached as /apis/{apiId}/logs/native/{requestId} and the Elasticsearch query
             // matches on api-id + request-id only, with no API-type assertion — so an HTTP v4 document, whose
             // security-token is the API key verbatim, can be projected here. The type is still reportable.
-            stubRepositoryReturning(
-                Optional.of(
-                    buildNativeApiMetrics(API_ID, REQUEST_ID)
-                        .toBuilder()
-                        .securityType("API_KEY")
-                        .securityToken("f4c1a0de-live-api-key")
-                        .build()
-                )
-            );
+            stubRepositoryReturning(Optional.of(buildNativeApiMetrics(API_ID, REQUEST_ID).toBuilder()
+                    .securityType("API_KEY")
+                    .securityToken("f4c1a0de-live-api-key")
+                    .build()));
 
-            var found = service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS).orElseThrow();
+            var found = service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS)
+                    .orElseThrow();
 
             assertThat(found.getSecurityType()).isEqualTo("API_KEY");
             assertThat(found.getSecurityToken()).isNull();
@@ -120,7 +117,8 @@ class NativeApiLogCrudServiceImplTest {
         void returns_empty_when_repository_empty() throws AnalyticsException {
             stubRepositoryReturning(Optional.empty());
 
-            assertThat(service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS)).isEmpty();
+            assertThat(service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS))
+                    .isEmpty();
         }
 
         @Test
@@ -128,18 +126,21 @@ class NativeApiLogCrudServiceImplTest {
             stubRepositoryThrowing(new AnalyticsException("Simulated Elasticsearch failure"));
 
             assertThatThrownBy(() -> service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS))
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessageContaining(API_ID)
-                .hasMessageContaining(REQUEST_ID);
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessageContaining(API_ID)
+                    .hasMessageContaining(REQUEST_ID);
         }
 
         @Test
         void findLog_returns_null_typed_fields_when_additional_metrics_keys_absent() throws AnalyticsException {
-            stubRepositoryReturning(
-                Optional.of(NativeApiMetrics.builder().apiId(API_ID).requestId(REQUEST_ID).additionalMetrics(Map.of()).build())
-            );
+            stubRepositoryReturning(Optional.of(NativeApiMetrics.builder()
+                    .apiId(API_ID)
+                    .requestId(REQUEST_ID)
+                    .additionalMetrics(Map.of())
+                    .build()));
 
-            var found = service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS).orElseThrow();
+            var found = service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS)
+                    .orElseThrow();
 
             assertThat(found.getConnectionStatus()).isNull();
             assertThat(found.getConnectionDurationMs()).isNull();
@@ -149,29 +150,28 @@ class NativeApiLogCrudServiceImplTest {
 
         @Test
         void findLog_returns_null_connectionDurationMs_when_value_not_number() throws AnalyticsException {
-            stubRepositoryReturning(
-                Optional.of(
-                    NativeApiMetrics.builder()
-                        .apiId(API_ID)
-                        .requestId(REQUEST_ID)
-                        .additionalMetrics(Map.of(NativeApiMetricKeys.CONNECTION_DURATION_MS, "not-a-number"))
-                        .build()
-                )
-            );
+            stubRepositoryReturning(Optional.of(NativeApiMetrics.builder()
+                    .apiId(API_ID)
+                    .requestId(REQUEST_ID)
+                    .additionalMetrics(Map.of(NativeApiMetricKeys.CONNECTION_DURATION_MS, "not-a-number"))
+                    .build()));
 
-            var found = service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS).orElseThrow();
+            var found = service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS)
+                    .orElseThrow();
 
             assertThat(found.getConnectionDurationMs()).isNull();
         }
 
         private void stubRepositoryReturning(Optional<NativeApiMetrics> result) throws AnalyticsException {
-            when(metricsRepository.findNativeApiMetrics(any(), eq(API_ID), eq(REQUEST_ID), eq(FROM_MILLIS), eq(TO_MILLIS))).thenReturn(
-                result
-            );
+            when(metricsRepository.findNativeApiMetrics(
+                            any(), eq(API_ID), eq(REQUEST_ID), eq(FROM_MILLIS), eq(TO_MILLIS)))
+                    .thenReturn(result);
         }
 
         private void stubRepositoryThrowing(AnalyticsException ex) throws AnalyticsException {
-            when(metricsRepository.findNativeApiMetrics(any(), eq(API_ID), eq(REQUEST_ID), eq(FROM_MILLIS), eq(TO_MILLIS))).thenThrow(ex);
+            when(metricsRepository.findNativeApiMetrics(
+                            any(), eq(API_ID), eq(REQUEST_ID), eq(FROM_MILLIS), eq(TO_MILLIS)))
+                    .thenThrow(ex);
         }
     }
 
@@ -180,21 +180,29 @@ class NativeApiLogCrudServiceImplTest {
 
         @Test
         void returns_all_logs_from_repository() throws AnalyticsException {
-            stubRepositoryReturning(
-                new LogResponse<>(
+            stubRepositoryReturning(new LogResponse<>(
                     3L,
                     List.of(
-                        NativeApiMetrics.builder().apiId(API_ID).requestId(REQUEST_ID).build(),
-                        NativeApiMetrics.builder().apiId(API_ID).requestId("r2").build(),
-                        NativeApiMetrics.builder().apiId(API_ID).requestId("r3").build()
-                    )
-                )
-            );
+                            NativeApiMetrics.builder()
+                                    .apiId(API_ID)
+                                    .requestId(REQUEST_ID)
+                                    .build(),
+                            NativeApiMetrics.builder()
+                                    .apiId(API_ID)
+                                    .requestId("r2")
+                                    .build(),
+                            NativeApiMetrics.builder()
+                                    .apiId(API_ID)
+                                    .requestId("r3")
+                                    .build())));
 
             var response = searchWithDefaults();
 
             assertThat(response.total()).isEqualTo(3);
-            assertThat(response.logs()).hasSize(3).extracting(NativeApiLog::getRequestId).containsExactly(REQUEST_ID, "r2", "r3");
+            assertThat(response.logs())
+                    .hasSize(3)
+                    .extracting(NativeApiLog::getRequestId)
+                    .containsExactly(REQUEST_ID, "r2", "r3");
         }
 
         @Test
@@ -228,21 +236,21 @@ class NativeApiLogCrudServiceImplTest {
         @Test
         void propagates_filter_fields_into_native_metrics_query() throws AnalyticsException {
             var captor = ArgumentCaptor.forClass(NativeApiMetricsQuery.class);
-            when(metricsRepository.searchNativeApiMetrics(any(), captor.capture())).thenReturn(new LogResponse<>(0L, List.of()));
+            when(metricsRepository.searchNativeApiMetrics(any(), captor.capture()))
+                    .thenReturn(new LogResponse<>(0L, List.of()));
 
             service.searchLogs(
-                EXECUTION_CONTEXT,
-                API_ID,
-                NativeApiLogCrudService.Filter.builder()
-                    .from(FROM_MILLIS)
-                    .to(TO_MILLIS)
-                    .applicationIds(Set.of(APPLICATION_ID))
-                    .planIds(Set.of(PLAN_ID))
-                    .connectionStatuses(Set.of(NativeConnectionStatus.CONNECTED))
-                    .build(),
-                2,
-                50
-            );
+                    EXECUTION_CONTEXT,
+                    API_ID,
+                    NativeApiLogCrudService.Filter.builder()
+                            .from(FROM_MILLIS)
+                            .to(TO_MILLIS)
+                            .applicationIds(Set.of(APPLICATION_ID))
+                            .planIds(Set.of(PLAN_ID))
+                            .connectionStatuses(Set.of(NativeConnectionStatus.CONNECTED))
+                            .build(),
+                    2,
+                    50);
 
             var captured = captor.getValue();
             assertThat(captured.getApiId()).isEqualTo(API_ID);
@@ -259,7 +267,9 @@ class NativeApiLogCrudServiceImplTest {
         void throws_TechnicalManagementException_on_AnalyticsException() throws AnalyticsException {
             stubRepositoryThrowing(new AnalyticsException("Simulated Elasticsearch failure"));
 
-            assertThatThrownBy(this::searchWithDefaults).isInstanceOf(TechnicalManagementException.class).hasMessageContaining(API_ID);
+            assertThatThrownBy(this::searchWithDefaults)
+                    .isInstanceOf(TechnicalManagementException.class)
+                    .hasMessageContaining(API_ID);
         }
 
         @Test
@@ -268,34 +278,34 @@ class NativeApiLogCrudServiceImplTest {
             // That is the caller's own pagination, not a search that went wrong, and the translation here is
             // the whole reason it reaches the client as a 400 rather than a 500 with a stack trace: the
             // resource layer maps ValidationDomainException, and nothing else in this chain would.
-            when(metricsRepository.searchNativeApiMetrics(any(), any(NativeApiMetricsQuery.class))).thenThrow(
-                new IllegalArgumentException("page 5000 of size 10 reaches beyond the first 10000 connection events")
-            );
+            when(metricsRepository.searchNativeApiMetrics(any(), any(NativeApiMetricsQuery.class)))
+                    .thenThrow(new IllegalArgumentException(
+                            "page 5000 of size 10 reaches beyond the first 10000 connection events"));
 
             assertThatThrownBy(this::searchWithDefaults)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("page 5000")
-                .isNot(
-                    new org.assertj.core.api.Condition<>(t -> t instanceof TechnicalManagementException, "wrapped as a technical failure")
-                );
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessageContaining("page 5000")
+                    .isNot(new org.assertj.core.api.Condition<>(
+                            t -> t instanceof TechnicalManagementException, "wrapped as a technical failure"));
         }
 
         private SearchLogsResponse<NativeApiLog> searchWithDefaults() {
             return service.searchLogs(
-                EXECUTION_CONTEXT,
-                API_ID,
-                NativeApiLogCrudService.Filter.builder().from(0L).to(1000L).build(),
-                1,
-                20
-            );
+                    EXECUTION_CONTEXT,
+                    API_ID,
+                    NativeApiLogCrudService.Filter.builder().from(0L).to(1000L).build(),
+                    1,
+                    20);
         }
 
         private void stubRepositoryReturning(LogResponse<NativeApiMetrics> response) throws AnalyticsException {
-            when(metricsRepository.searchNativeApiMetrics(any(), any(NativeApiMetricsQuery.class))).thenReturn(response);
+            when(metricsRepository.searchNativeApiMetrics(any(), any(NativeApiMetricsQuery.class)))
+                    .thenReturn(response);
         }
 
         private void stubRepositoryThrowing(AnalyticsException ex) throws AnalyticsException {
-            when(metricsRepository.searchNativeApiMetrics(any(), any(NativeApiMetricsQuery.class))).thenThrow(ex);
+            when(metricsRepository.searchNativeApiMetrics(any(), any(NativeApiMetricsQuery.class)))
+                    .thenThrow(ex);
         }
     }
 }

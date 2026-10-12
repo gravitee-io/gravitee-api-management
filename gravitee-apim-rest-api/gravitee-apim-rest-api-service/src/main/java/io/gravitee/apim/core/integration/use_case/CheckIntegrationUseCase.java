@@ -40,47 +40,42 @@ public class CheckIntegrationUseCase {
 
     public Output execute(Input input) {
         return integrationCrudService
-            .findApiIntegrationById(input.integrationId)
-            .filter(integration -> {
-                var environment = environmentCrudService.get(integration.environmentId());
-                return environment.getOrganizationId().equals(input.organizationId);
-            })
-            .filter(integration -> {
-                var hasEnvironmentIntegrationPermission = permissionDomainService.hasExactPermissions(
-                    input.organizationId,
-                    input.userId,
-                    io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_INTEGRATION,
-                    integration.environmentId(),
-                    RolePermissionAction.CREATE,
-                    RolePermissionAction.READ,
-                    RolePermissionAction.UPDATE,
-                    RolePermissionAction.DELETE
-                );
+                .findApiIntegrationById(input.integrationId)
+                .filter(integration -> {
+                    var environment = environmentCrudService.get(integration.environmentId());
+                    return environment.getOrganizationId().equals(input.organizationId);
+                })
+                .filter(integration -> {
+                    var hasEnvironmentIntegrationPermission = permissionDomainService.hasExactPermissions(
+                            input.organizationId,
+                            input.userId,
+                            io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_INTEGRATION,
+                            integration.environmentId(),
+                            RolePermissionAction.CREATE,
+                            RolePermissionAction.READ,
+                            RolePermissionAction.UPDATE,
+                            RolePermissionAction.DELETE);
 
-                // Check same permissions used to preview & ingest APIs
-                var hasIntegrationPermission = permissionDomainService.hasPermission(
-                    input.organizationId,
-                    input.userId,
-                    RolePermission.INTEGRATION_DEFINITION,
-                    integration.id(),
-                    RolePermissionAction.CREATE
-                );
-                return hasEnvironmentIntegrationPermission || hasIntegrationPermission;
-            })
-            .map(integration -> {
-                if (!integration.provider().equals(input.provider)) {
-                    return new Output(
-                        false,
-                        String.format(
-                            "Integration [id=%s] does not match. Expected provider [provider=%s]",
+                    // Check same permissions used to preview & ingest APIs
+                    var hasIntegrationPermission = permissionDomainService.hasPermission(
+                            input.organizationId,
+                            input.userId,
+                            RolePermission.INTEGRATION_DEFINITION,
                             integration.id(),
-                            integration.provider()
-                        )
-                    );
-                }
-                return new Output(true);
-            })
-            .orElse(new Output(false, String.format("Integration [id=%s] not found", input.integrationId)));
+                            RolePermissionAction.CREATE);
+                    return hasEnvironmentIntegrationPermission || hasIntegrationPermission;
+                })
+                .map(integration -> {
+                    if (!integration.provider().equals(input.provider)) {
+                        return new Output(
+                                false,
+                                String.format(
+                                        "Integration [id=%s] does not match. Expected provider [provider=%s]",
+                                        integration.id(), integration.provider()));
+                    }
+                    return new Output(true);
+                })
+                .orElse(new Output(false, String.format("Integration [id=%s] not found", input.integrationId)));
     }
 
     public record Input(String organizationId, String userId, String integrationId, String provider) {

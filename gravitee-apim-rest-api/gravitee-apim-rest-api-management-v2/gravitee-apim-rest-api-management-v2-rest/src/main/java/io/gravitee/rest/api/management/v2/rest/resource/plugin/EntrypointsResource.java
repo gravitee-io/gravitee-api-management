@@ -48,11 +48,11 @@ public class EntrypointsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ConnectorPlugin> getEntrypoints() {
         String organizationId = GraviteeContext.getCurrentOrganization() != null
-            ? GraviteeContext.getCurrentOrganization()
-            : GraviteeContext.getDefaultOrganization();
-        return ConnectorPluginMapper.INSTANCE.mapCorePlugin(
-            getEntrypointPluginsUseCase.getEntrypointPluginsByOrganization(new GetEntrypointPluginsUseCase.Input(organizationId)).plugins()
-        );
+                ? GraviteeContext.getCurrentOrganization()
+                : GraviteeContext.getDefaultOrganization();
+        return ConnectorPluginMapper.INSTANCE.mapCorePlugin(getEntrypointPluginsUseCase
+                .getEntrypointPluginsByOrganization(new GetEntrypointPluginsUseCase.Input(organizationId))
+                .plugins());
     }
 
     @Path("/{entrypointId}")
@@ -85,7 +85,8 @@ public class EntrypointsResource extends AbstractResource {
     @GET
     @Path("/{entrypointId}/subscription-schema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getEntrypointSubscriptionSchema(@PathParam("entrypointId") String entrypointId, @QueryParam("display") String display) {
+    public String getEntrypointSubscriptionSchema(
+            @PathParam("entrypointId") String entrypointId, @QueryParam("display") String display) {
         // Check that the entrypoint exists
         entrypointService.findById(entrypointId);
         if (display != null) {

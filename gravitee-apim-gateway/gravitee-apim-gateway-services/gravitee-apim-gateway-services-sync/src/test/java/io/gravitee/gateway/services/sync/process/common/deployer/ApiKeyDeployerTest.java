@@ -64,10 +64,10 @@ class ApiKeyDeployerTest {
             ApiKey apiKey2 = new ApiKey();
             apiKey2.setId("id2");
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(reactableApi)
-                .apiKeys(List.of(apiKey1, apiKey2))
-                .build();
+                    .apiId("apiId")
+                    .reactableApi(reactableApi)
+                    .apiKeys(List.of(apiKey1, apiKey2))
+                    .build();
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(apiKeyService).register(apiKey1);
             verify(apiKeyService).register(apiKey2);
@@ -82,10 +82,10 @@ class ApiKeyDeployerTest {
             ApiKey apiKey2 = new ApiKey();
             apiKey2.setId("id2");
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
-                .apiId("apiId")
-                .reactableApi(reactableApi)
-                .apiKeys(List.of(apiKey1, apiKey2))
-                .build();
+                    .apiId("apiId")
+                    .reactableApi(reactableApi)
+                    .apiKeys(List.of(apiKey1, apiKey2))
+                    .build();
             doThrow(new SyncException("error")).when(apiKeyService).register(apiKey1);
             cut.deploy(apiReactorDeployable).test().assertComplete();
             verify(apiKeyService).register(apiKey1);
@@ -105,7 +105,8 @@ class ApiKeyDeployerTest {
 
         @Test
         void should_undeploy_api_keys_from_api_id() {
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").build();
+            ApiReactorDeployable apiReactorDeployable =
+                    ApiReactorDeployable.builder().apiId("apiId").build();
             cut.undeploy(apiReactorDeployable).test().assertComplete();
             verify(apiKeyService).unregisterByApiId("apiId");
             verifyNoMoreInteractions(apiKeyService);
@@ -113,7 +114,8 @@ class ApiKeyDeployerTest {
 
         @Test
         void should_ignore_undeploy_api_key_from_api_in_error() {
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").build();
+            ApiReactorDeployable apiReactorDeployable =
+                    ApiReactorDeployable.builder().apiId("apiId").build();
             doThrow(new SyncException("error")).when(apiKeyService).unregisterByApiId("apiId");
             cut.undeploy(apiReactorDeployable).test().assertComplete();
             verify(apiKeyService).unregisterByApiId("apiId");
@@ -123,7 +125,8 @@ class ApiKeyDeployerTest {
         @Test
         void should_undeploy_api_keys_from_api_key() {
             ApiKey apiKey = new ApiKey();
-            SingleApiKeyDeployable apikeyDeployable = SingleApiKeyDeployable.builder().apiKey(apiKey).build();
+            SingleApiKeyDeployable apikeyDeployable =
+                    SingleApiKeyDeployable.builder().apiKey(apiKey).build();
             cut.undeploy(apikeyDeployable).test().assertComplete();
             verify(apiKeyService).unregister(apiKey);
             verifyNoMoreInteractions(apiKeyService);
@@ -132,7 +135,8 @@ class ApiKeyDeployerTest {
         @Test
         void should_ignore_undeploy_api_keys_from_api_key_in_error() {
             ApiKey apiKey = new ApiKey();
-            SingleApiKeyDeployable apikeyDeployable = SingleApiKeyDeployable.builder().apiKey(apiKey).build();
+            SingleApiKeyDeployable apikeyDeployable =
+                    SingleApiKeyDeployable.builder().apiKey(apiKey).build();
             doThrow(new SyncException("error")).when(apiKeyService).unregister(apiKey);
             cut.undeploy(apikeyDeployable).test().assertComplete();
             verify(apiKeyService).unregister(apiKey);

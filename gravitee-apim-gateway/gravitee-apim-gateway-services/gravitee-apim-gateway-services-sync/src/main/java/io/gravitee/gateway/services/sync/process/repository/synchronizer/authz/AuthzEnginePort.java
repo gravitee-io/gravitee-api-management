@@ -22,36 +22,33 @@ import java.util.Set;
 
 public interface AuthzEnginePort {
     Completable addOrUpdateEntity(
-        String environmentId,
-        String uid,
-        Map<String, Object> attributes,
-        List<String> parents,
-        Set<String> targetPdpIds,
-        long updatedAt
-    );
+            String environmentId,
+            String uid,
+            Map<String, Object> attributes,
+            List<String> parents,
+            Set<String> targetPdpIds,
+            long updatedAt);
 
     Completable removeEntity(String environmentId, String uid, Set<String> targetPdpIds);
 
     Completable addOrUpdatePolicy(
-        String environmentId,
-        String docId,
-        String name,
-        String policyText,
-        Set<String> targetPdpIds,
-        long updatedAt,
-        String revision
-    );
+            String environmentId,
+            String docId,
+            String name,
+            String policyText,
+            Set<String> targetPdpIds,
+            long updatedAt,
+            String revision);
 
     Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds);
 
     Completable addOrUpdateSchema(
-        String environmentId,
-        String docId,
-        String name,
-        String schemaText,
-        Set<String> targetPdpIds,
-        long updatedAt
-    );
+            String environmentId,
+            String docId,
+            String name,
+            String schemaText,
+            Set<String> targetPdpIds,
+            long updatedAt);
 
     Completable removeSchema(String environmentId, String docId, Set<String> targetPdpIds);
 

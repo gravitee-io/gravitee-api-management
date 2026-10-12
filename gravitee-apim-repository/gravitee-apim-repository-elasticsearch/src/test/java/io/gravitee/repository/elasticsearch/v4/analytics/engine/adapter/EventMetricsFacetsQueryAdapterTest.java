@@ -43,22 +43,20 @@ class EventMetricsFacetsQueryAdapterTest {
 
     private FacetsQuery query(MetricMeasuresQuery metric, Facet facet, Integer limit) {
         return new FacetsQuery(
-            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-            List.of(),
-            List.of(metric),
-            List.of(facet),
-            limit,
-            List.of()
-        );
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                List.of(),
+                List.of(metric),
+                List.of(facet),
+                limit,
+                List.of());
     }
 
     @Test
     void orders_buckets_by_the_requested_measure() throws Exception {
         var metric = new MetricMeasuresQuery(
-            Metric.NATIVE_MESSAGES_PRODUCED_DOWNSTREAM,
-            Set.of(Measure.SUM),
-            List.of(new MetricMeasuresQuery.Sort(Measure.SUM, MetricMeasuresQuery.Sort.Order.DESC))
-        );
+                Metric.NATIVE_MESSAGES_PRODUCED_DOWNSTREAM,
+                Set.of(Measure.SUM),
+                List.of(new MetricMeasuresQuery.Sort(Measure.SUM, MetricMeasuresQuery.Sort.Order.DESC)));
 
         var json = JSON.readTree(adapter.adapt(query(metric, Facet.NATIVE_TOPIC, 10)));
         var terms = json.at("/aggs/NATIVE_MESSAGES_PRODUCED_DOWNSTREAM#NATIVE_TOPIC/terms");
@@ -67,7 +65,8 @@ class EventMetricsFacetsQueryAdapterTest {
         assertThat(terms.get("size").asInt()).isEqualTo(10);
         // Without this, Elasticsearch falls back to `_count desc` — the number of 5s flush documents.
         // A topic with a steady trickle would then outrank a topic that carried a large burst.
-        assertThat(terms.at("/order/NATIVE_MESSAGES_PRODUCED_DOWNSTREAM#SUM").asText()).isEqualTo("desc");
+        assertThat(terms.at("/order/NATIVE_MESSAGES_PRODUCED_DOWNSTREAM#SUM").asText())
+                .isEqualTo("desc");
     }
 
     @Test
@@ -87,14 +86,13 @@ class EventMetricsFacetsQueryAdapterTest {
         // aggregation. Failing is the only honest option — emitting the query anyway would rank by
         // document count while the widget claims to rank by duration.
         var metric = new MetricMeasuresQuery(
-            Metric.NATIVE_OPERATION_BROKER_DURATION,
-            Set.of(Measure.AVG),
-            List.of(new MetricMeasuresQuery.Sort(Measure.AVG, MetricMeasuresQuery.Sort.Order.DESC))
-        );
+                Metric.NATIVE_OPERATION_BROKER_DURATION,
+                Set.of(Measure.AVG),
+                List.of(new MetricMeasuresQuery.Sort(Measure.AVG, MetricMeasuresQuery.Sort.Order.DESC)));
 
         assertThatThrownBy(() -> adapter.adapt(query(metric, Facet.NATIVE_OPERATION, 10)))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("pipeline aggregation");
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("pipeline aggregation");
     }
 
     @Test
@@ -106,9 +104,9 @@ class EventMetricsFacetsQueryAdapterTest {
 
         assertThat(bucket.at("/terms/field").asText()).isEqualTo("operation");
         // Assert the leaf too: without it this test would pass even if the measures were dropped.
-        assertThat(bucket.at("/aggs/_NATIVE_OPERATION_BROKER_DURATION#AVG/aggs/_duration_sum/sum/field").asText()).isEqualTo(
-            "endpoint-durations-nanos"
-        );
+        assertThat(bucket.at("/aggs/_NATIVE_OPERATION_BROKER_DURATION#AVG/aggs/_duration_sum/sum/field")
+                        .asText())
+                .isEqualTo("endpoint-durations-nanos");
     }
 
     @Test
@@ -119,18 +117,17 @@ class EventMetricsFacetsQueryAdapterTest {
         var topicMetric = new MetricMeasuresQuery(Metric.NATIVE_MESSAGES_PRODUCED_DOWNSTREAM, Set.of(Measure.SUM));
         var apiMetric = new MetricMeasuresQuery(Metric.NATIVE_ACTIVE_CONNECTIONS_DOWNSTREAM, Set.of(Measure.MAX));
         var mixed = new FacetsQuery(
-            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-            List.of(),
-            List.of(topicMetric, apiMetric),
-            List.of(Facet.API),
-            10,
-            List.of()
-        );
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                List.of(),
+                List.of(topicMetric, apiMetric),
+                List.of(Facet.API),
+                10,
+                List.of());
 
         assertThatThrownBy(() -> adapter.adapt(mixed))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("cannot mix documents types")
-            .hasMessageContaining("topic")
-            .hasMessageContaining("api");
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("cannot mix documents types")
+                .hasMessageContaining("topic")
+                .hasMessageContaining("api");
     }
 }

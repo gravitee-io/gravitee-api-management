@@ -38,15 +38,13 @@ public class DeletePortalThemeUseCase {
     public void execute(Input input) {
         var envId = input.auditInfo().environmentId();
         var theme = themeCrudService
-            .findByIdAndEnvironmentId(input.themeId(), envId)
-            .orElseThrow(() -> new ThemeNotFoundException(input.themeId()));
+                .findByIdAndEnvironmentId(input.themeId(), envId)
+                .orElseThrow(() -> new ThemeNotFoundException(input.themeId()));
 
-        var referencingPortalIds = portalCrudService
-            .findByActiveThemeIdAndEnvironmentId(theme.getId(), envId)
-            .stream()
-            .map(Portal::getId)
-            .map(Object::toString)
-            .toList();
+        var referencingPortalIds = portalCrudService.findByActiveThemeIdAndEnvironmentId(theme.getId(), envId).stream()
+                .map(Portal::getId)
+                .map(Object::toString)
+                .toList();
 
         if (!referencingPortalIds.isEmpty()) {
             throw new PortalThemeInUseException(theme.getId(), referencingPortalIds);

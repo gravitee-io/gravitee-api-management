@@ -57,10 +57,7 @@ class WeightedRoundRobinLoadBalancerTest {
         Endpoint endpoint1 = new Endpoint();
         endpoint1.setWeight(0);
         ManagedEndpoint managedEndpoint1 = new DefaultManagedEndpoint(
-            endpoint1,
-            new DefaultManagedEndpointGroup(new EndpointGroup()),
-            mock(EndpointConnector.class)
-        );
+                endpoint1, new DefaultManagedEndpointGroup(new EndpointGroup()), mock(EndpointConnector.class));
         endpoints.add(managedEndpoint1);
         WeightedRoundRobinLoadBalancer cut = new WeightedRoundRobinLoadBalancer(endpoints);
         // 1
@@ -74,26 +71,17 @@ class WeightedRoundRobinLoadBalancerTest {
         Endpoint endpoint1 = new Endpoint();
         endpoint1.setWeight(1);
         ManagedEndpoint managedEndpoint1 = new DefaultManagedEndpoint(
-            endpoint1,
-            new DefaultManagedEndpointGroup(new EndpointGroup()),
-            mock(EndpointConnector.class)
-        );
+                endpoint1, new DefaultManagedEndpointGroup(new EndpointGroup()), mock(EndpointConnector.class));
         endpoints.add(managedEndpoint1);
         Endpoint endpoint2 = new Endpoint();
         endpoint2.setWeight(5);
         ManagedEndpoint managedEndpoint2 = new DefaultManagedEndpoint(
-            endpoint2,
-            new DefaultManagedEndpointGroup(new EndpointGroup()),
-            mock(EndpointConnector.class)
-        );
+                endpoint2, new DefaultManagedEndpointGroup(new EndpointGroup()), mock(EndpointConnector.class));
         endpoints.add(managedEndpoint2);
         Endpoint endpoint3 = new Endpoint();
         endpoint3.setWeight(3);
         ManagedEndpoint managedEndpoint3 = new DefaultManagedEndpoint(
-            endpoint3,
-            new DefaultManagedEndpointGroup(new EndpointGroup()),
-            mock(EndpointConnector.class)
-        );
+                endpoint3, new DefaultManagedEndpointGroup(new EndpointGroup()), mock(EndpointConnector.class));
         endpoints.add(managedEndpoint3);
 
         WeightedRoundRobinLoadBalancer cut = new WeightedRoundRobinLoadBalancer(endpoints);
@@ -165,8 +153,12 @@ class WeightedRoundRobinLoadBalancerTest {
             executor.shutdown();
             boolean completed = executor.awaitTermination(9, TimeUnit.SECONDS);
 
-            assertThat(completed).as("All threads should complete without hanging").isTrue();
-            assertThat(failed).as("No thread should encounter a null result or exception").isFalse();
+            assertThat(completed)
+                    .as("All threads should complete without hanging")
+                    .isTrue();
+            assertThat(failed)
+                    .as("No thread should encounter a null result or exception")
+                    .isFalse();
         } finally {
             executor.shutdownNow();
         }
@@ -243,7 +235,9 @@ class WeightedRoundRobinLoadBalancerTest {
             executor.shutdown();
             boolean completed = executor.awaitTermination(9, TimeUnit.SECONDS);
 
-            assertThat(completed).as("All threads should complete without hanging").isTrue();
+            assertThat(completed)
+                    .as("All threads should complete without hanging")
+                    .isTrue();
             assertThat(failed).as("Single endpoint should always be returned").isFalse();
         } finally {
             executor.shutdownNow();
@@ -288,8 +282,12 @@ class WeightedRoundRobinLoadBalancerTest {
             executor.shutdown();
             boolean completed = executor.awaitTermination(9, TimeUnit.SECONDS);
 
-            assertThat(completed).as("All threads should complete even with concurrent refresh").isTrue();
-            assertThat(failed).as("No thread should encounter a null or invalid result").isFalse();
+            assertThat(completed)
+                    .as("All threads should complete even with concurrent refresh")
+                    .isTrue();
+            assertThat(failed)
+                    .as("No thread should encounter a null or invalid result")
+                    .isFalse();
         } finally {
             executor.shutdownNow();
         }
@@ -300,9 +298,8 @@ class WeightedRoundRobinLoadBalancerTest {
         for (int weight : weights) {
             Endpoint endpoint = new Endpoint();
             endpoint.setWeight(weight);
-            endpoints.add(
-                new DefaultManagedEndpoint(endpoint, new DefaultManagedEndpointGroup(new EndpointGroup()), mock(EndpointConnector.class))
-            );
+            endpoints.add(new DefaultManagedEndpoint(
+                    endpoint, new DefaultManagedEndpointGroup(new EndpointGroup()), mock(EndpointConnector.class)));
         }
         return endpoints;
     }

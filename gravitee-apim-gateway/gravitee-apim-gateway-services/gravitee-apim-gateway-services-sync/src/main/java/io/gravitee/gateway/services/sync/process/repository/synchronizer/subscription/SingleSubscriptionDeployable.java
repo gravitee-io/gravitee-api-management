@@ -73,7 +73,6 @@ public class SingleSubscriptionDeployable implements SubscriptionDeployable {
 
     public SingleSubscriptionDeployable subscriptions(final List<Subscription> subscriptions) {
         throw new UnsupportedOperationException(
-            String.format("Unable to override subscriptions for %s", SingleSubscriptionDeployable.class.getName())
-        );
+                String.format("Unable to override subscriptions for %s", SingleSubscriptionDeployable.class.getName()));
     }
 }

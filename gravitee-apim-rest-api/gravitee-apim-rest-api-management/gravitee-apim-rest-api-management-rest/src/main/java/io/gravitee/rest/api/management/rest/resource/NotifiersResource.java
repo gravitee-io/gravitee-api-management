@@ -59,17 +59,18 @@ public class NotifiersResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List notifier plugins", description = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Operation(
+            summary = "List notifier plugins",
+            description = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of notifiers",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = NotifierListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List of notifiers",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = NotifierListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)})
     public Collection<NotifierListItem> getNotifiers(@QueryParam("expand") List<String> expand) {
         Stream<NotifierListItem> stream = notifierService.findAll().stream().map(this::convert);
 

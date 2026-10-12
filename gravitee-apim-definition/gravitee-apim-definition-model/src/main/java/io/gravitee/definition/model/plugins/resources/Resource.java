@@ -45,10 +45,9 @@ public class Resource implements Serializable {
 
     @JsonCreator
     public Resource(
-        @JsonProperty(value = "name", required = true) String name,
-        @JsonProperty(value = "type", required = true) String type,
-        @JsonProperty(value = "configuration", required = true) JsonNode configuration
-    ) {
+            @JsonProperty(value = "name", required = true) String name,
+            @JsonProperty(value = "type", required = true) String type,
+            @JsonProperty(value = "configuration", required = true) JsonNode configuration) {
         this.name = name;
         this.type = type;
         this.configuration = configuration;

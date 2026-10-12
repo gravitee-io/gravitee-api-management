@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @Component
 public class ApplicationMapper {
 
@@ -54,7 +53,8 @@ public class ApplicationMapper {
     @Autowired
     private GroupService groupService;
 
-    public Application convert(ExecutionContext executionContext, ApplicationListItem applicationListItem, UriInfo uriInfo) {
+    public Application convert(
+            ExecutionContext executionContext, ApplicationListItem applicationListItem, UriInfo uriInfo) {
         return convert(executionContext, applicationListItem, uriInfo, true);
     }
 
@@ -63,13 +63,15 @@ public class ApplicationMapper {
         applicationLinks.setMembers(basePath + "/members");
         applicationLinks.setNotifications(basePath + "/notifications");
         applicationLinks.setPicture(basePath + "/picture" + (updateDate == null ? "" : "?" + updateDate.hashCode()));
-        applicationLinks.setBackground(basePath + "/background" + (updateDate == null ? "" : "?" + updateDate.hashCode()));
+        applicationLinks.setBackground(
+                basePath + "/background" + (updateDate == null ? "" : "?" + updateDate.hashCode()));
         applicationLinks.setSelf(basePath);
 
         return applicationLinks;
     }
 
-    public Application convert(ExecutionContext executionContext, ApplicationEntity applicationEntity, UriInfo uriInfo) {
+    public Application convert(
+            ExecutionContext executionContext, ApplicationEntity applicationEntity, UriInfo uriInfo) {
         final Application application = new Application();
 
         application.setApplicationType(applicationEntity.getType());
@@ -78,11 +80,10 @@ public class ApplicationMapper {
         application.setDomain(applicationEntity.getDomain());
         Set<String> groupEntities = applicationEntity.getGroups();
         if (groupEntities != null && !groupEntities.isEmpty()) {
-            List<Group> groups = groupEntities
-                .stream()
-                .map(groupId -> groupService.findById(executionContext, groupId))
-                .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
-                .collect(Collectors.toList());
+            List<Group> groups = groupEntities.stream()
+                    .map(groupId -> groupService.findById(executionContext, groupId))
+                    .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
+                    .collect(Collectors.toList());
             application.setGroups(groups);
         }
 
@@ -92,14 +93,12 @@ public class ApplicationMapper {
             application.setOrigin(applicationEntity.getOrigin().toString());
         }
 
-        UserEntity primaryOwnerUserEntity = userService.findById(executionContext, applicationEntity.getPrimaryOwner().getId());
+        UserEntity primaryOwnerUserEntity = userService.findById(
+                executionContext, applicationEntity.getPrimaryOwner().getId());
         User owner = userMapper.convert(primaryOwnerUserEntity);
-        owner.setLinks(
-            userMapper.computeUserLinks(
+        owner.setLinks(userMapper.computeUserLinks(
                 usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()),
-                primaryOwnerUserEntity.getUpdatedAt()
-            )
-        );
+                primaryOwnerUserEntity.getUpdatedAt()));
         application.setOwner(owner);
 
         application.setUpdatedAt(applicationEntity.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
@@ -109,7 +108,8 @@ public class ApplicationMapper {
         convertSettings(applicationEntity.getSettings(), application);
 
         if (applicationEntity.getApiKeyMode() != null) {
-            application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationEntity.getApiKeyMode().name()));
+            application.setApiKeyMode(
+                    ApiKeyModeEnum.valueOf(applicationEntity.getApiKeyMode().name()));
         } else {
             application.setApiKeyMode(ApiKeyModeEnum.UNSPECIFIED);
         }
@@ -117,11 +117,10 @@ public class ApplicationMapper {
     }
 
     public Application convert(
-        ExecutionContext executionContext,
-        ApplicationListItem applicationListItem,
-        UriInfo uriInfo,
-        boolean withUserDetails
-    ) {
+            ExecutionContext executionContext,
+            ApplicationListItem applicationListItem,
+            UriInfo uriInfo,
+            boolean withUserDetails) {
         final Application application = new Application();
         application.setApplicationType(applicationListItem.getType());
         application.setCreatedAt(applicationListItem.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
@@ -129,11 +128,10 @@ public class ApplicationMapper {
         application.setDomain(applicationListItem.getDomain());
         Set<String> groupEntities = applicationListItem.getGroups();
         if (groupEntities != null && !groupEntities.isEmpty()) {
-            List<Group> groups = groupEntities
-                .stream()
-                .map(groupId -> groupService.findById(executionContext, groupId))
-                .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
-                .collect(Collectors.toList());
+            List<Group> groups = groupEntities.stream()
+                    .map(groupId -> groupService.findById(executionContext, groupId))
+                    .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
+                    .collect(Collectors.toList());
             application.setGroups(groups);
         }
         application.setId(applicationListItem.getId());
@@ -147,15 +145,13 @@ public class ApplicationMapper {
         if (withUserDetails) {
             UserEntity primaryOwnerUserEntity = userService.findById(executionContext, primaryOwner.getId());
             owner = userMapper.convert(primaryOwnerUserEntity);
-            owner.setLinks(
-                userMapper.computeUserLinks(
+            owner.setLinks(userMapper.computeUserLinks(
                     usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()),
-                    primaryOwnerUserEntity.getUpdatedAt()
-                )
-            );
+                    primaryOwnerUserEntity.getUpdatedAt()));
         } else {
             owner = userMapper.convert(primaryOwner);
-            owner.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwner.getId()), null));
+            owner.setLinks(
+                    userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwner.getId()), null));
         }
 
         application.setOwner(owner);
@@ -164,7 +160,8 @@ public class ApplicationMapper {
         convertSettings(applicationListItem.getSettings(), application);
 
         if (applicationListItem.getApiKeyMode() != null) {
-            application.setApiKeyMode(ApiKeyModeEnum.valueOf(applicationListItem.getApiKeyMode().name()));
+            application.setApiKeyMode(
+                    ApiKeyModeEnum.valueOf(applicationListItem.getApiKeyMode().name()));
         } else {
             application.setApiKeyMode(ApiKeyModeEnum.UNSPECIFIED);
         }
@@ -174,22 +171,19 @@ public class ApplicationMapper {
     private static void convertSettings(ApplicationSettings applicationEntitySettings, Application application) {
         if (applicationEntitySettings != null) {
             io.gravitee.rest.api.portal.rest.model.ApplicationSettings appSettings =
-                new io.gravitee.rest.api.portal.rest.model.ApplicationSettings();
+                    new io.gravitee.rest.api.portal.rest.model.ApplicationSettings();
 
             final SimpleApplicationSettings simpleAppEntitySettings = applicationEntitySettings.getApp();
             if (simpleAppEntitySettings != null) {
-                appSettings.app(
-                    new io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings()
+                appSettings.app(new io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings()
                         .clientId(simpleAppEntitySettings.getClientId())
-                        .type(simpleAppEntitySettings.getType())
-                );
+                        .type(simpleAppEntitySettings.getType()));
                 application.setHasClientId(simpleAppEntitySettings.getClientId() != null);
             } else {
                 final OAuthClientSettings oAuthClientEntitySettings = applicationEntitySettings.getOauth();
 
                 if (oAuthClientEntitySettings != null) {
-                    appSettings.oauth(
-                        new io.gravitee.rest.api.portal.rest.model.OAuthClientSettings()
+                    appSettings.oauth(new io.gravitee.rest.api.portal.rest.model.OAuthClientSettings()
                             .applicationType(oAuthClientEntitySettings.getApplicationType())
                             .clientId(oAuthClientEntitySettings.getClientId())
                             .clientSecret(oAuthClientEntitySettings.getClientSecret())
@@ -198,15 +192,15 @@ public class ApplicationMapper {
                             .grantTypes(oAuthClientEntitySettings.getGrantTypes())
                             .redirectUris(oAuthClientEntitySettings.getRedirectUris())
                             .responseTypes(oAuthClientEntitySettings.getResponseTypes())
-                            .renewClientSecretSupported(oAuthClientEntitySettings.isRenewClientSecretSupported())
-                    );
+                            .renewClientSecretSupported(oAuthClientEntitySettings.isRenewClientSecretSupported()));
                     application.setHasClientId(oAuthClientEntitySettings.getClientId() != null);
                 } else {
                     application.setHasClientId(false);
                 }
             }
             if (applicationEntitySettings.getTls() != null) {
-                appSettings.setTls(new TlsClientSettings().clientCertificate(applicationEntitySettings.getTls().getClientCertificate()));
+                appSettings.setTls(new TlsClientSettings()
+                        .clientCertificate(applicationEntitySettings.getTls().getClientCertificate()));
             }
             application.setSettings(appSettings);
         }

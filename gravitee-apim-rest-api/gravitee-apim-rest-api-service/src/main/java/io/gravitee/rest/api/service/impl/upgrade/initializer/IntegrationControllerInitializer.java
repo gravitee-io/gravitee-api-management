@@ -17,12 +17,9 @@ package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
 import io.gravitee.exchange.api.configuration.IdentifyConfiguration;
 import io.gravitee.exchange.api.controller.ExchangeController;
-import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.api.initializer.Initializer;
-import io.gravitee.node.api.license.LicenseManager;
 import java.util.Optional;
 import lombok.CustomLog;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -34,9 +31,8 @@ public class IntegrationControllerInitializer implements Initializer {
     private final IdentifyConfiguration identifyConfiguration;
 
     public IntegrationControllerInitializer(
-        @Qualifier("integrationExchangeController") Optional<ExchangeController> integrationExchangeController,
-        @Qualifier("integrationIdentifyConfiguration") Optional<IdentifyConfiguration> identifyConfiguration
-    ) {
+            @Qualifier("integrationExchangeController") Optional<ExchangeController> integrationExchangeController,
+            @Qualifier("integrationIdentifyConfiguration") Optional<IdentifyConfiguration> identifyConfiguration) {
         this.integrationExchangeController = integrationExchangeController.orElse(null);
         this.identifyConfiguration = identifyConfiguration.orElse(null);
     }

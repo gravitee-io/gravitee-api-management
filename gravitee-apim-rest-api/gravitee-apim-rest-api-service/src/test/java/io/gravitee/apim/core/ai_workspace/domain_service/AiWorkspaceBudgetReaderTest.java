@@ -28,9 +28,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 class AiWorkspaceBudgetReaderTest {
 
     @ParameterizedTest
-    @CsvSource({ "60,HOUR", "1440,DAY", "10080,WEEK", "43200,MONTH" })
+    @CsvSource({"60,HOUR", "1440,DAY", "10080,WEEK", "43200,MONTH"})
     void converts_micro_dollars_and_minutes(int minutes, String period) {
-        var budget = AiWorkspaceBudgetReader.read(List.of(flow(config(5_000_000, minutes)))).orElseThrow();
+        var budget = AiWorkspaceBudgetReader.read(List.of(flow(config(5_000_000, minutes))))
+                .orElseThrow();
 
         assertThat(budget.amount()).isEqualByComparingTo(new BigDecimal("5.00"));
         assertThat(budget.period()).isEqualTo(period);
@@ -53,12 +54,14 @@ class AiWorkspaceBudgetReaderTest {
     @Test
     void malformed_configuration_is_empty() {
         assertThat(AiWorkspaceBudgetReader.read(List.of(flow("not-json")))).isEmpty();
-        assertThat(AiWorkspaceBudgetReader.read(List.of(flow("not-json")), "plan-1")).isEmpty();
+        assertThat(AiWorkspaceBudgetReader.read(List.of(flow("not-json")), "plan-1"))
+                .isEmpty();
     }
 
     @Test
     void unknown_window_keeps_the_amount() {
-        var budget = AiWorkspaceBudgetReader.read(List.of(flow(config(2_500_000, 90)))).orElseThrow();
+        var budget = AiWorkspaceBudgetReader.read(List.of(flow(config(2_500_000, 90))))
+                .orElseThrow();
 
         assertThat(budget.amount()).isEqualByComparingTo(new BigDecimal("2.50"));
         assertThat(budget.period()).isNull();
@@ -66,15 +69,15 @@ class AiWorkspaceBudgetReaderTest {
 
     @Test
     void converts_period_time_unit_before_the_lookup() {
-        var week = AiWorkspaceBudgetReader.read(
-            List.of(flow("{\"rate\":{\"limit\":50000000,\"periodTime\":10080,\"periodTimeUnit\":\"MINUTES\"}}"))
-        ).orElseThrow();
+        var week = AiWorkspaceBudgetReader.read(List.of(
+                        flow("{\"rate\":{\"limit\":50000000,\"periodTime\":10080,\"periodTimeUnit\":\"MINUTES\"}}")))
+                .orElseThrow();
         var hour = AiWorkspaceBudgetReader.read(
-            List.of(flow("{\"rate\":{\"limit\":1000000,\"periodTime\":1,\"periodTimeUnit\":\"HOURS\"}}"))
-        ).orElseThrow();
-        var seconds = AiWorkspaceBudgetReader.read(
-            List.of(flow("{\"rate\":{\"limit\":1000000,\"periodTime\":60,\"periodTimeUnit\":\"SECONDS\"}}"))
-        ).orElseThrow();
+                        List.of(flow("{\"rate\":{\"limit\":1000000,\"periodTime\":1,\"periodTimeUnit\":\"HOURS\"}}")))
+                .orElseThrow();
+        var seconds = AiWorkspaceBudgetReader.read(List.of(
+                        flow("{\"rate\":{\"limit\":1000000,\"periodTime\":60,\"periodTimeUnit\":\"SECONDS\"}}")))
+                .orElseThrow();
 
         assertThat(week.period()).isEqualTo("WEEK");
         assertThat(week.amount()).isEqualByComparingTo(new BigDecimal("50.00"));
@@ -82,13 +85,14 @@ class AiWorkspaceBudgetReaderTest {
         assertThat(seconds.amount()).isEqualByComparingTo(new BigDecimal("1.00"));
         assertThat(seconds.period()).isNull();
 
-        var partialMinute = AiWorkspaceBudgetReader.read(
-            List.of(flow("{\"rate\":{\"limit\":1000000,\"periodTime\":3630,\"periodTimeUnit\":\"SECONDS\"}}"))
-        ).orElseThrow();
+        var partialMinute = AiWorkspaceBudgetReader.read(List.of(
+                        flow("{\"rate\":{\"limit\":1000000,\"periodTime\":3630,\"periodTimeUnit\":\"SECONDS\"}}")))
+                .orElseThrow();
         var exactHour = AiWorkspaceBudgetReader.read(
-            List.of(flow("{\"rate\":{\"limit\":1000000,\"periodTime\":3600,\"periodTimeUnit\":\"SECONDS\"}}")),
-            "plan-1"
-        ).orElseThrow();
+                        List.of(flow(
+                                "{\"rate\":{\"limit\":1000000,\"periodTime\":3600,\"periodTimeUnit\":\"SECONDS\"}}")),
+                        "plan-1")
+                .orElseThrow();
 
         assertThat(partialMinute.amount()).isEqualByComparingTo(new BigDecimal("1.00"));
         assertThat(partialMinute.period()).isNull();
@@ -121,6 +125,7 @@ class AiWorkspaceBudgetReaderTest {
     }
 
     private static String config(long microDollars, int minutes) {
-        return "{\"rate\":{\"limit\":" + microDollars + ",\"periodTime\":" + minutes + ",\"periodTimeUnit\":\"MINUTES\"}}";
+        return "{\"rate\":{\"limit\":" + microDollars + ",\"periodTime\":" + minutes
+                + ",\"periodTimeUnit\":\"MINUTES\"}}";
     }
 }

@@ -29,7 +29,6 @@ import io.gravitee.apim.core.subscription.model.ExpiringSubscription;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.key.ApiKeyQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -51,7 +50,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
     @InjectMocks
-    ScheduledSubscriptionPreExpirationNotificationService service = new ScheduledSubscriptionPreExpirationNotificationService();
+    ScheduledSubscriptionPreExpirationNotificationService service =
+            new ScheduledSubscriptionPreExpirationNotificationService();
 
     @Mock
     UserService userService;
@@ -95,10 +95,12 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         Instant now = Instant.ofEpochMilli(1_700_000_000_000L);
         long oneDay = 24L * 60L * 60L * 1000L;
-        ZonedDateTime expire30 = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + 5 * 60_000L).atZone(ZoneOffset.UTC);
+        ZonedDateTime expire30 = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + 5 * 60_000L)
+                .atZone(ZoneOffset.UTC);
         ExpiringApiKey key30 = new ExpiringApiKey("k30", null, expire30, null, null, List.of());
 
-        when(apiKeyQueryService.findExpiringApiKeys(eq(now), eq(List.of(30)), anyLong())).thenReturn(List.of(key30));
+        when(apiKeyQueryService.findExpiringApiKeys(eq(now), eq(List.of(30)), anyLong()))
+                .thenReturn(List.of(key30));
 
         Map<Integer, List<ExpiringApiKey>> buckets = service.bucketExpiringApiKeys(now);
 
@@ -114,7 +116,8 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         Instant now = Instant.ofEpochMilli(1_700_000_000_000L);
         ExpiringApiKey nullExpire = new ExpiringApiKey("k-null", null, null, null, null, List.of());
 
-        when(apiKeyQueryService.findExpiringApiKeys(eq(now), anyList(), anyLong())).thenReturn(List.of(nullExpire));
+        when(apiKeyQueryService.findExpiringApiKeys(eq(now), anyList(), anyLong()))
+                .thenReturn(List.of(nullExpire));
 
         Map<Integer, List<ExpiringApiKey>> buckets = service.bucketExpiringApiKeys(now);
 
@@ -127,15 +130,19 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         Instant now = Instant.ofEpochMilli(1_700_000_000_000L);
         long oneDay = 24L * 60L * 60L * 1000L;
-        ZonedDateTime expire30 = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + 5 * 60_000L).atZone(ZoneOffset.UTC);
-        ZonedDateTime expire45 = Instant.ofEpochMilli(now.toEpochMilli() + 45 * oneDay + 5 * 60_000L).atZone(ZoneOffset.UTC);
-        ZonedDateTime expire90 = Instant.ofEpochMilli(now.toEpochMilli() + 90 * oneDay + 5 * 60_000L).atZone(ZoneOffset.UTC);
+        ZonedDateTime expire30 = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + 5 * 60_000L)
+                .atZone(ZoneOffset.UTC);
+        ZonedDateTime expire45 = Instant.ofEpochMilli(now.toEpochMilli() + 45 * oneDay + 5 * 60_000L)
+                .atZone(ZoneOffset.UTC);
+        ZonedDateTime expire90 = Instant.ofEpochMilli(now.toEpochMilli() + 90 * oneDay + 5 * 60_000L)
+                .atZone(ZoneOffset.UTC);
 
         ExpiringApiKey key30 = new ExpiringApiKey("k30", null, expire30, null, null, List.of());
         ExpiringApiKey key45 = new ExpiringApiKey("k45", null, expire45, null, null, List.of());
         ExpiringApiKey key90 = new ExpiringApiKey("k90", null, expire90, null, null, List.of());
 
-        when(apiKeyQueryService.findExpiringApiKeys(eq(now), anyList(), anyLong())).thenReturn(List.of(key30, key45, key90));
+        when(apiKeyQueryService.findExpiringApiKeys(eq(now), anyList(), anyLong()))
+                .thenReturn(List.of(key30, key45, key90));
 
         Map<Integer, List<ExpiringApiKey>> buckets = service.bucketExpiringApiKeys(now);
 
@@ -150,20 +157,22 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         ZonedDateTime expire30 = ZonedDateTime.now().plus(Duration.ofDays(30)).plusMinutes(5);
         ExpiringApiKey key = new ExpiringApiKey(
-            "key-id",
-            "actual-key-value",
-            expire30,
-            null,
-            "app1",
-            List.of(new ExpiringApiKeySubscription("sub1", "api1", "plan1", "user1"))
-        );
+                "key-id",
+                "actual-key-value",
+                expire30,
+                null,
+                "app1",
+                List.of(new ExpiringApiKeySubscription("sub1", "api1", "plan1", "user1")));
 
-        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList())).thenReturn(List.of());
-        when(apiKeyQueryService.findExpiringApiKeys(any(Instant.class), anyList(), anyLong())).thenReturn(List.of(key));
+        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList()))
+                .thenReturn(List.of());
+        when(apiKeyQueryService.findExpiringApiKeys(any(Instant.class), anyList(), anyLong()))
+                .thenReturn(List.of(key));
 
         UserEntity subscriber = mock(UserEntity.class);
         when(subscriber.getEmail()).thenReturn("subscriber@example.com");
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq("user1"))).thenReturn(subscriber);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq("user1")))
+                .thenReturn(subscriber);
         ApplicationEntity app = mock(ApplicationEntity.class);
         PrimaryOwnerEntity po = mock(PrimaryOwnerEntity.class);
         when(app.getPrimaryOwner()).thenReturn(po);
@@ -171,13 +180,10 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         service.run();
 
-        verify(emailService).sendAsyncEmailNotification(
-            any(),
-            argThat(notification -> {
-                Object apiKeyParam = notification.getParams().get("apiKey");
-                return apiKeyParam instanceof ApiKeyEntity ake && "actual-key-value".equals(ake.getKey());
-            })
-        );
+        verify(emailService).sendAsyncEmailNotification(any(), argThat(notification -> {
+            Object apiKeyParam = notification.getParams().get("apiKey");
+            return apiKeyParam instanceof ApiKeyEntity ake && "actual-key-value".equals(ake.getKey());
+        }));
     }
 
     @Test
@@ -185,33 +191,25 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         setNotificationDays(List.of(30));
 
         ZonedDateTime expire30 = ZonedDateTime.now().plus(Duration.ofDays(30)).plusMinutes(5);
-        ExpiringSubscription expiringSub = new ExpiringSubscription(
-            "sub-already",
-            "api-already",
-            "plan-x",
-            "app1",
-            "user1",
-            expire30,
-            null
-        );
+        ExpiringSubscription expiringSub =
+                new ExpiringSubscription("sub-already", "api-already", "plan-x", "app1", "user1", expire30, null);
         ExpiringApiKey key = new ExpiringApiKey(
-            "key1",
-            null,
-            expire30,
-            null,
-            "app1",
-            List.of(
-                new ExpiringApiKeySubscription("sub-already", "api-already", "plan-x", "user1"),
-                new ExpiringApiKeySubscription("sub-fresh", "api-fresh", "plan-y", "user1")
-            )
-        );
+                "key1",
+                null,
+                expire30,
+                null,
+                "app1",
+                List.of(
+                        new ExpiringApiKeySubscription("sub-already", "api-already", "plan-x", "user1"),
+                        new ExpiringApiKeySubscription("sub-fresh", "api-fresh", "plan-y", "user1")));
 
-        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList())).thenReturn(
-            List.of(expiringSub)
-        );
-        when(apiKeyQueryService.findExpiringApiKeys(any(Instant.class), anyList(), anyLong())).thenReturn(List.of(key));
+        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList()))
+                .thenReturn(List.of(expiringSub));
+        when(apiKeyQueryService.findExpiringApiKeys(any(Instant.class), anyList(), anyLong()))
+                .thenReturn(List.of(key));
 
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq("user1"))).thenReturn(mock(UserEntity.class));
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq("user1")))
+                .thenReturn(mock(UserEntity.class));
         ApplicationEntity app = mock(ApplicationEntity.class);
         when(app.getPrimaryOwner()).thenReturn(mock(PrimaryOwnerEntity.class));
         when(applicationService.findById(any(), eq("app1"))).thenReturn(app);
@@ -219,7 +217,8 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         service.run();
 
         verify(apiSearchService).findGenericById(any(), eq("api-fresh"), eq(false), eq(false), eq(false));
-        verify(apiSearchService, never()).findGenericById(any(), eq("api-already"), anyBoolean(), anyBoolean(), anyBoolean());
+        verify(apiSearchService, never())
+                .findGenericById(any(), eq("api-already"), anyBoolean(), anyBoolean(), anyBoolean());
     }
 
     @Test
@@ -229,33 +228,32 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         ZonedDateTime expire30 = ZonedDateTime.now().plus(Duration.ofDays(30)).plusMinutes(5);
 
         ExpiringApiKey alreadyNotifiedAtSameDay = new ExpiringApiKey("already-30", null, expire30, 30, null, List.of());
-        ExpiringApiKey alreadyNotifiedAtSmallerDay = new ExpiringApiKey("already-15", null, expire30, 15, null, List.of());
+        ExpiringApiKey alreadyNotifiedAtSmallerDay =
+                new ExpiringApiKey("already-15", null, expire30, 15, null, List.of());
         ExpiringApiKey neverNotified = new ExpiringApiKey("fresh", null, expire30, null, null, List.of());
-        ExpiringApiKey notifiedAtLargerDay = new ExpiringApiKey("earlier-notification", null, expire30, 45, null, List.of());
+        ExpiringApiKey notifiedAtLargerDay =
+                new ExpiringApiKey("earlier-notification", null, expire30, 45, null, List.of());
 
-        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList())).thenReturn(List.of());
-        when(apiKeyQueryService.findExpiringApiKeys(any(Instant.class), anyList(), anyLong())).thenReturn(
-            List.of(alreadyNotifiedAtSameDay, alreadyNotifiedAtSmallerDay, neverNotified, notifiedAtLargerDay)
-        );
+        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList()))
+                .thenReturn(List.of());
+        when(apiKeyQueryService.findExpiringApiKeys(any(Instant.class), anyList(), anyLong()))
+                .thenReturn(List.of(
+                        alreadyNotifiedAtSameDay, alreadyNotifiedAtSmallerDay, neverNotified, notifiedAtLargerDay));
 
         service.run();
 
-        verify(apiKeyService).updateDaysToExpirationOnLastNotification(any(), argThat(k -> k != null && "fresh".equals(k.getId())), eq(30));
-        verify(apiKeyService).updateDaysToExpirationOnLastNotification(
-            any(),
-            argThat(k -> k != null && "earlier-notification".equals(k.getId())),
-            eq(30)
-        );
-        verify(apiKeyService, never()).updateDaysToExpirationOnLastNotification(
-            any(),
-            argThat(k -> k != null && "already-30".equals(k.getId())),
-            any()
-        );
-        verify(apiKeyService, never()).updateDaysToExpirationOnLastNotification(
-            any(),
-            argThat(k -> k != null && "already-15".equals(k.getId())),
-            any()
-        );
+        verify(apiKeyService)
+                .updateDaysToExpirationOnLastNotification(
+                        any(), argThat(k -> k != null && "fresh".equals(k.getId())), eq(30));
+        verify(apiKeyService)
+                .updateDaysToExpirationOnLastNotification(
+                        any(), argThat(k -> k != null && "earlier-notification".equals(k.getId())), eq(30));
+        verify(apiKeyService, never())
+                .updateDaysToExpirationOnLastNotification(
+                        any(), argThat(k -> k != null && "already-30".equals(k.getId())), any());
+        verify(apiKeyService, never())
+                .updateDaysToExpirationOnLastNotification(
+                        any(), argThat(k -> k != null && "already-15".equals(k.getId())), any());
     }
 
     @Test
@@ -265,19 +263,24 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         Instant now = Instant.ofEpochMilli(1_700_000_000_000L);
         long oneDay = 24L * 60L * 60L * 1000L;
         long oneHour = 60L * 60L * 1000L;
-        ZonedDateTime atLo = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay).atZone(ZoneOffset.UTC);
-        ZonedDateTime justInsideHi = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + oneHour - 1).atZone(ZoneOffset.UTC);
-        ZonedDateTime atHi = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + oneHour).atZone(ZoneOffset.UTC);
-        ZonedDateTime justBeforeLo = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay - 1).atZone(ZoneOffset.UTC);
+        ZonedDateTime atLo =
+                Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay).atZone(ZoneOffset.UTC);
+        ZonedDateTime justInsideHi = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + oneHour - 1)
+                .atZone(ZoneOffset.UTC);
+        ZonedDateTime atHi =
+                Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + oneHour).atZone(ZoneOffset.UTC);
+        ZonedDateTime justBeforeLo =
+                Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay - 1).atZone(ZoneOffset.UTC);
 
         ExpiringApiKey keyAtLo = new ExpiringApiKey("at-lo", null, atLo, null, null, List.of());
-        ExpiringApiKey keyJustInsideHi = new ExpiringApiKey("just-inside-hi", null, justInsideHi, null, null, List.of());
+        ExpiringApiKey keyJustInsideHi =
+                new ExpiringApiKey("just-inside-hi", null, justInsideHi, null, null, List.of());
         ExpiringApiKey keyAtHi = new ExpiringApiKey("at-hi", null, atHi, null, null, List.of());
-        ExpiringApiKey keyJustBeforeLo = new ExpiringApiKey("just-before-lo", null, justBeforeLo, null, null, List.of());
+        ExpiringApiKey keyJustBeforeLo =
+                new ExpiringApiKey("just-before-lo", null, justBeforeLo, null, null, List.of());
 
-        when(apiKeyQueryService.findExpiringApiKeys(eq(now), anyList(), anyLong())).thenReturn(
-            List.of(keyAtLo, keyJustInsideHi, keyAtHi, keyJustBeforeLo)
-        );
+        when(apiKeyQueryService.findExpiringApiKeys(eq(now), anyList(), anyLong()))
+                .thenReturn(List.of(keyAtLo, keyJustInsideHi, keyAtHi, keyJustBeforeLo));
 
         Map<Integer, List<ExpiringApiKey>> buckets = service.bucketExpiringApiKeys(now);
 
@@ -287,28 +290,32 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
     @Test
     void shouldQueryExpiringApiKeysOnceRegardlessOfScheduleLength() throws Exception {
         setNotificationDays(List.of(90, 45, 30));
-        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList())).thenReturn(List.of());
-        when(apiKeyQueryService.findExpiringApiKeys(any(Instant.class), anyList(), anyLong())).thenReturn(List.of());
+        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList()))
+                .thenReturn(List.of());
+        when(apiKeyQueryService.findExpiringApiKeys(any(Instant.class), anyList(), anyLong()))
+                .thenReturn(List.of());
 
         service.run();
 
-        verify(apiKeyQueryService, times(1)).findExpiringApiKeys(any(Instant.class), eq(List.of(90, 45, 30)), anyLong());
+        verify(apiKeyQueryService, times(1))
+                .findExpiringApiKeys(any(Instant.class), eq(List.of(90, 45, 30)), anyLong());
         verify(apiKeyService, never()).search(any(), any());
     }
 
     @Test
     void shouldQueryExpiringSubscriptionsOnceRegardlessOfScheduleLength() throws Exception {
         setNotificationDays(List.of(90, 45, 30));
-        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList())).thenReturn(List.of());
+        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList()))
+                .thenReturn(List.of());
 
         service.run();
 
-        verify(subscriptionQueryService, times(1)).findExpiringSubscriptions(
-            any(Instant.class),
-            eq(List.of(90, 45, 30)),
-            anyLong(),
-            eq(List.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED))
-        );
+        verify(subscriptionQueryService, times(1))
+                .findExpiringSubscriptions(
+                        any(Instant.class),
+                        eq(List.of(90, 45, 30)),
+                        anyLong(),
+                        eq(List.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED)));
     }
 
     @Test
@@ -325,11 +332,11 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         ExpiringSubscription sub45 = new ExpiringSubscription("s45", "api1", "plan1", "app1", "user1", ending45, null);
         ExpiringSubscription sub90 = new ExpiringSubscription("s90", "api1", "plan1", "app1", "user1", ending90, null);
 
-        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList())).thenReturn(
-            List.of(sub30, sub45, sub90)
-        );
+        when(subscriptionQueryService.findExpiringSubscriptions(any(Instant.class), anyList(), anyLong(), anyList()))
+                .thenReturn(List.of(sub30, sub45, sub90));
 
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq("user1"))).thenReturn(mock(UserEntity.class));
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq("user1")))
+                .thenReturn(mock(UserEntity.class));
         ApplicationEntity app = mock(ApplicationEntity.class);
         when(app.getPrimaryOwner()).thenReturn(mock(PrimaryOwnerEntity.class));
         when(applicationService.findById(any(), eq("app1"))).thenReturn(app);
@@ -349,19 +356,24 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         Instant now = Instant.ofEpochMilli(1_700_000_000_000L);
         long oneDay = 24L * 60L * 60L * 1000L;
         long oneHour = 60L * 60L * 1000L;
-        ZonedDateTime atLo = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay).atZone(ZoneOffset.UTC);
-        ZonedDateTime justInsideHi = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + oneHour - 1).atZone(ZoneOffset.UTC);
-        ZonedDateTime atHi = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + oneHour).atZone(ZoneOffset.UTC);
-        ZonedDateTime justBeforeLo = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay - 1).atZone(ZoneOffset.UTC);
+        ZonedDateTime atLo =
+                Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay).atZone(ZoneOffset.UTC);
+        ZonedDateTime justInsideHi = Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + oneHour - 1)
+                .atZone(ZoneOffset.UTC);
+        ZonedDateTime atHi =
+                Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay + oneHour).atZone(ZoneOffset.UTC);
+        ZonedDateTime justBeforeLo =
+                Instant.ofEpochMilli(now.toEpochMilli() + 30 * oneDay - 1).atZone(ZoneOffset.UTC);
 
         ExpiringSubscription subAtLo = new ExpiringSubscription("at-lo", "a", "p", "ap", "u", atLo, null);
-        ExpiringSubscription subJustInsideHi = new ExpiringSubscription("just-inside-hi", "a", "p", "ap", "u", justInsideHi, null);
+        ExpiringSubscription subJustInsideHi =
+                new ExpiringSubscription("just-inside-hi", "a", "p", "ap", "u", justInsideHi, null);
         ExpiringSubscription subAtHi = new ExpiringSubscription("at-hi", "a", "p", "ap", "u", atHi, null);
-        ExpiringSubscription subJustBeforeLo = new ExpiringSubscription("just-before-lo", "a", "p", "ap", "u", justBeforeLo, null);
+        ExpiringSubscription subJustBeforeLo =
+                new ExpiringSubscription("just-before-lo", "a", "p", "ap", "u", justBeforeLo, null);
 
-        when(subscriptionQueryService.findExpiringSubscriptions(eq(now), anyList(), anyLong(), anyList())).thenReturn(
-            List.of(subAtLo, subJustInsideHi, subAtHi, subJustBeforeLo)
-        );
+        when(subscriptionQueryService.findExpiringSubscriptions(eq(now), anyList(), anyLong(), anyList()))
+                .thenReturn(List.of(subAtLo, subJustInsideHi, subAtHi, subJustBeforeLo));
 
         var buckets = service.bucketExpiringSubscriptions(now);
 
@@ -380,7 +392,8 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         UserEntity subscriber = mock(UserEntity.class);
         when(subscriber.getEmail()).thenReturn("subscriber@gravitee.io");
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), subscriberId)).thenReturn(subscriber);
+        when(userService.findById(GraviteeContext.getExecutionContext(), subscriberId))
+                .thenReturn(subscriber);
 
         PrimaryOwnerEntity primaryOwner = mock(PrimaryOwnerEntity.class);
         when(primaryOwner.getEmail()).thenReturn("primary_owner@gravitee.io");
@@ -402,7 +415,8 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         UserEntity subscriber = mock(UserEntity.class);
         when(subscriber.getEmail()).thenReturn("primary_owner@gravitee.io");
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), subscriberId)).thenReturn(subscriber);
+        when(userService.findById(GraviteeContext.getExecutionContext(), subscriberId))
+                .thenReturn(subscriber);
 
         PrimaryOwnerEntity primaryOwner = mock(PrimaryOwnerEntity.class);
         when(primaryOwner.getEmail()).thenReturn("primary_owner@gravitee.io");
@@ -431,15 +445,16 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         service.sendEmail(subscriberEmail, day, api, plan, application, apiKey);
 
         EmailNotification emailNotification = new EmailNotificationBuilder()
-            .to(subscriberEmail)
-            .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_SUBSCRIPTION_PRE_EXPIRATION)
-            .param("expirationDelay", day)
-            .param("api", api)
-            .param("plan", plan)
-            .param("application", application)
-            .param("apiKey", apiKey)
-            .build();
+                .to(subscriberEmail)
+                .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_SUBSCRIPTION_PRE_EXPIRATION)
+                .param("expirationDelay", day)
+                .param("api", api)
+                .param("plan", plan)
+                .param("application", application)
+                .param("apiKey", apiKey)
+                .build();
 
-        verify(emailService, times(1)).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), eq(emailNotification));
+        verify(emailService, times(1))
+                .sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), eq(emailNotification));
     }
 }

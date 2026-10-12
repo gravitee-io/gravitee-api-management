@@ -43,13 +43,15 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployOrganizations(
-    {
-        @DeployOrganization(organization = "/organizations/organization-1-add-header-1.json", apis = { "/organizations/apis/api-1.json" }),
-        @DeployOrganization(organization = "/organizations/organization-2-add-header-2.json", apis = { "/organizations/apis/api-2.json" }),
-        @DeployOrganization(organization = "/organizations/organization-3.json"),
-    }
-)
+@DeployOrganizations({
+    @DeployOrganization(
+            organization = "/organizations/organization-1-add-header-1.json",
+            apis = {"/organizations/apis/api-1.json"}),
+    @DeployOrganization(
+            organization = "/organizations/organization-2-add-header-2.json",
+            apis = {"/organizations/apis/api-2.json"}),
+    @DeployOrganization(organization = "/organizations/organization-3.json"),
+})
 class HttpRequestOrganizationV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @Override
@@ -63,15 +65,15 @@ class HttpRequestOrganizationV4EmulationIntegrationTest extends AbstractGatewayT
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test-1")
-            .flatMap(request -> request.rxSend())
-            .flatMapPublisher(response -> {
-                assertOrganization1ResponseHeaders(response);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertNoErrors();
+                .rxRequest(HttpMethod.GET, "/test-1")
+                .flatMap(request -> request.rxSend())
+                .flatMapPublisher(response -> {
+                    assertOrganization1ResponseHeaders(response);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertNoErrors();
 
         assertOrganization1RequestHeaders();
     }
@@ -83,9 +85,9 @@ class HttpRequestOrganizationV4EmulationIntegrationTest extends AbstractGatewayT
 
     private void assertOrganization1RequestHeaders() {
         wiremock.verify(
-            1,
-            getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER))
-        );
+                1,
+                getRequestedFor(urlPathEqualTo("/endpoint"))
+                        .withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER)));
     }
 
     @Test
@@ -93,15 +95,15 @@ class HttpRequestOrganizationV4EmulationIntegrationTest extends AbstractGatewayT
         wiremock.stubFor(post("/endpoint").willReturn(ok("response from backend")));
 
         httpClient
-            .rxRequest(HttpMethod.POST, "/test-2")
-            .flatMap(request -> request.rxSend("request body"))
-            .flatMapPublisher(response -> {
-                assertOrganization2ResponseHeaders(response);
-                return response.toFlowable();
-            })
-            .test()
-            .await()
-            .assertNoErrors();
+                .rxRequest(HttpMethod.POST, "/test-2")
+                .flatMap(request -> request.rxSend("request body"))
+                .flatMapPublisher(response -> {
+                    assertOrganization2ResponseHeaders(response);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertNoErrors();
 
         assertOrganization2RequestHeaders();
     }
@@ -113,8 +115,8 @@ class HttpRequestOrganizationV4EmulationIntegrationTest extends AbstractGatewayT
 
     protected void assertOrganization2RequestHeaders() {
         wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo("/endpoint")).withHeader(AddHeader2Policy.HEADER_NAME, equalTo(AddHeader2Policy.REQUEST_HEADER))
-        );
+                1,
+                postRequestedFor(urlPathEqualTo("/endpoint"))
+                        .withHeader(AddHeader2Policy.HEADER_NAME, equalTo(AddHeader2Policy.REQUEST_HEADER)));
     }
 }

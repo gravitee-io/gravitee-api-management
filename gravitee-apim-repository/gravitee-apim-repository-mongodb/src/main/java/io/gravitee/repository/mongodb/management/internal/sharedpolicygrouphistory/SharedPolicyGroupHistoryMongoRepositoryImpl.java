@@ -42,7 +42,8 @@ public class SharedPolicyGroupHistoryMongoRepositoryImpl implements SharedPolicy
     private MongoQueries mongoQueries;
 
     @Override
-    public Page<SharedPolicyGroupHistoryMongo> search(SharedPolicyGroupHistoryCriteria criteria, PageRequest pageRequest) {
+    public Page<SharedPolicyGroupHistoryMongo> search(
+            SharedPolicyGroupHistoryCriteria criteria, PageRequest pageRequest) {
         Objects.requireNonNull(criteria, "SharedPolicyGroupHistoryCriteria must not be null");
         Objects.requireNonNull(pageRequest, "PageRequest must not be null");
 
@@ -55,7 +56,8 @@ public class SharedPolicyGroupHistoryMongoRepositoryImpl implements SharedPolicy
             query.addCriteria(where("id").is(criteria.getSharedPolicyGroupId()));
         }
         if (criteria.getLifecycleState() != null) {
-            query.addCriteria(where("lifecycleState").is(criteria.getLifecycleState().name()));
+            query.addCriteria(
+                    where("lifecycleState").is(criteria.getLifecycleState().name()));
         }
 
         final long total = mongoQueries.countOrTimeout(mongoTemplate, query, SharedPolicyGroupHistoryMongo.class);
@@ -65,13 +67,15 @@ public class SharedPolicyGroupHistoryMongoRepositoryImpl implements SharedPolicy
 
         query.with(pageRequest);
 
-        final List<SharedPolicyGroupHistoryMongo> sharedPolicyGroups = mongoTemplate.find(query, SharedPolicyGroupHistoryMongo.class);
+        final List<SharedPolicyGroupHistoryMongo> sharedPolicyGroups =
+                mongoTemplate.find(query, SharedPolicyGroupHistoryMongo.class);
 
         return new Page<>(sharedPolicyGroups, pageRequest.getPageNumber(), sharedPolicyGroups.size(), total);
     }
 
     @Override
-    public Page<SharedPolicyGroupHistoryMongo> searchLatestBySharedPolicyGroupId(String environmentId, int page, int size) {
+    public Page<SharedPolicyGroupHistoryMongo> searchLatestBySharedPolicyGroupId(
+            String environmentId, int page, int size) {
         Objects.requireNonNull(environmentId, "environmentId must not be null");
         var collectionName = mongoTemplate.getCollectionName(SharedPolicyGroupHistoryMongo.class);
 
@@ -96,8 +100,8 @@ public class SharedPolicyGroupHistoryMongoRepositoryImpl implements SharedPolicy
         aggregationOperationsForTotal.add(Aggregation.count().as("count"));
 
         var aggregationResultsTotal = mongoTemplate
-            .aggregate(Aggregation.newAggregation(aggregationOperationsForTotal), collectionName, Document.class)
-            .getUniqueMappedResult();
+                .aggregate(Aggregation.newAggregation(aggregationOperationsForTotal), collectionName, Document.class)
+                .getUniqueMappedResult();
         long total = aggregationResultsTotal != null ? ((Integer) aggregationResultsTotal.get("count")).longValue() : 0;
 
         if (total == 0) {
@@ -110,16 +114,16 @@ public class SharedPolicyGroupHistoryMongoRepositoryImpl implements SharedPolicy
         var pageRequest = PageRequest.of(page, size);
         aggregationResultsWithPaging.add(Aggregation.skip(pageRequest.getOffset()));
         aggregationResultsWithPaging.add(Aggregation.limit(pageRequest.getPageSize()));
-        // Lookup against shared policy group history collection again to retrieve full shared policy group history with payload but limited to the page size to preserve mongodb memory.
+        // Lookup against shared policy group history collection again to retrieve full shared policy group history with
+        // payload but limited to the page size to preserve mongodb memory.
         aggregationResultsWithPaging.add(Aggregation.lookup(collectionName, "partialSpgh._id", "_id", "lookup_spgh"));
         aggregationResultsWithPaging.add(Aggregation.unwind("lookup_spgh"));
         aggregationResultsWithPaging.add(Aggregation.replaceRoot("lookup_spgh"));
 
         var aggregationResults = mongoTemplate.aggregate(
-            Aggregation.newAggregation(aggregationResultsWithPaging),
-            collectionName,
-            SharedPolicyGroupHistoryMongo.class
-        );
+                Aggregation.newAggregation(aggregationResultsWithPaging),
+                collectionName,
+                SharedPolicyGroupHistoryMongo.class);
 
         List<SharedPolicyGroupHistoryMongo> sharedPolicyGroups = aggregationResults.getMappedResults();
 

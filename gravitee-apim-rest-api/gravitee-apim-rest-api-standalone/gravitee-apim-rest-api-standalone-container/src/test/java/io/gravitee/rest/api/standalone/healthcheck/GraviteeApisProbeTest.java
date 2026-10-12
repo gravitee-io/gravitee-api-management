@@ -50,12 +50,9 @@ class GraviteeApisProbeTest {
     void setUp() throws Exception {
         vertx = Vertx.vertx();
         serverSideClose = new CountDownLatch(1);
-        server = await(
-            vertx
-                .createNetServer()
+        server = await(vertx.createNetServer()
                 .connectHandler(socket -> socket.closeHandler(event -> serverSideClose.countDown()))
-                .listen(0, "localhost")
-        );
+                .listen(0, "localhost"));
 
         cut = new GraviteeApisProbe();
         setField(cut, "vertx", vertx);
@@ -113,7 +110,9 @@ class GraviteeApisProbeTest {
         Field childrenField = closeFuture.getClass().getDeclaredField("children");
         childrenField.setAccessible(true);
         Map<?, ?> children = (Map<?, ?>) childrenField.get(closeFuture);
-        return children == null ? 0 : children.keySet().stream().filter(NetClient.class::isInstance).count();
+        return children == null
+                ? 0
+                : children.keySet().stream().filter(NetClient.class::isInstance).count();
     }
 
     private static <T> T await(Future<T> future) throws Exception {

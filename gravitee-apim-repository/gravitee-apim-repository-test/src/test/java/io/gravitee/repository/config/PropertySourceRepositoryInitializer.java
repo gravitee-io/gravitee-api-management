@@ -29,7 +29,8 @@ import org.springframework.core.io.support.ResourcePropertySource;
  * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PropertySourceRepositoryInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+public class PropertySourceRepositoryInitializer
+        implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
     private final Logger logger = LoggerFactory.getLogger(PropertySourceRepositoryInitializer.class);
 
@@ -42,7 +43,8 @@ public class PropertySourceRepositoryInitializer implements ApplicationContextIn
 
         try {
             logger.info("Trying to load a repository properties file from classpath: " + REPOSITORY_PROPERTY_SOURCE);
-            PropertySource source = new ResourcePropertySource("repository", new ClassPathResource(REPOSITORY_PROPERTY_SOURCE));
+            PropertySource source =
+                    new ResourcePropertySource("repository", new ClassPathResource(REPOSITORY_PROPERTY_SOURCE));
             MutablePropertySources sources = environment.getPropertySources();
             sources.addFirst(source);
             logger.info("Repository properties file has been correctly added to environment");

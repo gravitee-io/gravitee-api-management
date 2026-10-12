@@ -47,7 +47,8 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
     public Optional<ApiHeader> findById(String apiHeaderId) throws TechnicalException {
         log.debug("Find apiHeader by ID [{}]", apiHeaderId);
 
-        final ApiHeaderMongo apiHeader = internalApiHeaderRepo.findById(apiHeaderId).orElse(null);
+        final ApiHeaderMongo apiHeader =
+                internalApiHeaderRepo.findById(apiHeaderId).orElse(null);
 
         log.debug("Find apiHeader by ID [{}] - Done", apiHeaderId);
         return Optional.ofNullable(mapper.map(apiHeader));
@@ -73,7 +74,8 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
             throw new IllegalStateException("ApiHeader to update must have a name");
         }
 
-        final ApiHeaderMongo apiHeaderMongo = internalApiHeaderRepo.findById(apiHeader.getId()).orElse(null);
+        final ApiHeaderMongo apiHeaderMongo =
+                internalApiHeaderRepo.findById(apiHeader.getId()).orElse(null);
 
         if (apiHeaderMongo == null) {
             throw new IllegalStateException(String.format("No apiHeader found with name [%s]", apiHeader.getId()));
@@ -101,26 +103,26 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
     @Override
     public Set<ApiHeader> findAll() throws TechnicalException {
         final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findAll();
-        return apiHeaders
-            .stream()
-            .map(apiHeaderMongo -> mapper.map(apiHeaderMongo))
-            .collect(Collectors.toSet());
+        return apiHeaders.stream()
+                .map(apiHeaderMongo -> mapper.map(apiHeaderMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException {
         final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findByEnvironmentId(environmentId);
-        return apiHeaders
-            .stream()
-            .map(apiHeaderMongo -> mapper.map(apiHeaderMongo))
-            .collect(Collectors.toSet());
+        return apiHeaders.stream()
+                .map(apiHeaderMongo -> mapper.map(apiHeaderMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete by environmentId [{}]", environmentId);
         try {
-            final var apiHeaders = internalApiHeaderRepo.deleteByEnvironmentId(environmentId).stream().map(ApiHeaderMongo::getId).toList();
+            final var apiHeaders = internalApiHeaderRepo.deleteByEnvironmentId(environmentId).stream()
+                    .map(ApiHeaderMongo::getId)
+                    .toList();
             log.debug("Delete by environmentId [{}] - Done", environmentId);
             return apiHeaders;
         } catch (Exception ex) {

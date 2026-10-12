@@ -56,7 +56,6 @@ import io.gravitee.policy.jwt.configuration.JWTPolicyConfiguration;
 import io.gravitee.policy.mtls.MtlsPolicy;
 import io.gravitee.policy.mtls.configuration.MtlsPolicyConfiguration;
 import io.vertx.rxjava3.core.http.HttpClient;
-import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -91,7 +90,11 @@ class ApiProductV4IntegrationTest {
     private static final String KEY_BETA = "api-key-beta";
 
     @Nested
-    @DeployApi({ "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" })
+    @DeployApi({
+        "/apis/v4/http/api-product/api-1.json",
+        "/apis/v4/http/api-product/api-2.json",
+        "/apis/v4/http/api-product/api-3.json"
+    })
     class CreationBootstrapScenarios extends TestPreparer {
 
         @Test
@@ -143,7 +146,11 @@ class ApiProductV4IntegrationTest {
     }
 
     @Nested
-    @DeployApi({ "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" })
+    @DeployApi({
+        "/apis/v4/http/api-product/api-1.json",
+        "/apis/v4/http/api-product/api-2.json",
+        "/apis/v4/http/api-product/api-3.json"
+    })
     class UpdateScenarios extends TestPreparer {
 
         @Test
@@ -182,9 +189,11 @@ class ApiProductV4IntegrationTest {
     class DeletionScenarios extends TestPreparer {
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_return_401_for_all_product_apis_after_product_deletion(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
@@ -201,9 +210,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_return_401_when_api_is_detached_from_product_but_api_itself_is_still_deployed(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
@@ -219,9 +230,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_keep_sibling_api_accessible_after_underlying_api_is_undeployed_from_gateway(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
@@ -237,11 +250,14 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
-        void should_return_401_for_all_apis_when_last_api_is_undeployed_and_product_redeployed_with_no_apis(HttpClient client) {
+        void should_return_401_for_all_apis_when_last_api_is_undeployed_and_product_redeployed_with_no_apis(
+                HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
             assertStatus(client, API_1_PATH, KEY_ALPHA, 200);
 
@@ -256,9 +272,11 @@ class ApiProductV4IntegrationTest {
     class PlanStateScenarios extends TestPreparer {
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         void should_produce_deterministic_blocked_or_error_outcome_when_plan_is_not_published(HttpClient client) {
             final String productId = "plan-state-d1-product";
             final String planId = "plan-state-d1-plan";
@@ -277,9 +295,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         void should_keep_deterministic_access_outcome_after_plan_deprecation_transition(HttpClient client) {
             final String productId = "plan-state-d2-product";
             final String planId = "plan-state-d2-plan";
@@ -302,9 +322,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         void should_keep_deterministic_access_outcome_after_plan_close_or_delete_transition(HttpClient client) {
             final String productId = "plan-state-d4-product";
             final String planId = "plan-state-d4-plan";
@@ -320,7 +342,8 @@ class ApiProductV4IntegrationTest {
             assertDeterministicStatus(preTransitionApi1Status, preTransitionApi2Status);
 
             // Simulate plan close/delete by removing product plans.
-            ReactableApiProduct deployedProduct = getBean(ApiProductRegistry.class).get(productId, ENV_ID);
+            ReactableApiProduct deployedProduct =
+                    getBean(ApiProductRegistry.class).get(productId, ENV_ID);
             deployedProduct.setPlans(List.of());
 
             int api1Status = getStatus(client, API_1_PATH, key);
@@ -329,35 +352,33 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         void should_register_and_resolve_api_product_plan_security_types_for_api_key_jwt_and_mtls() {
             final String productId = "plan-state-d3-product";
             ReactableApiProduct apiProduct = product(productId, Set.of(API_1_ID));
-            apiProduct.setPlans(
-                List.of(
+            apiProduct.setPlans(List.of(
                     productPlan("plan-state-d3-apikey", "api-key", PlanStatus.PUBLISHED),
                     productPlan("plan-state-d3-jwt", "jwt", PlanStatus.PUBLISHED),
-                    productPlan("plan-state-d3-mtls", "mtls", PlanStatus.PUBLISHED)
-                )
-            );
+                    productPlan("plan-state-d3-mtls", "mtls", PlanStatus.PUBLISHED)));
             deployApiProduct(apiProduct);
 
             ApiProductRegistry apiProductRegistry = getBean(ApiProductRegistry.class);
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getApiProductPlanEntriesForApi(API_1_ID, ENV_ID);
+            List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                    apiProductRegistry.getApiProductPlanEntriesForApi(API_1_ID, ENV_ID);
 
             assertThat(entries).isNotEmpty();
             assertThat(entries)
-                .filteredOn(entry -> productId.equals(entry.apiProductId()))
-                .isNotEmpty();
-            assertThat(
-                entries
-                    .stream()
-                    .filter(entry -> productId.equals(entry.apiProductId()))
-                    .map(entry -> entry.plan().getSecurity().getType())
-                    .toList()
-            ).containsExactlyInAnyOrder("api-key", "jwt", "mtls");
+                    .filteredOn(entry -> productId.equals(entry.apiProductId()))
+                    .isNotEmpty();
+            assertThat(entries.stream()
+                            .filter(entry -> productId.equals(entry.apiProductId()))
+                            .map(entry -> entry.plan().getSecurity().getType())
+                            .toList())
+                    .containsExactlyInAnyOrder("api-key", "jwt", "mtls");
         }
     }
 
@@ -365,9 +386,11 @@ class ApiProductV4IntegrationTest {
     class SubscriptionStateScenarios extends TestPreparer {
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_return_401_after_subscription_is_revoked_or_cancelled(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
@@ -378,9 +401,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json"
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_keep_key_isolation_when_two_apps_are_subscribed_and_one_key_is_revoked(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
@@ -397,7 +422,8 @@ class ApiProductV4IntegrationTest {
     }
 
     @GatewayTest
-    // Empty @DeployApiProducts({}) signals that this test class needs the "universe" license tier for API Product features.
+    // Empty @DeployApiProducts({}) signals that this test class needs the "universe" license tier for API Product
+    // features.
     @DeployApiProducts({})
     static class TestPreparer extends AbstractGatewayTest {
 
@@ -406,8 +432,10 @@ class ApiProductV4IntegrationTest {
         @BeforeEach
         void setupSecurityDefaults() {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
-            when(getBean(ApiKeyService.class).getByApiAndKey(anyString(), anyString())).thenReturn(Optional.empty());
-            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(anyString(), any(), anyString())).thenReturn(Optional.empty());
+            when(getBean(ApiKeyService.class).getByApiAndKey(anyString(), anyString()))
+                    .thenReturn(Optional.empty());
+            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(anyString(), any(), anyString()))
+                    .thenReturn(Optional.empty());
         }
 
         @AfterEach
@@ -436,7 +464,8 @@ class ApiProductV4IntegrationTest {
         @Override
         public void configureApi(io.gravitee.gateway.reactor.ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
-                final io.gravitee.definition.model.v4.Api apiDefinition = (io.gravitee.definition.model.v4.Api) api.getDefinition();
+                final io.gravitee.definition.model.v4.Api apiDefinition =
+                        (io.gravitee.definition.model.v4.Api) api.getDefinition();
                 configurePlans(apiDefinition, Set.of("api-key"));
             }
         }
@@ -444,49 +473,52 @@ class ApiProductV4IntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.put(
-                "api-key",
-                PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-            );
+                    "api-key",
+                    PolicyBuilder.build(
+                            "api-key",
+                            ApiKeyPolicy.class,
+                            ApiKeyPolicyConfiguration.class,
+                            ApiKeyPolicyInitializer.class));
             policies.put("jwt", PolicyBuilder.build("jwt", JWTPolicy.class, JWTPolicyConfiguration.class));
             policies.put("mtls", PolicyBuilder.build("mtls", MtlsPolicy.class, MtlsPolicyConfiguration.class));
         }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
         }
 
         void assertStatus(HttpClient client, String path, String apiKey, int expectedStatus) {
-            client
-                .rxRequest(GET, path)
-                .flatMap(request -> {
-                    request.putHeader("X-Gravitee-Api-Key", apiKey);
-                    return request.rxSend();
-                })
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(expectedStatus);
-                    return response.rxBody();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertNoErrors()
-                .assertComplete();
+            client.rxRequest(GET, path)
+                    .flatMap(request -> {
+                        request.putHeader("X-Gravitee-Api-Key", apiKey);
+                        return request.rxSend();
+                    })
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(expectedStatus);
+                        return response.rxBody();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertNoErrors()
+                    .assertComplete();
         }
 
         int getStatus(HttpClient client, String path, String apiKey) {
-            return client
-                .rxRequest(GET, path)
-                .flatMap(request -> {
-                    request.putHeader("X-Gravitee-Api-Key", apiKey);
-                    return request.rxSend();
-                })
-                .map(response -> response.statusCode())
-                .blockingGet();
+            return client.rxRequest(GET, path)
+                    .flatMap(request -> {
+                        request.putHeader("X-Gravitee-Api-Key", apiKey);
+                        return request.rxSend();
+                    })
+                    .map(response -> response.statusCode())
+                    .blockingGet();
         }
 
         void assertDeterministicStatus(int firstStatus, int secondStatus) {
@@ -511,14 +543,15 @@ class ApiProductV4IntegrationTest {
             subscription.setApi(apiId);
             subscription.setPlan(PLAN_APIKEY_ID);
 
-            when(getBean(ApiKeyService.class).getByApiAndKey(eq(apiId), eq(key))).thenReturn(Optional.of(apiKey));
-            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(eq(apiId), any(), eq(PLAN_APIKEY_ID))).thenReturn(
-                Optional.of(subscription)
-            );
+            when(getBean(ApiKeyService.class).getByApiAndKey(eq(apiId), eq(key)))
+                    .thenReturn(Optional.of(apiKey));
+            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(eq(apiId), any(), eq(PLAN_APIKEY_ID)))
+                    .thenReturn(Optional.of(subscription));
         }
 
         void denyKeyForApi(String key, String apiId) {
-            when(getBean(ApiKeyService.class).getByApiAndKey(eq(apiId), eq(key))).thenReturn(Optional.empty());
+            when(getBean(ApiKeyService.class).getByApiAndKey(eq(apiId), eq(key)))
+                    .thenReturn(Optional.empty());
         }
 
         void allowKeyForApiAndPlan(String key, String apiId, String planId) {
@@ -538,10 +571,10 @@ class ApiProductV4IntegrationTest {
             subscription.setApi(apiId);
             subscription.setPlan(planId);
 
-            when(getBean(ApiKeyService.class).getByApiAndKey(eq(apiId), eq(key))).thenReturn(Optional.of(apiKey));
-            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(eq(apiId), any(), eq(planId))).thenReturn(
-                Optional.of(subscription)
-            );
+            when(getBean(ApiKeyService.class).getByApiAndKey(eq(apiId), eq(key)))
+                    .thenReturn(Optional.of(apiKey));
+            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(eq(apiId), any(), eq(planId)))
+                    .thenReturn(Optional.of(subscription));
         }
 
         void registerProductApiKeyPlanWithStatus(String apiProductId, String planId, PlanStatus status) {
@@ -556,13 +589,13 @@ class ApiProductV4IntegrationTest {
 
         ReactableApiProduct product(String productId, Set<String> apiIds) {
             return ReactableApiProduct.builder()
-                .id(productId)
-                .name("Product-" + productId)
-                .description("Scenario product " + productId)
-                .version("1.0.0")
-                .apiIds(apiIds)
-                .environmentId(ENV_ID)
-                .build();
+                    .id(productId)
+                    .name("Product-" + productId)
+                    .description("Scenario product " + productId)
+                    .version("1.0.0")
+                    .apiIds(apiIds)
+                    .environmentId(ENV_ID)
+                    .build();
         }
 
         private Plan productApiKeyPlan(String planId, PlanStatus status) {
@@ -571,12 +604,12 @@ class ApiProductV4IntegrationTest {
 
         Plan productPlan(String planId, String securityType, PlanStatus status) {
             return Plan.builder()
-                .id(planId)
-                .name("ProductPlan-" + planId)
-                .security(PlanSecurity.builder().type(securityType).build())
-                .status(status)
-                .mode(PlanMode.STANDARD)
-                .build();
+                    .id(planId)
+                    .name("ProductPlan-" + planId)
+                    .security(PlanSecurity.builder().type(securityType).build())
+                    .status(status)
+                    .mode(PlanMode.STANDARD)
+                    .build();
         }
     }
 }

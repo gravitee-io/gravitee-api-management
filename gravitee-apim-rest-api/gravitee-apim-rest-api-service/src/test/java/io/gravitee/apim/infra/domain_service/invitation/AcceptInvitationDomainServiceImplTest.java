@@ -51,7 +51,8 @@ class AcceptInvitationDomainServiceImplTest {
 
         cut.addMember(EXECUTION_CONTEXT, invitation, USER_ID);
 
-        verify(membershipDomainService).addGroupMemberships(EXECUTION_CONTEXT, "group-1", USER_ID, "API_USER", "APP_USER");
+        verify(membershipDomainService)
+                .addGroupMemberships(EXECUTION_CONTEXT, "group-1", USER_ID, "API_USER", "APP_USER");
     }
 
     @Test
@@ -60,13 +61,8 @@ class AcceptInvitationDomainServiceImplTest {
 
         cut.addMember(EXECUTION_CONTEXT, invitation, USER_ID);
 
-        verify(membershipDomainService).createNewMembership(
-            EXECUTION_CONTEXT,
-            MembershipReferenceType.APPLICATION,
-            "app-1",
-            USER_ID,
-            null,
-            "USER"
-        );
+        verify(membershipDomainService)
+                .createNewMembership(
+                        EXECUTION_CONTEXT, MembershipReferenceType.APPLICATION, "app-1", USER_ID, null, "USER");
     }
 }

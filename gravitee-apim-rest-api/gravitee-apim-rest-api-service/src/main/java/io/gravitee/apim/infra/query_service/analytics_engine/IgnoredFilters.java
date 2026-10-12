@@ -40,20 +40,18 @@ final class IgnoredFilters {
             return List.of();
         }
         var filters = query.filters();
-        var outcomes = filters
-            .stream()
-            .map(filter -> new Outcome(filter.name(), repository.filterOutcome(path, filter.name())))
-            .toList();
+        var outcomes = filters.stream()
+                .map(filter -> new Outcome(filter.name(), repository.filterOutcome(path, filter.name())))
+                .toList();
         // A condition that empties the result makes the others moot: nothing is counted either way.
         if (outcomes.stream().anyMatch(outcome -> outcome.outcome() == FilterOutcome.EMPTIES)) {
             return List.of();
         }
-        return outcomes
-            .stream()
-            .filter(outcome -> outcome.outcome() == FilterOutcome.IGNORED)
-            .map(outcome -> AnalyticsMeasuresAdapter.INSTANCE.fromFilterName(outcome.name()))
-            .distinct()
-            .toList();
+        return outcomes.stream()
+                .filter(outcome -> outcome.outcome() == FilterOutcome.IGNORED)
+                .map(outcome -> AnalyticsMeasuresAdapter.INSTANCE.fromFilterName(outcome.name()))
+                .distinct()
+                .toList();
     }
 
     static MeasuresResponse mark(MeasuresResponse response, List<FilterSpec.Name> ignored) {

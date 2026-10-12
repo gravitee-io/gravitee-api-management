@@ -69,67 +69,51 @@ class FlowAdapterTest {
 
     @Test
     void should_convert_from_v4_flow_to_repository() {
-        var model = FlowFixtures.aProxyFlowV4()
-            .toBuilder()
-            .tags(Set.of("tag1"))
-            .selectors(
-                List.of(
-                    HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
-                    ChannelSelector.builder()
-                        .channel("/")
-                        .channelOperator(Operator.STARTS_WITH)
-                        .entrypoints(Set.of("sse"))
-                        .operations(Set.of(ChannelSelector.Operation.PUBLISH))
-                        .build(),
-                    ConditionSelector.builder().condition("my-condition").build(),
-                    McpSelector.builder().methods(Set.of("mcp")).build()
-                )
-            )
-            .request(
-                List.of(
-                    Step.builder()
+        var model = FlowFixtures.aProxyFlowV4().toBuilder()
+                .tags(Set.of("tag1"))
+                .selectors(List.of(
+                        HttpSelector.builder()
+                                .path("/")
+                                .pathOperator(Operator.STARTS_WITH)
+                                .methods(Set.of(HttpMethod.GET))
+                                .build(),
+                        ChannelSelector.builder()
+                                .channel("/")
+                                .channelOperator(Operator.STARTS_WITH)
+                                .entrypoints(Set.of("sse"))
+                                .operations(Set.of(ChannelSelector.Operation.PUBLISH))
+                                .build(),
+                        ConditionSelector.builder().condition("my-condition").build(),
+                        McpSelector.builder().methods(Set.of("mcp")).build()))
+                .request(List.of(Step.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .response(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .response(List.of(Step.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .publish(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .publish(List.of(Step.builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .subscribe(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .subscribe(List.of(Step.builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
 
         var result = FlowAdapter.INSTANCE.toRepository(model, FlowReferenceType.API, "api-id", 12);
 
@@ -143,164 +127,131 @@ class FlowAdapterTest {
             soft.assertThat(result.getUpdatedAt()).isEqualTo(Date.from(INSTANT_NOW));
             soft.assertThat(result.getOrder()).isEqualTo(12);
             soft.assertThat(result.getTags()).containsExactly("tag1");
-            soft
-                .assertThat(result.getSelectors())
-                .hasSize(4)
-                .containsOnly(
-                    FlowHttpSelector.builder().path("/").pathOperator(FlowOperator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
-                    FlowChannelSelector.builder()
-                        .channel("/")
-                        .channelOperator(FlowOperator.STARTS_WITH)
-                        .entrypoints(Set.of("sse"))
-                        .operations(Set.of(FlowChannelSelector.Operation.PUBLISH))
-                        .build(),
-                    FlowConditionSelector.builder().condition("my-condition").build(),
-                    FlowMcpSelector.builder().methods(Set.of("mcp")).build()
-                );
-            soft
-                .assertThat(result.getRequest())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-1")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getResponse())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-2")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPublish())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-3")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getSubscribe())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-4")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getSelectors())
+                    .hasSize(4)
+                    .containsOnly(
+                            FlowHttpSelector.builder()
+                                    .path("/")
+                                    .pathOperator(FlowOperator.STARTS_WITH)
+                                    .methods(Set.of(HttpMethod.GET))
+                                    .build(),
+                            FlowChannelSelector.builder()
+                                    .channel("/")
+                                    .channelOperator(FlowOperator.STARTS_WITH)
+                                    .entrypoints(Set.of("sse"))
+                                    .operations(Set.of(FlowChannelSelector.Operation.PUBLISH))
+                                    .build(),
+                            FlowConditionSelector.builder()
+                                    .condition("my-condition")
+                                    .build(),
+                            FlowMcpSelector.builder().methods(Set.of("mcp")).build());
+            soft.assertThat(result.getRequest())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-step-name-1")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getResponse())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-step-name-2")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getPublish())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-step-name-3")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getSubscribe())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-step-name-4")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
         });
     }
 
     @Test
     void should_update_repository_with_v4_flow_to_repository() {
-        var model = FlowFixtures.aProxyFlowV4()
-            .toBuilder()
-            .tags(Set.of("tag1"))
-            .selectors(
-                List.of(
-                    HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
-                    ChannelSelector.builder()
-                        .channel("/")
-                        .channelOperator(Operator.STARTS_WITH)
-                        .entrypoints(Set.of("sse"))
-                        .operations(Set.of(ChannelSelector.Operation.PUBLISH))
-                        .build(),
-                    ConditionSelector.builder().condition("my-condition").build(),
-                    McpSelector.builder().methods(Set.of("mcp")).build()
-                )
-            )
-            .request(
-                List.of(
-                    Step.builder()
+        var model = FlowFixtures.aProxyFlowV4().toBuilder()
+                .tags(Set.of("tag1"))
+                .selectors(List.of(
+                        HttpSelector.builder()
+                                .path("/")
+                                .pathOperator(Operator.STARTS_WITH)
+                                .methods(Set.of(HttpMethod.GET))
+                                .build(),
+                        ChannelSelector.builder()
+                                .channel("/")
+                                .channelOperator(Operator.STARTS_WITH)
+                                .entrypoints(Set.of("sse"))
+                                .operations(Set.of(ChannelSelector.Operation.PUBLISH))
+                                .build(),
+                        ConditionSelector.builder().condition("my-condition").build(),
+                        McpSelector.builder().methods(Set.of("mcp")).build()))
+                .request(List.of(Step.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .response(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .response(List.of(Step.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .publish(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .publish(List.of(Step.builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .subscribe(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .subscribe(List.of(Step.builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
 
         var createdResult = FlowAdapter.INSTANCE.toRepository(model, FlowReferenceType.API, "api-id", 12);
 
-        var updatedModel = model
-            .toBuilder()
-            .name("updated-name")
-            .tags(Set.of("updated-tag1"))
-            .enabled(false)
-            .selectors(null)
-            .request(List.of())
-            .response(
-                List.of(
-                    Step.builder()
+        var updatedModel = model.toBuilder()
+                .name("updated-name")
+                .tags(Set.of("updated-tag1"))
+                .enabled(false)
+                .selectors(null)
+                .request(List.of())
+                .response(List.of(Step.builder()
                         .name("my-updated-step-name-2")
                         .policy("a-updated-policy")
                         .description("my-updated-step-description")
                         .condition("my-updated-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .publish(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .publish(List.of(Step.builder()
                         .name("my-updated-step-name-3")
                         .policy("a-updated-policy")
                         .description("my-updated-step-description")
                         .condition("my-updated-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .subscribe(List.of())
-            .build();
+                        .build()))
+                .subscribe(List.of())
+                .build();
         var updatedResult = FlowAdapter.INSTANCE.toRepositoryUpdate(createdResult, updatedModel, 22);
 
         SoftAssertions.assertSoftly(soft -> {
@@ -315,28 +266,22 @@ class FlowAdapterTest {
             soft.assertThat(updatedResult.getTags()).containsExactly("updated-tag1");
             soft.assertThat(updatedResult.getSelectors()).isNull();
             soft.assertThat(updatedResult.getRequest()).isEmpty();
-            soft
-                .assertThat(updatedResult.getResponse())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-updated-step-name-2")
-                        .policy("a-updated-policy")
-                        .description("my-updated-step-description")
-                        .condition("my-updated-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(updatedResult.getPublish())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-updated-step-name-3")
-                        .policy("a-updated-policy")
-                        .description("my-updated-step-description")
-                        .condition("my-updated-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(updatedResult.getResponse())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-updated-step-name-2")
+                            .policy("a-updated-policy")
+                            .description("my-updated-step-description")
+                            .condition("my-updated-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(updatedResult.getPublish())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-updated-step-name-3")
+                            .policy("a-updated-policy")
+                            .description("my-updated-step-description")
+                            .condition("my-updated-step-condition")
+                            .configuration("{}")
+                            .build());
             soft.assertThat(updatedResult.getSubscribe()).isEmpty();
         });
     }
@@ -361,96 +306,78 @@ class FlowAdapterTest {
             soft.assertThat(result.getOperator()).isEqualTo(FlowOperator.STARTS_WITH);
             soft.assertThat(result.getCondition()).isEqualTo("my-condition");
             soft.assertThat(result.getMethods()).containsExactly(HttpMethod.GET);
-            soft.assertThat(result.getConsumers()).containsExactly(new FlowConsumer(FlowConsumerType.TAG, "consumer-id"));
-            soft
-                .assertThat(result.getPre())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-1")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPost())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-2")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getConsumers())
+                    .containsExactly(new FlowConsumer(FlowConsumerType.TAG, "consumer-id"));
+            soft.assertThat(result.getPre())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-step-name-1")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getPost())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-step-name-2")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
         });
     }
 
     @Test
     void should_convert_from_repository_to_flow_v4() {
         var repository = Flow.builder()
-            .name("my-flow")
-            .enabled(true)
-            .tags(Set.of("tag1"))
-            .selectors(
-                List.of(
-                    FlowHttpSelector.builder().path("/").pathOperator(FlowOperator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
-                    FlowChannelSelector.builder()
-                        .channel("/")
-                        .channelOperator(FlowOperator.STARTS_WITH)
-                        .entrypoints(Set.of("sse"))
-                        .operations(Set.of(FlowChannelSelector.Operation.PUBLISH))
-                        .build(),
-                    FlowConditionSelector.builder().condition("my-condition").build(),
-                    FlowMcpSelector.builder().methods(Set.of("mcp")).build()
-                )
-            )
-            .request(
-                List.of(
-                    FlowStep.builder()
+                .name("my-flow")
+                .enabled(true)
+                .tags(Set.of("tag1"))
+                .selectors(List.of(
+                        FlowHttpSelector.builder()
+                                .path("/")
+                                .pathOperator(FlowOperator.STARTS_WITH)
+                                .methods(Set.of(HttpMethod.GET))
+                                .build(),
+                        FlowChannelSelector.builder()
+                                .channel("/")
+                                .channelOperator(FlowOperator.STARTS_WITH)
+                                .entrypoints(Set.of("sse"))
+                                .operations(Set.of(FlowChannelSelector.Operation.PUBLISH))
+                                .build(),
+                        FlowConditionSelector.builder()
+                                .condition("my-condition")
+                                .build(),
+                        FlowMcpSelector.builder().methods(Set.of("mcp")).build()))
+                .request(List.of(FlowStep.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .response(
-                List.of(
-                    FlowStep.builder()
+                        .build()))
+                .response(List.of(FlowStep.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .publish(
-                List.of(
-                    FlowStep.builder()
+                        .build()))
+                .publish(List.of(FlowStep.builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .subscribe(
-                List.of(
-                    FlowStep.builder()
+                        .build()))
+                .subscribe(List.of(FlowStep.builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
 
         var result = FlowAdapter.INSTANCE.toFlowV4(repository);
 
@@ -458,226 +385,191 @@ class FlowAdapterTest {
             soft.assertThat(result.getName()).isEqualTo("my-flow");
             soft.assertThat(result.isEnabled()).isTrue();
             soft.assertThat(result.getTags()).containsExactly("tag1");
-            soft
-                .assertThat(result.getSelectors())
-                .hasSize(4)
-                .containsOnly(
-                    HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
-                    ChannelSelector.builder()
-                        .channel("/")
-                        .channelOperator(Operator.STARTS_WITH)
-                        .entrypoints(Set.of("sse"))
-                        .operations(Set.of(ChannelSelector.Operation.PUBLISH))
-                        .build(),
-                    ConditionSelector.builder().condition("my-condition").build(),
-                    McpSelector.builder().methods(Set.of("mcp")).build()
-                );
-            soft
-                .assertThat(result.getRequest())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-1")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getResponse())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-2")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPublish())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-3")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getSubscribe())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-4")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getSelectors())
+                    .hasSize(4)
+                    .containsOnly(
+                            HttpSelector.builder()
+                                    .path("/")
+                                    .pathOperator(Operator.STARTS_WITH)
+                                    .methods(Set.of(HttpMethod.GET))
+                                    .build(),
+                            ChannelSelector.builder()
+                                    .channel("/")
+                                    .channelOperator(Operator.STARTS_WITH)
+                                    .entrypoints(Set.of("sse"))
+                                    .operations(Set.of(ChannelSelector.Operation.PUBLISH))
+                                    .build(),
+                            ConditionSelector.builder()
+                                    .condition("my-condition")
+                                    .build(),
+                            McpSelector.builder().methods(Set.of("mcp")).build());
+            soft.assertThat(result.getRequest())
+                    .containsOnly(Step.builder()
+                            .name("my-step-name-1")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getResponse())
+                    .containsOnly(Step.builder()
+                            .name("my-step-name-2")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getPublish())
+                    .containsOnly(Step.builder()
+                            .name("my-step-name-3")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getSubscribe())
+                    .containsOnly(Step.builder()
+                            .name("my-step-name-4")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
         });
     }
 
     @Test
     void should_default_http_selector_path_operator_to_starts_with_when_repository_path_operator_is_null() {
         var repository = Flow.builder()
-            .name("my-flow")
-            .enabled(true)
-            .selectors(List.of(FlowHttpSelector.builder().path("/").pathOperator(null).methods(Set.of(HttpMethod.GET)).build()))
-            .build();
+                .name("my-flow")
+                .enabled(true)
+                .selectors(List.of(FlowHttpSelector.builder()
+                        .path("/")
+                        .pathOperator(null)
+                        .methods(Set.of(HttpMethod.GET))
+                        .build()))
+                .build();
 
         var result = FlowAdapter.INSTANCE.toFlowV4(repository);
 
-        assertThat(result.getSelectors()).containsExactly(
-            HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build()
-        );
+        assertThat(result.getSelectors())
+                .containsExactly(HttpSelector.builder()
+                        .path("/")
+                        .pathOperator(Operator.STARTS_WITH)
+                        .methods(Set.of(HttpMethod.GET))
+                        .build());
     }
 
     @Test
     void should_convert_from_repository_to_flow_v2() {
         var repository = Flow.builder()
-            .name("my-flow")
-            .enabled(true)
-            .tags(Set.of("tag1"))
-            .condition("my-condition")
-            .path("/")
-            .operator(FlowOperator.STARTS_WITH)
-            .consumers(List.of(new FlowConsumer(FlowConsumerType.TAG, "consumer-id")))
-            .methods(Set.of(HttpMethod.GET))
-            .pre(
-                List.of(
-                    FlowStep.builder()
+                .name("my-flow")
+                .enabled(true)
+                .tags(Set.of("tag1"))
+                .condition("my-condition")
+                .path("/")
+                .operator(FlowOperator.STARTS_WITH)
+                .consumers(List.of(new FlowConsumer(FlowConsumerType.TAG, "consumer-id")))
+                .methods(Set.of(HttpMethod.GET))
+                .pre(List.of(FlowStep.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .post(
-                List.of(
-                    FlowStep.builder()
+                        .build()))
+                .post(List.of(FlowStep.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .publish(
-                List.of(
-                    FlowStep.builder()
+                        .build()))
+                .publish(List.of(FlowStep.builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .subscribe(
-                List.of(
-                    FlowStep.builder()
+                        .build()))
+                .subscribe(List.of(FlowStep.builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
 
         var result = FlowAdapter.INSTANCE.toFlowV2(repository);
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.getName()).isEqualTo("my-flow");
             soft.assertThat(result.isEnabled()).isTrue();
-            soft.assertThat(result.getPathOperator()).isEqualTo(PathOperator.builder().path("/").operator(Operator.STARTS_WITH).build());
+            soft.assertThat(result.getPathOperator())
+                    .isEqualTo(PathOperator.builder()
+                            .path("/")
+                            .operator(Operator.STARTS_WITH)
+                            .build());
             soft.assertThat(result.getPath()).isEqualTo("/");
             soft.assertThat(result.getOperator()).isEqualTo(Operator.STARTS_WITH);
             soft.assertThat(result.getCondition()).isEqualTo("my-condition");
             soft.assertThat(result.getMethods()).containsExactly(HttpMethod.GET);
             soft.assertThat(result.getConsumers()).containsExactly(new Consumer(ConsumerType.TAG, "consumer-id"));
-            soft
-                .assertThat(result.getPre())
-                .containsOnly(
-                    io.gravitee.definition.model.flow.Step.builder()
-                        .name("my-step-name-1")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPost())
-                .containsOnly(
-                    io.gravitee.definition.model.flow.Step.builder()
-                        .name("my-step-name-2")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getPre())
+                    .containsOnly(io.gravitee.definition.model.flow.Step.builder()
+                            .name("my-step-name-1")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getPost())
+                    .containsOnly(io.gravitee.definition.model.flow.Step.builder()
+                            .name("my-step-name-2")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
         });
     }
 
     @Test
     void should_convert_from_native_flow_to_repository() {
         var model = io.gravitee.definition.model.v4.nativeapi.NativeFlow.builder()
-            .name("my-native-flow")
-            .enabled(true)
-            .tags(Set.of("tag1"))
-            .entrypointConnect(
-                List.of(
-                    Step.builder()
+                .name("my-native-flow")
+                .enabled(true)
+                .tags(Set.of("tag1"))
+                .entrypointConnect(List.of(Step.builder()
                         .name("my-step-name-entrypoint-connect")
                         .policy("ip-filtering")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{\"blacklistIps\":[\"127.0.0.1\"]}")
-                        .build()
-                )
-            )
-            .interact(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .interact(List.of(Step.builder()
                         .name("my-step-name-interact")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .publish(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .publish(List.of(Step.builder()
                         .name("my-step-name-publish")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .subscribe(
-                List.of(
-                    Step.builder()
+                        .build()))
+                .subscribe(List.of(Step.builder()
                         .name("my-step-name-subscribe")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
 
         var result = FlowAdapter.INSTANCE.toRepository(model, FlowReferenceType.API, "api-id", 12);
 
@@ -691,104 +583,76 @@ class FlowAdapterTest {
             soft.assertThat(result.getUpdatedAt()).isEqualTo(Date.from(INSTANT_NOW));
             soft.assertThat(result.getOrder()).isEqualTo(12);
             soft.assertThat(result.getTags()).containsExactly("tag1");
-            soft
-                .assertThat(result.getEntrypointConnect())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-entrypoint-connect")
-                        .policy("ip-filtering")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{\"blacklistIps\":[\"127.0.0.1\"]}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getInteract())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-interact")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPublish())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-publish")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getSubscribe())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-subscribe")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getEntrypointConnect())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-step-name-entrypoint-connect")
+                            .policy("ip-filtering")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{\"blacklistIps\":[\"127.0.0.1\"]}")
+                            .build());
+            soft.assertThat(result.getInteract())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-step-name-interact")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getPublish())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-step-name-publish")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getSubscribe())
+                    .containsOnly(FlowStep.builder()
+                            .name("my-step-name-subscribe")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
         });
     }
 
     @Test
     void should_convert_from_repository_to_native_flow() {
         var repository = Flow.builder()
-            .name("my-native-flow")
-            .enabled(true)
-            .tags(Set.of("tag1"))
-            .entrypointConnect(
-                List.of(
-                    FlowStep.builder()
+                .name("my-native-flow")
+                .enabled(true)
+                .tags(Set.of("tag1"))
+                .entrypointConnect(List.of(FlowStep.builder()
                         .name("my-step-name-entrypoint-connect")
                         .policy("ip-filtering")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{\"blacklistIps\":[\"127.0.0.1\"]}")
-                        .build()
-                )
-            )
-            .interact(
-                List.of(
-                    FlowStep.builder()
+                        .build()))
+                .interact(List.of(FlowStep.builder()
                         .name("my-step-name-interact")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .publish(
-                List.of(
-                    FlowStep.builder()
+                        .build()))
+                .publish(List.of(FlowStep.builder()
                         .name("my-step-name-publish")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .subscribe(
-                List.of(
-                    FlowStep.builder()
+                        .build()))
+                .subscribe(List.of(FlowStep.builder()
                         .name("my-step-name-subscribe")
                         .policy("a-policy")
                         .description("my-step-description")
                         .condition("my-step-condition")
                         .configuration("{}")
-                        .build()
-                )
-            )
-            .build();
+                        .build()))
+                .build();
 
         var result = FlowAdapter.INSTANCE.toNativeFlow(repository);
 
@@ -796,50 +660,38 @@ class FlowAdapterTest {
             soft.assertThat(result.getName()).isEqualTo("my-native-flow");
             soft.assertThat(result.isEnabled()).isTrue();
             soft.assertThat(result.getTags()).containsExactly("tag1");
-            soft
-                .assertThat(result.getEntrypointConnect())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-entrypoint-connect")
-                        .policy("ip-filtering")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{\"blacklistIps\":[\"127.0.0.1\"]}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getInteract())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-interact")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPublish())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-publish")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getSubscribe())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-subscribe")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getEntrypointConnect())
+                    .containsOnly(Step.builder()
+                            .name("my-step-name-entrypoint-connect")
+                            .policy("ip-filtering")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{\"blacklistIps\":[\"127.0.0.1\"]}")
+                            .build());
+            soft.assertThat(result.getInteract())
+                    .containsOnly(Step.builder()
+                            .name("my-step-name-interact")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getPublish())
+                    .containsOnly(Step.builder()
+                            .name("my-step-name-publish")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
+            soft.assertThat(result.getSubscribe())
+                    .containsOnly(Step.builder()
+                            .name("my-step-name-subscribe")
+                            .policy("a-policy")
+                            .description("my-step-description")
+                            .condition("my-step-condition")
+                            .configuration("{}")
+                            .build());
         });
     }
 }

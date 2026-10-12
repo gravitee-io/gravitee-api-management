@@ -79,20 +79,19 @@ public class ApiKeyCacheService implements ApiKeyService {
         if (apiKey.isActive()) {
             CacheKey cacheKey = buildCacheKey(apiKey);
             log.debug(
-                "Load active api-key [id: {}] [scope: {}] [plan: {}] [app: {}]",
-                apiKey.getId(),
-                scopeOf(apiKey),
-                apiKey.getPlan(),
-                apiKey.getApplication()
-            );
+                    "Load active api-key [id: {}] [scope: {}] [plan: {}] [app: {}]",
+                    apiKey.getId(),
+                    scopeOf(apiKey),
+                    apiKey.getPlan(),
+                    apiKey.getApplication());
             cacheApiKeys.put(cacheKey, apiKey);
             /*
-             FIXME: Kafka Gateway - find a way to not systematically cache md5 version of apiKey.
-              We could use md5 cache only if `cache.apikey.md5` property is true (`config.kafka.enabled`value by default)
-              Or
-              We could also add a `md5Key` field in the `keys` collection, populated only when it's required.
-              Based on that, we could cache only what is required
-             */
+            FIXME: Kafka Gateway - find a way to not systematically cache md5 version of apiKey.
+             We could use md5 cache only if `cache.apikey.md5` property is true (`config.kafka.enabled`value by default)
+             Or
+             We could also add a `md5Key` field in the `keys` collection, populated only when it's required.
+             Based on that, we could cache only what is required
+            */
             cacheMd5ApiKeys.put(buildMd5CacheKey(apiKey), apiKey);
             // compute() so concurrent register/unregister calls for the same API (sync appenders
             // run in parallel) cannot lose updates or mutate a plain HashSet across threads.
@@ -110,12 +109,11 @@ public class ApiKeyCacheService implements ApiKeyService {
     public void unregister(final ApiKey apiKey) {
         CacheKey cacheKey = buildCacheKey(apiKey);
         log.debug(
-            "Unload inactive api-key [id: {}] [scope: {}] [plan: {}] [app: {}]",
-            apiKey.getId(),
-            scopeOf(apiKey),
-            apiKey.getPlan(),
-            apiKey.getApplication()
-        );
+                "Unload inactive api-key [id: {}] [scope: {}] [plan: {}] [app: {}]",
+                apiKey.getId(),
+                scopeOf(apiKey),
+                apiKey.getPlan(),
+                apiKey.getApplication());
         if (cacheApiKeys.remove(cacheKey) != null) {
             cacheMd5ApiKeys.remove(buildMd5CacheKey(apiKey));
             cacheApiKeysByScope.computeIfPresent(scopeOf(apiKey), (scope, keysByApi) -> {
@@ -151,12 +149,11 @@ public class ApiKeyCacheService implements ApiKeyService {
                 if (evictedApiKey != null) {
                     cacheMd5ApiKeys.remove(buildMd5CacheKey(evictedApiKey));
                     log.debug(
-                        "Unload inactive api-key [id: {}] [scope: {}] [plan: {}] [app: {}]",
-                        evictedApiKey.getId(),
-                        scopeOf(evictedApiKey),
-                        evictedApiKey.getPlan(),
-                        evictedApiKey.getApplication()
-                    );
+                            "Unload inactive api-key [id: {}] [scope: {}] [plan: {}] [app: {}]",
+                            evictedApiKey.getId(),
+                            scopeOf(evictedApiKey),
+                            evictedApiKey.getPlan(),
+                            evictedApiKey.getApplication());
                 }
             });
         }
@@ -199,6 +196,7 @@ public class ApiKeyCacheService implements ApiKeyService {
     }
 
     CacheKey buildMd5CacheKey(ApiKey apiKey) {
-        return buildCacheKey(scopeOf(apiKey), DigestUtils.md5DigestAsHex(apiKey.getKey().getBytes(StandardCharsets.UTF_8)));
+        return buildCacheKey(
+                scopeOf(apiKey), DigestUtils.md5DigestAsHex(apiKey.getKey().getBytes(StandardCharsets.UTF_8)));
     }
 }

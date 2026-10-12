@@ -64,7 +64,10 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
     void setup() {
         rootTarget = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -88,7 +91,8 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
         @Test
         void should_delete_a_ruleset() {
             // Given
-            scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT)));
+            scoringRulesetCrudService.initWith(
+                    List.of(ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT)));
 
             // When
             var response = rootTarget.path("ruleset-id").request().delete();
@@ -105,26 +109,25 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
         @Test
         void should_get_a_ruleset() {
             // Given
-            scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT)));
+            scoringRulesetCrudService.initWith(
+                    List.of(ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT)));
 
             // When
             var response = rootTarget.path("ruleset-id").request().get();
 
             // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(ScoringRuleset.class)
-                .isEqualTo(
-                    new ScoringRuleset()
-                        .id("ruleset-id")
-                        .name("ruleset-name")
-                        .description("ruleset-description")
-                        .format(ScoringAssetFormat.GRAVITEE_PROXY)
-                        .referenceId(ENVIRONMENT)
-                        .referenceType(ScoringRulesetReferenceType.ENVIRONMENT)
-                        .payload("payload-ruleset-id")
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
-                );
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(ScoringRuleset.class)
+                    .isEqualTo(new ScoringRuleset()
+                            .id("ruleset-id")
+                            .name("ruleset-name")
+                            .description("ruleset-description")
+                            .format(ScoringAssetFormat.GRAVITEE_PROXY)
+                            .referenceId(ENVIRONMENT)
+                            .referenceType(ScoringRulesetReferenceType.ENVIRONMENT)
+                            .payload("payload-ruleset-id")
+                            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC)));
         }
 
         @Test
@@ -144,53 +147,55 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
         @Test
         void should_update_a_ruleset() {
             // Given
-            scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT)));
-            UpdateScoringRuleset updateScoringPayload = new UpdateScoringRuleset().name("updated-name").description("updated-description");
+            scoringRulesetCrudService.initWith(
+                    List.of(ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT)));
+            UpdateScoringRuleset updateScoringPayload =
+                    new UpdateScoringRuleset().name("updated-name").description("updated-description");
             TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
-            //When
+            // When
             var response = rootTarget.path("ruleset-id").request().put(Entity.json(updateScoringPayload));
 
-            //Then
+            // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(ScoringRuleset.class)
-                .isEqualTo(
-                    new ScoringRuleset()
-                        .id("ruleset-id")
-                        .name("updated-name")
-                        .description("updated-description")
-                        .format(ScoringAssetFormat.GRAVITEE_PROXY)
-                        .payload("ruleset-payload")
-                        .referenceId("my-env")
-                        .referenceType(ScoringRulesetReferenceType.ENVIRONMENT)
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
-                        .updatedAt(INSTANT_NOW.atOffset(ZoneOffset.UTC))
-                );
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(ScoringRuleset.class)
+                    .isEqualTo(new ScoringRuleset()
+                            .id("ruleset-id")
+                            .name("updated-name")
+                            .description("updated-description")
+                            .format(ScoringAssetFormat.GRAVITEE_PROXY)
+                            .payload("ruleset-payload")
+                            .referenceId("my-env")
+                            .referenceType(ScoringRulesetReferenceType.ENVIRONMENT)
+                            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
+                            .updatedAt(INSTANT_NOW.atOffset(ZoneOffset.UTC)));
         }
 
         @Test
         void should_return_400_when_missing_name_to_update() {
             // Given
-            scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT)));
+            scoringRulesetCrudService.initWith(
+                    List.of(ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT)));
             UpdateScoringRuleset updateScoringPayload = new UpdateScoringRuleset().description("updated-description");
 
             // When
             var response = rootTarget.path("ruleset-id").request().put(Entity.json(updateScoringPayload));
 
-            //Then
+            // Then
             assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
         }
 
         @Test
         void should_return_400_when_missing_body() {
             // Given
-            scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT)));
+            scoringRulesetCrudService.initWith(
+                    List.of(ScoringRulesetFixture.aRuleset("ruleset-id").withReferenceId(ENVIRONMENT)));
             UpdateScoringRuleset updateScoringPayload = new UpdateScoringRuleset();
 
             // When
             var response = rootTarget.path("ruleset-id").request().put(Entity.json(updateScoringPayload));
 
-            //Then
+            // Then
             assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
         }
     }

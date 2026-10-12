@@ -32,7 +32,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = { "id" }, callSuper = false)
+@EqualsAndHashCode(
+        of = {"id"},
+        callSuper = false)
 @ToString
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}apiqualityrules")
 public class ApiQualityRuleMongo extends DeprecatedAuditable {

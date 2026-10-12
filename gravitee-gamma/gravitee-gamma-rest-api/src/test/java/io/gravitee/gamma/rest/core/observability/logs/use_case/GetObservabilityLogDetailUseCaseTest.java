@@ -23,7 +23,6 @@ import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import java.time.Instant;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -52,15 +51,16 @@ class GetObservabilityLogDetailUseCaseTest {
     void should_return_detail_when_found() {
         // Given
         var detail = LogDetail.builder()
-            .requestId(REQUEST_ID)
-            .apiId(API_ID)
-            .timestamp(Instant.parse("2026-06-10T14:32:01Z"))
-            .status(200)
-            .method("GET")
-            .uri("/pets/42")
-            .planName("Gold")
-            .entrypointRequest(HttpPayload.builder().method("GET").uri("/pets/42").build())
-            .build();
+                .requestId(REQUEST_ID)
+                .apiId(API_ID)
+                .timestamp(Instant.parse("2026-06-10T14:32:01Z"))
+                .status(200)
+                .method("GET")
+                .uri("/pets/42")
+                .planName("Gold")
+                .entrypointRequest(
+                        HttpPayload.builder().method("GET").uri("/pets/42").build())
+                .build();
         when(logsDataPort.getLogDetail(ORG_ID, ENV_ID, API_ID, REQUEST_ID)).thenReturn(Optional.of(detail));
 
         // When

@@ -60,20 +60,21 @@ public class AiWorkspaceComponentRepositoryTest extends AbstractManagementReposi
     public void shouldFindByApiProductId() throws TechnicalException {
         final List<AiWorkspaceComponent> components = aiWorkspaceComponentRepository.findByApiProductId("prod-1");
 
-        assertThat(components).extracting(AiWorkspaceComponent::getId).containsExactlyInAnyOrder("comp-1", "comp-2", "comp-3");
+        assertThat(components)
+                .extracting(AiWorkspaceComponent::getId)
+                .containsExactlyInAnyOrder("comp-1", "comp-2", "comp-3");
     }
 
     @Test
     public void shouldReturnEmptyListWhenApiProductHasNoComponents() throws TechnicalException {
-        assertThat(aiWorkspaceComponentRepository.findByApiProductId("unknown-product")).isEmpty();
+        assertThat(aiWorkspaceComponentRepository.findByApiProductId("unknown-product"))
+                .isEmpty();
     }
 
     @Test
     public void shouldFindByApiProductIdAndComponentType() throws TechnicalException {
         final List<AiWorkspaceComponent> models = aiWorkspaceComponentRepository.findByApiProductIdAndComponentType(
-            "prod-1",
-            AiWorkspaceComponentType.MODEL
-        );
+                "prod-1", AiWorkspaceComponentType.MODEL);
 
         assertThat(models).extracting(AiWorkspaceComponent::getId).containsExactly("comp-2");
         assertThat(models.get(0).getRefId()).isEqualTo("gpt-4o");
@@ -90,18 +91,19 @@ public class AiWorkspaceComponentRepositoryTest extends AbstractManagementReposi
     public void shouldCreate() throws TechnicalException {
         var date = new Date(1_470_157_767_000L);
         AiWorkspaceComponent component = AiWorkspaceComponent.builder()
-            .id("new-comp")
-            .apiProductId("prod-3")
-            .componentType(AiWorkspaceComponentType.LLM_PROXY)
-            .refId("api-llm-3")
-            .createdAt(date)
-            .updatedAt(date)
-            .build();
+                .id("new-comp")
+                .apiProductId("prod-3")
+                .componentType(AiWorkspaceComponentType.LLM_PROXY)
+                .refId("api-llm-3")
+                .createdAt(date)
+                .updatedAt(date)
+                .build();
 
         AiWorkspaceComponent created = aiWorkspaceComponentRepository.create(component);
 
         assertThat(created).isNotNull();
-        AiWorkspaceComponent found = aiWorkspaceComponentRepository.findById("new-comp").orElseThrow();
+        AiWorkspaceComponent found =
+                aiWorkspaceComponentRepository.findById("new-comp").orElseThrow();
         assertSoftly(softly -> {
             softly.assertThat(found.getApiProductId()).isEqualTo("prod-3");
             softly.assertThat(found.getComponentType()).isEqualTo(AiWorkspaceComponentType.LLM_PROXY);
@@ -113,17 +115,18 @@ public class AiWorkspaceComponentRepositoryTest extends AbstractManagementReposi
     public void shouldUpdate() throws TechnicalException {
         var date = new Date(1_470_157_767_000L);
         AiWorkspaceComponent component = AiWorkspaceComponent.builder()
-            .id("comp-3")
-            .apiProductId("prod-1")
-            .componentType(AiWorkspaceComponentType.PROVIDER)
-            .refId("anthropic")
-            .createdAt(date)
-            .updatedAt(date)
-            .build();
+                .id("comp-3")
+                .apiProductId("prod-1")
+                .componentType(AiWorkspaceComponentType.PROVIDER)
+                .refId("anthropic")
+                .createdAt(date)
+                .updatedAt(date)
+                .build();
 
         aiWorkspaceComponentRepository.update(component);
 
-        AiWorkspaceComponent found = aiWorkspaceComponentRepository.findById("comp-3").orElseThrow();
+        AiWorkspaceComponent found =
+                aiWorkspaceComponentRepository.findById("comp-3").orElseThrow();
         assertThat(found.getRefId()).isEqualTo("anthropic");
     }
 
@@ -132,7 +135,9 @@ public class AiWorkspaceComponentRepositoryTest extends AbstractManagementReposi
         aiWorkspaceComponentRepository.delete("comp-1");
 
         assertThat(aiWorkspaceComponentRepository.findById("comp-1")).isEmpty();
-        assertThat(aiWorkspaceComponentRepository.findByApiProductId("prod-1")).extracting(AiWorkspaceComponent::getId).contains("comp-2");
+        assertThat(aiWorkspaceComponentRepository.findByApiProductId("prod-1"))
+                .extracting(AiWorkspaceComponent::getId)
+                .contains("comp-2");
     }
 
     @Test
@@ -141,7 +146,7 @@ public class AiWorkspaceComponentRepositoryTest extends AbstractManagementReposi
 
         assertThat(aiWorkspaceComponentRepository.findByApiProductId("prod-1")).isEmpty();
         assertThat(aiWorkspaceComponentRepository.findByApiProductId("prod-2"))
-            .extracting(AiWorkspaceComponent::getId)
-            .contains("comp-4", "comp-5");
+                .extracting(AiWorkspaceComponent::getId)
+                .contains("comp-4", "comp-5");
     }
 }

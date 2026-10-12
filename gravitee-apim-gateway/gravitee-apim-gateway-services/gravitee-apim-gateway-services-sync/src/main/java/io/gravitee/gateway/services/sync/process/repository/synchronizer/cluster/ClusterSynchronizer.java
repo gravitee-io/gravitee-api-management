@@ -39,7 +39,8 @@ import lombok.CustomLog;
 public class ClusterSynchronizer implements RepositorySynchronizer {
 
     private static final Set<EventType> INIT_EVENT_TYPES = Set.of(EventType.DEPLOY_CLUSTER);
-    private static final Set<EventType> INCREMENTAL_EVENT_TYPES = Set.of(EventType.DEPLOY_CLUSTER, EventType.UNDEPLOY_CLUSTER);
+    private static final Set<EventType> INCREMENTAL_EVENT_TYPES =
+            Set.of(EventType.DEPLOY_CLUSTER, EventType.UNDEPLOY_CLUSTER);
 
     private final LatestEventFetcher eventsFetcher;
     private final ClusterMapper clusterMapper;
@@ -48,12 +49,11 @@ public class ClusterSynchronizer implements RepositorySynchronizer {
     private final ThreadPoolExecutor syncDeployerExecutor;
 
     public ClusterSynchronizer(
-        final LatestEventFetcher eventsFetcher,
-        final ClusterMapper clusterMapper,
-        final DeployerFactory deployerFactory,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor
-    ) {
+            final LatestEventFetcher eventsFetcher,
+            final ClusterMapper clusterMapper,
+            final DeployerFactory deployerFactory,
+            final ThreadPoolExecutor syncFetcherExecutor,
+            final ThreadPoolExecutor syncDeployerExecutor) {
         this.eventsFetcher = eventsFetcher;
         this.clusterMapper = clusterMapper;
         this.deployerFactory = deployerFactory;
@@ -66,21 +66,27 @@ public class ClusterSynchronizer implements RepositorySynchronizer {
         AtomicLong launchTime = new AtomicLong();
 
         return eventsFetcher
-            .fetchLatest(from, to, Event.EventProperties.CLUSTER_ID, environments, from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
-            .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .compose(this::processEvents)
-            .count()
-            .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-            .doOnSuccess(count -> {
-                String logMsg = String.format("%s clusters synchronized in %sms", count, (System.currentTimeMillis() - launchTime.get()));
-                if (from == -1) {
-                    log.info(logMsg);
-                } else {
-                    log.debug(logMsg);
-                }
-            })
-            .ignoreElement();
+                .fetchLatest(
+                        from,
+                        to,
+                        Event.EventProperties.CLUSTER_ID,
+                        environments,
+                        from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
+                .compose(this::processEvents)
+                .count()
+                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                .doOnSuccess(count -> {
+                    String logMsg = String.format(
+                            "%s clusters synchronized in %sms", count, (System.currentTimeMillis() - launchTime.get()));
+                    if (from == -1) {
+                        log.info(logMsg);
+                    } else {
+                        log.debug(logMsg);
+                    }
+                })
+                .ignoreElement();
     }
 
     @Override
@@ -90,82 +96,80 @@ public class ClusterSynchronizer implements RepositorySynchronizer {
 
     private Flowable<ClusterReactorDeployable> processEvents(final Flowable<List<Event>> eventsFlowable) {
         return eventsFlowable
-            .flatMap(events ->
-                Flowable.just(events)
-                    .doOnNext(e -> log.debug("New cluster events fetch"))
-                    .flatMapIterable(e -> e)
-                    .groupBy(Event::getType)
-                    .flatMap(eventsByType -> {
-                        if (eventsByType.getKey() == EventType.DEPLOY_CLUSTER) {
-                            return prepareForDeployment(eventsByType);
-                        } else if (eventsByType.getKey() == EventType.UNDEPLOY_CLUSTER) {
-                            return prepareForUndeployment(eventsByType);
-                        } else {
-                            return Flowable.empty();
-                        }
-                    })
-            )
-            .compose(upstream -> {
-                ClusterDeployer clusterDeployer = deployerFactory.createClusterDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> {
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deployCluster(clusterDeployer, deployable);
-                        } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeployCluster(clusterDeployer, deployable);
-                        } else {
-                            return Flowable.just(deployable);
-                        }
-                    })
-                    .sequential(bulkEvents());
-            });
+                .flatMap(events -> Flowable.just(events)
+                        .doOnNext(e -> log.debug("New cluster events fetch"))
+                        .flatMapIterable(e -> e)
+                        .groupBy(Event::getType)
+                        .flatMap(eventsByType -> {
+                            if (eventsByType.getKey() == EventType.DEPLOY_CLUSTER) {
+                                return prepareForDeployment(eventsByType);
+                            } else if (eventsByType.getKey() == EventType.UNDEPLOY_CLUSTER) {
+                                return prepareForUndeployment(eventsByType);
+                            } else {
+                                return Flowable.empty();
+                            }
+                        }))
+                .compose(upstream -> {
+                    ClusterDeployer clusterDeployer = deployerFactory.createClusterDeployer();
+                    return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                            .runOn(Schedulers.from(syncDeployerExecutor))
+                            .flatMap(deployable -> {
+                                if (deployable.syncAction() == SyncAction.DEPLOY) {
+                                    return deployCluster(clusterDeployer, deployable);
+                                } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                    return undeployCluster(clusterDeployer, deployable);
+                                } else {
+                                    return Flowable.just(deployable);
+                                }
+                            })
+                            .sequential(bulkEvents());
+                });
     }
 
-    private Flowable<ClusterReactorDeployable> prepareForDeployment(final GroupedFlowable<EventType, Event> eventsByType) {
+    private Flowable<ClusterReactorDeployable> prepareForDeployment(
+            final GroupedFlowable<EventType, Event> eventsByType) {
         return eventsByType
-            .flatMapMaybe(clusterMapper::to)
-            .map(reactableCluster ->
-                ClusterReactorDeployable.builder()
-                    .clusterId(reactableCluster.getId())
-                    .syncAction(SyncAction.DEPLOY)
-                    .reactableCluster(reactableCluster)
-                    .build()
-            )
-            .buffer(bulkEvents())
-            .flatMapIterable(d -> d);
+                .flatMapMaybe(clusterMapper::to)
+                .map(reactableCluster -> ClusterReactorDeployable.builder()
+                        .clusterId(reactableCluster.getId())
+                        .syncAction(SyncAction.DEPLOY)
+                        .reactableCluster(reactableCluster)
+                        .build())
+                .buffer(bulkEvents())
+                .flatMapIterable(d -> d);
     }
 
     private Flowable<ClusterReactorDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {
         return eventsByType
-            .flatMapMaybe(clusterMapper::toId)
-            .map(clusterId -> ClusterReactorDeployable.builder().syncAction(SyncAction.UNDEPLOY).clusterId(clusterId).build());
+                .flatMapMaybe(clusterMapper::toId)
+                .map(clusterId -> ClusterReactorDeployable.builder()
+                        .syncAction(SyncAction.UNDEPLOY)
+                        .clusterId(clusterId)
+                        .build());
     }
 
-    private Flowable<ClusterReactorDeployable> deployCluster(ClusterDeployer clusterDeployer, final ClusterReactorDeployable deployable) {
+    private Flowable<ClusterReactorDeployable> deployCluster(
+            ClusterDeployer clusterDeployer, final ClusterReactorDeployable deployable) {
         return clusterDeployer
-            .deploy(deployable)
-            .andThen(clusterDeployer.doAfterDeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .deploy(deployable)
+                .andThen(clusterDeployer.doAfterDeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     private Flowable<ClusterReactorDeployable> undeployCluster(
-        final ClusterDeployer clusterDeployer,
-        final ClusterReactorDeployable deployable
-    ) {
+            final ClusterDeployer clusterDeployer, final ClusterReactorDeployable deployable) {
         return clusterDeployer
-            .undeploy(deployable)
-            .andThen(clusterDeployer.doAfterUndeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .undeploy(deployable)
+                .andThen(clusterDeployer.doAfterUndeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     protected int bulkEvents() {

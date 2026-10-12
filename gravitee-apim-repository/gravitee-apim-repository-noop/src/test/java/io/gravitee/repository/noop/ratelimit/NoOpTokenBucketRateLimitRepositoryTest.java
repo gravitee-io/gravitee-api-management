@@ -35,9 +35,8 @@ public class NoOpTokenBucketRateLimitRepositoryTest extends AbstractNoOpReposito
 
     @Test
     public void refillAndTryConsume() {
-        Single<TokenBucketConsumeResult> result = cut.refillAndTryConsume("test_key", 1L, 10L, 1_000L, 100L, 1_000L, () ->
-            new TokenBucket("test_key")
-        );
+        Single<TokenBucketConsumeResult> result =
+                cut.refillAndTryConsume("test_key", 1L, 10L, 1_000L, 100L, 1_000L, () -> new TokenBucket("test_key"));
 
         assertNull(result);
     }

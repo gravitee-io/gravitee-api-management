@@ -45,7 +45,10 @@ final class AmCalls {
         Map<String, String> body = new LinkedHashMap<>();
         body.put("code", e.code());
         body.put("message", e.getMessage() == null ? "" : e.getMessage());
-        return new WebApplicationException(Response.status(503).type(MediaType.APPLICATION_JSON).entity(body).build());
+        return new WebApplicationException(Response.status(503)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(body)
+                .build());
     }
 
     private static WebApplicationException upstream(AmUpstreamException e) {
@@ -57,6 +60,9 @@ final class AmCalls {
         body.put("message", e.getMessage() == null ? "" : e.getMessage());
         body.put("upstreamStatus", upstream);
 
-        return new WebApplicationException(Response.status(status).type(MediaType.APPLICATION_JSON).entity(body).build());
+        return new WebApplicationException(Response.status(status)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(body)
+                .build());
     }
 }

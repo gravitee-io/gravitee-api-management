@@ -28,16 +28,20 @@ import java.util.List;
  */
 public interface InvitationService {
     InvitationEntity create(final ExecutionContext executionContext, NewInvitationEntity invitation);
+
     InvitationEntity update(UpdateInvitationEntity invitation);
+
     List<InvitationEntity> findByReference(InvitationReferenceType referenceType, String referenceId);
+
     void delete(String invitationId, String referenceId);
+
     List<InvitationEntity> findAll();
+
     void addMember(
-        final ExecutionContext executionContext,
-        String referenceType,
-        String referenceId,
-        String userId,
-        String apiRole,
-        String applicationRole
-    );
+            final ExecutionContext executionContext,
+            String referenceType,
+            String referenceId,
+            String userId,
+            String apiRole,
+            String applicationRole);
 }

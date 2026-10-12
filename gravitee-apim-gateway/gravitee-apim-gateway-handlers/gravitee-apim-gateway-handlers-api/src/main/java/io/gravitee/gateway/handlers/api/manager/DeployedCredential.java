@@ -28,31 +28,27 @@ import java.util.Set;
  * @param updatedAt when the credential was last changed, in epoch milliseconds
  */
 public record DeployedCredential(
-    String id,
-    String environmentId,
-    String organizationId,
-    Set<String> allowedApiIds,
-    String encryptedSecret,
-    long updatedAt
-) {
+        String id,
+        String environmentId,
+        String organizationId,
+        Set<String> allowedApiIds,
+        String encryptedSecret,
+        long updatedAt) {
     public DeployedCredential {
         allowedApiIds = allowedApiIds == null ? Set.of() : Set.copyOf(allowedApiIds);
     }
 
     @Override
     public String toString() {
-        return (
-            "DeployedCredential[id=" +
-            id +
-            ", environmentId=" +
-            environmentId +
-            ", organizationId=" +
-            organizationId +
-            ", allowedApiIds=" +
-            allowedApiIds +
-            ", encryptedSecret=***, updatedAt=" +
-            updatedAt +
-            "]"
-        );
+        return ("DeployedCredential[id=" + id
+                + ", environmentId="
+                + environmentId
+                + ", organizationId="
+                + organizationId
+                + ", allowedApiIds="
+                + allowedApiIds
+                + ", encryptedSecret=***, updatedAt="
+                + updatedAt
+                + "]");
     }
 }

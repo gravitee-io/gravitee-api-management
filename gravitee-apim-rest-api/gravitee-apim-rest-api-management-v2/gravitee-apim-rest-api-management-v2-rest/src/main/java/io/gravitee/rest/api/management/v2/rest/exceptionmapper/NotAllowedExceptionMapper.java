@@ -29,6 +29,9 @@ public class NotAllowedExceptionMapper extends AbstractExceptionMapper<NotAllowe
     @Override
     public Response toResponse(final NotAllowedException e) {
         final Response.Status error = Response.Status.METHOD_NOT_ALLOWED;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, error.getStatusCode())).build();
+        return Response.status(error)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(e, error.getStatusCode()))
+                .build();
     }
 }

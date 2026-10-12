@@ -58,20 +58,26 @@ class PortalNavigationTemplatingServiceImplTest {
     @Test
     void should_render_template_with_provided_model() throws TemplateProcessorException {
         var model = Map.<String, Object>of("api", "my-api");
-        when(templateProcessor.processInlineTemplate(eq("${api}"), argThat(m -> "my-api".equals(m.get("api"))))).thenReturn("my-api");
+        when(templateProcessor.processInlineTemplate(eq("${api}"), argThat(m -> "my-api".equals(m.get("api")))))
+                .thenReturn("my-api");
 
-        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of("${api}"), model);
+        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
+                GraviteeMarkdown.of("${api}"), model);
 
-        assertThat(cut.renderGraviteeMarkdown(input)).isEqualTo(RenderedPageContent.of("my-api", PortalPageContentType.GRAVITEE_MARKDOWN));
+        assertThat(cut.renderGraviteeMarkdown(input))
+                .isEqualTo(RenderedPageContent.of("my-api", PortalPageContentType.GRAVITEE_MARKDOWN));
     }
 
     @Test
     void should_render_template_with_empty_model() throws TemplateProcessorException {
-        when(templateProcessor.processInlineTemplate(eq("plain"), argThat(Map::isEmpty))).thenReturn("plain");
+        when(templateProcessor.processInlineTemplate(eq("plain"), argThat(Map::isEmpty)))
+                .thenReturn("plain");
 
-        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of("plain"), Map.of());
+        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
+                GraviteeMarkdown.of("plain"), Map.of());
 
-        assertThat(cut.renderGraviteeMarkdown(input)).isEqualTo(RenderedPageContent.of("plain", PortalPageContentType.GRAVITEE_MARKDOWN));
+        assertThat(cut.renderGraviteeMarkdown(input))
+                .isEqualTo(RenderedPageContent.of("plain", PortalPageContentType.GRAVITEE_MARKDOWN));
     }
 
     @Test
@@ -79,26 +85,24 @@ class PortalNavigationTemplatingServiceImplTest {
         var impl = new PortalNavigationTemplatingServiceImpl(new FreemarkerTemplateProcessor());
 
         var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
-            GraviteeMarkdown.of("${thisVariableIsMissing}"),
-            Map.of()
-        );
+                GraviteeMarkdown.of("${thisVariableIsMissing}"), Map.of());
 
         assertThatThrownBy(() -> impl.renderGraviteeMarkdown(input))
-            .isInstanceOf(PortalPageContentTemplateException.class)
-            .hasMessageContaining("Invalid expression or value is missing for thisVariableIsMissing");
+                .isInstanceOf(PortalPageContentTemplateException.class)
+                .hasMessageContaining("Invalid expression or value is missing for thisVariableIsMissing");
     }
 
     @Test
     void should_wrap_non_template_exception_failure_as_invalid_template() throws TemplateProcessorException {
-        when(templateProcessor.processInlineTemplate(anyString(), any())).thenThrow(
-            new TemplateProcessorException("tmpl", new IOException("parse failure"))
-        );
+        when(templateProcessor.processInlineTemplate(anyString(), any()))
+                .thenThrow(new TemplateProcessorException("tmpl", new IOException("parse failure")));
 
-        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of("${broken!"), Map.of());
+        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
+                GraviteeMarkdown.of("${broken!"), Map.of());
 
         assertThatThrownBy(() -> cut.renderGraviteeMarkdown(input))
-            .isInstanceOf(PortalPageContentTemplateException.class)
-            .hasMessageContaining("Invalid template:")
-            .hasMessageContaining("parse failure");
+                .isInstanceOf(PortalPageContentTemplateException.class)
+                .hasMessageContaining("Invalid template:")
+                .hasMessageContaining("parse failure");
     }
 }

@@ -45,7 +45,9 @@ public class MongoPortalRepository implements PortalRepository {
     @Override
     public Optional<Portal> findByIdAndEnvironmentId(String portalId, String environmentId) throws TechnicalException {
         log.debug("Find portal by ID [{}] and environment [{}]", portalId, environmentId);
-        PortalMongo portal = internalPortalRepo.findByIdAndEnvironmentId(portalId, environmentId).orElse(null);
+        PortalMongo portal = internalPortalRepo
+                .findByIdAndEnvironmentId(portalId, environmentId)
+                .orElse(null);
         return Optional.ofNullable(mapper.map(portal));
     }
 
@@ -55,7 +57,8 @@ public class MongoPortalRepository implements PortalRepository {
     }
 
     @Override
-    public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) throws TechnicalException {
+    public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId)
+            throws TechnicalException {
         return mapper.mapPortals(internalPortalRepo.findByActiveThemeIdAndEnvironmentId(activeThemeId, environmentId));
     }
 

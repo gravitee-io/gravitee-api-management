@@ -49,26 +49,37 @@ class ApiCategoryOrderQueryServiceImplTest {
 
         @Test
         void should_return_list() {
-            when(apiCategoryOrderRepository.findAllByCategoryId(CAT_ID)).thenReturn(
-                Set.of(
-                    ApiCategoryOrder.builder().categoryId(CAT_ID).apiId("api-1").order(0).build(),
-                    ApiCategoryOrder.builder().categoryId(CAT_ID).apiId("api-2").order(1).build()
-                )
-            );
+            when(apiCategoryOrderRepository.findAllByCategoryId(CAT_ID))
+                    .thenReturn(Set.of(
+                            ApiCategoryOrder.builder()
+                                    .categoryId(CAT_ID)
+                                    .apiId("api-1")
+                                    .order(0)
+                                    .build(),
+                            ApiCategoryOrder.builder()
+                                    .categoryId(CAT_ID)
+                                    .apiId("api-2")
+                                    .order(1)
+                                    .build()));
 
             var foundApiCategories = service.findAllByCategoryId(CAT_ID);
 
             verify(apiCategoryOrderRepository, times(1)).findAllByCategoryId(CAT_ID);
             Assertions.assertThat(foundApiCategories)
-                .isNotNull()
-                .hasSize(2)
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    Set.of(
-                        io.gravitee.apim.core.category.model.ApiCategoryOrder.builder().categoryId(CAT_ID).apiId("api-1").order(0).build(),
-                        io.gravitee.apim.core.category.model.ApiCategoryOrder.builder().categoryId(CAT_ID).apiId("api-2").order(1).build()
-                    )
-                );
+                    .isNotNull()
+                    .hasSize(2)
+                    .usingRecursiveComparison()
+                    .isEqualTo(Set.of(
+                            io.gravitee.apim.core.category.model.ApiCategoryOrder.builder()
+                                    .categoryId(CAT_ID)
+                                    .apiId("api-1")
+                                    .order(0)
+                                    .build(),
+                            io.gravitee.apim.core.category.model.ApiCategoryOrder.builder()
+                                    .categoryId(CAT_ID)
+                                    .apiId("api-2")
+                                    .order(1)
+                                    .build()));
         }
 
         @Test
@@ -83,7 +94,9 @@ class ApiCategoryOrderQueryServiceImplTest {
 
         @Test
         void should_throw_when_validation_fails() {
-            doThrow(new RuntimeException("error")).when(apiCategoryOrderRepository).findAllByCategoryId(any());
+            doThrow(new RuntimeException("error"))
+                    .when(apiCategoryOrderRepository)
+                    .findAllByCategoryId(any());
 
             var throwable = Assertions.catchThrowable(() -> service.findAllByCategoryId(CAT_ID));
 

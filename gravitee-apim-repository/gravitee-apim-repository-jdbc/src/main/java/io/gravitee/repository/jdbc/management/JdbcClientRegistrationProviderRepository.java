@@ -43,8 +43,8 @@ import org.springframework.stereotype.Repository;
 @CustomLog
 @Repository
 public class JdbcClientRegistrationProviderRepository
-    extends JdbcAbstractCrudRepository<ClientRegistrationProvider, String>
-    implements ClientRegistrationProviderRepository {
+        extends JdbcAbstractCrudRepository<ClientRegistrationProvider, String>
+        implements ClientRegistrationProviderRepository {
 
     private final String CLIENT_REGISTRATION_PROVIDER_SCOPES;
 
@@ -58,39 +58,41 @@ public class JdbcClientRegistrationProviderRepository
     @Override
     protected JdbcObjectMapper<ClientRegistrationProvider> buildOrm() {
         return JdbcObjectMapper.builder(ClientRegistrationProvider.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("discovery_endpoint", Types.NVARCHAR, String.class)
-            .addColumn("initial_access_token_type", Types.NVARCHAR, ClientRegistrationProvider.InitialAccessTokenType.class)
-            .addColumn("client_id", Types.NVARCHAR, String.class)
-            .addColumn("client_secret", Types.NVARCHAR, String.class)
-            .addColumn("initial_access_token", Types.NVARCHAR, String.class)
-            .addColumn("renew_client_secret_support", Types.BOOLEAN, boolean.class)
-            .addColumn("renew_client_secret_endpoint", Types.NVARCHAR, String.class)
-            .addColumn("renew_client_secret_method", Types.NVARCHAR, String.class)
-            .addColumn("software_id", Types.NVARCHAR, String.class)
-            .addColumn("trust_store_type", Types.NVARCHAR, String.class)
-            .addColumn("trust_store_path", Types.NVARCHAR, String.class)
-            .addColumn("trust_store_content", Types.CLOB, String.class)
-            .addColumn("trust_store_password", Types.NVARCHAR, String.class)
-            .addColumn("key_store_type", Types.NVARCHAR, String.class)
-            .addColumn("key_store_path", Types.NVARCHAR, String.class)
-            .addColumn("key_store_content", Types.CLOB, String.class)
-            .addColumn("key_store_password", Types.NVARCHAR, String.class)
-            .addColumn("key_store_alias", Types.NVARCHAR, String.class)
-            .addColumn("key_password", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn(
-                "claim_mappings",
-                Types.NCLOB,
-                Map.class,
-                JdbcClientRegistrationProviderRepository::serializeClaimMappings,
-                JdbcClientRegistrationProviderRepository::deserializeClaimMappings
-            )
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("discovery_endpoint", Types.NVARCHAR, String.class)
+                .addColumn(
+                        "initial_access_token_type",
+                        Types.NVARCHAR,
+                        ClientRegistrationProvider.InitialAccessTokenType.class)
+                .addColumn("client_id", Types.NVARCHAR, String.class)
+                .addColumn("client_secret", Types.NVARCHAR, String.class)
+                .addColumn("initial_access_token", Types.NVARCHAR, String.class)
+                .addColumn("renew_client_secret_support", Types.BOOLEAN, boolean.class)
+                .addColumn("renew_client_secret_endpoint", Types.NVARCHAR, String.class)
+                .addColumn("renew_client_secret_method", Types.NVARCHAR, String.class)
+                .addColumn("software_id", Types.NVARCHAR, String.class)
+                .addColumn("trust_store_type", Types.NVARCHAR, String.class)
+                .addColumn("trust_store_path", Types.NVARCHAR, String.class)
+                .addColumn("trust_store_content", Types.CLOB, String.class)
+                .addColumn("trust_store_password", Types.NVARCHAR, String.class)
+                .addColumn("key_store_type", Types.NVARCHAR, String.class)
+                .addColumn("key_store_path", Types.NVARCHAR, String.class)
+                .addColumn("key_store_content", Types.CLOB, String.class)
+                .addColumn("key_store_password", Types.NVARCHAR, String.class)
+                .addColumn("key_store_alias", Types.NVARCHAR, String.class)
+                .addColumn("key_password", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn(
+                        "claim_mappings",
+                        Types.NCLOB,
+                        Map.class,
+                        JdbcClientRegistrationProviderRepository::serializeClaimMappings,
+                        JdbcClientRegistrationProviderRepository::deserializeClaimMappings)
+                .build();
     }
 
     private static String serializeClaimMappings(Map claimMappings) {
@@ -127,25 +129,24 @@ public class JdbcClientRegistrationProviderRepository
 
     private List<String> getScopes(String id) {
         return jdbcTemplate.queryForList(
-            "select scope from " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " where client_registration_provider_id = ?",
-            String.class,
-            id
-        );
+                "select scope from " + CLIENT_REGISTRATION_PROVIDER_SCOPES
+                        + " where client_registration_provider_id = ?",
+                String.class,
+                id);
     }
 
     private void storeScopes(ClientRegistrationProvider clientRegistrationProvider, boolean deleteFirst) {
         if (deleteFirst) {
             jdbcTemplate.update(
-                "delete from " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " where client_registration_provider_id = ?",
-                clientRegistrationProvider.getId()
-            );
+                    "delete from " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " where client_registration_provider_id = ?",
+                    clientRegistrationProvider.getId());
         }
         List<String> filteredScopes = getOrm().filterStrings(clientRegistrationProvider.getScopes());
         if (!filteredScopes.isEmpty()) {
             jdbcTemplate.batchUpdate(
-                "insert into " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " ( client_registration_provider_id, scope ) values ( ?, ? )",
-                getOrm().getBatchStringSetter(clientRegistrationProvider.getId(), filteredScopes)
-            );
+                    "insert into " + CLIENT_REGISTRATION_PROVIDER_SCOPES
+                            + " ( client_registration_provider_id, scope ) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(clientRegistrationProvider.getId(), filteredScopes));
         }
     }
 
@@ -172,9 +173,8 @@ public class JdbcClientRegistrationProviderRepository
     public Set<ClientRegistrationProvider> findAllByEnvironment(String environmentId) throws TechnicalException {
         log.debug("JdbcClientRegistrationProviderRepository.findAllByEnvironment({})", environmentId);
         try {
-            Set<ClientRegistrationProvider> providers = new HashSet<>(
-                jdbcTemplate.query(getOrm().getSelectAllSql() + " where environment_id = ?", getOrm().getRowMapper(), environmentId)
-            );
+            Set<ClientRegistrationProvider> providers = new HashSet<>(jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " where environment_id = ?", getOrm().getRowMapper(), environmentId));
             for (ClientRegistrationProvider provider : providers) {
                 addScopes(provider);
             }
@@ -199,19 +199,19 @@ public class JdbcClientRegistrationProviderRepository
     }
 
     @Override
-    public ClientRegistrationProvider update(final ClientRegistrationProvider clientRegistrationProvider) throws TechnicalException {
+    public ClientRegistrationProvider update(final ClientRegistrationProvider clientRegistrationProvider)
+            throws TechnicalException {
         log.debug("JdbcClientRegistrationProviderRepository.update({})", clientRegistrationProvider);
         if (clientRegistrationProvider == null) {
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(
-                getOrm().buildUpdatePreparedStatementCreator(clientRegistrationProvider, clientRegistrationProvider.getId())
-            );
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(
+                            clientRegistrationProvider, clientRegistrationProvider.getId()));
             storeScopes(clientRegistrationProvider, true);
-            return findById(clientRegistrationProvider.getId()).orElseThrow(() ->
-                new IllegalStateException(format("No client registration provider found with id [%s]", clientRegistrationProvider.getId()))
-            );
+            return findById(clientRegistrationProvider.getId())
+                    .orElseThrow(() -> new IllegalStateException(format(
+                            "No client registration provider found with id [%s]", clientRegistrationProvider.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -222,7 +222,9 @@ public class JdbcClientRegistrationProviderRepository
 
     @Override
     public void delete(String id) throws TechnicalException {
-        jdbcTemplate.update("delete from " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " where client_registration_provider_id = ?", id);
+        jdbcTemplate.update(
+                "delete from " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " where client_registration_provider_id = ?",
+                id);
         jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
 
@@ -231,20 +233,15 @@ public class JdbcClientRegistrationProviderRepository
         log.debug("JdbcClientRegistrationProviderRepository.deleteByEnvironmentId({})", environmentId);
         try {
             List<String> rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + tableName + " where environment_id = ?", String.class, environmentId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update(
-                    "delete from " +
-                        CLIENT_REGISTRATION_PROVIDER_SCOPES +
-                        " where client_registration_provider_id IN (" +
-                        getOrm().buildInClause(rows) +
-                        ")",
-                    rows.toArray()
-                );
+                        "delete from " + CLIENT_REGISTRATION_PROVIDER_SCOPES
+                                + " where client_registration_provider_id IN ("
+                                + getOrm().buildInClause(rows)
+                                + ")",
+                        rows.toArray());
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 

@@ -42,15 +42,17 @@ public class SecurityPolicyFactory {
 
         String policyName = security.toLowerCase().replaceAll("_", "-");
         final HttpPolicy policy = policyManager.create(
-            ExecutionPhase.REQUEST,
-            new PolicyMetadata(policyName, plan.getSecurityDefinition())
-        );
+                ExecutionPhase.REQUEST, new PolicyMetadata(policyName, plan.getSecurityDefinition()));
 
         if (policy instanceof BaseSecurityPolicy) {
             return (T) policy;
         }
 
-        log.warn("Policy [{}] (plan [{}], api [{}]) is not a security policy.", policyName, plan.getName(), plan.getApi());
+        log.warn(
+                "Policy [{}] (plan [{}], api [{}]) is not a security policy.",
+                policyName,
+                plan.getName(),
+                plan.getApi());
 
         return null;
     }

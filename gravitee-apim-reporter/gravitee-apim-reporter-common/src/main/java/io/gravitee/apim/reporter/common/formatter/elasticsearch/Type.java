@@ -33,14 +33,7 @@ public enum Type {
     private final String type;
 
     public static final Type[] TYPES = new Type[] {
-        REQUEST,
-        MONITOR,
-        HEALTH_CHECK,
-        LOG,
-        V4_LOG,
-        V4_METRICS,
-        V4_MESSAGE_LOG,
-        V4_MESSAGE_METRICS,
+        REQUEST, MONITOR, HEALTH_CHECK, LOG, V4_LOG, V4_METRICS, V4_MESSAGE_LOG, V4_MESSAGE_METRICS,
     };
 
     Type(final String type) {

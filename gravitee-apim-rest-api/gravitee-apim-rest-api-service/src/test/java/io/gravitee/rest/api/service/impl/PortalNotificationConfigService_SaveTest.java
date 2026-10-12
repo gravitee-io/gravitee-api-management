@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.assertArg;
@@ -71,7 +70,8 @@ public class PortalNotificationConfigService_SaveTest {
 
     @BeforeEach
     public void setup() {
-        underTest = new PortalNotificationConfigServiceImpl(portalNotificationConfigRepository, membershipService, groupService);
+        underTest = new PortalNotificationConfigServiceImpl(
+                portalNotificationConfigRepository, membershipService, groupService);
     }
 
     @Test
@@ -108,8 +108,10 @@ public class PortalNotificationConfigService_SaveTest {
         when(cfgEntity.getUser()).thenReturn("user");
         when(cfgEntity.getHooks()).thenReturn(Arrays.asList("A", "B", "C"));
 
-        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(of(cfg));
-        when(portalNotificationConfigRepository.update(any(PortalNotificationConfig.class))).thenReturn(cfg);
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123"))
+                .thenReturn(of(cfg));
+        when(portalNotificationConfigRepository.update(any(PortalNotificationConfig.class)))
+                .thenReturn(cfg);
 
         final PortalNotificationConfigEntity entity = underTest.save(cfgEntity);
 
@@ -138,8 +140,10 @@ public class PortalNotificationConfigService_SaveTest {
         when(cfgEntity.getUser()).thenReturn("user");
         when(cfgEntity.getHooks()).thenReturn(Arrays.asList("A", "B", "C"));
 
-        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(empty());
-        when(portalNotificationConfigRepository.create(any(PortalNotificationConfig.class))).thenReturn(cfg);
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123"))
+                .thenReturn(empty());
+        when(portalNotificationConfigRepository.create(any(PortalNotificationConfig.class)))
+                .thenReturn(cfg);
 
         final PortalNotificationConfigEntity entity = underTest.save(cfgEntity);
 
@@ -157,20 +161,20 @@ public class PortalNotificationConfigService_SaveTest {
     @Test
     public void shouldRemoveGroupIds() throws TechnicalException {
         PortalNotificationConfig config = PortalNotificationConfig.builder()
-            .groups(new HashSet<>(Set.of("1", "2", "3")))
-            .user("po")
-            .referenceType(NotificationReferenceType.API)
-            .referenceId("123")
-            .build();
+                .groups(new HashSet<>(Set.of("1", "2", "3")))
+                .user("po")
+                .referenceType(NotificationReferenceType.API)
+                .referenceId("123")
+                .build();
 
-        when(membershipService.getPrimaryOwnerUserId(any(), eq(MembershipReferenceType.API), eq("123"))).thenReturn("po");
-        when(portalNotificationConfigRepository.findById("po", NotificationReferenceType.API, "123")).thenReturn(Optional.of(config));
+        when(membershipService.getPrimaryOwnerUserId(any(), eq(MembershipReferenceType.API), eq("123")))
+                .thenReturn("po");
+        when(portalNotificationConfigRepository.findById("po", NotificationReferenceType.API, "123"))
+                .thenReturn(Optional.of(config));
 
         underTest.removeGroupIds("123", Set.of("3"));
-        verify(portalNotificationConfigRepository, times(1)).update(
-            assertArg(c -> {
-                assertEquals(Set.of("1", "2"), c.getGroups());
-            })
-        );
+        verify(portalNotificationConfigRepository, times(1)).update(assertArg(c -> {
+            assertEquals(Set.of("1", "2"), c.getGroups());
+        }));
     }
 }

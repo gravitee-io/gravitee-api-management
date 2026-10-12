@@ -36,10 +36,9 @@ public class AcceptSubscriptionUseCase {
     private final AcceptSubscriptionDomainService acceptSubscriptionDomainService;
 
     public AcceptSubscriptionUseCase(
-        SubscriptionCrudService subscriptionCrudService,
-        PlanCrudService planCrudService,
-        AcceptSubscriptionDomainService acceptSubscriptionDomainService
-    ) {
+            SubscriptionCrudService subscriptionCrudService,
+            PlanCrudService planCrudService,
+            AcceptSubscriptionDomainService acceptSubscriptionDomainService) {
         this.subscriptionCrudService = subscriptionCrudService;
         this.planCrudService = planCrudService;
         this.acceptSubscriptionDomainService = acceptSubscriptionDomainService;
@@ -55,21 +54,20 @@ public class AcceptSubscriptionUseCase {
         checkSubscriptionStatus(subscription);
         var plan = checkPlanStatus(subscription);
 
-        return new Output(
-            acceptSubscriptionDomainService.accept(
+        return new Output(acceptSubscriptionDomainService.accept(
                 subscription,
                 plan,
                 input.startingAt,
                 input.endingAt,
                 input.reasonMessage,
                 input.customKey,
-                input.auditInfo
-            )
-        );
+                input.auditInfo));
     }
 
-    private void validateSubscription(SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
-        if (!referenceType.equals(subscription.getReferenceType()) || !referenceId.equals(subscription.getReferenceId())) {
+    private void validateSubscription(
+            SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
+        if (!referenceType.equals(subscription.getReferenceType())
+                || !referenceId.equals(subscription.getReferenceId())) {
             throw new SubscriptionNotFoundException(subscription.getId());
         }
     }
@@ -90,15 +88,14 @@ public class AcceptSubscriptionUseCase {
 
     @Builder
     public record Input(
-        String referenceId,
-        SubscriptionReferenceType referenceType,
-        String subscriptionId,
-        ZonedDateTime startingAt,
-        ZonedDateTime endingAt,
-        String reasonMessage,
-        String customKey,
-        AuditInfo auditInfo
-    ) {}
+            String referenceId,
+            SubscriptionReferenceType referenceType,
+            String subscriptionId,
+            ZonedDateTime startingAt,
+            ZonedDateTime endingAt,
+            String reasonMessage,
+            String customKey,
+            AuditInfo auditInfo) {}
 
     public record Output(SubscriptionEntity subscription) {}
 }

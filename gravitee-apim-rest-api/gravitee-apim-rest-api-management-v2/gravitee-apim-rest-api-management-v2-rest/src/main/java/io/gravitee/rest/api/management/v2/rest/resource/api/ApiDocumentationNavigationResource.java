@@ -86,82 +86,89 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.READ})
+    })
     public ApiPortalNavigationItemsResponse getApiPortalNavigationItems(@PathParam("apiId") String apiId) {
         requireApi(apiId);
         var output = listApiDocumentationUseCase.execute(
-            new ListApiDocumentationUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId)
-        );
+                new ListApiDocumentationUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId));
         return mapper.map(output);
     }
 
     @Path("_publish-locations")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.READ})
+    })
     public ApiPortalPublishLocationsResponse getApiPortalPublishLocations(@PathParam("apiId") String apiId) {
         requireApi(apiId);
         var output = listApiPublishLocationsUseCase.execute(
-            new ListApiPublishLocationsUseCase.Input(GraviteeContext.getCurrentEnvironment())
-        );
+                new ListApiPublishLocationsUseCase.Input(GraviteeContext.getCurrentEnvironment()));
         return mapper.map(output);
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.CREATE})
+    })
     public Response createApiPortalNavigationItem(
-        @PathParam("apiId") String apiId,
-        @Valid @NotNull final BaseCreatePortalNavigationItem createPortalNavigationItem
-    ) {
+            @PathParam("apiId") String apiId,
+            @Valid @NotNull final BaseCreatePortalNavigationItem createPortalNavigationItem) {
         requireApi(apiId);
         var executionContext = GraviteeContext.getExecutionContext();
         var itemToCreate = apiOwnedNavigationDomainService.claimForApi(
-            executionContext.getEnvironmentId(),
-            apiId,
-            mapper.map(createPortalNavigationItem)
-        );
+                executionContext.getEnvironmentId(), apiId, mapper.map(createPortalNavigationItem));
 
-        var output = createPortalNavigationItemUseCase.execute(
-            new CreatePortalNavigationItemUseCase.Input(
-                executionContext.getOrganizationId(),
-                executionContext.getEnvironmentId(),
-                itemToCreate
-            )
-        );
+        var output = createPortalNavigationItemUseCase.execute(new CreatePortalNavigationItemUseCase.Input(
+                executionContext.getOrganizationId(), executionContext.getEnvironmentId(), itemToCreate));
 
-        return Response.created(this.getLocationHeader(output.item().getId().toString())).entity(mapper.map(output.item())).build();
+        return Response.created(this.getLocationHeader(output.item().getId().toString()))
+                .entity(mapper.map(output.item()))
+                .build();
     }
 
     @Path("_publish")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public ApiPortalPublication publishApiToPortal(
-        @PathParam("apiId") String apiId,
-        @Valid @NotNull final PublishApiToPortal publishApiToPortal
-    ) {
+            @PathParam("apiId") String apiId, @Valid @NotNull final PublishApiToPortal publishApiToPortal) {
         requireApi(apiId);
         var executionContext = GraviteeContext.getExecutionContext();
-        var output = publishApiToPortalUseCase.execute(
-            new PublishApiToPortalUseCase.Input(
+        var output = publishApiToPortalUseCase.execute(new PublishApiToPortalUseCase.Input(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 apiId,
-                PortalNavigationItemId.of(publishApiToPortal.getSectionId().toString())
-            )
-        );
+                PortalNavigationItemId.of(publishApiToPortal.getSectionId().toString())));
         return mapper.mapPublication(new ListApiDocumentationUseCase.Publication(output.listing(), output.section()));
     }
 
     @Path("_unpublish")
     @POST
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.UPDATE})
+    })
     public Response unpublishApiFromPortal(@PathParam("apiId") String apiId) {
         requireApi(apiId);
-        unpublishApiFromPortalUseCase.execute(new UnpublishApiFromPortalUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId));
+        unpublishApiFromPortalUseCase.execute(
+                new UnpublishApiFromPortalUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId));
         return Response.noContent().build();
     }
 
@@ -169,21 +176,28 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_DOCUMENTATION,
+                acls = {RolePermissionAction.CREATE})
+    })
     public Response importApiPortalNavigation(
-        @PathParam("apiId") String apiId,
-        @Valid @NotNull final ImportPortalNavigationRequest importPortalNavigationRequest
-    ) {
+            @PathParam("apiId") String apiId,
+            @Valid @NotNull final ImportPortalNavigationRequest importPortalNavigationRequest) {
         requireApi(apiId);
         var executionContext = GraviteeContext.getExecutionContext();
-        var input = mapper.map(executionContext.getOrganizationId(), executionContext.getEnvironmentId(), importPortalNavigationRequest);
+        var input = mapper.map(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                importPortalNavigationRequest);
         if (input.parentId() != null) {
-            apiOwnedNavigationDomainService.requireOwnedItem(executionContext.getEnvironmentId(), apiId, input.parentId());
+            apiOwnedNavigationDomainService.requireOwnedItem(
+                    executionContext.getEnvironmentId(), apiId, input.parentId());
         }
 
-        var output = importPortalNavigationUseCase.execute(
-            input.toBuilder().reference(new NavigationItemReference.ApiReference(apiId)).build()
-        );
+        var output = importPortalNavigationUseCase.execute(input.toBuilder()
+                .reference(new NavigationItemReference.ApiReference(apiId))
+                .build());
 
         return Response.ok(mapper.map(output)).build();
     }
@@ -194,9 +208,9 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
      */
     private void requireApi(String apiId) {
         apiCrudService
-            .findById(apiId)
-            .filter(api -> api.belongsToEnvironment(GraviteeContext.getCurrentEnvironment()))
-            .orElseThrow(() -> new ApiNotFoundException(apiId));
+                .findById(apiId)
+                .filter(api -> api.belongsToEnvironment(GraviteeContext.getCurrentEnvironment()))
+                .orElseThrow(() -> new ApiNotFoundException(apiId));
     }
 
     @Path("{navId}")

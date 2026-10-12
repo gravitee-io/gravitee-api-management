@@ -56,17 +56,16 @@ class ClusterQueryServiceImplTest {
         void should_return_empty_page() {
             // Given
             String environmentId = "environmentId";
-            when(
-                repository.search(
-                    argThat(criteria -> criteria.getEnvironmentId().equals(environmentId)),
-                    argThat(pageable -> pageable.pageNumber() == 0 && pageable.pageSize() == 10),
-                    argThat(Optional::isEmpty)
-                )
-            ).thenReturn(new Page<>(List.of(), 0, 0, 0));
+            when(repository.search(
+                            argThat(criteria -> criteria.getEnvironmentId().equals(environmentId)),
+                            argThat(pageable -> pageable.pageNumber() == 0 && pageable.pageSize() == 10),
+                            argThat(Optional::isEmpty)))
+                    .thenReturn(new Page<>(List.of(), 0, 0, 0));
 
             // When
             Pageable pageable = new PageableImpl(1, 10);
-            var result = service.search(ClusterSearchCriteria.builder().environmentId(environmentId).build(), pageable, Optional.empty());
+            var result = service.search(
+                    ClusterSearchCriteria.builder().environmentId(environmentId).build(), pageable, Optional.empty());
 
             // Then
             assertThat(result.getContent()).isEmpty();
@@ -77,34 +76,34 @@ class ClusterQueryServiceImplTest {
         void should_return_page_with_clusters() {
             // Given
             String environmentId = "environmentId";
-            when(
-                repository.search(
-                    argThat(criteria -> criteria.getEnvironmentId().equals(environmentId)),
-                    argThat(pageable -> pageable.pageNumber() == 0 && pageable.pageSize() == 10),
-                    argThat(
-                        sortable ->
-                            sortable.isPresent() && sortable.get().field().equals("name") && sortable.get().order().name().equals("ASC")
-                    )
-                )
-            ).thenReturn(
-                new Page<>(
-                    List.of(
-                        Cluster.builder().id("cluster1").name("Cluster 1").environmentId(environmentId).build(),
-                        Cluster.builder().id("cluster2").name("Cluster 2").environmentId(environmentId).build()
-                    ),
-                    2,
-                    0,
-                    2
-                )
-            );
+            when(repository.search(
+                            argThat(criteria -> criteria.getEnvironmentId().equals(environmentId)),
+                            argThat(pageable -> pageable.pageNumber() == 0 && pageable.pageSize() == 10),
+                            argThat(sortable -> sortable.isPresent()
+                                    && sortable.get().field().equals("name")
+                                    && sortable.get().order().name().equals("ASC"))))
+                    .thenReturn(new Page<>(
+                            List.of(
+                                    Cluster.builder()
+                                            .id("cluster1")
+                                            .name("Cluster 1")
+                                            .environmentId(environmentId)
+                                            .build(),
+                                    Cluster.builder()
+                                            .id("cluster2")
+                                            .name("Cluster 2")
+                                            .environmentId(environmentId)
+                                            .build()),
+                            2,
+                            0,
+                            2));
 
             // When
             Pageable pageable = new PageableImpl(1, 10);
             var result = service.search(
-                ClusterSearchCriteria.builder().environmentId(environmentId).build(),
-                pageable,
-                Optional.of(new SortableImpl("name", true))
-            );
+                    ClusterSearchCriteria.builder().environmentId(environmentId).build(),
+                    pageable,
+                    Optional.of(new SortableImpl("name", true)));
 
             // Then
             assertThat(result.getContent()).hasSize(2);

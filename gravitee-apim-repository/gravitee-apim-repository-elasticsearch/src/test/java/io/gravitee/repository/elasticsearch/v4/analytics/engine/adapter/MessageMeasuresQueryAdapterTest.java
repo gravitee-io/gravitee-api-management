@@ -35,11 +35,11 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     final MessageMeasuresQueryAdapter adapter = new MessageMeasuresQueryAdapter();
 
     private List<MetricMeasuresQuery> buildMessageMetrics() {
-        var measures = Set.of(Measure.P90, Measure.P50, Measure.P95, Measure.P99, Measure.MIN, Measure.MAX, Measure.AVG);
+        var measures =
+                Set.of(Measure.P90, Measure.P50, Measure.P95, Measure.P99, Measure.MIN, Measure.MAX, Measure.AVG);
         return List.of(
-            new MetricMeasuresQuery(Metric.MESSAGE_GATEWAY_LATENCY, measures),
-            new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))
-        );
+                new MetricMeasuresQuery(Metric.MESSAGE_GATEWAY_LATENCY, measures),
+                new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT)));
     }
 
     @Test
@@ -72,13 +72,16 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var latencyP90 = aggs.at("/MESSAGE_GATEWAY_LATENCY#P90/percentiles/percents/0").asDouble();
+        var latencyP90 =
+                aggs.at("/MESSAGE_GATEWAY_LATENCY#P90/percentiles/percents/0").asDouble();
         assertThat(latencyP90).isEqualTo(90.0);
 
-        var latencyP95 = aggs.at("/MESSAGE_GATEWAY_LATENCY#P95/percentiles/percents/0").asDouble();
+        var latencyP95 =
+                aggs.at("/MESSAGE_GATEWAY_LATENCY#P95/percentiles/percents/0").asDouble();
         assertThat(latencyP95).isEqualTo(95.0);
 
-        var latencyP99 = aggs.at("/MESSAGE_GATEWAY_LATENCY#P99/percentiles/percents/0").asDouble();
+        var latencyP99 =
+                aggs.at("/MESSAGE_GATEWAY_LATENCY#P99/percentiles/percents/0").asDouble();
         assertThat(latencyP99).isEqualTo(99.0);
     }
 
@@ -219,7 +222,8 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var p50Agg = aggs.at("/MESSAGE_GATEWAY_LATENCY#P50/percentiles/percents/0").asDouble();
+        var p50Agg =
+                aggs.at("/MESSAGE_GATEWAY_LATENCY#P50/percentiles/percents/0").asDouble();
         assertThat(p50Agg).isEqualTo(50.0);
     }
 
@@ -248,7 +252,10 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(jsonQuery.at("/query/bool/filter").toString()).contains("api-id");
         // The aggregations are the ones the joined overload builds: skipping the join changes what is
         // selected, never what is measured.
-        assertThat(jsonQuery.at("/aggs/MESSAGE_GATEWAY_LATENCY#P95/percentiles/percents/0").asDouble()).isEqualTo(95.0);
+        assertThat(jsonQuery
+                        .at("/aggs/MESSAGE_GATEWAY_LATENCY#P95/percentiles/percents/0")
+                        .asDouble())
+                .isEqualTo(95.0);
     }
 
     private com.fasterxml.jackson.databind.JsonNode requestIdTerms(com.fasterxml.jackson.databind.JsonNode jsonQuery) {

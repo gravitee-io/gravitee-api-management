@@ -66,16 +66,13 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenReturn(
-                new ImportApiCRDUseCase.Output(
-                    ApiCRDStatus.builder()
-                        .id("api-id")
-                        .crossId("api-cross-id")
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .build()
-                )
-            );
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class)))
+                    .thenReturn(new ImportApiCRDUseCase.Output(ApiCRDStatus.builder()
+                            .id("api-id")
+                            .crossId("api-cross-id")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .build()));
         }
 
         @Test
@@ -103,11 +100,10 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { false, true })
+        @ValueSource(booleans = {false, true})
         void should_accept_lowercase_enum_values(boolean dryRun) {
-            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
-                Validator.Result.ofValue(call.getArgument(0))
-            );
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
             var state = expectEntity("api-with-lowercase-flow-mode.json", dryRun, false);
 
@@ -117,18 +113,17 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { false, true })
+        @ValueSource(booleans = {false, true})
         void should_accept_values_longer_than_64_characters(boolean dryRun) {
-            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
-                Validator.Result.ofValue(call.getArgument(0))
-            );
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
             var state = expectEntity("api-with-long-fields.json", dryRun, false);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(state.getLabels())
-                    .containsExactly("repro-18469-this-label-is-deliberately-longer-than-sixty-four-characters-0123456789");
+                soft.assertThat(state.getLabels())
+                        .containsExactly(
+                                "repro-18469-this-label-is-deliberately-longer-than-sixty-four-characters-0123456789");
                 soft.assertThat(state.getVersion()).hasSize(65);
                 soft.assertThat(state.getPlans().getFirst().getName()).hasSize(65);
                 soft.assertThat(state.getPages().getFirst().getName()).hasSize(65);
@@ -137,16 +132,13 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_guid() {
-            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenAnswer(call ->
-                new ImportApiCRDUseCase.Output(
-                    ApiCRDStatus.builder()
-                        .id("api-hrid")
-                        .crossId("api-cross-id")
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .build()
-                )
-            );
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class)))
+                    .thenAnswer(call -> new ImportApiCRDUseCase.Output(ApiCRDStatus.builder()
+                            .id("api-hrid")
+                            .crossId("api-cross-id")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .build()));
 
             var state = expectEntity("api-with-hrid.json", false, true);
             SoftAssertions.assertSoftly(soft -> {
@@ -172,39 +164,33 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_cross_id_no_hrid() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", false)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-with-no-hrid.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-with-no-hrid.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
         }
 
         @Test
         void should_reject_edge_api_type() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", false)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-with-edge-type.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-with-edge-type.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
         }
 
         @Test
         void should_reject_authz_api_type() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", false)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-with-authz-type.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-with-authz-type.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
         }
@@ -222,7 +208,8 @@ class ApisResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(listener.getPathMappings()).containsExactly("/products/:productId");
                 soft.assertThat(listener.getCors().isAllowPrivateNetwork()).isTrue();
-                soft.assertThat(listener.getRequestValidation().isRejectNullByte()).isTrue();
+                soft.assertThat(listener.getRequestValidation().isRejectNullByte())
+                        .isTrue();
                 soft.assertThat(redaction.getDefaultReplacement()).isEqualTo("[MASKED]");
                 soft.assertThat(rule.getAttributeNamePattern()).isEqualTo("http.request.header.authorization");
                 soft.assertThat(rule.getValuePattern()).isEqualTo("^Bearer ");
@@ -231,22 +218,20 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft.assertThat(rule.getMaskingStrategy().getPrefixLength()).isEqualTo(7);
                 soft.assertThat(rule.getMaskingStrategy().getSuffixLength()).isEqualTo(2);
                 soft.assertThat(spec.getFailover().getFailureCondition()).isEqualTo("{#response.status >= 500}");
-                soft.assertThat(spec.getFailover().isForceNextEndpointOnFailure()).isTrue();
+                soft.assertThat(spec.getFailover().isForceNextEndpointOnFailure())
+                        .isTrue();
             });
         }
 
         @Test
         void should_return_400_and_no_fqcn_when_use_case_throws_validation_domain_exception() {
-            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenThrow(
-                new io.gravitee.apim.core.exception.ValidationDomainException("bad payload")
-            );
-            try (
-                var response = rootTarget()
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class)))
+                    .thenThrow(new io.gravitee.apim.core.exception.ValidationDomainException("bad payload"));
+            try (var response = rootTarget()
                     .queryParam("dryRun", false)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-with-hrid.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-with-hrid.json")))) {
                 var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Error.class);
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(response.getStatus()).isEqualTo(400);
@@ -267,47 +252,29 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
             });
 
-            verify(importApiCRDUseCase, atMostOnce()).execute(
-                argThat(
-                    input ->
-                        input
-                            .spec()
-                            .getPlans()
-                            .values()
-                            .stream()
-                            .flatMap(p -> p.getFlows().stream())
-                            .map(f -> (Flow) f)
-                            .flatMap(f ->
-                                Stream.concat(
-                                    Stream.concat(f.getRequest().stream(), f.getResponse().stream()),
-                                    Stream.concat(f.getSubscribe().stream(), f.getPublish().stream())
-                                )
-                            )
-                            .map(Step::getConfiguration)
-                            .allMatch(assertion()) &&
-                        input
-                            .spec()
-                            .getFlows()
-                            .stream()
-                            .map(f -> (Flow) f)
-                            .flatMap(f ->
-                                Stream.concat(
-                                    Stream.concat(f.getRequest().stream(), f.getResponse().stream()),
-                                    Stream.concat(f.getSubscribe().stream(), f.getPublish().stream())
-                                )
-                            )
-                            .map(Step::getConfiguration)
-                            .allMatch(assertion())
-                )
-            );
+            verify(importApiCRDUseCase, atMostOnce())
+                    .execute(argThat(input -> input.spec().getPlans().values().stream()
+                                    .flatMap(p -> p.getFlows().stream())
+                                    .map(f -> (Flow) f)
+                                    .flatMap(f -> Stream.concat(
+                                            Stream.concat(f.getRequest().stream(), f.getResponse().stream()),
+                                            Stream.concat(f.getSubscribe().stream(), f.getPublish().stream())))
+                                    .map(Step::getConfiguration)
+                                    .allMatch(assertion())
+                            && input.spec().getFlows().stream()
+                                    .map(f -> (Flow) f)
+                                    .flatMap(f -> Stream.concat(
+                                            Stream.concat(f.getRequest().stream(), f.getResponse().stream()),
+                                            Stream.concat(f.getSubscribe().stream(), f.getPublish().stream())))
+                                    .map(Step::getConfiguration)
+                                    .allMatch(assertion())));
         }
 
         @Nonnull
         private static Predicate<String> assertion() {
-            return s ->
-                s.contains(SharedPolicyGroupIdHelper.SHARED_POLICY_GROUP_ID_FIELD) &&
-                !s.contains(ApisResource.HRID_FIELD) &&
-                !s.contains("test-spg-hrid");
+            return s -> s.contains(SharedPolicyGroupIdHelper.SHARED_POLICY_GROUP_ID_FIELD)
+                    && !s.contains(ApisResource.HRID_FIELD)
+                    && !s.contains("test-spg-hrid");
         }
     }
 
@@ -318,18 +285,21 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_hrid() {
-            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
-                Validator.Result.ofValue(call.getArgument(0))
-            );
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
             var state = expectEntity("api-with-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(state.getCrossId())
-                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").crossId());
-                soft
-                    .assertThat(state.getId())
-                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").id());
+                soft.assertThat(state.getCrossId())
+                        .isEqualTo(HRIDToUUID.api()
+                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                .hrid("api-hrid")
+                                .crossId());
+                soft.assertThat(state.getId())
+                        .isEqualTo(HRIDToUUID.api()
+                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                .hrid("api-hrid")
+                                .id());
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
@@ -338,15 +308,16 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_cross_id() {
-            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
-                Validator.Result.ofValue(call.getArgument(0))
-            );
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
             var state = expectEntity("api-with-cross-id-and-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(state.getId())
-                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").id());
+                soft.assertThat(state.getId())
+                        .isEqualTo(HRIDToUUID.api()
+                                .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                .hrid("api-hrid")
+                                .id());
                 soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
@@ -356,18 +327,15 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_with_guid() {
-            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
-                Validator.Result.ofValue(call.getArgument(0))
-            );
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", dryRun)
                     .queryParam("hridContainsUUID", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-with-uuid.json")));
-            ) {
+                    .put(Entity.json(readJSON("api-with-uuid.json"))); ) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(ApiV4State.class);
                 SoftAssertions.assertSoftly(soft -> {
@@ -381,39 +349,33 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_cross_id_no_hrid() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", dryRun)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-with-no-hrid.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-with-no-hrid.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
         }
 
         @Test
         void should_reject_edge_api_type() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", dryRun)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-with-edge-type.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-with-edge-type.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
         }
 
         @Test
         void should_reject_authz_api_type() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", dryRun)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-with-authz-type.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-with-authz-type.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
         }
@@ -424,14 +386,14 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenReturn(
-                new ImportApiCRDUseCase.Output(
-                    ApiCRDStatus.builder().id("api-id").organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
-                )
-            );
-            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
-                Validator.Result.ofValue(call.getArgument(0))
-            );
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class)))
+                    .thenReturn(new ImportApiCRDUseCase.Output(ApiCRDStatus.builder()
+                            .id("api-id")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .build()));
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
+                    .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
         }
 
         @Test
@@ -466,7 +428,8 @@ class ApisResourceTest extends AbstractResourceTest {
             if (ignoreGroups != null) {
                 target = target.queryParam("ignoreGroups", ignoreGroups);
             }
-            try (var response = target.request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON(spec)))) {
+            try (var response =
+                    target.request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON(spec)))) {
                 assertThat(response.getStatus()).isEqualTo(200);
             }
         }
@@ -486,14 +449,12 @@ class ApisResourceTest extends AbstractResourceTest {
     }
 
     private ApiV4State expectEntity(String spec, boolean dryRun, boolean hridContainsUUID) {
-        try (
-            var response = rootTarget()
+        try (var response = rootTarget()
                 .queryParam("dryRun", dryRun)
                 .queryParam("hridContainsUUID", hridContainsUUID)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE)
-                .put(Entity.json(readJSON(spec)))
-        ) {
+                .put(Entity.json(readJSON(spec)))) {
             assertThat(response.getStatus()).isEqualTo(200);
             return response.readEntity(ApiV4State.class);
         }

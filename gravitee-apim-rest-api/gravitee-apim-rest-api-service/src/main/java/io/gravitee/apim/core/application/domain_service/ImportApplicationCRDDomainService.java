@@ -28,5 +28,7 @@ import io.gravitee.rest.api.model.UpdateApplicationEntity;
 @DomainService
 public interface ImportApplicationCRDDomainService {
     BaseApplicationEntity create(NewApplicationEntity newApplicationEntity, AuditInfo auditInfo);
-    BaseApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity, AuditInfo auditInfo);
+
+    BaseApplicationEntity update(
+            String applicationId, UpdateApplicationEntity updateApplicationEntity, AuditInfo auditInfo);
 }

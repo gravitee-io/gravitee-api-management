@@ -47,7 +47,8 @@ public class ApplicationMembersOrganizationAdminTest extends AbstractResourceTes
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
             SecurityContext securityContext = mock(SecurityContext.class);
-            when(securityContext.isUserInRole(AbstractResource.ORGANIZATION_ADMIN)).thenReturn(true);
+            when(securityContext.isUserInRole(AbstractResource.ORGANIZATION_ADMIN))
+                    .thenReturn(true);
             requestContext.setSecurityContext(securityContext);
         }
     }
@@ -60,19 +61,20 @@ public class ApplicationMembersOrganizationAdminTest extends AbstractResourceTes
     @Test
     public void shouldGetAllPermissions() {
         final Map<String, char[]> expectedPermissions = Map.ofEntries(
-            Pair.of(ApplicationPermission.DEFINITION.name(), "CRUD".toCharArray()),
-            Pair.of(ApplicationPermission.NOTIFICATION.name(), "CRUD".toCharArray()),
-            Pair.of(ApplicationPermission.LOG.name(), "CRUD".toCharArray()),
-            Pair.of(ApplicationPermission.ANALYTICS.name(), "CRUD".toCharArray()),
-            Pair.of(ApplicationPermission.SUBSCRIPTION.name(), "CRUD".toCharArray()),
-            Pair.of(ApplicationPermission.ALERT.name(), "CRUD".toCharArray()),
-            Pair.of(ApplicationPermission.MEMBER.name(), "CRUD".toCharArray()),
-            Pair.of(ApplicationPermission.METADATA.name(), "CRUD".toCharArray())
-        );
+                Pair.of(ApplicationPermission.DEFINITION.name(), "CRUD".toCharArray()),
+                Pair.of(ApplicationPermission.NOTIFICATION.name(), "CRUD".toCharArray()),
+                Pair.of(ApplicationPermission.LOG.name(), "CRUD".toCharArray()),
+                Pair.of(ApplicationPermission.ANALYTICS.name(), "CRUD".toCharArray()),
+                Pair.of(ApplicationPermission.SUBSCRIPTION.name(), "CRUD".toCharArray()),
+                Pair.of(ApplicationPermission.ALERT.name(), "CRUD".toCharArray()),
+                Pair.of(ApplicationPermission.MEMBER.name(), "CRUD".toCharArray()),
+                Pair.of(ApplicationPermission.METADATA.name(), "CRUD".toCharArray()));
 
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(new ApplicationEntity());
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID))
+                .thenReturn(new ApplicationEntity());
 
-        Response response = envTarget(APPLICATION_ID).path("members/permissions").request().get();
+        Response response =
+                envTarget(APPLICATION_ID).path("members/permissions").request().get();
         Map<String, char[]> permissions = response.readEntity(new GenericType<>() {});
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

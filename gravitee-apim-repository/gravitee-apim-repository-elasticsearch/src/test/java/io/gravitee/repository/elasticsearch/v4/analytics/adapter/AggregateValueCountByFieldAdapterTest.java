@@ -198,14 +198,16 @@ class AggregateValueCountByFieldAdapterTest {
 
             @Test
             void should_return_empty_result_if_aggregations_is_null() {
-                assertThat(AggregateValueCountByFieldAdapter.adaptResponse(searchResponse)).isEmpty();
+                assertThat(AggregateValueCountByFieldAdapter.adaptResponse(searchResponse))
+                        .isEmpty();
             }
 
             @Test
             void should_return_empty_result_if_no_aggregation_exist() {
                 searchResponse.setAggregations(Map.of());
 
-                assertThat(AggregateValueCountByFieldAdapter.adaptResponse(searchResponse)).isEmpty();
+                assertThat(AggregateValueCountByFieldAdapter.adaptResponse(searchResponse))
+                        .isEmpty();
             }
 
             @Test
@@ -218,15 +220,15 @@ class AggregateValueCountByFieldAdapterTest {
 
                 searchResponse.setAggregations(Map.of(TOP_HITS_COUNT, topHitsCountAggregation));
 
-                topHitsCountAggregation.setBuckets(
-                    List.of(createTopHitsBucket(APP_ID_1, APP_ID_1_COUNT), createTopHitsBucket(APP_ID_2, APP_ID_2_COUNT))
-                );
+                topHitsCountAggregation.setBuckets(List.of(
+                        createTopHitsBucket(APP_ID_1, APP_ID_1_COUNT), createTopHitsBucket(APP_ID_2, APP_ID_2_COUNT)));
 
                 var result = AggregateValueCountByFieldAdapter.adaptResponse(searchResponse);
 
-                assertThat(result).hasValueSatisfying(topHits ->
-                    assertThat(topHits.getTopHitsCounts()).containsEntry(APP_ID_1, APP_ID_1_COUNT).containsEntry(APP_ID_2, APP_ID_2_COUNT)
-                );
+                assertThat(result)
+                        .hasValueSatisfying(topHits -> assertThat(topHits.getTopHitsCounts())
+                                .containsEntry(APP_ID_1, APP_ID_1_COUNT)
+                                .containsEntry(APP_ID_2, APP_ID_2_COUNT));
             }
 
             JsonNode createTopHitsBucket(String apiId, long topHitsCount) {
@@ -403,14 +405,16 @@ class AggregateValueCountByFieldAdapterTest {
 
             @Test
             void should_return_empty_result_if_aggregations_is_null() {
-                assertThat(AggregateValueCountByFieldAdapter.adaptResponse(searchResponse)).isEmpty();
+                assertThat(AggregateValueCountByFieldAdapter.adaptResponse(searchResponse))
+                        .isEmpty();
             }
 
             @Test
             void should_return_empty_result_if_no_aggregation_exist() {
                 searchResponse.setAggregations(Map.of());
 
-                assertThat(AggregateValueCountByFieldAdapter.adaptResponse(searchResponse)).isEmpty();
+                assertThat(AggregateValueCountByFieldAdapter.adaptResponse(searchResponse))
+                        .isEmpty();
             }
 
             @Test
@@ -424,16 +428,18 @@ class AggregateValueCountByFieldAdapterTest {
 
                 var result = SearchTopFailedApisAdapter.adaptResponse(searchResponse);
 
-                assertThat(result).hasValueSatisfying(topHits ->
-                    assertThat(topHits.failedApis()).containsEntry(API_ID_1, new TopFailedAggregate.FailedApiInfo(10, 0.5))
-                );
+                assertThat(result)
+                        .hasValueSatisfying(topHits -> assertThat(topHits.failedApis())
+                                .containsEntry(API_ID_1, new TopFailedAggregate.FailedApiInfo(10, 0.5)));
             }
 
             JsonNode createFailedApiBucket(String apiId) {
                 var node = objectMapper.createObjectNode();
                 node.put("key", apiId);
                 node.put("doc_count", 20);
-                node.putObject("failed_requests").putObject("failed_requests_count").put("value", 10);
+                node.putObject("failed_requests")
+                        .putObject("failed_requests_count")
+                        .put("value", 10);
                 node.putObject("total_requests").put("value", 20);
                 node.putObject("failed_requests_ratio").put("value", 0.5);
                 return node;

@@ -129,7 +129,8 @@ class ApiProductNotificationServiceImplTest {
         loadedActor.setEmail("actor@example.com");
         when(userService.findById(CTX, "actor-1")).thenReturn(loadedActor);
 
-        when(membershipService.getPrimaryOwnerUserId("org-1", MembershipReferenceType.API_PRODUCT, "ap-1")).thenReturn("po-1");
+        when(membershipService.getPrimaryOwnerUserId("org-1", MembershipReferenceType.API_PRODUCT, "ap-1"))
+                .thenReturn("po-1");
         UserEntity poUser = new UserEntity();
         poUser.setId("po-1");
         poUser.setEmail("po@example.com");
@@ -145,16 +146,19 @@ class ApiProductNotificationServiceImplTest {
         service.triggerUpdateNotification(CTX, apiProduct);
 
         ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(notifierService).trigger(eq(CTX), eq(ApiProductHook.API_PRODUCT_UPDATED), eq("ap-1"), paramsCaptor.capture());
+        verify(notifierService)
+                .trigger(eq(CTX), eq(ApiProductHook.API_PRODUCT_UPDATED), eq("ap-1"), paramsCaptor.capture());
 
-        ApiProductTemplateModel model = (ApiProductTemplateModel) paramsCaptor.getValue().get(PARAM_API_PRODUCT);
+        ApiProductTemplateModel model =
+                (ApiProductTemplateModel) paramsCaptor.getValue().get(PARAM_API_PRODUCT);
         assertThat(model.getId()).isEqualTo("ap-1");
         assertThat(model.getName()).isEqualTo("My Product");
         assertThat(model.getVersion()).isEqualTo("2.0");
         assertThat(model.getPrimaryOwner()).isNotNull();
         assertThat(model.getPrimaryOwner().getId()).isEqualTo("po-1");
 
-        assertThat(paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_USER)).isSameAs(loadedActor);
+        assertThat(paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_USER))
+                .isSameAs(loadedActor);
     }
 
     @Test
@@ -166,7 +170,8 @@ class ApiProductNotificationServiceImplTest {
         authenticateAs(actor);
         when(userService.findById(CTX, "actor-1")).thenReturn(actor);
 
-        when(membershipService.getPrimaryOwnerUserId("org-1", MembershipReferenceType.API_PRODUCT, "ap-x")).thenReturn("missing-po");
+        when(membershipService.getPrimaryOwnerUserId("org-1", MembershipReferenceType.API_PRODUCT, "ap-x"))
+                .thenReturn("missing-po");
         when(userService.findById(CTX, "missing-po")).thenThrow(new NoSuchElementException());
 
         ApiProduct apiProduct = new ApiProduct();
@@ -177,8 +182,10 @@ class ApiProductNotificationServiceImplTest {
         service.triggerUpdateNotification(CTX, apiProduct);
 
         ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(notifierService).trigger(eq(CTX), eq(ApiProductHook.API_PRODUCT_UPDATED), eq("ap-x"), paramsCaptor.capture());
-        assertThat(((ApiProductTemplateModel) paramsCaptor.getValue().get(PARAM_API_PRODUCT)).getPrimaryOwner()).isNull();
+        verify(notifierService)
+                .trigger(eq(CTX), eq(ApiProductHook.API_PRODUCT_UPDATED), eq("ap-x"), paramsCaptor.capture());
+        assertThat(((ApiProductTemplateModel) paramsCaptor.getValue().get(PARAM_API_PRODUCT)).getPrimaryOwner())
+                .isNull();
     }
 
     @Test
@@ -190,7 +197,8 @@ class ApiProductNotificationServiceImplTest {
         actor.setEmail("actor@example.com");
         authenticateAs(actor);
         when(userService.findById(CTX, "actor-1")).thenReturn(actor);
-        when(membershipService.getPrimaryOwnerUserId("org-1", MembershipReferenceType.API_PRODUCT, "ap-deploy")).thenReturn(null);
+        when(membershipService.getPrimaryOwnerUserId("org-1", MembershipReferenceType.API_PRODUCT, "ap-deploy"))
+                .thenReturn(null);
 
         ApiProduct apiProduct = new ApiProduct();
         apiProduct.setId("ap-deploy");
@@ -200,12 +208,15 @@ class ApiProductNotificationServiceImplTest {
         service.triggerDeployNotification(CTX, apiProduct);
 
         ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(notifierService).trigger(eq(CTX), eq(ApiProductHook.API_PRODUCT_DEPLOYED), eq("ap-deploy"), paramsCaptor.capture());
-        ApiProductTemplateModel model = (ApiProductTemplateModel) paramsCaptor.getValue().get(PARAM_API_PRODUCT);
+        verify(notifierService)
+                .trigger(eq(CTX), eq(ApiProductHook.API_PRODUCT_DEPLOYED), eq("ap-deploy"), paramsCaptor.capture());
+        ApiProductTemplateModel model =
+                (ApiProductTemplateModel) paramsCaptor.getValue().get(PARAM_API_PRODUCT);
         assertThat(model.getId()).isEqualTo("ap-deploy");
         assertThat(model.getName()).isEqualTo("Deploy Product");
         assertThat(model.getVersion()).isEqualTo("3.0");
         assertThat(model.getPrimaryOwner()).isNull();
-        assertThat(paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_USER)).isSameAs(actor);
+        assertThat(paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_USER))
+                .isSameAs(actor);
     }
 }

@@ -67,11 +67,10 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
     private final FlowMapper flowMapper;
 
     public FlowServiceImpl(
-        @Lazy final FlowRepository flowRepository,
-        final TagService tagService,
-        final SharedPolicyGroupCrudService sharedPolicyGroupCrudService,
-        final FlowMapper flowMapper
-    ) {
+            @Lazy final FlowRepository flowRepository,
+            final TagService tagService,
+            final SharedPolicyGroupCrudService sharedPolicyGroupCrudService,
+            final FlowMapper flowMapper) {
         this.flowRepository = flowRepository;
         this.tagService = tagService;
         this.sharedPolicyGroupCrudService = sharedPolicyGroupCrudService;
@@ -100,14 +99,16 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
     public String getPlatformFlowSchemaForm(final ExecutionContext executionContext) {
         log.debug("Get platform schema form");
         String fileContent = getFileContent("/flow/v4/platform-flow-schema-form.json");
-        List<TagEntity> tags = tagService.findByReference(executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION);
+        List<TagEntity> tags =
+                tagService.findByReference(executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION);
         if (tags.size() > 0) {
             log.debug("Append {} tag(s) to platform schema form", tags.size());
             try {
                 final ObjectMapper mapper = new ObjectMapper();
                 JsonNode jsonSchema = mapper.readTree(fileContent);
 
-                final ObjectNode tagsNode = (ObjectNode) jsonSchema.get("properties").get("tags");
+                final ObjectNode tagsNode =
+                        (ObjectNode) jsonSchema.get("properties").get("tags");
                 final ArrayNode enumNode = (ArrayNode) tagsNode.get("items").get("enum");
 
                 Map<String, String> titleMap = new HashMap<>();
@@ -137,11 +138,11 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
             if (SHARED_POLICY_GROUP_POLICY_ID.equals(flowRequest.getPolicy())) {
                 try {
                     String crossId = new ObjectMapper()
-                        .readValue(flowRequest.getConfiguration(), SharedPolicyGroupPolicyConfiguration.class)
-                        .getSharedPolicyGroupId();
+                            .readValue(flowRequest.getConfiguration(), SharedPolicyGroupPolicyConfiguration.class)
+                            .getSharedPolicyGroupId();
                     SharedPolicyGroup sharedPolicyGroup = sharedPolicyGroupCrudService
-                        .getLastDeployedByEnvironmentIdAndCrossId(envId, crossId)
-                        .orElseThrow();
+                            .getLastDeployedByEnvironmentIdAndCrossId(envId, crossId)
+                            .orElseThrow();
                     flowRequest.setName(sharedPolicyGroup.getName());
                 } catch (Exception e) {
                     log.debug("Error while trying to retrieve a shared policy group crossId. {}", e.getMessage());
@@ -154,13 +155,13 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
     public List<Flow> findByReference(final FlowReferenceType flowReferenceType, final String referenceId) {
         try {
             log.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
-            List<io.gravitee.repository.management.model.flow.Flow> flows = flowRepository.findByReference(flowReferenceType, referenceId);
+            List<io.gravitee.repository.management.model.flow.Flow> flows =
+                    flowRepository.findByReference(flowReferenceType, referenceId);
             flows.forEach(this::enrichFlow);
-            return flows
-                .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .map(flowMapper::toDefinition)
-                .collect(Collectors.toList());
+            return flows.stream()
+                    .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                    .map(flowMapper::toDefinition)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while find flows by reference";
             log.error(error, ex);
@@ -169,28 +170,26 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
     }
 
     @Override
-    public Map<String, List<Flow>> findByReferences(final FlowReferenceType flowReferenceType, final Set<String> referenceIds) {
+    public Map<String, List<Flow>> findByReferences(
+            final FlowReferenceType flowReferenceType, final Set<String> referenceIds) {
         try {
             if (referenceIds == null || referenceIds.isEmpty()) {
                 return Map.of();
             }
             log.debug("Find flows by references {} - {}", flowReferenceType, referenceIds.size());
-            List<io.gravitee.repository.management.model.flow.Flow> flows = flowRepository.findByReferences(
-                flowReferenceType,
-                referenceIds
-            );
+            List<io.gravitee.repository.management.model.flow.Flow> flows =
+                    flowRepository.findByReferences(flowReferenceType, referenceIds);
             flows.forEach(this::enrichFlow);
-            return flows
-                .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
-                .entrySet()
-                .stream()
-                .collect(
-                    Collectors.toMap(Map.Entry::getKey, e ->
-                        e.getValue().stream().map(flowMapper::toDefinition).collect(Collectors.toList())
-                    )
-                );
+            return flows.stream()
+                    .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                    .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
+                    .entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue().stream()
+                                    .map(flowMapper::toDefinition)
+                                    .collect(Collectors.toList())));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while find flows by references";
             log.error(error, ex);
@@ -202,12 +201,10 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
     public List<NativeFlow> findNativeFlowByReference(FlowReferenceType flowReferenceType, String referenceId) {
         try {
             log.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
-            return flowRepository
-                .findByReference(flowReferenceType, referenceId)
-                .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .map(flowMapper::toNativeDefinition)
-                .collect(Collectors.toList());
+            return flowRepository.findByReference(flowReferenceType, referenceId).stream()
+                    .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                    .map(flowMapper::toNativeDefinition)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while find flows by reference";
             log.error(error, ex);

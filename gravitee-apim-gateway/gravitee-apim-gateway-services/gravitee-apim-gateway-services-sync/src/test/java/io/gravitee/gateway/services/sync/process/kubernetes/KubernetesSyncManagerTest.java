@@ -87,8 +87,8 @@ class KubernetesSyncManagerTest {
             when(node.metadata()).thenReturn(Map.of(Node.META_ENVIRONMENTS, ENVIRONMENTS));
 
             when(synchronizer.synchronize(ENVIRONMENTS))
-                .thenReturn(Completable.error(new RuntimeException("This an expected error")))
-                .thenReturn(Completable.complete().delay(1, TimeUnit.SECONDS));
+                    .thenReturn(Completable.error(new RuntimeException("This an expected error")))
+                    .thenReturn(Completable.complete().delay(1, TimeUnit.SECONDS));
 
             when(synchronizer.watch(ENVIRONMENTS)).thenReturn(Completable.complete());
 

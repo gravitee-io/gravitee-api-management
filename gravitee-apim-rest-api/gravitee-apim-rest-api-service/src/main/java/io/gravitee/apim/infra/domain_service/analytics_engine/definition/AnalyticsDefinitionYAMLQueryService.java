@@ -44,7 +44,8 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
     private final Map<FilterSpec.Name, FilterSpec> filtersByName;
 
     public AnalyticsDefinitionYAMLQueryService() {
-        var rawSpec = YAMLDefinitionLoader.load(ANALYTICS_DEFINITION_FILE, AnalyticsDefinition.class).spec();
+        var rawSpec = YAMLDefinitionLoader.load(ANALYTICS_DEFINITION_FILE, AnalyticsDefinition.class)
+                .spec();
         spec = enrichFiltersWithApiTypes(rawSpec);
         filtersByName = indexByName(spec.filters());
     }
@@ -62,8 +63,7 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
             var previous = byName.put(filter.name(), filter);
             if (previous != null) {
                 throw new IllegalStateException(
-                    "Filter '" + filter.name() + "' is declared more than once in " + ANALYTICS_DEFINITION_FILE
-                );
+                        "Filter '" + filter.name() + "' is declared more than once in " + ANALYTICS_DEFINITION_FILE);
             }
         }
         return byName;
@@ -73,20 +73,20 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
         Map<FilterSpec.Name, Set<ApiSpec.Name>> apisByFilter = new EnumMap<>(FilterSpec.Name.class);
         for (var metric : rawSpec.metrics()) {
             for (var filterName : metric.filters()) {
-                apisByFilter.computeIfAbsent(filterName, k -> EnumSet.noneOf(ApiSpec.Name.class)).addAll(metric.apis());
+                apisByFilter
+                        .computeIfAbsent(filterName, k -> EnumSet.noneOf(ApiSpec.Name.class))
+                        .addAll(metric.apis());
             }
         }
 
-        var enrichedFilters = rawSpec
-            .filters()
-            .stream()
-            .map(f -> {
-                var apis = CollectionUtils.isNotEmpty(f.apis())
-                    ? List.copyOf(f.apis())
-                    : List.copyOf(apisByFilter.getOrDefault(f.name(), Set.of()));
-                return f.withApis(apis);
-            })
-            .toList();
+        var enrichedFilters = rawSpec.filters().stream()
+                .map(f -> {
+                    var apis = CollectionUtils.isNotEmpty(f.apis())
+                            ? List.copyOf(f.apis())
+                            : List.copyOf(apisByFilter.getOrDefault(f.name(), Set.of()));
+                    return f.withApis(apis);
+                })
+                .toList();
 
         return new AnalyticsDefinitionSpec(rawSpec.apis(), rawSpec.metrics(), enrichedFilters, rawSpec.facets());
     }
@@ -98,11 +98,9 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
 
     @Override
     public List<MetricSpec> getMetrics(ApiSpec.Name apiSpecName) {
-        return spec
-            .metrics()
-            .stream()
-            .filter(metric -> metric.apis().contains(apiSpecName))
-            .toList();
+        return spec.metrics().stream()
+                .filter(metric -> metric.apis().contains(apiSpecName))
+                .toList();
     }
 
     @Override
@@ -115,40 +113,32 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
         if (CollectionUtils.isEmpty(signals)) {
             return getAllFilters();
         }
-        return spec
-            .filters()
-            .stream()
-            .filter(filter -> signals.stream().anyMatch(filter::appliesTo))
-            .toList();
+        return spec.filters().stream()
+                .filter(filter -> signals.stream().anyMatch(filter::appliesTo))
+                .toList();
     }
 
     @Override
     public List<FilterSpec> getFilters(MetricSpec.Name metricSpecName) {
         var metric = getMetricByName(metricSpecName);
-        return spec
-            .filters()
-            .stream()
-            .filter(filter -> metric.filters().contains(filter.name()))
-            .toList();
+        return spec.filters().stream()
+                .filter(filter -> metric.filters().contains(filter.name()))
+                .toList();
     }
 
     @Override
     public List<FacetSpec> getFacets(MetricSpec.Name metricSpecName) {
         var metric = getMetricByName(metricSpecName);
-        return spec
-            .facets()
-            .stream()
-            .filter(facet -> metric.facets().contains(facet.name()))
-            .toList();
+        return spec.facets().stream()
+                .filter(facet -> metric.facets().contains(facet.name()))
+                .toList();
     }
 
     @Override
     public Optional<MetricSpec> findMetric(MetricSpec.Name metricName) {
-        return spec
-            .metrics()
-            .stream()
-            .filter(metric -> metric.name().equals(metricName))
-            .findFirst();
+        return spec.metrics().stream()
+                .filter(metric -> metric.name().equals(metricName))
+                .findFirst();
     }
 
     @Override
@@ -157,11 +147,9 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
     }
 
     private MetricSpec getMetricByName(MetricSpec.Name metricSpecName) {
-        return spec
-            .metrics()
-            .stream()
-            .filter(metric -> metric.name().equals(metricSpecName))
-            .findFirst()
-            .orElse(null);
+        return spec.metrics().stream()
+                .filter(metric -> metric.name().equals(metricSpecName))
+                .findFirst()
+                .orElse(null);
     }
 }

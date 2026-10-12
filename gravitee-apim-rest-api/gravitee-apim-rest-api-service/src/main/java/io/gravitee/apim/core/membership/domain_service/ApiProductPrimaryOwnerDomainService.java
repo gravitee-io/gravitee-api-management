@@ -56,18 +56,19 @@ public class ApiProductPrimaryOwnerDomainService {
     private final RoleQueryService roleQueryService;
     private final UserCrudService userCrudService;
 
-    public void createApiProductPrimaryOwnerMembership(String apiProductId, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo) {
+    public void createApiProductPrimaryOwnerMembership(
+            String apiProductId, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo) {
         findPrimaryOwnerRole(auditInfo.organizationId()).ifPresent(role -> {
             var membership = Membership.builder()
-                .id(UuidString.generateRandom())
-                .referenceId(apiProductId)
-                .referenceType(Membership.ReferenceType.API_PRODUCT)
-                .roleId(role.getId())
-                .memberId(primaryOwner.id())
-                .memberType(Membership.Type.valueOf(primaryOwner.type().name()))
-                .createdAt(TimeProvider.now())
-                .updatedAt(TimeProvider.now())
-                .build();
+                    .id(UuidString.generateRandom())
+                    .referenceId(apiProductId)
+                    .referenceType(Membership.ReferenceType.API_PRODUCT)
+                    .roleId(role.getId())
+                    .memberId(primaryOwner.id())
+                    .memberType(Membership.Type.valueOf(primaryOwner.type().name()))
+                    .createdAt(TimeProvider.now())
+                    .updatedAt(TimeProvider.now())
+                    .build();
             membershipCrudService.create(membership);
             createApiProductAuditLog(membership, auditInfo);
         });
@@ -78,17 +79,14 @@ public class ApiProductPrimaryOwnerDomainService {
     }
 
     public PrimaryOwnerEntity getApiProductPrimaryOwner(final String organizationId, String apiProductId)
-        throws ApiProductPrimaryOwnerNotFoundException {
+            throws ApiProductPrimaryOwnerNotFoundException {
         return findPrimaryOwnerRole(organizationId)
-            .flatMap(role ->
-                findApiProductPrimaryOwnerMembership(apiProductId, role).flatMap(membership ->
-                    switch (membership.getMemberType()) {
-                        case USER -> findUserPrimaryOwner(membership);
-                        case GROUP -> findGroupPrimaryOwner(membership, role.getId());
-                    }
-                )
-            )
-            .orElseThrow(() -> new ApiProductPrimaryOwnerNotFoundException(apiProductId));
+                .flatMap(role -> findApiProductPrimaryOwnerMembership(apiProductId, role)
+                        .flatMap(membership -> switch (membership.getMemberType()) {
+                            case USER -> findUserPrimaryOwner(membership);
+                            case GROUP -> findGroupPrimaryOwner(membership, role.getId());
+                        }))
+                .orElseThrow(() -> new ApiProductPrimaryOwnerNotFoundException(apiProductId));
     }
 
     /**
@@ -98,28 +96,26 @@ public class ApiProductPrimaryOwnerDomainService {
      * cost three round trips per row. Products with no primary owner are absent from the result rather
      * than raising: a listing renders the rest of the row instead of failing.</p>
      */
-    public Map<String, PrimaryOwnerEntity> getApiProductPrimaryOwners(final String organizationId, Set<String> apiProductIds) {
+    public Map<String, PrimaryOwnerEntity> getApiProductPrimaryOwners(
+            final String organizationId, Set<String> apiProductIds) {
         if (apiProductIds.isEmpty()) {
             return Map.of();
         }
         return findPrimaryOwnerRole(organizationId)
-            .map(role -> resolvePrimaryOwners(apiProductIds, role))
-            .orElseGet(Map::of);
+                .map(role -> resolvePrimaryOwners(apiProductIds, role))
+                .orElseGet(Map::of);
     }
 
     private Map<String, PrimaryOwnerEntity> resolvePrimaryOwners(Set<String> apiProductIds, Role role) {
         Collection<Membership> memberships = membershipQueryService.findByReferencesAndRoleId(
-            Membership.ReferenceType.API_PRODUCT,
-            List.copyOf(apiProductIds),
-            role.getId()
-        );
+                Membership.ReferenceType.API_PRODUCT, List.copyOf(apiProductIds), role.getId());
         if (memberships.isEmpty()) {
             return Map.of();
         }
 
-        Map<Membership.Type, Set<String>> memberIdsByType = memberships
-            .stream()
-            .collect(Collectors.groupingBy(Membership::getMemberType, Collectors.mapping(Membership::getMemberId, Collectors.toSet())));
+        Map<Membership.Type, Set<String>> memberIdsByType = memberships.stream()
+                .collect(Collectors.groupingBy(
+                        Membership::getMemberType, Collectors.mapping(Membership::getMemberId, Collectors.toSet())));
         Set<String> userIds = memberIdsByType.getOrDefault(Membership.Type.USER, Set.of());
         Set<String> groupIds = memberIdsByType.getOrDefault(Membership.Type.GROUP, Set.of());
 
@@ -129,7 +125,10 @@ public class ApiProductPrimaryOwnerDomainService {
         Map<String, PrimaryOwnerEntity> ownersByApiProductId = new HashMap<>();
         memberships.forEach(membership -> {
             PrimaryOwnerEntity owner = switch (membership.getMemberType()) {
-                case USER -> Optional.ofNullable(usersById.get(membership.getMemberId())).map(this::toUserPrimaryOwner).orElse(null);
+                case USER ->
+                    Optional.ofNullable(usersById.get(membership.getMemberId()))
+                            .map(this::toUserPrimaryOwner)
+                            .orElse(null);
                 case GROUP -> groupOwnersById.get(membership.getMemberId());
             };
             if (owner != null) {
@@ -143,10 +142,8 @@ public class ApiProductPrimaryOwnerDomainService {
         if (userIds.isEmpty()) {
             return Map.of();
         }
-        return userCrudService
-            .findBaseUsersByIds(List.copyOf(userIds))
-            .stream()
-            .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity(), (first, second) -> first));
+        return userCrudService.findBaseUsersByIds(List.copyOf(userIds)).stream()
+                .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity(), (first, second) -> first));
     }
 
     /**
@@ -158,92 +155,80 @@ public class ApiProductPrimaryOwnerDomainService {
             return Map.of();
         }
         Collection<Membership> groupMemberships = membershipQueryService.findByReferencesAndRoleId(
-            Membership.ReferenceType.GROUP,
-            List.copyOf(groupIds),
-            primaryOwnerRoleId
-        );
-        Map<String, String> memberIdByGroupId = groupMemberships
-            .stream()
-            .collect(Collectors.toMap(Membership::getReferenceId, Membership::getMemberId, (first, second) -> first));
+                Membership.ReferenceType.GROUP, List.copyOf(groupIds), primaryOwnerRoleId);
+        Map<String, String> memberIdByGroupId = groupMemberships.stream()
+                .collect(Collectors.toMap(
+                        Membership::getReferenceId, Membership::getMemberId, (first, second) -> first));
         Map<String, BaseUserEntity> groupMembersById = findUsersById(Set.copyOf(memberIdByGroupId.values()));
 
-        return groupQueryService
-            .findByIds(groupIds)
-            .stream()
-            .collect(
-                Collectors.toMap(Group::getId, group ->
-                    PrimaryOwnerEntity.builder()
-                        .id(group.getId())
-                        .displayName(group.getName())
-                        .type(PrimaryOwnerEntity.Type.GROUP)
-                        .email(
-                            Optional.ofNullable(memberIdByGroupId.get(group.getId()))
-                                .map(groupMembersById::get)
-                                .map(BaseUserEntity::getEmail)
-                                .orElse(null)
-                        )
-                        .build()
-                )
-            );
+        return groupQueryService.findByIds(groupIds).stream()
+                .collect(Collectors.toMap(
+                        Group::getId,
+                        group -> PrimaryOwnerEntity.builder()
+                                .id(group.getId())
+                                .displayName(group.getName())
+                                .type(PrimaryOwnerEntity.Type.GROUP)
+                                .email(Optional.ofNullable(memberIdByGroupId.get(group.getId()))
+                                        .map(groupMembersById::get)
+                                        .map(BaseUserEntity::getEmail)
+                                        .orElse(null))
+                                .build()));
     }
 
     private PrimaryOwnerEntity toUserPrimaryOwner(BaseUserEntity user) {
         return PrimaryOwnerEntity.builder()
-            .id(user.getId())
-            .displayName(user.displayName())
-            .email(user.getEmail())
-            .type(PrimaryOwnerEntity.Type.USER)
-            .build();
+                .id(user.getId())
+                .displayName(user.displayName())
+                .email(user.getEmail())
+                .type(PrimaryOwnerEntity.Type.USER)
+                .build();
     }
 
     private Optional<Membership> findApiProductPrimaryOwnerMembership(String apiProductId, Role role) {
         return membershipQueryService
-            .findByReferenceAndRoleId(Membership.ReferenceType.API_PRODUCT, apiProductId, role.getId())
-            .stream()
-            .findFirst();
+                .findByReferenceAndRoleId(Membership.ReferenceType.API_PRODUCT, apiProductId, role.getId())
+                .stream()
+                .findFirst();
     }
 
     private Optional<PrimaryOwnerEntity> findUserPrimaryOwner(Membership membership) {
         return userCrudService
-            .findBaseUserById(membership.getMemberId())
-            .map(user ->
-                PrimaryOwnerEntity.builder()
-                    .id(user.getId())
-                    .displayName(user.displayName())
-                    .email(user.getEmail())
-                    .type(PrimaryOwnerEntity.Type.USER)
-                    .build()
-            );
+                .findBaseUserById(membership.getMemberId())
+                .map(user -> PrimaryOwnerEntity.builder()
+                        .id(user.getId())
+                        .displayName(user.displayName())
+                        .email(user.getEmail())
+                        .type(PrimaryOwnerEntity.Type.USER)
+                        .build());
     }
 
     private Optional<PrimaryOwnerEntity> findGroupPrimaryOwner(Membership membership, String primaryOwnerRoleId) {
         var group = groupQueryService.findById(membership.getMemberId());
-        var user = findPrimaryOwnerGroupMember(membership.getMemberId(), primaryOwnerRoleId).flatMap(m ->
-            userCrudService.findBaseUserById(m.getMemberId())
-        );
+        var user = findPrimaryOwnerGroupMember(membership.getMemberId(), primaryOwnerRoleId)
+                .flatMap(m -> userCrudService.findBaseUserById(m.getMemberId()));
 
-        return group.map(value ->
-            PrimaryOwnerEntity.builder()
+        return group.map(value -> PrimaryOwnerEntity.builder()
                 .id(value.getId())
                 .displayName(value.getName())
                 .type(PrimaryOwnerEntity.Type.GROUP)
                 .email(user.map(BaseUserEntity::getEmail).orElse(null))
-                .build()
-        );
+                .build());
     }
 
     private Optional<Membership> findPrimaryOwnerGroupMember(String groupId, String primaryOwnerRoleId) {
         return membershipQueryService
-            .findByReferenceAndRoleId(Membership.ReferenceType.GROUP, groupId, primaryOwnerRoleId)
-            .stream()
-            .findFirst();
+                .findByReferenceAndRoleId(Membership.ReferenceType.GROUP, groupId, primaryOwnerRoleId)
+                .stream()
+                .findFirst();
     }
 
     private Optional<Role> findPrimaryOwnerRole(String organizationId) {
         return roleQueryService.findApiProductRole(
-            SystemRole.PRIMARY_OWNER.name(),
-            ReferenceContext.builder().referenceType(ReferenceContext.Type.ORGANIZATION).referenceId(organizationId).build()
-        );
+                SystemRole.PRIMARY_OWNER.name(),
+                ReferenceContext.builder()
+                        .referenceType(ReferenceContext.Type.ORGANIZATION)
+                        .referenceId(organizationId)
+                        .build());
     }
 
     private void createApiProductAuditLog(Membership membership, AuditInfo auditInfo) {
@@ -251,8 +236,7 @@ public class ApiProductPrimaryOwnerDomainService {
             case USER -> Map.of(AuditProperties.USER, membership.getMemberId());
             case GROUP -> Map.of(AuditProperties.GROUP, membership.getMemberId());
         };
-        auditService.createApiProductAuditLog(
-            io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity.builder()
+        auditService.createApiProductAuditLog(io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiProductId(membership.getReferenceId())
@@ -261,7 +245,6 @@ public class ApiProductPrimaryOwnerDomainService {
                 .newValue(membership)
                 .createdAt(membership.getCreatedAt())
                 .properties(properties)
-                .build()
-        );
+                .build());
     }
 }

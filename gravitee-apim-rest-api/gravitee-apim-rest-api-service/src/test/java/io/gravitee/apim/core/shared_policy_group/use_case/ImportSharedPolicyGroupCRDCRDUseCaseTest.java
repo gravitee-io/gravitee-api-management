@@ -53,54 +53,47 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
     private static final String ENV_ID = "env-id";
     private static final String USER_ID = "user-id";
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId(ORG_ID)
-        .environmentId(ENV_ID)
-        .actor(AuditActor.builder().userId(USER_ID).build())
-        .build();
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .actor(AuditActor.builder().userId(USER_ID).build())
+            .build();
 
-    private final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService = new SharedPolicyGroupCrudServiceInMemory();
+    private final SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService =
+            new SharedPolicyGroupCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
-    private final FakePolicyValidationDomainService policyValidationDomainService = new FakePolicyValidationDomainService();
+    private final FakePolicyValidationDomainService policyValidationDomainService =
+            new FakePolicyValidationDomainService();
     private final ValidateCreateSharedPolicyGroupDomainService validateCreateSharedPolicyGroupDomainService =
-        new ValidateCreateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyValidationDomainService);
+            new ValidateCreateSharedPolicyGroupDomainService(
+                    sharedPolicyGroupCrudService, policyValidationDomainService);
     private final ValidateUpdateSharedPolicyGroupDomainService validateUpdateSharedPolicyGroupDomainService =
-        new ValidateUpdateSharedPolicyGroupDomainService(sharedPolicyGroupCrudService, policyValidationDomainService);
-    private final AuditDomainService auditService = new AuditDomainService(
-        auditCrudService,
-        userCrudService,
-        new JacksonJsonDiffProcessor()
-    );
+            new ValidateUpdateSharedPolicyGroupDomainService(
+                    sharedPolicyGroupCrudService, policyValidationDomainService);
+    private final AuditDomainService auditService =
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
     private final CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase = new CreateSharedPolicyGroupUseCase(
-        sharedPolicyGroupCrudService,
-        validateCreateSharedPolicyGroupDomainService,
-        auditService
-    );
+            sharedPolicyGroupCrudService, validateCreateSharedPolicyGroupDomainService, auditService);
     private final UpdateSharedPolicyGroupUseCase updateSharedPolicyGroupUseCase = new UpdateSharedPolicyGroupUseCase(
-        sharedPolicyGroupCrudService,
-        validateUpdateSharedPolicyGroupDomainService,
-        auditService
-    );
+            sharedPolicyGroupCrudService, validateUpdateSharedPolicyGroupDomainService, auditService);
 
     private final EventCrudInMemory eventCrudInMemory = new EventCrudInMemory();
     private final EventLatestCrudInMemory eventLatestCrudInMemory = new EventLatestCrudInMemory();
     private final SharedPolicyGroupHistoryCrudServiceInMemory sharedPolicyGroupHistoryCrudService =
-        new SharedPolicyGroupHistoryCrudServiceInMemory();
+            new SharedPolicyGroupHistoryCrudServiceInMemory();
 
     private final DeploySharedPolicyGroupUseCase deploySharedPolicyGroupUseCase = new DeploySharedPolicyGroupUseCase(
-        eventCrudInMemory,
-        eventLatestCrudInMemory,
-        sharedPolicyGroupCrudService,
-        sharedPolicyGroupHistoryCrudService,
-        auditService
-    );
+            eventCrudInMemory,
+            eventLatestCrudInMemory,
+            sharedPolicyGroupCrudService,
+            sharedPolicyGroupHistoryCrudService,
+            auditService);
 
     private final ValidateSharedPolicyGroupCRDDomainService validateSharedPolicyGroupCRDDomainService =
-        new ValidateSharedPolicyGroupCRDDomainService(
-            sharedPolicyGroupCrudService,
-            validateCreateSharedPolicyGroupDomainService,
-            validateUpdateSharedPolicyGroupDomainService
-        );
+            new ValidateSharedPolicyGroupCRDDomainService(
+                    sharedPolicyGroupCrudService,
+                    validateCreateSharedPolicyGroupDomainService,
+                    validateUpdateSharedPolicyGroupDomainService);
 
     private ImportSharedPolicyGroupCRDCRDUseCase cut;
 
@@ -108,12 +101,11 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
     void setUp() {
         sharedPolicyGroupCrudService.reset();
         cut = new ImportSharedPolicyGroupCRDCRDUseCase(
-            createSharedPolicyGroupUseCase,
-            updateSharedPolicyGroupUseCase,
-            deploySharedPolicyGroupUseCase,
-            validateSharedPolicyGroupCRDDomainService,
-            sharedPolicyGroupCrudService
-        );
+                createSharedPolicyGroupUseCase,
+                updateSharedPolicyGroupUseCase,
+                deploySharedPolicyGroupUseCase,
+                validateSharedPolicyGroupCRDDomainService,
+                sharedPolicyGroupCrudService);
     }
 
     @Nested
@@ -122,11 +114,10 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
         @Test
         void should_create_and_deploy() {
             // Given
-            var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
-                .toBuilder()
-                .sharedPolicyGroupId("test-spg-id")
-                .crossId("test-spg-cross-id")
-                .build();
+            var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .sharedPolicyGroupId("test-spg-id")
+                    .crossId("test-spg-cross-id")
+                    .build();
 
             // When
             var output = cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd));
@@ -137,7 +128,9 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             assertThat(output.status().getEnvironmentId()).isEqualTo(ENV_ID);
             assertThat(output.status().getOrganizationId()).isEqualTo(ORG_ID);
 
-            SharedPolicyGroup spg = sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(ENV_ID, crd.getCrossId()).get();
+            SharedPolicyGroup spg = sharedPolicyGroupCrudService
+                    .findByEnvironmentIdAndCrossId(ENV_ID, crd.getCrossId())
+                    .get();
             assertThat(spg).isNotNull();
             assertThat(spg.getCreatedAt()).isNotNull();
             assertThat(spg.getDeployedAt()).isNotNull();
@@ -148,36 +141,40 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
         void should_not_create_when_policy_validation_fails() {
             // Given
             var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
-            crd.setSteps(
-                List.of(Step.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build())
-            );
+            crd.setSteps(List.of(Step.builder()
+                    .policy("policy_throw_invalid_data_exception")
+                    .configuration("{ \"key\": \"value\" }")
+                    .build()));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
+            var throwable = Assertions.catchThrowable(
+                    () -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
             Assertions.assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Unable to import because of errors [Invalid configuration for policy policy_throw_invalid_data_exception]");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage(
+                            "Unable to import because of errors [Invalid configuration for policy policy_throw_invalid_data_exception]");
         }
 
         @Test
         void should_not_create_when_policy_execution_phase_validation_fails() {
             // Given
             var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
-            crd.setSteps(
-                List.of(Step.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
-            );
+            crd.setSteps(List.of(Step.builder()
+                    .policy("policy_throw_unexpected_policy_exception")
+                    .configuration("{ \"key\": \"value\" }")
+                    .build()));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
+            var throwable = Assertions.catchThrowable(
+                    () -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
             Assertions.assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage(
-                    "Unable to import because of errors [Unexpected policies [policy_throw_unexpected_policy_exception] for API type PROXY and phase REQUEST]"
-                );
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage(
+                            "Unable to import because of errors [Unexpected policies [policy_throw_unexpected_policy_exception] for API type PROXY and phase REQUEST]");
         }
 
         @Test
@@ -187,12 +184,13 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             crd.setPhase(null);
 
             // When
-            var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
+            var throwable = Assertions.catchThrowable(
+                    () -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
             Assertions.assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Unable to import because of errors [Phase is required.]");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Unable to import because of errors [Phase is required.]");
         }
 
         @Test
@@ -203,12 +201,13 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             crd.setPhase(FlowPhase.SUBSCRIBE);
 
             // When
-            var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
+            var throwable = Assertions.catchThrowable(
+                    () -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
             Assertions.assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Unable to import because of errors [Invalid phase SUBSCRIBE for API type PROXY]");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage("Unable to import because of errors [Invalid phase SUBSCRIBE for API type PROXY]");
         }
     }
 
@@ -218,19 +217,18 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
         @Test
         void should_update_and_deploy() {
             // Given
-            var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD()
-                .toBuilder()
-                .sharedPolicyGroupId("test-spg-id")
-                .crossId("test-spg-cross-id")
-                .build();
+            var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD().toBuilder()
+                    .sharedPolicyGroupId("test-spg-id")
+                    .crossId("test-spg-cross-id")
+                    .build();
             validateSharedPolicyGroupCRDDomainService
-                .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, crd))
-                .peek(
-                    sanitized -> {
-                        sharedPolicyGroupCrudService.create(sanitized.crd().toSharedPolicyGroup());
-                    },
-                    errors -> Assertions.fail("Should not fail to validate", errors)
-                );
+                    .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, crd))
+                    .peek(
+                            sanitized -> {
+                                sharedPolicyGroupCrudService.create(
+                                        sanitized.crd().toSharedPolicyGroup());
+                            },
+                            errors -> Assertions.fail("Should not fail to validate", errors));
 
             // When
             var output = cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd));
@@ -241,7 +239,9 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             assertThat(output.status().getEnvironmentId()).isEqualTo(ENV_ID);
             assertThat(output.status().getOrganizationId()).isEqualTo(ORG_ID);
 
-            SharedPolicyGroup spg = sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(ENV_ID, crd.getCrossId()).get();
+            SharedPolicyGroup spg = sharedPolicyGroupCrudService
+                    .findByEnvironmentIdAndCrossId(ENV_ID, crd.getCrossId())
+                    .get();
             assertThat(spg).isNotNull();
             assertThat(spg.getDeployedAt()).isNotNull();
             assertThat(spg.getLifecycleState()).isEqualTo(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED);
@@ -254,15 +254,18 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             sharedPolicyGroupCrudService.initWith(List.of(crd.toSharedPolicyGroup()));
 
             // When
-            crd.setSteps(
-                List.of(Step.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build())
-            );
-            var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
+            crd.setSteps(List.of(Step.builder()
+                    .policy("policy_throw_invalid_data_exception")
+                    .configuration("{ \"key\": \"value\" }")
+                    .build()));
+            var throwable = Assertions.catchThrowable(
+                    () -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
             Assertions.assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage("Unable to import because of errors [Invalid configuration for policy policy_throw_invalid_data_exception]");
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage(
+                            "Unable to import because of errors [Invalid configuration for policy policy_throw_invalid_data_exception]");
         }
 
         @Test
@@ -272,17 +275,18 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             sharedPolicyGroupCrudService.initWith(List.of(crd.toSharedPolicyGroup()));
 
             // When
-            crd.setSteps(
-                List.of(Step.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
-            );
-            var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
+            crd.setSteps(List.of(Step.builder()
+                    .policy("policy_throw_unexpected_policy_exception")
+                    .configuration("{ \"key\": \"value\" }")
+                    .build()));
+            var throwable = Assertions.catchThrowable(
+                    () -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
             Assertions.assertThat(throwable)
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessage(
-                    "Unable to import because of errors [Unexpected policies [policy_throw_unexpected_policy_exception] for API type PROXY and phase REQUEST]"
-                );
+                    .isInstanceOf(ValidationDomainException.class)
+                    .hasMessage(
+                            "Unable to import because of errors [Unexpected policies [policy_throw_unexpected_policy_exception] for API type PROXY and phase REQUEST]");
         }
     }
 }

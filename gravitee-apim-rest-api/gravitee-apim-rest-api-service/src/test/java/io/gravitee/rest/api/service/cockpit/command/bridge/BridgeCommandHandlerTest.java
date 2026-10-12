@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.cockpit.command.bridge;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.gravitee.cockpit.api.command.legacy.bridge.BridgeMultiReply;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommandPayload;
@@ -60,33 +59,31 @@ public class BridgeCommandHandlerTest {
 
     @Test
     public void shouldNotHandleUnknownOperation() throws InterruptedException {
-        BridgeCommand command = new BridgeCommand(BridgeCommandPayload.builder().operation("UNKWOWN_OPERATION").build());
+        BridgeCommand command = new BridgeCommand(
+                BridgeCommandPayload.builder().operation("UNKWOWN_OPERATION").build());
 
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(
-            reply ->
-                reply.getCommandId().equals(command.getId()) &&
-                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-                reply.getErrorDetails().equals("No handler found for this operation: UNKWOWN_OPERATION")
-        );
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.ERROR)
+                && reply.getErrorDetails().equals("No handler found for this operation: UNKWOWN_OPERATION"));
     }
 
     @Test
     public void shouldHandleListEnvironmentsOperation() throws InterruptedException {
-        BridgeCommand command = new BridgeCommand(
-            BridgeCommandPayload.builder().operation(BridgeOperation.LIST_ENVIRONMENT.name()).build()
-        );
+        BridgeCommand command = new BridgeCommand(BridgeCommandPayload.builder()
+                .operation(BridgeOperation.LIST_ENVIRONMENT.name())
+                .build());
 
-        cut = new BridgeCommandHandler(
-            Arrays.asList(new TestingFakeListEnvironmentOperationHandler(), new AnotherTestingFakeOperationHandler())
-        );
+        cut = new BridgeCommandHandler(Arrays.asList(
+                new TestingFakeListEnvironmentOperationHandler(), new AnotherTestingFakeOperationHandler()));
 
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId())
+                && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     static class TestingFakeListEnvironmentOperationHandler implements BridgeOperationHandler {

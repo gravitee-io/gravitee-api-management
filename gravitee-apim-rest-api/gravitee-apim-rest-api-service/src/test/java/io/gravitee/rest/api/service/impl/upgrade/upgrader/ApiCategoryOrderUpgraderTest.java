@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -87,8 +86,16 @@ public class ApiCategoryOrderUpgraderTest {
 
         apiCategoryOrderUpgrader.upgrade();
 
-        var catOrder1 = ApiCategoryOrder.builder().order(0).apiId(api.getId()).categoryId(category1.getId()).build();
-        var catOrder2 = ApiCategoryOrder.builder().order(0).apiId(api.getId()).categoryId(category2.getId()).build();
+        var catOrder1 = ApiCategoryOrder.builder()
+                .order(0)
+                .apiId(api.getId())
+                .categoryId(category1.getId())
+                .build();
+        var catOrder2 = ApiCategoryOrder.builder()
+                .order(0)
+                .apiId(api.getId())
+                .categoryId(category2.getId())
+                .build();
 
         verify(apiCategoryOrderRepository, times(1)).create(eq(catOrder1));
         verify(apiCategoryOrderRepository, times(1)).create(eq(catOrder2));
@@ -143,8 +150,16 @@ public class ApiCategoryOrderUpgraderTest {
 
         apiCategoryOrderUpgrader.upgrade();
 
-        var catOrder1 = ApiCategoryOrder.builder().order(0).apiId(api1.getId()).categoryId(category1.getId()).build();
-        var catOrder2 = ApiCategoryOrder.builder().order(1).apiId(api2.getId()).categoryId(category1.getId()).build();
+        var catOrder1 = ApiCategoryOrder.builder()
+                .order(0)
+                .apiId(api1.getId())
+                .categoryId(category1.getId())
+                .build();
+        var catOrder2 = ApiCategoryOrder.builder()
+                .order(1)
+                .apiId(api2.getId())
+                .categoryId(category1.getId())
+                .build();
 
         verify(apiCategoryOrderRepository, times(1)).create(eq(catOrder1));
         verify(apiCategoryOrderRepository, times(1)).create(eq(catOrder2));

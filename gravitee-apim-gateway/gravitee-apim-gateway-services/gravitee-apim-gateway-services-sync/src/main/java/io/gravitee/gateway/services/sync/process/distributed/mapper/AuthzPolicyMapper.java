@@ -41,30 +41,33 @@ public class AuthzPolicyMapper {
         return Maybe.fromCallable(() -> {
             try {
                 AuthzPolicy wire = objectMapper.readValue(event.getPayload(), AuthzPolicy.class);
-                if (
-                    wire.getId() == null ||
-                    wire.getId().isBlank() ||
-                    wire.getKind() == null ||
-                    wire.getPolicyText() == null ||
-                    wire.getPolicyText().isBlank()
-                ) {
-                    log.warn("Skipping distributed authz policy event [{}] — missing id, kind, or policyText", event.getId());
+                if (wire.getId() == null
+                        || wire.getId().isBlank()
+                        || wire.getKind() == null
+                        || wire.getPolicyText() == null
+                        || wire.getPolicyText().isBlank()) {
+                    log.warn(
+                            "Skipping distributed authz policy event [{}] — missing id, kind, or policyText",
+                            event.getId());
                     return null;
                 }
-                AuthzPolicyReactorDeployable.Kind kind = AuthzPolicyReactorDeployable.Kind.valueOf(wire.getKind().name());
-                if (kind == AuthzPolicyReactorDeployable.Kind.RESOURCE && (wire.getEntityId() == null || wire.getEntityId().isBlank())) {
+                AuthzPolicyReactorDeployable.Kind kind =
+                        AuthzPolicyReactorDeployable.Kind.valueOf(wire.getKind().name());
+                if (kind == AuthzPolicyReactorDeployable.Kind.RESOURCE
+                        && (wire.getEntityId() == null || wire.getEntityId().isBlank())) {
                     log.warn("Skipping distributed authz RESOURCE policy event [{}] — missing entityId", event.getId());
                     return null;
                 }
-                String resolvedName = wire.getName() != null && !wire.getName().isBlank() ? wire.getName() : wire.getId();
+                String resolvedName =
+                        wire.getName() != null && !wire.getName().isBlank() ? wire.getName() : wire.getId();
                 return AuthzPolicyReactorDeployable.builder()
-                    .docId(wire.getId())
-                    .name(resolvedName)
-                    .policyText(wire.getPolicyText())
-                    .kind(kind)
-                    .entityId(wire.getEntityId())
-                    .syncAction(SyncActionMapper.to(event.getSyncAction()))
-                    .build();
+                        .docId(wire.getId())
+                        .name(resolvedName)
+                        .policyText(wire.getPolicyText())
+                        .kind(kind)
+                        .entityId(wire.getEntityId())
+                        .syncAction(SyncActionMapper.to(event.getSyncAction()))
+                        .build();
             } catch (Exception e) {
                 log.warn("Error while reading authz policy from distributed event payload", e);
                 return null;
@@ -74,27 +77,28 @@ public class AuthzPolicyMapper {
 
     public Flowable<DistributedEvent> to(final AuthzPolicyReactorDeployable deployable) {
         return Flowable.fromCallable(() -> {
-            try {
-                AuthzPolicy wire = AuthzPolicy.builder()
-                    .id(deployable.docId())
-                    .name(deployable.name())
-                    .kind(AuthzPolicyKind.valueOf(deployable.kind().name()))
-                    .entityId(deployable.entityId())
-                    .policyText(deployable.policyText())
-                    .build();
-                DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
-                    .id(deployable.docId())
-                    .type(DistributedEventType.AUTHZ_POLICY)
-                    .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                    .updatedAt(new Date());
-                if (deployable.syncAction() == SyncAction.DEPLOY) {
-                    builder.payload(objectMapper.writeValueAsString(wire));
-                }
-                return builder.build();
-            } catch (Exception e) {
-                log.warn("Error while building distributed event from authz policy deployable", e);
-                return null;
-            }
-        }).filter(java.util.Objects::nonNull);
+                    try {
+                        AuthzPolicy wire = AuthzPolicy.builder()
+                                .id(deployable.docId())
+                                .name(deployable.name())
+                                .kind(AuthzPolicyKind.valueOf(deployable.kind().name()))
+                                .entityId(deployable.entityId())
+                                .policyText(deployable.policyText())
+                                .build();
+                        DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
+                                .id(deployable.docId())
+                                .type(DistributedEventType.AUTHZ_POLICY)
+                                .syncAction(SyncActionMapper.to(deployable.syncAction()))
+                                .updatedAt(new Date());
+                        if (deployable.syncAction() == SyncAction.DEPLOY) {
+                            builder.payload(objectMapper.writeValueAsString(wire));
+                        }
+                        return builder.build();
+                    } catch (Exception e) {
+                        log.warn("Error while building distributed event from authz policy deployable", e);
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull);
     }
 }

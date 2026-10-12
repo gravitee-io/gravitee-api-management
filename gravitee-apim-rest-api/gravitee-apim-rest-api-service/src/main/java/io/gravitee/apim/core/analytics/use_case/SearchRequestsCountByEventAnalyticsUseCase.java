@@ -36,23 +36,21 @@ public class SearchRequestsCountByEventAnalyticsUseCase {
     private final ApiCrudService apiCrudService;
 
     public SearchRequestsCountByEventAnalyticsUseCase.Output execute(ExecutionContext executionContext, Input input) {
-        ApiAnalyticsSpecification.forRequestsCountAnalytics().throwIfNotSatisfied(
-            apiCrudService.get(input.apiId()),
-            executionContext,
-            input.from(),
-            input.to()
-        );
+        ApiAnalyticsSpecification.forRequestsCountAnalytics()
+                .throwIfNotSatisfied(apiCrudService.get(input.apiId()), executionContext, input.from(), input.to());
 
         var countQuery = new AnalyticsQueryService.CountQuery(
-            AnalyticsQueryService.SearchTermId.forApi(input.apiId),
-            Instant.ofEpochMilli(input.from()),
-            Instant.ofEpochMilli(input.to()),
-            input.query()
-        );
+                AnalyticsQueryService.SearchTermId.forApi(input.apiId),
+                Instant.ofEpochMilli(input.from()),
+                Instant.ofEpochMilli(input.to()),
+                input.query());
 
         var result = analyticsQueryService
-            .searchRequestsCountByEvent(executionContext, countQuery)
-            .orElse(RequestsCount.builder().total(0L).countsByEntrypoint(Map.of()).build());
+                .searchRequestsCountByEvent(executionContext, countQuery)
+                .orElse(RequestsCount.builder()
+                        .total(0L)
+                        .countsByEntrypoint(Map.of())
+                        .build());
 
         return new SearchRequestsCountByEventAnalyticsUseCase.Output(result);
     }

@@ -37,14 +37,18 @@ class GroupsResourceTest extends AbstractResourceTest {
     @BeforeEach
     void setUp() {
         resetAllMocks();
-        when(permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_GROUP), any(), any())).thenReturn(false);
+        when(permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_GROUP), any(), any()))
+                .thenReturn(false);
     }
 
     @Test
     void should_return_members_when_the_group_is_attached_to_the_caller_application() {
-        when(groupService.findGroupIdsAttachedToUserResources(any(), eq(USER_NAME))).thenReturn(Set.of("group-1"));
-        when(groupService.findById(any(), eq("group-1"))).thenReturn(GroupEntity.builder().id("group-1").name("Group 1").build());
-        when(membershipService.getMembersByReference(any(), eq(MembershipReferenceType.GROUP), eq("group-1"))).thenReturn(Set.of());
+        when(groupService.findGroupIdsAttachedToUserResources(any(), eq(USER_NAME)))
+                .thenReturn(Set.of("group-1"));
+        when(groupService.findById(any(), eq("group-1")))
+                .thenReturn(GroupEntity.builder().id("group-1").name("Group 1").build());
+        when(membershipService.getMembersByReference(any(), eq(MembershipReferenceType.GROUP), eq("group-1")))
+                .thenReturn(Set.of());
 
         Response response = target("/group-1/members").request().get();
 
@@ -53,7 +57,8 @@ class GroupsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_reject_members_of_a_group_the_caller_did_not_already_have() {
-        when(groupService.findGroupIdsAttachedToUserResources(any(), eq(USER_NAME))).thenReturn(Set.of("group-1"));
+        when(groupService.findGroupIdsAttachedToUserResources(any(), eq(USER_NAME)))
+                .thenReturn(Set.of("group-1"));
 
         Response response = target("/foreign-group/members").request().get();
 

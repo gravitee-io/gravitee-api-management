@@ -26,12 +26,11 @@ public class SubscriptionAcceptedApiHookContext extends ApiHookContext {
     private final String applicationPrimaryOwner;
 
     public SubscriptionAcceptedApiHookContext(
-        String referenceId,
-        String applicationId,
-        String planId,
-        String subscriptionId,
-        String applicationPrimaryOwner
-    ) {
+            String referenceId,
+            String applicationId,
+            String planId,
+            String subscriptionId,
+            String applicationPrimaryOwner) {
         super(ApiHook.SUBSCRIPTION_ACCEPTED, referenceId);
         this.applicationId = applicationId;
         this.planId = planId;
@@ -42,14 +41,13 @@ public class SubscriptionAcceptedApiHookContext extends ApiHookContext {
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
         return Map.of(
-            HookContextEntry.APPLICATION_ID,
-            applicationId,
-            HookContextEntry.PLAN_ID,
-            planId,
-            HookContextEntry.SUBSCRIPTION_ID,
-            subscriptionId,
-            HookContextEntry.OWNER,
-            applicationPrimaryOwner
-        );
+                HookContextEntry.APPLICATION_ID,
+                applicationId,
+                HookContextEntry.PLAN_ID,
+                planId,
+                HookContextEntry.SUBSCRIPTION_ID,
+                subscriptionId,
+                HookContextEntry.OWNER,
+                applicationPrimaryOwner);
     }
 }

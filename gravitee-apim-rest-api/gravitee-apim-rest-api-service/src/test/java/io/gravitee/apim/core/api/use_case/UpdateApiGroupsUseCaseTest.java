@@ -88,32 +88,42 @@ class UpdateApiGroupsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var validateGroupsDomainService = new ValidateGroupsDomainService(groupQueryService);
         useCase = new UpdateApiGroupsUseCase(
-            apiCrudService,
-            auditDomainService,
-            validateGroupsDomainService,
-            apiPrimaryOwnerDomainService,
-            permissionDomainService,
-            membershipQueryService,
-            groupQueryService
-        );
-        lenient().when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
-        apiCrudService.initWith(
-            List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).environmentId(ENV_ID).groups(Set.of("old-group")).build())
-        );
-        groupQueryService.initWith(
-            List.of(
-                Group.builder().id("group-1").name("Group 1").environmentId(ENV_ID).build(),
-                Group.builder().id("group-2").name("Group 2").environmentId(ENV_ID).build()
-            )
-        );
+                apiCrudService,
+                auditDomainService,
+                validateGroupsDomainService,
+                apiPrimaryOwnerDomainService,
+                permissionDomainService,
+                membershipQueryService,
+                groupQueryService);
+        lenient()
+                .when(permissionDomainService.hasPermission(any(), any(), any(), any(), any()))
+                .thenReturn(true);
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API_ID)
+                .environmentId(ENV_ID)
+                .groups(Set.of("old-group"))
+                .build()));
+        groupQueryService.initWith(List.of(
+                Group.builder()
+                        .id("group-1")
+                        .name("Group 1")
+                        .environmentId(ENV_ID)
+                        .build(),
+                Group.builder()
+                        .id("group-2")
+                        .name("Group 2")
+                        .environmentId(ENV_ID)
+                        .build()));
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiCrudService, auditCrudService, userCrudService, groupQueryService, membershipQueryService).forEach(s -> s.reset());
+        Stream.of(apiCrudService, auditCrudService, userCrudService, groupQueryService, membershipQueryService)
+                .forEach(s -> s.reset());
     }
 
     @Test
@@ -130,21 +140,18 @@ class UpdateApiGroupsUseCaseTest {
 
         // Audit log created
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id", "patch")
-            .contains(
-                new AuditEntity(
-                    "generated-id",
-                    ORG_ID,
-                    ENV_ID,
-                    AuditEntity.AuditReferenceType.API,
-                    API_ID,
-                    USER_ID,
-                    Map.of(AuditProperties.API.name(), API_ID),
-                    ApiAuditEvent.API_UPDATED.name(),
-                    INSTANT_NOW.atZone(ZoneId.of("UTC")),
-                    ""
-                )
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id", "patch")
+                .contains(new AuditEntity(
+                        "generated-id",
+                        ORG_ID,
+                        ENV_ID,
+                        AuditEntity.AuditReferenceType.API,
+                        API_ID,
+                        USER_ID,
+                        Map.of(AuditProperties.API.name(), API_ID),
+                        ApiAuditEvent.API_UPDATED.name(),
+                        INSTANT_NOW.atZone(ZoneId.of("UTC")),
+                        ""));
     }
 
     @Test
@@ -164,23 +171,18 @@ class UpdateApiGroupsUseCaseTest {
     @Test
     void should_throw_when_api_is_kubernetes_managed() {
         apiCrudService.reset();
-        apiCrudService.initWith(
-            List.of(
-                ApiFixtures.aProxyApiV4()
-                    .toBuilder()
-                    .id(API_ID)
-                    .environmentId(ENV_ID)
-                    .groups(Set.of("old-group"))
-                    .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
-                    .build()
-            )
-        );
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder()
+                .id(API_ID)
+                .environmentId(ENV_ID)
+                .groups(Set.of("old-group"))
+                .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
+                .build()));
 
         var input = new UpdateApiGroupsUseCase.Input(API_ID, Set.of("group-1"), anAuditInfo(ENV_ID));
 
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("Kubernetes-managed API");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("Kubernetes-managed API");
     }
 
     @Test
@@ -198,18 +200,32 @@ class UpdateApiGroupsUseCaseTest {
 
     @Test
     void should_keep_the_current_primary_owner_group_when_it_is_omitted() {
-        groupQueryService.initWith(
-            List.of(
-                Group.builder().id("po-group").name("Owners").environmentId(ENV_ID).apiPrimaryOwner("po-user").build(),
-                Group.builder().id("group-1").name("Group 1").environmentId(ENV_ID).build(),
-                Group.builder().id("other-po-group").name("Other owners").environmentId(ENV_ID).apiPrimaryOwner("other-user").build()
-            )
-        );
-        when(apiPrimaryOwnerDomainService.getApiPrimaryOwner(ORG_ID, API_ID)).thenReturn(
-            PrimaryOwnerEntity.builder().id("po-group").type(PrimaryOwnerEntity.Type.GROUP).build()
-        );
+        groupQueryService.initWith(List.of(
+                Group.builder()
+                        .id("po-group")
+                        .name("Owners")
+                        .environmentId(ENV_ID)
+                        .apiPrimaryOwner("po-user")
+                        .build(),
+                Group.builder()
+                        .id("group-1")
+                        .name("Group 1")
+                        .environmentId(ENV_ID)
+                        .build(),
+                Group.builder()
+                        .id("other-po-group")
+                        .name("Other owners")
+                        .environmentId(ENV_ID)
+                        .apiPrimaryOwner("other-user")
+                        .build()));
+        when(apiPrimaryOwnerDomainService.getApiPrimaryOwner(ORG_ID, API_ID))
+                .thenReturn(PrimaryOwnerEntity.builder()
+                        .id("po-group")
+                        .type(PrimaryOwnerEntity.Type.GROUP)
+                        .build());
 
-        var output = useCase.execute(new UpdateApiGroupsUseCase.Input(API_ID, Set.of("group-1", "other-po-group"), anAuditInfo(ENV_ID)));
+        var output = useCase.execute(
+                new UpdateApiGroupsUseCase.Input(API_ID, Set.of("group-1", "other-po-group"), anAuditInfo(ENV_ID)));
 
         assertThat(output.groups()).containsExactlyInAnyOrder("group-1", "po-group");
         assertThat(apiCrudService.get(API_ID).getGroups()).containsExactlyInAnyOrder("group-1", "po-group");
@@ -217,32 +233,37 @@ class UpdateApiGroupsUseCaseTest {
 
     @Test
     void should_drop_a_group_the_caller_may_not_assign() {
-        when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(false);
-        membershipQueryService.initWith(
-            List.of(
-                Membership.builder()
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.GROUP)
-                    .referenceId("group-1")
-                    .build()
-            )
-        );
-        groupQueryService.initWith(
-            List.of(
-                Group.builder().id("group-1").name("Group 1").environmentId(ENV_ID).build(),
-                Group.builder().id("other-env-group").name("Other env").environmentId("other-env").build()
-            )
-        );
+        when(permissionDomainService.hasPermission(any(), any(), any(), any(), any()))
+                .thenReturn(false);
+        membershipQueryService.initWith(List.of(Membership.builder()
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.GROUP)
+                .referenceId("group-1")
+                .build()));
+        groupQueryService.initWith(List.of(
+                Group.builder()
+                        .id("group-1")
+                        .name("Group 1")
+                        .environmentId(ENV_ID)
+                        .build(),
+                Group.builder()
+                        .id("other-env-group")
+                        .name("Other env")
+                        .environmentId("other-env")
+                        .build()));
 
-        var output = useCase.execute(
-            new UpdateApiGroupsUseCase.Input(API_ID, Set.of("group-1", "foreign-group", "other-env-group"), anAuditInfo(ENV_ID))
-        );
+        var output = useCase.execute(new UpdateApiGroupsUseCase.Input(
+                API_ID, Set.of("group-1", "foreign-group", "other-env-group"), anAuditInfo(ENV_ID)));
 
         assertThat(output.groups()).containsExactly("group-1");
     }
 
     private static AuditInfo anAuditInfo(String envId) {
-        return AuditInfo.builder().organizationId(ORG_ID).environmentId(envId).actor(AuditActor.builder().userId(USER_ID).build()).build();
+        return AuditInfo.builder()
+                .organizationId(ORG_ID)
+                .environmentId(envId)
+                .actor(AuditActor.builder().userId(USER_ID).build())
+                .build();
     }
 }

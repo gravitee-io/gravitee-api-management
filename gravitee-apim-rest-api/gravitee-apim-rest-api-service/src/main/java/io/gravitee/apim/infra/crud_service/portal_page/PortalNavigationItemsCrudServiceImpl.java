@@ -38,7 +38,8 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
     private final PortalNavigationItemRepository portalNavigationItemRepository;
     private final PortalNavigationItemAdapter portalNavigationItemAdapter = PortalNavigationItemAdapter.INSTANCE;
 
-    public PortalNavigationItemsCrudServiceImpl(@Lazy final PortalNavigationItemRepository portalNavigationItemRepository) {
+    public PortalNavigationItemsCrudServiceImpl(
+            @Lazy final PortalNavigationItemRepository portalNavigationItemRepository) {
         this.portalNavigationItemRepository = portalNavigationItemRepository;
     }
 
@@ -50,10 +51,8 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
             return portalNavigationItemAdapter.toEntity(createdItem);
         } catch (TechnicalException e) {
             final var errorMessage = String.format(
-                "An error occurred while creating portal navigation item with id %s and environmentId %s",
-                portalNavigationItem.getId(),
-                portalNavigationItem.getEnvironmentId()
-            );
+                    "An error occurred while creating portal navigation item with id %s and environmentId %s",
+                    portalNavigationItem.getId(), portalNavigationItem.getEnvironmentId());
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
@@ -66,23 +65,21 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
             return portalNavigationItemAdapter.toEntity(updatedItem);
         } catch (TechnicalException e) {
             final var errorMessage = String.format(
-                "An error occurred while updating portal navigation item with id %s and environmentId %s",
-                portalNavigationItem.getId(),
-                portalNavigationItem.getEnvironmentId()
-            );
+                    "An error occurred while updating portal navigation item with id %s and environmentId %s",
+                    portalNavigationItem.getId(), portalNavigationItem.getEnvironmentId());
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
 
     @Override
     public Optional<PortalNavigationItem> updateSourceFetchState(
-        PortalNavigationItemId id,
-        PortalNavigationItemSource fetchedSource,
-        PortalNavigationItemSource.FetchState fetchState
-    ) {
+            PortalNavigationItemId id,
+            PortalNavigationItemSource fetchedSource,
+            PortalNavigationItemSource.FetchState fetchState) {
         try {
             for (int attempt = 0; attempt < MAX_FETCH_STATE_ATTEMPTS; attempt++) {
-                final var stored = portalNavigationItemRepository.findById(id.json()).orElse(null);
+                final var stored =
+                        portalNavigationItemRepository.findById(id.json()).orElse(null);
                 if (stored == null) {
                     return Optional.empty();
                 }
@@ -90,25 +87,20 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
                 if (storedSource == null || !storedSource.sameOriginAs(fetchedSource)) {
                     return Optional.of(portalNavigationItemAdapter.toEntity(stored));
                 }
-                final var configuration = portalNavigationItemAdapter.configurationWithFetchState(stored.getConfiguration(), fetchState);
-                if (
-                    portalNavigationItemRepository.updateConfigurationIfUnchanged(stored.getId(), stored.getConfiguration(), configuration)
-                ) {
+                final var configuration =
+                        portalNavigationItemAdapter.configurationWithFetchState(stored.getConfiguration(), fetchState);
+                if (portalNavigationItemRepository.updateConfigurationIfUnchanged(
+                        stored.getId(), stored.getConfiguration(), configuration)) {
                     stored.setConfiguration(configuration);
                     return Optional.of(portalNavigationItemAdapter.toEntity(stored));
                 }
             }
-            throw new TechnicalDomainException(
-                String.format(
+            throw new TechnicalDomainException(String.format(
                     "Unable to persist the fetch state of portal navigation item with id %s: it keeps being updated concurrently",
-                    id
-                )
-            );
+                    id));
         } catch (TechnicalException e) {
             final var errorMessage = String.format(
-                "An error occurred while updating the fetch state of portal navigation item with id %s",
-                id
-            );
+                    "An error occurred while updating the fetch state of portal navigation item with id %s", id);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
@@ -119,9 +111,7 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
             portalNavigationItemRepository.delete(portalNavigationItemId.toString());
         } catch (TechnicalException e) {
             final var errorMessage = String.format(
-                "An error occurred while deleting portal navigation item with id %s",
-                portalNavigationItemId
-            );
+                    "An error occurred while deleting portal navigation item with id %s", portalNavigationItemId);
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
@@ -129,7 +119,8 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
     @Override
     public void deleteByIds(List<PortalNavigationItemId> ids) {
         try {
-            portalNavigationItemRepository.deleteByIds(ids.stream().map(PortalNavigationItemId::toString).collect(Collectors.toList()));
+            portalNavigationItemRepository.deleteByIds(
+                    ids.stream().map(PortalNavigationItemId::toString).collect(Collectors.toList()));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurred while bulk deleting portal navigation items", e);
         }

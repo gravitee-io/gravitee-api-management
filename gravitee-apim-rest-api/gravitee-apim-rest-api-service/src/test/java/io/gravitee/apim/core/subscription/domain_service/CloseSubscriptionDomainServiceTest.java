@@ -55,10 +55,10 @@ class CloseSubscriptionDomainServiceTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId(ORGANIZATION_ID)
-        .environmentId(ENVIRONMENT_ID)
-        .actor(AuditActor.builder().userId(USER_ID).build())
-        .build();
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .actor(AuditActor.builder().userId(USER_ID).build())
+            .build();
 
     private static final String SUBSCRIPTION_ID = "subscription-id";
     private static final String APPLICATION_ID = "application-id";
@@ -94,36 +94,36 @@ class CloseSubscriptionDomainServiceTest {
     @BeforeEach
     void setUp() {
         service = new CloseSubscriptionDomainService(
-            subscriptionCrudService,
-            applicationCrudService,
-            auditDomainService,
-            triggerNotificationDomainService,
-            rejectSubscriptionDomainService,
-            revokeApiKeyDomainService,
-            apiCrudService,
-            integrationAgent
-        );
+                subscriptionCrudService,
+                applicationCrudService,
+                auditDomainService,
+                triggerNotificationDomainService,
+                rejectSubscriptionDomainService,
+                revokeApiKeyDomainService,
+                apiCrudService,
+                integrationAgent);
     }
 
     @Test
     void closeSubscriptionForApiProduct_should_close_accepted_subscription_and_create_audit_and_revoke_keys() {
         var subscription = SubscriptionEntity.builder()
-            .id(SUBSCRIPTION_ID)
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(SubscriptionReferenceType.API_PRODUCT)
-            .applicationId(APPLICATION_ID)
-            .planId(PLAN_ID)
-            .status(Status.ACCEPTED)
-            .build();
+                .id(SUBSCRIPTION_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .applicationId(APPLICATION_ID)
+                .planId(PLAN_ID)
+                .status(Status.ACCEPTED)
+                .build();
         var closedSubscription = subscription.close();
 
         when(subscriptionCrudService.update(any(SubscriptionEntity.class))).thenReturn(closedSubscription);
-        when(applicationCrudService.findById(any(ExecutionContext.class), eq(APPLICATION_ID))).thenReturn(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.EXCLUSIVE).build()
-        );
-        when(revokeApiKeyDomainService.revokeAllSubscriptionsApiKeys(any(SubscriptionEntity.class), eq(AUDIT_INFO))).thenReturn(
-            Collections.emptySet()
-        );
+        when(applicationCrudService.findById(any(ExecutionContext.class), eq(APPLICATION_ID)))
+                .thenReturn(BaseApplicationEntity.builder()
+                        .id(APPLICATION_ID)
+                        .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                        .build());
+        when(revokeApiKeyDomainService.revokeAllSubscriptionsApiKeys(any(SubscriptionEntity.class), eq(AUDIT_INFO)))
+                .thenReturn(Collections.emptySet());
 
         var result = service.closeSubscription(subscription, AUDIT_INFO);
 
@@ -139,13 +139,13 @@ class CloseSubscriptionDomainServiceTest {
     @Test
     void closeSubscriptionForApiProduct_should_reject_pending_subscription() {
         var subscription = SubscriptionEntity.builder()
-            .id(SUBSCRIPTION_ID)
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(SubscriptionReferenceType.API_PRODUCT)
-            .applicationId(APPLICATION_ID)
-            .planId(PLAN_ID)
-            .status(Status.PENDING)
-            .build();
+                .id(SUBSCRIPTION_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .applicationId(APPLICATION_ID)
+                .planId(PLAN_ID)
+                .status(Status.PENDING)
+                .build();
 
         var rejectedSubscription = subscription.rejectBy(USER_ID, "Subscription has been closed.");
         when(subscriptionCrudService.update(any(SubscriptionEntity.class))).thenReturn(rejectedSubscription);
@@ -161,19 +161,21 @@ class CloseSubscriptionDomainServiceTest {
     @Test
     void closeSubscriptionForApiProduct_by_id_should_load_subscription_then_close() {
         var subscription = SubscriptionEntity.builder()
-            .id(SUBSCRIPTION_ID)
-            .referenceId(API_PRODUCT_ID)
-            .referenceType(SubscriptionReferenceType.API_PRODUCT)
-            .applicationId(APPLICATION_ID)
-            .planId(PLAN_ID)
-            .status(Status.ACCEPTED)
-            .build();
+                .id(SUBSCRIPTION_ID)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .applicationId(APPLICATION_ID)
+                .planId(PLAN_ID)
+                .status(Status.ACCEPTED)
+                .build();
 
         when(subscriptionCrudService.get(eq(SUBSCRIPTION_ID))).thenReturn(subscription);
         when(subscriptionCrudService.update(any(SubscriptionEntity.class))).thenReturn(subscription.close());
-        when(applicationCrudService.findById(any(ExecutionContext.class), eq(APPLICATION_ID))).thenReturn(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.EXCLUSIVE).build()
-        );
+        when(applicationCrudService.findById(any(ExecutionContext.class), eq(APPLICATION_ID)))
+                .thenReturn(BaseApplicationEntity.builder()
+                        .id(APPLICATION_ID)
+                        .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                        .build());
 
         var result = service.closeSubscription(SUBSCRIPTION_ID, AUDIT_INFO);
 

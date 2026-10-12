@@ -77,62 +77,66 @@ public class ApplicationsResource extends AbstractResource {
     @Deprecated(forRemoval = true)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List all the applications accessible to authenticated user",
-        description = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. " +
-            "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications."
-    )
+            summary = "List all the applications accessible to authenticated user",
+            description =
+                    "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. "
+                            + "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.")
     @ApiResponse(
-        responseCode = "200",
-        description = "User's applications",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApplicationEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "User's applications",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = ApplicationEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ)})
     public Collection<ApplicationListItem> getApplications(
-        @QueryParam("group") final String group,
-        @QueryParam("query") final String query,
-        @QueryParam("status") @DefaultValue("ACTIVE") final String status,
-        @QueryParam("ids") final List<String> ids,
-        @QueryParam("exclude") List<ApplicationExcludeFilter> excludeFilters
-    ) {
-        ApplicationsOrderParam applicationsOrderParam = new ApplicationsOrderParam("ARCHIVED".equals(status) ? "updated_at" : "name");
-        return this.getApplicationsPaged(group, query, status, ids, applicationsOrderParam, null, excludeFilters).getData();
+            @QueryParam("group") final String group,
+            @QueryParam("query") final String query,
+            @QueryParam("status") @DefaultValue("ACTIVE") final String status,
+            @QueryParam("ids") final List<String> ids,
+            @QueryParam("exclude") List<ApplicationExcludeFilter> excludeFilters) {
+        ApplicationsOrderParam applicationsOrderParam =
+                new ApplicationsOrderParam("ARCHIVED".equals(status) ? "updated_at" : "name");
+        return this.getApplicationsPaged(group, query, status, ids, applicationsOrderParam, null, excludeFilters)
+                .getData();
     }
 
     @GET
     @Path("/_paged")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List all the applications accessible to authenticated user",
-        description = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. " +
-            "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.",
-        operationId = "getApplicationsPaged"
-    )
+            summary = "List all the applications accessible to authenticated user",
+            description =
+                    "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. "
+                            + "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.",
+            operationId = "getApplicationsPaged")
     @ApiResponse(
-        responseCode = "200",
-        description = "User's applications",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationListItemPagedResult.class))
-    )
+            responseCode = "200",
+            description = "User's applications",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationListItemPagedResult.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ)})
     public ApplicationListItemPagedResult getApplicationsPaged(
-        @QueryParam("group") final String group,
-        @QueryParam("query") final String query,
-        @QueryParam("status") @DefaultValue("ACTIVE") final String status,
-        @QueryParam("ids") final List<String> ids,
-        @Parameter(
-            name = "order",
-            schema = @Schema(
-                implementation = String.class,
-                description = "By default, sort is ASC. If *field* starts with '-', the order sort is DESC. Currently, only **name** and **updated_at** are supported"
-            )
-        ) @QueryParam("order") @DefaultValue("name") final ApplicationsOrderParam applicationsOrderParam,
-        @Valid @BeanParam Pageable pageable,
-        @QueryParam("exclude") List<ApplicationExcludeFilter> excludeFilters
-    ) {
+            @QueryParam("group") final String group,
+            @QueryParam("query") final String query,
+            @QueryParam("status") @DefaultValue("ACTIVE") final String status,
+            @QueryParam("ids") final List<String> ids,
+            @Parameter(
+                            name = "order",
+                            schema =
+                                    @Schema(
+                                            implementation = String.class,
+                                            description =
+                                                    "By default, sort is ASC. If *field* starts with '-', the order sort is DESC. Currently, only **name** and **updated_at** are supported"))
+                    @QueryParam("order")
+                    @DefaultValue("name")
+                    final ApplicationsOrderParam applicationsOrderParam,
+            @Valid @BeanParam Pageable pageable,
+            @QueryParam("exclude") List<ApplicationExcludeFilter> excludeFilters) {
         if (!isAdmin() && ApplicationStatus.ARCHIVED.name().equalsIgnoreCase(status)) {
             throw new ForbiddenAccessException();
         }
@@ -163,32 +167,25 @@ public class ApplicationsResource extends AbstractResource {
         Sortable sortable = applicationsOrderParam.toSortable();
 
         Page<ApplicationListItem> applications = applicationService.search(
-            executionContext,
-            applicationQuery,
-            sortable,
-            pageable != null ? pageable.toPageable() : null
-        );
+                executionContext, applicationQuery, sortable, pageable != null ? pageable.toPageable() : null);
 
         if (applicationQuery.includePicture()) {
             applications.getContent().forEach(this::addPictureUrl);
         }
 
         return new ApplicationListItemPagedResult(
-            applications,
-            pageable != null ? pageable.getSize() : (int) applications.getPageElements()
-        );
+                applications, pageable != null ? pageable.getSize() : (int) applications.getPageElements());
     }
 
     private void addPictureUrl(ApplicationListItem application) {
         final UriBuilder ub = uriInfo.getBaseUriBuilder();
-        final UriBuilder uriBuilder = ub
-            .path("organizations")
-            .path(GraviteeContext.getCurrentOrganization())
-            .path("environments")
-            .path(GraviteeContext.getCurrentEnvironment())
-            .path("applications")
-            .path(application.getId())
-            .path("picture");
+        final UriBuilder uriBuilder = ub.path("organizations")
+                .path(GraviteeContext.getCurrentOrganization())
+                .path("environments")
+                .path(GraviteeContext.getCurrentEnvironment())
+                .path("applications")
+                .path(application.getId())
+                .path("picture");
         // force browser to get if updated
         uriBuilder.queryParam("hash", application.getUpdatedAt().getTime());
         application.setPicture(null);
@@ -205,26 +202,26 @@ public class ApplicationsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Create an application",
-        description = "User must have MANAGEMENT_APPLICATION[CREATE] permission to create an application."
-    )
+            summary = "Create an application",
+            description = "User must have MANAGEMENT_APPLICATION[CREATE] permission to create an application.")
     @ApiResponse(
-        responseCode = "201",
-        description = "Application successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationEntity.class))
-    )
+            responseCode = "201",
+            description = "Application successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ApplicationEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE)})
     public Response createApplication(
-        @Parameter(name = "application", required = true) @Valid @NotNull(
-            message = "An application must be provided"
-        ) final NewApplicationEntity application
-    ) {
+            @Parameter(name = "application", required = true)
+                    @Valid
+                    @NotNull(message = "An application must be provided")
+                    final NewApplicationEntity application) {
         // To preserve backward compatibility, ensure that we have at least default settings for simple application type
-        if (
-            application.getSettings() == null ||
-            (application.getSettings().getOauth() == null && application.getSettings().getApp() == null)
-        ) {
+        if (application.getSettings() == null
+                || (application.getSettings().getOauth() == null
+                        && application.getSettings().getApp() == null)) {
             ApplicationSettings settings = new ApplicationSettings();
             SimpleApplicationSettings simpleAppSettings = new SimpleApplicationSettings();
             simpleAppSettings.setType(application.getType());
@@ -235,16 +232,16 @@ public class ApplicationsResource extends AbstractResource {
 
         application.setOrigin(Origin.MANAGEMENT);
 
-        ApplicationEntity newApplication = applicationService.create(
-            GraviteeContext.getExecutionContext(),
-            application,
-            getAuthenticatedUser()
-        );
+        ApplicationEntity newApplication =
+                applicationService.create(GraviteeContext.getExecutionContext(), application, getAuthenticatedUser());
         if (newApplication != null) {
-            if (newApplication.getSettings() != null && newApplication.getSettings().getTls() != null) {
+            if (newApplication.getSettings() != null
+                    && newApplication.getSettings().getTls() != null) {
                 mtlsSubscriptionSyncDomainService.updateActiveMTLSSubscriptions(newApplication.getId());
             }
-            return Response.created(this.getLocationHeader(newApplication.getId())).entity(newApplication).build();
+            return Response.created(this.getLocationHeader(newApplication.getId()))
+                    .entity(newApplication)
+                    .build();
         }
 
         return Response.serverError().build();
@@ -254,10 +251,12 @@ public class ApplicationsResource extends AbstractResource {
     @Path("/hooks")
     @Operation(summary = "Get the list of available hooks")
     @ApiResponse(
-        responseCode = "200",
-        description = "List of hooks",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, array = @ArraySchema(schema = @Schema(implementation = Hook.class)))
-    )
+            responseCode = "200",
+            description = "List of hooks",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = Hook.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Produces(MediaType.APPLICATION_JSON)
     public Hook[] getApplicationHooks() {

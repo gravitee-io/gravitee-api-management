@@ -17,4 +17,5 @@ package io.gravitee.rest.api.kafkaexplorer.domain.model;
 
 import java.util.List;
 
-public record KafkaMessage(int partition, long offset, long timestamp, String key, String value, List<KafkaHeader> headers) {}
+public record KafkaMessage(
+        int partition, long offset, long timestamp, String key, String value, List<KafkaHeader> headers) {}

@@ -65,18 +65,17 @@ class GetEnvironmentRulesetUseCaseTest {
         var result = useCase.execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, AUDIT_INFO));
 
         // Then
-        assertThat(result.scoringRuleset()).isEqualTo(
-            ScoringRuleset.builder()
-                .id(rulesetId)
-                .name("ruleset-name")
-                .description("ruleset-description")
-                .format(ScoringRuleset.Format.GRAVITEE_PROXY)
-                .referenceId(ENVIRONMENT_ID)
-                .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
-                .payload("payload-ruleset-id")
-                .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .build()
-        );
+        assertThat(result.scoringRuleset())
+                .isEqualTo(ScoringRuleset.builder()
+                        .id(rulesetId)
+                        .name("ruleset-name")
+                        .description("ruleset-description")
+                        .format(ScoringRuleset.Format.GRAVITEE_PROXY)
+                        .referenceId(ENVIRONMENT_ID)
+                        .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
+                        .payload("payload-ruleset-id")
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @Test
@@ -85,10 +84,13 @@ class GetEnvironmentRulesetUseCaseTest {
         var rulesetId = "ruleset-id";
 
         // When
-        Throwable thrown = catchThrowable(() -> useCase.execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, AUDIT_INFO)));
+        Throwable thrown =
+                catchThrowable(() -> useCase.execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, AUDIT_INFO)));
 
-        //Then
-        assertThat(thrown).isInstanceOf(RulesetNotFoundException.class).hasMessage("Ruleset with id ruleset-id not found");
+        // Then
+        assertThat(thrown)
+                .isInstanceOf(RulesetNotFoundException.class)
+                .hasMessage("Ruleset with id ruleset-id not found");
     }
 
     @Test
@@ -98,10 +100,13 @@ class GetEnvironmentRulesetUseCaseTest {
         givenExistingRulesets(ScoringRulesetFixture.aRuleset(rulesetId).withReferenceId("other"));
 
         // When
-        Throwable thrown = catchThrowable(() -> useCase.execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, AUDIT_INFO)));
+        Throwable thrown =
+                catchThrowable(() -> useCase.execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, AUDIT_INFO)));
 
-        //Then
-        assertThat(thrown).isInstanceOf(RulesetNotFoundException.class).hasMessage("Ruleset with id ruleset-id not found");
+        // Then
+        assertThat(thrown)
+                .isInstanceOf(RulesetNotFoundException.class)
+                .hasMessage("Ruleset with id ruleset-id not found");
     }
 
     private void givenExistingRulesets(ScoringRuleset... rulesets) {

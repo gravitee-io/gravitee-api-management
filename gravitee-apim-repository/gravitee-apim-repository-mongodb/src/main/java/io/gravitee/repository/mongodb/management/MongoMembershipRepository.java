@@ -56,14 +56,13 @@ public class MongoMembershipRepository implements MembershipRepository {
 
     @Override
     public Membership update(Membership membership) throws TechnicalException {
-        if (
-            membership == null ||
-            membership.getMemberId() == null ||
-            membership.getReferenceId() == null ||
-            membership.getReferenceType() == null ||
-            membership.getRoleId() == null
-        ) {
-            throw new IllegalStateException("Membership to update must have an user id, a reference id and type, and a role");
+        if (membership == null
+                || membership.getMemberId() == null
+                || membership.getReferenceId() == null
+                || membership.getReferenceType() == null
+                || membership.getRoleId() == null) {
+            throw new IllegalStateException(
+                    "Membership to update must have an user id, a reference id and type, and a role");
         }
 
         String id = membership.getId();
@@ -74,22 +73,20 @@ public class MongoMembershipRepository implements MembershipRepository {
         }
 
         log.debug(
-            "Update membership [{}, {}, {}, {}, {}]",
-            membership.getMemberId(),
-            membership.getMemberType().name(),
-            membership.getReferenceType(),
-            membership.getReferenceId(),
-            membership.getRoleId()
-        );
+                "Update membership [{}, {}, {}, {}, {}]",
+                membership.getMemberId(),
+                membership.getMemberType().name(),
+                membership.getReferenceType(),
+                membership.getReferenceId(),
+                membership.getRoleId());
         Membership m = map(internalMembershipRepo.save(map(membership)));
         log.debug(
-            "Update membership [{}, {}, {}, {}, {}] - Done",
-            membership.getMemberId(),
-            membership.getMemberType().name(),
-            membership.getReferenceType(),
-            membership.getReferenceId(),
-            membership.getRoleId()
-        );
+                "Update membership [{}, {}, {}, {}, {}] - Done",
+                membership.getMemberId(),
+                membership.getMemberType().name(),
+                membership.getReferenceType(),
+                membership.getReferenceId(),
+                membership.getRoleId());
         return m;
     }
 
@@ -102,14 +99,15 @@ public class MongoMembershipRepository implements MembershipRepository {
 
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Delete memberships by reference [{}/{}]", referenceId, referenceType);
         try {
-            final var fields = internalMembershipRepo
-                .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
-                .stream()
-                .map(MembershipMongo::getId)
-                .toList();
+            final var fields =
+                    internalMembershipRepo
+                            .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
+                            .stream()
+                            .map(MembershipMongo::getId)
+                            .toList();
             log.debug("Delete memberships by reference [{}/{}] - Done", referenceId, referenceType);
             return fields;
         } catch (Exception ex) {
@@ -120,12 +118,12 @@ public class MongoMembershipRepository implements MembershipRepository {
 
     @Override
     public List<Membership> findByReferenceIdAndReferenceType(String referenceId, MembershipReferenceType referenceType)
-        throws TechnicalException {
+            throws TechnicalException {
         log.debug("Find memberships by reference [{}/{}]", referenceId, referenceType);
         try {
             return stream(internalMembershipRepo.findReferenceIdAndReferenceType(referenceId, referenceType.name()))
-                .map(this::map)
-                .toList();
+                    .map(this::map)
+                    .toList();
         } catch (Exception ex) {
             log.error("Failed to find memberships by ref: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to find memberships by ref");
@@ -136,7 +134,8 @@ public class MongoMembershipRepository implements MembershipRepository {
     public Optional<Membership> findById(String membershipId) throws TechnicalException {
         log.debug("Find membership by ID [{}]", membershipId);
 
-        MembershipMongo membershipMongo = internalMembershipRepo.findById(membershipId).orElse(null);
+        MembershipMongo membershipMongo =
+                internalMembershipRepo.findById(membershipId).orElse(null);
 
         log.debug("Find membership by ID [{}]", membershipId);
         return Optional.ofNullable(map(membershipMongo));
@@ -146,256 +145,270 @@ public class MongoMembershipRepository implements MembershipRepository {
     public Set<Membership> findByIds(Set<String> membershipIds) {
         log.debug("Find membership by IDs [{}]", membershipIds);
 
-        Set<Membership> memberships = internalMembershipRepo.findByIds(membershipIds).stream().map(this::map).collect(Collectors.toSet());
+        Set<Membership> memberships = internalMembershipRepo.findByIds(membershipIds).stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
 
         log.debug("Find membership by IDs [{}]", membershipIds);
         return memberships;
     }
 
     @Override
-    public Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId) {
+    public Set<Membership> findByReferenceAndRoleId(
+            MembershipReferenceType referenceType, String referenceId, String roleId) {
         log.debug("Find membership by reference and roleId [{}, {}, {}]", referenceType, referenceId, roleId);
         Set<MembershipMongo> membershipMongos;
         if (roleId == null) {
             membershipMongos = internalMembershipRepo.findByReference(referenceType.name(), referenceId);
         } else {
-            membershipMongos = internalMembershipRepo.findByReferenceAndRoleId(referenceType.name(), referenceId, roleId);
+            membershipMongos =
+                    internalMembershipRepo.findByReferenceAndRoleId(referenceType.name(), referenceId, roleId);
         }
         Set<Membership> memberships = membershipMongos.stream().map(this::map).collect(Collectors.toSet());
-        log.debug("Find membership by reference and roleId [{}, {}, {}] = {}", referenceType, referenceId, roleId, memberships);
+        log.debug(
+                "Find membership by reference and roleId [{}, {}, {}] = {}",
+                referenceType,
+                referenceId,
+                roleId,
+                memberships);
         return memberships;
     }
 
     @Override
-    public Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId) {
+    public Set<Membership> findByReferencesAndRoleId(
+            MembershipReferenceType referenceType, List<String> referenceIds, String roleId) {
         log.debug("Find membership by references and roleId [{}, {}, {}]", referenceType, referenceIds, roleId);
         Set<MembershipMongo> membershipMongos;
         if (roleId == null) {
             membershipMongos = internalMembershipRepo.findByReferences(referenceType.name(), referenceIds);
         } else {
-            membershipMongos = internalMembershipRepo.findByReferencesAndRoleId(referenceType.name(), referenceIds, roleId);
+            membershipMongos =
+                    internalMembershipRepo.findByReferencesAndRoleId(referenceType.name(), referenceIds, roleId);
         }
-        Set<Membership> memberships = membershipMongos.stream().map(this::map).collect(Collectors.toCollection(LinkedHashSet::new));
-        log.debug("Find membership by references and roleId [{}, {}, {}] = {}", referenceType, referenceIds, roleId, memberships);
+        Set<Membership> memberships =
+                membershipMongos.stream().map(this::map).collect(Collectors.toCollection(LinkedHashSet::new));
+        log.debug(
+                "Find membership by references and roleId [{}, {}, {}] = {}",
+                referenceType,
+                referenceIds,
+                roleId,
+                memberships);
         return memberships;
     }
 
     @Override
     public Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType
-    ) {
+            String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType) {
         log.debug("Find membership by user and referenceType [{}, {}, {}]", memberId, memberType, referenceType);
-        Set<Membership> memberships = internalMembershipRepo
-            .findByMemberIdAndMemberTypeAndReferenceType(memberId, memberType.name(), referenceType.name())
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
-        log.debug("Find membership by user and referenceType [{}, {}, {}] = {}", memberId, memberType, referenceType, memberships);
+        Set<Membership> memberships =
+                internalMembershipRepo
+                        .findByMemberIdAndMemberTypeAndReferenceType(memberId, memberType.name(), referenceType.name())
+                        .stream()
+                        .map(this::map)
+                        .collect(Collectors.toSet());
+        log.debug(
+                "Find membership by user and referenceType [{}, {}, {}] = {}",
+                memberId,
+                memberType,
+                referenceType,
+                memberships);
         return memberships;
     }
 
     @Override
     public Stream<String> findRefIdsByMemberIdAndMemberTypeAndReferenceType(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType
-    ) {
-        return internalMembershipRepo.findRefIdsByMemberIdAndMemberTypeAndReferenceType(memberId, memberType.name(), referenceType.name());
+            String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType) {
+        return internalMembershipRepo.findRefIdsByMemberIdAndMemberTypeAndReferenceType(
+                memberId, memberType.name(), referenceType.name());
     }
 
     @Override
     public Set<Membership> findByRoleId(String roleId) {
         log.debug("Find membership by roleId [{}]", roleId);
-        Set<Membership> memberships = internalMembershipRepo.findByRoleId(roleId).stream().map(this::map).collect(Collectors.toSet());
+        Set<Membership> memberships = internalMembershipRepo.findByRoleId(roleId).stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
         log.debug("Find membership by roleId [{}] = {}", roleId, memberships);
         return memberships;
     }
 
     @Override
     public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        String roleId
-    ) {
-        log.debug("Find membership by user and referenceType and roleId [{}, {}, {}, {}]", memberId, memberType, referenceType, roleId);
-        Set<Membership> memberships = internalMembershipRepo
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(memberId, memberType.name(), referenceType.name(), roleId)
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
+            String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String roleId) {
         log.debug(
-            "Find membership by user and referenceType and roleId [{}, {}, {}, {}] = {}",
-            memberId,
-            memberType,
-            referenceType,
-            roleId,
-            memberships
-        );
+                "Find membership by user and referenceType and roleId [{}, {}, {}, {}]",
+                memberId,
+                memberType,
+                referenceType,
+                roleId);
+        Set<Membership> memberships = internalMembershipRepo
+                .findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(
+                        memberId, memberType.name(), referenceType.name(), roleId)
+                .stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
+        log.debug(
+                "Find membership by user and referenceType and roleId [{}, {}, {}, {}] = {}",
+                memberId,
+                memberType,
+                referenceType,
+                roleId,
+                memberships);
         return memberships;
     }
 
     @Override
     public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndSource(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        String sourceId
-    ) {
-        log.debug("Find membership by user and referenceType and sourceId [{}, {}, {}, {}]", memberId, memberType, referenceType, sourceId);
-        Set<Membership> memberships = internalMembershipRepo
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndSource(memberId, memberType.name(), referenceType.name(), sourceId)
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
+            String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String sourceId) {
         log.debug(
-            "Find membership by user and referenceType and sourceId [{}, {}, {}, {}] = {}",
-            memberId,
-            memberType,
-            referenceType,
-            sourceId,
-            memberships
-        );
+                "Find membership by user and referenceType and sourceId [{}, {}, {}, {}]",
+                memberId,
+                memberType,
+                referenceType,
+                sourceId);
+        Set<Membership> memberships = internalMembershipRepo
+                .findByMemberIdAndMemberTypeAndReferenceTypeAndSource(
+                        memberId, memberType.name(), referenceType.name(), sourceId)
+                .stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
+        log.debug(
+                "Find membership by user and referenceType and sourceId [{}, {}, {}, {}] = {}",
+                memberId,
+                memberType,
+                referenceType,
+                sourceId,
+                memberships);
         return memberships;
     }
 
     @Override
     public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        String referenceId,
-        String roleId
-    ) {
+            String memberId,
+            MembershipMemberType memberType,
+            MembershipReferenceType referenceType,
+            String referenceId,
+            String roleId) {
         log.debug(
-            "Find membership by user and referenceType and referenceId and roleId [{}, {}, {}, {}, {}]",
-            memberId,
-            memberType,
-            referenceType,
-            referenceId,
-            roleId
-        );
-        Set<Membership> memberships = internalMembershipRepo
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                "Find membership by user and referenceType and referenceId and roleId [{}, {}, {}, {}, {}]",
                 memberId,
-                memberType.name(),
-                referenceType.name(),
+                memberType,
+                referenceType,
                 referenceId,
-                roleId
-            )
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
+                roleId);
+        Set<Membership> memberships = internalMembershipRepo
+                .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                        memberId, memberType.name(), referenceType.name(), referenceId, roleId)
+                .stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
         log.debug(
-            "Find membership by user and referenceType and referenceId, roleId [{}, {}, {}, {}, {}] = {}",
-            memberId,
-            memberType,
-            referenceType,
-            referenceId,
-            roleId,
-            memberships
-        );
+                "Find membership by user and referenceType and referenceId, roleId [{}, {}, {}, {}, {}] = {}",
+                memberId,
+                memberType,
+                referenceType,
+                referenceId,
+                roleId,
+                memberships);
         return memberships;
     }
 
     @Override
     public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        Collection<String> roleIds
-    ) {
+            String memberId,
+            MembershipMemberType memberType,
+            MembershipReferenceType referenceType,
+            Collection<String> roleIds) {
         log.debug(
-            "Find membership by user and referenceType and referenceId and roleId in [{}, {}, {}, {}]",
-            memberId,
-            memberType,
-            referenceType,
-            roleIds
-        );
+                "Find membership by user and referenceType and referenceId and roleId in [{}, {}, {}, {}]",
+                memberId,
+                memberType,
+                referenceType,
+                roleIds);
         Set<Membership> memberships = internalMembershipRepo
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(memberId, memberType.name(), referenceType.name(), roleIds)
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
+                .findByMemberIdAndMemberTypeAndReferenceTypeAndRoleIdIn(
+                        memberId, memberType.name(), referenceType.name(), roleIds)
+                .stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
         log.debug(
-            "Find membership by user and referenceType and referenceId, roleId in [{}, {}, {}, {}] = {}",
-            memberId,
-            memberType,
-            referenceType,
-            roleIds,
-            memberships
-        );
+                "Find membership by user and referenceType and referenceId, roleId in [{}, {}, {}, {}] = {}",
+                memberId,
+                memberType,
+                referenceType,
+                roleIds,
+                memberships);
         return memberships;
     }
 
     @Override
     public Set<String> findRefIdByMemberAndRefTypeAndRoleIdIn(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        Collection<String> roleIds
-    ) {
+            String memberId,
+            MembershipMemberType memberType,
+            MembershipReferenceType referenceType,
+            Collection<String> roleIds) {
         log.debug(
-            "Find membership by user and referenceType and referenceId and roleId in [{}, {}, {}, {}]",
-            memberId,
-            memberType,
-            referenceType,
-            roleIds
-        );
+                "Find membership by user and referenceType and referenceId and roleId in [{}, {}, {}, {}]",
+                memberId,
+                memberType,
+                referenceType,
+                roleIds);
         Set<String> memberships = internalMembershipRepo
-            .findRefIdByMemberAndRefTypeAndRoleIdIn(memberId, memberType.name(), referenceType.name(), roleIds)
-            .stream()
-            .map(MembershipMongo::getReferenceId)
-            .collect(Collectors.toSet());
+                .findRefIdByMemberAndRefTypeAndRoleIdIn(memberId, memberType.name(), referenceType.name(), roleIds)
+                .stream()
+                .map(MembershipMongo::getReferenceId)
+                .collect(Collectors.toSet());
         log.debug(
-            "Find membership by user and referenceType and referenceId, roleId in [{}, {}, {}, {}] = {}",
-            memberId,
-            memberType,
-            referenceType,
-            roleIds,
-            memberships
-        );
+                "Find membership by user and referenceType and referenceId, roleId in [{}, {}, {}, {}] = {}",
+                memberId,
+                memberType,
+                referenceType,
+                roleIds,
+                memberships);
         return memberships;
     }
 
     @Override
     public Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) {
         log.debug("Find membership by user [{}, {}]", memberId, memberType);
-        Set<Membership> memberships = internalMembershipRepo
-            .findByMemberIdAndMemberType(memberId, memberType.name())
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
+        Set<Membership> memberships =
+                internalMembershipRepo.findByMemberIdAndMemberType(memberId, memberType.name()).stream()
+                        .map(this::map)
+                        .collect(Collectors.toSet());
         log.debug("Find membership by user [{}, {}] = {}", memberId, memberType, memberships);
         return memberships;
     }
 
     @Override
     public Set<Membership> findByMemberIdsAndMemberTypeAndReferenceType(
-        List<String> memberIds,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType
-    ) {
+            List<String> memberIds, MembershipMemberType memberType, MembershipReferenceType referenceType) {
         log.debug("Find membership by members and reference type [{}, {}, {}]", memberIds, memberType, referenceType);
         Set<Membership> memberships = internalMembershipRepo
-            .findByMemberIdsAndMemberTypeAndReferenceType(memberIds, memberType.name(), referenceType.name())
-            .stream()
-            .map(this::map)
-            .collect(Collectors.toSet());
-        log.debug("Find membership by members and reference type [{}, {}, {}] = {}", memberIds, memberType, referenceType, memberships);
+                .findByMemberIdsAndMemberTypeAndReferenceType(memberIds, memberType.name(), referenceType.name())
+                .stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
+        log.debug(
+                "Find membership by members and reference type [{}, {}, {}] = {}",
+                memberIds,
+                memberType,
+                referenceType,
+                memberships);
         return memberships;
     }
 
     @Override
     public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
-        String memberId,
-        MembershipMemberType memberType,
-        MembershipReferenceType referenceType,
-        Set<String> referenceIds
-    ) {
-        log.debug("Find membership by member and references [{}, {}, {}, {}]", memberId, memberType, referenceType, referenceIds);
+            String memberId,
+            MembershipMemberType memberType,
+            MembershipReferenceType referenceType,
+            Set<String> referenceIds) {
+        log.debug(
+                "Find membership by member and references [{}, {}, {}, {}]",
+                memberId,
+                memberType,
+                referenceType,
+                referenceIds);
 
         // Empty set returns empty result (no query)
         if (referenceIds != null && referenceIds.isEmpty()) {
@@ -406,30 +419,21 @@ public class MongoMembershipRepository implements MembershipRepository {
         if (referenceIds == null) {
             // Null set means query for referenceId IS NULL
             membershipMongos = internalMembershipRepo.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                memberId,
-                memberType.name(),
-                referenceType.name(),
-                null
-            );
+                    memberId, memberType.name(), referenceType.name(), null);
         } else {
             // Non-empty set means query with $in
             membershipMongos = internalMembershipRepo.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
-                memberId,
-                memberType.name(),
-                referenceType.name(),
-                referenceIds
-            );
+                    memberId, memberType.name(), referenceType.name(), referenceIds);
         }
 
         Set<Membership> memberships = membershipMongos.stream().map(this::map).collect(Collectors.toSet());
         log.debug(
-            "Find membership by member and references [{}, {}, {}, {}] = {}",
-            memberId,
-            memberType,
-            referenceType,
-            referenceIds,
-            memberships
-        );
+                "Find membership by member and references [{}, {}, {}, {}] = {}",
+                memberId,
+                memberType,
+                referenceType,
+                referenceIds,
+                memberships);
         return memberships;
     }
 

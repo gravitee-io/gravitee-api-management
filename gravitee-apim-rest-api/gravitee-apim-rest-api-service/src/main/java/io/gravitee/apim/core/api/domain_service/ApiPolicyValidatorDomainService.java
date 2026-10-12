@@ -62,12 +62,9 @@ public class ApiPolicyValidatorDomainService {
         }
 
         flowsStream
-            .filter(Step::isEnabled)
-            .forEach(step ->
-                step.setConfiguration(
-                    policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
-                )
-            );
+                .filter(Step::isEnabled)
+                .forEach(step -> step.setConfiguration(policyValidationDomainService.validateAndSanitizeConfiguration(
+                        step.getPolicy(), step.getConfiguration())));
     }
 
     private static Stream<Step> getFlowsStream(Api api, Set<Plan> plans) {
@@ -77,46 +74,40 @@ public class ApiPolicyValidatorDomainService {
         }
         if (plans != null && flowsStream != null) {
             flowsStream = Stream.concat(
-                flowsStream,
-                plans.stream().flatMap(plan -> plan.getFlows() != null ? plan.getFlows().stream() : Stream.empty())
-            );
+                    flowsStream,
+                    plans.stream()
+                            .flatMap(plan -> plan.getFlows() != null ? plan.getFlows().stream() : Stream.empty()));
         }
 
         if (flowsStream == null) {
             return null;
         }
 
-        return flowsStream.flatMap(flow ->
-            Stream.concat(
+        return flowsStream.flatMap(flow -> Stream.concat(
                 flow.getPre() != null ? flow.getPre().stream() : Stream.empty(),
-                flow.getPost() != null ? flow.getPost().stream() : Stream.empty()
-            )
-        );
+                flow.getPost() != null ? flow.getPost().stream() : Stream.empty()));
     }
 
     private void validateFlowV4Configurations(io.gravitee.definition.model.v4.Api api) {
         var flowsStream = flowSteps(api);
 
         flowsStream
-            .filter(io.gravitee.definition.model.v4.flow.step.Step::isEnabled)
-            .forEach(step ->
-                step.setConfiguration(
-                    policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
-                )
-            );
+                .filter(io.gravitee.definition.model.v4.flow.step.Step::isEnabled)
+                .forEach(step -> step.setConfiguration(policyValidationDomainService.validateAndSanitizeConfiguration(
+                        step.getPolicy(), step.getConfiguration())));
     }
 
-    private static Stream<io.gravitee.definition.model.v4.flow.step.Step> flowSteps(io.gravitee.definition.model.v4.Api api) {
+    private static Stream<io.gravitee.definition.model.v4.flow.step.Step> flowSteps(
+            io.gravitee.definition.model.v4.Api api) {
         var apiFlows = Optional.ofNullable(api.getFlows()).stream().flatMap(Collection::stream);
-        var plansFlows = Optional.ofNullable(api.getPlans())
-            .stream()
-            .flatMap(plans -> plans.stream().flatMap(plan -> Optional.ofNullable(plan.getFlows()).stream().flatMap(Collection::stream)));
+        var plansFlows = Optional.ofNullable(api.getPlans()).stream()
+                .flatMap(plans -> plans.stream()
+                        .flatMap(plan ->
+                                Optional.ofNullable(plan.getFlows()).stream().flatMap(Collection::stream)));
 
-        return Stream.concat(apiFlows, plansFlows).flatMap(flow ->
-            Stream.concat(
-                Optional.ofNullable(flow.getRequest()).stream().flatMap(Collection::stream),
-                Optional.ofNullable(flow.getResponse()).stream().flatMap(Collection::stream)
-            )
-        );
+        return Stream.concat(apiFlows, plansFlows)
+                .flatMap(flow -> Stream.concat(
+                        Optional.ofNullable(flow.getRequest()).stream().flatMap(Collection::stream),
+                        Optional.ofNullable(flow.getResponse()).stream().flatMap(Collection::stream)));
     }
 }

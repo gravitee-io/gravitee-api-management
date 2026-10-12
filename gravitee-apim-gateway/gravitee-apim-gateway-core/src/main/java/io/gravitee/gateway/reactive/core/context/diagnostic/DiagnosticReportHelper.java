@@ -36,11 +36,10 @@ public class DiagnosticReportHelper {
     private DiagnosticReportHelper() {}
 
     public static Diagnostic fromExecutionFailure(
-        ComponentScope.ComponentEntry component,
-        String legacyErrorKey,
-        String legacyErrorMessage,
-        ExecutionFailure failure
-    ) {
+            ComponentScope.ComponentEntry component,
+            String legacyErrorKey,
+            String legacyErrorMessage,
+            ExecutionFailure failure) {
         return fromIssue(component, failure, legacyErrorKey, legacyErrorMessage);
     }
 
@@ -49,16 +48,12 @@ public class DiagnosticReportHelper {
     }
 
     private static Diagnostic fromIssue(
-        ComponentScope.ComponentEntry component,
-        ExecutionIssue issue,
-        String legacyKey,
-        String legacyMessage
-    ) {
-        String key = Optional.ofNullable(issue.key()).orElse(Optional.ofNullable(legacyKey).orElse(INTERNAL_ERROR));
+            ComponentScope.ComponentEntry component, ExecutionIssue issue, String legacyKey, String legacyMessage) {
+        String key = Optional.ofNullable(issue.key())
+                .orElse(Optional.ofNullable(legacyKey).orElse(INTERNAL_ERROR));
 
-        String message = Optional.ofNullable(issue.message()).orElse(
-            Optional.ofNullable(legacyMessage).orElse(UNKNOWN_TECHNICAL_ERROR_MESSAGE)
-        );
+        String message = Optional.ofNullable(issue.message())
+                .orElse(Optional.ofNullable(legacyMessage).orElse(UNKNOWN_TECHNICAL_ERROR_MESSAGE));
 
         message = withCauseSuffix(message, issue.cause());
 
@@ -67,11 +62,13 @@ public class DiagnosticReportHelper {
 
     private static Diagnostic buildDiagnostic(ComponentScope.ComponentEntry component, String key, String message) {
         String componentType = Optional.ofNullable(component)
-            .map(ComponentScope.ComponentEntry::type)
-            .map(Enum::name)
-            .orElse(UNKNOWN_COMPONENT);
+                .map(ComponentScope.ComponentEntry::type)
+                .map(Enum::name)
+                .orElse(UNKNOWN_COMPONENT);
 
-        String componentName = Optional.ofNullable(component).map(ComponentScope.ComponentEntry::name).orElse(UNKNOWN_COMPONENT);
+        String componentName = Optional.ofNullable(component)
+                .map(ComponentScope.ComponentEntry::name)
+                .orElse(UNKNOWN_COMPONENT);
 
         return new Diagnostic(key, message, componentType, componentName);
     }
@@ -79,7 +76,8 @@ public class DiagnosticReportHelper {
     private static String withCauseSuffix(String base, Throwable cause) {
         if (cause == null) return base;
         Throwable mostSpecific = NestedExceptionUtils.getMostSpecificCause(cause);
-        String mostSpecificMessage = Optional.ofNullable(mostSpecific.getMessage()).map(String::trim).orElse("");
+        String mostSpecificMessage =
+                Optional.ofNullable(mostSpecific.getMessage()).map(String::trim).orElse("");
 
         // If the base message is the generic fallback, only display it when the most specific cause
         // does not provide any message. In that case, do not add brackets.
@@ -96,13 +94,11 @@ public class DiagnosticReportHelper {
     }
 
     private static String prettifyThrowableName(Throwable t) {
-        return Optional.ofNullable(t.getMessage())
-            .filter(s -> !s.isBlank())
-            .orElseGet(() -> {
-                String name = t.getClass().getSimpleName();
-                name = EXCEPTION_SUFFIX.matcher(name).replaceAll("");
-                name = CAMEL_CASE_SPLIT.matcher(name).replaceAll("$1 $2").trim();
-                return name;
-            });
+        return Optional.ofNullable(t.getMessage()).filter(s -> !s.isBlank()).orElseGet(() -> {
+            String name = t.getClass().getSimpleName();
+            name = EXCEPTION_SUFFIX.matcher(name).replaceAll("");
+            name = CAMEL_CASE_SPLIT.matcher(name).replaceAll("$1 $2").trim();
+            return name;
+        });
     }
 }

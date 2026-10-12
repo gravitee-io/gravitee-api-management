@@ -25,10 +25,15 @@ import java.util.Set;
 
 public interface ApiProductQueryService {
     Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name);
+
     Set<ApiProduct> findByEnvironmentId(String environmentId);
+
     Set<ApiProduct> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids);
+
     Optional<ApiProduct> findById(String apiProductId);
+
     ApiProduct findById(ExecutionContext executionContext, String apiProductId);
+
     Set<ApiProduct> findByApiId(String apiId);
     /**
      * The products claiming each of these APIs, <strong>across every environment</strong>, unlike its neighbours
@@ -39,6 +44,8 @@ public interface ApiProductQueryService {
      * answer itself; counting a product from another environment makes an API look shared when it is not.
      */
     Map<String, Set<ApiProduct>> findProductsByApiIds(Set<String> apiIds);
+
     Page<ApiProduct> searchByIds(Set<String> ids, String environmentId, Pageable pageable);
+
     Set<String> findIdsByEnvironmentIdAndGroups(String environmentId, Set<String> groupIds);
 }

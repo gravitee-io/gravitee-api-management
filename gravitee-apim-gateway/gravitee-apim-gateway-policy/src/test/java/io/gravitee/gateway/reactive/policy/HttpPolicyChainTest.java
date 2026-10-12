@@ -107,7 +107,8 @@ class HttpPolicyChainTest {
         final HttpPolicy httpPolicy1 = mock(HttpPolicy.class);
         final HttpPolicy httpPolicy2 = mock(HttpPolicy.class);
 
-        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
+        final HttpPolicyChain httpPolicyChain =
+                new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
 
         when(httpPolicy1.onRequest(ctx)).thenReturn(Completable.complete());
         when(httpPolicy2.onRequest(ctx)).thenReturn(Completable.complete());
@@ -127,7 +128,8 @@ class HttpPolicyChainTest {
         final HttpPolicy httpPolicy1 = mock(HttpPolicy.class);
         final HttpPolicy httpPolicy2 = mock(HttpPolicy.class);
 
-        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.RESPONSE);
+        final HttpPolicyChain httpPolicyChain =
+                new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.RESPONSE);
 
         when(httpPolicy1.onResponse(ctx)).thenReturn(Completable.complete());
         when(httpPolicy2.onResponse(ctx)).thenReturn(Completable.complete());
@@ -153,10 +155,12 @@ class HttpPolicyChainTest {
         when(onActionResponse.apply(ctx)).thenReturn(Completable.complete());
         when(onActionResponse2.apply(ctx)).thenReturn(Completable.complete());
 
-        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.RESPONSE);
+        final HttpPolicyChain httpPolicyChain =
+                new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.RESPONSE);
 
         // Act
-        final TestObserver<Void> obs = httpPolicyChain.executeActionsOnResponse(ctx).test();
+        final TestObserver<Void> obs =
+                httpPolicyChain.executeActionsOnResponse(ctx).test();
         obs.assertComplete();
 
         // Assert
@@ -174,7 +178,8 @@ class HttpPolicyChainTest {
 
         ctx.addActionOnResponse(httpPolicy1, onActionResponse);
 
-        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
+        final HttpPolicyChain httpPolicyChain =
+                new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
 
         when(httpPolicy1.onRequest(ctx)).thenReturn(Completable.complete());
         when(httpPolicy2.onRequest(ctx)).thenReturn(Completable.complete());
@@ -195,16 +200,16 @@ class HttpPolicyChainTest {
         final HttpPolicy httpPolicy1 = mock(HttpPolicy.class);
         final HttpPolicy httpPolicy2 = mock(HttpPolicy.class);
 
-        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
+        final HttpPolicyChain httpPolicyChain =
+                new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
 
         when(httpPolicy1.onRequest(ctx)).thenReturn(Completable.error(new RuntimeException("policy1 failed")));
 
         // Act
         final TestObserver<Void> obs = httpPolicyChain.execute(ctx).test();
-        obs
-            .assertError(RuntimeException.class)
-            .assertError(t -> "policy1 failed".equals(t.getMessage()))
-            .assertFailure(RuntimeException.class);
+        obs.assertError(RuntimeException.class)
+                .assertError(t -> "policy1 failed".equals(t.getMessage()))
+                .assertFailure(RuntimeException.class);
 
         // Assert
         verify(httpPolicy1).onRequest(ctx);
@@ -216,7 +221,8 @@ class HttpPolicyChainTest {
         final HttpPolicy policy1 = mock(HttpPolicy.class);
         final HttpPolicy policy2 = mock(HttpPolicy.class);
 
-        final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.MESSAGE_REQUEST);
+        final HttpPolicyChain cut =
+                new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.MESSAGE_REQUEST);
 
         when(policy1.onMessageRequest(ctx)).thenReturn(Completable.complete());
         when(policy2.onMessageRequest(ctx)).thenReturn(Completable.complete());
@@ -233,7 +239,8 @@ class HttpPolicyChainTest {
         final HttpPolicy policy1 = mock(HttpPolicy.class);
         final HttpPolicy policy2 = mock(HttpPolicy.class);
 
-        final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.MESSAGE_RESPONSE);
+        final HttpPolicyChain cut =
+                new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.MESSAGE_RESPONSE);
 
         when(policy1.onMessageResponse(ctx)).thenReturn(Completable.complete());
         when(policy2.onMessageResponse(ctx)).thenReturn(Completable.complete());
@@ -249,8 +256,11 @@ class HttpPolicyChainTest {
     public void should_execute_only_policy_1_if_interrupted() {
         final HttpPolicy policy1 = mock(HttpPolicy.class);
         final HttpPolicy policy2 = mock(HttpPolicy.class);
-        final HttpExecutionContext ctx = new DefaultExecutionContext(null, null).componentProvider(componentProvider).metrics(metrics);
-        when(policy1.onRequest(ctx)).thenAnswer(invocation -> ((HttpExecutionContext) invocation.getArgument(0)).interrupt());
+        final HttpExecutionContext ctx = new DefaultExecutionContext(null, null)
+                .componentProvider(componentProvider)
+                .metrics(metrics);
+        when(policy1.onRequest(ctx))
+                .thenAnswer(invocation -> ((HttpExecutionContext) invocation.getArgument(0)).interrupt());
 
         final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
 
@@ -265,10 +275,13 @@ class HttpPolicyChainTest {
     public void should_execute_only_policy_1_and_interrupt_when_policy_1_error() {
         final HttpPolicy policy1 = mock(HttpPolicy.class);
         final HttpPolicy policy2 = mock(HttpPolicy.class);
-        final HttpExecutionContext ctx = new DefaultExecutionContext(null, response).componentProvider(componentProvider).metrics(metrics);
+        final HttpExecutionContext ctx = new DefaultExecutionContext(null, response)
+                .componentProvider(componentProvider)
+                .metrics(metrics);
 
         final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
-        when(policy1.onRequest(ctx)).thenAnswer(invocation -> ctx.interruptWith(new ExecutionFailure(400).message(MOCK_ERROR_MESSAGE)));
+        when(policy1.onRequest(ctx))
+                .thenAnswer(invocation -> ctx.interruptWith(new ExecutionFailure(400).message(MOCK_ERROR_MESSAGE)));
 
         cut.execute(ctx).test().assertFailure(InterruptionFailureException.class);
 
@@ -281,7 +294,8 @@ class HttpPolicyChainTest {
         final HttpPolicy httpPolicy1 = mock(HttpPolicy.class);
         final HttpPolicy httpPolicy2 = mock(HttpPolicy.class);
 
-        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
+        final HttpPolicyChain httpPolicyChain =
+                new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
 
         Map<HttpPolicy, String> descriptions = new IdentityHashMap<>();
         descriptions.put(httpPolicy1, "description-1");
@@ -289,11 +303,13 @@ class HttpPolicyChainTest {
         httpPolicyChain.setPolicyDescriptions(descriptions);
 
         when(httpPolicy1.onRequest(ctx)).thenAnswer(inv -> {
-            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).isEqualTo("description-1");
+            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION))
+                    .isEqualTo("description-1");
             return Completable.complete();
         });
         when(httpPolicy2.onRequest(ctx)).thenAnswer(inv -> {
-            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).isEqualTo("description-2");
+            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION))
+                    .isEqualTo("description-2");
             return Completable.complete();
         });
 
@@ -307,10 +323,12 @@ class HttpPolicyChainTest {
     void should_not_set_policy_description_in_context_when_no_descriptions_configured() {
         final HttpPolicy httpPolicy1 = mock(HttpPolicy.class);
 
-        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1), ExecutionPhase.REQUEST);
+        final HttpPolicyChain httpPolicyChain =
+                new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1), ExecutionPhase.REQUEST);
 
         when(httpPolicy1.onRequest(ctx)).thenAnswer(inv -> {
-            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).isNull();
+            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION))
+                    .isNull();
             return Completable.complete();
         });
 
@@ -322,7 +340,8 @@ class HttpPolicyChainTest {
         final HttpPolicy httpPolicy1 = mock(HttpPolicy.class);
         final HttpPolicy httpPolicy2 = mock(HttpPolicy.class);
 
-        final HttpPolicyChain httpPolicyChain = new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
+        final HttpPolicyChain httpPolicyChain =
+                new HttpPolicyChain(CHAIN_ID, asList(httpPolicy1, httpPolicy2), ExecutionPhase.REQUEST);
 
         Map<HttpPolicy, String> descriptions = new IdentityHashMap<>();
         descriptions.put(httpPolicy1, "description-1");
@@ -330,11 +349,13 @@ class HttpPolicyChainTest {
         httpPolicyChain.setPolicyDescriptions(descriptions);
 
         when(httpPolicy1.onRequest(ctx)).thenAnswer(inv -> {
-            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).isEqualTo("description-1");
+            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION))
+                    .isEqualTo("description-1");
             return Completable.complete();
         });
         when(httpPolicy2.onRequest(ctx)).thenAnswer(inv -> {
-            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION)).isNull();
+            assertThat((String) ctx.getInternalAttribute(TracingPolicyHook.ATTR_CURRENT_POLICY_DESCRIPTION))
+                    .isNull();
             return Completable.complete();
         });
 
@@ -348,18 +369,19 @@ class HttpPolicyChainTest {
     public void should_error_when_policy_error() {
         final HttpPolicy policy1 = mock(HttpPolicy.class);
         final HttpPolicy policy2 = mock(HttpPolicy.class);
-        final HttpExecutionContext ctx = new DefaultExecutionContext(null, response).componentProvider(componentProvider).metrics(metrics);
+        final HttpExecutionContext ctx = new DefaultExecutionContext(null, response)
+                .componentProvider(componentProvider)
+                .metrics(metrics);
 
         final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy1.onRequest(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
-        cut
-            .execute(ctx)
-            .test()
-            .assertError(RuntimeException.class)
-            .assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()))
-            .assertFailure(RuntimeException.class);
+        cut.execute(ctx)
+                .test()
+                .assertError(RuntimeException.class)
+                .assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()))
+                .assertFailure(RuntimeException.class);
 
         verify(policy1).onRequest(ctx);
     }

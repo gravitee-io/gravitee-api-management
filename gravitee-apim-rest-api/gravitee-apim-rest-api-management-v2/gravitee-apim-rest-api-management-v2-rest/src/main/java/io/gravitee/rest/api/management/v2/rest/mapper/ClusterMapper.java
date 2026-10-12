@@ -21,10 +21,9 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateCluster;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
 import java.util.List;
 import org.mapstruct.Mapper;
-import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = {DateMapper.class})
 public interface ClusterMapper {
     ClusterMapper INSTANCE = Mappers.getMapper(ClusterMapper.class);
 

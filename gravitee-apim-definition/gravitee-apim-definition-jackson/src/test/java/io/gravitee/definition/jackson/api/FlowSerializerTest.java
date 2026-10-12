@@ -48,7 +48,8 @@ public class FlowSerializerTest extends AbstractTest {
 
     @Test
     public void should_handle_null_values() throws IOException {
-        final String rawDefinitionToSerialize = IOUtils.toString(read("/io/gravitee/definition/jackson/flow-nullvalue.json"));
+        final String rawDefinitionToSerialize =
+                IOUtils.toString(read("/io/gravitee/definition/jackson/flow-nullvalue.json"));
 
         final Flow flow = objectMapper().readValue(rawDefinitionToSerialize, Flow.class);
         assertNull(flow.getName());
@@ -58,7 +59,8 @@ public class FlowSerializerTest extends AbstractTest {
 
     @Test
     public void should_map_missing_fields_to_null() throws IOException {
-        final String rawDefinitionToSerialize = IOUtils.toString(read("/io/gravitee/definition/jackson/flow-missingfields.json"));
+        final String rawDefinitionToSerialize =
+                IOUtils.toString(read("/io/gravitee/definition/jackson/flow-missingfields.json"));
 
         final Flow flow = objectMapper().readValue(rawDefinitionToSerialize, Flow.class);
         assertNull(flow.getName());

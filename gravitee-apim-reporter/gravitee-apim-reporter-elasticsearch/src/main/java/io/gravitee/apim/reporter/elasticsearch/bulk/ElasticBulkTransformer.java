@@ -34,10 +34,9 @@ public class ElasticBulkTransformer extends BulkFormatterTransformer {
     private final IndexNameGenerator indexNameGenerator;
 
     public ElasticBulkTransformer(
-        final Formatter<Reportable> formatter,
-        final PipelineConfiguration pipelineConfiguration,
-        final IndexNameGenerator indexNameGenerator
-    ) {
+            final Formatter<Reportable> formatter,
+            final PipelineConfiguration pipelineConfiguration,
+            final IndexNameGenerator indexNameGenerator) {
         super(formatter);
         this.pipelineConfiguration = pipelineConfiguration;
         this.indexNameGenerator = indexNameGenerator;
@@ -45,6 +44,10 @@ public class ElasticBulkTransformer extends BulkFormatterTransformer {
 
     @Override
     protected Map<String, Object> buildOptions(final Reportable reportable) {
-        return Map.of(INDEX_OPTION, indexNameGenerator.generate(reportable), PIPELINE_OPTION, pipelineConfiguration.getPipeline());
+        return Map.of(
+                INDEX_OPTION,
+                indexNameGenerator.generate(reportable),
+                PIPELINE_OPTION,
+                pipelineConfiguration.getPipeline());
     }
 }

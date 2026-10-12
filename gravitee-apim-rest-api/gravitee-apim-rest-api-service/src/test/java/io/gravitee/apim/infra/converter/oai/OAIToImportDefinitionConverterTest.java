@@ -30,7 +30,6 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
-import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -108,7 +107,8 @@ class OAIToImportDefinitionConverterTest {
                 // Then
                 assertSoftly(softly -> {
                     softly.assertThat(result).isNotNull();
-                    softly.assertThat(result.getApiExport().getDescription()).isEqualTo("Description of Gravitee.io Swagger API");
+                    softly.assertThat(result.getApiExport().getDescription())
+                            .isEqualTo("Description of Gravitee.io Swagger API");
                 });
             }
 
@@ -153,7 +153,10 @@ class OAIToImportDefinitionConverterTest {
                 var listener = (HttpListener) api.getListeners().get(0);
                 softly.assertThat(listener.getType()).isEqualTo(ListenerType.HTTP);
                 softly.assertThat(listener.getPaths()).containsExactlyElementsOf(paths);
-                softly.assertThat(listener.getEntrypoints()).hasSize(1).extracting(Entrypoint::getType).containsExactly("http-proxy");
+                softly.assertThat(listener.getEntrypoints())
+                        .hasSize(1)
+                        .extracting(Entrypoint::getType)
+                        .containsExactly("http-proxy");
             });
         }
 
@@ -174,16 +177,22 @@ class OAIToImportDefinitionConverterTest {
 
                 var listener = (HttpListener) api.getListeners().get(0);
                 softly.assertThat(listener.getType()).isEqualTo(ListenerType.HTTP);
-                softly
-                    .assertThat(listener.getPaths())
-                    .containsExactlyElementsOf(
-                        List.of(
-                            Path.builder().host("host1.example.com").path("path-1").build(),
-                            Path.builder().host("host1.example.com").path("path-2").overrideAccess(true).build(),
-                            Path.builder().host("host2.example.com").path("path-3").build(),
-                            Path.builder().host("host3.example.com").build()
-                        )
-                    );
+                softly.assertThat(listener.getPaths())
+                        .containsExactlyElementsOf(List.of(
+                                Path.builder()
+                                        .host("host1.example.com")
+                                        .path("path-1")
+                                        .build(),
+                                Path.builder()
+                                        .host("host1.example.com")
+                                        .path("path-2")
+                                        .overrideAccess(true)
+                                        .build(),
+                                Path.builder()
+                                        .host("host2.example.com")
+                                        .path("path-3")
+                                        .build(),
+                                Path.builder().host("host3.example.com").build()));
             });
         }
 
@@ -226,22 +235,27 @@ class OAIToImportDefinitionConverterTest {
 
                 var listener = (HttpListener) api.getListeners().get(0);
                 softly.assertThat(listener.getType()).isEqualTo(ListenerType.HTTP);
-                softly.assertThat(listener.getPaths()).containsExactlyElementsOf(List.of(Path.builder().path("/gateway/v1").build()));
+                softly.assertThat(listener.getPaths())
+                        .containsExactlyElementsOf(
+                                List.of(Path.builder().path("/gateway/v1").build()));
             });
         }
 
         private static Stream<Arguments> getApiWithServers() {
             return Stream.of(
-                Arguments.of("io/gravitee/rest/api/management/service/openapi.json", List.of(Path.builder().path("/gateway/echo").build())),
-                Arguments.of(
-                    "io/gravitee/rest/api/management/service/openapi-no-basepath.json",
-                    List.of(Path.builder().path("gravitee.ioswaggerapi").build())
-                ),
-                Arguments.of(
-                    "io/gravitee/rest/api/management/service/openapi-multi-servers.json",
-                    List.of(Path.builder().path("/echo").build()) // To have multiple path the user needs to use "virtualHosts" attribute of "x-graviteeio-definition" extension
-                )
-            );
+                    Arguments.of(
+                            "io/gravitee/rest/api/management/service/openapi.json",
+                            List.of(Path.builder().path("/gateway/echo").build())),
+                    Arguments.of(
+                            "io/gravitee/rest/api/management/service/openapi-no-basepath.json",
+                            List.of(Path.builder().path("gravitee.ioswaggerapi").build())),
+                    Arguments.of(
+                            "io/gravitee/rest/api/management/service/openapi-multi-servers.json",
+                            List.of(Path.builder()
+                                    .path("/echo")
+                                    .build()) // To have multiple path the user needs to use "virtualHosts"
+                            // attribute of "x-graviteeio-definition" extension
+                            ));
         }
     }
 
@@ -283,8 +297,8 @@ class OAIToImportDefinitionConverterTest {
             assertThat(group.getName()).isEqualTo("default-group");
             assertThat(group.getType()).isEqualTo("http-proxy");
             assertThat(group.getEndpoints())
-                .extracting(AbstractEndpoint::getName, endpoint -> getEndpointTarget(endpoint.getConfiguration()))
-                .containsExactlyElementsOf(endpointData);
+                    .extracting(AbstractEndpoint::getName, endpoint -> getEndpointTarget(endpoint.getConfiguration()))
+                    .containsExactlyElementsOf(endpointData);
         }
 
         private String getEndpointTarget(String configuration) {
@@ -298,24 +312,21 @@ class OAIToImportDefinitionConverterTest {
 
         private static Stream<Arguments> getEndpointsData() {
             return Stream.of(
-                Arguments.of(
-                    "io/gravitee/rest/api/management/service/openapi.json",
-                    List.of(tuple("default", "https://demo.gravitee.io/gateway/echo"))
-                ),
-                Arguments.of(
-                    "io/gravitee/rest/api/management/service/openapi-multi-servers.json",
-                    List.of(tuple("server1", "https://example.gravitee.io/echo"), tuple("server2", "https://example.gravitee.io/whoami"))
-                ),
-                Arguments.of(
-                    "io/gravitee/rest/api/management/service/openapi-servers-variables.json",
-                    List.of(
-                        tuple("server1", "https://demo.gravitee.io:8443/gateway/v1"),
-                        tuple("server2", "https://demo.gravitee.io:443/gateway/v1"),
-                        tuple("server3", "https://demo.gravitee.io:8443/gateway/v2"),
-                        tuple("server4", "https://demo.gravitee.io:443/gateway/v2")
-                    )
-                )
-            );
+                    Arguments.of(
+                            "io/gravitee/rest/api/management/service/openapi.json",
+                            List.of(tuple("default", "https://demo.gravitee.io/gateway/echo"))),
+                    Arguments.of(
+                            "io/gravitee/rest/api/management/service/openapi-multi-servers.json",
+                            List.of(
+                                    tuple("server1", "https://example.gravitee.io/echo"),
+                                    tuple("server2", "https://example.gravitee.io/whoami"))),
+                    Arguments.of(
+                            "io/gravitee/rest/api/management/service/openapi-servers-variables.json",
+                            List.of(
+                                    tuple("server1", "https://demo.gravitee.io:8443/gateway/v1"),
+                                    tuple("server2", "https://demo.gravitee.io:443/gateway/v1"),
+                                    tuple("server3", "https://demo.gravitee.io:8443/gateway/v2"),
+                                    tuple("server4", "https://demo.gravitee.io:443/gateway/v2"))));
         }
     }
 
@@ -335,41 +346,37 @@ class OAIToImportDefinitionConverterTest {
                 softly.assertThat(result).isNotNull();
 
                 var api = result.getApiExport();
-                softly
-                    .assertThat((List<Flow>) api.getFlows())
-                    .flatExtracting(Flow::getSelectors)
-                    .containsExactlyElementsOf(
-                        List.of(
-                            ConditionSelector.builder().condition("").build(),
-                            HttpSelector.builder()
-                                .path("/pets")
-                                .pathOperator(Operator.EQUALS)
-                                .type(SelectorType.HTTP)
-                                .methods(Set.of(HttpMethod.GET))
-                                .build(),
-                            ConditionSelector.builder().condition("").build(),
-                            HttpSelector.builder()
-                                .path("/pets")
-                                .pathOperator(Operator.EQUALS)
-                                .type(SelectorType.HTTP)
-                                .methods(Set.of(HttpMethod.POST))
-                                .build(),
-                            ConditionSelector.builder().condition("").build(),
-                            HttpSelector.builder()
-                                .path("/pets/:petId")
-                                .pathOperator(Operator.EQUALS)
-                                .type(SelectorType.HTTP)
-                                .methods(Set.of(HttpMethod.GET))
-                                .build(),
-                            ConditionSelector.builder().condition("").build(),
-                            HttpSelector.builder()
-                                .path("/pets/:petId")
-                                .pathOperator(Operator.EQUALS)
-                                .type(SelectorType.HTTP)
-                                .methods(Set.of(HttpMethod.DELETE))
-                                .build()
-                        )
-                    );
+                softly.assertThat((List<Flow>) api.getFlows())
+                        .flatExtracting(Flow::getSelectors)
+                        .containsExactlyElementsOf(List.of(
+                                ConditionSelector.builder().condition("").build(),
+                                HttpSelector.builder()
+                                        .path("/pets")
+                                        .pathOperator(Operator.EQUALS)
+                                        .type(SelectorType.HTTP)
+                                        .methods(Set.of(HttpMethod.GET))
+                                        .build(),
+                                ConditionSelector.builder().condition("").build(),
+                                HttpSelector.builder()
+                                        .path("/pets")
+                                        .pathOperator(Operator.EQUALS)
+                                        .type(SelectorType.HTTP)
+                                        .methods(Set.of(HttpMethod.POST))
+                                        .build(),
+                                ConditionSelector.builder().condition("").build(),
+                                HttpSelector.builder()
+                                        .path("/pets/:petId")
+                                        .pathOperator(Operator.EQUALS)
+                                        .type(SelectorType.HTTP)
+                                        .methods(Set.of(HttpMethod.GET))
+                                        .build(),
+                                ConditionSelector.builder().condition("").build(),
+                                HttpSelector.builder()
+                                        .path("/pets/:petId")
+                                        .pathOperator(Operator.EQUALS)
+                                        .type(SelectorType.HTTP)
+                                        .methods(Set.of(HttpMethod.DELETE))
+                                        .build()));
             });
         }
     }
@@ -526,7 +533,7 @@ class OAIToImportDefinitionConverterTest {
 
         @ParameterizedTest
         @NullSource
-        @ValueSource(strings = { "invalid", "" })
+        @ValueSource(strings = {"invalid", ""})
         void should_be_null_when_definition_is_invalid(String picture) throws IOException {
             // Given
             var apiInput = toOpenApi("io/gravitee/rest/api/management/service/openapi.json");
@@ -565,10 +572,10 @@ class OAIToImportDefinitionConverterTest {
 
         @ParameterizedTest
         @ValueSource(
-            strings = {
-                "io/gravitee/rest/api/management/service/openapi.json", "io/gravitee/rest/api/management/service/openapi-vhost.json",
-            }
-        )
+                strings = {
+                    "io/gravitee/rest/api/management/service/openapi.json",
+                    "io/gravitee/rest/api/management/service/openapi-vhost.json",
+                })
         void should_be_null_when_no_definition_or_null(String filePath) throws IOException {
             // Given
             var apiInput = toOpenApi(filePath);
@@ -594,7 +601,8 @@ class OAIToImportDefinitionConverterTest {
             // Then
             assertSoftly(softly -> {
                 softly.assertThat(result).isNotNull();
-                softly.assertThat(result.getApiExport().getVisibility()).isEqualTo(io.gravitee.rest.api.model.Visibility.PRIVATE);
+                softly.assertThat(result.getApiExport().getVisibility())
+                        .isEqualTo(io.gravitee.rest.api.model.Visibility.PRIVATE);
             });
         }
     }
@@ -604,10 +612,10 @@ class OAIToImportDefinitionConverterTest {
 
         @ParameterizedTest
         @ValueSource(
-            strings = {
-                "io/gravitee/rest/api/management/service/openapi.json", "io/gravitee/rest/api/management/service/openapi-vhost.json",
-            }
-        )
+                strings = {
+                    "io/gravitee/rest/api/management/service/openapi.json",
+                    "io/gravitee/rest/api/management/service/openapi-vhost.json",
+                })
         void should_be_null_when_no_definition_or_null() throws IOException {
             // Given
             var apiInput = toOpenApi("io/gravitee/rest/api/management/service/openapi.json");
@@ -633,24 +641,20 @@ class OAIToImportDefinitionConverterTest {
             // Then
             assertSoftly(softly -> {
                 softly.assertThat(result).isNotNull();
-                softly
-                    .assertThat(result.getMetadata())
-                    .containsExactlyInAnyOrderElementsOf(
-                        Set.of(
-                            NewApiMetadata.builder()
-                                .key("meta1")
-                                .name("meta1")
-                                .value("1234")
-                                .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.NUMERIC)
-                                .build(),
-                            NewApiMetadata.builder()
-                                .key("meta2")
-                                .name("meta2")
-                                .value("metaValue2")
-                                .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING)
-                                .build()
-                        )
-                    );
+                softly.assertThat(result.getMetadata())
+                        .containsExactlyInAnyOrderElementsOf(Set.of(
+                                NewApiMetadata.builder()
+                                        .key("meta1")
+                                        .name("meta1")
+                                        .value("1234")
+                                        .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.NUMERIC)
+                                        .build(),
+                                NewApiMetadata.builder()
+                                        .key("meta2")
+                                        .name("meta2")
+                                        .value("metaValue2")
+                                        .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING)
+                                        .build()));
             });
         }
     }
@@ -660,10 +664,10 @@ class OAIToImportDefinitionConverterTest {
 
         @ParameterizedTest
         @ValueSource(
-            strings = {
-                "io/gravitee/rest/api/management/service/openapi.json", "io/gravitee/rest/api/management/service/openapi-vhost.json",
-            }
-        )
+                strings = {
+                    "io/gravitee/rest/api/management/service/openapi.json",
+                    "io/gravitee/rest/api/management/service/openapi-vhost.json",
+                })
         void should_be_empty_when_no_definition_or_null(String filePath) throws IOException {
             // Given
             var apiInput = toOpenApi(filePath);
@@ -689,14 +693,16 @@ class OAIToImportDefinitionConverterTest {
             // Then
             assertSoftly(softly -> {
                 softly.assertThat(result).isNotNull();
-                softly
-                    .assertThat(result.getApiExport().getProperties())
-                    .containsExactlyInAnyOrderElementsOf(
-                        List.of(
-                            Property.builder().key("prop1").value("propValue1").build(),
-                            Property.builder().key("prop2").value("propValue2").build()
-                        )
-                    );
+                softly.assertThat(result.getApiExport().getProperties())
+                        .containsExactlyInAnyOrderElementsOf(List.of(
+                                Property.builder()
+                                        .key("prop1")
+                                        .value("propValue1")
+                                        .build(),
+                                Property.builder()
+                                        .key("prop2")
+                                        .value("propValue2")
+                                        .build()));
             });
         }
     }
@@ -706,10 +712,10 @@ class OAIToImportDefinitionConverterTest {
 
         @ParameterizedTest
         @ValueSource(
-            strings = {
-                "io/gravitee/rest/api/management/service/openapi.json", "io/gravitee/rest/api/management/service/openapi-vhost.json",
-            }
-        )
+                strings = {
+                    "io/gravitee/rest/api/management/service/openapi.json",
+                    "io/gravitee/rest/api/management/service/openapi-vhost.json",
+                })
         void should_be_empty_when_no_definition_or_null(String filePath) throws IOException {
             // Given
             var apiInput = toOpenApi(filePath);
@@ -755,11 +761,12 @@ class OAIToImportDefinitionConverterTest {
             assertSoftly(softly -> {
                 softly.assertThat(result).isNotNull();
                 softly.assertThat(result.getApiExport()).isNotNull();
-                var flowPaths = ((List<Flow>) result.getApiExport().getFlows()).stream()
-                    .flatMap(flow -> flow.getSelectors().stream())
-                    .filter(HttpSelector.class::isInstance)
-                    .map(selector -> ((HttpSelector) selector).getPath())
-                    .toList();
+                var flowPaths = ((List<Flow>) result.getApiExport().getFlows())
+                        .stream()
+                                .flatMap(flow -> flow.getSelectors().stream())
+                                .filter(HttpSelector.class::isInstance)
+                                .map(selector -> ((HttpSelector) selector).getPath())
+                                .toList();
                 softly.assertThat(flowPaths).contains("/primary", "/secondary");
             });
         }

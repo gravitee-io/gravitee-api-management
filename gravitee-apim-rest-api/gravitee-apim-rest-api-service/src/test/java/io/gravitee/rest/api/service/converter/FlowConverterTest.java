@@ -125,8 +125,10 @@ public class FlowConverterTest {
         Flow flowDefinition = converter.toDefinition(flow);
 
         assertNotNull(flowDefinition.getPathOperator());
-        assertEquals(expectedOperator.getOperator(), flowDefinition.getPathOperator().getOperator());
-        assertEquals(expectedOperator.getPath(), flowDefinition.getPathOperator().getPath());
+        assertEquals(
+                expectedOperator.getOperator(), flowDefinition.getPathOperator().getOperator());
+        assertEquals(
+                expectedOperator.getPath(), flowDefinition.getPathOperator().getPath());
     }
 
     @Test

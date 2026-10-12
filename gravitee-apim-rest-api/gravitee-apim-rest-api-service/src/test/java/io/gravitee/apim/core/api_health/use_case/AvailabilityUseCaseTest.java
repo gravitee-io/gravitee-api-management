@@ -63,10 +63,14 @@ class AvailabilityUseCaseTest {
         var ctx = new ExecutionContext(GraviteeContext.getExecutionContext().getOrganizationId(), ENV_ID);
         var input = new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), "MyApiID", "gateway");
         var definition = io.gravitee.definition.model.v4.Api.builder()
-            .type(ApiType.MESSAGE)
-            .definitionVersion(DefinitionVersion.V4)
-            .build();
-        apiCrudServiceInMemory.initWith(List.of(Api.builder().id("MyApiID").apiDefinitionHttpV4(definition).environmentId(ENV_ID).build()));
+                .type(ApiType.MESSAGE)
+                .definitionVersion(DefinitionVersion.V4)
+                .build();
+        apiCrudServiceInMemory.initWith(List.of(Api.builder()
+                .id("MyApiID")
+                .apiDefinitionHttpV4(definition)
+                .environmentId(ENV_ID)
+                .build()));
         apiHealthQueryService.availabilityHealthCheck = new AvailabilityHealthCheck(.12f, Map.of("gw", .12f));
 
         // When
@@ -84,10 +88,14 @@ class AvailabilityUseCaseTest {
         var ctx = new ExecutionContext(GraviteeContext.getExecutionContext().getOrganizationId(), ENV_ID);
         var input = new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), "MyApiID", "gateway");
         var definition = io.gravitee.definition.model.v4.Api.builder()
-            .type(ApiType.MESSAGE)
-            .definitionVersion(DefinitionVersion.V4)
-            .build();
-        apiCrudServiceInMemory.initWith(List.of(Api.builder().id("MyApiID").apiDefinitionHttpV4(definition).environmentId(ENV_ID).build()));
+                .type(ApiType.MESSAGE)
+                .definitionVersion(DefinitionVersion.V4)
+                .build();
+        apiCrudServiceInMemory.initWith(List.of(Api.builder()
+                .id("MyApiID")
+                .apiDefinitionHttpV4(definition)
+                .environmentId(ENV_ID)
+                .build()));
 
         // When
         var output = cut.execute(input).blockingGet();
@@ -100,19 +108,20 @@ class AvailabilityUseCaseTest {
     void should_throw_if_no_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         var ctx = new ExecutionContext(GraviteeContext.getExecutionContext().getOrganizationId(), "other-env");
-        assertThatThrownBy(() ->
-            cut.execute(new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), MY_API, "gateway")).blockingGet()
-        ).isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(
+                                new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), MY_API, "gateway"))
+                        .blockingGet())
+                .isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_api_is_tcp() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
         var ctx = new ExecutionContext(GraviteeContext.getExecutionContext().getOrganizationId(), ENV_ID);
-        assertThatThrownBy(() ->
-            cut.execute(new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), MY_API, "gateway")).blockingGet()
-        )
-            .isInstanceOf(TcpProxyNotSupportedException.class)
-            .hasMessage("TCP Proxy not supported");
+        assertThatThrownBy(() -> cut.execute(
+                                new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), MY_API, "gateway"))
+                        .blockingGet())
+                .isInstanceOf(TcpProxyNotSupportedException.class)
+                .hasMessage("TCP Proxy not supported");
     }
 }

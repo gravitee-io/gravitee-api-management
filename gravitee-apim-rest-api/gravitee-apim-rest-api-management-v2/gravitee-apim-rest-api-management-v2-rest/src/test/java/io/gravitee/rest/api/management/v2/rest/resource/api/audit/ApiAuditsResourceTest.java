@@ -89,196 +89,183 @@ class ApiAuditsResourceTest extends ApiResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_AUDIT),
-                    eq(API),
-                    eq(RolePermissionAction.READ)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.API_AUDIT),
+                            eq(API),
+                            eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
 
             final Response response = target.request().get();
 
             assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
         public void should_return_audits() {
-            auditCrudServiceInMemory.initWith(
-                List.of(
-                    AuditFixtures.anApiAudit()
-                        .toBuilder()
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .referenceId(API)
-                        .properties(Map.of("API", API))
-                        .build()
-                )
-            );
+            auditCrudServiceInMemory.initWith(List.of(AuditFixtures.anApiAudit().toBuilder()
+                    .organizationId(ORGANIZATION)
+                    .environmentId(ENVIRONMENT)
+                    .referenceId(API)
+                    .properties(Map.of("API", API))
+                    .build()));
 
             final Response response = target.request().get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(AuditsResponse.class)
-                .extracting(AuditsResponse::getData)
-                .isEqualTo(
-                    List.of(
-                        new Audit()
+                    .hasStatus(OK_200)
+                    .asEntity(AuditsResponse.class)
+                    .extracting(AuditsResponse::getData)
+                    .isEqualTo(List.of(new Audit()
                             .id("audit-id")
-                            .reference(new AuditReference().id(API).type(AuditReference.TypeEnum.API).name("my-api-name"))
+                            .reference(new AuditReference()
+                                    .id(API)
+                                    .type(AuditReference.TypeEnum.API)
+                                    .name("my-api-name"))
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .user(new BaseUser().id("user-id").displayName("user-id-name"))
                             .event("event-1")
                             .createdAt(OffsetDateTime.parse("2020-02-01T20:22:02.00Z"))
-                            .properties(List.of(new AuditPropertiesInner().key("API").value(API).name("my-api-name")))
-                            .patch(
-                                """
-                                [{ "op": "add", "path": "/hello", "value": ["world"] }]"""
-                            )
-                    )
-                );
+                            .properties(List.of(new AuditPropertiesInner()
+                                    .key("API")
+                                    .value(API)
+                                    .name("my-api-name")))
+                            .patch("""
+                                [{ "op": "add", "path": "/hello", "value": ["world"] }]""")));
         }
 
         @Test
         public void should_return_audits_filtered_by_interval() {
-            auditCrudServiceInMemory.initWith(
-                List.of(
-                    AuditFixtures.anApiAudit()
-                        .toBuilder()
-                        .id("1")
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .referenceId(API)
-                        .createdAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
-                        .build(),
-                    AuditFixtures.anApiAudit()
-                        .toBuilder()
-                        .id("2")
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .referenceId(API)
-                        .createdAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
-                        .build(),
-                    AuditFixtures.anApiAudit()
-                        .toBuilder()
-                        .id("3")
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .referenceId(API)
-                        .createdAt(ZonedDateTime.parse("2020-02-04T20:00:00.00Z"))
-                        .build()
-                )
-            );
+            auditCrudServiceInMemory.initWith(List.of(
+                    AuditFixtures.anApiAudit().toBuilder()
+                            .id("1")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .referenceId(API)
+                            .createdAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
+                            .build(),
+                    AuditFixtures.anApiAudit().toBuilder()
+                            .id("2")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .referenceId(API)
+                            .createdAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
+                            .build(),
+                    AuditFixtures.anApiAudit().toBuilder()
+                            .id("3")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .referenceId(API)
+                            .createdAt(ZonedDateTime.parse("2020-02-04T20:00:00.00Z"))
+                            .build()));
 
-            final Response response = target
-                .queryParam(SearchApiAuditsParam.FROM_QUERY_PARAM_NAME, Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
-                .queryParam(SearchApiAuditsParam.TO_QUERY_PARAM_NAME, Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli())
-                .request()
-                .get();
+            final Response response = target.queryParam(
+                            SearchApiAuditsParam.FROM_QUERY_PARAM_NAME,
+                            Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
+                    .queryParam(
+                            SearchApiAuditsParam.TO_QUERY_PARAM_NAME,
+                            Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli())
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(AuditsResponse.class)
-                .extracting(r -> r.getData() != null ? r.getData().stream().map(Audit::getId).toList() : null)
-                .isEqualTo(List.of("2", "1"));
+                    .hasStatus(OK_200)
+                    .asEntity(AuditsResponse.class)
+                    .extracting(r -> r.getData() != null
+                            ? r.getData().stream().map(Audit::getId).toList()
+                            : null)
+                    .isEqualTo(List.of("2", "1"));
         }
 
         @Test
         public void should_return_audits_filtered_by_events() {
-            auditCrudServiceInMemory.initWith(
-                List.of(
-                    AuditFixtures.anApiAudit()
-                        .toBuilder()
-                        .id("1")
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .referenceId(API)
-                        .event("event1")
-                        .build(),
-                    AuditFixtures.anApiAudit()
-                        .toBuilder()
-                        .id("2")
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .referenceId(API)
-                        .event("event2")
-                        .build(),
-                    AuditFixtures.anApiAudit()
-                        .toBuilder()
-                        .id("3")
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .referenceId(API)
-                        .event("event3")
-                        .build()
-                )
-            );
+            auditCrudServiceInMemory.initWith(List.of(
+                    AuditFixtures.anApiAudit().toBuilder()
+                            .id("1")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .referenceId(API)
+                            .event("event1")
+                            .build(),
+                    AuditFixtures.anApiAudit().toBuilder()
+                            .id("2")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .referenceId(API)
+                            .event("event2")
+                            .build(),
+                    AuditFixtures.anApiAudit().toBuilder()
+                            .id("3")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .referenceId(API)
+                            .event("event3")
+                            .build()));
 
-            final Response response = target.queryParam(SearchApiAuditsParam.EVENTS_QUERY_PARAM_NAME, "event1,event3").request().get();
+            final Response response = target.queryParam(SearchApiAuditsParam.EVENTS_QUERY_PARAM_NAME, "event1,event3")
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(AuditsResponse.class)
-                .extracting(r -> r.getData() != null ? r.getData().stream().map(Audit::getId).toList() : null)
-                .isEqualTo(List.of("1", "3"));
+                    .hasStatus(OK_200)
+                    .asEntity(AuditsResponse.class)
+                    .extracting(r -> r.getData() != null
+                            ? r.getData().stream().map(Audit::getId).toList()
+                            : null)
+                    .isEqualTo(List.of("1", "3"));
         }
 
         @Test
         public void should_filter_the_api_audits_by_encrypted() {
-            auditCrudServiceInMemory.initWith(
-                List.of(
-                    AuditFixtures.anApiAudit()
-                        .toBuilder()
-                        .id("1")
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .referenceId(API)
-                        .properties(Map.of("API", API, "ENCRYPTED", "true"))
-                        .build(),
-                    AuditFixtures.anApiAudit()
-                        .toBuilder()
-                        .id("2")
-                        .organizationId(ORGANIZATION)
-                        .environmentId(ENVIRONMENT)
-                        .referenceId(API)
-                        .properties(Map.of("API", API))
-                        .build()
-                )
-            );
+            auditCrudServiceInMemory.initWith(List.of(
+                    AuditFixtures.anApiAudit().toBuilder()
+                            .id("1")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .referenceId(API)
+                            .properties(Map.of("API", API, "ENCRYPTED", "true"))
+                            .build(),
+                    AuditFixtures.anApiAudit().toBuilder()
+                            .id("2")
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .referenceId(API)
+                            .properties(Map.of("API", API))
+                            .build()));
 
-            final Response response = target.queryParam(SearchApiAuditsParam.ENCRYPTED_QUERY_PARAM_NAME, true).request().get();
+            final Response response = target.queryParam(SearchApiAuditsParam.ENCRYPTED_QUERY_PARAM_NAME, true)
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(AuditsResponse.class)
-                .satisfies(body -> {
-                    assertThat(body.getData()).extracting(Audit::getId).containsExactly("1");
-                    assertThat(body.getData().getFirst().getProperties())
-                        .extracting(AuditPropertiesInner::getKey, AuditPropertiesInner::getValue)
-                        .contains(tuple("ENCRYPTED", "true"));
-                    assertThat(body.getPagination().getTotalCount()).isEqualTo(1L);
-                });
+                    .hasStatus(OK_200)
+                    .asEntity(AuditsResponse.class)
+                    .satisfies(body -> {
+                        assertThat(body.getData()).extracting(Audit::getId).containsExactly("1");
+                        assertThat(body.getData().getFirst().getProperties())
+                                .extracting(AuditPropertiesInner::getKey, AuditPropertiesInner::getValue)
+                                .contains(tuple("ENCRYPTED", "true"));
+                        assertThat(body.getPagination().getTotalCount()).isEqualTo(1L);
+                    });
         }
 
         @Test
         public void should_return_403_with_the_encrypted_filter_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_AUDIT),
-                    eq(API),
-                    eq(RolePermissionAction.READ)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.API_AUDIT),
+                            eq(API),
+                            eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
 
-            final Response response = target.queryParam(SearchApiAuditsParam.ENCRYPTED_QUERY_PARAM_NAME, true).request().get();
+            final Response response = target.queryParam(SearchApiAuditsParam.ENCRYPTED_QUERY_PARAM_NAME, true)
+                    .request()
+                    .get();
 
             assertThat(response).hasStatus(FORBIDDEN_403);
         }
@@ -287,30 +274,29 @@ class ApiAuditsResourceTest extends ApiResourceTest {
         public void should_compute_pagination() {
             var total = 20L;
             var pageSize = 5;
-            auditCrudServiceInMemory.initWith(
-                LongStream.range(0, total)
-                    .mapToObj(i ->
-                        AuditFixtures.anApiAudit()
-                            .toBuilder()
+            auditCrudServiceInMemory.initWith(LongStream.range(0, total)
+                    .mapToObj(i -> AuditFixtures.anApiAudit().toBuilder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .referenceId(API)
-                            .build()
-                    )
-                    .toList()
-            );
+                            .build())
+                    .toList());
 
-            final Response response = target
-                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
-                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
-                .request()
-                .get();
+            final Response response = target.queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(AuditsResponse.class)
-                .extracting(AuditsResponse::getPagination)
-                .isEqualTo(new Pagination().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total));
+                    .hasStatus(OK_200)
+                    .asEntity(AuditsResponse.class)
+                    .extracting(AuditsResponse::getPagination)
+                    .isEqualTo(new Pagination()
+                            .page(2)
+                            .perPage(pageSize)
+                            .pageCount(4)
+                            .pageItemsCount(pageSize)
+                            .totalCount(total));
         }
 
         @Test
@@ -318,37 +304,44 @@ class ApiAuditsResourceTest extends ApiResourceTest {
             var total = 20L;
             var page = 2;
             var pageSize = 5;
-            auditCrudServiceInMemory.initWith(
-                LongStream.range(0, total)
-                    .mapToObj(i ->
-                        AuditFixtures.anApiAudit()
-                            .toBuilder()
+            auditCrudServiceInMemory.initWith(LongStream.range(0, total)
+                    .mapToObj(i -> AuditFixtures.anApiAudit().toBuilder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .referenceId(API)
-                            .build()
-                    )
-                    .toList()
-            );
+                            .build())
+                    .toList());
 
-            final Response response = target
-                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
-                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
-                .request()
-                .get();
+            final Response response = target.queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(AuditsResponse.class)
-                .extracting(AuditsResponse::getLinks)
-                .isEqualTo(
-                    new Links()
-                        .self(target.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
-                        .first(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                        .last(target.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
-                        .previous(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                        .next(target.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(AuditsResponse.class)
+                    .extracting(AuditsResponse::getLinks)
+                    .isEqualTo(new Links()
+                            .self(target.queryParam("page", page)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .first(target.queryParam("page", 1)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .last(target.queryParam("page", 4)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .previous(target.queryParam("page", 1)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString())
+                            .next(target.queryParam("page", 3)
+                                    .queryParam("perPage", pageSize)
+                                    .getUri()
+                                    .toString()));
         }
 
         @Nested
@@ -356,36 +349,45 @@ class ApiAuditsResourceTest extends ApiResourceTest {
 
             @Test
             public void should_return_400_if_negative_interval_params() {
-                final Response response = target
-                    .queryParam(SearchApiAuditsParam.FROM_QUERY_PARAM_NAME, -1)
-                    .queryParam(SearchApiAuditsParam.TO_QUERY_PARAM_NAME, -1)
-                    .request()
-                    .get();
+                final Response response = target.queryParam(SearchApiAuditsParam.FROM_QUERY_PARAM_NAME, -1)
+                        .queryParam(SearchApiAuditsParam.TO_QUERY_PARAM_NAME, -1)
+                        .request()
+                        .get();
 
-                assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+                assertThat(response)
+                        .hasStatus(BAD_REQUEST_400)
+                        .asError()
+                        .hasHttpStatus(BAD_REQUEST_400)
+                        .hasMessage("Validation error");
             }
 
             @ParameterizedTest
-            @ValueSource(strings = { "false", "yes" })
+            @ValueSource(strings = {"false", "yes"})
             public void should_reject_an_encrypted_filter_it_cannot_answer(String encrypted) {
-                final Response response = target.queryParam(SearchApiAuditsParam.ENCRYPTED_QUERY_PARAM_NAME, encrypted).request().get();
+                final Response response = target.queryParam(SearchApiAuditsParam.ENCRYPTED_QUERY_PARAM_NAME, encrypted)
+                        .request()
+                        .get();
 
                 assertThat(response)
-                    .hasStatus(BAD_REQUEST_400)
-                    .asError()
-                    .hasHttpStatus(BAD_REQUEST_400)
-                    .hasMessage("Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
+                        .hasStatus(BAD_REQUEST_400)
+                        .asError()
+                        .hasHttpStatus(BAD_REQUEST_400)
+                        .hasMessage(
+                                "Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
             }
 
             @Test
             public void should_return_400_if_to_is_before_from_param() {
-                final Response response = target
-                    .queryParam(SearchApiAuditsParam.FROM_QUERY_PARAM_NAME, 2)
-                    .queryParam(SearchApiAuditsParam.TO_QUERY_PARAM_NAME, 1)
-                    .request()
-                    .get();
+                final Response response = target.queryParam(SearchApiAuditsParam.FROM_QUERY_PARAM_NAME, 2)
+                        .queryParam(SearchApiAuditsParam.TO_QUERY_PARAM_NAME, 1)
+                        .request()
+                        .get();
 
-                assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+                assertThat(response)
+                        .hasStatus(BAD_REQUEST_400)
+                        .asError()
+                        .hasHttpStatus(BAD_REQUEST_400)
+                        .hasMessage("Validation error");
             }
         }
     }

@@ -34,7 +34,10 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
     @Override
     public Response toResponse(ConstraintViolationException cve) {
         final Response.Status error = Response.Status.BAD_REQUEST;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(new ConstraintValidationError(cve)).build();
+        return Response.status(error)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(new ConstraintValidationError(cve))
+                .build();
     }
 
     @Getter
@@ -50,26 +53,25 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
         private final List<ConstraintViolationDetail> details;
 
         ConstraintValidationError(ConstraintViolationException cve) {
-            ConstraintViolation<?> violation = cve.getConstraintViolations().iterator().next();
+            ConstraintViolation<?> violation =
+                    cve.getConstraintViolations().iterator().next();
             this.message = violation.getMessage();
             this.path = violation.getPropertyPath().toString();
             this.invalidValue = violation.getInvalidValue();
-            this.details = cve
-                .getConstraintViolations()
-                .stream()
-                .map(constraintViolation ->
-                    ConstraintViolationDetail.builder()
-                        .message(constraintViolation.getMessage())
-                        .location(extractLocation(constraintViolation))
-                        .invalidValue(constraintViolation.getInvalidValue())
-                        .build()
-                )
-                .toList();
+            this.details = cve.getConstraintViolations().stream()
+                    .map(constraintViolation -> ConstraintViolationDetail.builder()
+                            .message(constraintViolation.getMessage())
+                            .location(extractLocation(constraintViolation))
+                            .invalidValue(constraintViolation.getInvalidValue())
+                            .build())
+                    .toList();
         }
 
         private String extractLocation(ConstraintViolation<?> constraintViolation) {
             final String errorLocation = constraintViolation.getPropertyPath().toString();
-            // getPropertyPath returns a location in the form of "methodName.methodParameter.fieldNameOfTheParameter.[...]". We are not interested by the method name and parameter, so we remove them.
+            // getPropertyPath returns a location in the form of
+            // "methodName.methodParameter.fieldNameOfTheParameter.[...]". We are not interested by the method name and
+            // parameter, so we remove them.
             return errorLocation.substring(StringUtils.ordinalIndexOf(errorLocation, ".", 2) + 1);
         }
     }

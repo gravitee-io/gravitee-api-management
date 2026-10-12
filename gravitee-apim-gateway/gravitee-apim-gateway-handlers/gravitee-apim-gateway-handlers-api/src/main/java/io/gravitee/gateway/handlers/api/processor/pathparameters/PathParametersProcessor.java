@@ -34,7 +34,9 @@ public class PathParametersProcessor extends AbstractProcessor<ExecutionContext>
     @Override
     public void handle(ExecutionContext executionContext) {
         final Request request = executionContext.request();
-        extractor.extract(request.method().name(), request.pathInfo()).forEach((key, value) -> request.pathParameters().set(key, value));
+        extractor
+                .extract(request.method().name(), request.pathInfo())
+                .forEach((key, value) -> request.pathParameters().set(key, value));
         next.handle(executionContext);
     }
 }

@@ -57,9 +57,7 @@ public class SubscriptionMetadataSanitizer {
             String key = entry.getKey();
             if (key == null || !KEY_PATTERN.matcher(key).matches()) {
                 throw new SubscriptionMetadataInvalidException(
-                    SubscriptionMetadataInvalidException.Reason.KEY_INVALID,
-                    "Invalid metadata key: " + key
-                );
+                        SubscriptionMetadataInvalidException.Reason.KEY_INVALID, "Invalid metadata key: " + key);
             }
 
             String sanitizedValue = stripHtmlTags(entry.getValue());

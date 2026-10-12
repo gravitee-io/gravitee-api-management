@@ -45,9 +45,10 @@ public final class ApiPathExtractor {
     public static List<Path> extractPaths(Api api) {
         return switch (api.getApiDefinitionValue()) {
             case io.gravitee.definition.model.v4.Api v4Api -> extractPathsFromV4Listeners(v4Api.getListeners());
-            case io.gravitee.definition.model.Api v2Api -> v2Api.getProxy() == null
-                ? List.of()
-                : extractPathsFromVirtualHosts(v2Api.getProxy().getVirtualHosts());
+            case io.gravitee.definition.model.Api v2Api ->
+                v2Api.getProxy() == null
+                        ? List.of()
+                        : extractPathsFromVirtualHosts(v2Api.getProxy().getVirtualHosts());
             case null, default -> new ArrayList<>();
         };
     }
@@ -57,17 +58,14 @@ public final class ApiPathExtractor {
         if (virtualHosts == null) {
             return List.of();
         }
-        return virtualHosts
-            .stream()
-            .map(virtualHost ->
-                Path.builder()
-                    .host(virtualHost.getHost())
-                    .path(virtualHost.getPath())
-                    .overrideAccess(virtualHost.isOverrideEntrypoint())
-                    .build()
-                    .sanitize()
-            )
-            .toList();
+        return virtualHosts.stream()
+                .map(virtualHost -> Path.builder()
+                        .host(virtualHost.getHost())
+                        .path(virtualHost.getPath())
+                        .overrideAccess(virtualHost.isOverrideEntrypoint())
+                        .build()
+                        .sanitize())
+                .toList();
     }
 
     /**
@@ -78,18 +76,17 @@ public final class ApiPathExtractor {
         if (listeners == null) {
             return List.of();
         }
-        return listeners
-            .stream()
-            .flatMap(listener -> listener instanceof HttpListener httpListener ? Stream.of(httpListener) : Stream.of())
-            .flatMap(httpListener ->
-                httpListener
-                    .getPaths()
-                    .stream()
-                    .map(path ->
-                        Path.builder().host(path.getHost()).path(path.getPath()).overrideAccess(path.isOverrideAccess()).build().sanitize()
-                    )
-            )
-            .toList();
+        return listeners.stream()
+                .flatMap(listener ->
+                        listener instanceof HttpListener httpListener ? Stream.of(httpListener) : Stream.of())
+                .flatMap(httpListener -> httpListener.getPaths().stream()
+                        .map(path -> Path.builder()
+                                .host(path.getHost())
+                                .path(path.getPath())
+                                .overrideAccess(path.isOverrideAccess())
+                                .build()
+                                .sanitize()))
+                .toList();
     }
 
     /**
@@ -98,27 +95,24 @@ public final class ApiPathExtractor {
      * and vice versa. The error message reports the existing path (the one already published).
      */
     public static Optional<Validator.Error> findConflictingPathError(String path, List<String> existingPaths) {
-        return existingPaths
-            .stream()
-            .filter(existingPath -> existingPath.startsWith(path) || path.startsWith(existingPath))
-            .findFirst()
-            .map(conflictingPath -> Validator.Error.severe("Path [%s] already exists", conflictingPath));
+        return existingPaths.stream()
+                .filter(existingPath -> existingPath.startsWith(path) || path.startsWith(existingPath))
+                .findFirst()
+                .map(conflictingPath -> Validator.Error.severe("Path [%s] already exists", conflictingPath));
     }
 
     /** Groups paths by their {@code host} value, dropping paths without a host. The result is keyed by host. */
     public static Map<String, List<String>> getPathsWithHost(List<Path> paths) {
-        return paths
-            .stream()
-            .filter(path -> StringUtils.isNotEmpty(path.getHost()))
-            .collect(Collectors.groupingBy(Path::getHost, Collectors.mapping(Path::getPath, Collectors.toList())));
+        return paths.stream()
+                .filter(path -> StringUtils.isNotEmpty(path.getHost()))
+                .collect(Collectors.groupingBy(Path::getHost, Collectors.mapping(Path::getPath, Collectors.toList())));
     }
 
     /** Returns the path strings whose {@code host} is empty, preserving order. */
     public static List<String> getPathsWithoutHost(List<Path> paths) {
-        return paths
-            .stream()
-            .filter(path -> StringUtils.isEmpty(path.getHost()))
-            .map(Path::getPath)
-            .toList();
+        return paths.stream()
+                .filter(path -> StringUtils.isEmpty(path.getHost()))
+                .map(Path::getPath)
+                .toList();
     }
 }

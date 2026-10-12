@@ -28,25 +28,23 @@ public class GetAmConnectionUseCase {
     public record Input(String orgId) {}
 
     public record Output(
-        String baseUrl,
-        boolean hasAccessToken,
-        String amOrganizationId,
-        String environmentId,
-        String defaultDomainId,
-        String defaultDomainHrid,
-        String gatewayUrl
-    ) {}
+            String baseUrl,
+            boolean hasAccessToken,
+            String amOrganizationId,
+            String environmentId,
+            String defaultDomainId,
+            String defaultDomainHrid,
+            String gatewayUrl) {}
 
     public Output execute(Input input) {
         var view = amConnectionViewDomainService.forOrg(input.orgId());
         return new Output(
-            view.baseUrl(),
-            view.hasAccessToken(),
-            view.amOrganizationId(),
-            view.environmentId(),
-            view.defaultDomainId(),
-            view.defaultDomainHrid(),
-            view.gatewayUrl()
-        );
+                view.baseUrl(),
+                view.hasAccessToken(),
+                view.amOrganizationId(),
+                view.environmentId(),
+                view.defaultDomainId(),
+                view.defaultDomainHrid(),
+                view.gatewayUrl());
     }
 }

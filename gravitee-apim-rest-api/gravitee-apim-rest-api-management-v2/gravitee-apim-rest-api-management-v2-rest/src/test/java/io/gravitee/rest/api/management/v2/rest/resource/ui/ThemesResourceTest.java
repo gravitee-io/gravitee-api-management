@@ -87,48 +87,51 @@ public class ThemesResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_THEME),
-                    eq(ENVIRONMENT),
-                    eq(RolePermissionAction.READ)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.ENVIRONMENT_THEME),
+                            eq(ENVIRONMENT),
+                            eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
             final Response response = rootTarget().request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
         public void should_get_empty_list() {
-            final Response response = rootTarget().queryParam("enabled", false).request().get();
+            final Response response =
+                    rootTarget().queryParam("enabled", false).request().get();
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ThemesResponse.class)
-                .extracting(ThemesResponse::getData)
-                .satisfies(list -> {
-                    assertThat(list).isEmpty();
-                });
+                    .hasStatus(OK_200)
+                    .asEntity(ThemesResponse.class)
+                    .extracting(ThemesResponse::getData)
+                    .satisfies(list -> {
+                        assertThat(list).isEmpty();
+                    });
         }
 
         @Test
         public void should_return_page_of_results() {
-            final Response response = rootTarget().queryParam("type", "PORTAL").queryParam("enabled", true).request().get();
+            final Response response = rootTarget()
+                    .queryParam("type", "PORTAL")
+                    .queryParam("enabled", true)
+                    .request()
+                    .get();
             assertThat(response.getStatus()).isEqualTo(200);
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ThemesResponse.class)
-                .extracting(ThemesResponse::getData)
-                .satisfies(list -> {
-                    assertThat(list).hasSize(1);
-                    assertThat(list.get(0).getThemePortal().getId()).isEqualTo(PORTAL_THEME_ID);
-                });
+                    .hasStatus(OK_200)
+                    .asEntity(ThemesResponse.class)
+                    .extracting(ThemesResponse::getData)
+                    .satisfies(list -> {
+                        assertThat(list).hasSize(1);
+                        assertThat(list.get(0).getThemePortal().getId()).isEqualTo(PORTAL_THEME_ID);
+                    });
         }
 
         @Test
@@ -137,12 +140,12 @@ public class ThemesResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(200);
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ThemesResponse.class)
-                .extracting(ThemesResponse::getData)
-                .satisfies(list -> {
-                    assertThat(list).hasSize(2);
-                });
+                    .hasStatus(OK_200)
+                    .asEntity(ThemesResponse.class)
+                    .extracting(ThemesResponse::getData)
+                    .satisfies(list -> {
+                        assertThat(list).hasSize(2);
+                    });
         }
     }
 
@@ -151,32 +154,38 @@ public class ThemesResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_THEME),
-                    eq(ENVIRONMENT),
-                    eq(RolePermissionAction.READ)
-                )
-            ).thenReturn(false);
-            final Response response = rootTarget().path("_default").queryParam("type", "PORTAL_NEXT").request().get();
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.ENVIRONMENT_THEME),
+                            eq(ENVIRONMENT),
+                            eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
+            final Response response = rootTarget()
+                    .path("_default")
+                    .queryParam("type", "PORTAL_NEXT")
+                    .request()
+                    .get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
         public void should_return_400_when_portal_theme_type() {
-            final Response response = rootTarget().path("_default").queryParam("type", "PORTAL").request().get();
+            final Response response = rootTarget()
+                    .path("_default")
+                    .queryParam("type", "PORTAL")
+                    .request()
+                    .get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(BAD_REQUEST_400)
-                .asError()
-                .hasHttpStatus(BAD_REQUEST_400)
-                .hasMessage("Theme type [PORTAL] is not supported");
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("Theme type [PORTAL] is not supported");
         }
 
         @Test
@@ -184,19 +193,23 @@ public class ThemesResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().path("_default").request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(BAD_REQUEST_400)
-                .asError()
-                .hasHttpStatus(BAD_REQUEST_400)
-                .hasMessage("[ null ] theme is currently not supported");
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("[ null ] theme is currently not supported");
         }
 
         @Test
         public void should_get_portal_next_default_theme() {
-            final Response response = rootTarget().path("_default").queryParam("type", "PORTAL_NEXT").request().get();
+            final Response response = rootTarget()
+                    .path("_default")
+                    .queryParam("type", "PORTAL_NEXT")
+                    .request()
+                    .get();
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
-                .isNotNull();
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                    .isNotNull();
         }
     }
 
@@ -205,21 +218,23 @@ public class ThemesResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_THEME),
-                    eq(ENVIRONMENT),
-                    eq(RolePermissionAction.READ)
-                )
-            ).thenReturn(false);
-            final Response response = rootTarget().path("_current").queryParam("type", "PORTAL_NEXT").request().get();
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.ENVIRONMENT_THEME),
+                            eq(ENVIRONMENT),
+                            eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
+            final Response response = rootTarget()
+                    .path("_current")
+                    .queryParam("type", "PORTAL_NEXT")
+                    .request()
+                    .get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");
         }
 
         @Test
@@ -227,56 +242,72 @@ public class ThemesResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().path("_current").request().get();
 
             MAPIAssertions.assertThat(response)
-                .hasStatus(BAD_REQUEST_400)
-                .asError()
-                .hasHttpStatus(BAD_REQUEST_400)
-                .hasMessage("[ null ] theme is currently not supported");
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("[ null ] theme is currently not supported");
         }
 
         @Test
         public void should_create_new_enabled_default_portal_next_theme() {
-            final Response response = rootTarget().path("_current").queryParam("type", "PORTAL_NEXT").request().get();
+            final Response response = rootTarget()
+                    .path("_current")
+                    .queryParam("type", "PORTAL_NEXT")
+                    .request()
+                    .get();
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
-                .isNotNull()
-                .extracting(res -> res.getThemePortalNext().getName())
-                .isEqualTo("Default Portal Next Theme");
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                    .isNotNull()
+                    .extracting(res -> res.getThemePortalNext().getName())
+                    .isEqualTo("Default Portal Next Theme");
         }
 
         @Test
         public void should_create_new_enabled_default_portal_theme() {
-            final Response response = rootTarget().path("_current").queryParam("type", "PORTAL").request().get();
+            final Response response = rootTarget()
+                    .path("_current")
+                    .queryParam("type", "PORTAL")
+                    .request()
+                    .get();
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
-                .isNotNull()
-                .extracting(res -> res.getThemePortal().getId())
-                .isEqualTo("portal-default-theme");
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                    .isNotNull()
+                    .extracting(res -> res.getThemePortal().getId())
+                    .isEqualTo("portal-default-theme");
         }
 
         @Test
         public void should_return_enabled_portal_next_theme() {
             themeQueryService.initWith(List.of(aPortalNextTheme()));
-            final Response response = rootTarget().path("_current").queryParam("type", "PORTAL_NEXT").request().get();
+            final Response response = rootTarget()
+                    .path("_current")
+                    .queryParam("type", "PORTAL_NEXT")
+                    .request()
+                    .get();
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
-                .isNotNull()
-                .extracting(res -> res.getThemePortalNext().getId())
-                .isEqualTo(aPortalNextTheme().getId());
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                    .isNotNull()
+                    .extracting(res -> res.getThemePortalNext().getId())
+                    .isEqualTo(aPortalNextTheme().getId());
         }
 
         @Test
         public void should_return_enabled_portal_theme() {
             themeQueryService.initWith(List.of(aPortalTheme()));
-            final Response response = rootTarget().path("_current").queryParam("type", "PORTAL").request().get();
+            final Response response = rootTarget()
+                    .path("_current")
+                    .queryParam("type", "PORTAL")
+                    .request()
+                    .get();
             MAPIAssertions.assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
-                .isNotNull()
-                .extracting(res -> res.getThemePortal().getId())
-                .isEqualTo(aPortalTheme().getId());
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                    .isNotNull()
+                    .extracting(res -> res.getThemePortal().getId())
+                    .isEqualTo(aPortalTheme().getId());
         }
     }
 
@@ -284,33 +315,35 @@ public class ThemesResourceTest extends AbstractResourceTest {
         var portalDefinition = new ThemeDefinition();
         portalDefinition.setData(List.of());
         return Theme.builder()
-            .id(PORTAL_THEME_ID)
-            .name(PORTAL_THEME_ID)
-            .type(ThemeType.PORTAL)
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .referenceId(ENVIRONMENT)
-            .definitionPortal(portalDefinition)
-            .createdAt(ZonedDateTime.now())
-            .updatedAt(ZonedDateTime.now())
-            .backgroundImage("hehe")
-            .enabled(true)
-            .build();
+                .id(PORTAL_THEME_ID)
+                .name(PORTAL_THEME_ID)
+                .type(ThemeType.PORTAL)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .referenceId(ENVIRONMENT)
+                .definitionPortal(portalDefinition)
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
+                .backgroundImage("hehe")
+                .enabled(true)
+                .build();
     }
 
     private Theme aPortalNextTheme() {
         var portalDefinition = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
-            .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
-            .build();
+                .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder()
+                        .primary("#fff")
+                        .build())
+                .build();
         return Theme.builder()
-            .id(PORTAL_NEXT_THEME_ID)
-            .name(PORTAL_NEXT_THEME_ID)
-            .type(ThemeType.PORTAL_NEXT)
-            .referenceType(Theme.ReferenceType.ENVIRONMENT)
-            .referenceId(ENVIRONMENT)
-            .definitionPortalNext(portalDefinition)
-            .createdAt(ZonedDateTime.now())
-            .updatedAt(ZonedDateTime.now())
-            .enabled(true)
-            .build();
+                .id(PORTAL_NEXT_THEME_ID)
+                .name(PORTAL_NEXT_THEME_ID)
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .referenceId(ENVIRONMENT)
+                .definitionPortalNext(portalDefinition)
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
+                .enabled(true)
+                .build();
     }
 }

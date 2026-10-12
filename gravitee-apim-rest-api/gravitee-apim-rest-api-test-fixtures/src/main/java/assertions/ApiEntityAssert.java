@@ -16,7 +16,6 @@
 package assertions;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -78,7 +77,9 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
     public ApiEntityAssert hasDefinitionVersion(DefinitionVersion definitionVersion) {
         isNotNull();
         if (!actual.getDefinitionVersion().equals(definitionVersion)) {
-            failWithMessage("Expected api definition version to be <%s> but was <%s>", definitionVersion, actual.getDefinitionVersion());
+            failWithMessage(
+                    "Expected api definition version to be <%s> but was <%s>",
+                    definitionVersion, actual.getDefinitionVersion());
         }
         return this;
     }
@@ -181,7 +182,8 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
     public ApiEntityAssert hasFlowExecution(FlowExecution flowExecution) {
         isNotNull();
         if (!actual.getFlowExecution().equals(flowExecution)) {
-            failWithMessage("Expected api flow execution to be <%s> but was <%s>", flowExecution, actual.getFlowExecution());
+            failWithMessage(
+                    "Expected api flow execution to be <%s> but was <%s>", flowExecution, actual.getFlowExecution());
         }
         return this;
     }
@@ -202,7 +204,10 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
         var assertjErrorMessage = "Expecting api to have responseTemplate:  <%s> but was: <%s>";
 
         if (!actual.getResponseTemplates().keySet().equals(responseTemplateKeys)) {
-            failWithMessage(assertjErrorMessage, responseTemplateKeys, actual.getResponseTemplates().keySet());
+            failWithMessage(
+                    assertjErrorMessage,
+                    responseTemplateKeys,
+                    actual.getResponseTemplates().keySet());
         }
 
         return this;
@@ -254,7 +259,8 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
     public ApiEntityAssert hasPrimaryOwner(PrimaryOwnerEntity primaryOwnerEntity) {
         isNotNull();
         if (!actual.getPrimaryOwner().equals(primaryOwnerEntity)) {
-            failWithMessage("Expected api primary owner to be <%s> but was <%s>", primaryOwnerEntity, actual.getPrimaryOwner());
+            failWithMessage(
+                    "Expected api primary owner to be <%s> but was <%s>", primaryOwnerEntity, actual.getPrimaryOwner());
         }
         return this;
     }
@@ -300,7 +306,8 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
     public ApiEntityAssert hasOriginContext(OriginContext originContext) {
         isNotNull();
         if (!actual.getOriginContext().equals(originContext)) {
-            failWithMessage("Expected api origin context to be <%s> but was <%s>", originContext, actual.getOriginContext());
+            failWithMessage(
+                    "Expected api origin context to be <%s> but was <%s>", originContext, actual.getOriginContext());
         }
         return this;
     }
@@ -310,7 +317,8 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
         var assertjErrorMessage = "Expecting api to have metadata:  <%s> but was: <%s>";
 
         if (!actual.getMetadata().keySet().equals(metadataKeys)) {
-            failWithMessage(assertjErrorMessage, metadataKeys, actual.getMetadata().keySet());
+            failWithMessage(
+                    assertjErrorMessage, metadataKeys, actual.getMetadata().keySet());
         }
 
         return this;
@@ -336,10 +344,8 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
         isNotNull();
         if (!actual.isDisableMembershipNotifications() == disableMembershipNotifications) {
             failWithMessage(
-                "Expected api disable membership notifications to be <%s> but was <%s>",
-                disableMembershipNotifications,
-                actual.isDisableMembershipNotifications()
-            );
+                    "Expected api disable membership notifications to be <%s> but was <%s>",
+                    disableMembershipNotifications, actual.isDisableMembershipNotifications());
         }
         return this;
     }
@@ -355,7 +361,8 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
     public ApiEntityAssert hasBackgroundUrl(String backgroundUrl) {
         isNotNull();
         if (!actual.getBackgroundUrl().equals(backgroundUrl)) {
-            failWithMessage("Expected api background url to be <%s> but was <%s>", backgroundUrl, actual.getBackgroundUrl());
+            failWithMessage(
+                    "Expected api background url to be <%s> but was <%s>", backgroundUrl, actual.getBackgroundUrl());
         }
         return this;
     }

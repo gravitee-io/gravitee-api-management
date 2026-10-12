@@ -31,27 +31,27 @@ public final class AsyncApiPageContent extends PortalPageContent<AsyncApi> {
     private AsyncApi content;
 
     public AsyncApiPageContent(
-        @Nonnull PortalPageContentId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull AsyncApi content
-    ) {
+            @Nonnull PortalPageContentId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull AsyncApi content) {
         this(id, organizationId, environmentId, content, null);
     }
 
     public AsyncApiPageContent(
-        @Nonnull PortalPageContentId id,
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull AsyncApi content,
-        @Nullable AutomationMetadata automationMetadata
-    ) {
+            @Nonnull PortalPageContentId id,
+            @Nonnull String organizationId,
+            @Nonnull String environmentId,
+            @Nonnull AsyncApi content,
+            @Nullable AutomationMetadata automationMetadata) {
         super(id, organizationId, environmentId, automationMetadata);
         this.content = content;
     }
 
-    public static AsyncApiPageContent create(@Nonnull String organizationId, @Nonnull String environmentId, @Nonnull String content) {
-        return new AsyncApiPageContent(PortalPageContentId.random(), organizationId, environmentId, AsyncApi.of(content));
+    public static AsyncApiPageContent create(
+            @Nonnull String organizationId, @Nonnull String environmentId, @Nonnull String content) {
+        return new AsyncApiPageContent(
+                PortalPageContentId.random(), organizationId, environmentId, AsyncApi.of(content));
     }
 
     public PortalPageContentType getType() {

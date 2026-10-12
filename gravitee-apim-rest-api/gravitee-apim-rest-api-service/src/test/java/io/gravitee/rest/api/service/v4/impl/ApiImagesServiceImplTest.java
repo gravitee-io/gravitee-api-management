@@ -38,7 +38,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 public class ApiImagesServiceImplTest {
 
-    public static final String DATA_IMAGE = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkS";
+    public static final String DATA_IMAGE =
+            "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkS";
 
     @Mock
     private ApiRepository apiRepository;
@@ -56,34 +57,28 @@ public class ApiImagesServiceImplTest {
     @Test
     public void shouldReturnApiNotFound() throws TechnicalException {
         when(apiRepository.findById("my-api")).thenReturn(Optional.empty());
-        assertThatExceptionOfType(ApiNotFoundException.class).isThrownBy(() ->
-            cut.getApiPicture(GraviteeContext.getExecutionContext(), "my-api")
-        );
+        assertThatExceptionOfType(ApiNotFoundException.class)
+                .isThrownBy(() -> cut.getApiPicture(GraviteeContext.getExecutionContext(), "my-api"));
 
         when(apiRepository.findById("my-api")).thenReturn(Optional.of(new Api()));
-        assertThatExceptionOfType(ApiNotFoundException.class).isThrownBy(() ->
-            cut.getApiPicture(GraviteeContext.getExecutionContext(), "my-api")
-        );
+        assertThatExceptionOfType(ApiNotFoundException.class)
+                .isThrownBy(() -> cut.getApiPicture(GraviteeContext.getExecutionContext(), "my-api"));
 
         when(apiRepository.findById("my-api")).thenReturn(Optional.empty());
-        assertThatExceptionOfType(ApiNotFoundException.class).isThrownBy(() ->
-            cut.getApiBackground(GraviteeContext.getExecutionContext(), "my-api")
-        );
+        assertThatExceptionOfType(ApiNotFoundException.class)
+                .isThrownBy(() -> cut.getApiBackground(GraviteeContext.getExecutionContext(), "my-api"));
 
         when(apiRepository.findById("my-api")).thenReturn(Optional.of(new Api()));
-        assertThatExceptionOfType(ApiNotFoundException.class).isThrownBy(() ->
-            cut.getApiBackground(GraviteeContext.getExecutionContext(), "my-api")
-        );
+        assertThatExceptionOfType(ApiNotFoundException.class)
+                .isThrownBy(() -> cut.getApiBackground(GraviteeContext.getExecutionContext(), "my-api"));
 
         when(apiRepository.findById("my-api")).thenReturn(Optional.empty());
-        assertThatExceptionOfType(ApiNotFoundException.class).isThrownBy(() ->
-            cut.updateApiPicture(GraviteeContext.getExecutionContext(), "my-api", "new-picture")
-        );
+        assertThatExceptionOfType(ApiNotFoundException.class)
+                .isThrownBy(() -> cut.updateApiPicture(GraviteeContext.getExecutionContext(), "my-api", "new-picture"));
 
         when(apiRepository.findById("my-api")).thenReturn(Optional.of(new Api()));
-        assertThatExceptionOfType(ApiNotFoundException.class).isThrownBy(() ->
-            cut.updateApiPicture(GraviteeContext.getExecutionContext(), "my-api", "new-picture")
-        );
+        assertThatExceptionOfType(ApiNotFoundException.class)
+                .isThrownBy(() -> cut.updateApiPicture(GraviteeContext.getExecutionContext(), "my-api", "new-picture"));
     }
 
     @Test
@@ -119,17 +114,19 @@ public class ApiImagesServiceImplTest {
         when(apiRepository.findById("my-api")).thenReturn(Optional.of(foundApi));
 
         cut.updateApiPicture(GraviteeContext.getExecutionContext(), "my-api", DATA_IMAGE);
-        verify(apiRepository, times(1)).update(argThat(api -> DATA_IMAGE.equals(api.getPicture()) && api.getUpdatedAt() != null));
-        verify(auditService, times(1)).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> {
-                boolean res = auditLogData.getEvent().equals(API_UPDATED) && auditLogData.getOldValue().equals(foundApi);
-                Api api = (Api) auditLogData.getNewValue();
-                res = res && api.getPicture().equals(DATA_IMAGE) && api.getUpdatedAt() != null;
-                return res;
-            }),
-            eq("my-api")
-        );
+        verify(apiRepository, times(1))
+                .update(argThat(api -> DATA_IMAGE.equals(api.getPicture()) && api.getUpdatedAt() != null));
+        verify(auditService, times(1))
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> {
+                            boolean res = auditLogData.getEvent().equals(API_UPDATED)
+                                    && auditLogData.getOldValue().equals(foundApi);
+                            Api api = (Api) auditLogData.getNewValue();
+                            res = res && api.getPicture().equals(DATA_IMAGE) && api.getUpdatedAt() != null;
+                            return res;
+                        }),
+                        eq("my-api"));
     }
 
     @Test
@@ -164,16 +161,18 @@ public class ApiImagesServiceImplTest {
         when(apiRepository.findById("my-api")).thenReturn(Optional.of(foundApi));
 
         cut.updateApiBackground(GraviteeContext.getExecutionContext(), "my-api", DATA_IMAGE);
-        verify(apiRepository, times(1)).update(argThat(api -> DATA_IMAGE.equals(api.getBackground()) && api.getUpdatedAt() != null));
-        verify(auditService, times(1)).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> {
-                boolean res = auditLogData.getEvent().equals(API_UPDATED) && auditLogData.getOldValue().equals(foundApi);
-                Api api = (Api) auditLogData.getNewValue();
-                res = res && api.getBackground().equals(DATA_IMAGE) && api.getUpdatedAt() != null;
-                return res;
-            }),
-            eq("my-api")
-        );
+        verify(apiRepository, times(1))
+                .update(argThat(api -> DATA_IMAGE.equals(api.getBackground()) && api.getUpdatedAt() != null));
+        verify(auditService, times(1))
+                .createApiAuditLog(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(auditLogData -> {
+                            boolean res = auditLogData.getEvent().equals(API_UPDATED)
+                                    && auditLogData.getOldValue().equals(foundApi);
+                            Api api = (Api) auditLogData.getNewValue();
+                            res = res && api.getBackground().equals(DATA_IMAGE) && api.getUpdatedAt() != null;
+                            return res;
+                        }),
+                        eq("my-api"));
     }
 }

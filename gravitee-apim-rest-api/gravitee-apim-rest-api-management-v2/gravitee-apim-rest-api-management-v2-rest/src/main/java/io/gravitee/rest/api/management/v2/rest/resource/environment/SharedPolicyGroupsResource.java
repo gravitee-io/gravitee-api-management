@@ -79,71 +79,74 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = {RolePermissionAction.CREATE})
+    })
     public Response createSharedPolicyGroup(@Valid @NotNull final CreateSharedPolicyGroup createSharedPolicyGroup) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
-        var output = createSharedPolicyGroupUseCase.execute(
-            new CreateSharedPolicyGroupUseCase.Input(SharedPolicyGroupMapper.INSTANCE.map(createSharedPolicyGroup), audit)
-        );
+        var output = createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(
+                SharedPolicyGroupMapper.INSTANCE.map(createSharedPolicyGroup), audit));
 
-        return Response.created(this.getLocationHeader(output.sharedPolicyGroup().getId()))
-            .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
-            .build();
+        return Response.created(
+                        this.getLocationHeader(output.sharedPolicyGroup().getId()))
+                .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
+                .build();
     }
 
     @PUT
     @Path("/_import/crd")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
-    public Response createSharedPolicyGroupCrd(@Valid @NotNull final SharedPolicyGroupCRD spec, @QueryParam("dryRun") boolean dryRun) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = {RolePermissionAction.CREATE})
+    })
+    public Response createSharedPolicyGroupCrd(
+            @Valid @NotNull final SharedPolicyGroupCRD spec, @QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         AuditInfo audit = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(AuditActor.builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build())
+                .build();
 
         if (dryRun) {
             var statusBuilder = SharedPolicyGroupCRDStatus.builder();
             validateSharedPolicyGroupCRDDomainService
-                .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(audit, SharedPolicyGroupMapper.INSTANCE.map(spec)))
-                .peek(
-                    sanitized ->
-                        statusBuilder
-                            .crossId(sanitized.crd().getCrossId())
-                            .organizationId(audit.organizationId())
-                            .environmentId(audit.environmentId()),
-                    errors -> statusBuilder.errors(SharedPolicyGroupCRDStatus.Errors.fromErrorList(errors))
-                );
+                    .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(
+                            audit, SharedPolicyGroupMapper.INSTANCE.map(spec)))
+                    .peek(
+                            sanitized -> statusBuilder
+                                    .crossId(sanitized.crd().getCrossId())
+                                    .organizationId(audit.organizationId())
+                                    .environmentId(audit.environmentId()),
+                            errors -> statusBuilder.errors(SharedPolicyGroupCRDStatus.Errors.fromErrorList(errors)));
             return Response.ok(statusBuilder.build()).build();
         }
 
         var output = importSharedPolicyGroupCRDCRDUseCase.execute(
-            new ImportSharedPolicyGroupCRDCRDUseCase.Input(audit, SharedPolicyGroupMapper.INSTANCE.map(spec))
-        );
+                new ImportSharedPolicyGroupCRDCRDUseCase.Input(audit, SharedPolicyGroupMapper.INSTANCE.map(spec)));
 
         return Response.ok(output.status()).build();
     }
@@ -155,43 +158,46 @@ public class SharedPolicyGroupsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = {RolePermissionAction.READ})
+    })
     public SharedPolicyGroupsResponse searchSharedPolicyGroups(
-        @QueryParam("q") String q,
-        @BeanParam @Valid PaginationParam paginationParam,
-        @QueryParam("sortBy") String sortBy
-    ) {
+            @QueryParam("q") String q,
+            @BeanParam @Valid PaginationParam paginationParam,
+            @QueryParam("sortBy") String sortBy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        var result = searchSharedPolicyGroupUseCase.execute(
-            new SearchSharedPolicyGroupUseCase.Input(executionContext.getEnvironmentId(), q, paginationParam.toPageable(), sortBy)
-        );
+        var result = searchSharedPolicyGroupUseCase.execute(new SearchSharedPolicyGroupUseCase.Input(
+                executionContext.getEnvironmentId(), q, paginationParam.toPageable(), sortBy));
 
         return new SharedPolicyGroupsResponse()
-            .data(SharedPolicyGroupMapper.INSTANCE.map(result.result().getContent()))
-            .pagination(
-                PaginationInfo.computePaginationInfo(
-                    result.result().getTotalElements(),
-                    result.result().getContent().size(),
-                    paginationParam
-                )
-            )
-            .links(computePaginationLinks(result.result().getTotalElements(), paginationParam));
+                .data(SharedPolicyGroupMapper.INSTANCE.map(result.result().getContent()))
+                .pagination(PaginationInfo.computePaginationInfo(
+                        result.result().getTotalElements(),
+                        result.result().getContent().size(),
+                        paginationParam))
+                .links(computePaginationLinks(result.result().getTotalElements(), paginationParam));
     }
 
     @GET
     @Path("/policy-plugins")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_API,
+                acls = {RolePermissionAction.READ})
+    })
     public Response getPolicyPlugins() {
         var executionContext = GraviteeContext.getExecutionContext();
 
         var result = getSharedPolicyGroupPolicyPluginsUseCase.execute(
-            new GetSharedPolicyGroupPolicyPluginsUseCase.Input(executionContext.getEnvironmentId())
-        );
+                new GetSharedPolicyGroupPolicyPluginsUseCase.Input(executionContext.getEnvironmentId()));
 
         return Response.ok()
-            .entity(SharedPolicyGroupMapper.INSTANCE.mapToSharedPolicyGroupPolicyPlugins(result.sharedPolicyGroupPolicyList()))
-            .build();
+                .entity(SharedPolicyGroupMapper.INSTANCE.mapToSharedPolicyGroupPolicyPlugins(
+                        result.sharedPolicyGroupPolicyList()))
+                .build();
     }
 }

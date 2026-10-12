@@ -30,14 +30,12 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component("EndpointConnectorPluginServiceImplV4")
-public class EndpointConnectorPluginServiceImpl
-    extends AbstractConnectorPluginService<EndpointConnectorPlugin<?, ?>>
-    implements EndpointConnectorPluginService {
+public class EndpointConnectorPluginServiceImpl extends AbstractConnectorPluginService<EndpointConnectorPlugin<?, ?>>
+        implements EndpointConnectorPluginService {
 
     public EndpointConnectorPluginServiceImpl(
-        JsonSchemaService jsonSchemaService,
-        ConfigurablePluginManager<EndpointConnectorPlugin<?, ?>> pluginManager
-    ) {
+            JsonSchemaService jsonSchemaService,
+            ConfigurablePluginManager<EndpointConnectorPlugin<?, ?>> pluginManager) {
         super(jsonSchemaService, pluginManager);
     }
 
@@ -52,16 +50,20 @@ public class EndpointConnectorPluginServiceImpl
             log.debug("Find endpoint shared configuration configuration schema by ID: {}", connectorId);
             return ((EndpointConnectorPluginManager) pluginManager).getSharedConfigurationSchema(connectorId, true);
         } catch (IOException ioex) {
-            log.error("An error occurs while trying to get endpoint shared configuration schema for plugin {}", connectorId, ioex);
+            log.error(
+                    "An error occurs while trying to get endpoint shared configuration schema for plugin {}",
+                    connectorId,
+                    ioex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to get endpoint shared configuration schema for plugin " + connectorId,
-                ioex
-            );
+                    "An error occurs while trying to get endpoint shared configuration schema for plugin "
+                            + connectorId,
+                    ioex);
         }
     }
 
     @Override
     public String validateSharedConfiguration(ConnectorPluginEntity endpointConnector, String configuration) {
-        return validatePluginConfigurationAgainstSchema(endpointConnector.getId(), configuration, this::getSharedConfigurationSchema);
+        return validatePluginConfigurationAgainstSchema(
+                endpointConnector.getId(), configuration, this::getSharedConfigurationSchema);
     }
 }

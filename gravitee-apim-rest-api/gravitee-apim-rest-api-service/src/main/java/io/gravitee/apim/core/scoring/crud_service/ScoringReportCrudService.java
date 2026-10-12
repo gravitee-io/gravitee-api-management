@@ -19,5 +19,6 @@ import io.gravitee.apim.core.scoring.model.ScoringReport;
 
 public interface ScoringReportCrudService {
     ScoringReport create(ScoringReport report);
+
     void deleteByApi(String apiId);
 }

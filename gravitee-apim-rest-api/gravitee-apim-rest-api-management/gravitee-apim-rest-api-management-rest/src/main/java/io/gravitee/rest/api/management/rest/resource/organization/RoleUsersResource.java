@@ -59,47 +59,45 @@ public class RoleUsersResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List users with the given role",
-        description = "User must have the MANAGEMENT_ROLE[READ] permission to use this service"
-    )
+            summary = "List users with the given role",
+            description = "User must have the MANAGEMENT_ROLE[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "204",
-        description = "List of user's memberships",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = MembershipListItem.class))
-        )
-    )
+            responseCode = "204",
+            description = "List of user's memberships",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = MembershipListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ) })
-    public List<MembershipListItem> getUsersPerRole(@PathParam("scope") RoleScope scope, @PathParam("role") String role) {
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ)})
+    public List<MembershipListItem> getUsersPerRole(
+            @PathParam("scope") RoleScope scope, @PathParam("role") String role) {
         if (RoleScope.ORGANIZATION.equals(scope)) {
-            Optional<RoleEntity> optRole = roleService.findByScopeAndName(scope, role, GraviteeContext.getCurrentOrganization());
+            Optional<RoleEntity> optRole =
+                    roleService.findByScopeAndName(scope, role, GraviteeContext.getCurrentOrganization());
             if (optRole.isPresent()) {
                 Set<MemberEntity> members = membershipService.getMembersByReferenceAndRole(
-                    GraviteeContext.getExecutionContext(),
-                    MembershipReferenceType.ORGANIZATION,
-                    GraviteeContext.getCurrentOrganization(),
-                    optRole.get().getId()
-                );
+                        GraviteeContext.getExecutionContext(),
+                        MembershipReferenceType.ORGANIZATION,
+                        GraviteeContext.getCurrentOrganization(),
+                        optRole.get().getId());
 
-                return members
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .map(MembershipListItem::new)
-                    .sorted((a, b) -> {
-                        if (a.getDisplayName() == null && b.getDisplayName() == null) {
-                            return a.getId().compareToIgnoreCase(b.getId());
-                        }
-                        if (a.getDisplayName() == null) {
-                            return -1;
-                        }
-                        if (b.getDisplayName() == null) {
-                            return 1;
-                        }
-                        return a.getDisplayName().compareToIgnoreCase(b.getDisplayName());
-                    })
-                    .collect(Collectors.toList());
+                return members.stream()
+                        .filter(Objects::nonNull)
+                        .map(MembershipListItem::new)
+                        .sorted((a, b) -> {
+                            if (a.getDisplayName() == null && b.getDisplayName() == null) {
+                                return a.getId().compareToIgnoreCase(b.getId());
+                            }
+                            if (a.getDisplayName() == null) {
+                                return -1;
+                            }
+                            if (b.getDisplayName() == null) {
+                                return 1;
+                            }
+                            return a.getDisplayName().compareToIgnoreCase(b.getDisplayName());
+                        })
+                        .collect(Collectors.toList());
             }
         }
 
@@ -110,40 +108,45 @@ public class RoleUsersResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Add or update a role for a user",
-        description = "User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service"
-    )
+            summary = "Add or update a role for a user",
+            description =
+                    "User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service")
     @ApiResponse(responseCode = "201", description = "Membership successfully created / updated")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.UPDATE),
+    })
     public Response addRoleToUser(
-        @Parameter(name = "scope", required = true, schema = @Schema(allowableValues = { "ORGANIZATION", "ENVIRONMENT" })) @PathParam(
-            "scope"
-        ) RoleScope roleScope,
-        @PathParam("role") String roleName,
-        @Valid @NotNull final RoleMembership roleMembership
-    ) {
+            @Parameter(
+                            name = "scope",
+                            required = true,
+                            schema = @Schema(allowableValues = {"ORGANIZATION", "ENVIRONMENT"}))
+                    @PathParam("scope")
+                    RoleScope roleScope,
+            @PathParam("role") String roleName,
+            @Valid @NotNull final RoleMembership roleMembership) {
         if (roleScope == null || roleName == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Role must be set").build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Role must be set")
+                    .build();
         }
         MembershipReferenceType referenceType = null;
         String referenceId = null;
 
         if (!RoleScope.ORGANIZATION.equals(roleScope)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Can't determine context").build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Can't determine context")
+                    .build();
         }
 
         membershipService.addRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization()),
-            new MembershipService.MembershipMember(roleMembership.getId(), roleMembership.getReference(), MembershipMemberType.USER),
-            new MembershipService.MembershipRole(roleScope, roleName)
-        );
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(
+                        MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization()),
+                new MembershipService.MembershipMember(
+                        roleMembership.getId(), roleMembership.getReference(), MembershipMemberType.USER),
+                new MembershipService.MembershipRole(roleScope, roleName));
 
         return Response.status(Response.Status.CREATED).build();
     }

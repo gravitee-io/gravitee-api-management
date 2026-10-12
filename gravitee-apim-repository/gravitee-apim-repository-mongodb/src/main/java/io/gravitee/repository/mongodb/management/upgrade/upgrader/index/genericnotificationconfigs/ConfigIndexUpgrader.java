@@ -28,9 +28,9 @@ public class ConfigIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("genericnotificationconfigs")
-            .name("c1")
-            .key("config", ascending())
-            .build();
+                .collection("genericnotificationconfigs")
+                .name("c1")
+                .key("config", ascending())
+                .build();
     }
 }

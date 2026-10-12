@@ -30,12 +30,11 @@ import org.springframework.core.env.Environment;
 public class GraviteeUrlBasedCorsConfigurationSource extends AbstractGraviteeUrlBasedCorsConfigurationSource {
 
     public GraviteeUrlBasedCorsConfigurationSource(
-        final Environment environment,
-        final ParameterService parameterService,
-        final InstallationAccessQueryService installationAccessQueryService,
-        final EventManager eventManager,
-        final ParameterReferenceType parameterReferenceType
-    ) {
+            final Environment environment,
+            final ParameterService parameterService,
+            final InstallationAccessQueryService installationAccessQueryService,
+            final EventManager eventManager,
+            final ParameterReferenceType parameterReferenceType) {
         super(environment, parameterService, installationAccessQueryService, eventManager, parameterReferenceType);
     }
 

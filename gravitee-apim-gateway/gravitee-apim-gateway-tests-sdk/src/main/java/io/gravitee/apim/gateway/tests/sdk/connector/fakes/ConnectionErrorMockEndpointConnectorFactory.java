@@ -28,7 +28,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class ConnectionErrorMockEndpointConnectorFactory
-    implements HttpEndpointAsyncConnectorFactory<ConnectionErrorMockEndpointConnector> {
+        implements HttpEndpointAsyncConnectorFactory<ConnectionErrorMockEndpointConnector> {
 
     private final PluginConfigurationHelper pluginConfigurationHelper;
 
@@ -48,14 +48,10 @@ public class ConnectionErrorMockEndpointConnectorFactory
 
     @Override
     public ConnectionErrorMockEndpointConnector createConnector(
-        DeploymentContext deploymentContext,
-        String configuration,
-        String sharedConfiguration
-    ) {
+            DeploymentContext deploymentContext, String configuration, String sharedConfiguration) {
         try {
-            return new ConnectionErrorMockEndpointConnector(
-                pluginConfigurationHelper.readConfiguration(ConnectionErrorMockEndpointConnectorConfiguration.class, configuration)
-            );
+            return new ConnectionErrorMockEndpointConnector(pluginConfigurationHelper.readConfiguration(
+                    ConnectionErrorMockEndpointConnectorConfiguration.class, configuration));
         } catch (PluginConfigurationException e) {
             return null;
         }

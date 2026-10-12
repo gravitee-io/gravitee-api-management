@@ -49,7 +49,8 @@ public class IdentityProviderPluginHandler implements PluginHandler {
     @Override
     public void handle(Plugin plugin) {
         try {
-            ClassLoader classloader = pluginClassLoaderFactory.getOrCreateClassLoader(plugin, this.getClass().getClassLoader());
+            ClassLoader classloader = pluginClassLoaderFactory.getOrCreateClassLoader(
+                    plugin, this.getClass().getClassLoader());
 
             final Class<?> identityProviderClass = classloader.loadClass(plugin.clazz());
             log.info("Register a new identity provider plugin: {} [{}]", plugin.id(), plugin.clazz());

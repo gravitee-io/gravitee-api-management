@@ -18,11 +18,10 @@ package io.gravitee.apim.core.ai_workspace.model;
 import java.util.List;
 
 public record AiWorkspaceDetails(
-    String id,
-    String name,
-    String description,
-    AiWorkspaceBudget budget,
-    String endpointUrl,
-    AiWorkspaceKey key,
-    List<AiWorkspaceModel> models
-) {}
+        String id,
+        String name,
+        String description,
+        AiWorkspaceBudget budget,
+        String endpointUrl,
+        AiWorkspaceKey key,
+        List<AiWorkspaceModel> models) {}

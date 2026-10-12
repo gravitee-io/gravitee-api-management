@@ -55,28 +55,23 @@ public class PortalCategoryResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     public Response updatePortalCategory(
-        @PathParam("categoryId") String categoryId,
-        @Valid @NotNull final UpdatePortalCategory updatePortalCategory
-    ) {
-        var output = updatePortalCategoryUseCase.execute(
-            new UpdatePortalCategoryUseCase.Input(
+            @PathParam("categoryId") String categoryId,
+            @Valid @NotNull final UpdatePortalCategory updatePortalCategory) {
+        var output = updatePortalCategoryUseCase.execute(new UpdatePortalCategoryUseCase.Input(
                 GraviteeContext.getCurrentEnvironment(),
                 PortalCategoryId.of(categoryId),
-                mapper.map(updatePortalCategory)
-            )
-        );
+                mapper.map(updatePortalCategory)));
 
         return Response.ok(mapper.map(output.portalCategory())).build();
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE)})
     public Response deletePortalCategory(@PathParam("categoryId") String categoryId) {
-        deletePortalCategoryUseCase.execute(
-            new DeletePortalCategoryUseCase.Input(GraviteeContext.getCurrentEnvironment(), PortalCategoryId.of(categoryId))
-        );
+        deletePortalCategoryUseCase.execute(new DeletePortalCategoryUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(), PortalCategoryId.of(categoryId)));
 
         return Response.noContent().build();
     }

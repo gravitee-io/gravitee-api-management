@@ -22,8 +22,8 @@ public class PortalNavigationItemComparator {
 
     public static Comparator<PortalNavigationItem> byNullableParentIdThenNullableOrder() {
         return Comparator.comparing(PortalNavigationItem::getParentId, Comparator.nullsFirst(Comparator.naturalOrder()))
-            .thenComparing(PortalNavigationItem::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))
-            .thenComparing(Objects::hashCode);
+                .thenComparing(PortalNavigationItem::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(Objects::hashCode);
     }
 
     public static Comparator<PortalNavigationItem> byOrder() {

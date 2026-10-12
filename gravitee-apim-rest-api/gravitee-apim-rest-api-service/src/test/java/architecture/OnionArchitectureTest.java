@@ -44,15 +44,17 @@ public class OnionArchitectureTest extends AbstractApimArchitectureTest {
     @Test
     public void should_respect_onion_architecture() {
         onionArchitecture()
-            .domainModels(anyPackageThatContains(MODEL_PACKAGE))
-            .domainServices(
-                "io.gravitee.apim.core.*." + CRUD_SERVICE_PACKAGE + "..",
-                "io.gravitee.apim.core.*." + QUERY_SERVICE_PACKAGE + "..",
-                "io.gravitee.apim.core.*." + DOMAIN_SERVICE_PACKAGE + "..",
-                "io.gravitee.apim.core.*." + SERVICE_PROVIDER_PACKAGE + ".."
-            )
-            .applicationServices(anyPackageThatContains(CORE_PACKAGE + ".*." + USECASE_PACKAGE))
-            .adapter("infra", anyPackageThatContains(INFRA_PACKAGE), anyPackageThatContains("io.gravitee.rest.api.service"))
-            .check(apimClassesWithoutTests());
+                .domainModels(anyPackageThatContains(MODEL_PACKAGE))
+                .domainServices(
+                        "io.gravitee.apim.core.*." + CRUD_SERVICE_PACKAGE + "..",
+                        "io.gravitee.apim.core.*." + QUERY_SERVICE_PACKAGE + "..",
+                        "io.gravitee.apim.core.*." + DOMAIN_SERVICE_PACKAGE + "..",
+                        "io.gravitee.apim.core.*." + SERVICE_PROVIDER_PACKAGE + "..")
+                .applicationServices(anyPackageThatContains(CORE_PACKAGE + ".*." + USECASE_PACKAGE))
+                .adapter(
+                        "infra",
+                        anyPackageThatContains(INFRA_PACKAGE),
+                        anyPackageThatContains("io.gravitee.rest.api.service"))
+                .check(apimClassesWithoutTests());
     }
 }

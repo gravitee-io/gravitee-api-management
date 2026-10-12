@@ -49,7 +49,8 @@ public class FetchPortalNavigationItemUseCase {
     private final PortalNavigationBulkImportDomainService bulkImportDomainService;
 
     public Output execute(Input input) {
-        var item = queryService.findByIdAndEnvironmentId(input.environmentId(), PortalNavigationItemId.of(input.navigationItemId()));
+        var item = queryService.findByIdAndEnvironmentId(
+                input.environmentId(), PortalNavigationItemId.of(input.navigationItemId()));
         if (item == null) {
             throw new PortalNavigationItemNotFoundException(input.navigationItemId());
         }
@@ -57,19 +58,18 @@ public class FetchPortalNavigationItemUseCase {
         if (item instanceof PortalNavigationPage page && page.getSource() != null) {
             return Output.ofItem(fetchSingle(page));
         }
-        if (item instanceof PortalNavigationFolder folder && folder.getSource() != null && folder.getSource().isSubtreeImport()) {
+        if (item instanceof PortalNavigationFolder folder
+                && folder.getSource() != null
+                && folder.getSource().isSubtreeImport()) {
             return Output.ofSummary(reimportSubtree(folder));
         }
         return Output.ofSummary(fetchDescendants(input.environmentId(), item));
     }
 
     private List<PageFetchResult> reimportSubtree(PortalNavigationFolder folder) {
-        return bulkImportDomainService
-            .importSubtree(folder)
-            .files()
-            .stream()
-            .map(file -> new PageFetchResult(file.navigationItemId(), file.title(), file.success(), file.error()))
-            .toList();
+        return bulkImportDomainService.importSubtree(folder).files().stream()
+                .map(file -> new PageFetchResult(file.navigationItemId(), file.title(), file.success(), file.error()))
+                .toList();
     }
 
     private PortalNavigationItem fetchSingle(PortalNavigationPage page) {
@@ -85,8 +85,10 @@ public class FetchPortalNavigationItemUseCase {
         if (sourcedPages.isEmpty()) {
             // A PAGE owns no subtree, so the only source it could have carried is its own
             throw item instanceof PortalNavigationPage
-                ? InvalidPortalNavigationItemDataException.noSourceConfigured(item.getId().json())
-                : InvalidPortalNavigationItemDataException.noSourcedPageBelow(item.getId().json());
+                    ? InvalidPortalNavigationItemDataException.noSourceConfigured(
+                            item.getId().json())
+                    : InvalidPortalNavigationItemDataException.noSourcedPageBelow(
+                            item.getId().json());
         }
         return sourcedPages.stream().map(this::fetch).toList();
     }
@@ -101,10 +103,12 @@ public class FetchPortalNavigationItemUseCase {
     public record Input(String environmentId, String navigationItemId) {}
 
     /** Exactly one of the two is set: the single fetched item, or the summary of a subtree fetch. */
-    public record Output(@Nullable PortalNavigationItem item, @Nullable FetchSummary summary) {
+    public record Output(
+            @Nullable PortalNavigationItem item, @Nullable FetchSummary summary) {
         public Output {
             if ((item == null) == (summary == null)) {
-                throw new IllegalArgumentException("A fetch result carries either an item or a summary, never both nor neither.");
+                throw new IllegalArgumentException(
+                        "A fetch result carries either an item or a summary, never both nor neither.");
             }
         }
 
@@ -119,11 +123,16 @@ public class FetchPortalNavigationItemUseCase {
 
     public record FetchSummary(int succeeded, int failed, List<PageFetchResult> results) {
         static FetchSummary of(List<PageFetchResult> results) {
-            var succeeded = (int) results.stream().filter(PageFetchResult::success).count();
+            var succeeded =
+                    (int) results.stream().filter(PageFetchResult::success).count();
             return new FetchSummary(succeeded, results.size() - succeeded, results);
         }
     }
 
     /** A repository import reports failures that reached no item at all: their id is null. */
-    public record PageFetchResult(@Nullable UUID navigationItemId, String title, boolean success, @Nullable String error) {}
+    public record PageFetchResult(
+            @Nullable UUID navigationItemId,
+            String title,
+            boolean success,
+            @Nullable String error) {}
 }

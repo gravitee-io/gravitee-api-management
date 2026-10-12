@@ -40,7 +40,8 @@ public class FlowResolverFactory {
     /**
      * Filter to evaluate before running a flow when the resolver already evaluated everything it had to.
      */
-    public static final ConditionFilter<BaseExecutionContext, Flow> NO_DEFERRED_CONDITION = (ctx, flow) -> Maybe.just(flow);
+    public static final ConditionFilter<BaseExecutionContext, Flow> NO_DEFERRED_CONDITION =
+            (ctx, flow) -> Maybe.just(flow);
 
     private final ConditionFilter<BaseExecutionContext, Flow> apiFlowFilter;
     private final ConditionFilter<BaseExecutionContext, Flow> deferrableConditionFilter;
@@ -52,9 +53,8 @@ public class FlowResolverFactory {
      * evaluated later on, {@link #deferredConditionFilter(Api)} returns a no-op filter.
      */
     public FlowResolverFactory(
-        final ConditionFilter<BaseExecutionContext, Flow> apiFlowFilter,
-        final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector
-    ) {
+            final ConditionFilter<BaseExecutionContext, Flow> apiFlowFilter,
+            final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector) {
         this.apiFlowFilter = apiFlowFilter;
         this.deferrableConditionFilter = null;
         this.bestMatchApiFlowFilter = apiFlowFilter;
@@ -71,10 +71,9 @@ public class FlowResolverFactory {
      * observes what the previous flows did.
      */
     public FlowResolverFactory(
-        final ConditionFilter<BaseExecutionContext, Flow> apiFlowFilter,
-        final ConditionFilter<BaseExecutionContext, Flow> conditionFilter,
-        final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector
-    ) {
+            final ConditionFilter<BaseExecutionContext, Flow> apiFlowFilter,
+            final ConditionFilter<BaseExecutionContext, Flow> conditionFilter,
+            final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector) {
         this.apiFlowFilter = apiFlowFilter;
         this.deferrableConditionFilter = conditionFilter;
         this.bestMatchApiFlowFilter = new CompositeConditionFilter<>(apiFlowFilter, conditionFilter);
@@ -87,7 +86,8 @@ public class FlowResolverFactory {
      * resolver evaluating conditions upfront can never see them evaluated a second time.
      */
     public ConditionFilter<BaseExecutionContext, Flow> deferredConditionFilter(final Api api) {
-        if (deferrableConditionFilter == null || isBestMatchFlowMode(api.getDefinition().getFlowExecution())) {
+        if (deferrableConditionFilter == null
+                || isBestMatchFlowMode(api.getDefinition().getFlowExecution())) {
             return NO_DEFERRED_CONDITION;
         }
         return deferrableConditionFilter;
@@ -104,7 +104,8 @@ public class FlowResolverFactory {
 
     public FlowResolver forApiPlan(Api api) {
         final FlowExecution flowExecution = api.getDefinition().getFlowExecution();
-        ApiPlanFlowResolver apiPlanFlowResolver = new ApiPlanFlowResolver(api.getDefinition(), flowFilter(flowExecution));
+        ApiPlanFlowResolver apiPlanFlowResolver =
+                new ApiPlanFlowResolver(api.getDefinition(), flowFilter(flowExecution));
         if (isBestMatchFlowMode(flowExecution)) {
             return new BestMatchFlowResolver(apiPlanFlowResolver, bestMatchFlowSelector);
         }
@@ -114,11 +115,7 @@ public class FlowResolverFactory {
     public FlowResolver forApiProductPlan(Api api, String environmentId, ApiProductRegistry apiProductRegistry) {
         final FlowExecution flowExecution = api.getDefinition().getFlowExecution();
         ApiProductPlanFlowResolver apiProductPlanFlowResolver = new ApiProductPlanFlowResolver(
-            api.getDefinition(),
-            environmentId,
-            apiProductRegistry,
-            flowFilter(flowExecution)
-        );
+                api.getDefinition(), environmentId, apiProductRegistry, flowFilter(flowExecution));
         if (isBestMatchFlowMode(flowExecution)) {
             return new BestMatchFlowResolver(apiProductPlanFlowResolver, bestMatchFlowSelector);
         }

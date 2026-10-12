@@ -24,6 +24,9 @@ import java.util.Map;
 public class PlanPatchNotAllowedException extends ValidationDomainException {
 
     public PlanPatchNotAllowedException(String fieldName, String reason) {
-        super("Field '" + fieldName + "' cannot be patched: " + reason, Map.of("field", fieldName), "plan.patch.fieldNotAllowed");
+        super(
+                "Field '" + fieldName + "' cannot be patched: " + reason,
+                Map.of("field", fieldName),
+                "plan.patch.fieldNotAllowed");
     }
 }

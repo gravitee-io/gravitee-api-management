@@ -196,37 +196,34 @@ import lombok.SneakyThrows;
 @CustomLog
 public class ApiResource extends AbstractResource {
 
-    private static final jakarta.ws.rs.core.MediaType JSON_PATCH_MEDIA_TYPE = new jakarta.ws.rs.core.MediaType(
-        "application",
-        "json-patch+json"
-    );
+    private static final jakarta.ws.rs.core.MediaType JSON_PATCH_MEDIA_TYPE =
+            new jakarta.ws.rs.core.MediaType("application", "json-patch+json");
 
     private static final String REVIEWS_ACTION_ASK = "ask";
     private static final String REVIEWS_ACTION_ACCEPT = "accept";
     private static final String REVIEWS_ACTION_REJECT = "reject";
     private static final Map<String, Excludable> MAPPING_EXCLUDE_EXPORT_PARAMS = Map.of(
-        "groups",
-        Excludable.GROUPS,
-        "plans",
-        Excludable.PLANS,
-        "members",
-        Excludable.MEMBERS,
-        "pages",
-        Excludable.PAGES_MEDIA,
-        "metadata",
-        Excludable.METADATA
-    );
+            "groups",
+            Excludable.GROUPS,
+            "plans",
+            Excludable.PLANS,
+            "members",
+            Excludable.MEMBERS,
+            "pages",
+            Excludable.PAGES_MEDIA,
+            "metadata",
+            Excludable.METADATA);
 
-    private static final Map<DuplicateApiOptions.FilteredFieldsEnum, Excludable> MAPPING_EXCLUDE_DUPLICATE_PARAMS = Map.of(
-        DuplicateApiOptions.FilteredFieldsEnum.GROUPS,
-        Excludable.GROUPS,
-        DuplicateApiOptions.FilteredFieldsEnum.PLANS,
-        Excludable.PLANS,
-        DuplicateApiOptions.FilteredFieldsEnum.MEMBERS,
-        Excludable.MEMBERS,
-        DuplicateApiOptions.FilteredFieldsEnum.PAGES,
-        Excludable.PAGES_MEDIA
-    );
+    private static final Map<DuplicateApiOptions.FilteredFieldsEnum, Excludable> MAPPING_EXCLUDE_DUPLICATE_PARAMS =
+            Map.of(
+                    DuplicateApiOptions.FilteredFieldsEnum.GROUPS,
+                    Excludable.GROUPS,
+                    DuplicateApiOptions.FilteredFieldsEnum.PLANS,
+                    Excludable.PLANS,
+                    DuplicateApiOptions.FilteredFieldsEnum.MEMBERS,
+                    Excludable.MEMBERS,
+                    DuplicateApiOptions.FilteredFieldsEnum.PAGES,
+                    Excludable.PAGES_MEDIA);
 
     @Context
     private ResourceContext resourceContext;
@@ -399,7 +396,7 @@ public class ApiResource extends AbstractResource {
     @Path("/_import/definition")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response updateApiWithDefinition(@PathParam("apiId") String apiId, @Valid ExportApiV4 apiToImport) {
         verifyImage(apiToImport.getApiPicture(), "picture");
         verifyImage(apiToImport.getApiBackground(), "background");
@@ -408,28 +405,26 @@ public class ApiResource extends AbstractResource {
 
         var audit = getAuditInfo();
         UpdateApiDefinitionFromImportUseCase.Output output = updateApiDefinitionUseCase.execute(
-            new UpdateApiDefinitionFromImportUseCase.Input(apiId, importDefinition, audit)
-        );
+                new UpdateApiDefinitionFromImportUseCase.Input(apiId, importDefinition, audit));
 
         boolean isSynchronized = apiStateService.isSynchronized(
-            GraviteeContext.getExecutionContext(),
-            getGenericApiEntityById(apiId, false)
-        );
+                GraviteeContext.getExecutionContext(), getGenericApiEntityById(apiId, false));
 
-        return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+        return Response.ok()
+                .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
+                .build();
     }
 
     @PUT
     @Path("/_import/definition-url")
     @Consumes(MediaType.TEXT_PLAIN)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response updateApiWithDefinitionFromUrl(@PathParam("apiId") String apiId, @NotNull String apiDefinitionUrl) {
         var input = new ImportApiDefinitionFromUrlUseCase.Input(
-            apiDefinitionUrl,
-            importConfiguration.getImportWhitelist(),
-            importConfiguration.isAllowImportFromPrivate()
-        );
+                apiDefinitionUrl,
+                importConfiguration.getImportWhitelist(),
+                importConfiguration.isAllowImportFromPrivate());
         var output = importApiDefinitionFromUrlUseCase.execute(input);
 
         ExportApiV4 apiToImport = remoteApiDefinitionParser.parseAndValidate(output.apiDefinitionContent());
@@ -440,122 +435,120 @@ public class ApiResource extends AbstractResource {
     @Path("/_import/swagger")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiFromSwagger(@PathParam("apiId") String apiId, @Valid @NotNull ImportSwaggerDescriptor descriptor) {
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
+    public Response updateApiFromSwagger(
+            @PathParam("apiId") String apiId, @Valid @NotNull ImportSwaggerDescriptor descriptor) {
         var audit = getAuditInfo();
         var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder()
-            .payload(descriptor.getPayload())
-            .withPolicies(descriptor.getWithPolicies() != null ? new ArrayList<>(descriptor.getWithPolicies()) : null)
-            .withPolicyPaths(Boolean.TRUE.equals(descriptor.getWithPolicyPaths()))
-            .build();
+                .payload(descriptor.getPayload())
+                .withPolicies(
+                        descriptor.getWithPolicies() != null ? new ArrayList<>(descriptor.getWithPolicies()) : null)
+                .withPolicyPaths(Boolean.TRUE.equals(descriptor.getWithPolicyPaths()))
+                .build();
 
-        var output = oaiToUpdateApiUseCase.execute(
-            OAIToUpdateApiUseCase.Input.builder()
+        var output = oaiToUpdateApiUseCase.execute(OAIToUpdateApiUseCase.Input.builder()
                 .apiId(apiId)
                 .importSwaggerDescriptor(importSwaggerDescriptor)
                 .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
                 .withOASValidationPolicy(Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()))
                 .withPolicyPaths(Boolean.TRUE.equals(descriptor.getWithPolicyPaths()))
                 .auditInfo(audit)
-                .build()
-        );
+                .build());
 
         boolean isSynchronized = apiStateService.isSynchronized(
-            GraviteeContext.getExecutionContext(),
-            getGenericApiEntityById(apiId, false)
-        );
-        return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+                GraviteeContext.getExecutionContext(), getGenericApiEntityById(apiId, false));
+        return Response.ok()
+                .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
+                .build();
     }
 
     @PUT
     @Path("/_import/wsdl")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiFromWsdl(@PathParam("apiId") String apiId, @Valid @NotNull ImportWsdlDescriptor descriptor) {
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
+    public Response updateApiFromWsdl(
+            @PathParam("apiId") String apiId, @Valid @NotNull ImportWsdlDescriptor descriptor) {
         var audit = getAuditInfo();
-        var output = wsdlToUpdateApiUseCase.execute(
-            WsdlToUpdateApiUseCase.Input.of(
+        var output = wsdlToUpdateApiUseCase.execute(WsdlToUpdateApiUseCase.Input.of(
                 apiId,
                 descriptor.getPayload(),
                 ImportWsdlDescriptor.TypeEnum.URL.equals(descriptor.getType()),
                 Boolean.TRUE.equals(descriptor.getWithDocumentation()),
                 Boolean.TRUE.equals(descriptor.getWithOASValidationPolicy()),
-                Optional.ofNullable(descriptor.getWithPolicies()).map(ArrayList::new).orElse(null),
-                audit
-            )
-        );
+                Optional.ofNullable(descriptor.getWithPolicies())
+                        .map(ArrayList::new)
+                        .orElse(null),
+                audit));
 
         boolean isSynchronized = apiStateService.isSynchronized(
-            GraviteeContext.getExecutionContext(),
-            getGenericApiEntityById(apiId, false)
-        );
-        return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+                GraviteeContext.getExecutionContext(), getGenericApiEntityById(apiId, false));
+        return Response.ok()
+                .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
+                .build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
+    })
     public Response updateApi(
-        @Context HttpHeaders headers,
-        @PathParam("apiId") String apiId,
-        @Valid @NotNull final UpdateGenericApi updateApi
-    ) {
+            @Context HttpHeaders headers,
+            @PathParam("apiId") String apiId,
+            @Valid @NotNull final UpdateGenericApi updateApi) {
         return switch (updateApi.getDefinitionVersion()) {
             case V4 -> {
                 final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false, false, false, false);
-                evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
+                evaluateIfMatch(
+                        headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
                 if (!(currentEntity instanceof ApiEntity) && !(currentEntity instanceof NativeApiEntity)) {
-                    yield Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
+                    yield Response.status(Response.Status.BAD_REQUEST)
+                            .entity(apiInvalid(apiId))
+                            .build();
                 }
                 yield apiResponse(updateApiV4(currentEntity, (UpdateApiV4) updateApi));
             }
             case V2 -> {
                 final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false, false, false, false);
-                evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
+                evaluateIfMatch(
+                        headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
                 yield currentEntity instanceof io.gravitee.rest.api.model.api.ApiEntity
-                    ? apiResponse(updateApiV2(currentEntity, (UpdateApiV2) updateApi))
-                    : Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
+                        ? apiResponse(updateApiV2(currentEntity, (UpdateApiV2) updateApi))
+                        : Response.status(Response.Status.BAD_REQUEST)
+                                .entity(apiInvalid(apiId))
+                                .build();
             }
             case FEDERATED -> {
                 var input = UpdateFederatedApiUseCase.Input.builder()
-                    .apiToUpdate(ApiMapper.INSTANCE.mapToApiCore((UpdateApiFederated) updateApi, apiId))
-                    .auditInfo(getAuditInfo())
-                    .build();
+                        .apiToUpdate(ApiMapper.INSTANCE.mapToApiCore((UpdateApiFederated) updateApi, apiId))
+                        .auditInfo(getAuditInfo())
+                        .build();
                 var output = updateFederatedApiUseCase.execute(input);
 
-                yield apiResponse(
-                    ApiAdapter.INSTANCE.toFederatedApiEntity(
-                        ApiAdapter.INSTANCE.toRepository(output.updatedApi()),
-                        output.primaryOwnerEntity()
-                    )
-                );
+                yield apiResponse(ApiAdapter.INSTANCE.toFederatedApiEntity(
+                        ApiAdapter.INSTANCE.toRepository(output.updatedApi()), output.primaryOwnerEntity()));
             }
-            default -> throw new ApiDefinitionVersionNotSupportedException(updateApi.getDefinitionVersion().name());
+            default ->
+                throw new ApiDefinitionVersionNotSupportedException(
+                        updateApi.getDefinitionVersion().name());
         };
     }
 
     @PATCH
-    @Consumes({ MediaType.APPLICATION_JSON, "application/merge-patch+json", "application/json-patch+json" })
+    @Consumes({MediaType.APPLICATION_JSON, "application/merge-patch+json", "application/json-patch+json"})
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
+    })
     public Response patchApi(
-        @PathParam("apiId") String apiId,
-        @QueryParam("dryRun") @DefaultValue("false") boolean dryRun,
-        @Context HttpHeaders headers,
-        String body
-    ) {
+            @PathParam("apiId") String apiId,
+            @QueryParam("dryRun") @DefaultValue("false") boolean dryRun,
+            @Context HttpHeaders headers,
+            String body) {
         final var currentEntity = getGenericApiEntityById(apiId, false, false, false, false);
 
         if (!DefinitionVersion.V4.equals(currentEntity.getDefinitionVersion())) {
@@ -566,25 +559,29 @@ public class ApiResource extends AbstractResource {
         }
 
         if (currentEntity.getUpdatedAt() != null) {
-            evaluateIfMatchStrictly(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
+            evaluateIfMatchStrictly(
+                    headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
         }
 
         var contentType = headers.getMediaType();
         var patchType = contentType != null && JSON_PATCH_MEDIA_TYPE.isCompatible(contentType)
-            ? PatchApiUseCase.PatchType.JSON_PATCH
-            : PatchApiUseCase.PatchType.MERGE_PATCH;
+                ? PatchApiUseCase.PatchType.JSON_PATCH
+                : PatchApiUseCase.PatchType.MERGE_PATCH;
 
         var input = PatchApiUseCase.Input.builder()
-            .apiId(apiId)
-            .patchType(patchType)
-            .patchBody(body)
-            .dryRun(dryRun)
-            .auditInfo(getAuditInfo())
-            .build();
+                .apiId(apiId)
+                .patchType(patchType)
+                .patchBody(body)
+                .dryRun(dryRun)
+                .auditInfo(getAuditInfo())
+                .build();
         var output = patchApiUseCase.execute(input);
         var apiV4 = ApiMapper.INSTANCE.mapToV4(output.api(), uriInfo, null);
         apiV4.primaryOwner(ApiMapper.INSTANCE.map(output.primaryOwner()));
-        apiV4.workflowState(output.workflowState() != null ? ApiWorkflowState.valueOf(output.workflowState().name()) : null);
+        apiV4.workflowState(
+                output.workflowState() != null
+                        ? ApiWorkflowState.valueOf(output.workflowState().name())
+                        : null);
         var rawUpdatedAt = output.api().getUpdatedAt();
         var updatedAt = rawUpdatedAt != null ? Date.from(rawUpdatedAt.toInstant()) : null;
         return applyCacheHeaders(Response.ok(apiV4), updatedAt).build();
@@ -594,8 +591,13 @@ public class ApiResource extends AbstractResource {
     @Path("groups")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = { RolePermissionAction.UPDATE }) })
-    public Response updateApiGroups(@PathParam("apiId") String apiId, @Valid @NotNull final List<@NotNull String> groups) {
+    @Permissions({
+        @Permission(
+                value = RolePermission.API_MEMBER,
+                acls = {RolePermissionAction.UPDATE})
+    })
+    public Response updateApiGroups(
+            @PathParam("apiId") String apiId, @Valid @NotNull final List<@NotNull String> groups) {
         var groupsSet = Set.copyOf(groups);
         var output = updateApiGroupsUseCase.execute(new UpdateApiGroupsUseCase.Input(apiId, groupsSet, getAuditInfo()));
         return Response.ok().entity(output.groups()).build();
@@ -603,23 +605,20 @@ public class ApiResource extends AbstractResource {
 
     private GenericApiEntity updateApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {
         return currentEntity instanceof NativeApiEntity nativeApi
-            ? updateNativeApiV4(nativeApi, updateApiV4)
-            : updateHttpApiV4(currentEntity, updateApiV4);
+                ? updateNativeApiV4(nativeApi, updateApiV4)
+                : updateHttpApiV4(currentEntity, updateApiV4);
     }
 
     private NativeApiEntity updateNativeApiV4(NativeApiEntity currentEntity, UpdateApiV4 updateApiV4) {
         UpdateNativeApi apiToUpdate = ApiMapper.INSTANCE.mapToUpdateNativeApi(updateApiV4, currentEntity.getId());
 
-        if (
-            !hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_GATEWAY_DEFINITION,
-                currentEntity.getId(),
-                RolePermissionAction.UPDATE
-            ) &&
-            !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
-            !isAdmin()
-        ) {
+        if (!hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_GATEWAY_DEFINITION,
+                        currentEntity.getId(),
+                        RolePermissionAction.UPDATE)
+                && !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser())
+                && !isAdmin()) {
             apiToUpdate.setListeners(currentEntity.getListeners());
         }
 
@@ -630,26 +629,23 @@ public class ApiResource extends AbstractResource {
     private ApiEntity updateHttpApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {
         UpdateApiEntity apiToUpdate = ApiMapper.INSTANCE.map(updateApiV4, currentEntity.getId());
         // Force listeners if user is not the primary_owner or an administrator
-        if (
-            !hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_GATEWAY_DEFINITION,
-                currentEntity.getId(),
-                RolePermissionAction.UPDATE
-            ) &&
-            !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
-            !isAdmin()
-        ) {
+        if (!hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_GATEWAY_DEFINITION,
+                        currentEntity.getId(),
+                        RolePermissionAction.UPDATE)
+                && !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser())
+                && !isAdmin()) {
             apiToUpdate.setListeners(((ApiEntity) currentEntity).getListeners());
         }
 
         final ApiEntity updatedApi = apiServiceV4.update(
-            GraviteeContext.getExecutionContext(),
-            currentEntity.getId(),
-            apiToUpdate,
-            false, //TODO as plans should be updated in a separate endpoint, we don't need to check for plans. Once "/v4" resources in MAPI V1 are removed, we can remove this parameter.
-            getAuthenticatedUser()
-        );
+                GraviteeContext.getExecutionContext(),
+                currentEntity.getId(),
+                apiToUpdate,
+                false, // TODO as plans should be updated in a separate endpoint, we don't need to check for plans. Once
+                // "/v4" resources in MAPI V1 are removed, we can remove this parameter.
+                getAuthenticatedUser());
         setPicturesUrl(updatedApi);
         return updatedApi;
     }
@@ -657,30 +653,27 @@ public class ApiResource extends AbstractResource {
     private GenericApiEntity updateApiV2(GenericApiEntity currentEntity, UpdateApiV2 updateApiV2) {
         io.gravitee.rest.api.model.api.UpdateApiEntity apiToUpdate = ApiMapper.INSTANCE.map(updateApiV2);
         // Force context-path if user is not the primary_owner or an administrator
-        if (
-            !hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_GATEWAY_DEFINITION,
-                currentEntity.getId(),
-                RolePermissionAction.UPDATE
-            ) &&
-            !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
-            !isAdmin()
-        ) {
-            apiToUpdate.getProxy().setVirtualHosts(((io.gravitee.rest.api.model.api.ApiEntity) currentEntity).getProxy().getVirtualHosts());
+        if (!hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_GATEWAY_DEFINITION,
+                        currentEntity.getId(),
+                        RolePermissionAction.UPDATE)
+                && !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser())
+                && !isAdmin()) {
+            apiToUpdate
+                    .getProxy()
+                    .setVirtualHosts(((io.gravitee.rest.api.model.api.ApiEntity) currentEntity)
+                            .getProxy()
+                            .getVirtualHosts());
         }
-        final io.gravitee.rest.api.model.api.ApiEntity updatedApi = apiService.update(
-            GraviteeContext.getExecutionContext(),
-            currentEntity.getId(),
-            apiToUpdate,
-            false
-        );
+        final io.gravitee.rest.api.model.api.ApiEntity updatedApi =
+                apiService.update(GraviteeContext.getExecutionContext(), currentEntity.getId(), apiToUpdate, false);
         setPicturesUrl(updatedApi);
         return updatedApi;
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE)})
     public Response deleteApi(@PathParam("apiId") String apiId, @QueryParam("closePlans") boolean closePlans) {
         apiServiceV4.delete(GraviteeContext.getExecutionContext(), apiId, closePlans);
 
@@ -691,18 +684,19 @@ public class ApiResource extends AbstractResource {
     @Path("/deployments")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response deployApi(@PathParam("apiId") String apiId, @Valid final ApiDeploymentEntity apiDeploymentEntity) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         apiLicenseService.checkLicense(executionContext, apiId);
-        GenericApiEntity apiEntity = apiStateService.deploy(executionContext, apiId, getAuthenticatedUser(), apiDeploymentEntity);
+        GenericApiEntity apiEntity =
+                apiStateService.deploy(executionContext, apiId, getAuthenticatedUser(), apiDeploymentEntity);
         return applyCacheHeaders(Response.accepted(), apiEntity.getUpdatedAt()).build();
     }
 
     @GET
     @Path("/deployments/current")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)})
     public Response getApiDeployments(@PathParam("apiId") String apiId) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         apiLicenseService.checkLicense(executionContext, apiId);
@@ -710,13 +704,11 @@ public class ApiResource extends AbstractResource {
         var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(apiId));
         if (output.apiDefinition() == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(
-                    new Error()
-                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-                        .message("Get current deployment for FEDERATED API is not supported")
-                        .technicalCode("api.deployment.federated")
-                )
-                .build();
+                    .entity(new Error()
+                            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                            .message("Get current deployment for FEDERATED API is not supported")
+                            .technicalCode("api.deployment.federated"))
+                    .build();
         }
         return Response.ok(output.apiDefinition()).build();
     }
@@ -725,60 +717,57 @@ public class ApiResource extends AbstractResource {
     @Path("/deployments/_verify")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)})
     public Response verifyApiDeployment(@PathParam("apiId") String apiId) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         try {
             apiLicenseService.checkLicense(executionContext, apiId);
             return Response.ok(new VerifyApiDeploymentResponse().ok(true)).build();
         } catch (ForbiddenFeatureException | InvalidLicenseException | TechnicalManagementException e) {
-            return Response.ok(new VerifyApiDeploymentResponse().ok(false).reason(e.getMessage())).build();
+            return Response.ok(new VerifyApiDeploymentResponse().ok(false).reason(e.getMessage()))
+                    .build();
         }
     }
 
     @GET
     @Path("/_export/definition")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)})
     public Response exportApiDefinition(
-        @PathParam("apiId") String apiId,
-        @QueryParam("excludeAdditionalData") Set<String> excludeAdditionalData
-    ) {
+            @PathParam("apiId") String apiId, @QueryParam("excludeAdditionalData") Set<String> excludeAdditionalData) {
         var input = ExportApiUseCase.Input.of(
-            apiId,
-            getAuditInfo(),
-            stream(excludeAdditionalData).flatMap(ApiResource::mapExcludedExportParams).toList()
-        );
+                apiId,
+                getAuditInfo(),
+                stream(excludeAdditionalData)
+                        .flatMap(ApiResource::mapExcludedExportParams)
+                        .toList());
         var export = exportApiUseCase.execute(input);
 
         return Response.ok(ImportExportApiMapper.INSTANCE.map(export.definition()))
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=%s".formatted(export.filename()))
-            .build();
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=%s".formatted(export.filename()))
+                .build();
     }
 
     @GET
     @Path("/_export/crd")
     @Produces(YamlWriter.MEDIA_TYPE)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)})
     public Response exportApiCRD(@PathParam("apiId") String apiId) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
         var input = new ExportApiCRDUseCase.Input(
-            apiId,
-            IDExportStrategy.GUID,
-            AuditInfo.builder()
-                .organizationId(executionContext.getOrganizationId())
-                .environmentId(executionContext.getEnvironmentId())
-                .actor(
-                    AuditActor.builder()
-                        .userId(userDetails.getUsername())
-                        .userSource(userDetails.getSource())
-                        .userSourceId(userDetails.getSourceId())
-                        .build()
-                )
-                .build(),
-            false
-        );
+                apiId,
+                IDExportStrategy.GUID,
+                AuditInfo.builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build())
+                        .build(),
+                false);
         var output = exportApiCRDUseCase.execute(input);
         var spec = ApiCRDMapper.INSTANCE.mapForKubernetes(output.spec());
         return Response.ok(new ApiCRD(spec)).build();
@@ -788,16 +777,18 @@ public class ApiResource extends AbstractResource {
     @Path("/_duplicate")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response duplicateAPI(@PathParam("apiId") String apiId, @Valid @NotNull DuplicateApiOptions duplicateOptions) {
-        if (
-            !hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                GraviteeContext.getCurrentEnvironment(),
-                RolePermissionAction.CREATE
-            ) ||
-            !hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)
-        ) {
+    public Response duplicateAPI(
+            @PathParam("apiId") String apiId, @Valid @NotNull DuplicateApiOptions duplicateOptions) {
+        if (!hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        GraviteeContext.getCurrentEnvironment(),
+                        RolePermissionAction.CREATE)
+                || !hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.API_DEFINITION,
+                        apiId,
+                        RolePermissionAction.READ)) {
             throw new ForbiddenAccessException();
         }
 
@@ -806,14 +797,13 @@ public class ApiResource extends AbstractResource {
         GenericApiEntity duplicate;
 
         return switch (currentEntity.getDefinitionVersion()) {
-            case FEDERATED -> Response.status(Response.Status.BAD_REQUEST)
-                .entity(
-                    new Error()
-                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-                        .message("Duplicating FEDERATED API is not supported")
-                        .technicalCode("api.duplicate.federated")
-                )
-                .build();
+            case FEDERATED ->
+                Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new Error()
+                                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                                .message("Duplicating FEDERATED API is not supported")
+                                .technicalCode("api.duplicate.federated"))
+                        .build();
             case V4 -> {
                 // NATIVE APIs are V4 too, but ApiDuplicateService is typed on ApiEntity end to end
                 if (currentEntity instanceof NativeApiEntity nativeApiEntity) {
@@ -821,42 +811,38 @@ public class ApiResource extends AbstractResource {
                     yield apiResponse(getGenericApiEntityById(duplicatedId, false));
                 }
                 duplicate = duplicateApiService.duplicate(
-                    GraviteeContext.getExecutionContext(),
-                    (ApiEntity) currentEntity,
-                    DuplicateApiMapper.INSTANCE.map(duplicateOptions)
-                );
+                        GraviteeContext.getExecutionContext(),
+                        (ApiEntity) currentEntity,
+                        DuplicateApiMapper.INSTANCE.map(duplicateOptions));
                 yield apiResponse(duplicate);
             }
             case V2 -> {
                 duplicate = apiDuplicatorService.duplicate(
-                    GraviteeContext.getExecutionContext(),
-                    (io.gravitee.rest.api.model.api.ApiEntity) currentEntity,
-                    DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions)
-                );
+                        GraviteeContext.getExecutionContext(),
+                        (io.gravitee.rest.api.model.api.ApiEntity) currentEntity,
+                        DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions));
                 yield apiResponse(duplicate);
             }
-            case FEDERATED_AGENT -> Response.status(Response.Status.BAD_REQUEST)
-                .entity(
-                    new Error()
-                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-                        .message("Duplicating FEDERATED Agent is not supported")
-                        .technicalCode("api.duplicate.federated")
-                )
-                .build();
-            default -> Response.status(Response.Status.BAD_REQUEST)
-                .entity(
-                    new Error()
-                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-                        .message("Duplicating this API definition version is not supported")
-                        .technicalCode("api.duplicate.unsupported")
-                )
-                .build();
+            case FEDERATED_AGENT ->
+                Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new Error()
+                                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                                .message("Duplicating FEDERATED Agent is not supported")
+                                .technicalCode("api.duplicate.federated"))
+                        .build();
+            default ->
+                Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new Error()
+                                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                                .message("Duplicating this API definition version is not supported")
+                                .technicalCode("api.duplicate.unsupported"))
+                        .build();
         };
     }
 
     @POST
     @Path("/_start")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response startAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
@@ -867,26 +853,26 @@ public class ApiResource extends AbstractResource {
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiLifeCycle(genericApiEntity, LifecycleAction.START);
-        GenericApiEntity updatedApi = apiStateService.start(executionContext, genericApiEntity.getId(), getAuthenticatedUser());
+        GenericApiEntity updatedApi =
+                apiStateService.start(executionContext, genericApiEntity.getId(), getAuthenticatedUser());
 
-        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt())
+                .build();
     }
 
     @POST
     @Path("/_stop")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response stopAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
         GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false, false, false, false);
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiLifeCycle(genericApiEntity, LifecycleAction.STOP);
         GenericApiEntity updatedApi = apiStateService.stop(
-            GraviteeContext.getExecutionContext(),
-            genericApiEntity.getId(),
-            getAuthenticatedUser()
-        );
+                GraviteeContext.getExecutionContext(), genericApiEntity.getId(), getAuthenticatedUser());
 
-        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt())
+                .build();
     }
 
     @Path("/scoring")
@@ -901,7 +887,7 @@ public class ApiResource extends AbstractResource {
 
     @POST
     @Path("/_transfer-ownership")
-    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE)})
     public Response transferOwnership(@PathParam("apiId") String apiId, ApiTransferOwnership apiTransferOwnership) {
         if (!apiSearchService.exists(apiId)) {
             throw new ApiNotFoundException(apiId);
@@ -912,33 +898,35 @@ public class ApiResource extends AbstractResource {
         if (apiTransferOwnership.getPoRole() != null) {
             assertNoPrimaryOwnerReassignment(apiTransferOwnership.getPoRole());
             roleService
-                .findByScopeAndName(RoleScope.API, apiTransferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization())
-                .ifPresent(newRoles::add);
+                    .findByScopeAndName(
+                            RoleScope.API, apiTransferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization())
+                    .ifPresent(newRoles::add);
         }
 
         membershipService.transferApiOwnership(
-            GraviteeContext.getExecutionContext(),
-            apiId,
-            new MembershipService.MembershipMember(
-                apiTransferOwnership.getUserId(),
-                apiTransferOwnership.getUserReference(),
-                apiTransferOwnership.getUserType() != null ? MembershipMemberType.valueOf(apiTransferOwnership.getUserType().name()) : null
-            ),
-            newRoles
-        );
+                GraviteeContext.getExecutionContext(),
+                apiId,
+                new MembershipService.MembershipMember(
+                        apiTransferOwnership.getUserId(),
+                        apiTransferOwnership.getUserReference(),
+                        apiTransferOwnership.getUserType() != null
+                                ? MembershipMemberType.valueOf(
+                                        apiTransferOwnership.getUserType().name())
+                                : null),
+                newRoles);
         return Response.noContent().build();
     }
 
     @GET
     @Path("picture")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)})
     public Response getApiPicture(@Context Request request, @PathParam("apiId") String apiId) {
         return imageResponse(request, apiImagesService.getApiPicture(GraviteeContext.getExecutionContext(), apiId));
     }
 
     @PUT
     @Path("picture")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response updateApiPicture(@PathParam("apiId") String apiId, String pictureContent) {
         try {
             ImageUtils.verify(pictureContent);
@@ -952,7 +940,7 @@ public class ApiResource extends AbstractResource {
 
     @DELETE
     @Path("picture")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response deleteApiPicture(@PathParam("apiId") String apiId) {
         apiImagesService.updateApiPicture(GraviteeContext.getExecutionContext(), apiId, null);
         return Response.noContent().build();
@@ -960,14 +948,14 @@ public class ApiResource extends AbstractResource {
 
     @GET
     @Path("background")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)})
     public Response getApiBackground(@Context Request request, @PathParam("apiId") String apiId) {
         return imageResponse(request, apiImagesService.getApiBackground(GraviteeContext.getExecutionContext(), apiId));
     }
 
     @PUT
     @Path("background")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response updateApiBackground(@PathParam("apiId") String apiId, String backgroundContent) {
         try {
             ImageUtils.verifyAndRescale(backgroundContent);
@@ -981,7 +969,7 @@ public class ApiResource extends AbstractResource {
 
     @DELETE
     @Path("background")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response deleteApiBackground(@PathParam("apiId") String apiId) {
         apiImagesService.updateApiBackground(GraviteeContext.getExecutionContext(), apiId, null);
         return Response.noContent().build();
@@ -990,21 +978,21 @@ public class ApiResource extends AbstractResource {
     @GET
     @Path("subscribers")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)})
     public SubscribersResponse getApiSubscribers(
-        @PathParam("apiId") String apiId,
-        @QueryParam("name") String name,
-        @BeanParam @Valid PaginationParam paginationParam
-    ) {
+            @PathParam("apiId") String apiId,
+            @QueryParam("name") String name,
+            @BeanParam @Valid PaginationParam paginationParam) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Set<String> applicationIds = subscriptionService
-            .findByApi(executionContext, apiId)
-            .stream()
-            .map(SubscriptionEntity::getApplication)
-            .collect(Collectors.toSet());
+        Set<String> applicationIds = subscriptionService.findByApi(executionContext, apiId).stream()
+                .map(SubscriptionEntity::getApplication)
+                .collect(Collectors.toSet());
 
         if (applicationIds.isEmpty()) {
-            return new SubscribersResponse().data(emptyList()).pagination(new Pagination()).links(null);
+            return new SubscribersResponse()
+                    .data(emptyList())
+                    .pagination(new Pagination())
+                    .links(null);
         }
 
         ApplicationQuery applicationQuery = new ApplicationQuery();
@@ -1015,73 +1003,72 @@ public class ApiResource extends AbstractResource {
 
         Sortable sortable = new SortableImpl("name", true);
 
-        Page<ApplicationListItem> subscribersApplicationPage = applicationService.search(
-            executionContext,
-            applicationQuery,
-            sortable,
-            paginationParam.toPageable()
-        );
+        Page<ApplicationListItem> subscribersApplicationPage =
+                applicationService.search(executionContext, applicationQuery, sortable, paginationParam.toPageable());
 
         long totalCount = subscribersApplicationPage.getTotalElements();
         Integer pageItemsCount = Math.toIntExact(subscribersApplicationPage.getPageElements());
         return new SubscribersResponse()
-            .data(ApplicationMapper.INSTANCE.mapToBaseApplicationList(subscribersApplicationPage.getContent()))
-            .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
-            .links(computePaginationLinks(totalCount, paginationParam));
+                .data(ApplicationMapper.INSTANCE.mapToBaseApplicationList(subscribersApplicationPage.getContent()))
+                .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
+                .links(computePaginationLinks(totalCount, paginationParam));
     }
 
     @POST
     @Path("/reviews/_ask")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response reviewsAsk(@Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
+    public Response reviewsAsk(
+            @Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
         GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false, false, false, false);
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiReviewWorkflow(genericApiEntity, REVIEWS_ACTION_ASK);
         GenericApiEntity updatedApi = apiWorkflowStateService.askForReview(
-            GraviteeContext.getExecutionContext(),
-            apiId,
-            getAuthenticatedUser(),
-            ApiMapper.INSTANCE.map(apiReview)
-        );
+                GraviteeContext.getExecutionContext(),
+                apiId,
+                getAuthenticatedUser(),
+                ApiMapper.INSTANCE.map(apiReview));
 
-        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt())
+                .build();
     }
 
     @POST
     @Path("/reviews/_accept")
-    @Permissions({ @Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE) })
-    public Response reviewsAccept(@Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
+    @Permissions({@Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE)})
+    public Response reviewsAccept(
+            @Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
         GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false, false, false, false);
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiReviewWorkflow(genericApiEntity, REVIEWS_ACTION_ACCEPT);
         GenericApiEntity updatedApi = apiWorkflowStateService.acceptReview(
-            GraviteeContext.getExecutionContext(),
-            apiId,
-            getAuthenticatedUser(),
-            ApiMapper.INSTANCE.map(apiReview)
-        );
+                GraviteeContext.getExecutionContext(),
+                apiId,
+                getAuthenticatedUser(),
+                ApiMapper.INSTANCE.map(apiReview));
 
-        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt())
+                .build();
     }
 
     @POST
     @Path("/reviews/_reject")
-    @Permissions({ @Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE) })
-    public Response reviewsReject(@Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
+    @Permissions({@Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE)})
+    public Response reviewsReject(
+            @Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
         GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false, false, false, false);
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiReviewWorkflow(genericApiEntity, REVIEWS_ACTION_REJECT);
         GenericApiEntity updatedApi = apiWorkflowStateService.rejectReview(
-            GraviteeContext.getExecutionContext(),
-            apiId,
-            getAuthenticatedUser(),
-            ApiMapper.INSTANCE.map(apiReview)
-        );
+                GraviteeContext.getExecutionContext(),
+                apiId,
+                getAuthenticatedUser(),
+                ApiMapper.INSTANCE.map(apiReview));
 
-        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt())
+                .build();
     }
 
     /**
@@ -1109,9 +1096,9 @@ public class ApiResource extends AbstractResource {
 
         var auditInfo = getAuditInfo();
         var excluded = stream(duplicateOptions.getFilteredFields())
-            .map(MAPPING_EXCLUDE_DUPLICATE_PARAMS::get)
-            .filter(Objects::nonNull)
-            .toList();
+                .map(MAPPING_EXCLUDE_DUPLICATE_PARAMS::get)
+                .filter(Objects::nonNull)
+                .toList();
 
         var exported = exportApiUseCase.execute(ExportApiUseCase.Input.of(sourceApi.getId(), auditInfo, excluded));
         var toImport = exportedForImport(exported.definition());
@@ -1131,9 +1118,8 @@ public class ApiResource extends AbstractResource {
         api.setListeners(rehostKafkaListeners(api.getListeners(), duplicateOptions.getHost()));
         clearPlanPortRouting(toImport.getPlans());
 
-        var output = importApiDefinitionUseCase.execute(
-            new ImportApiDefinitionUseCase.Input(ImportExportApiMapper.INSTANCE.toImportDefinition(toImport), auditInfo)
-        );
+        var output = importApiDefinitionUseCase.execute(new ImportApiDefinitionUseCase.Input(
+                ImportExportApiMapper.INSTANCE.toImportDefinition(toImport), auditInfo));
         return output.apiWithFlows().getId();
     }
 
@@ -1174,23 +1160,21 @@ public class ApiResource extends AbstractResource {
     }
 
     private static List<io.gravitee.rest.api.management.v2.rest.model.Listener> rehostKafkaListeners(
-        List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners,
-        String host
-    ) {
+            List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners, String host) {
         return stream(listeners)
-            .map(listener -> {
-                var kafkaListener = listener.getKafkaListener();
-                if (kafkaListener != null) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(kafkaListener.host(host));
-                }
-                return listener;
-            })
-            .toList();
+                .map(listener -> {
+                    var kafkaListener = listener.getKafkaListener();
+                    if (kafkaListener != null) {
+                        return new io.gravitee.rest.api.management.v2.rest.model.Listener(kafkaListener.host(host));
+                    }
+                    return listener;
+                })
+                .toList();
     }
 
     @POST
     @Path("/_rollback")
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response rollback(ApiRollback apiRollback) {
         if (apiRollback.getEventId() == null) {
             log.warn("Event ID is required");
@@ -1200,22 +1184,17 @@ public class ApiResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        this.rollbackApiUseCase.execute(
-            new RollbackApiUseCase.Input(
+        this.rollbackApiUseCase.execute(new RollbackApiUseCase.Input(
                 apiRollback.getEventId(),
                 AuditInfo.builder()
-                    .organizationId(executionContext.getOrganizationId())
-                    .environmentId(executionContext.getEnvironmentId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(userDetails.getUsername())
-                            .userSource(userDetails.getSource())
-                            .userSourceId(userDetails.getSourceId())
-                            .build()
-                    )
-                    .build()
-            )
-        );
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(AuditActor.builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build())
+                        .build()));
 
         return Response.noContent().build();
     }
@@ -1223,43 +1202,44 @@ public class ApiResource extends AbstractResource {
     @GET
     @Path("/exposedEntrypoints")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)})
     public Response exposedEntrypoints(@PathParam("apiId") String apiId) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         var input = new GetExposedEntrypointsUseCase.Input(
-            executionContext.getOrganizationId(),
-            executionContext.getEnvironmentId(),
-            apiId
-        );
+                executionContext.getOrganizationId(), executionContext.getEnvironmentId(), apiId);
         var output = getExposedEntrypointsUseCase.execute(input);
 
-        return Response.ok().entity(ApiMapper.INSTANCE.map(output.exposedEntrypoints())).build();
+        return Response.ok()
+                .entity(ApiMapper.INSTANCE.map(output.exposedEntrypoints()))
+                .build();
     }
 
     @POST
     @Path("/_migrate")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public MigrationReportResponses migrateApi(@PathParam("apiId") String apiId, @QueryParam("mode") MigrateMode mode) {
         var upgradeMode = mode != null ? MigrateApiUseCase.Input.UpgradeMode.valueOf(mode.name()) : null;
         var output = migrateApiUseCase.execute(new MigrateApiUseCase.Input(apiId, upgradeMode, getAuditInfo()));
         return new MigrationReportResponses()
-            .state(mapState(output.state()))
-            .issues(
-                stream(output.issues())
-                    .map(issue -> new MigrationReportResponsesIssuesInner().message(issue.message()).state(mapState(issue.state())))
-                    .toList()
-            );
+                .state(mapState(output.state()))
+                .issues(stream(output.issues())
+                        .map(issue -> new MigrationReportResponsesIssuesInner()
+                                .message(issue.message())
+                                .state(mapState(issue.state())))
+                        .toList());
     }
 
     @POST
     @Path("_promote")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response promoteAPI(@RequestBody @Valid @NotNull final PromotionRequest promotionRequest, @PathParam("apiId") String apiId) {
-        var input = new CreatePromotionUseCase.Input(apiId, PromotionMapper.INSTANCE.map(promotionRequest), getAuditInfo());
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
+    public Response promoteAPI(
+            @RequestBody @Valid @NotNull final PromotionRequest promotionRequest, @PathParam("apiId") String apiId) {
+        var input =
+                new CreatePromotionUseCase.Input(apiId, PromotionMapper.INSTANCE.map(promotionRequest), getAuditInfo());
         var output = promotionUseCase.execute(input);
         return Response.ok(PromotionMapper.INSTANCE.map(output.promotion())).build();
     }
@@ -1267,7 +1247,7 @@ public class ApiResource extends AbstractResource {
     @POST
     @Path("/_detach")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)})
     public Response detachAutomatedApi(@PathParam("apiId") String apiId) {
         var input = new DetachAutomatedApiUseCase.Input(apiId, getAuditInfo());
         detachAutomatedApiUseCase.execute(input);
@@ -1289,14 +1269,10 @@ public class ApiResource extends AbstractResource {
     }
 
     private GenericApiEntity getGenericApiEntityById(
-        String apiId,
-        boolean prepareData,
-        boolean withApiFlow,
-        boolean withPlans,
-        boolean withApiCategories
-    ) {
+            String apiId, boolean prepareData, boolean withApiFlow, boolean withPlans, boolean withApiCategories) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId, withApiFlow, withPlans, withApiCategories);
+        GenericApiEntity apiEntity =
+                apiSearchService.findGenericById(executionContext, apiId, withApiFlow, withPlans, withApiCategories);
 
         if (!canManageApi(apiEntity)) {
             throw new ForbiddenAccessException();
@@ -1367,18 +1343,18 @@ public class ApiResource extends AbstractResource {
         List<Listener> listeners = apiEntity.getListeners();
 
         stream(listeners)
-            .filter(listener -> ListenerType.HTTP == listener.getType())
-            .findFirst()
-            .ifPresent(first -> {
-                if (first instanceof HttpListener httpListener) {
-                    if (isNotEmpty(httpListener.getPaths())) {
-                        var path = httpListener.getPaths().getFirst();
-                        var filteredPath = new io.gravitee.definition.model.v4.listener.http.Path(path.getPath());
-                        httpListener.setPaths(List.of(filteredPath));
+                .filter(listener -> ListenerType.HTTP == listener.getType())
+                .findFirst()
+                .ifPresent(first -> {
+                    if (first instanceof HttpListener httpListener) {
+                        if (isNotEmpty(httpListener.getPaths())) {
+                            var path = httpListener.getPaths().getFirst();
+                            var filteredPath = new io.gravitee.definition.model.v4.listener.http.Path(path.getPath());
+                            httpListener.setPaths(List.of(filteredPath));
+                        }
+                        httpListener.setPathMappings(null);
                     }
-                    httpListener.setPathMappings(null);
-                }
-            });
+                });
         apiEntity.setProperties(null);
         apiEntity.setServices(null);
         apiEntity.setResources(null);
@@ -1418,14 +1394,11 @@ public class ApiResource extends AbstractResource {
                 throw new BadRequestException("API is already stopped");
             }
 
-            if (
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.API_REVIEW_ENABLED,
-                    ParameterReferenceType.ENVIRONMENT
-                ) &&
-                !WorkflowState.REVIEW_OK.equals(api.getWorkflowState())
-            ) {
+            if (parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.API_REVIEW_ENABLED,
+                            ParameterReferenceType.ENVIRONMENT)
+                    && !WorkflowState.REVIEW_OK.equals(api.getWorkflowState())) {
                 throw new BadRequestException("API cannot be started without being reviewed");
             }
         }
@@ -1452,20 +1425,27 @@ public class ApiResource extends AbstractResource {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return Response.ok(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
+        return Response.ok(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 
     private Response apiResponse(GenericApiEntity apiEntity) {
         boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
-        return applyCacheHeaders(Response.ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo, isSynchronized)), apiEntity.getUpdatedAt()).build();
+        return applyCacheHeaders(
+                        Response.ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo, isSynchronized)),
+                        apiEntity.getUpdatedAt())
+                .build();
     }
 
     private Error apiInvalid(String apiId) {
         return new Error()
-            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-            .message("Api [" + apiId + "] is not valid.")
-            .putParametersItem("apiId", apiId)
-            .technicalCode("api.invalid");
+                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                .message("Api [" + apiId + "] is not valid.")
+                .putParametersItem("apiId", apiId)
+                .technicalCode("api.invalid");
     }
 
     private void checkApiReviewWorkflow(final GenericApiEntity api, final String action) {

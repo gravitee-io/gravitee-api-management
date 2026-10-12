@@ -28,12 +28,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PortalPageContextMongoRepository
-    extends MongoRepository<PortalPageContextMongo, String>, PortalPageContextMongoRepositoryCustom {
+        extends MongoRepository<PortalPageContextMongo, String>, PortalPageContextMongoRepositoryCustom {
     /**
      * Find all portal page contexts by context type and environment ID.
      */
     @Query("{ 'contextType': ?0, 'environmentId': ?1 }")
-    Set<PortalPageContextMongo> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId);
+    Set<PortalPageContextMongo> findAllByContextTypeAndEnvironmentId(
+            PortalPageContextType contextType, String environmentId);
 
     @Query("{ 'pageId': ?0 }")
     Optional<PortalPageContextMongo> findByPageId(String pageId);

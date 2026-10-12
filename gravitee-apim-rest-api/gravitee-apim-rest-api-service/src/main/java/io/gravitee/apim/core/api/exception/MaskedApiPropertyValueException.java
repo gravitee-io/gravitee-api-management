@@ -22,12 +22,10 @@ public class MaskedApiPropertyValueException extends ValidationDomainException {
 
     public MaskedApiPropertyValueException(String propertyKey) {
         super(
-            "Property [" +
-                propertyKey +
-                "] holds the placeholder that stands in for an encrypted value, but no encrypted value is " +
-                "stored under that key. Send the real value instead.",
-            Map.of("key", propertyKey),
-            "api.property.maskedValue"
-        );
+                "Property [" + propertyKey
+                        + "] holds the placeholder that stands in for an encrypted value, but no encrypted value is "
+                        + "stored under that key. Send the real value instead.",
+                Map.of("key", propertyKey),
+                "api.property.maskedValue");
     }
 }

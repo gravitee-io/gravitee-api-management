@@ -55,7 +55,10 @@ class DictionaryDeployerTest {
         @Test
         void should_deploy_dictionary() {
             Dictionary dictionary = mock(Dictionary.class);
-            DictionaryDeployable dictionaryDeployable = DictionaryDeployable.builder().id("dictionaryId").dictionary(dictionary).build();
+            DictionaryDeployable dictionaryDeployable = DictionaryDeployable.builder()
+                    .id("dictionaryId")
+                    .dictionary(dictionary)
+                    .build();
             cut.deploy(dictionaryDeployable).test().assertComplete();
             verify(dictionaryManager).deploy(dictionary);
         }
@@ -63,7 +66,10 @@ class DictionaryDeployerTest {
         @Test
         void should_return_error_when_api_manager_throw_exception() {
             Dictionary dictionary = mock(Dictionary.class);
-            DictionaryDeployable dictionaryDeployable = DictionaryDeployable.builder().id("dictionaryId").dictionary(dictionary).build();
+            DictionaryDeployable dictionaryDeployable = DictionaryDeployable.builder()
+                    .id("dictionaryId")
+                    .dictionary(dictionary)
+                    .build();
             doThrow(new SyncException("error")).when(dictionaryManager).deploy(dictionary);
             cut.deploy(dictionaryDeployable).test().assertFailure(SyncException.class);
             verify(dictionaryManager).deploy(dictionary);
@@ -81,14 +87,16 @@ class DictionaryDeployerTest {
 
         @Test
         void should_undeploy_dictionary() {
-            DictionaryDeployable dictionaryDeployable = DictionaryDeployable.builder().id("dictionaryId").build();
+            DictionaryDeployable dictionaryDeployable =
+                    DictionaryDeployable.builder().id("dictionaryId").build();
             cut.undeploy(dictionaryDeployable).test().assertComplete();
             verify(dictionaryManager).undeploy(dictionaryDeployable.dictionary());
         }
 
         @Test
         void should_complete_on_error_when_dictionary_manager_throw_exception() {
-            DictionaryDeployable dictionaryDeployable = DictionaryDeployable.builder().id("dictionaryId").build();
+            DictionaryDeployable dictionaryDeployable =
+                    DictionaryDeployable.builder().id("dictionaryId").build();
             doThrow(new SyncException("error")).when(dictionaryManager).undeploy(dictionaryDeployable.dictionary());
             cut.undeploy(dictionaryDeployable).test().assertFailure(SyncException.class);
             verify(dictionaryManager).undeploy(dictionaryDeployable.dictionary());

@@ -20,5 +20,6 @@ import java.time.Duration;
 
 public interface AuditCrudService {
     void create(AuditEntity auditEntity);
+
     void deleteByEnvironmentIdAndAge(String environmentId, Duration maxAge);
 }

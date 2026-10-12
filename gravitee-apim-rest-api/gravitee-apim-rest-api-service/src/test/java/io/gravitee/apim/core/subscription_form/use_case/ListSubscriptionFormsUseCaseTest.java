@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.SubscriptionFormQueryServiceInMemory;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,11 +41,14 @@ class ListSubscriptionFormsUseCaseTest {
     @Test
     void should_list_the_forms_of_the_environment_only() {
         var firstForm = SubscriptionFormFixtures.aSubscriptionForm();
-        var partnerForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().id(SubscriptionFormId.random()).name("Partners").build();
+        var partnerForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .id(SubscriptionFormId.random())
+                .name("Partners")
+                .build();
         var otherEnvironmentForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .id(SubscriptionFormId.random())
-            .environmentId("other-env")
-            .build();
+                .id(SubscriptionFormId.random())
+                .environmentId("other-env")
+                .build();
         queryService.initWith(List.of(firstForm, partnerForm, otherEnvironmentForm));
 
         var result = useCase.execute(new ListSubscriptionFormsUseCase.Input(SubscriptionFormFixtures.ENVIRONMENT_ID));

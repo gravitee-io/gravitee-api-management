@@ -77,7 +77,7 @@ public class CategoryMapperTest {
         categoryEntity.setPicture(CATEGORY_BACKGROUND);
         categoryEntity.setPictureUrl(CATEGORY_BACKGROUND_URL);
 
-        //init
+        // init
         Category category = categoryMapper.convert(categoryEntity, UriBuilder.fromPath(CATEGORY_BASE_URL));
         assertEquals(CATEGORY_DESCRIPTION, category.getDescription());
         assertEquals(CATEGORY_KEY, category.getId());
@@ -87,15 +87,15 @@ public class CategoryMapperTest {
         assertEquals(42, category.getTotalApis().longValue());
         CategoryLinks links = category.getLinks();
         assertNotNull(links);
-        assertEquals(CATEGORY_BASE_URL + "/environments/DEFAULT/apis/" + CATEGORY_HIGHLIGHT_API, links.getHighlightedApi());
         assertEquals(
-            CATEGORY_BASE_URL + "/environments/DEFAULT/categories/" + CATEGORY_ID + "/picture?" + nowDate.getTime(),
-            links.getPicture()
-        );
+                CATEGORY_BASE_URL + "/environments/DEFAULT/apis/" + CATEGORY_HIGHLIGHT_API, links.getHighlightedApi());
         assertEquals(
-            CATEGORY_BASE_URL + "/environments/DEFAULT/categories/" + CATEGORY_ID + "/background?" + nowDate.getTime(),
-            links.getBackground()
-        );
+                CATEGORY_BASE_URL + "/environments/DEFAULT/categories/" + CATEGORY_ID + "/picture?" + nowDate.getTime(),
+                links.getPicture());
+        assertEquals(
+                CATEGORY_BASE_URL + "/environments/DEFAULT/categories/" + CATEGORY_ID + "/background?"
+                        + nowDate.getTime(),
+                links.getBackground());
         assertEquals(CATEGORY_BASE_URL + "/environments/DEFAULT/categories/" + CATEGORY_ID, links.getSelf());
     }
 }

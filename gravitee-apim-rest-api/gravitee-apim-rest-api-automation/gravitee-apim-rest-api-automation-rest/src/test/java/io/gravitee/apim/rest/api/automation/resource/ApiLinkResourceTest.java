@@ -81,13 +81,13 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_apply_and_return_the_api_link_state() {
-            when(createOrUpdateApiLinkUseCase.execute(any())).thenReturn(
-                new CreateOrUpdateApiLinkUseCase.Output(aPersistedLink("External Docs"), List.of())
-            );
+            when(createOrUpdateApiLinkUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateApiLinkUseCase.Output(aPersistedLink("External Docs"), List.of()));
 
-            try (
-                var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("api-link.json")))
-            ) {
+            try (var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-link.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdateApiLinkUseCase).execute(any(CreateOrUpdateApiLinkUseCase.Input.class));
 
@@ -99,16 +99,13 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_build_the_response_from_the_persisted_link_not_from_the_submitted_spec() {
-            when(createOrUpdateApiLinkUseCase.execute(any())).thenReturn(
-                new CreateOrUpdateApiLinkUseCase.Output(aPersistedLink("Normalized Name"), List.of())
-            );
+            when(createOrUpdateApiLinkUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateApiLinkUseCase.Output(aPersistedLink("Normalized Name"), List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(aLinkSpec("  Normalized Name  ")))
-            ) {
+                    .put(Entity.json(aLinkSpec("  Normalized Name  ")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 assertThat(response.readEntity(PortalLinkState.class).getName()).isEqualTo("Normalized Name");
             }
@@ -116,13 +113,14 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_with_severe_errors_when_apply_fails_validation() {
-            when(createOrUpdateApiLinkUseCase.execute(any())).thenReturn(
-                new CreateOrUpdateApiLinkUseCase.Output(null, List.of(Validator.Error.severe("href must be a well-formed absolute URL")))
-            );
+            when(createOrUpdateApiLinkUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateApiLinkUseCase.Output(
+                            null, List.of(Validator.Error.severe("href must be a well-formed absolute URL"))));
 
-            try (
-                var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("api-link.json")))
-            ) {
+            try (var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-link.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
 
                 var state = response.readEntity(PortalLinkState.class);
@@ -138,15 +136,14 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_populated_state_when_validation_passes() {
-            when(validateApiLinkUseCase.execute(any())).thenReturn(new CreateOrUpdateApiLinkUseCase.Output(null, List.of()));
+            when(validateApiLinkUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateApiLinkUseCase.Output(null, List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-link.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-link.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(validateApiLinkUseCase).execute(any(CreateOrUpdateApiLinkUseCase.Input.class));
                 verifyNoInteractions(createOrUpdateApiLinkUseCase);
@@ -165,17 +162,15 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_with_errors_when_validation_fails() {
-            when(validateApiLinkUseCase.execute(any())).thenReturn(
-                new CreateOrUpdateApiLinkUseCase.Output(null, List.of(Validator.Error.severe("href must be a well-formed absolute URL")))
-            );
+            when(validateApiLinkUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdateApiLinkUseCase.Output(
+                            null, List.of(Validator.Error.severe("href must be a well-formed absolute URL"))));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-link.json")))
-            ) {
+                    .put(Entity.json(readJSON("api-link.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verifyNoInteractions(createOrUpdateApiLinkUseCase);
 
@@ -188,13 +183,11 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_hrid_is_missing() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("invalid-api-link.json")))
-            ) {
+                    .put(Entity.json(readJSON("invalid-api-link.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(validateApiLinkUseCase);
                 verifyNoInteractions(createOrUpdateApiLinkUseCase);
@@ -207,9 +200,13 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_the_link() {
-            when(getApiLinkUseCase.execute(any())).thenReturn(new GetApiLinkUseCase.Output(aPersistedLink("External Docs")));
+            when(getApiLinkUseCase.execute(any()))
+                    .thenReturn(new GetApiLinkUseCase.Output(aPersistedLink("External Docs")));
 
-            try (var response = rootTarget(LINK_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(LINK_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(getApiLinkUseCase).execute(any(GetApiLinkUseCase.Input.class));
 
@@ -229,7 +226,10 @@ class ApiLinkResourceTest extends AbstractResourceTest {
         void should_return_404_when_the_link_does_not_exist() {
             when(getApiLinkUseCase.execute(any())).thenThrow(new PortalLinkNotFoundException(LINK_HRID));
 
-            try (var response = rootTarget(LINK_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+            try (var response = rootTarget(LINK_HRID)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
             }
         }
@@ -260,7 +260,9 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_the_link_does_not_exist() {
-            doThrow(new PortalLinkNotFoundException(LINK_HRID)).when(deleteApiLinkUseCase).execute(any());
+            doThrow(new PortalLinkNotFoundException(LINK_HRID))
+                    .when(deleteApiLinkUseCase)
+                    .execute(any());
 
             try (var response = rootTarget(LINK_HRID).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -274,16 +276,16 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
     private static PortalNavigationLink aPersistedLink(String name) {
         return PortalNavigationLink.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .title(name)
-            .segment(LINK_HRID)
-            .area(PortalArea.TOP_NAVBAR)
-            .order(3)
-            .url("https://docs.example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORGANIZATION)
+                .environmentId(ENVIRONMENT)
+                .title(name)
+                .segment(LINK_HRID)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(3)
+                .url("https://docs.example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
     }
 }

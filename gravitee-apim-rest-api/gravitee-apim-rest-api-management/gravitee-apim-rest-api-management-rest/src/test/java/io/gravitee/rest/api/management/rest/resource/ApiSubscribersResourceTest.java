@@ -82,7 +82,9 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         SubscriptionEntity subC1 = new SubscriptionEntity();
         subC1.setApplication("C");
         subC1.setApi(API_ID);
-        doReturn(Arrays.asList(subB1, subC1, subA1)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Arrays.asList(subB1, subC1, subA1))
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
 
         ApplicationListItem appA = new ApplicationListItem();
         appA.setId("A");
@@ -93,15 +95,15 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         Page<ApplicationListItem> applications = new Page(Arrays.asList(appA, appB, appC), 1, 10, 42);
 
         doReturn(applications)
-            .when(applicationService)
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(q -> q.getIds().containsAll(Arrays.asList("A", "B", "C"))),
-                eq(new SortableImpl("name", true)),
-                argThat(pageable -> pageable.getPageNumber() == 1 && pageable.getPageSize() == 20)
-            );
+                .when(applicationService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(q -> q.getIds().containsAll(Arrays.asList("A", "B", "C"))),
+                        eq(new SortableImpl("name", true)),
+                        argThat(pageable -> pageable.getPageNumber() == 1 && pageable.getPageSize() == 20));
 
-        final Response response = envTarget(API_ID).path("subscribers").request().get();
+        final Response response =
+                envTarget(API_ID).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());
 
         final Collection<ApplicationListItem> applicationsResponse = response.readEntity(new GenericType<>() {});
@@ -111,9 +113,12 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoSubscribers() {
-        doReturn(Collections.emptyList()).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Collections.emptyList())
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
 
-        final Response response = envTarget(API_ID).path("subscribers").request().get();
+        final Response response =
+                envTarget(API_ID).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());
 
         final Collection<ApplicationListItem> applicationsResponse = response.readEntity(new GenericType<>() {});
@@ -124,10 +129,10 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFilterOnSubscriptionStatus() {
         envTarget(API_ID).path("subscribers").request().get();
-        verify(subscriptionService).search(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(query -> CollectionUtils.isEmpty(query.getStatuses()))
-        );
+        verify(subscriptionService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(query -> CollectionUtils.isEmpty(query.getStatuses())));
     }
 
     @Test
@@ -141,7 +146,9 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         SubscriptionEntity subC1 = new SubscriptionEntity();
         subC1.setApplication("C");
         subC1.setApi(API_ID);
-        doReturn(Arrays.asList(subB1, subC1, subA1)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Arrays.asList(subB1, subC1, subA1))
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
 
         ApplicationListItem appA = new ApplicationListItem();
         appA.setId("A");
@@ -152,30 +159,35 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         Page<ApplicationListItem> applications = new Page(Arrays.asList(appA, appB, appC), 1, 10, 42);
 
         doReturn(applications)
-            .when(applicationService)
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(q -> q.getIds().containsAll(Arrays.asList("A", "B", "C"))),
-                eq(new SortableImpl("name", true)),
-                argThat(pageable -> pageable.getPageNumber() == 1 && pageable.getPageSize() == 20)
-            );
+                .when(applicationService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(q -> q.getIds().containsAll(Arrays.asList("A", "B", "C"))),
+                        eq(new SortableImpl("name", true)),
+                        argThat(pageable -> pageable.getPageNumber() == 1 && pageable.getPageSize() == 20));
 
-        final Response response = envTarget(API_ID).path("subscribers/_paged").request().get();
+        final Response response =
+                envTarget(API_ID).path("subscribers/_paged").request().get();
         assertEquals(OK_200, response.getStatus());
 
-        final ApplicationListItemPagedResult applicationsResponse = response.readEntity(ApplicationListItemPagedResult.class);
+        final ApplicationListItemPagedResult applicationsResponse =
+                response.readEntity(ApplicationListItemPagedResult.class);
         assertNotNull(applicationsResponse);
         assertEquals(3, applicationsResponse.getData().size());
     }
 
     @Test
     public void shouldGetNoSubscribersWithPagination() {
-        doReturn(Collections.emptyList()).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Collections.emptyList())
+                .when(subscriptionService)
+                .search(eq(GraviteeContext.getExecutionContext()), any());
 
-        final Response response = envTarget(API_ID).path("subscribers/_paged").request().get();
+        final Response response =
+                envTarget(API_ID).path("subscribers/_paged").request().get();
         assertEquals(OK_200, response.getStatus());
 
-        final ApplicationListItemPagedResult applicationsResponse = response.readEntity(ApplicationListItemPagedResult.class);
+        final ApplicationListItemPagedResult applicationsResponse =
+                response.readEntity(ApplicationListItemPagedResult.class);
         assertNotNull(applicationsResponse);
         assertNull(applicationsResponse.getData());
     }
@@ -183,9 +195,9 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFilterOnSubscriptionStatusWithPagination() {
         envTarget(API_ID).path("subscribers/_paged").request().get();
-        verify(subscriptionService).search(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(query -> CollectionUtils.isEmpty(query.getStatuses()))
-        );
+        verify(subscriptionService)
+                .search(
+                        eq(GraviteeContext.getExecutionContext()),
+                        argThat(query -> CollectionUtils.isEmpty(query.getStatuses())));
     }
 }

@@ -127,16 +127,13 @@ public class ApiService_SearchTest {
 
     private final CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
 
-    private ApiConverter apiConverter = Mockito.spy(
-        new ApiConverter(
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter(
             objectMapper,
             mock(PlanService.class),
             mock(FlowService.class),
             categoryMapper,
             parameterService,
-            mock(WorkflowService.class)
-        )
-    );
+            mock(WorkflowService.class)));
 
     @Mock
     private SearchEngineService searchEngineService;
@@ -157,8 +154,7 @@ public class ApiService_SearchTest {
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
+                new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         GraviteeContext.cleanContext();
     }
 
@@ -172,26 +168,26 @@ public class ApiService_SearchTest {
         api2.setName("api2");
 
         Page<Api> page = new Page<>(Arrays.asList(api1), 2, 1, 2);
-        when(
-            apiRepository.search(
-                eq(getDefaultApiCriteriaBuilder().environmentId("DEFAULT").build()),
-                any(),
-                any(),
-                eq(new ApiFieldFilter.Builder().excludePicture().build())
-            )
-        ).thenReturn(page);
+        when(apiRepository.search(
+                        eq(getDefaultApiCriteriaBuilder()
+                                .environmentId("DEFAULT")
+                                .build()),
+                        any(),
+                        any(),
+                        eq(new ApiFieldFilter.Builder().excludePicture().build())))
+                .thenReturn(page);
 
         UserEntity admin = new UserEntity();
         admin.setId("admin");
-        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of(api1.getId(), new PrimaryOwnerEntity(admin)));
+        when(primaryOwnerService.getPrimaryOwners(any(), any()))
+                .thenReturn(Map.of(api1.getId(), new PrimaryOwnerEntity(admin)));
 
         final ApiQuery apiQuery = new ApiQuery();
         final Page<ApiEntity> apiPage = apiService.search(
-            GraviteeContext.getExecutionContext(),
-            apiQuery,
-            new SortableImpl("name", false),
-            new PageableImpl(2, 1)
-        );
+                GraviteeContext.getExecutionContext(),
+                apiQuery,
+                new SortableImpl("name", false),
+                new PageableImpl(2, 1));
 
         assertNotNull(apiPage);
         assertEquals(1, apiPage.getContent().size());
@@ -215,18 +211,18 @@ public class ApiService_SearchTest {
         api3.setId("api3");
         api3.setName("API Test");
 
-        when(apiSearchService.searchIds(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any())).thenReturn(
-            List.of(api3.getId(), api1.getId(), api2.getId())
-        );
+        when(apiSearchService.searchIds(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any()))
+                .thenReturn(List.of(api3.getId(), api1.getId(), api2.getId()));
 
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environmentId("DEFAULT").ids(api3.getId(), api1.getId(), api2.getId()).build(),
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(3).build(),
-                ApiFieldFilter.allFields()
-            )
-        ).thenReturn(new Page<>(Arrays.asList(api3, api1, api2), 0, 3, 3));
+        when(apiRepository.search(
+                        new ApiCriteria.Builder()
+                                .environmentId("DEFAULT")
+                                .ids(api3.getId(), api1.getId(), api2.getId())
+                                .build(),
+                        null,
+                        new PageableBuilder().pageNumber(0).pageSize(3).build(),
+                        ApiFieldFilter.allFields()))
+                .thenReturn(new Page<>(Arrays.asList(api3, api1, api2), 0, 3, 3));
 
         UserEntity admin = new UserEntity();
         admin.setId("admin");
@@ -234,30 +230,25 @@ public class ApiService_SearchTest {
         admin.setId("user 2");
         UserEntity user3 = new UserEntity();
         admin.setId("user 3");
-        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(
-            Map.of(
-                api1.getId(),
-                new PrimaryOwnerEntity(admin),
-                api2.getId(),
-                new PrimaryOwnerEntity(user2),
-                api3.getId(),
-                new PrimaryOwnerEntity(user3)
-            )
-        );
+        when(primaryOwnerService.getPrimaryOwners(any(), any()))
+                .thenReturn(Map.of(
+                        api1.getId(),
+                        new PrimaryOwnerEntity(admin),
+                        api2.getId(),
+                        new PrimaryOwnerEntity(user2),
+                        api3.getId(),
+                        new PrimaryOwnerEntity(user3)));
 
         final Page<ApiEntity> apiPage = apiService.search(
-            GraviteeContext.getExecutionContext(),
-            "API Test",
-            emptyMap(),
-            null,
-            new PageableImpl(1, 10)
-        );
+                GraviteeContext.getExecutionContext(), "API Test", emptyMap(), null, new PageableImpl(1, 10));
 
         assertThat(apiPage.getPageNumber()).isEqualTo(1);
         assertThat(apiPage.getPageElements()).isEqualTo(3);
         assertThat(apiPage.getTotalElements()).isEqualTo(3);
 
-        assertThat(apiPage.getContent()).extracting(ApiEntity::getId).containsExactly(api3.getId(), api1.getId(), api2.getId());
+        assertThat(apiPage.getContent())
+                .extracting(ApiEntity::getId)
+                .containsExactly(api3.getId(), api1.getId(), api2.getId());
     }
 
     private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {

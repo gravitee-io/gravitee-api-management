@@ -22,8 +22,7 @@ public class UserFixtures {
 
     private UserFixtures() {}
 
-    public static final Supplier<User.UserBuilder> BASE = () ->
-        User.builder()
+    public static final Supplier<User.UserBuilder> BASE = () -> User.builder()
             .id("user-id")
             .reference("reference")
             .firstName("John")
@@ -35,7 +34,15 @@ public class UserFixtures {
         return BASE.get().build();
     }
 
-    public static User aUser(String id, String reference, String firstName, String lastName, String displayName, String email) {
-        return BASE.get().id(id).reference(reference).firstName(firstName).lastName(lastName).displayName(displayName).email(email).build();
+    public static User aUser(
+            String id, String reference, String firstName, String lastName, String displayName, String email) {
+        return BASE.get()
+                .id(id)
+                .reference(reference)
+                .firstName(firstName)
+                .lastName(lastName)
+                .displayName(displayName)
+                .email(email)
+                .build();
     }
 }

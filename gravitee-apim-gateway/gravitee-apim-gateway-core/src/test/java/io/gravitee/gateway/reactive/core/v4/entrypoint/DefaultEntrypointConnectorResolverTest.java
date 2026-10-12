@@ -77,12 +77,16 @@ class DefaultEntrypointConnectorResolverTest {
         final Api api = buildApi();
         final HttpEntrypointConnector entrypointConnector = mock(HttpEntrypointConnector.class);
 
-        when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
-        when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG)).thenReturn(entrypointConnector);
+        when(entrypointConnector.supportedListenerType())
+                .thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE))
+                .thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
+        when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG))
+                .thenReturn(entrypointConnector);
         when(entrypointConnector.matches(ctx)).thenReturn(true);
 
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         final HttpEntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertThat(resolvedEntrypointConnector).isSameAs(entrypointConnector);
@@ -92,18 +96,21 @@ class DefaultEntrypointConnectorResolverTest {
     void shouldResolveAsyncEntrypointConnectorWithQos() {
         final Api api = buildApi();
         final HttpEntrypointAsyncConnector entrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
-        final HttpEntrypointAsyncConnectorFactory<HttpEntrypointAsyncConnector> asyncConnectorFactory = mock(
-            HttpEntrypointAsyncConnectorFactory.class
-        );
+        final HttpEntrypointAsyncConnectorFactory<HttpEntrypointAsyncConnector> asyncConnectorFactory =
+                mock(HttpEntrypointAsyncConnectorFactory.class);
         when(asyncConnectorFactory.supportedApi()).thenReturn(ApiType.MESSAGE);
         when(pluginManager.getFactoryById(ENTRYPOINT_TYPE)).thenAnswer(invocation -> asyncConnectorFactory);
 
-        when(entrypointAsyncConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
-        when(asyncConnectorFactory.createConnector(deploymentContext, Qos.AUTO, ENTRYPOINT_CONFIG)).thenReturn(entrypointAsyncConnector);
+        when(entrypointAsyncConnector.supportedListenerType())
+                .thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE))
+                .thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
+        when(asyncConnectorFactory.createConnector(deploymentContext, Qos.AUTO, ENTRYPOINT_CONFIG))
+                .thenReturn(entrypointAsyncConnector);
         when(entrypointAsyncConnector.matches((HttpExecutionContext) ctx)).thenReturn(true);
 
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         final var resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertThat(resolvedEntrypointConnector).isSameAs(entrypointAsyncConnector);
@@ -113,7 +120,8 @@ class DefaultEntrypointConnectorResolverTest {
     void shouldNotResolveEntrypointConnectorWhenEntryPointFactoryNotFound() {
         when(pluginManager.getFactoryById(ENTRYPOINT_TYPE)).thenReturn(null);
         final Api api = buildApi();
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         final var resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertThat(resolvedEntrypointConnector).isNull();
@@ -130,16 +138,19 @@ class DefaultEntrypointConnectorResolverTest {
 
         final HttpEntrypointConnector entrypointConnector = mock(HttpEntrypointConnector.class);
 
-        when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
+        when(entrypointConnector.supportedListenerType())
+                .thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE))
+                .thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
         when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG))
-            .thenReturn(entrypointConnector)
-            .thenReturn(mockEntrypointConnector())
-            .thenReturn(mockEntrypointConnector());
+                .thenReturn(entrypointConnector)
+                .thenReturn(mockEntrypointConnector())
+                .thenReturn(mockEntrypointConnector());
 
         when(entrypointConnector.matches(ctx)).thenReturn(true);
 
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         final HttpEntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertThat(resolvedEntrypointConnector).isSameAs(entrypointConnector);
@@ -153,7 +164,8 @@ class DefaultEntrypointConnectorResolverTest {
         final Api api = buildApi();
         api.getListeners().get(0).setType(ListenerType.TCP);
 
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         final var resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertThat(resolvedEntrypointConnector).isNull();
@@ -164,11 +176,15 @@ class DefaultEntrypointConnectorResolverTest {
         final Api api = buildApi();
         final var entrypointConnector = mockEntrypointConnector();
 
-        when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.SUBSCRIPTION);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
-        when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG)).thenReturn(entrypointConnector);
+        when(entrypointConnector.supportedListenerType())
+                .thenReturn(io.gravitee.gateway.reactive.api.ListenerType.SUBSCRIPTION);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE))
+                .thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
+        when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG))
+                .thenReturn(entrypointConnector);
 
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         final var resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertThat(resolvedEntrypointConnector).isNull();
@@ -179,12 +195,16 @@ class DefaultEntrypointConnectorResolverTest {
         final Api api = buildApi();
         final HttpEntrypointConnector entrypointConnector = mock(HttpEntrypointConnector.class);
 
-        when(entrypointConnector.supportedListenerType()).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE)).thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
-        when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG)).thenReturn(entrypointConnector);
+        when(entrypointConnector.supportedListenerType())
+                .thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE))
+                .thenReturn(io.gravitee.gateway.reactive.api.ListenerType.HTTP);
+        when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG))
+                .thenReturn(entrypointConnector);
         when(entrypointConnector.matches(ctx)).thenReturn(false);
 
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         final HttpEntrypointConnector resolvedEntrypointConnector = cut.resolve(ctx);
 
         assertThat(resolvedEntrypointConnector).isNull();
@@ -200,11 +220,12 @@ class DefaultEntrypointConnectorResolverTest {
         final var entrypointConnector3 = mockEntrypointConnector();
 
         when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG))
-            .thenReturn(entrypointConnector1)
-            .thenReturn(entrypointConnector2)
-            .thenReturn(entrypointConnector3);
+                .thenReturn(entrypointConnector1)
+                .thenReturn(entrypointConnector2)
+                .thenReturn(entrypointConnector3);
 
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         cut.preStop();
 
         verify(entrypointConnector1).preStop();
@@ -224,11 +245,12 @@ class DefaultEntrypointConnectorResolverTest {
         when(entrypointConnector2.preStop()).thenThrow(new Exception(MOCK_EXCEPTION));
 
         when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG))
-            .thenReturn(entrypointConnector1)
-            .thenReturn(entrypointConnector2)
-            .thenReturn(entrypointConnector3);
+                .thenReturn(entrypointConnector1)
+                .thenReturn(entrypointConnector2)
+                .thenReturn(entrypointConnector3);
 
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         cut.preStop();
 
         verify(entrypointConnector1).preStop();
@@ -246,11 +268,12 @@ class DefaultEntrypointConnectorResolverTest {
         final var entrypointConnector3 = mockEntrypointConnector();
 
         when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG))
-            .thenReturn(entrypointConnector1)
-            .thenReturn(entrypointConnector2)
-            .thenReturn(entrypointConnector3);
+                .thenReturn(entrypointConnector1)
+                .thenReturn(entrypointConnector2)
+                .thenReturn(entrypointConnector3);
 
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         cut.stop();
 
         verify(entrypointConnector1).stop();
@@ -270,11 +293,12 @@ class DefaultEntrypointConnectorResolverTest {
         when(entrypointConnector2.stop()).thenThrow(new Exception(MOCK_EXCEPTION));
 
         when(connectorFactory.createConnector(deploymentContext, ENTRYPOINT_CONFIG))
-            .thenReturn(entrypointConnector1)
-            .thenReturn(entrypointConnector2)
-            .thenReturn(entrypointConnector3);
+                .thenReturn(entrypointConnector1)
+                .thenReturn(entrypointConnector2)
+                .thenReturn(entrypointConnector3);
 
-        final DefaultEntrypointConnectorResolver cut = new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
+        final DefaultEntrypointConnectorResolver cut =
+                new DefaultEntrypointConnectorResolver(api, deploymentContext, pluginManager);
         cut.stop();
 
         verify(entrypointConnector1).stop();
@@ -295,7 +319,9 @@ class DefaultEntrypointConnectorResolverTest {
         Listener listener = switch (listenerType) {
             case HTTP -> new HttpListener();
             case SUBSCRIPTION -> new SubscriptionListener();
-            default -> throw new UnsupportedOperationException(String.format("Listener type '%s' not yet supported", listenerType));
+            default ->
+                throw new UnsupportedOperationException(
+                        String.format("Listener type '%s' not yet supported", listenerType));
         };
         final List<Entrypoint> entrypoints = new ArrayList<>();
         listener.setEntrypoints(entrypoints);

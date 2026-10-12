@@ -36,11 +36,10 @@ public interface MetadataService {
     MetadataEntity create(ExecutionContext executionContext, NewMetadataEntity metadata);
 
     MetadataEntity create(
-        ExecutionContext executionContext,
-        NewMetadataEntity metadataEntity,
-        MetadataReferenceType referenceType,
-        String referenceId
-    );
+            ExecutionContext executionContext,
+            NewMetadataEntity metadataEntity,
+            MetadataReferenceType referenceType,
+            String referenceId);
 
     MetadataEntity update(ExecutionContext executionContext, UpdateMetadataEntity metadata);
 
@@ -51,14 +50,14 @@ public interface MetadataService {
     void checkMetadataFormat(ExecutionContext executionContext, MetadataFormat format, String value);
 
     void checkMetadataFormat(
-        ExecutionContext executionContext,
-        MetadataFormat format,
-        String value,
-        MetadataReferenceType referenceType,
-        Object entity
-    );
+            ExecutionContext executionContext,
+            MetadataFormat format,
+            String value,
+            MetadataReferenceType referenceType,
+            Object entity);
 
-    MetadataEntity findByKeyAndReferenceTypeAndReferenceId(String key, MetadataReferenceType referenceType, String referenceId);
+    MetadataEntity findByKeyAndReferenceTypeAndReferenceId(
+            String key, MetadataReferenceType referenceType, String referenceId);
 
     /**
      * Initializes the default metadata for an environment.

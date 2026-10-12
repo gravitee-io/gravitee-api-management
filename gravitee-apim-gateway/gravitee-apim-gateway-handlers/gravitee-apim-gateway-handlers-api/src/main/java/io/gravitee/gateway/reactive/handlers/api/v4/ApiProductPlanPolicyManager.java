@@ -49,24 +49,22 @@ public class ApiProductPlanPolicyManager extends AbstractPolicyManager {
     private final ApiProductRegistry apiProductRegistry;
 
     public ApiProductPlanPolicyManager(
-        DefaultClassLoader classLoader,
-        PolicyFactoryManager policyFactoryManager,
-        PolicyConfigurationFactory policyConfigurationFactory,
-        ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider,
-        String apiId,
-        String environmentId,
-        ApiProductRegistry apiProductRegistry
-    ) {
+            DefaultClassLoader classLoader,
+            PolicyFactoryManager policyFactoryManager,
+            PolicyConfigurationFactory policyConfigurationFactory,
+            ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+            PolicyClassLoaderFactory policyClassLoaderFactory,
+            ComponentProvider componentProvider,
+            String apiId,
+            String environmentId,
+            ApiProductRegistry apiProductRegistry) {
         super(
-            classLoader,
-            policyFactoryManager,
-            policyConfigurationFactory,
-            policyPluginManager,
-            policyClassLoaderFactory,
-            componentProvider
-        );
+                classLoader,
+                policyFactoryManager,
+                policyConfigurationFactory,
+                policyPluginManager,
+                policyClassLoaderFactory,
+                componentProvider);
         this.apiId = apiId;
         this.environmentId = environmentId;
         this.apiProductRegistry = apiProductRegistry;
@@ -78,7 +76,8 @@ public class ApiProductPlanPolicyManager extends AbstractPolicyManager {
             return Set.of();
         }
 
-        List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getApiProductPlanEntriesForApi(apiId, environmentId);
+        List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                apiProductRegistry.getApiProductPlanEntriesForApi(apiId, environmentId);
 
         // Deduplicate security policies by name (multiple plans can share same security type)
         LinkedHashMap<String, Policy> securityByName = new LinkedHashMap<>();
@@ -88,7 +87,9 @@ public class ApiProductPlanPolicyManager extends AbstractPolicyManager {
         for (ApiProductRegistry.ApiProductPlanEntry entry : entries) {
             AbstractPlan plan = entry.plan();
 
-            if (plan.useStandardMode() && plan.getSecurity() != null && plan.getSecurity().getType() != null) {
+            if (plan.useStandardMode()
+                    && plan.getSecurity() != null
+                    && plan.getSecurity().getType() != null) {
                 PlanSecurity planSecurity = plan.getSecurity();
                 String policyName = planSecurity.getType().toLowerCase().replaceAll("_", "-");
                 if (!securityByName.containsKey(policyName)) {
@@ -110,30 +111,26 @@ public class ApiProductPlanPolicyManager extends AbstractPolicyManager {
     }
 
     private void addFlowsPolicies(final Set<Policy> policies, final List<Flow> flows) {
-        flows
-            .stream()
-            .filter(Flow::isEnabled)
-            .forEach(flow -> {
-                policies.addAll(getPolicies(flow.getRequest()));
-                policies.addAll(getPolicies(flow.getResponse()));
-                policies.addAll(getPolicies(flow.getSubscribe()));
-                policies.addAll(getPolicies(flow.getPublish()));
-            });
+        flows.stream().filter(Flow::isEnabled).forEach(flow -> {
+            policies.addAll(getPolicies(flow.getRequest()));
+            policies.addAll(getPolicies(flow.getResponse()));
+            policies.addAll(getPolicies(flow.getSubscribe()));
+            policies.addAll(getPolicies(flow.getPublish()));
+        });
     }
 
     private List<Policy> getPolicies(final List<Step> flowStep) {
         if (flowStep == null || flowStep.isEmpty()) {
             return List.of();
         }
-        return flowStep
-            .stream()
-            .filter(Step::isEnabled)
-            .map(step -> {
-                Policy policy = new Policy();
-                policy.setName(step.getPolicy());
-                policy.setConfiguration(step.getConfiguration());
-                return policy;
-            })
-            .toList();
+        return flowStep.stream()
+                .filter(Step::isEnabled)
+                .map(step -> {
+                    Policy policy = new Policy();
+                    policy.setName(step.getPolicy());
+                    policy.setConfiguration(step.getConfiguration());
+                    return policy;
+                })
+                .toList();
     }
 }

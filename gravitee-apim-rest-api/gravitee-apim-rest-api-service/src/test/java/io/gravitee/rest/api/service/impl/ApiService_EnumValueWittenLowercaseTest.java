@@ -89,40 +89,35 @@ public class ApiService_EnumValueWittenLowercaseTest {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, ApiSerializer.Version.DEFAULT.getVersion());
         metadata.put(
-            ApiSerializer.METADATA_FILTERED_FIELDS_LIST,
-            Arrays.asList("groups", "members", "pages", "plans", "metadata", "media")
-        );
+                ApiSerializer.METADATA_FILTERED_FIELDS_LIST,
+                Arrays.asList("groups", "members", "pages", "plans", "metadata", "media"));
         apiEntity.setMetadata(metadata);
 
         String result = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
-        assertThat(result).isEqualTo(
-            "{\n" +
-                "  \"name\" : \"test\",\n" +
-                "  \"execution_mode\" : \"v3\",\n" +
-                "  \"description\" : \"Gravitee.io\",\n" +
-                "  \"visibility\" : \"PUBLIC\",\n" +
-                "  \"flows\" : [ ],\n" +
-                "  \"gravitee\" : \"2.0.0\",\n" +
-                "  \"resources\" : [ ],\n" +
-                "  \"properties\" : [ ],\n" +
-                "  \"id\" : \"id-api\",\n" +
-                "  \"path_mappings\" : [ ],\n" +
-                "  \"disable_membership_notifications\" : false\n" +
-                "}"
-        );
+        assertThat(result)
+                .isEqualTo("{\n" + "  \"name\" : \"test\",\n"
+                        + "  \"execution_mode\" : \"v3\",\n"
+                        + "  \"description\" : \"Gravitee.io\",\n"
+                        + "  \"visibility\" : \"PUBLIC\",\n"
+                        + "  \"flows\" : [ ],\n"
+                        + "  \"gravitee\" : \"2.0.0\",\n"
+                        + "  \"resources\" : [ ],\n"
+                        + "  \"properties\" : [ ],\n"
+                        + "  \"id\" : \"id-api\",\n"
+                        + "  \"path_mappings\" : [ ],\n"
+                        + "  \"disable_membership_notifications\" : false\n"
+                        + "}");
     }
 
     @Test
     public void shouldConvertAsObjectForImportWithLowercaseEnum() throws IOException {
-        final String lowercaseApiDefinition =
-            "{\n" +
-            "  \"name\" : \"test\",\n" +
-            "  \"description\" : \"Gravitee.io\",\n" +
-            "  \"visibility\" : \"public\",\n" +
-            "  \"paths\" : { },\n" +
-            "  \"resources\" : [ ],\n" +
-            "  \"path_mappings\" : [ ]\n" +
-            "}";
+        final String lowercaseApiDefinition = "{\n" + "  \"name\" : \"test\",\n"
+                + "  \"description\" : \"Gravitee.io\",\n"
+                + "  \"visibility\" : \"public\",\n"
+                + "  \"paths\" : { },\n"
+                + "  \"resources\" : [ ],\n"
+                + "  \"path_mappings\" : [ ]\n"
+                + "}";
 
         final ApiEntity apiEntity = objectMapper.readValue(lowercaseApiDefinition, ApiEntity.class);
         assertEquals(Visibility.PUBLIC, apiEntity.getVisibility());
@@ -130,16 +125,14 @@ public class ApiService_EnumValueWittenLowercaseTest {
 
     @Test
     public void shouldConvertAsObjectForImportWithUppercaseEnum() throws IOException {
-        final String lowercaseApiDefinition =
-            "{\n" +
-            "  \"name\" : \"test\",\n" +
-            "  \"description\" : \"Gravitee.io\",\n" +
-            "  \"visibility\" : \"PUBLIC\",\n" +
-            "  \"paths\" : { },\n" +
-            "  \"gravitee\" : \"1.0.0\",\n" +
-            "  \"resources\" : [ ],\n" +
-            "  \"path_mappings\" : [ ]\n" +
-            "}";
+        final String lowercaseApiDefinition = "{\n" + "  \"name\" : \"test\",\n"
+                + "  \"description\" : \"Gravitee.io\",\n"
+                + "  \"visibility\" : \"PUBLIC\",\n"
+                + "  \"paths\" : { },\n"
+                + "  \"gravitee\" : \"1.0.0\",\n"
+                + "  \"resources\" : [ ],\n"
+                + "  \"path_mappings\" : [ ]\n"
+                + "}";
 
         final ApiEntity apiEntity = objectMapper.readValue(lowercaseApiDefinition, ApiEntity.class);
         assertEquals(Visibility.PUBLIC, apiEntity.getVisibility());

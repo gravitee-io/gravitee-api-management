@@ -47,12 +47,12 @@ class ListApiDocumentationUseCaseTest {
     private static final String API_ID = "api-a";
     private static final String OTHER_API_ID = "api-b";
 
-    private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory queryService =
+            new PortalNavigationItemsQueryServiceInMemory();
     private final ListApiDocumentationUseCase useCase = new ListApiDocumentationUseCase(
-        new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
-        queryService,
-        new PortalNavigationItemSourceDomainServiceInMemory()
-    );
+            new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
+            queryService,
+            new PortalNavigationItemSourceDomainServiceInMemory());
 
     @Test
     void should_return_empty_when_api_has_no_documentation() {
@@ -66,59 +66,71 @@ class ListApiDocumentationUseCaseTest {
 
     @Test
     void should_return_pages_folders_and_links_owned_by_the_api() {
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+        var page =
+                aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
         var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
         var link = PortalNavigationLink.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("Status page")
-            .segment("status-page")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(2)
-            .url("https://status.example.com")
-            .published(false)
-            .visibility(PortalVisibility.PUBLIC)
-            .reference(ownedBy(API_ID))
-            .build();
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Status page")
+                .segment("status-page")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(2)
+                .url("https://status.example.com")
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(ownedBy(API_ID))
+                .build();
         queryService.initWith(List.of(page, folder, link));
 
         var output = execute();
 
         assertThat(output.items())
-            .extracting(PortalNavigationItem::getType)
-            .containsExactlyInAnyOrder(PortalNavigationItemType.PAGE, PortalNavigationItemType.FOLDER, PortalNavigationItemType.LINK);
+                .extracting(PortalNavigationItem::getType)
+                .containsExactlyInAnyOrder(
+                        PortalNavigationItemType.PAGE, PortalNavigationItemType.FOLDER, PortalNavigationItemType.LINK);
     }
 
     @Test
     void should_return_nested_items_at_any_depth() {
         var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
-        var nestedFolder = aFolder("OAuth", folder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
-        var nestedPage = aPage("Setup", nestedFolder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
+        var nestedFolder = aFolder("OAuth", folder.getId()).toBuilder()
+                .reference(ownedBy(API_ID))
+                .build();
+        var nestedPage = aPage("Setup", nestedFolder.getId()).toBuilder()
+                .reference(ownedBy(API_ID))
+                .build();
         queryService.initWith(List.of(folder, nestedFolder, nestedPage));
 
         var output = execute();
 
         assertThat(output.items())
-            .extracting(PortalNavigationItem::getId)
-            .containsExactlyInAnyOrder(folder.getId(), nestedFolder.getId(), nestedPage.getId());
+                .extracting(PortalNavigationItem::getId)
+                .containsExactlyInAnyOrder(folder.getId(), nestedFolder.getId(), nestedPage.getId());
     }
 
     @Test
     void should_return_the_stored_parent_not_the_rendered_one() {
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+        var page =
+                aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
         var section = aFolder("APIs");
         var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
         queryService.initWith(List.of(page, section, listing));
 
         var output = execute();
 
-        assertThat(output.items()).singleElement().extracting(PortalNavigationItem::getParentId).isNull();
+        assertThat(output.items())
+                .singleElement()
+                .extracting(PortalNavigationItem::getParentId)
+                .isNull();
     }
 
     @Test
     void should_not_return_items_owned_by_another_api() {
-        var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+        var foreign = aPage("Other overview", null).toBuilder()
+                .reference(ownedBy(OTHER_API_ID))
+                .build();
         queryService.initWith(List.of(foreign));
 
         assertThat(execute().items()).isEmpty();
@@ -137,22 +149,25 @@ class ListApiDocumentationUseCaseTest {
     @Test
     void should_mask_the_sensitive_data_of_a_source() {
         var source = PortalNavigationItemSource.builder()
-            .sourceType("github")
-            .sourceConfiguration(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
-            .build();
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).source(source).build();
+                .sourceType("github")
+                .sourceConfiguration(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
+                .build();
+        var page = aPage("Overview", null).toBuilder()
+                .reference(ownedBy(API_ID))
+                .source(source)
+                .build();
         queryService.initWith(List.of(page));
 
         var output = execute();
 
-        assertThat(output.items().getFirst().getSource().getSourceConfiguration()).isEqualTo(
-            PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT
-        );
+        assertThat(output.items().getFirst().getSource().getSourceConfiguration())
+                .isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT);
     }
 
     @Test
     void should_report_not_listed_when_api_has_no_listing_row() {
-        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+        var page =
+                aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
         queryService.initWith(List.of(page));
 
         assertThat(execute().publications()).isEmpty();
@@ -164,14 +179,12 @@ class ListApiDocumentationUseCaseTest {
         var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
         queryService.initWith(List.of(section, listing));
 
-        assertThat(execute().publications())
-            .singleElement()
-            .satisfies(publication -> {
-                assertThat(publication.listing()).isEqualTo(listing);
-                assertThat(publication.listing().getPublished()).isTrue();
-                assertThat(publication.section()).isEqualTo(section);
-                assertThat(publication.portalId()).isEqualTo(PortalId.ZERO);
-            });
+        assertThat(execute().publications()).singleElement().satisfies(publication -> {
+            assertThat(publication.listing()).isEqualTo(listing);
+            assertThat(publication.listing().getPublished()).isTrue();
+            assertThat(publication.section()).isEqualTo(section);
+            assertThat(publication.portalId()).isEqualTo(PortalId.ZERO);
+        });
     }
 
     @Test
@@ -182,8 +195,9 @@ class ListApiDocumentationUseCaseTest {
         queryService.initWith(List.of(section, listing));
 
         assertThat(execute().publications())
-            .singleElement()
-            .satisfies(publication -> assertThat(publication.listing().getPublished()).isFalse());
+                .singleElement()
+                .satisfies(publication ->
+                        assertThat(publication.listing().getPublished()).isFalse());
     }
 
     @Test
@@ -195,8 +209,8 @@ class ListApiDocumentationUseCaseTest {
         queryService.initWith(List.of(section, otherSection, listing, otherListing));
 
         assertThat(execute().publications())
-            .extracting(publication -> publication.section().getTitle())
-            .containsExactlyInAnyOrder("APIs", "Partners");
+                .extracting(publication -> publication.section().getTitle())
+                .containsExactlyInAnyOrder("APIs", "Partners");
     }
 
     @Test

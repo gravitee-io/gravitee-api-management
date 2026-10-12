@@ -51,7 +51,8 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
     private final ApiKeyRepository apiKeyRepository;
     private final SubscriptionRepository subscriptionRepository;
 
-    public ApiKeyQueryServiceImpl(@Lazy ApiKeyRepository apiKeyRepository, @Lazy SubscriptionRepository subscriptionRepository) {
+    public ApiKeyQueryServiceImpl(
+            @Lazy ApiKeyRepository apiKeyRepository, @Lazy SubscriptionRepository subscriptionRepository) {
         this.apiKeyRepository = apiKeyRepository;
         this.subscriptionRepository = subscriptionRepository;
     }
@@ -70,7 +71,8 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
         try {
             return apiKeyRepository.findByApplication(applicationId).stream().map(ApiKeyAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to find API keys by application id: " + applicationId, e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find API keys by application id: " + applicationId, e);
         }
     }
 
@@ -80,9 +82,9 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
             return apiKeyRepository.findByKeyAndApi(key, apiId).map(ApiKeyAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to find API key by [key=%s] and [apiId=%s]", key, apiId),
-                e
-            );
+                    String.format(
+                            "An error occurs while trying to find API key by [key=%s] and [apiId=%s]", key, apiId),
+                    e);
         }
     }
 
@@ -92,9 +94,7 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
             return apiKeyRepository.findBySubscription(subscriptionId).stream().map(ApiKeyAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to find API keys by subscription id: " + subscriptionId,
-                e
-            );
+                    "An error occurs while trying to find API keys by subscription id: " + subscriptionId, e);
         }
     }
 
@@ -104,17 +104,15 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
             return Stream.empty();
         }
         ApiKeyCriteria criteria = ApiKeyCriteria.builder()
-            .subscriptions(Set.copyOf(subscriptionIds))
-            .includeRevoked(true)
-            .includeFederated(true)
-            .build();
+                .subscriptions(Set.copyOf(subscriptionIds))
+                .includeRevoked(true)
+                .includeFederated(true)
+                .build();
         try {
             return apiKeyRepository.findByCriteriaUnordered(criteria).stream().map(ApiKeyAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to find API keys by subscription ids: " + subscriptionIds,
-                e
-            );
+                    "An error occurs while trying to find API keys by subscription ids: " + subscriptionIds, e);
         }
     }
 
@@ -133,11 +131,11 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
         long expireBefore = nowMs + max * oneDayMs + windowMs;
 
         ApiKeyCriteria criteria = ApiKeyCriteria.builder()
-            .includeRevoked(false)
-            .includeFederated(true)
-            .expireAfter(expireAfter)
-            .expireBefore(expireBefore)
-            .build();
+                .includeRevoked(false)
+                .includeFederated(true)
+                .expireAfter(expireAfter)
+                .expireBefore(expireBefore)
+                .build();
 
         List<ApiKey> apiKeys;
         try {
@@ -148,75 +146,71 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
         if (apiKeys.isEmpty()) {
             return List.of();
         }
-        Set<String> subscriptionIds = apiKeys
-            .stream()
-            .flatMap(k -> k.getSubscriptions() == null ? Stream.<String>empty() : k.getSubscriptions().stream())
-            .collect(Collectors.toSet());
+        Set<String> subscriptionIds = apiKeys.stream()
+                .flatMap(k -> k.getSubscriptions() == null ? Stream.<String>empty() : k.getSubscriptions().stream())
+                .collect(Collectors.toSet());
         Map<String, Subscription> subscriptionsById;
         try {
             subscriptionsById = subscriptionIds.isEmpty()
-                ? Map.of()
-                : subscriptionRepository.findByIdIn(subscriptionIds).stream().collect(Collectors.toMap(Subscription::getId, s -> s));
+                    ? Map.of()
+                    : subscriptionRepository.findByIdIn(subscriptionIds).stream()
+                            .collect(Collectors.toMap(Subscription::getId, s -> s));
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while resolving subscriptions for expiring API keys", e);
+            throw new TechnicalManagementException(
+                    "An error occurs while resolving subscriptions for expiring API keys", e);
         }
-        return apiKeys
-            .stream()
-            .map(k -> toExpiring(k, subscriptionsById))
-            .toList();
+        return apiKeys.stream().map(k -> toExpiring(k, subscriptionsById)).toList();
     }
 
     private static ExpiringApiKey toExpiring(ApiKey apiKey, Map<String, Subscription> subscriptionsById) {
-        ZonedDateTime expireAt = apiKey.getExpireAt() == null ? null : apiKey.getExpireAt().toInstant().atZone(ZoneOffset.UTC);
+        ZonedDateTime expireAt = apiKey.getExpireAt() == null
+                ? null
+                : apiKey.getExpireAt().toInstant().atZone(ZoneOffset.UTC);
         List<ExpiringApiKeySubscription> subs = apiKey.getSubscriptions() == null
-            ? List.of()
-            : apiKey
-                .getSubscriptions()
-                .stream()
-                .map(subId -> {
-                    Subscription s = subscriptionsById.get(subId);
-                    if (s == null) {
-                        // Data skew (subscription deleted between key write and our query). Surfacing here
-                        // gives ops a trail; the key still flows through with whatever subs remain.
-                        log.warn("API key {} references unknown subscription {} — skipping that projection", apiKey.getId(), subId);
-                    }
-                    return s;
-                })
-                .filter(java.util.Objects::nonNull)
-                .map(s -> new ExpiringApiKeySubscription(s.getId(), s.getApi(), s.getPlan(), s.getSubscribedBy()))
-                .toList();
+                ? List.of()
+                : apiKey.getSubscriptions().stream()
+                        .map(subId -> {
+                            Subscription s = subscriptionsById.get(subId);
+                            if (s == null) {
+                                // Data skew (subscription deleted between key write and our query). Surfacing here
+                                // gives ops a trail; the key still flows through with whatever subs remain.
+                                log.warn(
+                                        "API key {} references unknown subscription {} — skipping that projection",
+                                        apiKey.getId(),
+                                        subId);
+                            }
+                            return s;
+                        })
+                        .filter(java.util.Objects::nonNull)
+                        .map(s ->
+                                new ExpiringApiKeySubscription(s.getId(), s.getApi(), s.getPlan(), s.getSubscribedBy()))
+                        .toList();
         return new ExpiringApiKey(
-            apiKey.getId(),
-            apiKey.getKey(),
-            expireAt,
-            apiKey.getDaysToExpirationOnLastNotification(),
-            apiKey.getApplication(),
-            subs
-        );
+                apiKey.getId(),
+                apiKey.getKey(),
+                expireAt,
+                apiKey.getDaysToExpirationOnLastNotification(),
+                apiKey.getApplication(),
+                subs);
     }
 
     @Override
-    public Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType) {
+    public Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(
+            String key, String referenceId, String referenceType) {
         try {
-            if (
-                !SubscriptionReferenceType.API.name().equals(referenceType) &&
-                !SubscriptionReferenceType.API_PRODUCT.name().equals(referenceType)
-            ) {
+            if (!SubscriptionReferenceType.API.name().equals(referenceType)
+                    && !SubscriptionReferenceType.API_PRODUCT.name().equals(referenceType)) {
                 throw new IllegalArgumentException("Unsupported reference type: " + referenceType);
             }
             return apiKeyRepository
-                .findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)
-                .map(ApiKeyAdapter.INSTANCE::toEntity);
+                    .findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)
+                    .map(ApiKeyAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format(
-                    "An error occurs while trying to find API key by [key=%s], [referenceId=%s], [referenceType=%s]",
-                    key,
-                    referenceId,
-                    referenceType
-                ),
-                e
-            );
+                    String.format(
+                            "An error occurs while trying to find API key by [key=%s], [referenceId=%s], [referenceType=%s]",
+                            key, referenceId, referenceType),
+                    e);
         }
     }
 }

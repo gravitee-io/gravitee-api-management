@@ -30,7 +30,8 @@ public class FieldUtils {
 
         String result = field;
         while (result.contains("_")) {
-            result = result.replaceFirst("_[a-z]", String.valueOf(Character.toUpperCase(result.charAt(result.indexOf("_") + 1))));
+            result = result.replaceFirst(
+                    "_[a-z]", String.valueOf(Character.toUpperCase(result.charAt(result.indexOf("_") + 1))));
         }
         return result;
     }

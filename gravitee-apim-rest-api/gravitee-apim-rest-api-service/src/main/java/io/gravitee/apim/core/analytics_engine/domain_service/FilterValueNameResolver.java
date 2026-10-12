@@ -33,5 +33,6 @@ public interface FilterValueNameResolver {
      *
      * @return filter values with both id and display name
      */
-    List<FilterValue> searchByName(String environmentId, FilterSpec.Name filterName, String query, int page, int perPage);
+    List<FilterValue> searchByName(
+            String environmentId, FilterSpec.Name filterName, String query, int page, int perPage);
 }

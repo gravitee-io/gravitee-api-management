@@ -21,16 +21,15 @@ import lombok.With;
 
 @Builder(toBuilder = true)
 public record ScoringRuleset(
-    String id,
-    String name,
-    String description,
-    Format format,
-    @With String referenceId,
-    ReferenceType referenceType,
-    String payload,
-    ZonedDateTime createdAt,
-    ZonedDateTime updatedAt
-) {
+        String id,
+        String name,
+        String description,
+        Format format,
+        @With String referenceId,
+        ReferenceType referenceType,
+        String payload,
+        ZonedDateTime createdAt,
+        ZonedDateTime updatedAt) {
     public enum ReferenceType {
         ENVIRONMENT,
     }

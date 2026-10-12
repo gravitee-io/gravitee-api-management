@@ -67,12 +67,9 @@ public class TicketMongoRepositoryImpl implements TicketMongoRepositoryCustom {
             }
 
             if (sortable != null && StringUtils.isNotEmpty(sortable.field())) {
-                query.with(
-                    Sort.by(
+                query.with(Sort.by(
                         sortable.order().equals(Order.ASC) ? Sort.Direction.ASC : Sort.Direction.DESC,
-                        FieldUtils.toCamelCase(sortable.field())
-                    )
-                );
+                        FieldUtils.toCamelCase(sortable.field())));
             }
         }
 

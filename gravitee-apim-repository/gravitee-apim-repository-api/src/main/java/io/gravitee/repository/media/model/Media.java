@@ -23,7 +23,6 @@ import lombok.ToString;
 /**
  * @author Guillaume Gillon
  */
-
 @Getter
 @Setter
 @ToString

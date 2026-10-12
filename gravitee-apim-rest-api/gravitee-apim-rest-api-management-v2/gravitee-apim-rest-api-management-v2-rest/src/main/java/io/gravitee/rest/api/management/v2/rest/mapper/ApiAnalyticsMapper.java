@@ -47,7 +47,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(uses = { ApplicationMapper.class, DateMapper.class, PlanMapper.class })
+@Mapper(uses = {ApplicationMapper.class, DateMapper.class, PlanMapper.class})
 public interface ApiAnalyticsMapper {
     Logger log = NodeLoggerFactory.getLogger(ApiAnalyticsMapper.class);
     ApiAnalyticsMapper INSTANCE = Mappers.getMapper(ApiAnalyticsMapper.class);
@@ -74,7 +74,9 @@ public interface ApiAnalyticsMapper {
     @Mapping(target = "interval", expression = "java(source.interval().toMillis())")
     AnalyticTimeRange map(ResponseStatusOvertime.TimeRange source);
 
-    @Mapping(target = "analyticsType", expression = "java(io.gravitee.rest.api.management.v2.rest.model.AnalyticsType.COUNT)")
+    @Mapping(
+            target = "analyticsType",
+            expression = "java(io.gravitee.rest.api.management.v2.rest.model.AnalyticsType.COUNT)")
     @Mapping(target = "count", source = "total")
     CountAnalytics mapToCountAnalytics(RequestsCount requestsCount);
 
@@ -84,9 +86,8 @@ public interface ApiAnalyticsMapper {
     Map<String, Number> map(Map<String, Long> value);
 
     default HistogramAnalytics mapHistogramAnalytics(
-        List<io.gravitee.apim.core.analytics.model.HistogramAnalytics.Bucket> buckets,
-        Map<String, Map<String, Map<String, String>>> metadata
-    ) {
+            List<io.gravitee.apim.core.analytics.model.HistogramAnalytics.Bucket> buckets,
+            Map<String, Map<String, Map<String, String>>> metadata) {
         if (buckets == null) {
             return null;
         }
@@ -97,43 +98,43 @@ public interface ApiAnalyticsMapper {
     }
 
     default List<@Valid HistogramAnalyticsAllOfValues> mapBuckets(
-        List<io.gravitee.apim.core.analytics.model.HistogramAnalytics.Bucket> buckets,
-        Map<String, Map<String, Map<String, String>>> metadata
-    ) {
-        return buckets
-            .stream()
-            .map(bucket -> {
-                var mappedBucket = new HistogramAnalyticsAllOfValues();
-                if (bucket instanceof io.gravitee.apim.core.analytics.model.HistogramAnalytics.CountBucket countBucket) {
-                    mappedBucket.setName(countBucket.getName());
-                    mappedBucket.setField(countBucket.getField());
-                    mappedBucket.setBuckets(
-                        countBucket
-                            .getCounts()
-                            .entrySet()
-                            .stream()
-                            .map(countEntry -> {
-                                var mappedCategory = new HistogramAnalyticsAllOfBuckets();
-                                mappedCategory.setName(countEntry.getKey());
-                                mappedCategory.setData(countEntry.getValue().stream().map(Long::doubleValue).toList());
-                                return mappedCategory;
-                            })
-                            .toList()
-                    );
-                    mappedBucket.setMetadata(metadata.computeIfAbsent(bucket.getName(), ignored -> Collections.emptyMap()));
-                } else if (bucket instanceof io.gravitee.apim.core.analytics.model.HistogramAnalytics.MetricBucket metricBucket) {
-                    mappedBucket.setName(metricBucket.getName());
-                    mappedBucket.setField(metricBucket.getField());
-                    HistogramAnalyticsAllOfBuckets values = new HistogramAnalyticsAllOfBuckets();
-                    values.setName(metricBucket.getName());
-                    values.data(metricBucket.getValues());
-                    mappedBucket.setBuckets(List.of(values));
-                } else {
-                    log.error("Unsupported bucket type {}", bucket.getClass());
-                }
-                return mappedBucket;
-            })
-            .toList();
+            List<io.gravitee.apim.core.analytics.model.HistogramAnalytics.Bucket> buckets,
+            Map<String, Map<String, Map<String, String>>> metadata) {
+        return buckets.stream()
+                .map(bucket -> {
+                    var mappedBucket = new HistogramAnalyticsAllOfValues();
+                    if (bucket
+                            instanceof
+                            io.gravitee.apim.core.analytics.model.HistogramAnalytics.CountBucket countBucket) {
+                        mappedBucket.setName(countBucket.getName());
+                        mappedBucket.setField(countBucket.getField());
+                        mappedBucket.setBuckets(countBucket.getCounts().entrySet().stream()
+                                .map(countEntry -> {
+                                    var mappedCategory = new HistogramAnalyticsAllOfBuckets();
+                                    mappedCategory.setName(countEntry.getKey());
+                                    mappedCategory.setData(countEntry.getValue().stream()
+                                            .map(Long::doubleValue)
+                                            .toList());
+                                    return mappedCategory;
+                                })
+                                .toList());
+                        mappedBucket.setMetadata(
+                                metadata.computeIfAbsent(bucket.getName(), ignored -> Collections.emptyMap()));
+                    } else if (bucket
+                            instanceof
+                            io.gravitee.apim.core.analytics.model.HistogramAnalytics.MetricBucket metricBucket) {
+                        mappedBucket.setName(metricBucket.getName());
+                        mappedBucket.setField(metricBucket.getField());
+                        HistogramAnalyticsAllOfBuckets values = new HistogramAnalyticsAllOfBuckets();
+                        values.setName(metricBucket.getName());
+                        values.data(metricBucket.getValues());
+                        mappedBucket.setBuckets(List.of(values));
+                    } else {
+                        log.error("Unsupported bucket type {}", bucket.getClass());
+                    }
+                    return mappedBucket;
+                })
+                .toList();
     }
 
     default HistogramTimestamp map(Timestamp timestamp) {
@@ -148,9 +149,7 @@ public interface ApiAnalyticsMapper {
     }
 
     default GroupByAnalytics mapGroupByAnalytics(
-        io.gravitee.apim.core.analytics.model.GroupByAnalytics source,
-        Map<String, Map<String, String>> metadata
-    ) {
+            io.gravitee.apim.core.analytics.model.GroupByAnalytics source, Map<String, Map<String, String>> metadata) {
         if (source == null) {
             return null;
         }

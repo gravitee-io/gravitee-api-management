@@ -26,13 +26,14 @@ import io.gravitee.gateway.core.logging.utils.LoggingUtils;
  */
 public final class LoggableProxyConnectionDecorator {
 
-    public static ProxyConnection decorate(ProxyConnection target, ProxyRequest proxyRequest, ExecutionContext context) {
+    public static ProxyConnection decorate(
+            ProxyConnection target, ProxyRequest proxyRequest, ExecutionContext context) {
         // Enable logging at proxy level
         if (LoggingUtils.isProxyLoggable(context)) {
             int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context);
             return maxSizeLogMessage == -1
-                ? new LoggableProxyConnection(target, proxyRequest, context)
-                : new LimitedLoggableProxyConnection(target, proxyRequest, context, maxSizeLogMessage);
+                    ? new LoggableProxyConnection(target, proxyRequest, context)
+                    : new LimitedLoggableProxyConnection(target, proxyRequest, context, maxSizeLogMessage);
         }
 
         return target;

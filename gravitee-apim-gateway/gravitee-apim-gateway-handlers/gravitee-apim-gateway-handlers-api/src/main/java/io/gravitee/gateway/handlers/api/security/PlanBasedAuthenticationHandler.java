@@ -42,7 +42,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 public abstract class PlanBasedAuthenticationHandler implements AuthenticationHandler {
 
     private static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
-        ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
+            ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     private static final String EXPRESSION_REGEX = "\\{([^#|T|(])";
     private static final String EXPRESSION_REGEX_SUBSTITUTE = "{'{'}$1";
 
@@ -64,11 +64,9 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
 
     @Override
     public boolean canHandle(AuthenticationContext authenticationContext) {
-        return (
-            handler.canHandle(authenticationContext) &&
-            canHandleSelectionRule(authenticationContext) &&
-            preCheckSubscription(authenticationContext)
-        );
+        return (handler.canHandle(authenticationContext)
+                && canHandleSelectionRule(authenticationContext)
+                && preCheckSubscription(authenticationContext));
     }
 
     /**
@@ -82,9 +80,8 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
         String selectionRule = plan.getSelectionRule();
         if (selectionRule != null && !selectionRule.isEmpty()) {
             try {
-                Expression expression = new SpelExpressionParser().parseExpression(
-                    selectionRule.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE)
-                );
+                Expression expression = new SpelExpressionParser()
+                        .parseExpression(selectionRule.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
 
                 StandardEvaluationContext evaluation = new StandardEvaluationContext();
                 evaluation.setVariable("request", new EvaluableRequest(authenticationContext.request()));
@@ -98,7 +95,8 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
 
                 // Set as Last handler (jwt or oauth), no need to check the subscription,
                 // let the CheckSubscriptionPolicy do the job and return an appropriate error.
-                authenticationContext.setInternalAttribute(ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE, true);
+                authenticationContext.setInternalAttribute(
+                        ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE, true);
                 return Boolean.TRUE.equals(value);
             } catch (ParseException | EvaluationException e) {
                 log.error("Plan selection rule execution failed", e);
@@ -122,32 +120,29 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
         executionContext.setAttribute(ExecutionContext.ATTR_PLAN, plan.getId());
         executionContext.setAttribute(
-            CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED,
-            plan.getSelectionRule() != null && !plan.getSelectionRule().isEmpty()
-        );
+                CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED,
+                plan.getSelectionRule() != null && !plan.getSelectionRule().isEmpty());
 
-        return handler
-            .handle(executionContext)
-            .stream()
-            .map(securityPolicy -> {
-                // Override the configuration of the policy with the one provided by the plan
-                if (securityPolicy instanceof PluginAuthenticationPolicy) {
-                    return new PluginAuthenticationPolicy() {
-                        @Override
-                        public String name() {
-                            return ((PluginAuthenticationPolicy) securityPolicy).name();
-                        }
+        return handler.handle(executionContext).stream()
+                .map(securityPolicy -> {
+                    // Override the configuration of the policy with the one provided by the plan
+                    if (securityPolicy instanceof PluginAuthenticationPolicy) {
+                        return new PluginAuthenticationPolicy() {
+                            @Override
+                            public String name() {
+                                return ((PluginAuthenticationPolicy) securityPolicy).name();
+                            }
 
-                        @Override
-                        public String configuration() {
-                            return plan.getSecurityDefinition();
-                        }
-                    };
-                }
+                            @Override
+                            public String configuration() {
+                                return plan.getSecurityDefinition();
+                            }
+                        };
+                    }
 
-                return securityPolicy;
-            })
-            .collect(Collectors.toList());
+                    return securityPolicy;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

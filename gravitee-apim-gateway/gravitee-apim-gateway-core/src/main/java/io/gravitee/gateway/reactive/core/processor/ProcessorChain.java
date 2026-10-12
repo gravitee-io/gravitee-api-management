@@ -60,7 +60,8 @@ public class ProcessorChain implements Hookable<ProcessorHook> {
         return processors.concatMapCompletable(processor -> executeNext(ctx, processor, phase));
     }
 
-    private Completable executeNext(final HttpExecutionContextInternal ctx, final Processor processor, final ExecutionPhase phase) {
+    private Completable executeNext(
+            final HttpExecutionContextInternal ctx, final Processor processor, final ExecutionPhase phase) {
         ctx.withLogger(log).debug("Executing processor {} in processor chain {}", processor.getId(), id);
         return HookHelper.hook(() -> processor.execute(ctx), processor.getId(), processorHooks, ctx, phase);
     }

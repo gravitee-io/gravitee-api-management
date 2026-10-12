@@ -67,18 +67,16 @@ class DefaultSyncHandlerTest {
 
         int port = getRandomPort();
 
-        client = WebClient.create(vertx, new WebClientOptions().setDefaultHost("localhost").setDefaultPort(port));
+        client = WebClient.create(
+                vertx, new WebClientOptions().setDefaultHost("localhost").setDefaultPort(port));
 
-        vertx
-            .deployVerticle(
-                new AbstractVerticle() {
+        vertx.deployVerticle(new AbstractVerticle() {
                     @Override
                     public void start() {
                         vertx.createHttpServer().requestHandler(router).listen(port);
                     }
-                }
-            )
-            .onComplete(testContext.succeedingThenComplete());
+                })
+                .onComplete(testContext.succeedingThenComplete());
     }
 
     @AfterEach
@@ -95,27 +93,22 @@ class DefaultSyncHandlerTest {
         when(defaultSyncManager.lastSyncErrorMessage()).thenReturn("error");
         when(defaultSyncManager.totalSyncOnError()).thenReturn(1L);
 
-        client
-            .post("/path")
-            .as(BodyCodec.jsonObject())
-            .send()
-            .expecting(HttpResponseExpectation.SC_OK)
-            .expecting(HttpResponseExpectation.JSON)
-            .onComplete(
-                testContext.succeeding(response ->
-                    testContext.verify(() -> {
-                        JsonObject responseBody = response.body();
-                        assertThat(responseBody.getString("initialDone")).isEqualTo("true");
-                        assertThat(responseBody.getString("counter")).isEqualTo("1");
-                        assertThat(responseBody.getString("nextSyncTime")).isEqualTo("1");
-                        assertThat(responseBody.getString("lastOnError")).isEqualTo("true");
-                        assertThat(responseBody.getString("lastErrorMessage")).isEqualTo("error");
-                        assertThat(responseBody.getString("totalOnErrors")).isEqualTo("1");
-                        testContext.completeNow();
-                    })
-                )
-            )
-            .onFailure(testContext::failNow);
+        client.post("/path")
+                .as(BodyCodec.jsonObject())
+                .send()
+                .expecting(HttpResponseExpectation.SC_OK)
+                .expecting(HttpResponseExpectation.JSON)
+                .onComplete(testContext.succeeding(response -> testContext.verify(() -> {
+                    JsonObject responseBody = response.body();
+                    assertThat(responseBody.getString("initialDone")).isEqualTo("true");
+                    assertThat(responseBody.getString("counter")).isEqualTo("1");
+                    assertThat(responseBody.getString("nextSyncTime")).isEqualTo("1");
+                    assertThat(responseBody.getString("lastOnError")).isEqualTo("true");
+                    assertThat(responseBody.getString("lastErrorMessage")).isEqualTo("error");
+                    assertThat(responseBody.getString("totalOnErrors")).isEqualTo("1");
+                    testContext.completeNow();
+                })))
+                .onFailure(testContext::failNow);
     }
 
     @Test
@@ -127,27 +120,22 @@ class DefaultSyncHandlerTest {
         when(defaultSyncManager.lastSyncErrorMessage()).thenReturn("error");
         when(defaultSyncManager.totalSyncOnError()).thenReturn(1L);
 
-        client
-            .post("/path")
-            .as(BodyCodec.jsonObject())
-            .send()
-            .expecting(HttpResponseExpectation.SC_SERVICE_UNAVAILABLE)
-            .expecting(HttpResponseExpectation.JSON)
-            .onComplete(
-                testContext.succeeding(response ->
-                    testContext.verify(() -> {
-                        JsonObject responseBody = response.body();
-                        assertThat(responseBody.getString("initialDone")).isEqualTo("false");
-                        assertThat(responseBody.getString("counter")).isEqualTo("1");
-                        assertThat(responseBody.getString("nextSyncTime")).isEqualTo("1");
-                        assertThat(responseBody.getString("lastOnError")).isEqualTo("true");
-                        assertThat(responseBody.getString("lastErrorMessage")).isEqualTo("error");
-                        assertThat(responseBody.getString("totalOnErrors")).isEqualTo("1");
-                        testContext.completeNow();
-                    })
-                )
-            )
-            .onFailure(testContext::failNow);
+        client.post("/path")
+                .as(BodyCodec.jsonObject())
+                .send()
+                .expecting(HttpResponseExpectation.SC_SERVICE_UNAVAILABLE)
+                .expecting(HttpResponseExpectation.JSON)
+                .onComplete(testContext.succeeding(response -> testContext.verify(() -> {
+                    JsonObject responseBody = response.body();
+                    assertThat(responseBody.getString("initialDone")).isEqualTo("false");
+                    assertThat(responseBody.getString("counter")).isEqualTo("1");
+                    assertThat(responseBody.getString("nextSyncTime")).isEqualTo("1");
+                    assertThat(responseBody.getString("lastOnError")).isEqualTo("true");
+                    assertThat(responseBody.getString("lastErrorMessage")).isEqualTo("error");
+                    assertThat(responseBody.getString("totalOnErrors")).isEqualTo("1");
+                    testContext.completeNow();
+                })))
+                .onFailure(testContext::failNow);
     }
 
     private int getRandomPort() throws IOException {

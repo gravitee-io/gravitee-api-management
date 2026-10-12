@@ -71,7 +71,8 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
     }
 
     @Override
-    public DictionaryEntity handleDeployment(ExecutionContext executionContext, DictionaryEntity dictionary, boolean deploy) {
+    public DictionaryEntity handleDeployment(
+            ExecutionContext executionContext, DictionaryEntity dictionary, boolean deploy) {
         if (dictionary.getType() == DictionaryType.MANUAL) {
             if (deploy) {
                 return dictionaryService.deploy(executionContext, dictionary.getId());
@@ -90,7 +91,8 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
     }
 
     private static boolean isStarted(DictionaryEntity dictionary) {
-        return dictionary.getState() != null && Objects.equals(dictionary.getState().name(), Lifecycle.State.STARTED.name());
+        return dictionary.getState() != null
+                && Objects.equals(dictionary.getState().name(), Lifecycle.State.STARTED.name());
     }
 
     private static NewDictionaryEntity toNewDictionaryEntity(Dictionary dictionary) {
@@ -125,10 +127,12 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         if (properties == null) {
             return null;
         }
-        return properties
-            .stream()
-            .filter(Objects::nonNull)
-            .collect(LinkedHashMap::new, (values, property) -> values.put(property.getKey(), property.getValue()), LinkedHashMap::putAll);
+        return properties.stream()
+                .filter(Objects::nonNull)
+                .collect(
+                        LinkedHashMap::new,
+                        (values, property) -> values.put(property.getKey(), property.getValue()),
+                        LinkedHashMap::putAll);
     }
 
     /**
@@ -139,21 +143,18 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         if (properties == null) {
             return null;
         }
-        return properties
-            .stream()
-            .filter(property -> property != null && (property.getEncrypted() != null || property.getEncryptable() != null))
-            .collect(
-                LinkedHashMap::new,
-                (options, property) ->
-                    options.put(
-                        property.getKey(),
-                        DictionaryPropertyOptions.builder()
-                            .encrypted(property.getEncrypted())
-                            .encryptable(property.getEncryptable())
-                            .build()
-                    ),
-                LinkedHashMap::putAll
-            );
+        return properties.stream()
+                .filter(property ->
+                        property != null && (property.getEncrypted() != null || property.getEncryptable() != null))
+                .collect(
+                        LinkedHashMap::new,
+                        (options, property) -> options.put(
+                                property.getKey(),
+                                DictionaryPropertyOptions.builder()
+                                        .encrypted(property.getEncrypted())
+                                        .encryptable(property.getEncryptable())
+                                        .build()),
+                        LinkedHashMap::putAll);
     }
 
     private static DictionaryType toEntityType(io.gravitee.apim.core.dictionary.model.DictionaryType type) {

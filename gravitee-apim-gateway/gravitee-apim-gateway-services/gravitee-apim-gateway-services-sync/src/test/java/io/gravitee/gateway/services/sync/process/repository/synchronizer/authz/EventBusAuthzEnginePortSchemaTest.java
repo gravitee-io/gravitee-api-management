@@ -53,28 +53,28 @@ class EventBusAuthzEnginePortSchemaTest {
     }
 
     private void recordAndReplyOn(String address) {
-        vertx
-            .eventBus()
-            .<JsonObject>consumer(address, msg -> {
-                hits.add(address);
-                commands.add(msg.body());
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+        vertx.eventBus().<JsonObject>consumer(address, msg -> {
+            hits.add(address);
+            commands.add(msg.body());
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
     }
 
     @Test
     void the_add_command_carries_only_docId_and_schemaText() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
 
-        portServingAll().addOrUpdateSchema("env-1", "s1", "fleet schema", SCHEMA_TEXT, Set.of("api-a"), 1L).blockingAwait();
+        portServingAll()
+                .addOrUpdateSchema("env-1", "s1", "fleet schema", SCHEMA_TEXT, Set.of("api-a"), 1L)
+                .blockingAwait();
 
         JsonObject command = commands.poll();
         assertThat(command.getString("op")).isEqualTo("addOrUpdateSchema");
         assertThat(command.getString("docId")).isEqualTo("s1");
         assertThat(command.getString("schemaText")).isEqualTo(SCHEMA_TEXT);
         assertThat(command.fieldNames())
-            .as("the PDP consumer reads only docId and schemaText, so name must not go on the bus")
-            .containsExactlyInAnyOrder("op", "docId", "schemaText");
+                .as("the PDP consumer reads only docId and schemaText, so name must not go on the bus")
+                .containsExactlyInAnyOrder("op", "docId", "schemaText");
     }
 
     @Test
@@ -93,7 +93,9 @@ class EventBusAuthzEnginePortSchemaTest {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-b");
 
-        portServingAll().addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("api-a"), 1L).blockingAwait();
+        portServingAll()
+                .addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("api-a"), 1L)
+                .blockingAwait();
 
         assertThat(hits).containsExactly("service:authz-pdp:sync:scope:env-1:api-a");
     }
@@ -103,7 +105,9 @@ class EventBusAuthzEnginePortSchemaTest {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:stock");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:stock@eu");
 
-        portServingAll().addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("stock@eu"), 1L).blockingAwait();
+        portServingAll()
+                .addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("stock@eu"), 1L)
+                .blockingAwait();
 
         assertThat(hits).containsExactly("service:authz-pdp:sync:scope:env-1:stock");
     }
@@ -112,12 +116,14 @@ class EventBusAuthzEnginePortSchemaTest {
     void two_tag_variants_of_one_engine_send_twice_to_the_same_address_idempotently() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:stock");
 
-        portServingAll().addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("stock@eu", "stock@us"), 1L).blockingAwait();
+        portServingAll()
+                .addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("stock@eu", "stock@us"), 1L)
+                .blockingAwait();
 
-        assertThat(hits).containsExactly("service:authz-pdp:sync:scope:env-1:stock", "service:authz-pdp:sync:scope:env-1:stock");
-        assertThat(commands)
-            .extracting(c -> c.getString("docId"))
-            .containsExactly("s1", "s1");
+        assertThat(hits)
+                .containsExactly(
+                        "service:authz-pdp:sync:scope:env-1:stock", "service:authz-pdp:sync:scope:env-1:stock");
+        assertThat(commands).extracting(c -> c.getString("docId")).containsExactly("s1", "s1");
     }
 
     @Test
@@ -128,8 +134,8 @@ class EventBusAuthzEnginePortSchemaTest {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-b");
 
         new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions())
-            .addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("api-b"), 1L)
-            .blockingAwait();
+                .addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("api-b"), 1L)
+                .blockingAwait();
 
         assertThat(hits).isEmpty();
     }
@@ -146,11 +152,15 @@ class EventBusAuthzEnginePortSchemaTest {
         recordAndReplyOn(DEFAULT_ADDRESS);
 
         new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions())
-            .addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("*"), 1L)
-            .blockingAwait();
+                .addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("*"), 1L)
+                .blockingAwait();
 
-        assertThat(hits).containsExactlyInAnyOrder("service:authz-pdp:sync:scope:env-1:api-a", "service:authz-pdp:sync:scope:env-1:api-b");
-        assertThat(hits).as("the bootstrap engine is cross-environment, D7 excludes it").doesNotContain(DEFAULT_ADDRESS);
+        assertThat(hits)
+                .containsExactlyInAnyOrder(
+                        "service:authz-pdp:sync:scope:env-1:api-a", "service:authz-pdp:sync:scope:env-1:api-b");
+        assertThat(hits)
+                .as("the bootstrap engine is cross-environment, D7 excludes it")
+                .doesNotContain(DEFAULT_ADDRESS);
     }
 
     @Test
@@ -160,7 +170,9 @@ class EventBusAuthzEnginePortSchemaTest {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         recordAndReplyOn(DEFAULT_ADDRESS);
 
-        new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions()).removeSchema("env-1", "s1", Set.of("*")).blockingAwait();
+        new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions())
+                .removeSchema("env-1", "s1", Set.of("*"))
+                .blockingAwait();
 
         assertThat(hits).containsExactly("service:authz-pdp:sync:scope:env-1:api-a");
     }
@@ -171,7 +183,9 @@ class EventBusAuthzEnginePortSchemaTest {
         // cross-environment choice and stays possible.
         recordAndReplyOn(DEFAULT_ADDRESS);
 
-        portServingAll().addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("default"), 1L).blockingAwait();
+        portServingAll()
+                .addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of("default"), 1L)
+                .blockingAwait();
 
         assertThat(hits).containsExactly(DEFAULT_ADDRESS);
     }
@@ -180,7 +194,9 @@ class EventBusAuthzEnginePortSchemaTest {
     void an_empty_target_set_sends_nothing() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
 
-        portServingAll().addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of(), 1L).blockingAwait();
+        portServingAll()
+                .addOrUpdateSchema("env-1", "s1", "n", SCHEMA_TEXT, Set.of(), 1L)
+                .blockingAwait();
 
         assertThat(hits).isEmpty();
     }
@@ -194,8 +210,8 @@ class EventBusAuthzEnginePortSchemaTest {
         recordAndReplyOn(DEFAULT_ADDRESS);
 
         new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions())
-            .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L, null)
-            .blockingAwait();
+                .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L, null)
+                .blockingAwait();
 
         assertThat(hits).contains(DEFAULT_ADDRESS);
     }
@@ -208,8 +224,8 @@ class EventBusAuthzEnginePortSchemaTest {
         recordAndReplyOn(DEFAULT_ADDRESS);
 
         new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions())
-            .addOrUpdateEntity("env-1", "User::\"alice\"", java.util.Map.of(), List.of(), Set.of("*"), 1L)
-            .blockingAwait();
+                .addOrUpdateEntity("env-1", "User::\"alice\"", java.util.Map.of(), List.of(), Set.of("*"), 1L)
+                .blockingAwait();
 
         assertThat(hits).contains(DEFAULT_ADDRESS);
     }

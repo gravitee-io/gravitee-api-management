@@ -95,7 +95,8 @@ public class DebugApiUseCase {
         // Check policy configuration
         apiPolicyValidatorDomainService.checkPolicyConfigurations(debugApiV2);
 
-        final Instance selectedGateway = selectTargetGateway(auditInfo.organizationId(), auditInfo.environmentId(), debugApiV2);
+        final Instance selectedGateway =
+                selectTargetGateway(auditInfo.organizationId(), auditInfo.environmentId(), debugApiV2);
 
         // prepare and validate debugApiV2
         validatePlans(debugApiV2.getId(), debugApiV2.getPlans(), null);
@@ -111,7 +112,8 @@ public class DebugApiUseCase {
         // Check policy configuration
         apiPolicyValidatorDomainService.checkPolicyConfigurations(debugApi);
 
-        final Instance selectedGateway = selectTargetGateway(auditInfo.organizationId(), auditInfo.environmentId(), debugApi);
+        final Instance selectedGateway =
+                selectTargetGateway(auditInfo.organizationId(), auditInfo.environmentId(), debugApi);
 
         // prepare and validate debugApi
         disableLoggingForDebug(debugApi);
@@ -128,23 +130,19 @@ public class DebugApiUseCase {
                 if (api.getType() != ApiType.PROXY) {
                     throw new DebugApiInvalidDefinitionVersionException(apiId);
                 }
-                var plans = planQueryService
-                    .findAllByApiId(apiId)
-                    .stream()
-                    .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
-                    .map(plan -> plan.flows(flowCrudService.getPlanV4Flows(plan.getId())))
-                    .toList();
+                var plans = planQueryService.findAllByApiId(apiId).stream()
+                        .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
+                        .map(plan -> plan.flows(flowCrudService.getPlanV4Flows(plan.getId())))
+                        .toList();
 
                 validatePlans(apiId, null, plans);
                 yield new DebugApiV4(v4Api.plans(plans).flow(flowCrudService.getApiV4Flows(apiId)), debugApiRequest);
             }
             case io.gravitee.definition.model.Api v2Api -> {
-                var plans = planQueryService
-                    .findAllByApiId(apiId)
-                    .stream()
-                    .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionV2)
-                    .map(plan -> plan.flows(flowCrudService.getPlanV2Flows(plan.getId())))
-                    .toList();
+                var plans = planQueryService.findAllByApiId(apiId).stream()
+                        .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionV2)
+                        .map(plan -> plan.flows(flowCrudService.getPlanV2Flows(plan.getId())))
+                        .toList();
                 validatePlans(apiId, plans, null);
                 yield new DebugApiV2(v2Api.plans(plans).flows(flowCrudService.getApiV2Flows(apiId)), debugApiRequest);
             }
@@ -164,24 +162,20 @@ public class DebugApiUseCase {
         }
 
         return eventCrudService.createEvent(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            Set.of(auditInfo.environmentId()),
-            EventType.DEBUG_API,
-            debugApi,
-            eventProperties
-        );
+                auditInfo.organizationId(),
+                auditInfo.environmentId(),
+                Set.of(auditInfo.environmentId()),
+                EventType.DEBUG_API,
+                debugApi,
+                eventProperties);
     }
 
-    private static void validatePlans(String apiId, List<io.gravitee.definition.model.Plan> plansV2, List<Plan> plansV4) {
+    private static void validatePlans(
+            String apiId, List<io.gravitee.definition.model.Plan> plansV2, List<Plan> plansV4) {
         if (plansV2 != null) {
-            boolean hasValidPlan = plansV2
-                .stream()
-                .anyMatch(
-                    plan ->
-                        PlanStatus.STAGING.name().equalsIgnoreCase(plan.getStatus()) ||
-                        PlanStatus.PUBLISHED.name().equalsIgnoreCase(plan.getStatus())
-                );
+            boolean hasValidPlan = plansV2.stream()
+                    .anyMatch(plan -> PlanStatus.STAGING.name().equalsIgnoreCase(plan.getStatus())
+                            || PlanStatus.PUBLISHED.name().equalsIgnoreCase(plan.getStatus()));
 
             if (!hasValidPlan) {
                 throw new DebugApiNoValidPlanException(apiId);
@@ -189,14 +183,10 @@ public class DebugApiUseCase {
         }
 
         if (plansV4 != null) {
-            boolean hasValidPlan = plansV4
-                .stream()
-                .map(Plan::getStatus)
-                .anyMatch(
-                    status ->
-                        status == io.gravitee.definition.model.v4.plan.PlanStatus.STAGING ||
-                        status == io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED
-                );
+            boolean hasValidPlan = plansV4.stream()
+                    .map(Plan::getStatus)
+                    .anyMatch(status -> status == io.gravitee.definition.model.v4.plan.PlanStatus.STAGING
+                            || status == io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED);
 
             if (!hasValidPlan) {
                 throw new DebugApiNoValidPlanException(apiId);
@@ -206,19 +196,19 @@ public class DebugApiUseCase {
 
     private Instance selectTargetGateway(String organizationId, String environmentId, DebugApiProxy debugApi) {
         final Set<String> apiTags = debugApi.getTags();
-        return instanceQueryService
-            .findAllStarted(organizationId, environmentId)
-            .stream()
-            .filter(Instance::isClusterPrimaryNode)
-            .filter(instance -> instance.isRunningForEnvironment(environmentId))
-            .filter(Instance::hasDebugPluginInstalled)
-            .filter(instance -> EnvironmentUtils.hasMatchingTags(ofNullable(instance.getTags()), apiTags))
-            // A tagless gateway (e.g. the SaaS gateway) matches every API, so it passes the tag filter alongside a
-            // gateway that explicitly carries the API's sharding tag. Prefer the explicit tag match so that a debug
-            // request for a sharded API is routed to its dedicated (e.g. hybrid) gateway rather than the tagless one;
-            // only fall back to the most recently started gateway when no explicit match exists.
-            .max(Comparator.comparing((Instance instance) -> hasExplicitTagMatch(instance, apiTags)).thenComparing(Instance::getStartedAt))
-            .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(debugApi.getId()));
+        return instanceQueryService.findAllStarted(organizationId, environmentId).stream()
+                .filter(Instance::isClusterPrimaryNode)
+                .filter(instance -> instance.isRunningForEnvironment(environmentId))
+                .filter(Instance::hasDebugPluginInstalled)
+                .filter(instance -> EnvironmentUtils.hasMatchingTags(ofNullable(instance.getTags()), apiTags))
+                // A tagless gateway (e.g. the SaaS gateway) matches every API, so it passes the tag filter alongside a
+                // gateway that explicitly carries the API's sharding tag. Prefer the explicit tag match so that a debug
+                // request for a sharded API is routed to its dedicated (e.g. hybrid) gateway rather than the tagless
+                // one;
+                // only fall back to the most recently started gateway when no explicit match exists.
+                .max(Comparator.comparing((Instance instance) -> hasExplicitTagMatch(instance, apiTags))
+                        .thenComparing(Instance::getStartedAt))
+                .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(debugApi.getId()));
     }
 
     /**
@@ -227,11 +217,9 @@ public class DebugApiUseCase {
      * {@code !tag}, is not considered an explicit match.
      */
     private static boolean hasExplicitTagMatch(Instance instance, Set<String> apiTags) {
-        var includedTags = ofNullable(instance.getTags())
-            .orElseGet(List::of)
-            .stream()
-            .filter(tag -> !tag.startsWith("!"))
-            .toList();
+        var includedTags = ofNullable(instance.getTags()).orElseGet(List::of).stream()
+                .filter(tag -> !tag.startsWith("!"))
+                .toList();
         return !includedTags.isEmpty() && EnvironmentUtils.hasMatchingTags(Optional.of(includedTags), apiTags);
     }
 
@@ -260,17 +248,13 @@ public class DebugApiUseCase {
         }
         if (debugApi instanceof DebugApiV4 debugApiV4) {
             var apiDefinition = debugApiV4.getApiDefinition();
-            apiDefinition
-                .getEndpointGroups()
-                .stream()
-                .map(EndpointGroup::getServices)
-                .forEach(endpointGroupServices -> endpointGroupServices.setHealthCheck(null));
-            apiDefinition
-                .getEndpointGroups()
-                .stream()
-                .flatMap(group -> group.getEndpoints().stream())
-                .map(Endpoint::getServices)
-                .forEach(endpointServices -> endpointServices.setHealthCheck(null));
+            apiDefinition.getEndpointGroups().stream()
+                    .map(EndpointGroup::getServices)
+                    .forEach(endpointGroupServices -> endpointGroupServices.setHealthCheck(null));
+            apiDefinition.getEndpointGroups().stream()
+                    .flatMap(group -> group.getEndpoints().stream())
+                    .map(Endpoint::getServices)
+                    .forEach(endpointServices -> endpointServices.setHealthCheck(null));
         }
     }
 

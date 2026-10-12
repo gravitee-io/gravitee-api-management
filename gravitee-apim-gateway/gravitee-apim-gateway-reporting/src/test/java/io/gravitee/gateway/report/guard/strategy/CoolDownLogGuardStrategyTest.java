@@ -18,15 +18,10 @@ package io.gravitee.gateway.report.guard.strategy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.node.monitoring.healthcheck.NodeHealthCheckService;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -77,10 +72,9 @@ class CoolDownLogGuardStrategyTest {
 
         assertThat(cut.execute()).isTrue();
 
-        //Check if result is true during cooldown period and false once cooldown period has ended
-        await()
-            .atLeast(Duration.ofSeconds(2))
-            .atMost(Duration.ofSeconds(4))
-            .untilAsserted(() -> assertThat(cut.execute()).isFalse());
+        // Check if result is true during cooldown period and false once cooldown period has ended
+        await().atLeast(Duration.ofSeconds(2))
+                .atMost(Duration.ofSeconds(4))
+                .untilAsserted(() -> assertThat(cut.execute()).isFalse());
     }
 }

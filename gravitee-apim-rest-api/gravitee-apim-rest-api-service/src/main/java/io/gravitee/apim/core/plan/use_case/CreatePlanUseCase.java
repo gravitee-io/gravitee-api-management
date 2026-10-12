@@ -46,7 +46,8 @@ public class CreatePlanUseCase {
 
     public Output execute(Input input) {
         var api = apiCrudService.get(input.apiId());
-        if (EnumSet.of(DefinitionVersion.FEDERATED, DefinitionVersion.FEDERATED_AGENT).contains(api.getDefinitionVersion())) {
+        if (EnumSet.of(DefinitionVersion.FEDERATED, DefinitionVersion.FEDERATED_AGENT)
+                .contains(api.getDefinitionVersion())) {
             throw new PlanInvalidException("Can't manually create Federated Plan");
         }
 
@@ -72,19 +73,16 @@ public class CreatePlanUseCase {
     }
 
     private static boolean isMtls(Api api, Plan plan) {
-        return (
-            api.getDefinitionVersion() == DefinitionVersion.V4 &&
-            !isNull(plan.getPlanSecurity()) &&
-            plan.getPlanSecurity().getType().equalsIgnoreCase("mtls")
-        );
+        return (api.getDefinitionVersion() == DefinitionVersion.V4
+                && !isNull(plan.getPlanSecurity())
+                && plan.getPlanSecurity().getType().equalsIgnoreCase("mtls"));
     }
 
     public record Input(
-        String apiId,
-        Function<Api, Plan> toPlan,
-        Function<Api, List<? extends AbstractFlow>> flowProvider,
-        AuditInfo auditInfo
-    ) {}
+            String apiId,
+            Function<Api, Plan> toPlan,
+            Function<Api, List<? extends AbstractFlow>> flowProvider,
+            AuditInfo auditInfo) {}
 
     public record Output(String id, PlanWithFlows plan) {}
 }

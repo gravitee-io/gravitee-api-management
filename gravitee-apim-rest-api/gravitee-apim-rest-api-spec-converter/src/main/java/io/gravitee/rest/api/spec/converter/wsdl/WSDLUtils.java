@@ -35,28 +35,28 @@ import javax.xml.namespace.QName;
 public class WSDLUtils {
 
     public static <T> Optional<T> extractFirstElement(List<Object> elements, Class<T> type) {
-        return elements
-            .stream()
-            .filter(elt -> type.isAssignableFrom(elt.getClass()))
-            .map(e -> (T) e)
-            .findFirst();
+        return elements.stream()
+                .filter(elt -> type.isAssignableFrom(elt.getClass()))
+                .map(e -> (T) e)
+                .findFirst();
     }
 
     public static <T> Stream<T> extractAllElements(List<Object> elements, Class<T> type) {
-        return elements
-            .stream()
-            .filter(elt -> type.isAssignableFrom(elt.getClass()))
-            .map(e -> (T) e);
+        return elements.stream()
+                .filter(elt -> type.isAssignableFrom(elt.getClass()))
+                .map(e -> (T) e);
     }
 
     public static Optional<SoapVersion> detectSoapVersion(List<Object> elements) {
         Optional<SOAP12Binding> optSoap12 = extractFirstElement(elements, SOAP12Binding.class);
         if (optSoap12.isPresent()) {
-            return Optional.of(new Soap12Binding("rpc".equalsIgnoreCase(optSoap12.get().getStyle())));
+            return Optional.of(
+                    new Soap12Binding("rpc".equalsIgnoreCase(optSoap12.get().getStyle())));
         }
         Optional<SOAPBinding> optSoap = extractFirstElement(elements, SOAPBinding.class);
         if (optSoap.isPresent()) {
-            return Optional.of(new SoapBinding("rpc".equalsIgnoreCase(optSoap.get().getStyle())));
+            return Optional.of(
+                    new SoapBinding("rpc".equalsIgnoreCase(optSoap.get().getStyle())));
         }
         return Optional.empty();
     }
@@ -75,11 +75,13 @@ public class WSDLUtils {
     }
 
     public static Optional<String> extractSOAPAction(BindingOperation operation) {
-        Optional<SOAPOperation> optAddr = extractFirstElement(operation.getExtensibilityElements(), SOAPOperation.class);
+        Optional<SOAPOperation> optAddr =
+                extractFirstElement(operation.getExtensibilityElements(), SOAPOperation.class);
         if (optAddr.isPresent()) {
             return optAddr.map(SOAPOperation::getSoapActionURI);
         } else {
-            Optional<SOAP12Operation> optAddr12 = extractFirstElement(operation.getExtensibilityElements(), SOAP12Operation.class);
+            Optional<SOAP12Operation> optAddr12 =
+                    extractFirstElement(operation.getExtensibilityElements(), SOAP12Operation.class);
             return optAddr12.map(SOAP12Operation::getSoapActionURI);
         }
     }

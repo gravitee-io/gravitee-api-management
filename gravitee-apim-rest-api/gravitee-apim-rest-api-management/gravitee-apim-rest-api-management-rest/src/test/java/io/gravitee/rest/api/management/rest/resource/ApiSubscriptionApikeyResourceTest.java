@@ -86,9 +86,8 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @AfterEach
     public void tearDown() {
-        Stream.of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory)
+                .forEach(InMemoryAlternative::reset);
 
         reset(apiKeyCrudServiceInMemory);
         GraviteeContext.cleanContext();
@@ -96,106 +95,79 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void delete_should_revoke_and_return_http_204() {
-        subscriptionCrudServiceInMemory.initWith(
-            List.of(
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id(SUBSCRIPTION_ID)
-                    .apiId(API_ID)
-                    .referenceId(API_ID)
-                    .referenceType(SubscriptionReferenceType.API)
-                    .build()
-            )
-        );
-        applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
-        );
-        apiKeyCrudServiceInMemory.initWith(
-            List.of(
-                ApiKeyFixtures.anApiKey()
-                    .toBuilder()
-                    .id(APIKEY_ID)
-                    .applicationId(APPLICATION_ID)
-                    .subscriptions(List.of(SUBSCRIPTION_ID))
-                    .build()
-            )
-        );
+        subscriptionCrudServiceInMemory.initWith(List.of(SubscriptionFixtures.aSubscription().toBuilder()
+                .id(SUBSCRIPTION_ID)
+                .apiId(API_ID)
+                .referenceId(API_ID)
+                .referenceType(SubscriptionReferenceType.API)
+                .build()));
+        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder()
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .id(APPLICATION_ID)
+                .build()));
+        apiKeyCrudServiceInMemory.initWith(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .id(APIKEY_ID)
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID))
+                .build()));
 
         Response response = envTarget().request().delete();
 
         Assertions.assertThat(apiKeyCrudServiceInMemory.storage())
-            .extracting(
-                io.gravitee.apim.core.api_key.model.ApiKeyEntity::getId,
-                io.gravitee.apim.core.api_key.model.ApiKeyEntity::isRevoked
-            )
-            .containsExactly(tuple(APIKEY_ID, true));
+                .extracting(
+                        io.gravitee.apim.core.api_key.model.ApiKeyEntity::getId,
+                        io.gravitee.apim.core.api_key.model.ApiKeyEntity::isRevoked)
+                .containsExactly(tuple(APIKEY_ID, true));
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 
     @Test
     public void delete_should_return_http_404_when_apikey_on_another_subscription() {
-        subscriptionCrudServiceInMemory.initWith(
-            List.of(
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id(SUBSCRIPTION_ID)
-                    .apiId(API_ID)
-                    .referenceId(API_ID)
-                    .referenceType(SubscriptionReferenceType.API)
-                    .build()
-            )
-        );
-        applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
-        );
-        apiKeyCrudServiceInMemory.initWith(
-            List.of(
-                ApiKeyFixtures.anApiKey()
-                    .toBuilder()
-                    .id(APIKEY_ID)
-                    .applicationId(APPLICATION_ID)
-                    .subscriptions(List.of("another-subscription"))
-                    .build()
-            )
-        );
+        subscriptionCrudServiceInMemory.initWith(List.of(SubscriptionFixtures.aSubscription().toBuilder()
+                .id(SUBSCRIPTION_ID)
+                .apiId(API_ID)
+                .referenceId(API_ID)
+                .referenceType(SubscriptionReferenceType.API)
+                .build()));
+        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder()
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .id(APPLICATION_ID)
+                .build()));
+        apiKeyCrudServiceInMemory.initWith(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .id(APIKEY_ID)
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of("another-subscription"))
+                .build()));
         Response response = envTarget().request().delete();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         Assertions.assertThat(apiKeyCrudServiceInMemory.storage())
-            .extracting(
-                io.gravitee.apim.core.api_key.model.ApiKeyEntity::getId,
-                io.gravitee.apim.core.api_key.model.ApiKeyEntity::isRevoked
-            )
-            .containsExactly(tuple(APIKEY_ID, false));
+                .extracting(
+                        io.gravitee.apim.core.api_key.model.ApiKeyEntity::getId,
+                        io.gravitee.apim.core.api_key.model.ApiKeyEntity::isRevoked)
+                .containsExactly(tuple(APIKEY_ID, false));
     }
 
     @Test
     public void delete_should_return_http_500_on_exception() {
-        subscriptionCrudServiceInMemory.initWith(
-            List.of(
-                SubscriptionFixtures.aSubscription()
-                    .toBuilder()
-                    .id(SUBSCRIPTION_ID)
-                    .apiId(API_ID)
-                    .referenceId(API_ID)
-                    .referenceType(SubscriptionReferenceType.API)
-                    .build()
-            )
-        );
-        applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
-        );
-        apiKeyCrudServiceInMemory.initWith(
-            List.of(
-                ApiKeyFixtures.anApiKey()
-                    .toBuilder()
-                    .id(APIKEY_ID)
-                    .applicationId(APPLICATION_ID)
-                    .subscriptions(List.of(SUBSCRIPTION_ID))
-                    .build()
-            )
-        );
-        doThrow(TechnicalManagementException.class).when(apiKeyCrudServiceInMemory).update(any());
+        subscriptionCrudServiceInMemory.initWith(List.of(SubscriptionFixtures.aSubscription().toBuilder()
+                .id(SUBSCRIPTION_ID)
+                .apiId(API_ID)
+                .referenceId(API_ID)
+                .referenceType(SubscriptionReferenceType.API)
+                .build()));
+        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder()
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .id(APPLICATION_ID)
+                .build()));
+        apiKeyCrudServiceInMemory.initWith(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .id(APIKEY_ID)
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID))
+                .build()));
+        doThrow(TechnicalManagementException.class)
+                .when(apiKeyCrudServiceInMemory)
+                .update(any());
 
         Response response = envTarget().request().delete();
 
@@ -237,7 +209,8 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId(APIKEY_ID);
 
-        when(apiKeyService.update(eq(GraviteeContext.getExecutionContext()), any())).thenThrow(TechnicalManagementException.class);
+        when(apiKeyService.update(eq(GraviteeContext.getExecutionContext()), any()))
+                .thenThrow(TechnicalManagementException.class);
 
         Response response = envTarget().request().put(Entity.json(apiKey));
 
@@ -286,7 +259,8 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
         ApiKeyEntity existingApiKey = new ApiKeyEntity();
         existingApiKey.setApplication(application);
         existingApiKey.setSubscriptions(Set.of(anotherExistingSubscription));
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID)).thenReturn(existingApiKey);
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID))
+                .thenReturn(existingApiKey);
 
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId(APIKEY_ID);
@@ -364,7 +338,8 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
         ApplicationEntity application = new ApplicationEntity();
         application.setId(APPLICATION_ID);
         application.setApiKeyMode(apiKeyMode);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID))
+                .thenReturn(application);
         return application;
     }
 
@@ -381,7 +356,8 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setApplication(application);
         apiKey.setSubscriptions(Set.of(subscription));
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID)).thenReturn(apiKey);
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID))
+                .thenReturn(apiKey);
         return apiKey;
     }
 }

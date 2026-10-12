@@ -73,7 +73,8 @@ public class ApiMetadataProvider implements AnalyticsMetadataProvider {
     private static final ApiMetadata NOT_FOUND = new ApiMetadata(METADATA_DELETED_API_NAME, false, null, true);
 
     private static ApiMetadata ofApi(Api api) {
-        return new ApiMetadata(api.getName(), false, api.getVersion(), api.getApiLifecycleState() == Api.ApiLifecycleState.ARCHIVED);
+        return new ApiMetadata(
+                api.getName(), false, api.getVersion(), api.getApiLifecycleState() == Api.ApiLifecycleState.ARCHIVED);
     }
 
     @Override
@@ -82,31 +83,29 @@ public class ApiMetadataProvider implements AnalyticsMetadataProvider {
         Map<String, ApiMetadata> metaMap = new HashMap<>();
 
         // Unknown services
-        keys
-            .stream()
-            .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
-            .forEach(key -> metaMap.put(key, UNKNOWN_API));
+        keys.stream()
+                .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
+                .forEach(key -> metaMap.put(key, UNKNOWN_API));
 
         // Batch for real API ids
-        List<String> apiIds = keys
-            .stream()
-            .filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key))
-            .toList();
+        List<String> apiIds = keys.stream()
+                .filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key))
+                .toList();
 
         if (!apiIds.isEmpty()) {
-            Map<String, Api> apis = apiCrudService.findByIds(apiIds).stream().collect(Collectors.toMap(Api::getId, Function.identity()));
+            Map<String, Api> apis = apiCrudService.findByIds(apiIds).stream()
+                    .collect(Collectors.toMap(Api::getId, Function.identity()));
 
             // Found APIs
             apis.forEach((id, api) -> metaMap.put(id, ofApi(api)));
 
             // Not found APIs
-            apiIds
-                .stream()
-                .filter(id -> !apis.containsKey(id))
-                .forEach(id -> metaMap.put(id, NOT_FOUND));
+            apiIds.stream().filter(id -> !apis.containsKey(id)).forEach(id -> metaMap.put(id, NOT_FOUND));
         }
 
         // Build output Map<String, Map<String, String>>
-        return metaMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toMap()));
+        return metaMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey, entry -> entry.getValue().toMap()));
     }
 }

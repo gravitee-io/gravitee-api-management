@@ -30,41 +30,44 @@ public class WsdlToUpdateApiUseCase {
 
     public sealed interface Input permits Input.Inline, Input.Url {
         String apiId();
+
         boolean withDocumentation();
+
         boolean withOASValidationPolicy();
+
         List<String> withPolicies();
+
         AuditInfo auditInfo();
 
         record Inline(
-            String apiId,
-            String payload,
-            boolean withDocumentation,
-            boolean withOASValidationPolicy,
-            List<String> withPolicies,
-            AuditInfo auditInfo
-        ) implements Input {}
+                String apiId,
+                String payload,
+                boolean withDocumentation,
+                boolean withOASValidationPolicy,
+                List<String> withPolicies,
+                AuditInfo auditInfo)
+                implements Input {}
 
         record Url(
-            String apiId,
-            String url,
-            boolean withDocumentation,
-            boolean withOASValidationPolicy,
-            List<String> withPolicies,
-            AuditInfo auditInfo
-        ) implements Input {}
+                String apiId,
+                String url,
+                boolean withDocumentation,
+                boolean withOASValidationPolicy,
+                List<String> withPolicies,
+                AuditInfo auditInfo)
+                implements Input {}
 
         static Input of(
-            String apiId,
-            String payload,
-            boolean isUrl,
-            boolean withDocumentation,
-            boolean withOASValidationPolicy,
-            List<String> withPolicies,
-            AuditInfo auditInfo
-        ) {
+                String apiId,
+                String payload,
+                boolean isUrl,
+                boolean withDocumentation,
+                boolean withOASValidationPolicy,
+                List<String> withPolicies,
+                AuditInfo auditInfo) {
             return isUrl
-                ? new Url(apiId, payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo)
-                : new Inline(apiId, payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo);
+                    ? new Url(apiId, payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo)
+                    : new Inline(apiId, payload, withDocumentation, withOASValidationPolicy, withPolicies, auditInfo);
         }
     }
 
@@ -83,23 +86,21 @@ public class WsdlToUpdateApiUseCase {
         var policies = addDependentPolicies(input.withPolicies());
 
         var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder()
-            .payload(openApiYaml)
-            .format(ImportSwaggerDescriptorEntity.Format.WSDL)
-            .withDocumentation(input.withDocumentation())
-            .withPolicies(policies)
-            .skipFlows(policies != null && policies.isEmpty())
-            .build();
+                .payload(openApiYaml)
+                .format(ImportSwaggerDescriptorEntity.Format.WSDL)
+                .withDocumentation(input.withDocumentation())
+                .withPolicies(policies)
+                .skipFlows(policies != null && policies.isEmpty())
+                .build();
 
-        var output = oaiToUpdateApiUseCase.execute(
-            OAIToUpdateApiUseCase.Input.builder()
+        var output = oaiToUpdateApiUseCase.execute(OAIToUpdateApiUseCase.Input.builder()
                 .apiId(input.apiId())
                 .importSwaggerDescriptor(importSwaggerDescriptor)
                 .withDocumentation(input.withDocumentation())
                 .withOASValidationPolicy(input.withOASValidationPolicy())
                 .withPolicyPaths(false)
                 .auditInfo(input.auditInfo())
-                .build()
-        );
+                .build());
 
         return new Output(output.apiWithFlows());
     }
@@ -108,6 +109,8 @@ public class WsdlToUpdateApiUseCase {
         if (policies == null || !policies.contains("rest-to-soap")) {
             return policies;
         }
-        return Stream.concat(policies.stream(), Stream.of("xml-json")).distinct().toList();
+        return Stream.concat(policies.stream(), Stream.of("xml-json"))
+                .distinct()
+                .toList();
     }
 }

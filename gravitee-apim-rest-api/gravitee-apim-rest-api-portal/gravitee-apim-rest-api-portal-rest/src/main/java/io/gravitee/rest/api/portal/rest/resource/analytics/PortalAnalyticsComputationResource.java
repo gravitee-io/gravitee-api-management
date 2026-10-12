@@ -57,10 +57,7 @@ public class PortalAnalyticsComputationResource extends AbstractResource {
     @RequirePortalAuth
     public AnalyticsMeasuresResponse computeMeasures(@Valid AnalyticsMeasuresRequest request) {
         var input = new ComputeMeasuresUseCase.Input(
-            getAuditInfo(),
-            PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request),
-            AnalyticsScope.PORTAL
-        );
+                getAuditInfo(), PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request), AnalyticsScope.PORTAL);
         var output = computeMeasuresUseCase.execute(input);
         return PortalAnalyticsMeasuresMapper.INSTANCE.toPortalResponse(output.response());
     }
@@ -72,10 +69,7 @@ public class PortalAnalyticsComputationResource extends AbstractResource {
     @RequirePortalAuth
     public AnalyticsFacetsResponse computeFacets(@Valid AnalyticsFacetsRequest request) {
         var input = new ComputeFacetsUseCase.Input(
-            getAuditInfo(),
-            PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request),
-            AnalyticsScope.PORTAL
-        );
+                getAuditInfo(), PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request), AnalyticsScope.PORTAL);
         var output = computeFacetsUseCase.execute(input);
         return PortalAnalyticsMeasuresMapper.INSTANCE.toPortalResponse(output.response());
     }
@@ -87,10 +81,7 @@ public class PortalAnalyticsComputationResource extends AbstractResource {
     @RequirePortalAuth
     public AnalyticsTimeSeriesResponse computeTimeSeries(@Valid AnalyticsTimeSeriesRequest request) {
         var input = new ComputeTimeSeriesUseCase.Input(
-            getAuditInfo(),
-            PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request),
-            AnalyticsScope.PORTAL
-        );
+                getAuditInfo(), PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request), AnalyticsScope.PORTAL);
         var output = computeTimeSeriesUseCase.execute(input);
         return PortalAnalyticsMeasuresMapper.INSTANCE.toPortalResponse(output.response());
     }

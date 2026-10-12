@@ -123,21 +123,21 @@ public class ApiExport {
 
     public ApiBuilder toApiBuilder() {
         return Api.builder()
-            .id(id)
-            .crossId(crossId)
-            .name(name)
-            .version(apiVersion)
-            .originContext(originContext)
-            .definitionVersion(DefinitionVersion.V4)
-            .type(type)
-            .description(description)
-            .picture(picture)
-            .background(background)
-            .groups(groups == null ? null : new HashSet<>(groups))
-            .categories(categories == null ? null : new HashSet<>(categories))
-            .labels(labels == null ? null : new ArrayList<>(labels))
-            .disableMembershipNotifications(disableMembershipNotifications)
-            .allowMultiJwtOauth2Subscriptions(allowMultiJwtOauth2Subscriptions);
+                .id(id)
+                .crossId(crossId)
+                .name(name)
+                .version(apiVersion)
+                .originContext(originContext)
+                .definitionVersion(DefinitionVersion.V4)
+                .type(type)
+                .description(description)
+                .picture(picture)
+                .background(background)
+                .groups(groups == null ? null : new HashSet<>(groups))
+                .categories(categories == null ? null : new HashSet<>(categories))
+                .labels(labels == null ? null : new ArrayList<>(labels))
+                .disableMembershipNotifications(disableMembershipNotifications)
+                .allowMultiJwtOauth2Subscriptions(allowMultiJwtOauth2Subscriptions);
     }
 
     public io.gravitee.definition.model.v4.Api.ApiBuilder<?, ?> toApiDefinitionBuilder() {
@@ -145,22 +145,22 @@ public class ApiExport {
             return null;
         }
         return io.gravitee.definition.model.v4.Api.builder()
-            .analytics(analytics)
-            .apiVersion(apiVersion)
-            .definitionVersion(DefinitionVersion.V4)
-            .endpointGroups((List<EndpointGroup>) endpointGroups)
-            .failover(failover)
-            .flows((List<Flow>) flows)
-            .listeners((List<Listener>) listeners)
-            .flowExecution(flowExecution)
-            .name(name)
-            .properties(properties)
-            .resources(resources)
-            .responseTemplates(responseTemplates)
-            .tags(tags)
-            .type(type)
-            .services((ApiServices) services)
-            .allowedInApiProducts(allowedInApiProducts);
+                .analytics(analytics)
+                .apiVersion(apiVersion)
+                .definitionVersion(DefinitionVersion.V4)
+                .endpointGroups((List<EndpointGroup>) endpointGroups)
+                .failover(failover)
+                .flows((List<Flow>) flows)
+                .listeners((List<Listener>) listeners)
+                .flowExecution(flowExecution)
+                .name(name)
+                .properties(properties)
+                .resources(resources)
+                .responseTemplates(responseTemplates)
+                .tags(tags)
+                .type(type)
+                .services((ApiServices) services)
+                .allowedInApiProducts(allowedInApiProducts);
     }
 
     public io.gravitee.definition.model.v4.nativeapi.NativeApi.NativeApiBuilder<?, ?> toNativeApiDefinitionBuilder() {
@@ -168,16 +168,16 @@ public class ApiExport {
             return null;
         }
         return io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
-            .apiVersion(apiVersion)
-            .definitionVersion(DefinitionVersion.V4)
-            .endpointGroups((List<NativeEndpointGroup>) endpointGroups)
-            .flows((List<NativeFlow>) flows)
-            .listeners((List<NativeListener>) listeners)
-            .name(name)
-            .properties(properties)
-            .resources(resources)
-            .tags(tags)
-            .type(type)
-            .services((NativeApiServices) services);
+                .apiVersion(apiVersion)
+                .definitionVersion(DefinitionVersion.V4)
+                .endpointGroups((List<NativeEndpointGroup>) endpointGroups)
+                .flows((List<NativeFlow>) flows)
+                .listeners((List<NativeListener>) listeners)
+                .name(name)
+                .properties(properties)
+                .resources(resources)
+                .tags(tags)
+                .type(type)
+                .services((NativeApiServices) services);
     }
 }

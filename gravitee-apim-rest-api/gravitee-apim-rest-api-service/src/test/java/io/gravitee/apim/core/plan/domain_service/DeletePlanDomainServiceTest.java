@@ -80,11 +80,10 @@ class DeletePlanDomainServiceTest {
     @BeforeEach
     void setUp() {
         service = new DeletePlanDomainService(
-            planCrudService,
-            subscriptionQueryService,
-            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor()),
-            new inmemory.KafkaPortRangeCrudServiceInMemory()
-        );
+                planCrudService,
+                subscriptionQueryService,
+                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor()),
+                new inmemory.KafkaPortRangeCrudServiceInMemory());
     }
 
     @AfterEach
@@ -114,44 +113,54 @@ class DeletePlanDomainServiceTest {
 
         // Then
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .containsExactly(
-                AuditEntity.builder()
-                    .id("generated-id")
-                    .organizationId(ORGANIZATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId(plan.getApiId())
-                    .user(USER_ID)
-                    .properties(Map.of("PLAN", plan.getId()))
-                    .event(PlanAuditEvent.PLAN_DELETED.name())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .containsExactly(AuditEntity.builder()
+                        .id("generated-id")
+                        .organizationId(ORGANIZATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.API)
+                        .referenceId(plan.getApiId())
+                        .user(USER_ID)
+                        .properties(Map.of("PLAN", plan.getId()))
+                        .event(PlanAuditEvent.PLAN_DELETED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build());
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = { "CLOSED", "REJECTED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            mode = EnumSource.Mode.EXCLUDE,
+            names = {"CLOSED", "REJECTED"})
     void should_throw_when_deleting_plan_with_active_subscriptions(SubscriptionEntity.Status status) {
         // Given
         var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
-        givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build());
+        givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder()
+                .planId(plan.getId())
+                .status(status)
+                .build());
 
         // When
         var throwable = org.assertj.core.api.Assertions.catchThrowable(() -> service.delete(plan, AUDIT_INFO));
 
         // Then
         assertThat(throwable)
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessage("Impossible to delete a plan with active subscriptions");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Impossible to delete a plan with active subscriptions");
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.INCLUDE, names = { "CLOSED", "REJECTED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            mode = EnumSource.Mode.INCLUDE,
+            names = {"CLOSED", "REJECTED"})
     void should_delete_plan_if_existing_subscriptions_are_inactive(SubscriptionEntity.Status status) {
         // Given
         var plan = givenExistingPlan(PlanFixtures.HttpV4.anApiKey());
-        givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).status(status).build());
+        givenExistingSubscriptions(SubscriptionFixtures.aSubscription().toBuilder()
+                .planId(plan.getId())
+                .status(status)
+                .build());
 
         // When
         service.delete(plan, AUDIT_INFO);

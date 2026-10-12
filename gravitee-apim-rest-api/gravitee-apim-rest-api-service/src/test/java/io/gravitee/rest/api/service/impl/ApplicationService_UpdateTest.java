@@ -180,7 +180,8 @@ public class ApplicationService_UpdateTest {
     private GroupService groupService;
 
     @Mock
-    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService
+            clientCertificateCrudService;
 
     @Mock
     private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
@@ -188,17 +189,21 @@ public class ApplicationService_UpdateTest {
     @Mock
     private MtlsSubscriptionSyncDomainService applicationCertificatesUpdateDomainService;
 
-    private static final CertificateInfo VALID_CERT_INFO = new CertificateInfo(new Date(), "CN=unit-tests", "CN=unit-tests", "SHA256:abc");
+    private static final CertificateInfo VALID_CERT_INFO =
+            new CertificateInfo(new Date(), "CN=unit-tests", "CN=unit-tests", "SHA256:abc");
 
     @BeforeEach
     public void setUp() {
-        lenient().when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenReturn(VALID_CERT_INFO);
         lenient()
-            .when(clientCertificateValidationDomainService.validate(any()))
-            .thenAnswer(invocation -> new CertificateInfo(new Date(), "CN=test", "CN=issuer", "fp:" + invocation.getArgument(0)));
+                .when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any()))
+                .thenReturn(VALID_CERT_INFO);
         lenient()
-            .when(groupService.retainGroupsTheCallerMayAssign(any(), any(), any(), any()))
-            .thenAnswer(invocation -> invocation.getArgument(2));
+                .when(clientCertificateValidationDomainService.validate(any()))
+                .thenAnswer(invocation ->
+                        new CertificateInfo(new Date(), "CN=test", "CN=issuer", "fp:" + invocation.getArgument(0)));
+        lenient()
+                .when(groupService.retainGroupsTheCallerMayAssign(any(), any(), any(), any()))
+                .thenAnswer(invocation -> invocation.getArgument(2));
     }
 
     @Test
@@ -210,18 +215,17 @@ public class ApplicationService_UpdateTest {
         settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
 
         // 'Shared API KEY' setting is enabled, allows to update to SHARED mode
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(true);
 
         ConsoleConfigEntity config = getConsoleConfigEntity(true);
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(config);
         lenient().when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
@@ -244,18 +248,17 @@ public class ApplicationService_UpdateTest {
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(getPrimaryOwner()));
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(getPrimaryOwner()));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
 
-        final ApplicationEntity applicationEntity = applicationService.update(
-            GraviteeContext.getExecutionContext(),
-            APPLICATION_ID,
-            updateApplication
-        );
+        final ApplicationEntity applicationEntity =
+                applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
-        verify(applicationRepository).update(
-            argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null)
-        );
+        verify(applicationRepository)
+                .update(argThat(application ->
+                        APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
@@ -274,14 +277,13 @@ public class ApplicationService_UpdateTest {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(configService.getConsoleConfig(executionContext)).thenReturn(config);
 
-        Exception exception = assertThrows(BadRequestException.class, () ->
-            applicationService.update(executionContext, APPLICATION_ID, updateApplication)
-        );
+        Exception exception = assertThrows(
+                BadRequestException.class,
+                () -> applicationService.update(executionContext, APPLICATION_ID, updateApplication));
 
         assertEquals(
-            "Updating an application is not allowed as at least one group is required on the application.",
-            exception.getMessage()
-        );
+                "Updating an application is not allowed as at least one group is required on the application.",
+                exception.getMessage());
     }
 
     @Test
@@ -292,13 +294,11 @@ public class ApplicationService_UpdateTest {
         settings.setApp(clientSettings);
 
         // 'Shared API KEY' setting is enabled, allows to update to SHARED mode
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(true);
 
         mockSubscriptions();
         mockPlans();
@@ -320,19 +320,19 @@ public class ApplicationService_UpdateTest {
         MembershipEntity po = getPrimaryOwner();
         ConsoleConfigEntity config = getConsoleConfigEntity(false);
 
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(config);
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
 
-        final ApplicationEntity applicationEntity = applicationService.update(
-            GraviteeContext.getExecutionContext(),
-            APPLICATION_ID,
-            updateApplication
-        );
+        final ApplicationEntity applicationEntity =
+                applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
-        verify(applicationRepository).update(
-            argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null)
-        );
+        verify(applicationRepository)
+                .update(argThat(application ->
+                        APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
@@ -348,23 +348,23 @@ public class ApplicationService_UpdateTest {
         SubscriptionEntity pushSubscription = new SubscriptionEntity();
         pushSubscription.setPlan("pushPLan");
         pushSubscription.setStatus(SubscriptionStatus.ACCEPTED);
-        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null)).thenReturn(
-            Arrays.asList(apiKeySubscription, pushSubscription)
-        );
+        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null))
+                .thenReturn(Arrays.asList(apiKeySubscription, pushSubscription));
     }
 
     private void mockPlans() {
-        io.gravitee.rest.api.model.v4.plan.PlanEntity apiKeyPlanEntity = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        io.gravitee.rest.api.model.v4.plan.PlanEntity apiKeyPlanEntity =
+                new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         apiKeyPlanEntity.setId("apiKeyPlan");
         apiKeyPlanEntity.setSecurity(new PlanSecurity(PlanSecurityType.API_KEY.name(), ""));
         apiKeyPlanEntity.setMode(PlanMode.STANDARD);
-        io.gravitee.rest.api.model.v4.plan.PlanEntity pushPlanEntity = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        io.gravitee.rest.api.model.v4.plan.PlanEntity pushPlanEntity =
+                new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         pushPlanEntity.setId("pushPLan");
         pushPlanEntity.setSecurity(null);
         pushPlanEntity.setMode(PlanMode.PUSH);
-        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of("apiKeyPlan", "pushPLan"))).thenReturn(
-            Set.of(apiKeyPlanEntity, pushPlanEntity)
-        );
+        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of("apiKeyPlan", "pushPLan")))
+                .thenReturn(Set.of(apiKeyPlanEntity, pushPlanEntity));
     }
 
     @Test
@@ -373,7 +373,8 @@ public class ApplicationService_UpdateTest {
             ConsoleConfigEntity config = getConsoleConfigEntity(false);
 
             when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
-            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                    .thenReturn(config);
 
             applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
         });
@@ -388,12 +389,14 @@ public class ApplicationService_UpdateTest {
             settings.setApp(clientSettings);
             ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
 
-            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                    .thenReturn(consoleConfig);
             when(updateApplication.getSettings()).thenReturn(settings);
             when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
             when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
             when(applicationRepository.update(any())).thenThrow(TechnicalException.class);
-            when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+            when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                    .thenCallRealMethod();
 
             when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
             when(updateApplication.getDescription()).thenReturn("My description");
@@ -410,13 +413,15 @@ public class ApplicationService_UpdateTest {
             clientSettings.setClientId(CLIENT_ID);
             settings.setApp(clientSettings);
 
-            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(false));
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                    .thenReturn(getConsoleConfigEntity(false));
             when(updateApplication.getSettings()).thenReturn(settings);
             when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
             when(updateApplication.getDescription()).thenReturn("My description");
             when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
             when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
-            when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+            when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                    .thenCallRealMethod();
             when(applicationRepository.update(any())).thenThrow(new DuplicateKeyException("client_id already used"));
 
             applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
@@ -446,25 +451,25 @@ public class ApplicationService_UpdateTest {
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
         when(updateApplication.getDescription()).thenReturn("My description");
         when(applicationRepository.update(any())).thenReturn(existingApplication);
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         ConsoleConfigEntity config = getConsoleConfigEntity(false);
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(config);
 
         MembershipEntity po = getPrimaryOwner();
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
-        final ApplicationEntity applicationEntity = applicationService.update(
-            GraviteeContext.getExecutionContext(),
-            APPLICATION_ID,
-            updateApplication
-        );
+        final ApplicationEntity applicationEntity =
+                applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
-        verify(applicationRepository).update(
-            argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null)
-        );
+        verify(applicationRepository)
+                .update(argThat(application ->
+                        APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
@@ -482,7 +487,8 @@ public class ApplicationService_UpdateTest {
 
             when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
             when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
-            when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(other));
+            when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE))
+                    .thenReturn(Sets.newSet(other));
 
             when(existingApplication.getId()).thenReturn(APPLICATION_ID);
 
@@ -492,7 +498,8 @@ public class ApplicationService_UpdateTest {
             settings.setApp(clientSettings);
             ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
 
-            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                    .thenReturn(consoleConfig);
             when(updateApplication.getSettings()).thenReturn(settings);
 
             applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
@@ -507,21 +514,20 @@ public class ApplicationService_UpdateTest {
             when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
             when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
             when(existingApplication.getType()).thenReturn(ApplicationType.BROWSER);
-            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                    .thenReturn(consoleConfig);
             // oauth app settings
             ApplicationSettings settings = new ApplicationSettings();
             settings.setOauth(new OAuthClientSettings());
             when(updateApplication.getSettings()).thenReturn(settings);
 
             // client registration is disabled
-            when(
-                parameterService.findAsBoolean(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                    any(),
-                    eq(ParameterReferenceType.ENVIRONMENT)
-                )
-            ).thenReturn(false);
+            when(parameterService.findAsBoolean(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                            any(),
+                            eq(ParameterReferenceType.ENVIRONMENT)))
+                    .thenReturn(false);
 
             applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
         });
@@ -540,7 +546,8 @@ public class ApplicationService_UpdateTest {
             updateApplication.getSettings().setApp(new SimpleApplicationSettings());
 
             ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
-            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                    .thenReturn(consoleConfig);
 
             // this should throw exception cause API Key mode update is forbidden
             applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
@@ -548,16 +555,15 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
-    public void should_throw_exception_trying_to_set_apiKeyMode_shared_with_env_setting_disabled() throws TechnicalException {
+    public void should_throw_exception_trying_to_set_apiKeyMode_shared_with_env_setting_disabled()
+            throws TechnicalException {
         assertThrows(InvalidApplicationApiKeyModeException.class, () -> {
             // 'Shared API KEY' setting is disabled
-            when(
-                parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
-                    Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                    ParameterReferenceType.ENVIRONMENT
-                )
-            ).thenReturn(false);
+            when(parameterService.findAsBoolean(
+                            GraviteeContext.getExecutionContext(),
+                            Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                            ParameterReferenceType.ENVIRONMENT))
+                    .thenReturn(false);
 
             // existing application has a UNSPECIFIED API Key mode
             when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
@@ -569,7 +575,8 @@ public class ApplicationService_UpdateTest {
             updateApplication.getSettings().setApp(new SimpleApplicationSettings());
 
             ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
-            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                    .thenReturn(consoleConfig);
 
             // this should throw exception cause shard API Key setting is disabled
             applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
@@ -584,7 +591,8 @@ public class ApplicationService_UpdateTest {
             when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
             when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
             when(existingApplication.getType()).thenReturn(ApplicationType.BROWSER);
-            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                    .thenReturn(config);
             // oauth app settings doesn't contain grant types
             ApplicationSettings settings = new ApplicationSettings();
             settings.setOauth(new OAuthClientSettings());
@@ -592,14 +600,12 @@ public class ApplicationService_UpdateTest {
             when(updateApplication.getSettings()).thenReturn(settings);
 
             // client registration is enabled
-            when(
-                parameterService.findAsBoolean(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                    any(),
-                    eq(ParameterReferenceType.ENVIRONMENT)
-                )
-            ).thenReturn(true);
+            when(parameterService.findAsBoolean(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                            any(),
+                            eq(ParameterReferenceType.ENVIRONMENT)))
+                    .thenReturn(true);
 
             applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
         });
@@ -619,17 +625,16 @@ public class ApplicationService_UpdateTest {
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = getPrimaryOwner();
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         // client registration is enabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                        any(),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
 
         // oauth app settings contains everything required
         ApplicationSettings settings = new ApplicationSettings();
@@ -647,58 +652,61 @@ public class ApplicationService_UpdateTest {
         applicationTypeEntity.setRequires_redirect_uris(false);
         ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
 
-        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name()))
+                .thenReturn(applicationTypeEntity);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(consoleConfig);
         // the DCR update must inject the application OWNER's IdP claims, not the editor's
         when(existingApplication.getId()).thenReturn(APPLICATION_ID);
         Map<String, String> ownerClaims = Map.of("org_id", "org_acme_12345");
-        when(membershipService.getPrimaryOwnerUserId(any(), eq(MembershipReferenceType.APPLICATION), eq(APPLICATION_ID))).thenReturn(
-            "owner-id"
-        );
+        when(membershipService.getPrimaryOwnerUserId(
+                        any(), eq(MembershipReferenceType.APPLICATION), eq(APPLICATION_ID)))
+                .thenReturn("owner-id");
         when(userService.findIdpClaims(any(), eq("owner-id"))).thenReturn(ownerClaims);
 
         // mock response from DCR with a new client ID
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
-        when(clientRegistrationService.update(any(), any(), same(updateApplication), any())).thenReturn(clientRegistrationResponse);
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(clientRegistrationService.update(any(), any(), same(updateApplication), any()))
+                .thenReturn(clientRegistrationResponse);
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         // ensure application has been updated with the new client_id from DCR
-        verify(applicationRepository).update(
-            argThat(application -> application.getMetadata().get(METADATA_CLIENT_ID).equals("client-id-from-clientRegistration"))
-        );
+        verify(applicationRepository)
+                .update(argThat(application ->
+                        application.getMetadata().get(METADATA_CLIENT_ID).equals("client-id-from-clientRegistration")));
         // ensure the owner's resolved claims were the ones passed to the DCR update
         verify(clientRegistrationService).update(any(), any(), same(updateApplication), eq(ownerClaims));
     }
 
     @Test
-    public void should_update_with_previous_oAuth2_clientId_when_registration_service_fails() throws TechnicalException {
+    public void should_update_with_previous_oAuth2_clientId_when_registration_service_fails()
+            throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
         when(updateApplication.getDescription()).thenReturn("My description");
         when(existingApplication.getType()).thenReturn(ApplicationType.BROWSER);
-        when(existingApplication.getMetadata()).thenReturn(
-            Map.of(METADATA_REGISTRATION_PAYLOAD, "{}", METADATA_CLIENT_ID, "my-previous-client-id")
-        );
+        when(existingApplication.getMetadata())
+                .thenReturn(Map.of(METADATA_REGISTRATION_PAYLOAD, "{}", METADATA_CLIENT_ID, "my-previous-client-id"));
         when(applicationRepository.update(any())).thenReturn(existingApplication);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = getPrimaryOwner();
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         // client registration is enabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                        any(),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
 
         // oauth app settings contains everything required
         ApplicationSettings settings = new ApplicationSettings();
@@ -716,54 +724,56 @@ public class ApplicationService_UpdateTest {
         applicationTypeEntity.setRequires_redirect_uris(false);
         ConsoleConfigEntity config = getConsoleConfigEntity(false);
 
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
-        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(config);
+        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name()))
+                .thenReturn(applicationTypeEntity);
 
         // DCR throws exception
-        when(clientRegistrationService.update(any(), any(), same(updateApplication), any())).thenThrow(RuntimeException.class);
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(clientRegistrationService.update(any(), any(), same(updateApplication), any()))
+                .thenThrow(RuntimeException.class);
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         // ensure application has been updated, but kept the previous client_id
-        verify(applicationRepository).update(
-            argThat(application -> application.getMetadata().get(METADATA_CLIENT_ID).equals("my-previous-client-id"))
-        );
+        verify(applicationRepository)
+                .update(argThat(application ->
+                        application.getMetadata().get(METADATA_CLIENT_ID).equals("my-previous-client-id")));
     }
 
     @Test
-    public void should_keep_previous_additional_client_metadata_when_registration_service_fails() throws TechnicalException {
+    public void should_keep_previous_additional_client_metadata_when_registration_service_fails()
+            throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
         when(updateApplication.getDescription()).thenReturn("My description");
         when(existingApplication.getType()).thenReturn(ApplicationType.BROWSER);
-        when(existingApplication.getMetadata()).thenReturn(
-            Map.of(
-                METADATA_REGISTRATION_PAYLOAD,
-                "{}",
-                METADATA_CLIENT_ID,
-                "my-previous-client-id",
-                "additional_client_metadata",
-                "{\"software_id\":\"template-app-id\"}"
-            )
-        );
+        when(existingApplication.getMetadata())
+                .thenReturn(Map.of(
+                        METADATA_REGISTRATION_PAYLOAD,
+                        "{}",
+                        METADATA_CLIENT_ID,
+                        "my-previous-client-id",
+                        "additional_client_metadata",
+                        "{\"software_id\":\"template-app-id\"}"));
         when(applicationRepository.update(any())).thenReturn(existingApplication);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = getPrimaryOwner();
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         // client registration is enabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                        any(),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
 
         // oauth app settings contains everything required
         ApplicationSettings settings = new ApplicationSettings();
@@ -781,21 +791,23 @@ public class ApplicationService_UpdateTest {
         applicationTypeEntity.setRequires_redirect_uris(false);
         ConsoleConfigEntity config = getConsoleConfigEntity(false);
 
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
-        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(config);
+        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name()))
+                .thenReturn(applicationTypeEntity);
 
         // DCR throws exception
-        when(clientRegistrationService.update(any(), any(), same(updateApplication), any())).thenThrow(RuntimeException.class);
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(clientRegistrationService.update(any(), any(), same(updateApplication), any()))
+                .thenThrow(RuntimeException.class);
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         // the additional client metadata must survive a failed DCR update too
-        verify(applicationRepository).update(
-            argThat(application ->
-                "{\"software_id\":\"template-app-id\"}".equals(application.getMetadata().get("additional_client_metadata"))
-            )
-        );
+        verify(applicationRepository)
+                .update(argThat(application -> "{\"software_id\":\"template-app-id\"}"
+                        .equals(application.getMetadata().get("additional_client_metadata"))));
     }
 
     @Test
@@ -806,24 +818,26 @@ public class ApplicationService_UpdateTest {
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
         when(updateApplication.getDescription()).thenReturn("My description");
         when(existingApplication.getType()).thenReturn(ApplicationType.BROWSER);
-        when(existingApplication.getMetadata()).thenReturn(
-            Map.of(METADATA_CLIENT_ID, "my-previous-client-id", "additional_client_metadata", "{\"software_id\":\"template-app-id\"}")
-        );
+        when(existingApplication.getMetadata())
+                .thenReturn(Map.of(
+                        METADATA_CLIENT_ID,
+                        "my-previous-client-id",
+                        "additional_client_metadata",
+                        "{\"software_id\":\"template-app-id\"}"));
         when(applicationRepository.update(any())).thenReturn(existingApplication);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = getPrimaryOwner();
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         // client registration is enabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                        any(),
+                        eq(ParameterReferenceType.ENVIRONMENT)))
+                .thenReturn(true);
 
         // oauth app settings contains everything required
         ApplicationSettings settings = new ApplicationSettings();
@@ -841,21 +855,22 @@ public class ApplicationService_UpdateTest {
         applicationTypeEntity.setRequires_redirect_uris(false);
         ConsoleConfigEntity config = getConsoleConfigEntity(false);
 
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
-        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(config);
+        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name()))
+                .thenReturn(applicationTypeEntity);
 
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         // with nothing to re-register, the previously persisted OAuth metadata must still be there
-        verify(applicationRepository).update(
-            argThat(
-                application ->
-                    "my-previous-client-id".equals(application.getMetadata().get(METADATA_CLIENT_ID)) &&
-                    "{\"software_id\":\"template-app-id\"}".equals(application.getMetadata().get("additional_client_metadata"))
-            )
-        );
+        verify(applicationRepository)
+                .update(argThat(application ->
+                        "my-previous-client-id".equals(application.getMetadata().get(METADATA_CLIENT_ID))
+                                && "{\"software_id\":\"template-app-id\"}"
+                                        .equals(application.getMetadata().get("additional_client_metadata"))));
     }
 
     @Test
@@ -875,8 +890,10 @@ public class ApplicationService_UpdateTest {
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = getPrimaryOwner();
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
 
         SubscriptionEntity subscription1 = new SubscriptionEntity();
         subscription1.setId("sub-1");
@@ -890,24 +907,23 @@ public class ApplicationService_UpdateTest {
         ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
 
         List<SubscriptionEntity> subscriptions = List.of(subscription1, subscription2);
-        when(
-            subscriptionService.search(
-                any(),
-                argThat(
-                    criteria ->
-                        criteria.getApplications().contains(APPLICATION_ID) &&
-                        criteria
-                            .getStatuses()
-                            .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
-                )
-            )
-        ).thenReturn(subscriptions);
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+        when(subscriptionService.search(
+                        any(),
+                        argThat(criteria -> criteria.getApplications().contains(APPLICATION_ID)
+                                && criteria.getStatuses()
+                                        .containsAll(Set.of(
+                                                SubscriptionStatus.ACCEPTED,
+                                                SubscriptionStatus.PAUSED,
+                                                SubscriptionStatus.PENDING)))))
+                .thenReturn(subscriptions);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(consoleConfig);
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         ArgumentCaptor<Consumer<Subscription>> subscriptionModifierCaptor = ArgumentCaptor.forClass(Consumer.class);
-        verify(subscriptionService, times(2)).update(any(), any(UpdateSubscriptionEntity.class), subscriptionModifierCaptor.capture());
+        verify(subscriptionService, times(2))
+                .update(any(), any(UpdateSubscriptionEntity.class), subscriptionModifierCaptor.capture());
 
         // Verify the function called to modify the subscription has been modifying its client id
         Subscription fakeSubscription = new Subscription();
@@ -917,49 +933,44 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
-    public void should_allow_certificate_rename_when_fingerprint_already_belongs_to_same_application() throws TechnicalException {
+    public void should_allow_certificate_rename_when_fingerprint_already_belongs_to_same_application()
+            throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
-        settings.setTls(
-            TlsSettings.builder()
+        settings.setTls(TlsSettings.builder()
                 .clientCertificates(
-                    java.util.List.of(
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("new-name", null, null, VALID_PEM_1)
-                    )
-                )
-                .build()
-        );
+                        java.util.List.of(new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                                "new-name", null, null, VALID_PEM_1)))
+                .build());
 
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
 
         io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                "existing-cert-id",
-                null,
-                APPLICATION_ID,
-                "old-name",
-                null,
-                null,
-                new java.util.Date(),
-                new java.util.Date(),
-                VALID_PEM_1,
-                null,
-                null,
-                null,
-                "fp:" + VALID_PEM_1,
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
-        when(
-            clientCertificateCrudService.findByApplicationIdAndStatuses(
-                any(),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
-            )
-        ).thenReturn(java.util.List.of(existingCert));
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                        "existing-cert-id",
+                        null,
+                        APPLICATION_ID,
+                        "old-name",
+                        null,
+                        null,
+                        new java.util.Date(),
+                        new java.util.Date(),
+                        VALID_PEM_1,
+                        null,
+                        null,
+                        null,
+                        "fp:" + VALID_PEM_1,
+                        null,
+                        io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE);
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(
+                        any(),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)))
+                .thenReturn(java.util.List.of(existingCert));
 
-        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        applicationService.syncClientCertificates(
+                GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         verify(clientCertificateCrudService).update(eq("existing-cert-id"), any());
         verify(clientCertificateCrudService, never()).create(any(), any());
@@ -967,42 +978,14 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
-    public void should_create_certificate_during_sync_when_exclude_ignores_same_application_fingerprint() throws TechnicalException {
+    public void should_create_certificate_during_sync_when_exclude_ignores_same_application_fingerprint()
+            throws TechnicalException {
         ClientCertificateCrudServiceInMemory backingStore = new ClientCertificateCrudServiceInMemory();
-        ClientCertificateValidationDomainServiceImpl realValidation = new ClientCertificateValidationDomainServiceImpl(backingStore);
+        ClientCertificateValidationDomainServiceImpl realValidation =
+                new ClientCertificateValidationDomainServiceImpl(backingStore);
         var certInfo = realValidation.validate(VALID_PEM_1);
 
-        backingStore.initWith(
-            List.of(
-                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                    "stored-cert-id",
-                    null,
-                    APPLICATION_ID,
-                    "existing",
-                    null,
-                    null,
-                    new java.util.Date(),
-                    new java.util.Date(),
-                    VALID_PEM_1,
-                    null,
-                    null,
-                    null,
-                    certInfo.fingerprint(),
-                    GraviteeContext.getExecutionContext().getEnvironmentId(),
-                    io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-                )
-            )
-        );
-
-        ApplicationSettings settings = new ApplicationSettings();
-        settings.setApp(new SimpleApplicationSettings());
-        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
-
-        when(updateApplication.getSettings()).thenReturn(settings);
-        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
-
-        io.gravitee.apim.core.application_certificate.model.ClientCertificate staleExisting =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+        backingStore.initWith(List.of(new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
                 "stored-cert-id",
                 null,
                 APPLICATION_ID,
@@ -1015,28 +998,49 @@ public class ApplicationService_UpdateTest {
                 null,
                 null,
                 null,
-                "stale-fingerprint",
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
-        when(
-            clientCertificateCrudService.findByApplicationIdAndStatuses(
-                any(),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
-            )
-        ).thenReturn(java.util.List.of(staleExisting));
-        when(clientCertificateCrudService.create(eq(APPLICATION_ID), any())).thenAnswer(invocation ->
-            backingStore.create(invocation.getArgument(0), invocation.getArgument(1))
-        );
-        when(clientCertificateValidationDomainService.validate(any())).thenAnswer(invocation ->
-            realValidation.validate(invocation.getArgument(0))
-        );
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenAnswer(invocation ->
-            realValidation.validateForCreation(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2))
-        );
+                certInfo.fingerprint(),
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)));
 
-        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate staleExisting =
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                        "stored-cert-id",
+                        null,
+                        APPLICATION_ID,
+                        "existing",
+                        null,
+                        null,
+                        new java.util.Date(),
+                        new java.util.Date(),
+                        VALID_PEM_1,
+                        null,
+                        null,
+                        null,
+                        "stale-fingerprint",
+                        null,
+                        io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE);
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(
+                        any(),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)))
+                .thenReturn(java.util.List.of(staleExisting));
+        when(clientCertificateCrudService.create(eq(APPLICATION_ID), any()))
+                .thenAnswer(invocation -> backingStore.create(invocation.getArgument(0), invocation.getArgument(1)));
+        when(clientCertificateValidationDomainService.validate(any()))
+                .thenAnswer(invocation -> realValidation.validate(invocation.getArgument(0)));
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any()))
+                .thenAnswer(invocation -> realValidation.validateForCreation(
+                        invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2)));
+
+        applicationService.syncClientCertificates(
+                GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         verify(clientCertificateCrudService).create(eq(APPLICATION_ID), any());
         verify(clientCertificateValidationDomainService).validateForCreation(any(), any(), eq(APPLICATION_ID));
@@ -1051,15 +1055,14 @@ public class ApplicationService_UpdateTest {
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
 
-        when(
-            clientCertificateCrudService.findByApplicationIdAndStatuses(
-                any(),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
-            )
-        ).thenReturn(java.util.List.of());
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(
+                        any(),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)))
+                .thenReturn(java.util.List.of());
 
-        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        applicationService.syncClientCertificates(
+                GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         verify(clientCertificateCrudService).create(eq(APPLICATION_ID), any());
     }
@@ -1076,32 +1079,30 @@ public class ApplicationService_UpdateTest {
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
 
         io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                "old-cert-id",
-                null,
-                APPLICATION_ID,
-                "old-cert-name",
-                null,
-                null,
-                new java.util.Date(),
-                new java.util.Date(),
-                "old certificate content",
-                null,
-                null,
-                null,
-                null,
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
-        when(
-            clientCertificateCrudService.findByApplicationIdAndStatuses(
-                any(),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
-            )
-        ).thenReturn(java.util.List.of(existingCert));
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                        "old-cert-id",
+                        null,
+                        APPLICATION_ID,
+                        "old-cert-name",
+                        null,
+                        null,
+                        new java.util.Date(),
+                        new java.util.Date(),
+                        "old certificate content",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE);
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(
+                        any(),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)))
+                .thenReturn(java.util.List.of(existingCert));
 
-        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        applicationService.syncClientCertificates(
+                GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         verify(clientCertificateCrudService).delete("old-cert-id");
         verify(clientCertificateCrudService).create(eq(APPLICATION_ID), any());
@@ -1111,34 +1112,25 @@ public class ApplicationService_UpdateTest {
     public void should_create_multiple_certificates_from_list() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
-        settings.setTls(
-            TlsSettings.builder()
-                .clientCertificates(
-                    java.util.List.of(
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("cert-1", null, null, VALID_PEM_1),
+        settings.setTls(TlsSettings.builder()
+                .clientCertificates(java.util.List.of(
                         new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
-                            "cert-2",
-                            null,
-                            null,
-                            "another-pem-content"
-                        )
-                    )
-                )
-                .build()
-        );
+                                "cert-1", null, null, VALID_PEM_1),
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                                "cert-2", null, null, "another-pem-content")))
+                .build());
 
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
 
-        when(
-            clientCertificateCrudService.findByApplicationIdAndStatuses(
-                any(),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
-            )
-        ).thenReturn(java.util.List.of());
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(
+                        any(),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)))
+                .thenReturn(java.util.List.of());
 
-        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        applicationService.syncClientCertificates(
+                GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         verify(clientCertificateCrudService, times(2)).create(eq(APPLICATION_ID), any());
     }
@@ -1147,47 +1139,42 @@ public class ApplicationService_UpdateTest {
     public void should_keep_existing_cert_and_add_new_one() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
-        settings.setTls(
-            TlsSettings.builder()
-                .clientCertificates(
-                    java.util.List.of(
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("existing", null, null, "existing-pem"),
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("new-cert", null, null, "new-pem")
-                    )
-                )
-                .build()
-        );
+        settings.setTls(TlsSettings.builder()
+                .clientCertificates(java.util.List.of(
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                                "existing", null, null, "existing-pem"),
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                                "new-cert", null, null, "new-pem")))
+                .build());
 
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
 
         io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                "existing-cert-id",
-                null,
-                APPLICATION_ID,
-                "existing",
-                null,
-                null,
-                new java.util.Date(),
-                null,
-                "existing-pem",
-                null,
-                null,
-                null,
-                null,
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
-        when(
-            clientCertificateCrudService.findByApplicationIdAndStatuses(
-                any(),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
-            )
-        ).thenReturn(java.util.List.of(existingCert));
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                        "existing-cert-id",
+                        null,
+                        APPLICATION_ID,
+                        "existing",
+                        null,
+                        null,
+                        new java.util.Date(),
+                        null,
+                        "existing-pem",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE);
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(
+                        any(),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)))
+                .thenReturn(java.util.List.of(existingCert));
 
-        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        applicationService.syncClientCertificates(
+                GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         verify(clientCertificateCrudService, times(1)).create(eq(APPLICATION_ID), any());
         verify(clientCertificateCrudService, never()).update(eq("existing-cert-id"), any());
@@ -1207,83 +1194,76 @@ public class ApplicationService_UpdateTest {
     public void should_update_and_delete_cert() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
-        settings.setTls(
-            TlsSettings.builder()
-                .clientCertificates(
-                    java.util.List.of(
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("kept", null, null, "kept-pem"),
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("to-update", null, null, "to-update-pem")
-                    )
-                )
-                .build()
-        );
+        settings.setTls(TlsSettings.builder()
+                .clientCertificates(java.util.List.of(
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                                "kept", null, null, "kept-pem"),
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                                "to-update", null, null, "to-update-pem")))
+                .build());
 
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
 
         io.gravitee.apim.core.application_certificate.model.ClientCertificate keptCert =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                "kept-cert-id",
-                null,
-                APPLICATION_ID,
-                "kept",
-                null,
-                null,
-                new java.util.Date(),
-                null,
-                "kept-pem",
-                null,
-                null,
-                null,
-                null,
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                        "kept-cert-id",
+                        null,
+                        APPLICATION_ID,
+                        "kept",
+                        null,
+                        null,
+                        new java.util.Date(),
+                        null,
+                        "kept-pem",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE);
         io.gravitee.apim.core.application_certificate.model.ClientCertificate removedCert =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                "removed-cert-id",
-                null,
-                APPLICATION_ID,
-                "removed",
-                null,
-                null,
-                new java.util.Date(),
-                null,
-                "removed-pem",
-                null,
-                null,
-                null,
-                null,
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                        "removed-cert-id",
+                        null,
+                        APPLICATION_ID,
+                        "removed",
+                        null,
+                        null,
+                        new java.util.Date(),
+                        null,
+                        "removed-pem",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE);
         io.gravitee.apim.core.application_certificate.model.ClientCertificate toUpdateCert =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                "update-cert-id",
-                null,
-                APPLICATION_ID,
-                "removed",
-                null,
-                null,
-                new java.util.Date(),
-                null,
-                "to-update-pem",
-                null,
-                null,
-                null,
-                null,
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
-        when(
-            clientCertificateCrudService.findByApplicationIdAndStatuses(
-                any(),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
-            )
-        ).thenReturn(java.util.List.of(keptCert, removedCert, toUpdateCert));
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                        "update-cert-id",
+                        null,
+                        APPLICATION_ID,
+                        "removed",
+                        null,
+                        null,
+                        new java.util.Date(),
+                        null,
+                        "to-update-pem",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE);
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(
+                        any(),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)))
+                .thenReturn(java.util.List.of(keptCert, removedCert, toUpdateCert));
 
-        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        applicationService.syncClientCertificates(
+                GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         verify(clientCertificateCrudService).update(eq("update-cert-id"), any());
         verify(clientCertificateCrudService).delete("removed-cert-id");
@@ -1297,57 +1277,55 @@ public class ApplicationService_UpdateTest {
         // incoming list is empty → both must be deleted.
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
-        settings.setTls(TlsSettings.builder().clientCertificates(java.util.List.of()).build());
+        settings.setTls(
+                TlsSettings.builder().clientCertificates(java.util.List.of()).build());
 
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
 
         String sharedFingerprint = "fp:shared-pem";
         io.gravitee.apim.core.application_certificate.model.ClientCertificate dup1 =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                "dup-cert-1",
-                null,
-                APPLICATION_ID,
-                "cert-dup-1",
-                null,
-                null,
-                java.util.Date.from(Instant.now().minus(2, ChronoUnit.HOURS)),
-                new java.util.Date(),
-                "shared-pem",
-                null,
-                null,
-                null,
-                sharedFingerprint,
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                        "dup-cert-1",
+                        null,
+                        APPLICATION_ID,
+                        "cert-dup-1",
+                        null,
+                        null,
+                        java.util.Date.from(Instant.now().minus(2, ChronoUnit.HOURS)),
+                        new java.util.Date(),
+                        "shared-pem",
+                        null,
+                        null,
+                        null,
+                        sharedFingerprint,
+                        null,
+                        io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE);
         io.gravitee.apim.core.application_certificate.model.ClientCertificate dup2 =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                "dup-cert-2",
-                null,
-                APPLICATION_ID,
-                "cert-dup-2",
-                null,
-                null,
-                java.util.Date.from(Instant.now().minus(1, ChronoUnit.HOURS)),
-                new java.util.Date(),
-                "shared-pem",
-                null,
-                null,
-                null,
-                sharedFingerprint,
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
-        when(
-            clientCertificateCrudService.findByApplicationIdAndStatuses(
-                any(),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
-            )
-        ).thenReturn(java.util.List.of(dup1, dup2));
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                        "dup-cert-2",
+                        null,
+                        APPLICATION_ID,
+                        "cert-dup-2",
+                        null,
+                        null,
+                        java.util.Date.from(Instant.now().minus(1, ChronoUnit.HOURS)),
+                        new java.util.Date(),
+                        "shared-pem",
+                        null,
+                        null,
+                        null,
+                        sharedFingerprint,
+                        null,
+                        io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE);
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(
+                        any(),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                        any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)))
+                .thenReturn(java.util.List.of(dup1, dup2));
 
-        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        applicationService.syncClientCertificates(
+                GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         verify(clientCertificateCrudService).delete("dup-cert-1");
         verify(clientCertificateCrudService).delete("dup-cert-2");
@@ -1363,7 +1341,8 @@ public class ApplicationService_UpdateTest {
         settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
         ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
 
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(consoleConfig);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
@@ -1371,12 +1350,14 @@ public class ApplicationService_UpdateTest {
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
         when(updateApplication.getDescription()).thenReturn("My description");
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
         when(applicationRepository.update(any())).thenReturn(existingApplication);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = getPrimaryOwner();
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
@@ -1414,9 +1395,8 @@ public class ApplicationService_UpdateTest {
         oauthSubscription.setPlan(oauthPlanId);
         oauthSubscription.setStatus(SubscriptionStatus.ACCEPTED);
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        when(subscriptionService.findByApplicationAndPlan(executionContext, APPLICATION_ID, null)).thenReturn(
-            Arrays.asList(jwtSubscription, apiKeySubscription, oauthSubscription)
-        );
+        when(subscriptionService.findByApplicationAndPlan(executionContext, APPLICATION_ID, null))
+                .thenReturn(Arrays.asList(jwtSubscription, apiKeySubscription, oauthSubscription));
 
         PlanEntity jwtPlanEntity = new PlanEntity();
         jwtPlanEntity.setId(jwtPlanId);
@@ -1427,16 +1407,16 @@ public class ApplicationService_UpdateTest {
         PlanEntity oauthPlanEntity = new PlanEntity();
         oauthPlanEntity.setId(oauthPlanId);
         oauthPlanEntity.setSecurity(PlanSecurityType.OAUTH2);
-        when(planSearchService.findByIdIn(executionContext, Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId))).thenReturn(
-            Set.of(jwtPlanEntity, apiKeyPlanEntity, oauthPlanEntity)
-        );
+        when(planSearchService.findByIdIn(executionContext, Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId)))
+                .thenReturn(Set.of(jwtPlanEntity, apiKeyPlanEntity, oauthPlanEntity));
 
-        assertThrows(ApplicationClientIdException.class, () ->
-            applicationService.update(executionContext, APPLICATION_ID, updateApplication)
-        );
+        assertThrows(
+                ApplicationClientIdException.class,
+                () -> applicationService.update(executionContext, APPLICATION_ID, updateApplication));
 
         verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
-        verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId)));
+        verify(planSearchService)
+                .findByIdIn(any(ExecutionContext.class), eq(Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId)));
     }
 
     @Test
@@ -1461,26 +1441,22 @@ public class ApplicationService_UpdateTest {
         SubscriptionEntity apiKeySubscription = new SubscriptionEntity();
         apiKeySubscription.setPlan(apiKeyPlanId);
         apiKeySubscription.setStatus(SubscriptionStatus.ACCEPTED);
-        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null)).thenReturn(
-            Arrays.asList(jwtSubscription, apiKeySubscription, jwtSubscription2)
-        );
+        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null))
+                .thenReturn(Arrays.asList(jwtSubscription, apiKeySubscription, jwtSubscription2));
 
         PlanEntity jwtPlanEntity = new PlanEntity();
         jwtPlanEntity.setId(jwtPlanId);
         jwtPlanEntity.setSecurity(PlanSecurityType.JWT);
         PlanEntity apiKeyPlanEntity = new PlanEntity();
         apiKeyPlanEntity.setId(apiKeyPlanId);
-        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(apiKeyPlanId))).thenReturn(
-            Set.of(apiKeyPlanEntity)
-        );
+        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(apiKeyPlanId)))
+                .thenReturn(Set.of(apiKeyPlanEntity));
 
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(true);
+        when(parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                        ParameterReferenceType.ENVIRONMENT))
+                .thenReturn(true);
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
@@ -1495,22 +1471,22 @@ public class ApplicationService_UpdateTest {
         MembershipEntity po = getPrimaryOwner();
         ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
 
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(consoleConfig);
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
 
-        final ApplicationEntity applicationEntity = applicationService.update(
-            GraviteeContext.getExecutionContext(),
-            APPLICATION_ID,
-            updateApplication
-        );
+        final ApplicationEntity applicationEntity =
+                applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
 
-        verify(applicationRepository).update(
-            argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null)
-        );
+        verify(applicationRepository)
+                .update(argThat(application ->
+                        APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
         verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
         verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(apiKeyPlanId)));
     }
@@ -1530,8 +1506,10 @@ public class ApplicationService_UpdateTest {
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = getPrimaryOwner();
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
         SubscriptionEntity subscription1 = new SubscriptionEntity();
         subscription1.setId("sub-1");
         subscription1.setClientId("old id");
@@ -1542,19 +1520,17 @@ public class ApplicationService_UpdateTest {
         ConsoleConfigEntity config = getConsoleConfigEntity(false);
 
         List<SubscriptionEntity> subscriptions = List.of(subscription1, subscription2);
-        when(
-            subscriptionService.search(
-                any(),
-                argThat(
-                    criteria ->
-                        criteria.getApplications().contains(APPLICATION_ID) &&
-                        criteria
-                            .getStatuses()
-                            .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
-                )
-            )
-        ).thenReturn(subscriptions);
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+        when(subscriptionService.search(
+                        any(),
+                        argThat(criteria -> criteria.getApplications().contains(APPLICATION_ID)
+                                && criteria.getStatuses()
+                                        .containsAll(Set.of(
+                                                SubscriptionStatus.ACCEPTED,
+                                                SubscriptionStatus.PAUSED,
+                                                SubscriptionStatus.PENDING)))))
+                .thenReturn(subscriptions);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(config);
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
@@ -1569,7 +1545,8 @@ public class ApplicationService_UpdateTest {
         settings.setApp(clientSettings);
         ConsoleConfigEntity config = getConsoleConfigEntity(false);
 
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(config);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
@@ -1579,22 +1556,22 @@ public class ApplicationService_UpdateTest {
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = getPrimaryOwner();
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class)))
+                .thenCallRealMethod();
 
-        List<SubscriptionEntity> subscriptions = List.of(mock(SubscriptionEntity.class), mock(SubscriptionEntity.class));
-        when(
-            subscriptionService.search(
-                any(),
-                argThat(
-                    criteria ->
-                        criteria.getApplications().contains(APPLICATION_ID) &&
-                        criteria
-                            .getStatuses()
-                            .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
-                )
-            )
-        ).thenReturn(subscriptions);
+        List<SubscriptionEntity> subscriptions =
+                List.of(mock(SubscriptionEntity.class), mock(SubscriptionEntity.class));
+        when(subscriptionService.search(
+                        any(),
+                        argThat(criteria -> criteria.getApplications().contains(APPLICATION_ID)
+                                && criteria.getStatuses()
+                                        .containsAll(Set.of(
+                                                SubscriptionStatus.ACCEPTED,
+                                                SubscriptionStatus.PAUSED,
+                                                SubscriptionStatus.PENDING)))))
+                .thenReturn(subscriptions);
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 

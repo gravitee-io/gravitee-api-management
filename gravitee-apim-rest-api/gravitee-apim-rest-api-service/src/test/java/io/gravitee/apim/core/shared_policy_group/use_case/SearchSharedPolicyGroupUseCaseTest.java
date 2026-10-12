@@ -30,7 +30,8 @@ class SearchSharedPolicyGroupUseCaseTest {
 
     static final String ENV_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
 
-    private final SharedPolicyGroupQueryServiceInMemory sharedPolicyGroupQueryService = new SharedPolicyGroupQueryServiceInMemory();
+    private final SharedPolicyGroupQueryServiceInMemory sharedPolicyGroupQueryService =
+            new SharedPolicyGroupQueryServiceInMemory();
     private SearchSharedPolicyGroupUseCase searchSharedPolicyGroupUseCase;
 
     @BeforeEach
@@ -45,7 +46,8 @@ class SearchSharedPolicyGroupUseCaseTest {
         sharedPolicyGroupQueryService.initWith(List.of(expectedSharedPolicyGroup));
 
         // When
-        var result = searchSharedPolicyGroupUseCase.execute(new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, null, null));
+        var result = searchSharedPolicyGroupUseCase.execute(
+                new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, null, null));
         // Then
         assertEquals(1, result.result().getTotalElements());
         assertEquals(expectedSharedPolicyGroup, result.result().getContent().get(0));
@@ -61,7 +63,8 @@ class SearchSharedPolicyGroupUseCaseTest {
         sharedPolicyGroupQueryService.initWith(List.of(expectedSharedPolicyGroup, anotherSharedPolicyGroup));
 
         // When
-        var result = searchSharedPolicyGroupUseCase.execute(new SearchSharedPolicyGroupUseCase.Input(ENV_ID, "Fox", null, null));
+        var result = searchSharedPolicyGroupUseCase.execute(
+                new SearchSharedPolicyGroupUseCase.Input(ENV_ID, "Fox", null, null));
         // Then
         assertEquals(1, result.result().getTotalElements());
         assertEquals(expectedSharedPolicyGroup, result.result().getContent().get(0));
@@ -76,16 +79,15 @@ class SearchSharedPolicyGroupUseCaseTest {
         wolfSharedPolicyGroup.setName("Wolf SPG");
         SharedPolicyGroup beartSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         beartSharedPolicyGroup.setName("Bear SPG");
-        sharedPolicyGroupQueryService.initWith(List.of(foxSharedPolicyGroup, wolfSharedPolicyGroup, beartSharedPolicyGroup));
+        sharedPolicyGroupQueryService.initWith(
+                List.of(foxSharedPolicyGroup, wolfSharedPolicyGroup, beartSharedPolicyGroup));
 
         // When
         var resultASC = searchSharedPolicyGroupUseCase.execute(
-            new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "name")
-        );
+                new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "name"));
 
         var resultDSC = searchSharedPolicyGroupUseCase.execute(
-            new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "-name")
-        );
+                new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "-name"));
 
         // Then
         assertEquals(3, resultASC.result().getTotalElements());
@@ -109,11 +111,10 @@ class SearchSharedPolicyGroupUseCaseTest {
         sharedPolicyGroupQueryService.initWith(List.of(foxSharedPolicyGroup, wolfSharedPolicyGroup));
 
         // When
-        var throwable = assertThrows(IllegalArgumentException.class, () ->
-            searchSharedPolicyGroupUseCase.execute(
-                new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "invalid")
-            )
-        );
+        var throwable = assertThrows(
+                IllegalArgumentException.class,
+                () -> searchSharedPolicyGroupUseCase.execute(
+                        new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "invalid")));
 
         // Then
         assertEquals("Invalid sort by field: invalid", throwable.getMessage());

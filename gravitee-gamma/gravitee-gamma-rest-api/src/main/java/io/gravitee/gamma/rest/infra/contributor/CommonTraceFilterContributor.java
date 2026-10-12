@@ -75,22 +75,19 @@ public class CommonTraceFilterContributor implements TraceFilterContributor {
     }
 
     private static final List<TraceFilterSpec> COMMON_FILTERS = List.of(
-        new TraceFilterSpec(
-            "HTTP_METHOD",
-            "HTTP method",
-            FilterType.ENUM,
-            List.of(FilterOperator.EQ),
-            List.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"),
-            null
-        ),
-        new TraceFilterSpec(
-            "HTTP_STATUS_CODE",
-            "HTTP status code",
-            FilterType.NUMBER,
-            List.of(FilterOperator.EQ),
-            null,
-            new TraceFilterSpec.Range(100, 599)
-        ),
-        new TraceFilterSpec("HTTP_ROUTE", "HTTP route", FilterType.STRING, List.of(FilterOperator.EQ), null, null)
-    );
+            new TraceFilterSpec(
+                    "HTTP_METHOD",
+                    "HTTP method",
+                    FilterType.ENUM,
+                    List.of(FilterOperator.EQ),
+                    List.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"),
+                    null),
+            new TraceFilterSpec(
+                    "HTTP_STATUS_CODE",
+                    "HTTP status code",
+                    FilterType.NUMBER,
+                    List.of(FilterOperator.EQ),
+                    null,
+                    new TraceFilterSpec.Range(100, 599)),
+            new TraceFilterSpec("HTTP_ROUTE", "HTTP route", FilterType.STRING, List.of(FilterOperator.EQ), null, null));
 }

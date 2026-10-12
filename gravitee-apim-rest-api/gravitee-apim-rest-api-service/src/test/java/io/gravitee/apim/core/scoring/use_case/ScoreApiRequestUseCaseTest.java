@@ -50,7 +50,6 @@ import io.gravitee.apim.infra.json.jackson.GraviteeDefinitionJacksonJsonSerializ
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.vertx.core.json.JsonObject;
 import java.time.Clock;
 import java.time.Duration;
@@ -79,14 +78,13 @@ class ScoreApiRequestUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private static final ScoringRuleset CUSTOM_RULESET_1 = ScoringRulesetFixture.aRuleset(
-        "ruleset1",
-        ScoringRuleset.Format.GRAVITEE_FEDERATION
-    ).withReferenceId(ENVIRONMENT_ID);
-    private static final ScoringRuleset CUSTOM_RULESET_2 = ScoringRulesetFixture.aRuleset("ruleset2", null).withReferenceId(ENVIRONMENT_ID);
+                    "ruleset1", ScoringRuleset.Format.GRAVITEE_FEDERATION)
+            .withReferenceId(ENVIRONMENT_ID);
+    private static final ScoringRuleset CUSTOM_RULESET_2 =
+            ScoringRulesetFixture.aRuleset("ruleset2", null).withReferenceId(ENVIRONMENT_ID);
     private static final ScoringRuleset CUSTOM_RULESET_3 = ScoringRulesetFixture.aRuleset(
-        "ruleset3",
-        ScoringRuleset.Format.ASYNCAPI
-    ).withReferenceId(ENVIRONMENT_ID);
+                    "ruleset3", ScoringRuleset.Format.ASYNCAPI)
+            .withReferenceId(ENVIRONMENT_ID);
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     AsyncJobCrudServiceInMemory asyncJobCrudService = new AsyncJobCrudServiceInMemory();
@@ -115,28 +113,35 @@ class ScoreApiRequestUseCaseTest {
     @BeforeEach
     void setUp() {
         scoreApiRequestUseCase = new ScoreApiRequestUseCase(
-            apiCrudService,
-            new ApiDocumentationDomainService(pageQueryService, new PlanQueryServiceInMemory()),
-            apiExportDomainService,
-            new GraviteeDefinitionJacksonJsonSerializer(),
-            scoringProvider,
-            asyncJobCrudService,
-            scoringRulesetQueryService,
-            scoringFunctionQueryService
-        );
+                apiCrudService,
+                new ApiDocumentationDomainService(pageQueryService, new PlanQueryServiceInMemory()),
+                apiExportDomainService,
+                new GraviteeDefinitionJacksonJsonSerializer(),
+                scoringProvider,
+                asyncJobCrudService,
+                scoringRulesetQueryService,
+                scoringFunctionQueryService);
 
         GraviteeDefinition build = GraviteeDefinition.Federated.builder()
-            .api(ApiDescriptor.Federated.builder().id(MY_API).name(MY_API_NAME).build())
-            .build();
-        when(apiExportDomainService.export(eq("my-api"), eq(AUDIT_INFO), anyCollection())).thenReturn(build);
+                .api(ApiDescriptor.Federated.builder()
+                        .id(MY_API)
+                        .name(MY_API_NAME)
+                        .build())
+                .build();
+        when(apiExportDomainService.export(eq("my-api"), eq(AUDIT_INFO), anyCollection()))
+                .thenReturn(build);
         REQUEST_API_CONDITION = is(MY_API, MY_API_NAME);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiCrudService, asyncJobCrudService, pageQueryService, scoringRulesetQueryService, scoringFunctionQueryService).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(
+                        apiCrudService,
+                        asyncJobCrudService,
+                        pageQueryService,
+                        scoringRulesetQueryService,
+                        scoringFunctionQueryService)
+                .forEach(InMemoryAlternative::reset);
         scoringProvider.reset();
     }
 
@@ -147,144 +152,137 @@ class ScoreApiRequestUseCaseTest {
 
         // When
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+                .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
         assertThat(scoringProvider.pendingRequests())
-            .hasSize(1)
-            .first()
-            .usingRecursiveComparison()
-            .ignoringFields("assets")
-            .isEqualTo(new ScoreRequest("generated-id", ORGANIZATION_ID, ENVIRONMENT_ID, api.getId(), null));
+                .hasSize(1)
+                .first()
+                .usingRecursiveComparison()
+                .ignoringFields("assets")
+                .isEqualTo(new ScoreRequest("generated-id", ORGANIZATION_ID, ENVIRONMENT_ID, api.getId(), null));
         assertThat(scoringProvider.pendingRequests().get(0).assets())
-            .first()
-            .usingRecursiveComparison()
-            .ignoringFields("content")
-            .isEqualTo(
-                new ScoreRequest.AssetToScore(
-                    api.getId(),
-                    new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
-                    api.getName(),
-                    """
-                    {"api":{"id":"my-api","name":"My Api","definitionVersion":"FEDERATED","tags":[],"properties":[],"resources":[],"responseTemplates":{},"state":"STOPPED","originContext":{"origin":"MANAGEMENT"},"disableMembershipNotifications":false}}"""
-                )
-            );
+                .first()
+                .usingRecursiveComparison()
+                .ignoringFields("content")
+                .isEqualTo(new ScoreRequest.AssetToScore(
+                        api.getId(),
+                        new ScoreRequest.AssetType(
+                                ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
+                        api.getName(),
+                        """
+                    {"api":{"id":"my-api","name":"My Api","definitionVersion":"FEDERATED","tags":[],"properties":[],"resources":[],"responseTemplates":{},"state":"STOPPED","originContext":{"origin":"MANAGEMENT"},"disableMembershipNotifications":false}}"""));
         assertThat(scoringProvider.pendingRequests().getFirst().assets())
-            .map(ScoreRequest.AssetToScore::content)
-            .map(JsonObject::new)
-            .first()
-            .is(REQUEST_API_CONDITION);
-        assertThat(asyncJobCrudService.storage()).containsExactly(
-            AsyncJob.builder()
-                .id("generated-id")
-                .sourceId(api.getId())
-                .environmentId(ENVIRONMENT_ID)
-                .initiatorId(USER_ID)
-                .type(AsyncJob.Type.SCORING_REQUEST)
-                .status(AsyncJob.Status.PENDING)
-                .upperLimit(1L)
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(1 * 1 * 10 + 30)))
-                .build()
-        );
+                .map(ScoreRequest.AssetToScore::content)
+                .map(JsonObject::new)
+                .first()
+                .is(REQUEST_API_CONDITION);
+        assertThat(asyncJobCrudService.storage())
+                .containsExactly(AsyncJob.builder()
+                        .id("generated-id")
+                        .sourceId(api.getId())
+                        .environmentId(ENVIRONMENT_ID)
+                        .initiatorId(USER_ID)
+                        .type(AsyncJob.Type.SCORING_REQUEST)
+                        .status(AsyncJob.Status.PENDING)
+                        .upperLimit(1L)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(1 * 1 * 10 + 30)))
+                        .build());
     }
 
     @Test
     public void should_trigger_scoring_for_swagger_page() {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        var page = givenExistingPage(
-            PageFixtures.aPage().toBuilder().referenceType(Page.ReferenceType.API).referenceId(api.getId()).type(Page.Type.SWAGGER).build()
-        );
+        var page = givenExistingPage(PageFixtures.aPage().toBuilder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(api.getId())
+                .type(Page.Type.SWAGGER)
+                .build());
 
         // When
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+                .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
         assertThat(scoringProvider.pendingRequests()).satisfiesOnlyOnce(request -> {
             assertThat(request)
-                .hasJobId("generated-id")
-                .hasOrganizationId(ORGANIZATION_ID)
-                .hasEnvironmentId(ENVIRONMENT_ID)
-                .hasApiId(api.getId())
-                .hasAssetsContaining(
-                    new ScoreRequest.AssetToScore(
-                        page.getId(),
-                        new ScoreRequest.AssetType(ScoringAssetType.SWAGGER, ScoreRequest.Format.OPENAPI),
-                        page.getName(),
-                        page.getContent()
-                    )
-                );
+                    .hasJobId("generated-id")
+                    .hasOrganizationId(ORGANIZATION_ID)
+                    .hasEnvironmentId(ENVIRONMENT_ID)
+                    .hasApiId(api.getId())
+                    .hasAssetsContaining(new ScoreRequest.AssetToScore(
+                            page.getId(),
+                            new ScoreRequest.AssetType(ScoringAssetType.SWAGGER, ScoreRequest.Format.OPENAPI),
+                            page.getName(),
+                            page.getContent()));
         });
-        assertThat(asyncJobCrudService.storage()).containsExactly(
-            AsyncJob.builder()
-                .id("generated-id")
-                .sourceId(api.getId())
-                .environmentId(ENVIRONMENT_ID)
-                .initiatorId(USER_ID)
-                .type(AsyncJob.Type.SCORING_REQUEST)
-                .status(AsyncJob.Status.PENDING)
-                .upperLimit(1L)
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(2 * 1 * 10 + 30)))
-                .build()
-        );
+        assertThat(asyncJobCrudService.storage())
+                .containsExactly(AsyncJob.builder()
+                        .id("generated-id")
+                        .sourceId(api.getId())
+                        .environmentId(ENVIRONMENT_ID)
+                        .initiatorId(USER_ID)
+                        .type(AsyncJob.Type.SCORING_REQUEST)
+                        .status(AsyncJob.Status.PENDING)
+                        .upperLimit(1L)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(2 * 1 * 10 + 30)))
+                        .build());
     }
 
     @Test
     public void should_trigger_scoring_for_asyncapi_page() {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        var page = givenExistingPage(
-            PageFixtures.aPage().toBuilder().referenceType(Page.ReferenceType.API).referenceId(api.getId()).type(Page.Type.ASYNCAPI).build()
-        );
+        var page = givenExistingPage(PageFixtures.aPage().toBuilder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(api.getId())
+                .type(Page.Type.ASYNCAPI)
+                .build());
 
         // When
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+                .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
         assertThat(scoringProvider.pendingRequests()).satisfiesOnlyOnce(request -> {
             assertThat(request)
-                .hasJobId("generated-id")
-                .hasOrganizationId(ORGANIZATION_ID)
-                .hasEnvironmentId(ENVIRONMENT_ID)
-                .hasApiId(api.getId())
-                .hasAssetsContaining(
-                    new ScoreRequest.AssetToScore(
-                        page.getId(),
-                        new ScoreRequest.AssetType(ScoringAssetType.ASYNCAPI, ScoreRequest.Format.ASYNCAPI),
-                        page.getName(),
-                        page.getContent()
-                    )
-                );
+                    .hasJobId("generated-id")
+                    .hasOrganizationId(ORGANIZATION_ID)
+                    .hasEnvironmentId(ENVIRONMENT_ID)
+                    .hasApiId(api.getId())
+                    .hasAssetsContaining(new ScoreRequest.AssetToScore(
+                            page.getId(),
+                            new ScoreRequest.AssetType(ScoringAssetType.ASYNCAPI, ScoreRequest.Format.ASYNCAPI),
+                            page.getName(),
+                            page.getContent()));
         });
-        assertThat(asyncJobCrudService.storage()).containsExactly(
-            AsyncJob.builder()
-                .id("generated-id")
-                .sourceId(api.getId())
-                .environmentId(ENVIRONMENT_ID)
-                .initiatorId(USER_ID)
-                .type(AsyncJob.Type.SCORING_REQUEST)
-                .status(AsyncJob.Status.PENDING)
-                .upperLimit(1L)
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(2 * 1 * 10 + 30)))
-                .build()
-        );
+        assertThat(asyncJobCrudService.storage())
+                .containsExactly(AsyncJob.builder()
+                        .id("generated-id")
+                        .sourceId(api.getId())
+                        .environmentId(ENVIRONMENT_ID)
+                        .initiatorId(USER_ID)
+                        .type(AsyncJob.Type.SCORING_REQUEST)
+                        .status(AsyncJob.Status.PENDING)
+                        .upperLimit(1L)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(2 * 1 * 10 + 30)))
+                        .build());
     }
 
     @Test
@@ -295,76 +293,70 @@ class ScoreApiRequestUseCaseTest {
 
         // When
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+                .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
         assertThat(scoringProvider.pendingRequests()).satisfiesOnlyOnce(request -> {
             assertThat(request)
-                .hasJobId("generated-id")
-                .hasOrganizationId(ORGANIZATION_ID)
-                .hasEnvironmentId(ENVIRONMENT_ID)
-                .hasApiId(api.getId())
-                .hasCustomRulesets(
-                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload(), ScoreRequest.Format.GRAVITEE_FEDERATED),
-                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload()),
-                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_3.payload(), ScoreRequest.Format.ASYNCAPI)
-                );
+                    .hasJobId("generated-id")
+                    .hasOrganizationId(ORGANIZATION_ID)
+                    .hasEnvironmentId(ENVIRONMENT_ID)
+                    .hasApiId(api.getId())
+                    .hasCustomRulesets(
+                            new ScoreRequest.CustomRuleset(
+                                    CUSTOM_RULESET_1.payload(), ScoreRequest.Format.GRAVITEE_FEDERATED),
+                            new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload()),
+                            new ScoreRequest.CustomRuleset(CUSTOM_RULESET_3.payload(), ScoreRequest.Format.ASYNCAPI));
         });
     }
 
     @Test
     public void should_keep_openapi_and_asyncapi_formats_on_a_single_request() {
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        var swaggerPage = PageFixtures.aPage()
-            .toBuilder()
-            .referenceType(Page.ReferenceType.API)
-            .referenceId(api.getId())
-            .type(Page.Type.SWAGGER)
-            .build();
-        var asyncApiPage = PageFixtures.aPage()
-            .toBuilder()
-            .id("async-page")
-            .referenceType(Page.ReferenceType.API)
-            .referenceId(api.getId())
-            .type(Page.Type.ASYNCAPI)
-            .build();
+        var swaggerPage = PageFixtures.aPage().toBuilder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(api.getId())
+                .type(Page.Type.SWAGGER)
+                .build();
+        var asyncApiPage = PageFixtures.aPage().toBuilder()
+                .id("async-page")
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(api.getId())
+                .type(Page.Type.ASYNCAPI)
+                .build();
         pageQueryService.initWith(List.of(swaggerPage, asyncApiPage));
-        var openApiRuleset = ScoringRulesetFixture.aRuleset("ruleset-openapi", ScoringRuleset.Format.OPENAPI).withReferenceId(
-            ENVIRONMENT_ID
-        );
+        var openApiRuleset = ScoringRulesetFixture.aRuleset("ruleset-openapi", ScoringRuleset.Format.OPENAPI)
+                .withReferenceId(ENVIRONMENT_ID);
         givenExistingRulesets(CUSTOM_RULESET_1, openApiRuleset, CUSTOM_RULESET_3);
 
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+                .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         assertThat(scoringProvider.pendingRequests()).satisfiesOnlyOnce(request -> {
             assertThat(request)
-                .hasJobId("generated-id")
-                .hasCustomRulesets(
-                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload(), ScoreRequest.Format.GRAVITEE_FEDERATED),
-                    new ScoreRequest.CustomRuleset(openApiRuleset.payload(), ScoreRequest.Format.OPENAPI),
-                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_3.payload(), ScoreRequest.Format.ASYNCAPI)
-                )
-                .hasAssetsContaining(
-                    new ScoreRequest.AssetToScore(
-                        swaggerPage.getId(),
-                        new ScoreRequest.AssetType(ScoringAssetType.SWAGGER, ScoreRequest.Format.OPENAPI),
-                        swaggerPage.getName(),
-                        swaggerPage.getContent()
-                    ),
-                    new ScoreRequest.AssetToScore(
-                        asyncApiPage.getId(),
-                        new ScoreRequest.AssetType(ScoringAssetType.ASYNCAPI, ScoreRequest.Format.ASYNCAPI),
-                        asyncApiPage.getName(),
-                        asyncApiPage.getContent()
-                    )
-                );
+                    .hasJobId("generated-id")
+                    .hasCustomRulesets(
+                            new ScoreRequest.CustomRuleset(
+                                    CUSTOM_RULESET_1.payload(), ScoreRequest.Format.GRAVITEE_FEDERATED),
+                            new ScoreRequest.CustomRuleset(openApiRuleset.payload(), ScoreRequest.Format.OPENAPI),
+                            new ScoreRequest.CustomRuleset(CUSTOM_RULESET_3.payload(), ScoreRequest.Format.ASYNCAPI))
+                    .hasAssetsContaining(
+                            new ScoreRequest.AssetToScore(
+                                    swaggerPage.getId(),
+                                    new ScoreRequest.AssetType(ScoringAssetType.SWAGGER, ScoreRequest.Format.OPENAPI),
+                                    swaggerPage.getName(),
+                                    swaggerPage.getContent()),
+                            new ScoreRequest.AssetToScore(
+                                    asyncApiPage.getId(),
+                                    new ScoreRequest.AssetType(ScoringAssetType.ASYNCAPI, ScoreRequest.Format.ASYNCAPI),
+                                    asyncApiPage.getName(),
+                                    asyncApiPage.getContent()));
         });
     }
 
@@ -372,122 +364,121 @@ class ScoreApiRequestUseCaseTest {
     public void should_scale_scoring_job_deadline_with_the_number_of_custom_rulesets() {
         // Given an API with a single scorable asset, scored against 9 custom rulesets
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        givenExistingRulesets(
-            IntStream.rangeClosed(1, 9)
+        givenExistingRulesets(IntStream.rangeClosed(1, 9)
                 .mapToObj(i -> ScoringRulesetFixture.aRuleset("ruleset" + i).withReferenceId(ENVIRONMENT_ID))
-                .toArray(ScoringRuleset[]::new)
-        );
+                .toArray(ScoringRuleset[]::new));
 
         // When
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+                .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then the deadline accounts for every ruleset: 10s per asset per ruleset, plus a 30s margin
         assertThat(asyncJobCrudService.storage())
-            .singleElement()
-            .extracting(AsyncJob::getDeadLine)
-            .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(1 * 9 * 10 + 30)));
+                .singleElement()
+                .extracting(AsyncJob::getDeadLine)
+                .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(1 * 9 * 10 + 30)));
     }
 
     @Test
     public void should_cap_the_scoring_job_deadline() {
         // Given an API scored against far more rulesets than the cap allows for
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        givenExistingRulesets(
-            IntStream.rangeClosed(1, 200)
+        givenExistingRulesets(IntStream.rangeClosed(1, 200)
                 .mapToObj(i -> ScoringRulesetFixture.aRuleset("ruleset" + i).withReferenceId(ENVIRONMENT_ID))
-                .toArray(ScoringRuleset[]::new)
-        );
+                .toArray(ScoringRuleset[]::new));
 
         // When
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+                .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then the deadline is capped instead of growing to 1 * 200 * 10 + 30 seconds
         assertThat(asyncJobCrudService.storage())
-            .singleElement()
-            .extracting(AsyncJob::getDeadLine)
-            .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofMinutes(15)));
+                .singleElement()
+                .extracting(AsyncJob::getDeadLine)
+                .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofMinutes(15)));
     }
 
     @Test
     public void should_trigger_scoring_for_edge_api_with_null_format() {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
-        var edgeDefinition = GraviteeDefinition.V4.builder()
-            .api(ApiDescriptor.ApiDescriptorV4.builder().id(MY_API).name(MY_API_NAME).type(ApiType.EDGE).build())
-            .build();
-        when(apiExportDomainService.export(eq(MY_API), eq(AUDIT_INFO), anyCollection())).thenReturn(edgeDefinition);
+        var edgeDefinition = GraviteeDefinition.V4
+                .builder()
+                .api(ApiDescriptor.ApiDescriptorV4.builder()
+                        .id(MY_API)
+                        .name(MY_API_NAME)
+                        .type(ApiType.EDGE)
+                        .build())
+                .build();
+        when(apiExportDomainService.export(eq(MY_API), eq(AUDIT_INFO), anyCollection()))
+                .thenReturn(edgeDefinition);
 
         // When
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+                .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
-        assertThat(scoringProvider.pendingRequests())
-            .hasSize(1)
-            .first()
-            .satisfies(request -> {
-                assertThat(request.assets())
-                    .hasSize(1)
-                    .first()
-                    .satisfies(asset -> {
-                        assertThat(asset.assetType().type()).isEqualTo(ScoringAssetType.GRAVITEE_DEFINITION);
-                        assertThat(asset.assetType().format()).isNull();
-                    });
+        assertThat(scoringProvider.pendingRequests()).hasSize(1).first().satisfies(request -> {
+            assertThat(request.assets()).hasSize(1).first().satisfies(asset -> {
+                assertThat(asset.assetType().type()).isEqualTo(ScoringAssetType.GRAVITEE_DEFINITION);
+                assertThat(asset.assetType().format()).isNull();
             });
+        });
     }
 
     @ParameterizedTest
-    @EnumSource(value = Page.Type.class, mode = EnumSource.Mode.EXCLUDE, names = { "SWAGGER", "ASYNCAPI" })
+    @EnumSource(
+            value = Page.Type.class,
+            mode = EnumSource.Mode.EXCLUDE,
+            names = {"SWAGGER", "ASYNCAPI"})
     public void should_ignore_page_type_supported(Page.Type pageType) {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        givenExistingPage(
-            PageFixtures.aPage().toBuilder().referenceType(Page.ReferenceType.API).referenceId(api.getId()).type(pageType).build()
-        );
+        givenExistingPage(PageFixtures.aPage().toBuilder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(api.getId())
+                .type(pageType)
+                .build());
 
         // When
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertComplete();
+                .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete();
 
         // Then
         assertThat(scoringProvider.pendingRequests()).satisfiesOnlyOnce(request -> {
             assertThat(request)
-                .hasJobId("generated-id")
-                .hasOrganizationId(ORGANIZATION_ID)
-                .hasEnvironmentId(ENVIRONMENT_ID)
-                .hasApiId(api.getId());
+                    .hasJobId("generated-id")
+                    .hasOrganizationId(ORGANIZATION_ID)
+                    .hasEnvironmentId(ENVIRONMENT_ID)
+                    .hasApiId(api.getId());
             assertThat(request.assets())
-                .hasSize(1)
-                .first()
-                .usingRecursiveComparison()
-                .ignoringFields("content")
-                .isEqualTo(
-                    new ScoreRequest.AssetToScore(
-                        api.getId(),
-                        new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
-                        api.getName(),
-                        null
-                    )
-                );
+                    .hasSize(1)
+                    .first()
+                    .usingRecursiveComparison()
+                    .ignoringFields("content")
+                    .isEqualTo(new ScoreRequest.AssetToScore(
+                            api.getId(),
+                            new ScoreRequest.AssetType(
+                                    ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
+                            api.getName(),
+                            null));
             assertThat(request.assets())
-                .map(ScoreRequest.AssetToScore::content)
-                .map(JsonObject::new)
-                .hasSize(1)
-                .has(REQUEST_API_CONDITION, Index.atIndex(0));
+                    .map(ScoreRequest.AssetToScore::content)
+                    .map(JsonObject::new)
+                    .hasSize(1)
+                    .has(REQUEST_API_CONDITION, Index.atIndex(0));
         });
     }
 
@@ -499,40 +490,38 @@ class ScoreApiRequestUseCaseTest {
 
         // When
         scoreApiRequestUseCase
-            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertError(scoringProvider.errorToThrow);
+                .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertError(scoringProvider.errorToThrow);
 
         // Then
         assertThat(scoringProvider.pendingRequests()).isEmpty();
-        assertThat(asyncJobCrudService.storage()).containsExactly(
-            AsyncJob.builder()
-                .id("generated-id")
-                .sourceId(api.getId())
-                .environmentId(ENVIRONMENT_ID)
-                .initiatorId(USER_ID)
-                .type(AsyncJob.Type.SCORING_REQUEST)
-                .status(AsyncJob.Status.ERROR)
-                .errorMessage("Error while scoring")
-                .upperLimit(1L)
-                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(1 * 1 * 10 + 30)))
-                .build()
-        );
+        assertThat(asyncJobCrudService.storage())
+                .containsExactly(AsyncJob.builder()
+                        .id("generated-id")
+                        .sourceId(api.getId())
+                        .environmentId(ENVIRONMENT_ID)
+                        .initiatorId(USER_ID)
+                        .type(AsyncJob.Type.SCORING_REQUEST)
+                        .status(AsyncJob.Status.ERROR)
+                        .errorMessage("Error while scoring")
+                        .upperLimit(1L)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(1 * 1 * 10 + 30)))
+                        .build());
     }
 
     private static Condition<JsonObject> is(String id, String name) {
         return new Condition<>(
-            json -> {
-                JsonObject api = json.getJsonObject("api");
-                return name.equals(api.getString("name")) && id.equals(api.getString("id"));
-            },
-            "should have name %s and id %s",
-            name,
-            id
-        );
+                json -> {
+                    JsonObject api = json.getJsonObject("api");
+                    return name.equals(api.getString("name")) && id.equals(api.getString("id"));
+                },
+                "should have name %s and id %s",
+                name,
+                id);
     }
 
     private Api givenExistingApi(Api api) {

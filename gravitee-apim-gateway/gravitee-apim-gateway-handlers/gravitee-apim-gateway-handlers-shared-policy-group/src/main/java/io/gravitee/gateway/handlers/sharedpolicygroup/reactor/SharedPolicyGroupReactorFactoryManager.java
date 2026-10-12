@@ -16,13 +16,8 @@
 package io.gravitee.gateway.handlers.sharedpolicygroup.reactor;
 
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
-import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
 import lombok.CustomLog;
 
 /**
@@ -35,7 +30,8 @@ public class SharedPolicyGroupReactorFactoryManager {
     private final List<SharedPolicyGroupReactorFactory> sharedPolicyGroupReactorFactories;
 
     // Inject embedded factories via spring configuration
-    public SharedPolicyGroupReactorFactoryManager(final List<SharedPolicyGroupReactorFactory> sharedPolicyGroupReactorFactories) {
+    public SharedPolicyGroupReactorFactoryManager(
+            final List<SharedPolicyGroupReactorFactory> sharedPolicyGroupReactorFactories) {
         this.sharedPolicyGroupReactorFactories = new ArrayList<>(sharedPolicyGroupReactorFactories);
     }
 
@@ -48,11 +44,10 @@ public class SharedPolicyGroupReactorFactoryManager {
     }
 
     public SharedPolicyGroupReactor create(final ReactableSharedPolicyGroup reactable) {
-        return sharedPolicyGroupReactorFactories
-            .stream()
-            .filter(reactorFactory -> reactorFactory.canCreate(reactable))
-            .map(reactorFactory -> reactorFactory.create(reactable))
-            .findFirst()
-            .orElseThrow(() -> new IllegalStateException("No reactor found for reactable: " + reactable.getId()));
+        return sharedPolicyGroupReactorFactories.stream()
+                .filter(reactorFactory -> reactorFactory.canCreate(reactable))
+                .map(reactorFactory -> reactorFactory.create(reactable))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No reactor found for reactable: " + reactable.getId()));
     }
 }

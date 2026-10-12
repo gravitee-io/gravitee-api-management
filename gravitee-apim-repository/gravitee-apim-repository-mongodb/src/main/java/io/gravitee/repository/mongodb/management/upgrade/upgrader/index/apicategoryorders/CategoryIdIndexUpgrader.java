@@ -28,9 +28,9 @@ public class CategoryIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("api_category_orders")
-            .name("aco1ci")
-            .key("_id.categoryId", ascending())
-            .build();
+                .collection("api_category_orders")
+                .name("aco1ci")
+                .key("_id.categoryId", ascending())
+                .build();
     }
 }

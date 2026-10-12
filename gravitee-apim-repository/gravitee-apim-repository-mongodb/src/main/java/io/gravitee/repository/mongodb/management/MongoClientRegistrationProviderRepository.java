@@ -50,20 +50,21 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
     public Optional<ClientRegistrationProvider> findById(String id) throws TechnicalException {
         log.debug("Find client registration provider by ID [{}]", id);
 
-        ClientRegistrationProviderMongo clientRegistrationProvider = internalClientRegistrationProviderRepository.findById(id).orElse(null);
+        ClientRegistrationProviderMongo clientRegistrationProvider =
+                internalClientRegistrationProviderRepository.findById(id).orElse(null);
 
         log.debug("Find client registration provider by ID [{}] - Done", id);
         return Optional.ofNullable(map(clientRegistrationProvider));
     }
 
     @Override
-    public ClientRegistrationProvider create(ClientRegistrationProvider clientRegistrationProvider) throws TechnicalException {
+    public ClientRegistrationProvider create(ClientRegistrationProvider clientRegistrationProvider)
+            throws TechnicalException {
         log.debug("Create client registration provider [{}]", clientRegistrationProvider.getName());
 
         ClientRegistrationProviderMongo identityProviderMongo = map(clientRegistrationProvider);
-        ClientRegistrationProviderMongo createdIdentityProviderMongo = internalClientRegistrationProviderRepository.insert(
-            identityProviderMongo
-        );
+        ClientRegistrationProviderMongo createdIdentityProviderMongo =
+                internalClientRegistrationProviderRepository.insert(identityProviderMongo);
 
         log.debug("Create client registration provider [{}] - Done", clientRegistrationProvider.getName());
 
@@ -71,18 +72,18 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
     }
 
     @Override
-    public ClientRegistrationProvider update(ClientRegistrationProvider clientRegistrationProvider) throws TechnicalException {
+    public ClientRegistrationProvider update(ClientRegistrationProvider clientRegistrationProvider)
+            throws TechnicalException {
         if (clientRegistrationProvider == null) {
             throw new IllegalStateException("Client registration provider must not be null");
         }
 
         ClientRegistrationProviderMongo clientRegistrationProviderMongo = internalClientRegistrationProviderRepository
-            .findById(clientRegistrationProvider.getId())
-            .orElse(null);
+                .findById(clientRegistrationProvider.getId())
+                .orElse(null);
         if (clientRegistrationProviderMongo == null) {
-            throw new IllegalStateException(
-                String.format("No client registration provider found with id [%s]", clientRegistrationProvider.getId())
-            );
+            throw new IllegalStateException(String.format(
+                    "No client registration provider found with id [%s]", clientRegistrationProvider.getId()));
         }
 
         try {
@@ -91,16 +92,21 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
             clientRegistrationProviderMongo.setDescription(clientRegistrationProvider.getDescription());
             clientRegistrationProviderMongo.setUpdatedAt(clientRegistrationProvider.getUpdatedAt());
             clientRegistrationProviderMongo.setDiscoveryEndpoint(clientRegistrationProvider.getDiscoveryEndpoint());
-            clientRegistrationProviderMongo.setInitialAccessTokenType(clientRegistrationProvider.getInitialAccessTokenType().name());
+            clientRegistrationProviderMongo.setInitialAccessTokenType(
+                    clientRegistrationProvider.getInitialAccessTokenType().name());
             clientRegistrationProviderMongo.setClientId(clientRegistrationProvider.getClientId());
             clientRegistrationProviderMongo.setClientSecret(clientRegistrationProvider.getClientSecret());
             clientRegistrationProviderMongo.setScopes(clientRegistrationProvider.getScopes());
             clientRegistrationProviderMongo.setInitialAccessToken(clientRegistrationProvider.getInitialAccessToken());
-            clientRegistrationProviderMongo.setRenewClientSecretSupport(clientRegistrationProvider.isRenewClientSecretSupport());
-            clientRegistrationProviderMongo.setRenewClientSecretMethod(clientRegistrationProvider.getRenewClientSecretMethod());
-            clientRegistrationProviderMongo.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
+            clientRegistrationProviderMongo.setRenewClientSecretSupport(
+                    clientRegistrationProvider.isRenewClientSecretSupport());
+            clientRegistrationProviderMongo.setRenewClientSecretMethod(
+                    clientRegistrationProvider.getRenewClientSecretMethod());
+            clientRegistrationProviderMongo.setRenewClientSecretEndpoint(
+                    clientRegistrationProvider.getRenewClientSecretEndpoint());
             clientRegistrationProviderMongo.setSoftwareId(clientRegistrationProvider.getSoftwareId());
-            clientRegistrationProviderMongo.setClaimMappings(encodeClaimKeys(clientRegistrationProvider.getClaimMappings()));
+            clientRegistrationProviderMongo.setClaimMappings(
+                    encodeClaimKeys(clientRegistrationProvider.getClaimMappings()));
             clientRegistrationProviderMongo.setTrustStoreType(clientRegistrationProvider.getTrustStoreType());
             clientRegistrationProviderMongo.setTrustStorePath(clientRegistrationProvider.getTrustStorePath());
             clientRegistrationProviderMongo.setTrustStorePassword(clientRegistrationProvider.getTrustStorePassword());
@@ -112,9 +118,8 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
             clientRegistrationProviderMongo.setKeyStoreAlias(clientRegistrationProvider.getKeyStoreAlias());
             clientRegistrationProviderMongo.setKeyPassword(clientRegistrationProvider.getKeyPassword());
 
-            ClientRegistrationProviderMongo clientRegistrationProviderMongoUpdated = internalClientRegistrationProviderRepository.save(
-                clientRegistrationProviderMongo
-            );
+            ClientRegistrationProviderMongo clientRegistrationProviderMongoUpdated =
+                    internalClientRegistrationProviderRepository.save(clientRegistrationProviderMongo);
             return map(clientRegistrationProviderMongoUpdated);
         } catch (Exception e) {
             log.error("An error occurs when updating client registration provider", e);
@@ -136,8 +141,10 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
     public Set<ClientRegistrationProvider> findAll() throws TechnicalException {
         log.debug("Find all client registration providers");
 
-        List<ClientRegistrationProviderMongo> clientRegistrationProviders = internalClientRegistrationProviderRepository.findAll();
-        Set<ClientRegistrationProvider> res = clientRegistrationProviders.stream().map(this::map).collect(Collectors.toSet());
+        List<ClientRegistrationProviderMongo> clientRegistrationProviders =
+                internalClientRegistrationProviderRepository.findAll();
+        Set<ClientRegistrationProvider> res =
+                clientRegistrationProviders.stream().map(this::map).collect(Collectors.toSet());
 
         log.debug("Find all client registration providers - Done");
         return res;
@@ -147,9 +154,10 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
     public Set<ClientRegistrationProvider> findAllByEnvironment(String environmentId) {
         log.debug("Find all client registration providers by environment");
         final List<ClientRegistrationProviderMongo> clientRegistrationProviders =
-            internalClientRegistrationProviderRepository.findByEnvironmentId(environmentId);
+                internalClientRegistrationProviderRepository.findByEnvironmentId(environmentId);
 
-        Set<ClientRegistrationProvider> res = clientRegistrationProviders.stream().map(this::map).collect(Collectors.toSet());
+        Set<ClientRegistrationProvider> res =
+                clientRegistrationProviders.stream().map(this::map).collect(Collectors.toSet());
 
         log.debug("Find all client registration providers by environment - Done");
         return res;
@@ -159,11 +167,10 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Delete client registration providers by environment [{}]", environmentId);
         try {
-            final var subscriptionMongos = internalClientRegistrationProviderRepository
-                .deleteByEnvironmentId(environmentId)
-                .stream()
-                .map(ClientRegistrationProviderMongo::getId)
-                .toList();
+            final var subscriptionMongos =
+                    internalClientRegistrationProviderRepository.deleteByEnvironmentId(environmentId).stream()
+                            .map(ClientRegistrationProviderMongo::getId)
+                            .toList();
             log.debug("Delete client registration providers by environment [{}] - Done", environmentId);
             return subscriptionMongos;
         } catch (Exception e) {
@@ -200,7 +207,8 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
             return null;
         }
         Map<String, String> encoded = new HashMap<>(claimMappings.size());
-        claimMappings.forEach((key, value) -> encoded.put(new String(Base64.getEncoder().encode(key.getBytes())), value));
+        claimMappings.forEach(
+                (key, value) -> encoded.put(new String(Base64.getEncoder().encode(key.getBytes())), value));
         return encoded;
     }
 
@@ -209,7 +217,8 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
             return null;
         }
         Map<String, String> decoded = new HashMap<>(claimMappings.size());
-        claimMappings.forEach((key, value) -> decoded.put(new String(Base64.getDecoder().decode(key)), value));
+        claimMappings.forEach(
+                (key, value) -> decoded.put(new String(Base64.getDecoder().decode(key)), value));
         return decoded;
     }
 }

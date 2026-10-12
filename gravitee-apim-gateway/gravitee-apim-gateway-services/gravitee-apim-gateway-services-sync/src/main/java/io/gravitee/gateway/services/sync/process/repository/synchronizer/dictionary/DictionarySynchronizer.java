@@ -45,7 +45,8 @@ import lombok.RequiredArgsConstructor;
 public class DictionarySynchronizer implements RepositorySynchronizer {
 
     private static final Set<EventType> INIT_EVENT_TYPES = Set.of(EventType.PUBLISH_DICTIONARY);
-    private static final Set<EventType> INCREMENTAL_EVENT_TYPES = Set.of(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY);
+    private static final Set<EventType> INCREMENTAL_EVENT_TYPES =
+            Set.of(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY);
     private final LatestEventFetcher eventsFetcher;
     private final DictionaryMapper dictionaryMapper;
     private final DeployerFactory deployerFactory;
@@ -56,100 +57,96 @@ public class DictionarySynchronizer implements RepositorySynchronizer {
     public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
         AtomicLong launchTime = new AtomicLong();
         return eventsFetcher
-            .fetchLatest(from, to, DICTIONARY_ID, environments, from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
-            .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            // fetch per page
-            .flatMap(events ->
-                Flowable.just(events)
-                    .flatMapIterable(e -> e)
-                    .groupBy(Event::getType)
-                    .flatMap(eventsByType -> {
-                        if (eventsByType.getKey() == EventType.PUBLISH_DICTIONARY) {
-                            return prepareForDeployment(eventsByType);
-                        } else if (eventsByType.getKey() == EventType.UNPUBLISH_DICTIONARY) {
-                            return prepareForUndeployment(eventsByType);
-                        } else {
-                            return Flowable.empty();
-                        }
-                    })
-            )
-            // per deployable
-            .compose(upstream -> {
-                DictionaryDeployer dictionaryDeployer = deployerFactory.createDictionaryDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> {
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deploy(dictionaryDeployer, deployable);
-                        } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeploy(dictionaryDeployer, deployable);
-                        } else {
-                            return Flowable.empty();
-                        }
-                    })
-                    .sequential(eventsFetcher.bulkItems());
-            })
-            .count()
-            .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-            .doOnSuccess(count -> {
-                String logMsg = String.format(
-                    "%s dictionaries synchronized in %sms",
-                    count,
-                    (System.currentTimeMillis() - launchTime.get())
-                );
-                if (from == -1) {
-                    log.info(logMsg);
-                } else {
-                    log.debug(logMsg);
-                }
-            })
-            .ignoreElement();
+                .fetchLatest(
+                        from, to, DICTIONARY_ID, environments, from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
+                .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
+                // fetch per page
+                .flatMap(events -> Flowable.just(events)
+                        .flatMapIterable(e -> e)
+                        .groupBy(Event::getType)
+                        .flatMap(eventsByType -> {
+                            if (eventsByType.getKey() == EventType.PUBLISH_DICTIONARY) {
+                                return prepareForDeployment(eventsByType);
+                            } else if (eventsByType.getKey() == EventType.UNPUBLISH_DICTIONARY) {
+                                return prepareForUndeployment(eventsByType);
+                            } else {
+                                return Flowable.empty();
+                            }
+                        }))
+                // per deployable
+                .compose(upstream -> {
+                    DictionaryDeployer dictionaryDeployer = deployerFactory.createDictionaryDeployer();
+                    return upstream.parallel(syncDeployerExecutor.getMaximumPoolSize())
+                            .runOn(Schedulers.from(syncDeployerExecutor))
+                            .flatMap(deployable -> {
+                                if (deployable.syncAction() == SyncAction.DEPLOY) {
+                                    return deploy(dictionaryDeployer, deployable);
+                                } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                    return undeploy(dictionaryDeployer, deployable);
+                                } else {
+                                    return Flowable.empty();
+                                }
+                            })
+                            .sequential(eventsFetcher.bulkItems());
+                })
+                .count()
+                .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
+                .doOnSuccess(count -> {
+                    String logMsg = String.format(
+                            "%s dictionaries synchronized in %sms",
+                            count, (System.currentTimeMillis() - launchTime.get()));
+                    if (from == -1) {
+                        log.info(logMsg);
+                    } else {
+                        log.debug(logMsg);
+                    }
+                })
+                .ignoreElement();
     }
 
     private Flowable<DictionaryDeployable> prepareForDeployment(final Flowable<Event> eventsByType) {
         return eventsByType
-            .flatMapMaybe(dictionaryMapper::to)
-            .map(dictionary ->
-                DictionaryDeployable.builder().id(dictionary.getId()).dictionary(dictionary).syncAction(SyncAction.DEPLOY).build()
-            );
+                .flatMapMaybe(dictionaryMapper::to)
+                .map(dictionary -> DictionaryDeployable.builder()
+                        .id(dictionary.getId())
+                        .dictionary(dictionary)
+                        .syncAction(SyncAction.DEPLOY)
+                        .build());
     }
 
     private Flowable<DictionaryDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {
         return eventsByType
-            .flatMapMaybe(dictionaryMapper::to)
-            .map(dictionary ->
-                DictionaryDeployable.builder().id(dictionary.getId()).dictionary(dictionary).syncAction(SyncAction.UNDEPLOY).build()
-            );
+                .flatMapMaybe(dictionaryMapper::to)
+                .map(dictionary -> DictionaryDeployable.builder()
+                        .id(dictionary.getId())
+                        .dictionary(dictionary)
+                        .syncAction(SyncAction.UNDEPLOY)
+                        .build());
     }
 
     private static Flowable<DictionaryDeployable> deploy(
-        final DictionaryDeployer dictionaryDeployer,
-        final DictionaryDeployable deployable
-    ) {
+            final DictionaryDeployer dictionaryDeployer, final DictionaryDeployable deployable) {
         return dictionaryDeployer
-            .deploy(deployable)
-            .andThen(dictionaryDeployer.doAfterDeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .deploy(deployable)
+                .andThen(dictionaryDeployer.doAfterDeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     private static Flowable<DictionaryDeployable> undeploy(
-        final DictionaryDeployer dictionaryDeployer,
-        final DictionaryDeployable deployable
-    ) {
+            final DictionaryDeployer dictionaryDeployer, final DictionaryDeployable deployable) {
         return dictionaryDeployer
-            .undeploy(deployable)
-            .andThen(dictionaryDeployer.doAfterUndeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+                .undeploy(deployable)
+                .andThen(dictionaryDeployer.doAfterUndeployment(deployable))
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> {
+                    log.error(throwable.getMessage(), throwable);
+                    return Flowable.empty();
+                });
     }
 
     @Override

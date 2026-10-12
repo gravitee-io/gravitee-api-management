@@ -41,10 +41,9 @@ public class ApiNotificationServiceImpl extends AbstractService implements ApiNo
     private final UserService userService;
 
     public ApiNotificationServiceImpl(
-        final GenericApiMapper indexableApiMapper,
-        final NotifierService notifierService,
-        final UserService userService
-    ) {
+            final GenericApiMapper indexableApiMapper,
+            final NotifierService notifierService,
+            final UserService userService) {
         this.indexableApiMapper = indexableApiMapper;
         this.notifierService = notifierService;
         this.userService = userService;
@@ -59,19 +58,22 @@ public class ApiNotificationServiceImpl extends AbstractService implements ApiNo
 
     @Override
     @Async("asyncNotificationThreadPoolTaskExecutor")
-    public void triggerUpdateNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
+    public void triggerUpdateNotification(
+            final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_UPDATED, indexableApi);
     }
 
     @Override
     @Async("asyncNotificationThreadPoolTaskExecutor")
-    public void triggerDeprecatedNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
+    public void triggerDeprecatedNotification(
+            final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_DEPRECATED, indexableApi);
     }
 
     @Override
     @Async("asyncNotificationThreadPoolTaskExecutor")
-    public void triggerDeployNotification(final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
+    public void triggerDeployNotification(
+            final ExecutionContext executionContext, final GenericApiEntity indexableApi) {
         triggerNotification(executionContext, ApiHook.API_DEPLOYED, indexableApi);
     }
 
@@ -87,16 +89,19 @@ public class ApiNotificationServiceImpl extends AbstractService implements ApiNo
         triggerNotification(executionContext, ApiHook.API_STOPPED, indexableApi);
     }
 
-    private void triggerNotification(final ExecutionContext executionContext, final ApiHook hook, final GenericApiEntity genericApiEntity) {
+    private void triggerNotification(
+            final ExecutionContext executionContext, final ApiHook hook, final GenericApiEntity genericApiEntity) {
         String userId = getAuthenticatedUsername();
         if (userId != null && !getAuthenticatedUser().isSystem()) {
             UserEntity userEntity = userService.findById(executionContext, userId);
             notifierService.trigger(
-                executionContext,
-                hook,
-                genericApiEntity.getId(),
-                new NotificationParamsBuilder().api(genericApiEntity).user(userEntity).build()
-            );
+                    executionContext,
+                    hook,
+                    genericApiEntity.getId(),
+                    new NotificationParamsBuilder()
+                            .api(genericApiEntity)
+                            .user(userEntity)
+                            .build());
         }
     }
 }

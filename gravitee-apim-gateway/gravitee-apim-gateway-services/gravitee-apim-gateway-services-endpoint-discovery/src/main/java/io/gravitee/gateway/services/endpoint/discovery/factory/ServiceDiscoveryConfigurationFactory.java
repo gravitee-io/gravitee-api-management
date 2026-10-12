@@ -22,5 +22,6 @@ import io.gravitee.discovery.api.ServiceDiscoveryConfiguration;
  * @author GraviteeSource Team
  */
 public interface ServiceDiscoveryConfigurationFactory {
-    <T extends ServiceDiscoveryConfiguration> T create(Class<T> serviceDiscoveryConfigurationClass, String configuration);
+    <T extends ServiceDiscoveryConfiguration> T create(
+            Class<T> serviceDiscoveryConfigurationClass, String configuration);
 }

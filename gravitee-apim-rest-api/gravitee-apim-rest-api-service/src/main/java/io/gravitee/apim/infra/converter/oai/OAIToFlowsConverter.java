@@ -48,58 +48,63 @@ public class OAIToFlowsConverter {
 
     List<Flow> convert(OpenAPI specification, Collection<? extends OAIOperationVisitor> visitors) {
         List<Flow> flows = new ArrayList<>();
-        specification
-            .getPaths()
-            .forEach((key, pathItem) -> {
-                String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
-                Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
-                operations.forEach((httpMethod, operation) -> {
-                    final Flow flow = mapFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
-                    if (!CollectionUtils.isEmpty(visitors)) {
-                        visitors.forEach(oaiOperationVisitor -> {
-                            Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(specification, operation);
-                            if (policy.isPresent()) {
-                                String configuration = clearNullValues(policy.get().getConfiguration());
-                                final Step step = mapStep(policy.get(), configuration, operation);
-                                String scope = getScope(configuration);
-                                if (scope != null && scope.equalsIgnoreCase("response")) {
-                                    flow.getResponse().add(step);
-                                } else {
-                                    flow.getRequest().add(step);
-                                }
+        specification.getPaths().forEach((key, pathItem) -> {
+            String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
+            Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
+            operations.forEach((httpMethod, operation) -> {
+                final Flow flow = mapFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
+                if (!CollectionUtils.isEmpty(visitors)) {
+                    visitors.forEach(oaiOperationVisitor -> {
+                        Optional<Policy> policy =
+                                (Optional<Policy>) oaiOperationVisitor.visit(specification, operation);
+                        if (policy.isPresent()) {
+                            String configuration = clearNullValues(policy.get().getConfiguration());
+                            final Step step = mapStep(policy.get(), configuration, operation);
+                            String scope = getScope(configuration);
+                            if (scope != null && scope.equalsIgnoreCase("response")) {
+                                flow.getResponse().add(step);
+                            } else {
+                                flow.getRequest().add(step);
                             }
-                        });
-                    }
-                    flows.add(flow);
-                });
+                        }
+                    });
+                }
+                flows.add(flow);
             });
+        });
         return flows;
     }
 
     private Flow mapFlow(String path, Set<HttpMethod> methods) {
         return Flow.builder()
-            .name(Strings.EMPTY)
-            .enabled(true)
-            .selectors(
-                List.of(
-                    ConditionSelector.builder().condition(Strings.EMPTY).type(SelectorType.CONDITION).build(),
-                    HttpSelector.builder().path(path).pathOperator(Operator.EQUALS).methods(methods).type(SelectorType.HTTP).build()
-                )
-            )
-            .build();
+                .name(Strings.EMPTY)
+                .enabled(true)
+                .selectors(List.of(
+                        ConditionSelector.builder()
+                                .condition(Strings.EMPTY)
+                                .type(SelectorType.CONDITION)
+                                .build(),
+                        HttpSelector.builder()
+                                .path(path)
+                                .pathOperator(Operator.EQUALS)
+                                .methods(methods)
+                                .type(SelectorType.HTTP)
+                                .build()))
+                .build();
     }
 
     private Step mapStep(Policy policy, String configuration, Operation operation) {
         return Step.builder()
-            .name(policy.getName())
-            .enabled(true)
-            .description(
-                operation.getSummary() == null
-                    ? (operation.getOperationId() == null ? operation.getDescription() : operation.getOperationId())
-                    : operation.getSummary()
-            )
-            .policy(policy.getName())
-            .configuration(configuration)
-            .build();
+                .name(policy.getName())
+                .enabled(true)
+                .description(
+                        operation.getSummary() == null
+                                ? (operation.getOperationId() == null
+                                        ? operation.getDescription()
+                                        : operation.getOperationId())
+                                : operation.getSummary())
+                .policy(policy.getName())
+                .configuration(configuration)
+                .build();
     }
 }

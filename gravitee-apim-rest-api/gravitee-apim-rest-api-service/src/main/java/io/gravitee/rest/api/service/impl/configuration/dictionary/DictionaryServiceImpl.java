@@ -103,10 +103,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     public Set<DictionaryEntity> findAll(ExecutionContext executionContext) {
         try {
             return dictionaryRepository
-                .findAllByEnvironments(Collections.singleton(executionContext.getEnvironmentId()))
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+                    .findAllByEnvironments(Collections.singleton(executionContext.getEnvironmentId()))
+                    .stream()
+                    .map(this::convert)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to retrieve dictionaries", ex);
         }
@@ -118,9 +118,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             log.debug("Deploy dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
-                .findById(id)
-                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-                .orElseThrow(() -> new DictionaryNotFoundException(id));
+                    .findById(id)
+                    .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                    .orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
             dictionary.setUpdatedAt(new Date());
@@ -130,13 +130,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // And create event
             eventService.createDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
-                executionContext.getOrganizationId(),
-                EventType.PUBLISH_DICTIONARY,
-                dictionary
-            );
-            auditEncryptedPropertiesAccess(executionContext, dictionary, Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED);
+                    executionContext,
+                    Collections.singleton(executionContext.getEnvironmentId()),
+                    executionContext.getOrganizationId(),
+                    EventType.PUBLISH_DICTIONARY,
+                    dictionary);
+            auditEncryptedPropertiesAccess(
+                    executionContext, dictionary, Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED);
             return convert(dictionary);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to deploy " + id, ex);
@@ -149,9 +149,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             log.debug("Undeploy dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
-                .findById(id)
-                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-                .orElseThrow(() -> new DictionaryNotFoundException(id));
+                    .findById(id)
+                    .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                    .orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
             dictionary.setUpdatedAt(new Date());
@@ -161,12 +161,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // And create event
             eventService.createDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
-                executionContext.getOrganizationId(),
-                EventType.UNPUBLISH_DICTIONARY,
-                dictionary
-            );
+                    executionContext,
+                    Collections.singleton(executionContext.getEnvironmentId()),
+                    executionContext.getOrganizationId(),
+                    EventType.UNPUBLISH_DICTIONARY,
+                    dictionary);
             return convert(dictionary);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to undeploy " + id, ex);
@@ -179,9 +178,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             log.debug("Start dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
-                .findById(id)
-                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-                .orElseThrow(() -> new DictionaryNotFoundException(id));
+                    .findById(id)
+                    .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                    .orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
             dictionary.setUpdatedAt(new Date());
@@ -191,21 +190,19 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // And create event
             eventService.createDynamicDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
-                executionContext.getOrganizationId(),
-                EventType.START_DICTIONARY,
-                id
-            );
+                    executionContext,
+                    Collections.singleton(executionContext.getEnvironmentId()),
+                    executionContext.getOrganizationId(),
+                    EventType.START_DICTIONARY,
+                    id);
 
             // Audit
             createAuditLog(
-                executionContext,
-                Dictionary.AuditEvent.DICTIONARY_UPDATED,
-                updatedDictionary.getUpdatedAt(),
-                dictionary,
-                updatedDictionary
-            );
+                    executionContext,
+                    Dictionary.AuditEvent.DICTIONARY_UPDATED,
+                    updatedDictionary.getUpdatedAt(),
+                    dictionary,
+                    updatedDictionary);
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
@@ -219,9 +216,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             log.debug("Stop dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
-                .findById(id)
-                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-                .orElseThrow(() -> new DictionaryNotFoundException(id));
+                    .findById(id)
+                    .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                    .orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
             dictionary.setUpdatedAt(new Date());
@@ -231,21 +228,19 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // And create event
             eventService.createDynamicDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
-                executionContext.getOrganizationId(),
-                EventType.STOP_DICTIONARY,
-                id
-            );
+                    executionContext,
+                    Collections.singleton(executionContext.getEnvironmentId()),
+                    executionContext.getOrganizationId(),
+                    EventType.STOP_DICTIONARY,
+                    id);
 
             // Audit
             createAuditLog(
-                executionContext,
-                Dictionary.AuditEvent.DICTIONARY_UPDATED,
-                updatedDictionary.getUpdatedAt(),
-                dictionary,
-                updatedDictionary
-            );
+                    executionContext,
+                    Dictionary.AuditEvent.DICTIONARY_UPDATED,
+                    updatedDictionary.getUpdatedAt(),
+                    dictionary,
+                    updatedDictionary);
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
@@ -284,45 +279,45 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             Dictionary createdDictionary = dictionaryRepository.create(dictionary);
 
-            createAuditLog(executionContext, Dictionary.AuditEvent.DICTIONARY_CREATED, dictionary.getCreatedAt(), null, dictionary);
+            createAuditLog(
+                    executionContext,
+                    Dictionary.AuditEvent.DICTIONARY_CREATED,
+                    dictionary.getCreatedAt(),
+                    null,
+                    dictionary);
             return convert(createdDictionary);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to create dictionary '" + newDictionaryEntity.getName() + "'",
-                ex
-            );
+                    "An error occurs while trying to create dictionary '" + newDictionaryEntity.getName() + "'", ex);
         }
     }
 
     @Override
-    public DictionaryEntity update(ExecutionContext executionContext, String id, UpdateDictionaryEntity updateDictionaryEntity) {
+    public DictionaryEntity update(
+            ExecutionContext executionContext, String id, UpdateDictionaryEntity updateDictionaryEntity) {
         try {
             log.debug("Update dictionary id={} name={}", id, updateDictionaryEntity.getName());
 
             Dictionary dictionaryToUpdate = dictionaryRepository
-                .findById(id)
-                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-                .orElseThrow(() -> new DictionaryNotFoundException(updateDictionaryEntity.getName()));
+                    .findById(id)
+                    .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                    .orElseThrow(() -> new DictionaryNotFoundException(updateDictionaryEntity.getName()));
 
             Dictionary updatedDictionary = dictionaryRepository.update(
-                withUnmanagedFieldsOf(convert(updateDictionaryEntity, dictionaryToUpdate), id, dictionaryToUpdate)
-            );
+                    withUnmanagedFieldsOf(convert(updateDictionaryEntity, dictionaryToUpdate), id, dictionaryToUpdate));
 
             restartIfAlreadyStarted(executionContext, id, updatedDictionary);
             createAuditLog(
-                executionContext,
-                Dictionary.AuditEvent.DICTIONARY_UPDATED,
-                updatedDictionary.getUpdatedAt(),
-                dictionaryToUpdate,
-                updatedDictionary
-            );
+                    executionContext,
+                    Dictionary.AuditEvent.DICTIONARY_UPDATED,
+                    updatedDictionary.getUpdatedAt(),
+                    dictionaryToUpdate,
+                    updatedDictionary);
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to update dictionary '" + updateDictionaryEntity.getName() + "'",
-                ex
-            );
+                    "An error occurs while trying to update dictionary '" + updateDictionaryEntity.getName() + "'", ex);
         }
     }
 
@@ -342,12 +337,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             return;
         }
         eventService.createDynamicDictionaryEvent(
-            executionContext,
-            Collections.singleton(executionContext.getEnvironmentId()),
-            executionContext.getOrganizationId(),
-            EventType.START_DICTIONARY,
-            id
-        );
+                executionContext,
+                Collections.singleton(executionContext.getEnvironmentId()),
+                executionContext.getOrganizationId(),
+                EventType.START_DICTIONARY,
+                id);
     }
 
     @Override
@@ -355,18 +349,15 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             log.debug("Update dynamic dictionary properties {}", id);
 
-            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
+            Dictionary dictionary =
+                    dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
             if (dictionary.getState() != LifecycleState.STARTED) {
                 log.warn("Update dictionary {} properties not applied: dictionary is {}", id, dictionary.getState());
                 return convert(dictionary);
             }
             DictionaryEncryptionPolicy encryption = dictionary.getEncryption();
             Map<String, DictionaryProperty> refreshed = toFetchedProperties(
-                id,
-                properties,
-                dictionary.getProperties(),
-                encryption != null && encryption.isEncryptOnFetch()
-            );
+                    id, properties, dictionary.getProperties(), encryption != null && encryption.isEncryptOnFetch());
             if (Objects.equals(refreshed, dictionary.getProperties())) {
                 return convert(dictionary);
             }
@@ -381,7 +372,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to update dictionary '" + id + "' properties", ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to update dictionary '" + id + "' properties", ex);
         }
     }
 
@@ -389,29 +381,25 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
      * Publishes and audits a refresh in the dictionary's own environment, which the refresher — a
      * scheduled job with no execution context of its own — cannot supply.
      */
-    private void publishRefreshedProperties(Dictionary dictionary, Dictionary updatedDictionary, Dictionary beforeRefresh) {
+    private void publishRefreshedProperties(
+            Dictionary dictionary, Dictionary updatedDictionary, Dictionary beforeRefresh) {
         EnvironmentEntity environment = environmentService.findById(dictionary.getEnvironmentId());
         ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
 
         eventService.createDictionaryEvent(
-            executionContext,
-            Collections.singleton(executionContext.getEnvironmentId()),
-            executionContext.getOrganizationId(),
-            EventType.PUBLISH_DICTIONARY,
-            dictionary
-        );
+                executionContext,
+                Collections.singleton(executionContext.getEnvironmentId()),
+                executionContext.getOrganizationId(),
+                EventType.PUBLISH_DICTIONARY,
+                dictionary);
         createAuditLog(
-            executionContext,
-            Dictionary.AuditEvent.DICTIONARY_UPDATED,
-            updatedDictionary.getUpdatedAt(),
-            beforeRefresh,
-            updatedDictionary
-        );
+                executionContext,
+                Dictionary.AuditEvent.DICTIONARY_UPDATED,
+                updatedDictionary.getUpdatedAt(),
+                beforeRefresh,
+                updatedDictionary);
         auditEncryptedPropertiesAccess(
-            executionContext,
-            updatedDictionary,
-            Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED
-        );
+                executionContext, updatedDictionary, Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED);
     }
 
     private static Dictionary copyOf(Dictionary dictionary) {
@@ -443,7 +431,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             }
             return byId.map(this::convert).orElseThrow(() -> new DictionaryNotFoundException(id));
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
     }
 
@@ -451,9 +440,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     public Optional<DictionaryEntity> findByKeyAndEnvironment(ExecutionContext executionContext, String key) {
         try {
             log.debug("Find dictionary by key: {} and environment: {}", key, executionContext.getEnvironmentId());
-            return dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId()).map(this::convert);
+            return dictionaryRepository
+                    .findByKeyAndEnvironment(key, executionContext.getEnvironmentId())
+                    .map(this::convert);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find a dictionary using its key " + key, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find a dictionary using its key " + key, ex);
         }
     }
 
@@ -463,9 +455,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             log.debug("Delete dictionary: {}", id);
 
             Dictionary dictionary = dictionaryRepository
-                .findById(id)
-                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-                .orElseThrow(() -> new DictionaryNotFoundException(id));
+                    .findById(id)
+                    .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                    .orElseThrow(() -> new DictionaryNotFoundException(id));
 
             if (dictionary.getType() == DictionaryType.DYNAMIC) {
                 this.stop(executionContext, id);
@@ -475,26 +467,25 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // And create event
             eventService.createDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
-                executionContext.getOrganizationId(),
-                EventType.UNPUBLISH_DICTIONARY,
-                dictionary
-            );
+                    executionContext,
+                    Collections.singleton(executionContext.getEnvironmentId()),
+                    executionContext.getOrganizationId(),
+                    EventType.UNPUBLISH_DICTIONARY,
+                    dictionary);
 
             createAuditLog(executionContext, Dictionary.AuditEvent.DICTIONARY_DELETED, new Date(), dictionary, null);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
     }
 
     private void createAuditLog(
-        ExecutionContext executionContext,
-        Audit.AuditEvent event,
-        Date createdAt,
-        Dictionary oldValue,
-        Dictionary newValue
-    ) {
+            ExecutionContext executionContext,
+            Audit.AuditEvent event,
+            Date createdAt,
+            Dictionary oldValue,
+            Dictionary newValue) {
         String dictionaryName = oldValue != null ? oldValue.getName() : newValue.getName();
 
         Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
@@ -504,15 +495,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
 
         auditService.createAuditLog(
-            executionContext,
-            AuditService.AuditLogData.builder()
-                .properties(auditProperties)
-                .event(event)
-                .createdAt(createdAt)
-                .oldValue(withoutEncryptedValues(oldValue))
-                .newValue(withoutEncryptedValues(newValue))
-                .build()
-        );
+                executionContext,
+                AuditService.AuditLogData.builder()
+                        .properties(auditProperties)
+                        .event(event)
+                        .createdAt(createdAt)
+                        .oldValue(withoutEncryptedValues(oldValue))
+                        .newValue(withoutEncryptedValues(newValue))
+                        .build());
     }
 
     private ObjectNode withoutEncryptedValues(Dictionary dictionary) {
@@ -523,7 +513,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         JsonNode properties = snapshot.path("properties");
         encryptedPropertyKeys(dictionary).forEach(key -> {
             ObjectNode property = (ObjectNode) properties.get(key);
-            property.put("value", EncryptedPropertyAuditRedaction.fingerprint(property.get("value").asText()));
+            property.put(
+                    "value",
+                    EncryptedPropertyAuditRedaction.fingerprint(
+                            property.get("value").asText()));
         });
         return snapshot;
     }
@@ -532,19 +525,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         if (dictionary.getProperties() == null) {
             return Stream.empty();
         }
-        return dictionary
-            .getProperties()
-            .entrySet()
-            .stream()
-            .filter(property -> property.getValue() != null && property.getValue().encrypted())
-            .map(Map.Entry::getKey);
+        return dictionary.getProperties().entrySet().stream()
+                .filter(property ->
+                        property.getValue() != null && property.getValue().encrypted())
+                .map(Map.Entry::getKey);
     }
 
     private void auditEncryptedPropertiesAccess(
-        ExecutionContext executionContext,
-        Dictionary deployedDictionary,
-        Dictionary.AuditEvent event
-    ) {
+            ExecutionContext executionContext, Dictionary deployedDictionary, Dictionary.AuditEvent event) {
         if (!hasEncryptedProperty(deployedDictionary)) {
             return;
         }
@@ -553,22 +541,22 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
 
         auditService.createAuditLog(
-            executionContext,
-            AuditService.AuditLogData.builder()
-                .properties(auditProperties)
-                .event(event)
-                .createdAt(deployedDictionary.getDeployedAt())
-                .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(deployedDictionary)))
-                .build()
-        );
+                executionContext,
+                AuditService.AuditLogData.builder()
+                        .properties(auditProperties)
+                        .event(event)
+                        .createdAt(deployedDictionary.getDeployedAt())
+                        .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(deployedDictionary)))
+                        .build());
     }
 
     private static Map<String, String> ciphertextByKey(Dictionary dictionary) {
-        return encryptedPropertyKeys(dictionary).collect(
-            HashMap::new,
-            (ciphertextByKey, key) -> ciphertextByKey.put(key, dictionary.getProperties().get(key).value()),
-            HashMap::putAll
-        );
+        return encryptedPropertyKeys(dictionary)
+                .collect(
+                        HashMap::new,
+                        (ciphertextByKey, key) -> ciphertextByKey.put(
+                                key, dictionary.getProperties().get(key).value()),
+                        HashMap::putAll);
     }
 
     private static boolean hasEncryptedProperty(Dictionary dictionary) {
@@ -576,30 +564,33 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     private static boolean hasEncryptedProperty(Map<String, DictionaryProperty> properties) {
-        return properties != null && properties.values().stream().filter(Objects::nonNull).anyMatch(DictionaryProperty::encrypted);
+        return properties != null
+                && properties.values().stream().filter(Objects::nonNull).anyMatch(DictionaryProperty::encrypted);
     }
 
     private DictionaryEntity convert(Dictionary dictionary) {
         DictionaryEntity.DictionaryEntityBuilder dictionaryEntityBuilder = DictionaryEntity.builder()
-            .id(dictionary.getId())
-            .name(dictionary.getName())
-            .key(dictionary.getKey())
-            .description(dictionary.getDescription())
-            .createdAt(dictionary.getCreatedAt())
-            .updatedAt(dictionary.getUpdatedAt())
-            .deployedAt(dictionary.getDeployedAt())
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.valueOf(dictionary.getType().name()))
-            .properties(toFlatProperties(dictionary.getProperties()))
-            .propertyOptions(toPropertyOptions(dictionary.getProperties()))
-            .state(Lifecycle.State.valueOf(dictionary.getState().name()));
+                .id(dictionary.getId())
+                .name(dictionary.getName())
+                .key(dictionary.getKey())
+                .description(dictionary.getDescription())
+                .createdAt(dictionary.getCreatedAt())
+                .updatedAt(dictionary.getUpdatedAt())
+                .deployedAt(dictionary.getDeployedAt())
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.valueOf(
+                        dictionary.getType().name()))
+                .properties(toFlatProperties(dictionary.getProperties()))
+                .propertyOptions(toPropertyOptions(dictionary.getProperties()))
+                .state(Lifecycle.State.valueOf(dictionary.getState().name()));
 
         if (dictionary.getType() == DictionaryType.DYNAMIC) {
             dictionaryEntityBuilder
-                .provider(convert(dictionary.getProvider()))
-                .trigger(convert(dictionary.getTrigger()))
-                .encryption(
-                    dictionary.getEncryption() != null ? convert(dictionary.getEncryption()) : new DictionaryEncryptionPolicyEntity()
-                );
+                    .provider(convert(dictionary.getProvider()))
+                    .trigger(convert(dictionary.getTrigger()))
+                    .encryption(
+                            dictionary.getEncryption() != null
+                                    ? convert(dictionary.getEncryption())
+                                    : new DictionaryEncryptionPolicyEntity());
         }
 
         return dictionaryEntityBuilder.build();
@@ -610,21 +601,24 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
      * {@code key} is already used in this environment as an id or as a key.
      */
     private void ensureRuntimeKeyIsAvailable(
-        ExecutionContext executionContext,
-        String key,
-        String dictionaryName,
-        Optional<Dictionary> dictionaryById,
-        boolean explicitKey
-    ) throws TechnicalException {
+            ExecutionContext executionContext,
+            String key,
+            String dictionaryName,
+            Optional<Dictionary> dictionaryById,
+            boolean explicitKey)
+            throws TechnicalException {
         dictionaryById
-            .filter(d -> d.getEnvironmentId() != null && d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
-            .ifPresent(existing -> {
-                if (explicitKey) {
-                    throw new DictionaryKeyCollidesWithIdException(key, existing.getId(), existing.getName());
-                }
-                throw new DictionaryAlreadyExistsException(dictionaryName);
-            });
-        if (dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId()).isPresent()) {
+                .filter(d -> d.getEnvironmentId() != null
+                        && d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .ifPresent(existing -> {
+                    if (explicitKey) {
+                        throw new DictionaryKeyCollidesWithIdException(key, existing.getId(), existing.getName());
+                    }
+                    throw new DictionaryAlreadyExistsException(dictionaryName);
+                });
+        if (dictionaryRepository
+                .findByKeyAndEnvironment(key, executionContext.getEnvironmentId())
+                .isPresent()) {
             throw new DictionaryAlreadyExistsException(dictionaryName);
         }
     }
@@ -642,62 +636,53 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
      * empty map still means "clear them", which is how the last property is deleted.
      */
     private Map<String, DictionaryProperty> toTypedProperties(
-        String dictionaryId,
-        Map<String, String> properties,
-        Map<String, DictionaryPropertyOptions> options,
-        Map<String, DictionaryProperty> existing
-    ) {
+            String dictionaryId,
+            Map<String, String> properties,
+            Map<String, DictionaryPropertyOptions> options,
+            Map<String, DictionaryProperty> existing) {
         if (properties == null) {
             rejectOptionsWithoutProperty(Map.of(), options);
             return existing;
         }
         rejectOptionsWithoutProperty(properties, options);
         rejectValuelessProperties(properties);
-        return properties
-            .entrySet()
-            .stream()
-            .collect(
-                Collectors.toMap(Map.Entry::getKey, entry ->
-                    toTypedProperty(dictionaryId, entry, optionsFor(options, entry.getKey()), existing)
-                )
-            );
+        return properties.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> toTypedProperty(dictionaryId, entry, optionsFor(options, entry.getKey()), existing)));
     }
 
     private static void rejectValuelessProperties(Map<String, String> properties) {
-        properties
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() == null)
-            .findFirst()
-            .ifPresent(entry -> {
-                throw new DictionaryPropertyValueRequiredException(entry.getKey());
-            });
+        properties.entrySet().stream()
+                .filter(entry -> entry.getValue() == null)
+                .findFirst()
+                .ifPresent(entry -> {
+                    throw new DictionaryPropertyValueRequiredException(entry.getKey());
+                });
     }
 
     private static DictionaryPropertyOptions optionsFor(Map<String, DictionaryPropertyOptions> options, String key) {
         return options == null ? null : options.get(key);
     }
 
-    private static void rejectOptionsWithoutProperty(Map<String, String> properties, Map<String, DictionaryPropertyOptions> options) {
+    private static void rejectOptionsWithoutProperty(
+            Map<String, String> properties, Map<String, DictionaryPropertyOptions> options) {
         if (options == null) {
             return;
         }
-        options
-            .keySet()
-            .stream()
-            .filter(key -> !properties.containsKey(key))
-            .findFirst()
-            .ifPresent(key -> {
-                throw new InvalidDictionaryPropertyOptionsException(key, "there is no such property");
-            });
+        options.keySet().stream()
+                .filter(key -> !properties.containsKey(key))
+                .findFirst()
+                .ifPresent(key -> {
+                    throw new InvalidDictionaryPropertyOptionsException(key, "there is no such property");
+                });
     }
 
     private DictionaryProperty toTypedProperty(
-        String dictionaryId,
-        Map.Entry<String, String> property,
-        DictionaryPropertyOptions options,
-        Map<String, DictionaryProperty> existing
-    ) {
+            String dictionaryId,
+            Map.Entry<String, String> property,
+            DictionaryPropertyOptions options,
+            Map<String, DictionaryProperty> existing) {
         DictionaryProperty stored = existing == null ? null : existing.get(property.getKey());
         boolean storedEncrypted = stored != null && stored.encrypted();
         rejectContradictoryOptions(property.getKey(), options);
@@ -725,11 +710,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     private static void rejectContradictoryOptions(String key, DictionaryPropertyOptions options) {
-        if (options != null && Boolean.TRUE.equals(options.getEncrypted()) && Boolean.TRUE.equals(options.getEncryptable())) {
+        if (options != null
+                && Boolean.TRUE.equals(options.getEncrypted())
+                && Boolean.TRUE.equals(options.getEncryptable())) {
             throw new InvalidDictionaryPropertyOptionsException(
-                key,
-                "'encrypted' and 'encryptable' cannot both be true — the value is either already ciphertext or plaintext to encrypt"
-            );
+                    key,
+                    "'encrypted' and 'encryptable' cannot both be true — the value is either already ciphertext or plaintext to encrypt");
         }
     }
 
@@ -745,9 +731,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             dataEncryptor.decrypt(value);
         } catch (GeneralSecurityException | IllegalArgumentException e) {
             throw new InvalidDictionaryPropertyOptionsException(
-                key,
-                "'encrypted' is set but the value is not ciphertext this installation can decrypt"
-            );
+                    key, "'encrypted' is set but the value is not ciphertext this installation can decrypt");
         }
     }
 
@@ -766,9 +750,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             return dataEncryptor.encrypt(value);
         } catch (GeneralSecurityException e) {
             throw new TechnicalManagementException(
-                "Failed to encrypt dictionary property [" + key + "] on dictionary [" + dictionaryId + "]",
-                e
-            );
+                    "Failed to encrypt dictionary property [" + key + "] on dictionary [" + dictionaryId + "]", e);
         }
     }
 
@@ -782,11 +764,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
      * <p>A key that fails to encrypt falls back to its stored value, or is dropped if it has none.
      */
     private Map<String, DictionaryProperty> toFetchedProperties(
-        String dictionaryId,
-        Map<String, String> fetched,
-        Map<String, DictionaryProperty> existing,
-        boolean encryptFetchedProperties
-    ) {
+            String dictionaryId,
+            Map<String, String> fetched,
+            Map<String, DictionaryProperty> existing,
+            boolean encryptFetchedProperties) {
         if (fetched == null) {
             return null;
         }
@@ -794,11 +775,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         Map<String, DictionaryProperty> properties = new LinkedHashMap<>();
         for (Map.Entry<String, String> entry : fetched.entrySet()) {
             DictionaryProperty property = toFetchedProperty(
-                dictionaryId,
-                entry,
-                existing == null ? null : existing.get(entry.getKey()),
-                encryptFetchedProperties
-            );
+                    dictionaryId,
+                    entry,
+                    existing == null ? null : existing.get(entry.getKey()),
+                    encryptFetchedProperties);
             if (property != null) {
                 properties.put(entry.getKey(), property);
             }
@@ -812,21 +792,22 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
      * it; a key that fails to encrypt falls back to its stored value, or is dropped if it has none.
      */
     private DictionaryProperty toFetchedProperty(
-        String dictionaryId,
-        Map.Entry<String, String> fetched,
-        DictionaryProperty stored,
-        boolean encryptFetchedProperties
-    ) {
+            String dictionaryId,
+            Map.Entry<String, String> fetched,
+            DictionaryProperty stored,
+            boolean encryptFetchedProperties) {
         if (stored == null || !stored.encrypted()) {
             if (encryptFetchedProperties) {
-                return encryptFetchedProperty(dictionaryId, fetched.getKey(), fetched.getValue()).orElse(stored);
+                return encryptFetchedProperty(dictionaryId, fetched.getKey(), fetched.getValue())
+                        .orElse(stored);
             }
             return new DictionaryProperty(fetched.getValue(), false);
         }
         if (Objects.equals(decryptStoredValue(dictionaryId, fetched.getKey(), stored.value()), fetched.getValue())) {
             return stored;
         }
-        return encryptFetchedProperty(dictionaryId, fetched.getKey(), fetched.getValue()).orElse(stored);
+        return encryptFetchedProperty(dictionaryId, fetched.getKey(), fetched.getValue())
+                .orElse(stored);
     }
 
     /** Reports failure instead of throwing, so one bad value doesn't abort the rest of the update. */
@@ -844,8 +825,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
      * unchanged secret is a no-op whatever the cipher mode. Ciphertext that no longer decrypts, from
      * a rotated secret or a corrupt value, counts as changed.
      */
-    private DictionaryProperty encryptUnlessStoredDecryptsTo(String dictionaryId, String key, String plaintext, DictionaryProperty stored) {
-        if (stored != null && stored.encrypted() && Objects.equals(decryptStoredValue(dictionaryId, key, stored.value()), plaintext)) {
+    private DictionaryProperty encryptUnlessStoredDecryptsTo(
+            String dictionaryId, String key, String plaintext, DictionaryProperty stored) {
+        if (stored != null
+                && stored.encrypted()
+                && Objects.equals(decryptStoredValue(dictionaryId, key, stored.value()), plaintext)) {
             return stored;
         }
         return new DictionaryProperty(encryptOrFail(dictionaryId, key, plaintext), true);
@@ -856,10 +840,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             return dataEncryptor.decrypt(ciphertext);
         } catch (GeneralSecurityException | IllegalArgumentException e) {
             log.warn(
-                "Stored value of dictionary property [{}] on dictionary [{}] could not be decrypted; it will be encrypted again",
-                key,
-                dictionaryId
-            );
+                    "Stored value of dictionary property [{}] on dictionary [{}] could not be decrypted; it will be encrypted again",
+                    key,
+                    dictionaryId);
             return null;
         }
     }
@@ -874,12 +857,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         if (typed == null) {
             return null;
         }
-        return typed
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() != null)
-            .sorted(Map.Entry.comparingByKey())
-            .collect(LinkedHashMap::new, (flat, entry) -> flat.put(entry.getKey(), flatValue(entry.getValue())), LinkedHashMap::putAll);
+        return typed.entrySet().stream()
+                .filter(entry -> entry.getValue() != null)
+                .sorted(Map.Entry.comparingByKey())
+                .collect(
+                        LinkedHashMap::new,
+                        (flat, entry) -> flat.put(entry.getKey(), flatValue(entry.getValue())),
+                        LinkedHashMap::putAll);
     }
 
     private static String flatValue(DictionaryProperty property) {
@@ -897,16 +881,17 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         if (typed == null) {
             return null;
         }
-        return typed
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() != null && entry.getValue().encrypted())
-            .sorted(Map.Entry.comparingByKey())
-            .collect(
-                LinkedHashMap::new,
-                (options, entry) -> options.put(entry.getKey(), DictionaryPropertyOptions.builder().encrypted(true).build()),
-                LinkedHashMap::putAll
-            );
+        return typed.entrySet().stream()
+                .filter(entry -> entry.getValue() != null && entry.getValue().encrypted())
+                .sorted(Map.Entry.comparingByKey())
+                .collect(
+                        LinkedHashMap::new,
+                        (options, entry) -> options.put(
+                                entry.getKey(),
+                                DictionaryPropertyOptions.builder()
+                                        .encrypted(true)
+                                        .build()),
+                        LinkedHashMap::putAll);
     }
 
     private Dictionary convert(UpdateDictionaryEntity updateDictionaryEntity, Dictionary existing) {
@@ -914,16 +899,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
         dictionary.setName(updateDictionaryEntity.getName());
         dictionary.setDescription(updateDictionaryEntity.getDescription());
-        dictionary.setProperties(
-            toTypedProperties(
+        dictionary.setProperties(toTypedProperties(
                 existing.getId(),
                 updateDictionaryEntity.getProperties(),
                 updateDictionaryEntity.getPropertyOptions(),
-                existing.getProperties()
-            )
-        );
+                existing.getProperties()));
 
-        final io.gravitee.rest.api.model.configuration.dictionary.DictionaryType type = updateDictionaryEntity.getType();
+        final io.gravitee.rest.api.model.configuration.dictionary.DictionaryType type =
+                updateDictionaryEntity.getType();
         if (type != null) {
             dictionary.setType(io.gravitee.repository.management.model.DictionaryType.valueOf(type.name()));
         }
@@ -933,8 +916,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             dictionary.setTrigger(convert(updateDictionaryEntity.getTrigger()));
             // An omitted policy keeps the stored one; only an explicit encryptOnFetch:false turns it off.
             dictionary.setEncryption(
-                updateDictionaryEntity.getEncryption() != null ? convert(updateDictionaryEntity.getEncryption()) : existing.getEncryption()
-            );
+                    updateDictionaryEntity.getEncryption() != null
+                            ? convert(updateDictionaryEntity.getEncryption())
+                            : existing.getEncryption());
         }
 
         return dictionary;
@@ -955,9 +939,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
 
         if (type == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
-            dictionary.setProperties(
-                toTypedProperties(dictionary.getId(), newDictionaryEntity.getProperties(), newDictionaryEntity.getPropertyOptions(), null)
-            );
+            dictionary.setProperties(toTypedProperties(
+                    dictionary.getId(),
+                    newDictionaryEntity.getProperties(),
+                    newDictionaryEntity.getPropertyOptions(),
+                    null));
         } else {
             dictionary.setProvider(convert(newDictionaryEntity.getProvider()));
             dictionary.setTrigger(convert(newDictionaryEntity.getTrigger()));

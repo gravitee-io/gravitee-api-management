@@ -35,7 +35,8 @@ public class GetEnvironmentReportsUseCase {
     public Output execute(Input input) {
         var pageable = input.pageable.orElse(new PageableImpl(1, 10));
 
-        var result = scoringReportQueryService.findEnvironmentLatestReports(input.environmentId(), input.apiTypes(), pageable);
+        var result = scoringReportQueryService.findEnvironmentLatestReports(
+                input.environmentId(), input.apiTypes(), pageable);
 
         return new Output(result);
     }

@@ -86,14 +86,12 @@ public class TopApiEntity {
         if (this == o) return true;
         if (!(o instanceof TopApiEntity)) return false;
         TopApiEntity that = (TopApiEntity) o;
-        return (
-            order == that.order &&
-            Objects.equals(api, that.api) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(version, that.version) &&
-            Objects.equals(description, that.description) &&
-            Objects.equals(pictureUrl, that.pictureUrl)
-        );
+        return (order == that.order
+                && Objects.equals(api, that.api)
+                && Objects.equals(name, that.name)
+                && Objects.equals(version, that.version)
+                && Objects.equals(description, that.description)
+                && Objects.equals(pictureUrl, that.pictureUrl));
     }
 
     @Override
@@ -103,26 +101,23 @@ public class TopApiEntity {
 
     @Override
     public String toString() {
-        return (
-            "TopApiEntity{" +
-            "api='" +
-            api +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", version='" +
-            version +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", order=" +
-            order +
-            ", pictureUrl='" +
-            pictureUrl +
-            '\'' +
-            '}'
-        );
+        return ("TopApiEntity{" + "api='"
+                + api
+                + '\''
+                + ", name='"
+                + name
+                + '\''
+                + ", version='"
+                + version
+                + '\''
+                + ", description='"
+                + description
+                + '\''
+                + ", order="
+                + order
+                + ", pictureUrl='"
+                + pictureUrl
+                + '\''
+                + '}');
     }
 }

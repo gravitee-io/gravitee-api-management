@@ -15,18 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalMenuLink;
-import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.PortalMenuLink;
-import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup;
-import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupPolicyPlugin;
-import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalMenuLink;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateSharedPolicyGroup;
 import java.util.List;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -34,8 +27,10 @@ public interface PortalMenuLinkMapper {
     PortalMenuLinkMapper INSTANCE = Mappers.getMapper(PortalMenuLinkMapper.class);
 
     io.gravitee.apim.core.portal_menu_link.model.CreatePortalMenuLink map(CreatePortalMenuLink createPortalMenuLink);
+
     io.gravitee.apim.core.portal_menu_link.model.UpdatePortalMenuLink map(UpdatePortalMenuLink updatePortalMenuLink);
 
     PortalMenuLink map(io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink portalMenuLink);
+
     List<PortalMenuLink> map(List<io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink> portalMenuLinkList);
 }

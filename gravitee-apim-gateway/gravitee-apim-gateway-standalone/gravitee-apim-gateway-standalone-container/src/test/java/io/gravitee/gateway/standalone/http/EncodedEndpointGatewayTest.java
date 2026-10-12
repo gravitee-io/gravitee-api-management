@@ -22,9 +22,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,7 +36,8 @@ public class EncodedEndpointGatewayTest extends AbstractWiremockGatewayTest {
     public void call_get_started_api_noBody() throws Exception {
         wireMockRule.stubFor(get("/team/test%257Cpipe/my_team").willReturn(ok()));
 
-        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        final HttpResponse response =
+                execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/test%257Cpipe/my_team")));

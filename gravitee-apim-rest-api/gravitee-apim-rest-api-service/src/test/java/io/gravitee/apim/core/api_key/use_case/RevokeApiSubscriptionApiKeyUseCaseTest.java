@@ -76,9 +76,11 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
     ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
-    ApiKeyQueryServiceInMemory apiKeyQueryService = new ApiKeyQueryServiceInMemory(apiKeyCrudService, subscriptionCrudService);
+    ApiKeyQueryServiceInMemory apiKeyQueryService =
+            new ApiKeyQueryServiceInMemory(apiKeyCrudService, subscriptionCrudService);
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
+    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
+            new TriggerNotificationDomainServiceInMemory();
     RevokeApiSubscriptionApiKeyUseCase usecase;
 
     @BeforeAll
@@ -93,25 +95,22 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var auditDomainService = new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
         var revokeApiKeyDomainService = new RevokeApiKeyDomainService(
-            apiKeyCrudService,
-            apiKeyQueryService,
-            subscriptionCrudService,
-            auditDomainService,
-            triggerNotificationDomainService
-        );
+                apiKeyCrudService,
+                apiKeyQueryService,
+                subscriptionCrudService,
+                auditDomainService,
+                triggerNotificationDomainService);
         usecase = new RevokeApiSubscriptionApiKeyUseCase(
-            subscriptionCrudService,
-            applicationCrudService,
-            apiKeyQueryService,
-            revokeApiKeyDomainService
-        );
+                subscriptionCrudService, applicationCrudService, apiKeyQueryService, revokeApiKeyDomainService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiKeyCrudService, applicationCrudService, auditCrudService, subscriptionCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiKeyCrudService, applicationCrudService, auditCrudService, subscriptionCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -119,9 +118,8 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
         // Given no API Keys
 
         // When
-        var throwable = catchThrowable(() ->
-            usecase.execute(new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO))
-        );
+        var throwable = catchThrowable(() -> usecase.execute(
+                new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO)));
 
         // Then
         assertThat(throwable).isInstanceOf(ApiKeyNotFoundException.class).hasMessage("No API Key can be found.");
@@ -130,12 +128,13 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
     @Test
     void should_throw_when_api_key_does_not_belong_to_the_right_subscription() {
         // Given
-        givenAnApiKey(anApiKey().toBuilder().subscriptions(List.of("another-subscription")).build());
+        givenAnApiKey(anApiKey().toBuilder()
+                .subscriptions(List.of("another-subscription"))
+                .build());
 
         // When
-        var throwable = catchThrowable(() ->
-            usecase.execute(new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO))
-        );
+        var throwable = catchThrowable(() -> usecase.execute(
+                new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO)));
 
         // Then
         assertThat(throwable).isInstanceOf(ApiKeyNotFoundException.class).hasMessage("No API Key can be found.");
@@ -147,91 +146,105 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
         givenAnApiKey(anApiKey().toBuilder().build());
 
         // When
-        var throwable = catchThrowable(() ->
-            usecase.execute(new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO))
-        );
+        var throwable = catchThrowable(() -> usecase.execute(
+                new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO)));
 
         // Then
         assertThat(throwable)
-            .isInstanceOf(SubscriptionNotFoundException.class)
-            .hasMessage("Subscription [%s] cannot be found.", SUBSCRIPTION_ID);
+                .isInstanceOf(SubscriptionNotFoundException.class)
+                .hasMessage("Subscription [%s] cannot be found.", SUBSCRIPTION_ID);
     }
 
     @Test
     void should_throw_when_subscription_does_not_belong_to_the_right_api() {
         // Given
         givenAnApiKey(anApiKey().toBuilder().build());
-        givenASubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        givenASubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .apiId("another-api")
                 .referenceId("another-api")
                 .referenceType(SubscriptionReferenceType.API)
-                .build()
-        );
+                .build());
 
         // When
-        var throwable = catchThrowable(() ->
-            usecase.execute(new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO))
-        );
+        var throwable = catchThrowable(() -> usecase.execute(
+                new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO)));
 
         // Then
         assertThat(throwable)
-            .isInstanceOf(SubscriptionNotFoundException.class)
-            .hasMessage("Subscription [%s] cannot be found.", SUBSCRIPTION_ID);
+                .isInstanceOf(SubscriptionNotFoundException.class)
+                .hasMessage("Subscription [%s] cannot be found.", SUBSCRIPTION_ID);
     }
 
     @Test
     void should_throw_when_application_does_not_exists() {
         // Given
         var subscription = givenASubscription();
-        givenAnApiKey(anApiKey().toBuilder().subscriptions(List.of(subscription.getId())).build());
+        givenAnApiKey(anApiKey().toBuilder()
+                .subscriptions(List.of(subscription.getId()))
+                .build());
 
         // When
-        var throwable = catchThrowable(() ->
-            usecase.execute(new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO))
-        );
+        var throwable = catchThrowable(() -> usecase.execute(
+                new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO)));
 
         // Then
         assertThat(throwable)
-            .isInstanceOf(ApplicationNotFoundException.class)
-            .hasMessage("Application [%s] cannot be found.", APPLICATION_ID);
+                .isInstanceOf(ApplicationNotFoundException.class)
+                .hasMessage("Application [%s] cannot be found.", APPLICATION_ID);
     }
 
     @Test
     void should_throw_when_application_uses_shared_api_key() {
         // Given
-        var application = givenAnApplication(anApplicationEntity().toBuilder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.SHARED).build());
+        var application = givenAnApplication(anApplicationEntity().toBuilder()
+                .id(APPLICATION_ID)
+                .apiKeyMode(ApiKeyMode.SHARED)
+                .build());
         var subscription = givenASubscription();
-        givenAnApiKey(anApiKey().toBuilder().applicationId(application.getId()).subscriptions(List.of(subscription.getId())).build());
+        givenAnApiKey(anApiKey().toBuilder()
+                .applicationId(application.getId())
+                .subscriptions(List.of(subscription.getId()))
+                .build());
 
         // When
-        var throwable = catchThrowable(() ->
-            usecase.execute(new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO))
-        );
+        var throwable = catchThrowable(() -> usecase.execute(
+                new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO)));
 
         // Then
         assertThat(throwable)
-            .isInstanceOf(InvalidApplicationApiKeyModeException.class)
-            .hasMessage(String.format("Invalid operation for API Key mode [SHARED] of application [%s]", application.getId()));
+                .isInstanceOf(InvalidApplicationApiKeyModeException.class)
+                .hasMessage(String.format(
+                        "Invalid operation for API Key mode [SHARED] of application [%s]", application.getId()));
     }
 
     @ParameterizedTest
-    @EnumSource(value = ApiKeyMode.class, names = { "EXCLUSIVE", "UNSPECIFIED" }, mode = EnumSource.Mode.INCLUDE)
+    @EnumSource(
+            value = ApiKeyMode.class,
+            names = {"EXCLUSIVE", "UNSPECIFIED"},
+            mode = EnumSource.Mode.INCLUDE)
     void should_revoke_api_key(ApiKeyMode apiKeyMode) {
         // Given
         var now = ZonedDateTime.now();
-        var application = givenAnApplication(anApplicationEntity().toBuilder().id(APPLICATION_ID).apiKeyMode(apiKeyMode).build());
+        var application = givenAnApplication(anApplicationEntity().toBuilder()
+                .id(APPLICATION_ID)
+                .apiKeyMode(apiKeyMode)
+                .build());
         var subscription = givenASubscription();
-        givenAnApiKey(anApiKey().toBuilder().applicationId(application.getId()).subscriptions(List.of(subscription.getId())).build());
+        givenAnApiKey(anApiKey().toBuilder()
+                .applicationId(application.getId())
+                .subscriptions(List.of(subscription.getId()))
+                .build());
 
         // When
-        var result = usecase.execute(new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO));
+        var result = usecase.execute(
+                new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
         SoftAssertions.assertSoftly(soft -> {
             var revoked = result.apiKey();
-            soft.assertThat(revoked.isRevoked()).describedAs("ApiKey is not revoked").isTrue();
+            soft.assertThat(revoked.isRevoked())
+                    .describedAs("ApiKey is not revoked")
+                    .isTrue();
             soft.assertThat(revoked.getRevokedAt()).isEqualTo(revoked.getUpdatedAt());
             soft.assertThat(revoked.getRevokedAt()).isAfterOrEqualTo(now);
         });
@@ -242,31 +255,30 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
         // Given
         var application = givenAnApplication();
         var subscription = givenASubscription();
-        var apiKey = givenAnApiKey(
-            anApiKey().toBuilder().applicationId(application.getId()).subscriptions(List.of(subscription.getId())).build()
-        );
+        var apiKey = givenAnApiKey(anApiKey().toBuilder()
+                .applicationId(application.getId())
+                .subscriptions(List.of(subscription.getId()))
+                .build());
 
         // When
-        var result = usecase.execute(new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO));
+        var result = usecase.execute(
+                new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
         assertThat(auditCrudService.storage())
-            .hasSize(1)
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
-            .contains(
-                new AuditEntity(
-                    "new-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    AuditEntity.AuditReferenceType.API,
-                    API_ID,
-                    USER_ID,
-                    Map.of("API_KEY", apiKey.getId(), "API", API_ID, "APPLICATION", APPLICATION_ID),
-                    ApiKeyAuditEvent.APIKEY_REVOKED.name(),
-                    result.apiKey().getRevokedAt(),
-                    ""
-                )
-            );
+                .hasSize(1)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .contains(new AuditEntity(
+                        "new-id",
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        AuditEntity.AuditReferenceType.API,
+                        API_ID,
+                        USER_ID,
+                        Map.of("API_KEY", apiKey.getId(), "API", API_ID, "APPLICATION", APPLICATION_ID),
+                        ApiKeyAuditEvent.APIKEY_REVOKED.name(),
+                        result.apiKey().getRevokedAt(),
+                        ""));
     }
 
     @Test
@@ -274,29 +286,27 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
         // Given
         var application = givenAnApplication();
         var subscription = givenASubscription();
-        var apiKey = givenAnApiKey(
-            anApiKey().toBuilder().applicationId(application.getId()).subscriptions(List.of(subscription.getId())).build()
-        );
+        var apiKey = givenAnApiKey(anApiKey().toBuilder()
+                .applicationId(application.getId())
+                .subscriptions(List.of(subscription.getId()))
+                .build());
 
         // When
-        usecase.execute(new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO));
+        usecase.execute(
+                new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
-        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
-            new ApiKeyRevokedApiHookContext(API_ID, APPLICATION_ID, PLAN_1, apiKey.getKey())
-        );
+        assertThat(triggerNotificationDomainService.getHookNotifications())
+                .containsExactly(new ApiKeyRevokedApiHookContext(API_ID, APPLICATION_ID, PLAN_1, apiKey.getKey()));
     }
 
     private SubscriptionEntity givenASubscription() {
-        return givenASubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        return givenASubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .apiId(API_ID)
                 .applicationId(APPLICATION_ID)
                 .planId(PLAN_1)
-                .build()
-        );
+                .build());
     }
 
     private SubscriptionEntity givenASubscription(SubscriptionEntity subscription) {
@@ -305,7 +315,10 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
     }
 
     private BaseApplicationEntity givenAnApplication() {
-        return givenAnApplication(anApplicationEntity().toBuilder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.EXCLUSIVE).build());
+        return givenAnApplication(anApplicationEntity().toBuilder()
+                .id(APPLICATION_ID)
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .build());
     }
 
     private BaseApplicationEntity givenAnApplication(BaseApplicationEntity application) {

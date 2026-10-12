@@ -36,58 +36,45 @@ public class LogNamesPostProcessorImpl implements LogNamesPostProcessor {
 
     @Override
     public SearchLogsResponse mapLogNames(UserContext context, SearchLogsResponse response) {
-        var apiTypeById = context
-            .apis()
-            .orElseGet(Collections::emptyList)
-            .stream()
-            .filter(api -> api.getType() != null)
-            .collect(Collectors.toMap(Api::getId, Api::getType, (a, b) -> a));
+        var apiTypeById = context.apis().orElseGet(Collections::emptyList).stream()
+                .filter(api -> api.getType() != null)
+                .collect(Collectors.toMap(Api::getId, Api::getType, (a, b) -> a));
 
-        var enrichedLogs = response
-            .data()
-            .stream()
-            .map(log -> enrichLog(context, log, apiTypeById))
-            .toList();
+        var enrichedLogs = response.data().stream()
+                .map(log -> enrichLog(context, log, apiTypeById))
+                .toList();
         return new SearchLogsResponse(enrichedLogs, response.pagination());
     }
 
     private ApiLog enrichLog(UserContext context, ApiLog log, Map<String, ApiType> apiTypeById) {
-        var apiName = context
-            .apiNameById()
-            .map(m -> m.get(log.apiId()))
-            .orElse(null);
+        var apiName = context.apiNameById().map(m -> m.get(log.apiId())).orElse(null);
 
         var plan = log.plan() == null
-            ? null
-            : log
-                .plan()
-                .withName(
-                    context
-                        .planNameById()
-                        .map(m -> m.get(log.plan().id()))
-                        .orElse(null)
-                );
+                ? null
+                : log.plan()
+                        .withName(context.planNameById()
+                                .map(m -> m.get(log.plan().id()))
+                                .orElse(null));
 
         var application = log.application() == null
-            ? null
-            : log
-                .application()
-                .withName(
-                    context
-                        .applicationNameById()
-                        .map(m -> m.get(log.application().id()))
-                        .orElse(UNKNOWN_APPLICATION)
-                );
+                ? null
+                : log.application()
+                        .withName(context.applicationNameById()
+                                .map(m -> m.get(log.application().id()))
+                                .orElse(UNKNOWN_APPLICATION));
 
         var gateway = log.gateway() == null
-            ? null
-            : context
-                .gatewayHostnameById()
-                .map(m -> m.get(log.gateway()))
-                .orElse(log.gateway());
+                ? null
+                : context.gatewayHostnameById().map(m -> m.get(log.gateway())).orElse(log.gateway());
 
         var apiType = apiTypeById.get(log.apiId());
 
-        return log.toBuilder().apiName(apiName).apiType(apiType).plan(plan).application(application).gateway(gateway).build();
+        return log.toBuilder()
+                .apiName(apiName)
+                .apiType(apiType)
+                .plan(plan)
+                .application(application)
+                .gateway(gateway)
+                .build();
     }
 }

@@ -37,15 +37,15 @@ public class NamingConventionTest extends AbstractApimArchitectureTest {
         @Test
         public void usecases_should_be_suffixed_with_Usecase() {
             classes()
-                .that()
-                .resideInAPackage(anyPackageThatContains(USECASE_PACKAGE))
-                .and()
-                .areNotAnnotatedWith(Configuration.class)
-                .and()
-                .areTopLevelClasses()
-                .should()
-                .haveSimpleNameEndingWith("UseCase")
-                .check(apimClassesWithoutTests());
+                    .that()
+                    .resideInAPackage(anyPackageThatContains(USECASE_PACKAGE))
+                    .and()
+                    .areNotAnnotatedWith(Configuration.class)
+                    .and()
+                    .areTopLevelClasses()
+                    .should()
+                    .haveSimpleNameEndingWith("UseCase")
+                    .check(apimClassesWithoutTests());
         }
     }
 
@@ -58,17 +58,17 @@ public class NamingConventionTest extends AbstractApimArchitectureTest {
         @Test
         public void crud_services_implementation_should_be_suffixed_with_CrudServiceImpl() {
             classes()
-                .that()
-                .resideInAPackage(anyPackageThatContains(INFRA_PACKAGE + "." + CRUD_SERVICE_PACKAGE))
-                .and()
-                .areNotAnnotatedWith(Configuration.class)
-                .and()
-                .areAnnotatedWith(Component.class)
-                .and()
-                .resideOutsideOfPackage(".." + INFRA_PACKAGE + "." + CRUD_SERVICE_PACKAGE + ".*.adapter..")
-                .should()
-                .haveSimpleNameEndingWith("CrudServiceImpl")
-                .check(apimClassesWithoutTests());
+                    .that()
+                    .resideInAPackage(anyPackageThatContains(INFRA_PACKAGE + "." + CRUD_SERVICE_PACKAGE))
+                    .and()
+                    .areNotAnnotatedWith(Configuration.class)
+                    .and()
+                    .areAnnotatedWith(Component.class)
+                    .and()
+                    .resideOutsideOfPackage(".." + INFRA_PACKAGE + "." + CRUD_SERVICE_PACKAGE + ".*.adapter..")
+                    .should()
+                    .haveSimpleNameEndingWith("CrudServiceImpl")
+                    .check(apimClassesWithoutTests());
         }
 
         /**
@@ -77,13 +77,13 @@ public class NamingConventionTest extends AbstractApimArchitectureTest {
         @Test
         public void crud_services_interfaces_should_be_suffixed_with_CrudService() {
             classes()
-                .that()
-                .resideInAPackage(anyPackageThatContains(CORE_PACKAGE + ".(*)." + CRUD_SERVICE_PACKAGE))
-                .and()
-                .areInterfaces()
-                .should()
-                .haveSimpleNameEndingWith("CrudService")
-                .check(apimClassesWithoutTests());
+                    .that()
+                    .resideInAPackage(anyPackageThatContains(CORE_PACKAGE + ".(*)." + CRUD_SERVICE_PACKAGE))
+                    .and()
+                    .areInterfaces()
+                    .should()
+                    .haveSimpleNameEndingWith("CrudService")
+                    .check(apimClassesWithoutTests());
         }
     }
 
@@ -96,17 +96,17 @@ public class NamingConventionTest extends AbstractApimArchitectureTest {
         @Test
         public void domain_services_implementation_should_be_suffixed_with_DomainServiceImpl() {
             classes()
-                .that()
-                .resideInAPackage(anyPackageThatContains(INFRA_PACKAGE + "." + DOMAIN_SERVICE_PACKAGE))
-                .and()
-                .areNotAnnotatedWith(Configuration.class)
-                .and()
-                .areAnnotatedWith(Component.class)
-                .should()
-                .haveSimpleNameEndingWith("DomainServiceImpl")
-                // TODO: here we allow no class to be passed to the rule because package does not exist yet
-                .allowEmptyShould(true)
-                .check(apimClassesWithoutTests());
+                    .that()
+                    .resideInAPackage(anyPackageThatContains(INFRA_PACKAGE + "." + DOMAIN_SERVICE_PACKAGE))
+                    .and()
+                    .areNotAnnotatedWith(Configuration.class)
+                    .and()
+                    .areAnnotatedWith(Component.class)
+                    .should()
+                    .haveSimpleNameEndingWith("DomainServiceImpl")
+                    // TODO: here we allow no class to be passed to the rule because package does not exist yet
+                    .allowEmptyShould(true)
+                    .check(apimClassesWithoutTests());
         }
 
         /**
@@ -115,15 +115,15 @@ public class NamingConventionTest extends AbstractApimArchitectureTest {
         @Test
         public void domain_services_interfaces_should_be_suffixed_with_DomainService() {
             classes()
-                .that()
-                .resideInAPackage(anyPackageThatContains(CORE_PACKAGE + "." + DOMAIN_SERVICE_PACKAGE))
-                .and()
-                .areInterfaces()
-                .should()
-                .haveSimpleNameEndingWith("DomainService")
-                // TODO: here we allow no class to be passed to the rule because package does not exist yet
-                .allowEmptyShould(true)
-                .check(apimClassesWithoutTests());
+                    .that()
+                    .resideInAPackage(anyPackageThatContains(CORE_PACKAGE + "." + DOMAIN_SERVICE_PACKAGE))
+                    .and()
+                    .areInterfaces()
+                    .should()
+                    .haveSimpleNameEndingWith("DomainService")
+                    // TODO: here we allow no class to be passed to the rule because package does not exist yet
+                    .allowEmptyShould(true)
+                    .check(apimClassesWithoutTests());
         }
     }
 }

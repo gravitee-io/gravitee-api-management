@@ -30,11 +30,10 @@ import lombok.CustomLog;
 public class OpenSearchIndexPreparer extends AbstractIndexPreparer {
 
     public OpenSearchIndexPreparer(
-        final ReporterConfiguration configuration,
-        final PipelineConfiguration pipelineConfiguration,
-        final FreeMarkerComponent freeMarkerComponent,
-        final Client client
-    ) {
+            final ReporterConfiguration configuration,
+            final PipelineConfiguration pipelineConfiguration,
+            final FreeMarkerComponent freeMarkerComponent,
+            final Client client) {
         super(configuration, pipelineConfiguration, freeMarkerComponent, client, "/opensearch");
     }
 }

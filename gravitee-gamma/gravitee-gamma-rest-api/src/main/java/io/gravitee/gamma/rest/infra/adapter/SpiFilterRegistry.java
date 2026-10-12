@@ -63,7 +63,9 @@ public class SpiFilterRegistry implements FilterRegistry {
     private final Map<String, FilterSpec> specsByName;
 
     public SpiFilterRegistry() {
-        this(ServiceLoader.load(FilterContributor.class).stream().map(ServiceLoader.Provider::get).toList());
+        this(ServiceLoader.load(FilterContributor.class).stream()
+                .map(ServiceLoader.Provider::get)
+                .toList());
     }
 
     /** Test seam — inject a fixed contributor list without touching the classpath. */
@@ -80,7 +82,8 @@ public class SpiFilterRegistry implements FilterRegistry {
         }
 
         // 2. Host extensible filters, seeded with their baseline values (re-assembled in step 4).
-        Map<ExtensibleFilters, LinkedHashMap<String, FilterSpec.EnumValue>> extensibleValues = new EnumMap<>(ExtensibleFilters.class);
+        Map<ExtensibleFilters, LinkedHashMap<String, FilterSpec.EnumValue>> extensibleValues =
+                new EnumMap<>(ExtensibleFilters.class);
         for (ExtensibleFilters extensible : ExtensibleFilters.values()) {
             LinkedHashMap<String, FilterSpec.EnumValue> values = new LinkedHashMap<>();
             for (FilterSpec.EnumValue value : extensible.baselineValues()) {
@@ -110,7 +113,8 @@ public class SpiFilterRegistry implements FilterRegistry {
         return Collections.unmodifiableMap(byName);
     }
 
-    private static void addContributorFilters(Map<String, FilterSpec> byName, Set<String> hostOwned, FilterContributor contributor) {
+    private static void addContributorFilters(
+            Map<String, FilterSpec> byName, Set<String> hostOwned, FilterContributor contributor) {
         for (FilterSpec spec : contributor.filters()) {
             if (hostOwned.contains(spec.name())) {
                 LOGGER.warn("A filter contributor tried to (re)define host-owned filter '{}'; ignored.", spec.name());
@@ -119,44 +123,38 @@ public class SpiFilterRegistry implements FilterRegistry {
             FilterSpec previous = byName.put(spec.name(), spec);
             if (previous != null && !previous.equals(spec)) {
                 LOGGER.warn(
-                    "Duplicate filter '{}' from multiple contributors with differing definitions (signals {} vs {}, apiTypes {} vs {}, operators {} vs {}); last one wins, coverage from the dropped one is lost.",
-                    spec.name(),
-                    previous.signals(),
-                    spec.signals(),
-                    previous.apiTypes(),
-                    spec.apiTypes(),
-                    previous.operators(),
-                    spec.operators()
-                );
+                        "Duplicate filter '{}' from multiple contributors with differing definitions (signals {} vs {}, apiTypes {} vs {}, operators {} vs {}); last one wins, coverage from the dropped one is lost.",
+                        spec.name(),
+                        previous.signals(),
+                        spec.signals(),
+                        previous.apiTypes(),
+                        spec.apiTypes(),
+                        previous.operators(),
+                        spec.operators());
             }
         }
     }
 
     private static void mergeContributorValues(
-        Map<ExtensibleFilters, LinkedHashMap<String, FilterSpec.EnumValue>> extensibleValues,
-        FilterContributor contributor
-    ) {
-        contributor
-            .enumValues()
-            .forEach((extensible, values) -> {
-                if (values == null) {
-                    return;
-                }
-                LinkedHashMap<String, FilterSpec.EnumValue> target = extensibleValues.get(extensible);
-                for (FilterSpec.EnumValue value : values) {
-                    target.putIfAbsent(value.value(), value); // union, first label wins
-                }
-            });
+            Map<ExtensibleFilters, LinkedHashMap<String, FilterSpec.EnumValue>> extensibleValues,
+            FilterContributor contributor) {
+        contributor.enumValues().forEach((extensible, values) -> {
+            if (values == null) {
+                return;
+            }
+            LinkedHashMap<String, FilterSpec.EnumValue> target = extensibleValues.get(extensible);
+            for (FilterSpec.EnumValue value : values) {
+                target.putIfAbsent(value.value(), value); // union, first label wins
+            }
+        });
     }
 
     @Override
     public List<FilterSpec> getFilters(Set<Signal> signals, Set<ApiType> apiTypes) {
-        return specsByName
-            .values()
-            .stream()
-            .filter(spec -> matches(spec.signals(), signals))
-            .filter(spec -> matches(spec.apiTypes(), apiTypes))
-            .toList();
+        return specsByName.values().stream()
+                .filter(spec -> matches(spec.signals(), signals))
+                .filter(spec -> matches(spec.apiTypes(), apiTypes))
+                .toList();
     }
 
     /** An axis matches when no values are requested, or when the spec's non-empty set intersects the requested one. */

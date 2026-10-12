@@ -73,9 +73,10 @@ public class HelloReplyAdapterTest {
     @Test
     void handleReply_shouldUpdateDefaultEnvironmentCockpitId() throws InterruptedException {
         HelloReply helloReply = new HelloReply(
-            "commandId",
-            HelloReplyPayload.builder().defaultEnvironmentCockpitId("env#cockpit-1").build()
-        );
+                "commandId",
+                HelloReplyPayload.builder()
+                        .defaultEnvironmentCockpitId("env#cockpit-1")
+                        .build());
 
         String defaultEnvId = "DEFAULT";
         EnvironmentEntity defaultEnvironment = new EnvironmentEntity();
@@ -85,29 +86,28 @@ public class HelloReplyAdapterTest {
         when(installationService.getOrInitialize()).thenReturn(new InstallationEntity());
         when(environmentService.getDefaultOrInitialize()).thenReturn(defaultEnvironment);
 
-        cut
-            .adapt(null, helloReply)
-            .test()
-            .await()
-            .assertValue(helloReplyResponse -> {
-                assertEquals(helloReply.getCommandId(), helloReplyResponse.getCommandId());
-                assertEquals(helloReply.getPayload().getTargetId(), helloReplyResponse.getPayload().getTargetId());
-                return true;
-            });
+        cut.adapt(null, helloReply).test().await().assertValue(helloReplyResponse -> {
+            assertEquals(helloReply.getCommandId(), helloReplyResponse.getCommandId());
+            assertEquals(
+                    helloReply.getPayload().getTargetId(),
+                    helloReplyResponse.getPayload().getTargetId());
+            return true;
+        });
 
-        verify(environmentService).createOrUpdate(
-            eq(defaultEnvironment.getOrganizationId()),
-            eq(defaultEnvId),
-            argThat(env -> env.getCockpitId().equals("env#cockpit-1"))
-        );
+        verify(environmentService)
+                .createOrUpdate(
+                        eq(defaultEnvironment.getOrganizationId()),
+                        eq(defaultEnvId),
+                        argThat(env -> env.getCockpitId().equals("env#cockpit-1")));
     }
 
     @Test
     void handleReply_shouldUpdateDefaultOrganizationCockpitId() throws InterruptedException {
         HelloReply helloReply = new HelloReply(
-            "commandId",
-            HelloReplyPayload.builder().defaultOrganizationCockpitId("org#cockpit-1").build()
-        );
+                "commandId",
+                HelloReplyPayload.builder()
+                        .defaultOrganizationCockpitId("org#cockpit-1")
+                        .build());
         Flow flow = new Flow();
         flow.setName("My-Flow");
 
@@ -120,76 +120,64 @@ public class HelloReplyAdapterTest {
         when(installationService.getOrInitialize()).thenReturn(new InstallationEntity());
         when(organizationService.getDefaultOrInitialize()).thenReturn(defaultOrganization);
 
-        cut
-            .adapt(null, helloReply)
-            .test()
-            .await()
-            .assertValue(helloReplyResponse -> {
-                assertEquals(helloReply.getCommandId(), helloReplyResponse.getCommandId());
-                assertEquals(helloReply.getPayload().getTargetId(), helloReplyResponse.getPayload().getTargetId());
-                return true;
-            });
+        cut.adapt(null, helloReply).test().await().assertValue(helloReplyResponse -> {
+            assertEquals(helloReply.getCommandId(), helloReplyResponse.getCommandId());
+            assertEquals(
+                    helloReply.getPayload().getTargetId(),
+                    helloReplyResponse.getPayload().getTargetId());
+            return true;
+        });
 
-        verify(organizationService).updateOrganization(
-            argThat(organizationId -> organizationId.equals(defaultOrgId)),
-            argThat(
-                org ->
-                    org.getCockpitId().equals("org#cockpit-1") &&
-                    FlowMode.DEFAULT.equals(org.getFlowMode()) &&
-                    org.getFlows() != null &&
-                    org.getFlows().size() == 1 &&
-                    org.getFlows().get(0).getName().equals("My-Flow")
-            )
-        );
+        verify(organizationService)
+                .updateOrganization(
+                        argThat(organizationId -> organizationId.equals(defaultOrgId)),
+                        argThat(org -> org.getCockpitId().equals("org#cockpit-1")
+                                && FlowMode.DEFAULT.equals(org.getFlowMode())
+                                && org.getFlows() != null
+                                && org.getFlows().size() == 1
+                                && org.getFlows().get(0).getName().equals("My-Flow")));
     }
 
     @Test
     void handleReply_shouldUpdateCockpitInstallationStatusAndId_butKeepAlreadyExistingInstallationInformations()
-        throws InterruptedException {
+            throws InterruptedException {
         // mock already existing installation with informations
         InstallationEntity installation = new InstallationEntity();
-        installation.setAdditionalInformation(
-            new HashMap<>(
-                Map.of(
-                    "key1",
-                    "value1",
-                    "key2",
-                    "value2",
-                    "COCKPIT_INSTALLATION_STATUS",
-                    "old-installation-status",
-                    "COCKPIT_INSTALLATION_ID",
-                    "old-installation-id"
-                )
-            )
-        );
-        when(installationService.getOrInitialize()).thenReturn(installation);
-
-        HelloReply helloReply = new HelloReply(
-            "commandId",
-            HelloReplyPayload.builder().installationId("new-installation-id").installationStatus("new-installation-status").build()
-        );
-
-        cut
-            .adapt(null, helloReply)
-            .test()
-            .await()
-            .assertValue(helloReplyResponse -> {
-                assertEquals(helloReply.getCommandId(), helloReplyResponse.getCommandId());
-                assertEquals(helloReply.getPayload().getTargetId(), helloReplyResponse.getPayload().getTargetId());
-                return true;
-            });
-
-        verify(installationService, times(1)).setAdditionalInformation(
-            Map.of(
+        installation.setAdditionalInformation(new HashMap<>(Map.of(
                 "key1",
                 "value1",
                 "key2",
                 "value2",
                 "COCKPIT_INSTALLATION_STATUS",
-                "new-installation-status",
+                "old-installation-status",
                 "COCKPIT_INSTALLATION_ID",
-                "new-installation-id"
-            )
-        );
+                "old-installation-id")));
+        when(installationService.getOrInitialize()).thenReturn(installation);
+
+        HelloReply helloReply = new HelloReply(
+                "commandId",
+                HelloReplyPayload.builder()
+                        .installationId("new-installation-id")
+                        .installationStatus("new-installation-status")
+                        .build());
+
+        cut.adapt(null, helloReply).test().await().assertValue(helloReplyResponse -> {
+            assertEquals(helloReply.getCommandId(), helloReplyResponse.getCommandId());
+            assertEquals(
+                    helloReply.getPayload().getTargetId(),
+                    helloReplyResponse.getPayload().getTargetId());
+            return true;
+        });
+
+        verify(installationService, times(1))
+                .setAdditionalInformation(Map.of(
+                        "key1",
+                        "value1",
+                        "key2",
+                        "value2",
+                        "COCKPIT_INSTALLATION_STATUS",
+                        "new-installation-status",
+                        "COCKPIT_INSTALLATION_ID",
+                        "new-installation-id"));
     }
 }

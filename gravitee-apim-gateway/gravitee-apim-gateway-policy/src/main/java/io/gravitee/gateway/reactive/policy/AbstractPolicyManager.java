@@ -45,17 +45,17 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
     protected final PolicyLoader policyLoader;
 
     protected AbstractPolicyManager(
-        DefaultClassLoader classLoader,
-        PolicyFactoryManager policyFactoryManager,
-        PolicyConfigurationFactory policyConfigurationFactory,
-        ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider
-    ) {
+            DefaultClassLoader classLoader,
+            PolicyFactoryManager policyFactoryManager,
+            PolicyConfigurationFactory policyConfigurationFactory,
+            ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+            PolicyClassLoaderFactory policyClassLoaderFactory,
+            ComponentProvider componentProvider) {
         this.manifests = new ConcurrentHashMap<>();
         this.policyFactoryManager = policyFactoryManager;
         this.policyConfigurationFactory = policyConfigurationFactory;
-        this.policyLoader = new PolicyLoader(classLoader, policyPluginManager, policyClassLoaderFactory, componentProvider);
+        this.policyLoader =
+                new PolicyLoader(classLoader, policyPluginManager, policyClassLoaderFactory, componentProvider);
     }
 
     @Override
@@ -75,7 +75,8 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
         // Be sure to remove all references to policies.
         manifests.clear();
 
-        // This action aims to avoid memory leak by making sure that no Gravitee ClassLoader is still referenced by Jackson TypeFactory.
+        // This action aims to avoid memory leak by making sure that no Gravitee ClassLoader is still referenced by
+        // Jackson TypeFactory.
         TypeFactory.defaultInstance().clearCache();
     }
 
@@ -83,12 +84,12 @@ public abstract class AbstractPolicyManager extends AbstractLifecycleComponent<P
     public <P extends BasePolicy> P create(final ExecutionPhase executionPhase, final PolicyMetadata policyMetadata) {
         PolicyManifest manifest = manifests.get(policyMetadata.getName());
         if (manifest != null) {
-            PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
-                manifest.configuration(),
-                policyMetadata.getConfiguration()
-            );
+            PolicyConfiguration policyConfiguration =
+                    policyConfigurationFactory.create(manifest.configuration(), policyMetadata.getConfiguration());
 
-            return policyFactoryManager.get(manifest).create(executionPhase, manifest, policyConfiguration, policyMetadata);
+            return policyFactoryManager
+                    .get(manifest)
+                    .create(executionPhase, manifest, policyConfiguration, policyMetadata);
         }
         return null;
     }

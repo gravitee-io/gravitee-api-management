@@ -35,11 +35,10 @@ public class IntegrationControllerCommandHandlerFactory implements ControllerCom
 
     @Override
     public List<CommandHandler<? extends Command<?>, ? extends Reply<?>>> buildCommandHandlers(
-        final ControllerCommandContext controllerCommandContext
-    ) {
+            final ControllerCommandContext controllerCommandContext) {
         return List.of(
-            new HelloCommandHandler(checkIntegrationUseCase, (IntegrationCommandContext) controllerCommandContext),
-            new IngestCommandHandler(ingestFederatedApisUseCase, (IntegrationCommandContext) controllerCommandContext)
-        );
+                new HelloCommandHandler(checkIntegrationUseCase, (IntegrationCommandContext) controllerCommandContext),
+                new IngestCommandHandler(
+                        ingestFederatedApisUseCase, (IntegrationCommandContext) controllerCommandContext));
     }
 }

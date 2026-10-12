@@ -64,21 +64,22 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String username = getAuthenticatedUserOrNull();
 
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+        GenericApiEntity genericApiEntity =
+                apiSearchService.findGenericById(executionContext, apiId, false, false, false);
 
         // Public API can be accessed without permission
-        if (!hasPermission(executionContext, API_PLAN, apiId, READ) && !Visibility.PUBLIC.equals(genericApiEntity.getVisibility())) {
+        if (!hasPermission(executionContext, API_PLAN, apiId, READ)
+                && !Visibility.PUBLIC.equals(genericApiEntity.getVisibility())) {
             throw new ApiNotFoundException(apiId);
         }
 
-        List<Plan> plans = planSearchService
-            .findByApi(executionContext, genericApiEntity, true)
-            .stream()
-            .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
-            .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))
-            .sorted(Comparator.comparingInt(GenericPlanEntity::getOrder))
-            .map(p -> planMapper.convert(p, genericApiEntity))
-            .collect(Collectors.toList());
+        List<Plan> plans = planSearchService.findByApi(executionContext, genericApiEntity, true).stream()
+                .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
+                .filter(plan -> groupService.isUserAuthorizedToAccessApiData(
+                        genericApiEntity, plan.getExcludedGroups(), username))
+                .sorted(Comparator.comparingInt(GenericPlanEntity::getOrder))
+                .map(p -> planMapper.convert(p, genericApiEntity))
+                .collect(Collectors.toList());
 
         return createListResponse(executionContext, plans, paginationParam);
     }

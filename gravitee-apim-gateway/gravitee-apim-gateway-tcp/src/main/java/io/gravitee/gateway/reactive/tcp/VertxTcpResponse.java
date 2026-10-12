@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactive.tcp;
 
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.context.AbstractResponse;
 import io.reactivex.rxjava3.core.Completable;
@@ -42,7 +41,8 @@ public class VertxTcpResponse extends AbstractResponse {
     @Override
     public void pipeDownstream() {
         // Read response chunks and write to proxy socket
-        this.downstreamPipe = VertxReadStreamUtil.toVertxRxReadStream(this.chunks()).rxPipeTo(request.getWriteStream());
+        this.downstreamPipe =
+                VertxReadStreamUtil.toVertxRxReadStream(this.chunks()).rxPipeTo(request.getWriteStream());
     }
 
     /**
@@ -54,9 +54,8 @@ public class VertxTcpResponse extends AbstractResponse {
      */
     @Override
     public Completable end(HttpBaseExecutionContext ctx) {
-        return Completable.defer(() -> Completable.mergeArray(request.upstreamPipe(), this.downstreamPipe)).doFinally(() ->
-            this.ended = true
-        );
+        return Completable.defer(() -> Completable.mergeArray(request.upstreamPipe(), this.downstreamPipe))
+                .doFinally(() -> this.ended = true);
     }
 
     @Override

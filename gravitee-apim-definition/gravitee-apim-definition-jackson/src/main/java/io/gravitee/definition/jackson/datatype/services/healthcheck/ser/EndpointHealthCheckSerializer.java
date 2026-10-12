@@ -31,8 +31,9 @@ public class EndpointHealthCheckSerializer extends HealthCheckSerializer<Endpoin
     }
 
     @Override
-    protected void doSerialize(EndpointHealthCheckService service, JsonGenerator jgen, SerializerProvider serializerProvider)
-        throws IOException {
+    protected void doSerialize(
+            EndpointHealthCheckService service, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         super.doSerialize(service, jgen, serializerProvider);
 
         jgen.writeBooleanField("inherit", service.isInherit());

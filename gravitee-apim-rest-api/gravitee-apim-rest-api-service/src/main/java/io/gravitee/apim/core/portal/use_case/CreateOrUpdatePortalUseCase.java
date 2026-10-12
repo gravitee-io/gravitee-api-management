@@ -52,7 +52,8 @@ public class CreateOrUpdatePortalUseCase {
     private final ThemeCrudService themeCrudService;
     private final CurrentThemeDomainService currentThemeDomainService;
 
-    public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure, String activeThemeHrid) {
+    public record Input(
+            AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure, String activeThemeHrid) {
         public Input(AuditInfo auditInfo, Portal portal) {
             this(auditInfo, portal, PortalNavigationStructure.empty(), null);
         }
@@ -62,7 +63,8 @@ public class CreateOrUpdatePortalUseCase {
         }
     }
 
-    public record Output(Portal portal, PortalNavigationStructure structure, String activeThemeHrid, List<Validator.Error> errors) {
+    public record Output(
+            Portal portal, PortalNavigationStructure structure, String activeThemeHrid, List<Validator.Error> errors) {
         public Output(Portal portal, PortalNavigationStructure structure, List<Validator.Error> errors) {
             this(portal, structure, null, errors);
         }
@@ -70,35 +72,41 @@ public class CreateOrUpdatePortalUseCase {
 
     public Output execute(Input input) {
         var validation = validator.validateAndSanitize(
-            new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.structure())
-        );
+                new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.structure()));
 
-        validation
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        validation.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(
+                    errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
+        });
 
         var warnings = validation.warning().orElseGet(List::of);
 
-        var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal"));
-        var existing = portalCrudService.findByIdAndEnvironmentId(sanitized.portal().getId(), input.auditInfo().environmentId());
-        var previouslyPersisted = existing.map(Portal::getNavigationStructure).orElseGet(PortalNavigationStructure::empty);
+        var sanitized =
+                validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal"));
+        var existing = portalCrudService.findByIdAndEnvironmentId(
+                sanitized.portal().getId(), input.auditInfo().environmentId());
+        var previouslyPersisted =
+                existing.map(Portal::getNavigationStructure).orElseGet(PortalNavigationStructure::empty);
         portalNavigationSyncDomainService.validateForConflicts(
-            input.auditInfo(),
-            sanitized.portal().getId(),
-            previouslyPersisted,
-            sanitized.structure()
-        );
-        var resolvedActiveThemeId = resolveActiveThemeId(input, existing.map(Portal::getActiveThemeId).orElse(null));
-        var portalToSave = sanitized.portal().withNavigationStructure(sanitized.structure()).withActiveThemeId(resolvedActiveThemeId);
-        var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
+                input.auditInfo(), sanitized.portal().getId(), previouslyPersisted, sanitized.structure());
+        var resolvedActiveThemeId = resolveActiveThemeId(
+                input, existing.map(Portal::getActiveThemeId).orElse(null));
+        var portalToSave = sanitized
+                .portal()
+                .withNavigationStructure(sanitized.structure())
+                .withActiveThemeId(resolvedActiveThemeId);
+        var saved =
+                existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
         var portalExists = portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), saved.getId());
         if (portalExists) {
-            portalNavigationSyncDomainService.sync(input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.structure());
+            portalNavigationSyncDomainService.sync(
+                    input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.structure());
             portalPageContentQueryService
-                .findByReference(input.auditInfo().environmentId(), AutomationMetadata.ReferenceType.PORTAL, saved.getId().toString())
-                .forEach(pc -> portalDocumentationSyncDomainService.rematerialize(input.auditInfo(), pc));
+                    .findByReference(
+                            input.auditInfo().environmentId(),
+                            AutomationMetadata.ReferenceType.PORTAL,
+                            saved.getId().toString())
+                    .forEach(pc -> portalDocumentationSyncDomainService.rematerialize(input.auditInfo(), pc));
         }
         var activeThemeHrid = reverseResolveActiveThemeHrid(input, saved.getActiveThemeId());
         return new Output(saved, saved.getNavigationStructure(), activeThemeHrid, warnings);
@@ -112,29 +120,32 @@ public class CreateOrUpdatePortalUseCase {
             return input.activeThemeHrid();
         }
         return themeCrudService
-            .findByIdAndEnvironmentId(activeThemeId, input.auditInfo().environmentId())
-            .map(Theme::getAutomationMetadata)
-            .map(ThemeAutomationMetadata::hrid)
-            .orElse(null);
+                .findByIdAndEnvironmentId(activeThemeId, input.auditInfo().environmentId())
+                .map(Theme::getAutomationMetadata)
+                .map(ThemeAutomationMetadata::hrid)
+                .orElse(null);
     }
 
     private String resolveActiveThemeId(Input input, String currentActiveThemeId) {
         var targetThemeId = input.activeThemeHrid() == null
-            ? null
-            : HRIDToUUID.portalTheme().context(input.auditInfo()).hrid(input.activeThemeHrid()).id();
+                ? null
+                : HRIDToUUID.portalTheme()
+                        .context(input.auditInfo())
+                        .hrid(input.activeThemeHrid())
+                        .id();
         if (Objects.equals(targetThemeId, currentActiveThemeId)) {
             return targetThemeId;
         }
         var environmentId = input.auditInfo().environmentId();
         if (targetThemeId == null) {
             themeCrudService
-                .findByIdAndEnvironmentId(currentActiveThemeId, environmentId)
-                .ifPresent(currentThemeDomainService::deactivateAndFallback);
+                    .findByIdAndEnvironmentId(currentActiveThemeId, environmentId)
+                    .ifPresent(currentThemeDomainService::deactivateAndFallback);
             return null;
         }
         var target = themeCrudService
-            .findByIdAndEnvironmentId(targetThemeId, environmentId)
-            .orElseThrow(() -> new ThemeNotFoundException(input.activeThemeHrid()));
+                .findByIdAndEnvironmentId(targetThemeId, environmentId)
+                .orElseThrow(() -> new ThemeNotFoundException(input.activeThemeHrid()));
         currentThemeDomainService.activate(target);
         return targetThemeId;
     }

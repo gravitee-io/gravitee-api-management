@@ -39,17 +39,17 @@ public class UpdateFederatedApiDomainService {
     private final ApiIndexerDomainService apiIndexerDomainService;
 
     public Api update(
-        String apiId,
-        UnaryOperator<Api> updater,
-        AuditInfo auditInfo,
-        PrimaryOwnerEntity primaryOwnerEntity,
-        ApiIndexerDomainService.Context ctx
-    ) {
+            String apiId,
+            UnaryOperator<Api> updater,
+            AuditInfo auditInfo,
+            PrimaryOwnerEntity primaryOwnerEntity,
+            ApiIndexerDomainService.Context ctx) {
         var currentApi = apiCrudService.get(apiId);
 
         Api federatedApi = updater.apply(currentApi);
 
-        var preparedApi = validateFederatedApiDomainService.validateAndSanitizeForUpdate(federatedApi, currentApi, primaryOwnerEntity);
+        var preparedApi = validateFederatedApiDomainService.validateAndSanitizeForUpdate(
+                federatedApi, currentApi, primaryOwnerEntity);
 
         preparedApi.setUpdatedAt(TimeProvider.now());
 
@@ -66,8 +66,7 @@ public class UpdateFederatedApiDomainService {
     }
 
     private void createAuditLog(AuditInfo auditInfo, Api updatedApi, Api currentApi) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
+        auditService.createApiAuditLog(ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(updatedApi.getId())
@@ -77,7 +76,6 @@ public class UpdateFederatedApiDomainService {
                 .newValue(updatedApi)
                 .createdAt(updatedApi.getUpdatedAt())
                 .properties(Collections.emptyMap())
-                .build()
-        );
+                .build());
     }
 }

@@ -53,31 +53,30 @@ class GraviteeDefinitionAdapterTest {
         v4Definition.setAllowedInApiProducts(true);
 
         Api coreApi = Api.builder()
-            .id("api-id")
-            .environmentId("env-id")
-            .version("1.0.0")
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            .apiDefinitionHttpV4(v4Definition)
-            .build();
+                .id("api-id")
+                .environmentId("env-id")
+                .version("1.0.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .apiDefinitionHttpV4(v4Definition)
+                .build();
 
         var primaryOwner = PrimaryOwnerEntity.builder()
-            .id("po-id")
-            .email("po@acme.test")
-            .displayName("PO")
-            .type(PrimaryOwnerEntity.Type.USER)
-            .build();
+                .id("po-id")
+                .email("po@acme.test")
+                .displayName("PO")
+                .type(PrimaryOwnerEntity.Type.USER)
+                .build();
 
         // When
         ApiDescriptor.ApiDescriptorV4 descriptor = GraviteeDefinitionAdapter.INSTANCE.mapV4(
-            coreApi,
-            primaryOwner,
-            WorkflowState.REVIEW_OK,
-            Set.of("group-1"),
-            List.of(),
-            List.of(new Flow()),
-            false
-        );
+                coreApi,
+                primaryOwner,
+                WorkflowState.REVIEW_OK,
+                Set.of("group-1"),
+                List.of(),
+                List.of(new Flow()),
+                false);
 
         // Then
         assertThat(descriptor.allowedInApiProducts()).isTrue();
@@ -93,30 +92,29 @@ class GraviteeDefinitionAdapterTest {
         // no allowedInApiProducts set
 
         Api coreApi = Api.builder()
-            .id("api-id")
-            .environmentId("env-id")
-            .version("1.0.0")
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            .apiDefinitionHttpV4(v4Definition)
-            .build();
+                .id("api-id")
+                .environmentId("env-id")
+                .version("1.0.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .apiDefinitionHttpV4(v4Definition)
+                .build();
 
         var primaryOwner = PrimaryOwnerEntity.builder()
-            .id("po-id")
-            .email("po@acme.test")
-            .displayName("PO")
-            .type(PrimaryOwnerEntity.Type.USER)
-            .build();
+                .id("po-id")
+                .email("po@acme.test")
+                .displayName("PO")
+                .type(PrimaryOwnerEntity.Type.USER)
+                .build();
 
         ApiDescriptor.ApiDescriptorV4 descriptor = GraviteeDefinitionAdapter.INSTANCE.mapV4(
-            coreApi,
-            primaryOwner,
-            WorkflowState.REVIEW_OK,
-            Set.of("group-1"),
-            List.of(),
-            List.of(new Flow()),
-            false
-        );
+                coreApi,
+                primaryOwner,
+                WorkflowState.REVIEW_OK,
+                Set.of("group-1"),
+                List.of(),
+                List.of(new Flow()),
+                false);
 
         assertThat(descriptor.allowedInApiProducts()).isFalse();
     }
@@ -131,42 +129,49 @@ class GraviteeDefinitionAdapterTest {
         v4Definition.setName("my-api");
 
         Api coreApi = Api.builder()
-            .id("api-id")
-            .environmentId("env-id")
-            .version("1.0.0")
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            .apiDefinitionHttpV4(v4Definition)
-            .build();
+                .id("api-id")
+                .environmentId("env-id")
+                .version("1.0.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .apiDefinitionHttpV4(v4Definition)
+                .build();
 
         var primaryOwner = PrimaryOwnerEntity.builder()
-            .id("po-id")
-            .email("po@acme.test")
-            .displayName("PO")
-            .type(PrimaryOwnerEntity.Type.USER)
-            .build();
+                .id("po-id")
+                .email("po@acme.test")
+                .displayName("PO")
+                .type(PrimaryOwnerEntity.Type.USER)
+                .build();
 
         var metadata = List.of(
-            NewApiMetadata.builder().key("overridden").name("overridden").value("api-value").defaultValue("env-value").build(),
-            NewApiMetadata.builder().key("inherited").name("inherited").defaultValue("env-value").build(),
-            NewApiMetadata.builder().key("no-value").name("no-value").build()
-        );
+                NewApiMetadata.builder()
+                        .key("overridden")
+                        .name("overridden")
+                        .value("api-value")
+                        .defaultValue("env-value")
+                        .build(),
+                NewApiMetadata.builder()
+                        .key("inherited")
+                        .name("inherited")
+                        .defaultValue("env-value")
+                        .build(),
+                NewApiMetadata.builder().key("no-value").name("no-value").build());
 
         ApiDescriptor.ApiDescriptorV4 descriptor = GraviteeDefinitionAdapter.INSTANCE.mapV4(
-            coreApi,
-            primaryOwner,
-            WorkflowState.REVIEW_OK,
-            Set.of("group-1"),
-            metadata,
-            List.of(new Flow()),
-            false
-        );
+                coreApi,
+                primaryOwner,
+                WorkflowState.REVIEW_OK,
+                Set.of("group-1"),
+                metadata,
+                List.of(new Flow()),
+                false);
 
         assertThat(descriptor.metadata())
-            .containsEntry("overridden", "api-value")
-            .containsEntry("inherited", "env-value")
-            .containsEntry("no-value", null)
-            .hasSize(3);
+                .containsEntry("overridden", "api-value")
+                .containsEntry("inherited", "env-value")
+                .containsEntry("no-value", null)
+                .hasSize(3);
     }
 
     @Test
@@ -178,31 +183,30 @@ class GraviteeDefinitionAdapterTest {
         v4Definition.setName("my-api");
 
         Api coreApi = Api.builder()
-            .id("api-id")
-            .environmentId("env-id")
-            .version("1.0.0")
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.MESSAGE)
-            .apiDefinitionHttpV4(v4Definition)
-            .build();
+                .id("api-id")
+                .environmentId("env-id")
+                .version("1.0.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.MESSAGE)
+                .apiDefinitionHttpV4(v4Definition)
+                .build();
 
         var primaryOwner = PrimaryOwnerEntity.builder()
-            .id("po-id")
-            .email("po@acme.test")
-            .displayName("PO")
-            .type(PrimaryOwnerEntity.Type.USER)
-            .build();
+                .id("po-id")
+                .email("po@acme.test")
+                .displayName("PO")
+                .type(PrimaryOwnerEntity.Type.USER)
+                .build();
         var metadata = java.util.Collections.<NewApiMetadata>emptyList();
 
         ApiDescriptor.ApiDescriptorV4 descriptor = GraviteeDefinitionAdapter.INSTANCE.mapV4(
-            coreApi,
-            primaryOwner,
-            WorkflowState.REVIEW_OK,
-            Set.of("group-1"),
-            metadata,
-            List.of(new Flow()),
-            false
-        );
+                coreApi,
+                primaryOwner,
+                WorkflowState.REVIEW_OK,
+                Set.of("group-1"),
+                metadata,
+                List.of(new Flow()),
+                false);
 
         assertThat(descriptor.allowedInApiProducts()).isNull();
     }
@@ -211,22 +215,24 @@ class GraviteeDefinitionAdapterTest {
     void mapPlanNative_should_propagate_port_routing_fields_from_definition() {
         // Given a core Plan with port-based routing configured on the native definition
         var nativePlanDefinition = NativePlan.builder()
-            .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
-            .mode(PlanMode.STANDARD)
-            .status(PlanStatus.PUBLISHED)
-            .bootstrapPort(9092)
-            .brokerRangeStart(9100)
-            .brokerRangeEnd(9102)
-            .build();
+                .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder()
+                        .type("key-less")
+                        .build())
+                .mode(PlanMode.STANDARD)
+                .status(PlanStatus.PUBLISHED)
+                .bootstrapPort(9092)
+                .brokerRangeStart(9100)
+                .brokerRangeEnd(9102)
+                .build();
 
         var corePlan = io.gravitee.apim.core.plan.model.Plan.builder()
-            .id("plan-id")
-            .name("plan-name")
-            .definitionVersion(DefinitionVersion.V4)
-            .apiType(ApiType.NATIVE)
-            .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
-            .planDefinitionNativeV4(nativePlanDefinition)
-            .build();
+                .id("plan-id")
+                .name("plan-name")
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.NATIVE)
+                .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
+                .planDefinitionNativeV4(nativePlanDefinition)
+                .build();
 
         // When exported via GraviteeDefinitionAdapter
         PlanDescriptor.Native descriptor = GraviteeDefinitionAdapter.INSTANCE.mapPlanNative(corePlan, false);
@@ -247,34 +253,36 @@ class GraviteeDefinitionAdapterTest {
         nativeDefinition.setType(ApiType.NATIVE);
         nativeDefinition.setApiVersion("1.0.0");
         nativeDefinition.setName("my-kafka");
-        nativeDefinition.setAnalytics(NativeAnalytics.builder().enabled(true).reporterMetricsEnabled(false).build());
+        nativeDefinition.setAnalytics(NativeAnalytics.builder()
+                .enabled(true)
+                .reporterMetricsEnabled(false)
+                .build());
 
         Api coreApi = Api.builder()
-            .id("api-id")
-            .environmentId("env-id")
-            .version("1.0.0")
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.NATIVE)
-            .apiDefinitionNativeV4(nativeDefinition)
-            .build();
+                .id("api-id")
+                .environmentId("env-id")
+                .version("1.0.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.NATIVE)
+                .apiDefinitionNativeV4(nativeDefinition)
+                .build();
 
         var primaryOwner = PrimaryOwnerEntity.builder()
-            .id("po-id")
-            .email("po@acme.test")
-            .displayName("PO")
-            .type(PrimaryOwnerEntity.Type.USER)
-            .build();
+                .id("po-id")
+                .email("po@acme.test")
+                .displayName("PO")
+                .type(PrimaryOwnerEntity.Type.USER)
+                .build();
 
         // When
         ApiDescriptor.Native descriptor = GraviteeDefinitionAdapter.INSTANCE.mapNative(
-            coreApi,
-            primaryOwner,
-            WorkflowState.REVIEW_OK,
-            Set.of("group-1"),
-            java.util.Collections.<NewApiMetadata>emptyList(),
-            List.of(new NativeFlow()),
-            false
-        );
+                coreApi,
+                primaryOwner,
+                WorkflowState.REVIEW_OK,
+                Set.of("group-1"),
+                java.util.Collections.<NewApiMetadata>emptyList(),
+                List.of(new NativeFlow()),
+                false);
 
         // Then the descriptor carries the flag's non-default value end-to-end — proves the @Mapping wiring.
         assertThat(descriptor.analytics()).isNotNull();
@@ -285,19 +293,21 @@ class GraviteeDefinitionAdapterTest {
     void mapPlanNative_should_leave_port_routing_fields_null_when_not_set() {
         // Given a native plan in host/SNI routing mode (no port fields)
         var nativePlanDefinition = NativePlan.builder()
-            .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("key-less").build())
-            .mode(PlanMode.STANDARD)
-            .status(PlanStatus.PUBLISHED)
-            .build();
+                .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder()
+                        .type("key-less")
+                        .build())
+                .mode(PlanMode.STANDARD)
+                .status(PlanStatus.PUBLISHED)
+                .build();
 
         var corePlan = io.gravitee.apim.core.plan.model.Plan.builder()
-            .id("plan-id")
-            .name("plan-name")
-            .definitionVersion(DefinitionVersion.V4)
-            .apiType(ApiType.NATIVE)
-            .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
-            .planDefinitionNativeV4(nativePlanDefinition)
-            .build();
+                .id("plan-id")
+                .name("plan-name")
+                .definitionVersion(DefinitionVersion.V4)
+                .apiType(ApiType.NATIVE)
+                .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
+                .planDefinitionNativeV4(nativePlanDefinition)
+                .build();
 
         PlanDescriptor.Native descriptor = GraviteeDefinitionAdapter.INSTANCE.mapPlanNative(corePlan, false);
 

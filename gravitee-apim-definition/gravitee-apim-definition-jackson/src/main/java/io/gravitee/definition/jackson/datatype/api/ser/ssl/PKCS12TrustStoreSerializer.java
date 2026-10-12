@@ -31,7 +31,8 @@ public class PKCS12TrustStoreSerializer extends TrustStoreSerializer<PKCS12Trust
     }
 
     @Override
-    protected void doSerialize(PKCS12TrustStore trustStore, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(PKCS12TrustStore trustStore, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
         super.doSerialize(trustStore, jgen, serializerProvider);
 
         writeStringField(jgen, "path", trustStore.getPath());

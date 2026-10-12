@@ -33,56 +33,61 @@ class RedisClientRecoverableFailureTest {
 
     @Test
     void should_treat_readonly_as_recoverable() {
-        assertThat(
-            RedisClient.isRecoverableConnectionFailure(new RuntimeException("READONLY You can't write against a read only replica."))
-        ).isTrue();
+        assertThat(RedisClient.isRecoverableConnectionFailure(
+                        new RuntimeException("READONLY You can't write against a read only replica.")))
+                .isTrue();
     }
 
     @Test
     void should_treat_a_wrapped_readonly_cause_as_recoverable() {
         Throwable wrapped = new RuntimeException(
-            "Failed to run rate-limit script on Redis",
-            new RuntimeException("READONLY You can't write against a read only replica.")
-        );
+                "Failed to run rate-limit script on Redis",
+                new RuntimeException("READONLY You can't write against a read only replica."));
         assertThat(RedisClient.isRecoverableConnectionFailure(wrapped)).isTrue();
     }
 
     @Test
     void should_treat_readonly_after_leading_whitespace_as_recoverable() {
-        assertThat(RedisClient.isRecoverableConnectionFailure(new RuntimeException("  READONLY replica"))).isTrue();
+        assertThat(RedisClient.isRecoverableConnectionFailure(new RuntimeException("  READONLY replica")))
+                .isTrue();
     }
 
     @Test
     void should_treat_redis_6_script_wrapped_readonly_as_recoverable() {
         assertThat(
-            RedisClient.isRecoverableConnectionFailure(
-                new RuntimeException(
-                    "ERR Error running script (call to f_1e84a64d649a247ba53ce64b0be7bbedd64fe1b4): @user_script:12: @user_script: 12: -READONLY You can't write against a read only replica."
-                )
-            )
-        ).isTrue();
+                        RedisClient.isRecoverableConnectionFailure(
+                                new RuntimeException(
+                                        "ERR Error running script (call to f_1e84a64d649a247ba53ce64b0be7bbedd64fe1b4): @user_script:12: @user_script: 12: -READONLY You can't write against a read only replica.")))
+                .isTrue();
     }
 
     @Test
     void should_not_treat_noscript_as_recoverable() {
-        assertThat(RedisClient.isRecoverableConnectionFailure(new RuntimeException("NOSCRIPT No matching script"))).isFalse();
+        assertThat(RedisClient.isRecoverableConnectionFailure(new RuntimeException("NOSCRIPT No matching script")))
+                .isFalse();
     }
 
     @Test
     void should_not_treat_operation_timeout_as_recoverable() {
-        assertThat(RedisClient.isRecoverableConnectionFailure(new RedisOperationTimeoutException(30_000))).isFalse();
+        assertThat(RedisClient.isRecoverableConnectionFailure(new RedisOperationTimeoutException(30_000)))
+                .isFalse();
     }
 
     @Test
     void should_not_treat_generic_errors_as_recoverable() {
-        assertThat(RedisClient.isRecoverableConnectionFailure(new RuntimeException("malformed payload"))).isFalse();
-        assertThat(RedisClient.isRecoverableConnectionFailure(new IllegalStateException())).isFalse();
-        assertThat(RedisClient.isRecoverableConnectionFailure(new RuntimeException((String) null))).isFalse();
+        assertThat(RedisClient.isRecoverableConnectionFailure(new RuntimeException("malformed payload")))
+                .isFalse();
+        assertThat(RedisClient.isRecoverableConnectionFailure(new IllegalStateException()))
+                .isFalse();
+        assertThat(RedisClient.isRecoverableConnectionFailure(new RuntimeException((String) null)))
+                .isFalse();
     }
 
     @Test
     void should_still_treat_dropped_connections_as_recoverable() {
-        assertThat(RedisClient.isRecoverableConnectionFailure(new RuntimeException("Connection is closed"))).isTrue();
-        assertThat(RedisClient.isRecoverableConnectionFailure(new ClosedChannelException())).isTrue();
+        assertThat(RedisClient.isRecoverableConnectionFailure(new RuntimeException("Connection is closed")))
+                .isTrue();
+        assertThat(RedisClient.isRecoverableConnectionFailure(new ClosedChannelException()))
+                .isTrue();
     }
 }

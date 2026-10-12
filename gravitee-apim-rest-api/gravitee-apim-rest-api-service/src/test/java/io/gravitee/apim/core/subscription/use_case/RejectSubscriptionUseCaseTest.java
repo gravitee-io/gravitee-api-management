@@ -29,7 +29,6 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
-import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -83,7 +82,8 @@ class RejectSubscriptionUseCaseTest {
 
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
-    private final TriggerNotificationDomainServiceInMemory triggerNotificationService = new TriggerNotificationDomainServiceInMemory();
+    private final TriggerNotificationDomainServiceInMemory triggerNotificationService =
+            new TriggerNotificationDomainServiceInMemory();
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
@@ -108,219 +108,198 @@ class RejectSubscriptionUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
         var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
-            groupQueryService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                groupQueryService, membershipQueryService, roleQueryService, userCrudService);
 
         var rejectDomainService = new RejectSubscriptionDomainService(
-            subscriptionCrudService,
-            auditDomainService,
-            triggerNotificationService,
-            userCrudService,
-            applicationPrimaryOwnerDomainService
-        );
+                subscriptionCrudService,
+                auditDomainService,
+                triggerNotificationService,
+                userCrudService,
+                applicationPrimaryOwnerDomainService);
         useCase = new RejectSubscriptionUseCase(subscriptionCrudService, planCrudService, rejectDomainService);
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
-        applicationCrudService.initWith(
-            List.of(
-                ApplicationModelFixtures.anApplicationEntity()
-                    .toBuilder()
-                    .id(APPLICATION_ID)
-                    .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
-                    .build()
-            )
-        );
-        userCrudService.initWith(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        membershipQueryService.initWith(
+                List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
+        applicationCrudService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder()
+                .id(APPLICATION_ID)
+                .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder()
+                        .id(USER_ID)
+                        .displayName("Jane")
+                        .build())
+                .build()));
+        userCrudService.initWith(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiKeyCrudService,
-            applicationCrudService,
-            auditCrudService,
-            planCrudService,
-            subscriptionCrudService,
-            userCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        apiKeyCrudService,
+                        applicationCrudService,
+                        auditCrudService,
+                        planCrudService,
+                        subscriptionCrudService,
+                        userCrudService)
+                .forEach(InMemoryAlternative::reset);
         triggerNotificationService.reset();
     }
 
     @Test
     void should_reject_subscription() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var plan = givenExistingPlan(
+                PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
                 .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+                .build());
 
         // When
         var result = reject(subscription.getId());
 
         // Then
         assertThat(result.subscription())
-            .extracting(
-                SubscriptionEntity::getId,
-                SubscriptionEntity::getStatus,
-                SubscriptionEntity::getReasonMessage,
-                SubscriptionEntity::getClosedAt
-            )
-            .containsExactly(
-                subscription.getId(),
-                SubscriptionEntity.Status.REJECTED,
-                REASON_MESSAGE,
-                INSTANT_NOW.atZone(ZoneId.systemDefault())
-            );
+                .extracting(
+                        SubscriptionEntity::getId,
+                        SubscriptionEntity::getStatus,
+                        SubscriptionEntity::getReasonMessage,
+                        SubscriptionEntity::getClosedAt)
+                .containsExactly(
+                        subscription.getId(),
+                        SubscriptionEntity.Status.REJECTED,
+                        REASON_MESSAGE,
+                        INSTANT_NOW.atZone(ZoneId.systemDefault()));
     }
 
     @Test
     void should_create_audit() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var plan = givenExistingPlan(
+                PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
                 .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+                .build());
 
         // When
         reject(subscription.getId());
 
         // Then
         assertThat(auditCrudService.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
-            .containsExactly(
-                new AuditEntity(
-                    "generated-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    AuditEntity.AuditReferenceType.API,
-                    "api-id",
-                    USER_ID,
-                    Map.of("APPLICATION", "application-id"),
-                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
-                    ZonedDateTime.now(),
-                    ""
-                ),
-                new AuditEntity(
-                    "generated-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    AuditEntity.AuditReferenceType.APPLICATION,
-                    "application-id",
-                    USER_ID,
-                    Map.of("API", "api-id"),
-                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
-                    ZonedDateTime.now(),
-                    ""
-                )
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
+                .containsExactly(
+                        new AuditEntity(
+                                "generated-id",
+                                ORGANIZATION_ID,
+                                ENVIRONMENT_ID,
+                                AuditEntity.AuditReferenceType.API,
+                                "api-id",
+                                USER_ID,
+                                Map.of("APPLICATION", "application-id"),
+                                SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                                ZonedDateTime.now(),
+                                ""),
+                        new AuditEntity(
+                                "generated-id",
+                                ORGANIZATION_ID,
+                                ENVIRONMENT_ID,
+                                AuditEntity.AuditReferenceType.APPLICATION,
+                                "application-id",
+                                USER_ID,
+                                Map.of("API", "api-id"),
+                                SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                                ZonedDateTime.now(),
+                                ""));
     }
 
     @Test
     void should_send_notifications_to_api_and_application_owners() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var plan = givenExistingPlan(
+                PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
                 .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+                .build());
 
         // When
         reject(subscription.getId());
 
         // Then
-        assertThat(triggerNotificationService.getHookNotifications()).containsExactly(
-            new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
-        );
+        assertThat(triggerNotificationService.getHookNotifications())
+                .containsExactly(new SubscriptionRejectedApiHookContext(
+                        "api-id", "application-id", "plan-published", "subscription-id", USER_ID));
 
-        assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(
-            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                new SubscriptionRejectedApplicationHookContext(
-                    "application-id",
-                    SubscriptionReferenceType.API,
-                    "api-id",
-                    "plan-published",
-                    "subscription-id",
-                    USER_ID
-                )
-            )
-        );
+        assertThat(triggerNotificationService.getApplicationNotifications())
+                .containsExactly(new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                        new SubscriptionRejectedApplicationHookContext(
+                                "application-id",
+                                SubscriptionReferenceType.API,
+                                "api-id",
+                                "plan-published",
+                                "subscription-id",
+                                USER_ID)));
     }
 
     @Test
     void should_send_notifications_to_subscriber_when_they_have_an_email() {
         // Given
-        var subscriber = givenExistingUser(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build());
-        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var subscriber = givenExistingUser(BaseUserEntity.builder()
+                .id("subscriber")
+                .email("subscriber@mail.fake")
+                .build());
+        var plan = givenExistingPlan(
+                PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .subscribedBy(subscriber.getId())
                 .planId(plan.getId())
                 .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+                .build());
 
         // When
         reject(subscription.getId());
 
         // Then
-        assertThat(triggerNotificationService.getApplicationNotifications()).contains(
-            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                new Recipient("EMAIL", "subscriber@mail.fake"),
-                new SubscriptionRejectedApplicationHookContext(
-                    "application-id",
-                    SubscriptionReferenceType.API,
-                    "api-id",
-                    "plan-published",
-                    "subscription-id",
-                    USER_ID
-                )
-            )
-        );
+        assertThat(triggerNotificationService.getApplicationNotifications())
+                .contains(new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                        new Recipient("EMAIL", "subscriber@mail.fake"),
+                        new SubscriptionRejectedApplicationHookContext(
+                                "application-id",
+                                SubscriptionReferenceType.API,
+                                "api-id",
+                                "plan-published",
+                                "subscription-id",
+                                USER_ID)));
     }
 
     @Test
     @SneakyThrows
     void should_throw_when_subscription_not_found() {
         assertThatThrownBy(() -> reject("unknown"))
-            .isInstanceOf(SubscriptionNotFoundException.class)
-            .hasMessage("Subscription [unknown] cannot be found.");
+                .isInstanceOf(SubscriptionNotFoundException.class)
+                .hasMessage("Subscription [unknown] cannot be found.");
     }
 
     @Test
     void should_throw_when_subscription_does_not_belong_to_API() {
         // Given
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .apiId("other-id")
                 .referenceId("other-id")
                 .referenceType(SubscriptionReferenceType.API)
-                .build()
-        );
+                .build());
 
         // When
         var throwable = catchThrowable(() -> reject(subscription.getId()));
@@ -331,18 +310,16 @@ class RejectSubscriptionUseCaseTest {
 
     @Test
     void should_throw_when_plan_is_closed() {
-        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.CLOSED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var plan = givenExistingPlan(
+                PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.CLOSED));
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
                 .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+                .build());
         assertThatThrownBy(() -> reject(subscription.getId()))
-            .isInstanceOf(PlanAlreadyClosedException.class)
-            .hasMessage("Plan " + plan.getId() + " is already closed !");
+                .isInstanceOf(PlanAlreadyClosedException.class)
+                .hasMessage("Plan " + plan.getId() + " is already closed !");
     }
 
     private SubscriptionEntity givenExistingSubscription(SubscriptionEntity subscription) {
@@ -361,14 +338,12 @@ class RejectSubscriptionUseCaseTest {
     }
 
     private RejectSubscriptionUseCase.Output reject(String subscriptionId) {
-        return useCase.execute(
-            RejectSubscriptionUseCase.Input.builder()
+        return useCase.execute(RejectSubscriptionUseCase.Input.builder()
                 .referenceId(API_ID)
                 .referenceType(SubscriptionReferenceType.API)
                 .subscriptionId(subscriptionId)
                 .reasonMessage(REASON_MESSAGE)
                 .auditInfo(AUDIT_INFO)
-                .build()
-        );
+                .build());
     }
 }

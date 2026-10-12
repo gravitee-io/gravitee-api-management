@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class PortalNavigationItemsQueryServiceInMemory
-    implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemsQueryService {
+        implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemsQueryService {
 
     List<PortalNavigationItem> storage;
 
@@ -44,43 +44,33 @@ public class PortalNavigationItemsQueryServiceInMemory
 
     @Override
     public PortalNavigationItem findByIdAndEnvironmentId(String environmentId, PortalNavigationItemId id) {
-        return storage
-            .stream()
-            .filter(item -> environmentId.equals(item.getEnvironmentId()) && id.equals(item.getId()))
-            .findFirst()
-            .orElse(null);
+        return storage.stream()
+                .filter(item -> environmentId.equals(item.getEnvironmentId()) && id.equals(item.getId()))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
-    public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {
-        return storage
-            .stream()
-            .filter(
-                item ->
-                    environmentId.equals(item.getEnvironmentId()) &&
-                    (parentId == null ? item.getParentId() == null : parentId.equals(item.getParentId()))
-            )
-            .toList();
+    public List<PortalNavigationItem> findByParentIdAndEnvironmentId(
+            String environmentId, PortalNavigationItemId parentId) {
+        return storage.stream()
+                .filter(item -> environmentId.equals(item.getEnvironmentId())
+                        && (parentId == null ? item.getParentId() == null : parentId.equals(item.getParentId())))
+                .toList();
     }
 
     @Override
     public List<PortalNavigationItem> findByAutomationReference(
-        String environmentId,
-        AutomationMetadata.ReferenceType referenceType,
-        String referenceId
-    ) {
-        return storage
-            .stream()
-            .filter(item -> {
-                var meta = item.getAutomationMetadata();
-                return (
-                    environmentId.equals(item.getEnvironmentId()) &&
-                    meta != null &&
-                    meta.referenceType() == referenceType &&
-                    referenceId.equals(meta.referenceId())
-                );
-            })
-            .toList();
+            String environmentId, AutomationMetadata.ReferenceType referenceType, String referenceId) {
+        return storage.stream()
+                .filter(item -> {
+                    var meta = item.getAutomationMetadata();
+                    return (environmentId.equals(item.getEnvironmentId())
+                            && meta != null
+                            && meta.referenceType() == referenceType
+                            && referenceId.equals(meta.referenceId()));
+                })
+                .toList();
     }
 
     @Override
@@ -94,28 +84,29 @@ public class PortalNavigationItemsQueryServiceInMemory
             return true;
         };
 
-        return storage
-            .stream()
-            .filter(
-                item ->
-                    (criteria.getEnvironmentId() == null || criteria.getEnvironmentId().equals(item.getEnvironmentId())) &&
-                    (criteria.getArea() == null || criteria.getArea().equals(item.getArea())) &&
-                    (PARENT_ID_FILTER.test(item)) &&
-                    (criteria.getPublished() == null || criteria.getPublished().equals(item.getPublished())) &&
-                    (criteria.getVisibility() == null || criteria.getVisibility().equals(item.getVisibility())) &&
-                    (criteria.getType() == null || matchesType(item, criteria.getType())) &&
-                    (criteria.getApiIds() == null ||
-                        criteria.getApiIds().isEmpty() ||
-                        (item instanceof PortalNavigationApi api && criteria.getApiIds().contains(api.getApiId()))) &&
-                    (criteria.getApiProductIds() == null ||
-                        criteria.getApiProductIds().isEmpty() ||
-                        (item instanceof PortalNavigationApiProduct apiProduct &&
-                            criteria.getApiProductIds().contains(apiProduct.getApiProductId()))) &&
-                    (criteria.getUseAutoFetch() == null || criteria.getUseAutoFetch() == usesAutoFetch(item)) &&
-                    (criteria.getCategoryId() == null ||
-                        (item instanceof PortalNavigationApi api && api.getCategoryIds().contains(criteria.getCategoryId())))
-            )
-            .toList();
+        return storage.stream()
+                .filter(item -> (criteria.getEnvironmentId() == null
+                                || criteria.getEnvironmentId().equals(item.getEnvironmentId()))
+                        && (criteria.getArea() == null || criteria.getArea().equals(item.getArea()))
+                        && (PARENT_ID_FILTER.test(item))
+                        && (criteria.getPublished() == null
+                                || criteria.getPublished().equals(item.getPublished()))
+                        && (criteria.getVisibility() == null
+                                || criteria.getVisibility().equals(item.getVisibility()))
+                        && (criteria.getType() == null || matchesType(item, criteria.getType()))
+                        && (criteria.getApiIds() == null
+                                || criteria.getApiIds().isEmpty()
+                                || (item instanceof PortalNavigationApi api
+                                        && criteria.getApiIds().contains(api.getApiId())))
+                        && (criteria.getApiProductIds() == null
+                                || criteria.getApiProductIds().isEmpty()
+                                || (item instanceof PortalNavigationApiProduct apiProduct
+                                        && criteria.getApiProductIds().contains(apiProduct.getApiProductId())))
+                        && (criteria.getUseAutoFetch() == null || criteria.getUseAutoFetch() == usesAutoFetch(item))
+                        && (criteria.getCategoryId() == null
+                                || (item instanceof PortalNavigationApi api
+                                        && api.getCategoryIds().contains(criteria.getCategoryId()))))
+                .toList();
     }
 
     private boolean usesAutoFetch(PortalNavigationItem item) {
@@ -127,39 +118,31 @@ public class PortalNavigationItemsQueryServiceInMemory
     }
 
     @Override
-    public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea) {
-        return storage
-            .stream()
-            .filter(
-                item -> environmentId.equals(item.getEnvironmentId()) && portalArea.equals(item.getArea()) && item.getParentId() == null
-            )
-            .toList();
+    public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(
+            String environmentId, PortalArea portalArea) {
+        return storage.stream()
+                .filter(item -> environmentId.equals(item.getEnvironmentId())
+                        && portalArea.equals(item.getArea())
+                        && item.getParentId() == null)
+                .toList();
     }
 
     @Override
     public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-        String environmentId,
-        PortalArea area,
-        NavigationItemReference reference
-    ) {
-        return storage
-            .stream()
-            .filter(
-                item ->
-                    environmentId.equals(item.getEnvironmentId()) &&
-                    area.equals(item.getArea()) &&
-                    item.getParentId() == null &&
-                    reference.equals(item.getReference())
-            )
-            .toList();
+            String environmentId, PortalArea area, NavigationItemReference reference) {
+        return storage.stream()
+                .filter(item -> environmentId.equals(item.getEnvironmentId())
+                        && area.equals(item.getArea())
+                        && item.getParentId() == null
+                        && reference.equals(item.getReference()))
+                .toList();
     }
 
     @Override
     public List<PortalNavigationItem> findAllByRootId(String environmentId, PortalNavigationItemId rootId) {
-        return storage
-            .stream()
-            .filter(item -> environmentId.equals(item.getEnvironmentId()) && rootId.equals(item.getRootId()))
-            .toList();
+        return storage.stream()
+                .filter(item -> environmentId.equals(item.getEnvironmentId()) && rootId.equals(item.getRootId()))
+                .toList();
     }
 
     @Override

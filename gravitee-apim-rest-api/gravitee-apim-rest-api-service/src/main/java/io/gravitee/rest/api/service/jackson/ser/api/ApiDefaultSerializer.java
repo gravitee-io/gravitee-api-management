@@ -36,11 +36,13 @@ public class ApiDefaultSerializer extends ApiSerializer {
     }
 
     @Override
-    public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+    public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
+            throws IOException {
         super.serialize(apiEntity, jsonGenerator, serializerProvider);
 
         // handle filtered fields list
-        List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().getOrDefault(METADATA_FILTERED_FIELDS_LIST, emptyList());
+        List<String> filteredFieldsList =
+                (List<String>) apiEntity.getMetadata().getOrDefault(METADATA_FILTERED_FIELDS_LIST, emptyList());
 
         if (apiEntity.getId() != null && !filteredFieldsList.contains("id")) {
             jsonGenerator.writeStringField("id", apiEntity.getId());
@@ -49,15 +51,13 @@ public class ApiDefaultSerializer extends ApiSerializer {
         // path mappings part
         if (apiEntity.getPathMappings() != null) {
             jsonGenerator.writeArrayFieldStart("path_mappings");
-            apiEntity
-                .getPathMappings()
-                .forEach(pathMapping -> {
-                    try {
-                        jsonGenerator.writeObject(pathMapping);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            apiEntity.getPathMappings().forEach(pathMapping -> {
+                try {
+                    jsonGenerator.writeObject(pathMapping);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
             jsonGenerator.writeEndArray();
         }
 
@@ -69,7 +69,8 @@ public class ApiDefaultSerializer extends ApiSerializer {
         // response templates
         if (apiEntity.getResponseTemplates() != null) {
             jsonGenerator.writeObjectFieldStart("response_templates");
-            for (Map.Entry<String, Map<String, ResponseTemplate>> rt : apiEntity.getResponseTemplates().entrySet()) {
+            for (Map.Entry<String, Map<String, ResponseTemplate>> rt :
+                    apiEntity.getResponseTemplates().entrySet()) {
                 jsonGenerator.writeObjectFieldStart(rt.getKey());
                 for (Map.Entry<String, ResponseTemplate> entry : rt.getValue().entrySet()) {
                     jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
@@ -83,7 +84,8 @@ public class ApiDefaultSerializer extends ApiSerializer {
             jsonGenerator.writeObjectField("primaryOwner", apiEntity.getPrimaryOwner());
         }
 
-        jsonGenerator.writeObjectField("disable_membership_notifications", apiEntity.isDisableMembershipNotifications());
+        jsonGenerator.writeObjectField(
+                "disable_membership_notifications", apiEntity.isDisableMembershipNotifications());
 
         // must end the writing process
         jsonGenerator.writeEndObject();

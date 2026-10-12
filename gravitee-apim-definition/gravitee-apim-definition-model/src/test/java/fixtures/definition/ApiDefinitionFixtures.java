@@ -38,18 +38,23 @@ public class ApiDefinitionFixtures {
 
     private ApiDefinitionFixtures() {}
 
-    private static final Supplier<Api.ApiBuilder<?, ?>> BASE_V4 = () ->
-        Api.builder().name("an-api").apiVersion("1.0.0").type(ApiType.PROXY).analytics(Analytics.builder().enabled(false).build());
-
-    private static final Supplier<io.gravitee.definition.model.Api.ApiBuilder> BASE_V2 = () ->
-        io.gravitee.definition.model.Api.builder()
+    private static final Supplier<Api.ApiBuilder<?, ?>> BASE_V4 = () -> Api.builder()
             .name("an-api")
-            .version("1.0.0")
-            .executionMode(ExecutionMode.V3)
-            .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build());
+            .apiVersion("1.0.0")
+            .type(ApiType.PROXY)
+            .analytics(Analytics.builder().enabled(false).build());
 
-    private static final Supplier<NativeApi.NativeApiBuilder<?, ?>> BASE_NATIVE = () ->
-        NativeApi.builder().name("an-api").apiVersion("1.0.0").type(ApiType.NATIVE);
+    private static final Supplier<io.gravitee.definition.model.Api.ApiBuilder> BASE_V2 =
+            () -> io.gravitee.definition.model.Api.builder()
+                    .name("an-api")
+                    .version("1.0.0")
+                    .executionMode(ExecutionMode.V3)
+                    .proxy(Proxy.builder()
+                            .virtualHosts(List.of(new VirtualHost("/")))
+                            .build());
+
+    private static final Supplier<NativeApi.NativeApiBuilder<?, ?>> BASE_NATIVE =
+            () -> NativeApi.builder().name("an-api").apiVersion("1.0.0").type(ApiType.NATIVE);
 
     public static Api anApiV4() {
         return aSyncApiV4();
@@ -58,83 +63,68 @@ public class ApiDefinitionFixtures {
     public static Api aSyncApiV4() {
         var httpListener = HttpListener.builder().paths(List.of(new Path())).build();
 
-        return BASE_V4.get().listeners(List.of(httpListener)).endpointGroups(List.of(EndpointGroup.builder().build())).build();
+        return BASE_V4.get()
+                .listeners(List.of(httpListener))
+                .endpointGroups(List.of(EndpointGroup.builder().build()))
+                .build();
     }
 
     public static Api aHttpProxyApiV4(String apiId) {
         return BASE_V4.get()
-            .id(apiId)
-            .analytics(Analytics.builder().enabled(false).build())
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            .listeners(
-                List.of(
-                    HttpListener.builder()
+                .id(apiId)
+                .analytics(Analytics.builder().enabled(false).build())
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .listeners(List.of(HttpListener.builder()
                         .paths(List.of(Path.builder().path("/http_proxy/").build()))
-                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                        .build()
-                )
-            )
-            .endpointGroups(
-                List.of(
-                    EndpointGroup.builder()
+                        .entrypoints(List.of(Entrypoint.builder()
+                                .type("http-proxy")
+                                .configuration("{}")
+                                .build()))
+                        .build()))
+                .endpointGroups(List.of(EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
-                        .endpoints(
-                            List.of(
-                                Endpoint.builder()
-                                    .name("default-endpoint")
-                                    .type("http-proxy")
-                                    .inheritConfiguration(true)
-                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            )
-            .flows(List.of())
-            .flowExecution(new FlowExecution())
-            .build();
+                        .endpoints(List.of(Endpoint.builder()
+                                .name("default-endpoint")
+                                .type("http-proxy")
+                                .inheritConfiguration(true)
+                                .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                .build()))
+                        .build()))
+                .flows(List.of())
+                .flowExecution(new FlowExecution())
+                .build();
     }
 
     public static Api aMessageApiV4(String apiId) {
         return BASE_V4.get()
-            .id(apiId)
-            .analytics(Analytics.builder().enabled(false).build())
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.MESSAGE)
-            .listeners(
-                List.of(
-                    HttpListener.builder()
+                .id(apiId)
+                .analytics(Analytics.builder().enabled(false).build())
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.MESSAGE)
+                .listeners(List.of(HttpListener.builder()
                         .paths(List.of(Path.builder().path("/sse").build()))
-                        .entrypoints(List.of(Entrypoint.builder().type("sse").configuration("{}").build()))
-                        .build()
-                )
-            )
-            .endpointGroups(
-                List.of(
-                    EndpointGroup.builder()
+                        .entrypoints(List.of(Entrypoint.builder()
+                                .type("sse")
+                                .configuration("{}")
+                                .build()))
+                        .build()))
+                .endpointGroups(List.of(EndpointGroup.builder()
                         .name("default-group")
                         .type("mock")
                         .sharedConfiguration("{}")
-                        .endpoints(
-                            List.of(
-                                Endpoint.builder()
-                                    .name("default-endpoint")
-                                    .type("mock")
-                                    .inheritConfiguration(true)
-                                    .configuration("{}")
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-            )
-            .flows(List.of())
-            .flowExecution(new FlowExecution())
-            .build();
+                        .endpoints(List.of(Endpoint.builder()
+                                .name("default-endpoint")
+                                .type("mock")
+                                .inheritConfiguration(true)
+                                .configuration("{}")
+                                .build()))
+                        .build()))
+                .flows(List.of())
+                .flowExecution(new FlowExecution())
+                .build();
     }
 
     public static NativeApi aNativeApiV4() {
@@ -146,10 +136,16 @@ public class ApiDefinitionFixtures {
     }
 
     public static io.gravitee.definition.model.Api anApiV2() {
-        return BASE_V2.get().definitionVersion(DefinitionVersion.V2).plans(new HashMap<>()).build();
+        return BASE_V2.get()
+                .definitionVersion(DefinitionVersion.V2)
+                .plans(new HashMap<>())
+                .build();
     }
 
     public static FederatedApi aFederatedApi() {
-        return FederatedApi.builder().name("federated-api").providerId("api-provider-id").build();
+        return FederatedApi.builder()
+                .name("federated-api")
+                .providerId("api-provider-id")
+                .build();
     }
 }

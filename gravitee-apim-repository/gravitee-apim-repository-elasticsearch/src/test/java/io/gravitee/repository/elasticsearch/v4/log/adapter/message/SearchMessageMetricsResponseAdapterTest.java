@@ -59,24 +59,20 @@ class SearchMessageMetricsResponseAdapterTest {
     @Test
     void should_map_hits_to_message_metrics() throws Exception {
         // Arrange
-        JsonNode source1 = objectMapper.readTree(
-            """
+        JsonNode source1 = objectMapper.readTree("""
                 {
                     "@timestamp": "2025-11-25T12:00:00Z",
                     "api-id": "api-1",
                     "count": 5
                 }
-            """
-        );
-        JsonNode source2 = objectMapper.readTree(
-            """
+            """);
+        JsonNode source2 = objectMapper.readTree("""
                 {
                     "@timestamp": "2025-11-25T13:00:00Z",
                     "api-id": "api-2",
                     "count": 7
                 }
-            """
-        );
+            """);
 
         SearchHit hit1 = new SearchHit();
         hit1.setSource(source1);
@@ -93,13 +89,11 @@ class SearchMessageMetricsResponseAdapterTest {
         // Assert
         assertThat(result).hasSize(2);
 
-        assertThat(result)
-            .first()
-            .satisfies(metrics -> {
-                assertThat(metrics.getTimestamp()).isEqualTo("2025-11-25T12:00:00Z");
-                assertThat(metrics.getApiId()).isEqualTo("api-1");
-                assertThat(metrics.getCount()).isEqualTo(5L);
-            });
+        assertThat(result).first().satisfies(metrics -> {
+            assertThat(metrics.getTimestamp()).isEqualTo("2025-11-25T12:00:00Z");
+            assertThat(metrics.getApiId()).isEqualTo("api-1");
+            assertThat(metrics.getCount()).isEqualTo(5L);
+        });
 
         MessageMetrics metrics2 = result.get(1);
         assertThat(metrics2.getTimestamp()).isEqualTo("2025-11-25T13:00:00Z");
@@ -110,11 +104,9 @@ class SearchMessageMetricsResponseAdapterTest {
     @Test
     void should_handle_missing_fields_gracefully() throws Exception {
         // Arrange
-        JsonNode source = objectMapper.readTree(
-            """
+        JsonNode source = objectMapper.readTree("""
                 {}
-            """
-        );
+            """);
 
         SearchHit hit = new SearchHit();
         hit.setSource(source);
@@ -126,21 +118,17 @@ class SearchMessageMetricsResponseAdapterTest {
         List<MessageMetrics> result = SearchMessageMetricsResponseAdapter.adapt(hits);
 
         // Assert
-        assertThat(result)
-            .hasSize(1)
-            .first()
-            .satisfies(metrics -> {
-                assertThat(metrics.getTimestamp()).isNull();
-                assertThat(metrics.getApiId()).isNull();
-                assertThat(metrics.getCount()).isZero();
-            });
+        assertThat(result).hasSize(1).first().satisfies(metrics -> {
+            assertThat(metrics.getTimestamp()).isNull();
+            assertThat(metrics.getApiId()).isNull();
+            assertThat(metrics.getCount()).isZero();
+        });
     }
 
     @Test
     void should_map_all_message_metrics_fields() throws Exception {
         // Arrange
-        JsonNode source = objectMapper.readTree(
-            """
+        JsonNode source = objectMapper.readTree("""
                 {
                     "@timestamp": "2025-11-25T15:00:00Z",
                     "api-id": "api-4",
@@ -168,8 +156,7 @@ class SearchMessageMetricsResponseAdapterTest {
                         "metric2": 42
                     }
                 }
-            """
-        );
+            """);
 
         SearchHit hit = new SearchHit();
         hit.setSource(source);
@@ -181,31 +168,28 @@ class SearchMessageMetricsResponseAdapterTest {
         List<MessageMetrics> result = SearchMessageMetricsResponseAdapter.adapt(hits);
 
         // Assert
-        assertThat(result)
-            .hasSize(1)
-            .first()
-            .satisfies(metrics -> {
-                assertThat(metrics.getTimestamp()).isEqualTo("2025-11-25T15:00:00Z");
-                assertThat(metrics.getApiId()).isEqualTo("api-4");
-                assertThat(metrics.getApiName()).isEqualTo("Test API");
-                assertThat(metrics.getRequestId()).isEqualTo("req-123");
-                assertThat(metrics.getClientIdentifier()).isEqualTo("client-2");
-                assertThat(metrics.getCorrelationId()).isEqualTo("corr-456");
-                assertThat(metrics.getOperation()).isEqualTo("operation-B");
-                assertThat(metrics.getConnectorType()).isEqualTo("HTTP");
-                assertThat(metrics.getConnectorId()).isEqualTo("conn-789");
-                assertThat(metrics.getGateway()).isEqualTo("gateway-1");
-                assertThat(metrics.getContentLength()).isEqualTo(1024L);
-                assertThat(metrics.getCount()).isEqualTo(15L);
-                assertThat(metrics.getErrorCount()).isEqualTo(3L);
-                assertThat(metrics.getCountIncrement()).isEqualTo(1L);
-                assertThat(metrics.getErrorCountIncrement()).isEqualTo(1L);
-                assertThat(metrics.isError()).isTrue();
-                assertThat(metrics.getGatewayLatencyMs()).isEqualTo(50L);
-                assertThat(metrics.getCustom()).containsEntry("key1", "value1");
-                assertThat(metrics.getCustom()).containsEntry("key2", "value2");
-                assertThat(metrics.getAdditionalMetrics()).containsEntry("metric1", "value1");
-                assertThat(metrics.getAdditionalMetrics()).containsEntry("metric2", 42);
-            });
+        assertThat(result).hasSize(1).first().satisfies(metrics -> {
+            assertThat(metrics.getTimestamp()).isEqualTo("2025-11-25T15:00:00Z");
+            assertThat(metrics.getApiId()).isEqualTo("api-4");
+            assertThat(metrics.getApiName()).isEqualTo("Test API");
+            assertThat(metrics.getRequestId()).isEqualTo("req-123");
+            assertThat(metrics.getClientIdentifier()).isEqualTo("client-2");
+            assertThat(metrics.getCorrelationId()).isEqualTo("corr-456");
+            assertThat(metrics.getOperation()).isEqualTo("operation-B");
+            assertThat(metrics.getConnectorType()).isEqualTo("HTTP");
+            assertThat(metrics.getConnectorId()).isEqualTo("conn-789");
+            assertThat(metrics.getGateway()).isEqualTo("gateway-1");
+            assertThat(metrics.getContentLength()).isEqualTo(1024L);
+            assertThat(metrics.getCount()).isEqualTo(15L);
+            assertThat(metrics.getErrorCount()).isEqualTo(3L);
+            assertThat(metrics.getCountIncrement()).isEqualTo(1L);
+            assertThat(metrics.getErrorCountIncrement()).isEqualTo(1L);
+            assertThat(metrics.isError()).isTrue();
+            assertThat(metrics.getGatewayLatencyMs()).isEqualTo(50L);
+            assertThat(metrics.getCustom()).containsEntry("key1", "value1");
+            assertThat(metrics.getCustom()).containsEntry("key2", "value2");
+            assertThat(metrics.getAdditionalMetrics()).containsEntry("metric1", "value1");
+            assertThat(metrics.getAdditionalMetrics()).containsEntry("metric2", 42);
+        });
     }
 }

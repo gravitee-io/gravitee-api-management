@@ -58,7 +58,8 @@ class FilteringServiceImplTest {
     @Test
     void getApplicationsOrderByNumberOfSubscriptions_emptyIds_doesNotRunUnfilteredQuery() {
         // An empty application set must not trigger an unfiltered ranking query.
-        Collection<String> result = filteringService.getApplicationsOrderByNumberOfSubscriptions(new HashSet<>(), Order.DESC);
+        Collection<String> result =
+                filteringService.getApplicationsOrderByNumberOfSubscriptions(new HashSet<>(), Order.DESC);
 
         assertThat(result).isEmpty();
         verifyNoInteractions(subscriptionService);
@@ -75,12 +76,11 @@ class FilteringServiceImplTest {
     @Test
     void getApplicationsOrderByNumberOfSubscriptions_withIds_delegatesToRanking() {
         Set<String> ranking = new LinkedHashSet<>(List.of("app-2"));
-        when(subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(any(), eq(Order.DESC))).thenReturn(ranking);
+        when(subscriptionService.findReferenceIdsOrderByNumberOfSubscriptions(any(), eq(Order.DESC)))
+                .thenReturn(ranking);
 
         Collection<String> result = filteringService.getApplicationsOrderByNumberOfSubscriptions(
-            new HashSet<>(List.of("app-1", "app-2")),
-            Order.DESC
-        );
+                new HashSet<>(List.of("app-1", "app-2")), Order.DESC);
 
         assertThat(result).contains("app-1", "app-2");
         verify(subscriptionService).findReferenceIdsOrderByNumberOfSubscriptions(any(), eq(Order.DESC));
@@ -89,20 +89,19 @@ class FilteringServiceImplTest {
     @Test
     void searchApis_appliesStableSortStrategy() throws Exception {
         ExecutionContext executionContext = new ExecutionContext("org", "env");
-        when(apiAuthorizationService.findAccessibleApiIdsForUser(eq(executionContext), eq("user"), any(ApiQuery.class))).thenReturn(
-            Set.of("api-1")
-        );
+        when(apiAuthorizationService.findAccessibleApiIdsForUser(eq(executionContext), eq("user"), any(ApiQuery.class)))
+                .thenReturn(Set.of("api-1"));
 
         filteringService.searchApis(executionContext, "user", "term");
 
-        verify(apiSearchService).searchIds(
-            eq(executionContext),
-            eq("term"),
-            any(),
-            eq(null),
-            any(),
-            eq(false),
-            eq(SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS)
-        );
+        verify(apiSearchService)
+                .searchIds(
+                        eq(executionContext),
+                        eq("term"),
+                        any(),
+                        eq(null),
+                        any(),
+                        eq(false),
+                        eq(SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS));
     }
 }

@@ -49,20 +49,20 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
     @Override
     protected JdbcObjectMapper<Category> buildOrm() {
         return JdbcObjectMapper.builder(Category.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("key", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("hidden", Types.BIT, boolean.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("highlight_api", Types.NVARCHAR, String.class)
-            .addColumn("picture", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("background", Types.NVARCHAR, String.class)
-            .addColumn("page", Types.NVARCHAR, String.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("key", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("hidden", Types.BIT, boolean.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .addColumn("highlight_api", Types.NVARCHAR, String.class)
+                .addColumn("picture", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("background", Types.NVARCHAR, String.class)
+                .addColumn("page", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -70,10 +70,7 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
         log.debug("JdbcCategoryRepository.findAllByEnvironment({})", environmentId);
         try {
             List<Category> categories = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where environment_id = ?",
-                getOrm().getRowMapper(),
-                environmentId
-            );
+                    getOrm().getSelectAllSql() + " where environment_id = ?", getOrm().getRowMapper(), environmentId);
             return new HashSet<>(categories);
         } catch (final Exception ex) {
             log.error("Failed to find categories by environment:", ex);
@@ -86,10 +83,7 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
         log.debug("JdbcCategoryRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var rows = jdbcTemplate.queryForList(
-                "select id from " + tableName + " where environment_id = ?",
-                String.class,
-                environmentId
-            );
+                    "select id from " + tableName + " where environment_id = ?", String.class, environmentId);
 
             if (!rows.isEmpty()) {
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
@@ -107,7 +101,8 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
     public Optional<Category> findById(String id) throws TechnicalException {
         log.debug("JdbcCategoryRepository.findById({})", id);
         try {
-            List<Category> items = jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?", getOrm().getRowMapper(), id);
+            List<Category> items =
+                    jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?", getOrm().getRowMapper(), id);
             return items.stream().findFirst();
         } catch (final Exception ex) {
             log.error("Failed to find categories items by id : {} ", id, ex);
@@ -128,13 +123,12 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
 
         try {
             List<Category> rows = jdbcTemplate.query(
-                query.toString(),
-                (PreparedStatement ps) -> {
-                    ps.setString(1, environmentId);
-                    getOrm().setArguments(ps, ids, 2);
-                },
-                getOrm().getRowMapper()
-            );
+                    query.toString(),
+                    (PreparedStatement ps) -> {
+                        ps.setString(1, environmentId);
+                        getOrm().setArguments(ps, ids, 2);
+                    },
+                    getOrm().getRowMapper());
             return new HashSet<>(rows);
         } catch (final Exception ex) {
             log.error("Failed to find group by ids", ex);
@@ -162,49 +156,46 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
         }
         try {
             int rows = jdbcTemplate.update(
-                "update " +
-                    this.tableName +
-                    " set " +
-                    " id = ?" +
-                    " , environment_id = ?" +
-                    " , " +
-                    escapeReservedWord("key") +
-                    " = ?" +
-                    " , name = ?" +
-                    " , description = ?" +
-                    " , hidden = ?" +
-                    " , " +
-                    escapeReservedWord("order") +
-                    " = ?" +
-                    " , highlight_api = ?" +
-                    " , picture = ?" +
-                    " , background = ?" +
-                    " , page = ?" +
-                    " , created_at = ? " +
-                    " , updated_at = ? " +
-                    " where " +
-                    " id = ? " +
-                    " and environment_id = ? ",
-                item.getId(),
-                item.getEnvironmentId(),
-                item.getKey(),
-                item.getName(),
-                item.getDescription(),
-                item.isHidden(),
-                item.getOrder(),
-                item.getHighlightApi(),
-                item.getPicture(),
-                item.getBackground(),
-                item.getPage(),
-                item.getCreatedAt(),
-                item.getUpdatedAt(),
-                item.getId(),
-                item.getEnvironmentId()
-            );
+                    "update " + this.tableName
+                            + " set "
+                            + " id = ?"
+                            + " , environment_id = ?"
+                            + " , "
+                            + escapeReservedWord("key")
+                            + " = ?"
+                            + " , name = ?"
+                            + " , description = ?"
+                            + " , hidden = ?"
+                            + " , "
+                            + escapeReservedWord("order")
+                            + " = ?"
+                            + " , highlight_api = ?"
+                            + " , picture = ?"
+                            + " , background = ?"
+                            + " , page = ?"
+                            + " , created_at = ? "
+                            + " , updated_at = ? "
+                            + " where "
+                            + " id = ? "
+                            + " and environment_id = ? ",
+                    item.getId(),
+                    item.getEnvironmentId(),
+                    item.getKey(),
+                    item.getName(),
+                    item.getDescription(),
+                    item.isHidden(),
+                    item.getOrder(),
+                    item.getHighlightApi(),
+                    item.getPicture(),
+                    item.getBackground(),
+                    item.getPage(),
+                    item.getCreatedAt(),
+                    item.getUpdatedAt(),
+                    item.getId(),
+                    item.getEnvironmentId());
             if (rows == 0) {
-                throw new IllegalStateException(
-                    "Unable to update categories " + item.getId() + " for the environment " + item.getEnvironmentId()
-                );
+                throw new IllegalStateException("Unable to update categories " + item.getId() + " for the environment "
+                        + item.getEnvironmentId());
             } else {
                 return findById(item.getId()).orElse(null);
             }
@@ -244,14 +235,14 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
         log.debug("JdbcCategoryRepository.findByKey({},{})", key, environment);
         try {
             final Optional<Category> category = jdbcTemplate
-                .query(
-                    getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and environment_id = ?",
-                    getOrm().getRowMapper(),
-                    key,
-                    environment
-                )
-                .stream()
-                .findFirst();
+                    .query(
+                            getOrm().getSelectAllSql() + " where " + escapeReservedWord("key")
+                                    + " = ? and environment_id = ?",
+                            getOrm().getRowMapper(),
+                            key,
+                            environment)
+                    .stream()
+                    .findFirst();
             return category;
         } catch (final Exception ex) {
             final String error = "Failed to find category by key " + key;
@@ -264,7 +255,8 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
     public Set<Category> findByPage(String page) throws TechnicalException {
         log.debug("JdbcCategoryRepository.findByPage()");
         try {
-            List<Category> categories = jdbcTemplate.query(getOrm().getSelectAllSql() + " where page = ?", getOrm().getRowMapper(), page);
+            List<Category> categories =
+                    jdbcTemplate.query(getOrm().getSelectAllSql() + " where page = ?", getOrm().getRowMapper(), page);
             return new HashSet<>(categories);
         } catch (final Exception ex) {
             log.error("Failed to find categories by page:", ex);

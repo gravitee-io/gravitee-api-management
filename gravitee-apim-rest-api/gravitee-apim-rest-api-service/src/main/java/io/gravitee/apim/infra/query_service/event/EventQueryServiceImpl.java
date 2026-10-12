@@ -54,30 +54,30 @@ public class EventQueryServiceImpl implements EventQueryService {
         query.to().ifPresent(criteriaBuilder::to);
 
         var result = eventRepository.search(
-            criteriaBuilder.build(),
-            new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
-        );
+                criteriaBuilder.build(),
+                new PageableBuilder()
+                        .pageNumber(pageable.getPageNumber() - 1)
+                        .pageSize(pageable.getPageSize())
+                        .build());
 
-        return new SearchResponse(result.getTotalElements(), result.getContent().stream().map(EventAdapter.INSTANCE::map).toList());
+        return new SearchResponse(
+                result.getTotalElements(),
+                result.getContent().stream().map(EventAdapter.INSTANCE::map).toList());
     }
 
     @Override
     public Optional<io.gravitee.apim.core.event.model.Event> findByIdForEnvironmentAndApi(
-        String eventId,
-        String environmentId,
-        String apiId
-    ) {
+            String eventId, String environmentId, String apiId) {
         try {
             return eventRepository
-                .findById(eventId)
-                .map(EventAdapter.INSTANCE::map)
-                .filter(
-                    e ->
-                        e.getEnvironments().contains(environmentId) &&
-                        apiId.equalsIgnoreCase(e.getProperties().get(io.gravitee.apim.core.event.model.Event.EventProperties.API_ID))
-                );
+                    .findById(eventId)
+                    .map(EventAdapter.INSTANCE::map)
+                    .filter(e -> e.getEnvironments().contains(environmentId)
+                            && apiId.equalsIgnoreCase(e.getProperties()
+                                    .get(io.gravitee.apim.core.event.model.Event.EventProperties.API_ID)));
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to find API event by id: " + eventId, e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find API event by id: " + eventId, e);
         }
     }
 
@@ -86,12 +86,14 @@ public class EventQueryServiceImpl implements EventQueryService {
     public Optional<io.gravitee.apim.core.api.model.Api> findApiFromPublishApiEvent(String eventId) {
         try {
             return eventRepository
-                .findById(eventId)
-                .map(EventAdapter.INSTANCE::map)
-                .filter(e -> e.getType().equals(io.gravitee.rest.api.model.EventType.PUBLISH_API) && e.getPayload() != null)
-                .map(EventQueryServiceImpl::extractApiFromEvent);
+                    .findById(eventId)
+                    .map(EventAdapter.INSTANCE::map)
+                    .filter(e -> e.getType().equals(io.gravitee.rest.api.model.EventType.PUBLISH_API)
+                            && e.getPayload() != null)
+                    .map(EventQueryServiceImpl::extractApiFromEvent);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to find API event by id: " + eventId, e);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find API event by id: " + eventId, e);
         }
     }
 
@@ -104,8 +106,9 @@ public class EventQueryServiceImpl implements EventQueryService {
         }
     }
 
-    private static io.gravitee.repository.management.model.Api toApiRepositoryModel(io.gravitee.apim.core.event.model.Event event)
-        throws JsonProcessingException {
-        return GraviteeJacksonMapper.getInstance().readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class);
+    private static io.gravitee.repository.management.model.Api toApiRepositoryModel(
+            io.gravitee.apim.core.event.model.Event event) throws JsonProcessingException {
+        return GraviteeJacksonMapper.getInstance()
+                .readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class);
     }
 }

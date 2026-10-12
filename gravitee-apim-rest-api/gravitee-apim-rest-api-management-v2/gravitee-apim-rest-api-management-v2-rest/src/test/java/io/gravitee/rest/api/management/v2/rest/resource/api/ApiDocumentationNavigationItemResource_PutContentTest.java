@@ -73,7 +73,10 @@ class ApiDocumentationNavigationItemResource_PutContentTest extends AbstractReso
 
     @BeforeEach
     public void init() {
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -95,13 +98,10 @@ class ApiDocumentationNavigationItemResource_PutContentTest extends AbstractReso
 
         Response response = saveContentOf(page.getId(), "# New content");
 
-        assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalPageContent.class)
-            .satisfies(content -> {
-                assertThat(content.getId()).isEqualTo(page.getPortalPageContentId().json());
-                assertThat(content.getContent()).isEqualTo("# New content");
-            });
+        assertThat(response).hasStatus(OK_200).asEntity(PortalPageContent.class).satisfies(content -> {
+            assertThat(content.getId()).isEqualTo(page.getPortalPageContentId().json());
+            assertThat(content.getContent()).isEqualTo("# New content");
+        });
         assertThat(storedContentOf(page)).isEqualTo("# New content");
     }
 
@@ -147,9 +147,9 @@ class ApiDocumentationNavigationItemResource_PutContentTest extends AbstractReso
     @Test
     void should_return_400_for_a_page_fetched_from_an_external_source() {
         var source = PortalNavigationItemSource.builder()
-            .sourceType("http-fetcher")
-            .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
-            .build();
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
+                .build();
         var sourcedPage = aPage(new NavigationItemReference.ApiReference(API_ID), source);
 
         Response response = saveContentOf(sourcedPage.getId(), "# New content");
@@ -171,14 +171,12 @@ class ApiDocumentationNavigationItemResource_PutContentTest extends AbstractReso
     @Test
     void should_return_403_with_environment_documentation_permission_only() {
         var page = aPageOwnedBy(API_ID);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(false);
 
         Response response = saveContentOf(page.getId(), "# New content");
 
@@ -190,14 +188,12 @@ class ApiDocumentationNavigationItemResource_PutContentTest extends AbstractReso
     void should_succeed_with_api_documentation_permission_only() {
         var page = aPageOwnedBy(API_ID);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
-                eq(API_ID),
-                eq(RolePermissionAction.UPDATE)
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        eq(GraviteeContext.getExecutionContext()),
+                        eq(RolePermission.API_DOCUMENTATION),
+                        eq(API_ID),
+                        eq(RolePermissionAction.UPDATE)))
+                .thenReturn(true);
 
         Response response = saveContentOf(page.getId(), "# New content");
 
@@ -205,17 +201,19 @@ class ApiDocumentationNavigationItemResource_PutContentTest extends AbstractReso
     }
 
     private Response saveContentOf(PortalNavigationItemId id, String content) {
-        return rootTarget(id.json()).path("content").request().put(Entity.json(new UpdatePortalPageContent().content(content)));
+        return rootTarget(id.json())
+                .path("content")
+                .request()
+                .put(Entity.json(new UpdatePortalPageContent().content(content)));
     }
 
     private String storedContentOf(PortalNavigationPage page) {
-        return portalPageContentCrudService
-            .storage()
-            .stream()
-            .filter(content -> content.getId().equals(page.getPortalPageContentId()))
-            .findFirst()
-            .map(content -> ((GraviteeMarkdownPageContent) content).getContent().value())
-            .orElseThrow();
+        return portalPageContentCrudService.storage().stream()
+                .filter(content -> content.getId().equals(page.getPortalPageContentId()))
+                .findFirst()
+                .map(content ->
+                        ((GraviteeMarkdownPageContent) content).getContent().value())
+                .orElseThrow();
     }
 
     private PortalNavigationPage aPageOwnedBy(String apiId) {
@@ -224,32 +222,31 @@ class ApiDocumentationNavigationItemResource_PutContentTest extends AbstractReso
 
     private PortalNavigationPage aPage(NavigationItemReference reference, PortalNavigationItemSource source) {
         var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-            PortalPageContentId.random(),
-            ORGANIZATION,
-            ENVIRONMENT,
-            ORIGINAL_CONTENT
-        );
+                PortalPageContentId.random(), ORGANIZATION, ENVIRONMENT, ORIGINAL_CONTENT);
         portalPageContentCrudService.create(content);
         // In this test context the content query fake does not share the crud storage
         portalPageContentQueryService.storage().add(content);
 
-        var page = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().json(), "Overview", null, content.getId())
-            .toBuilder()
-            .organizationId(ORGANIZATION)
-            .environmentId(ENVIRONMENT)
-            .reference(reference)
-            .source(source)
-            .build();
+        var page =
+                PortalNavigationItemFixtures.aPage(
+                                PortalNavigationItemId.random().json(), "Overview", null, content.getId())
+                        .toBuilder()
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .reference(reference)
+                        .source(source)
+                        .build();
         portalNavigationItemCrudService.create(page);
         return page;
     }
 
     private PortalNavigationFolder aFolderOwnedByTheApi() {
-        var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemId.random().json(), "Guides")
-            .toBuilder()
-            .environmentId(ENVIRONMENT)
-            .reference(new NavigationItemReference.ApiReference(API_ID))
-            .build();
+        var folder = PortalNavigationItemFixtures.aFolder(
+                        PortalNavigationItemId.random().json(), "Guides")
+                .toBuilder()
+                .environmentId(ENVIRONMENT)
+                .reference(new NavigationItemReference.ApiReference(API_ID))
+                .build();
         portalNavigationItemCrudService.create(folder);
         return folder;
     }

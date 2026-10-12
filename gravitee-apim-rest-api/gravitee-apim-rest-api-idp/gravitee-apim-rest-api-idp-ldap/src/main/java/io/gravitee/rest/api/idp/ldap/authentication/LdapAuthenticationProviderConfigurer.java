@@ -49,7 +49,7 @@ import org.springframework.util.Assert;
  */
 @CustomLog
 public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuilder<B>>
-    extends SecurityConfigurerAdapter<AuthenticationManager, B> {
+        extends SecurityConfigurerAdapter<AuthenticationManager, B> {
 
     private String groupRoleAttribute = "cn";
     private String groupSearchBase = "";
@@ -71,10 +71,8 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
 
         LdapAuthoritiesPopulator authoritiesPopulator = getLdapAuthoritiesPopulator();
 
-        LdapAuthenticationProvider ldapAuthenticationProvider = new LdapAuthenticationProviderProxy(
-            ldapAuthenticator,
-            authoritiesPopulator
-        );
+        LdapAuthenticationProvider ldapAuthenticationProvider =
+                new LdapAuthenticationProviderProxy(ldapAuthenticator, authoritiesPopulator);
         SimpleAuthorityMapper simpleAuthorityMapper = new SimpleAuthorityMapper();
         simpleAuthorityMapper.setPrefix(rolePrefix);
         simpleAuthorityMapper.afterPropertiesSet();
@@ -92,7 +90,8 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * {@link DefaultLdapAuthoritiesPopulator}
      * @return the {@link LdapAuthenticationProviderConfigurer} for further customizations
      */
-    public LdapAuthenticationProviderConfigurer<B> ldapAuthoritiesPopulator(LdapAuthoritiesPopulator ldapAuthoritiesPopulator) {
+    public LdapAuthenticationProviderConfigurer<B> ldapAuthoritiesPopulator(
+            LdapAuthoritiesPopulator ldapAuthoritiesPopulator) {
         this.ldapAuthoritiesPopulator = ldapAuthoritiesPopulator;
         return this;
     }
@@ -119,7 +118,8 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
             return ldapAuthoritiesPopulator;
         }
 
-        DefaultLdapAuthoritiesPopulator defaultAuthoritiesPopulator = new DefaultLdapAuthoritiesPopulator(contextSource, groupSearchBase);
+        DefaultLdapAuthoritiesPopulator defaultAuthoritiesPopulator =
+                new DefaultLdapAuthoritiesPopulator(contextSource, groupSearchBase);
         defaultAuthoritiesPopulator.setGroupRoleAttribute(groupRoleAttribute);
         defaultAuthoritiesPopulator.setGroupSearchFilter(groupSearchFilter);
 
@@ -135,8 +135,8 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      */
     private LdapAuthenticator createLdapAuthenticator(BaseLdapPathContextSource contextSource) {
         AbstractLdapAuthenticator ldapAuthenticator = passwordEncoder == null
-            ? createBindAuthenticator(contextSource)
-            : createPasswordCompareAuthenticator(contextSource);
+                ? createBindAuthenticator(contextSource)
+                : createPasswordCompareAuthenticator(contextSource);
         LdapUserSearch userSearch = createUserSearch();
         if (userSearch != null) {
             ldapAuthenticator.setUserSearch(userSearch);
@@ -153,7 +153,8 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @param contextSource the {@link BaseLdapPathContextSource} to use
      * @return
      */
-    private PasswordComparisonAuthenticator createPasswordCompareAuthenticator(BaseLdapPathContextSource contextSource) {
+    private PasswordComparisonAuthenticator createPasswordCompareAuthenticator(
+            BaseLdapPathContextSource contextSource) {
         PasswordComparisonAuthenticator ldapAuthenticator = new PasswordComparisonAuthenticator(contextSource);
         if (passwordAttribute != null) {
             ldapAuthenticator.setPasswordAttributeName(passwordAttribute);
@@ -244,7 +245,8 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @see InetOrgPersonContextMapper
      * @see LdapUserDetailsMapper
      */
-    public LdapAuthenticationProviderConfigurer<B> userDetailsContextMapper(UserDetailsContextMapper userDetailsContextMapper) {
+    public LdapAuthenticationProviderConfigurer<B> userDetailsContextMapper(
+            UserDetailsContextMapper userDetailsContextMapper) {
         this.userDetailsContextMapper = userDetailsContextMapper;
         return this;
     }

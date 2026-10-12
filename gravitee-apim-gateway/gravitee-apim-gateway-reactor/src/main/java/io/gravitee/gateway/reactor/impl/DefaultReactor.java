@@ -44,12 +44,14 @@ public class DefaultReactor implements Reactor {
     private final AcceptorResolver acceptorResolver;
 
     public DefaultReactor(
-        final @Qualifier("v3AcceptorResolver") AcceptorResolver acceptorResolver,
-        final GatewayConfiguration gatewayConfiguration,
-        final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory requestProcessorChainFactory,
-        final @Qualifier("v3ResponseProcessorChainFactory") ResponseProcessorChainFactory responseProcessorChainFactory,
-        final @Qualifier("v3NotFoundProcessorChainFactory") NotFoundProcessorChainFactory notFoundProcessorChainFactory
-    ) {
+            final @Qualifier("v3AcceptorResolver") AcceptorResolver acceptorResolver,
+            final GatewayConfiguration gatewayConfiguration,
+            final @Qualifier("v3RequestProcessorChainFactory") RequestProcessorChainFactory
+                            requestProcessorChainFactory,
+            final @Qualifier("v3ResponseProcessorChainFactory") ResponseProcessorChainFactory
+                            responseProcessorChainFactory,
+            final @Qualifier("v3NotFoundProcessorChainFactory") NotFoundProcessorChainFactory
+                            notFoundProcessorChainFactory) {
         this.acceptorResolver = acceptorResolver;
         this.gatewayConfiguration = gatewayConfiguration;
         this.requestProcessorChainFactory = requestProcessorChainFactory;
@@ -58,41 +60,41 @@ public class DefaultReactor implements Reactor {
     }
 
     @Override
-    public void route(Request serverRequest, Response serverResponse, String serverId, Handler<ExecutionContext> handler) {
+    public void route(
+            Request serverRequest, Response serverResponse, String serverId, Handler<ExecutionContext> handler) {
         log.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
 
         // Prepare invocation execution context
         ExecutionContext context = new SimpleExecutionContext(serverRequest, serverResponse);
 
         // Set gateway tenant
-        gatewayConfiguration.tenant().ifPresent(tenant -> serverRequest.metrics().setTenant(tenant));
+        gatewayConfiguration
+                .tenant()
+                .ifPresent(tenant -> serverRequest.metrics().setTenant(tenant));
 
         // Set gateway zone
         gatewayConfiguration.zone().ifPresent(zone -> serverRequest.metrics().setZone(zone));
 
         // Prepare handler chain
         requestProcessorChainFactory
-            .create()
-            .handler(ctx -> {
-                HttpAcceptor httpAcceptorHandler = acceptorResolver.resolve(ctx, serverId);
+                .create()
+                .handler(ctx -> {
+                    HttpAcceptor httpAcceptorHandler = acceptorResolver.resolve(ctx, serverId);
 
-                if (httpAcceptorHandler != null) {
-                    httpAcceptorHandler
-                        .reactor()
-                        .handle(ctx, context1 -> {
+                    if (httpAcceptorHandler != null) {
+                        httpAcceptorHandler.reactor().handle(ctx, context1 -> {
                             // Ensure that response has been ended before going further
-                            context1
-                                .response()
-                                .endHandler(avoid -> processResponse(context1, handler))
-                                .end();
+                            context1.response()
+                                    .endHandler(avoid -> processResponse(context1, handler))
+                                    .end();
                         });
-                } else {
-                    processNotFound(ctx, handler);
-                }
-            })
-            .errorHandler(__ -> processResponse(context, handler))
-            .exitHandler(__ -> processResponse(context, handler))
-            .handle(context);
+                    } else {
+                        processNotFound(ctx, handler);
+                    }
+                })
+                .errorHandler(__ -> processResponse(context, handler))
+                .exitHandler(__ -> processResponse(context, handler))
+                .handle(context);
     }
 
     private void processNotFound(ExecutionContext context, Handler<ExecutionContext> handler) {

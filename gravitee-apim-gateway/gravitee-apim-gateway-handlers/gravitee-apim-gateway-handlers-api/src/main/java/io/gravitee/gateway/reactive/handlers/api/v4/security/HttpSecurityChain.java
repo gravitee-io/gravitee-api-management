@@ -49,10 +49,9 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
     private final PolicyManager apiProductPlanPolicyManager;
 
     public HttpSecurityChain(
-        @Nonnull final Api api,
-        @Nonnull final PolicyManager policyManager,
-        @Nonnull final ExecutionPhase executionPhase
-    ) {
+            @Nonnull final Api api,
+            @Nonnull final PolicyManager policyManager,
+            @Nonnull final ExecutionPhase executionPhase) {
         this(api, policyManager, executionPhase, null, null, null);
     }
 
@@ -63,19 +62,21 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
      * instead of policyManager (SPG pattern).
      */
     public HttpSecurityChain(
-        @Nonnull final Api api,
-        @Nonnull final PolicyManager policyManager,
-        @Nonnull final ExecutionPhase executionPhase,
-        @Nullable final String environmentId,
-        @Nullable final ApiProductRegistry apiProductRegistry,
-        @Nullable final PolicyManager apiProductPlanPolicyManager
-    ) {
+            @Nonnull final Api api,
+            @Nonnull final PolicyManager policyManager,
+            @Nonnull final ExecutionPhase executionPhase,
+            @Nullable final String environmentId,
+            @Nullable final ApiProductRegistry apiProductRegistry,
+            @Nullable final PolicyManager apiProductPlanPolicyManager) {
         super(
-            Flowable.fromIterable(
-                buildSecurityPlans(api, policyManager, executionPhase, environmentId, apiProductRegistry, apiProductPlanPolicyManager)
-            ),
-            executionPhase
-        );
+                Flowable.fromIterable(buildSecurityPlans(
+                        api,
+                        policyManager,
+                        executionPhase,
+                        environmentId,
+                        apiProductRegistry,
+                        apiProductPlanPolicyManager)),
+                executionPhase);
         this.api = api;
         this.policyManager = policyManager;
         this.executionPhase = executionPhase;
@@ -91,27 +92,21 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
      * @return new HttpSecurityChain instance built from current registry state
      */
     public HttpSecurityChain refresh() {
-        return new HttpSecurityChain(api, policyManager, executionPhase, environmentId, apiProductRegistry, apiProductPlanPolicyManager);
+        return new HttpSecurityChain(
+                api, policyManager, executionPhase, environmentId, apiProductRegistry, apiProductPlanPolicyManager);
     }
 
     private static List<HttpSecurityPlan> buildSecurityPlans(
-        Api api,
-        PolicyManager policyManager,
-        ExecutionPhase executionPhase,
-        String environmentId,
-        ApiProductRegistry apiProductRegistry,
-        PolicyManager apiProductPlanPolicyManager
-    ) {
+            Api api,
+            PolicyManager policyManager,
+            ExecutionPhase executionPhase,
+            String environmentId,
+            ApiProductRegistry apiProductRegistry,
+            PolicyManager apiProductPlanPolicyManager) {
         // Sort each group by order individually (stream sorted + collect, like original).
         // Do NOT sort the combined list—that would interleave by order and break product-first.
         List<HttpSecurityPlan> apiProductPlans = getProductPlans(
-            api,
-            environmentId,
-            apiProductRegistry,
-            policyManager,
-            apiProductPlanPolicyManager,
-            executionPhase
-        );
+                api, environmentId, apiProductRegistry, policyManager, apiProductPlanPolicyManager, executionPhase);
         List<HttpSecurityPlan> apiPlans = getApiPlans(api, policyManager, executionPhase);
 
         // Product plans first, then API plans (each group already sorted by order).
@@ -122,37 +117,36 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
     }
 
     private static List<HttpSecurityPlan> getProductPlans(
-        Api api,
-        String environmentId,
-        ApiProductRegistry apiProductRegistry,
-        PolicyManager policyManager,
-        PolicyManager apiProductPlanPolicyManager,
-        ExecutionPhase executionPhase
-    ) {
+            Api api,
+            String environmentId,
+            ApiProductRegistry apiProductRegistry,
+            PolicyManager policyManager,
+            PolicyManager apiProductPlanPolicyManager,
+            ExecutionPhase executionPhase) {
         if (environmentId == null || apiProductRegistry == null) {
             return List.of();
         }
 
-        PolicyManager productPlanPolicyManager = apiProductPlanPolicyManager != null ? apiProductPlanPolicyManager : policyManager;
-        List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getApiProductPlanEntriesForApi(
-            api.getId(),
-            environmentId
-        );
+        PolicyManager productPlanPolicyManager =
+                apiProductPlanPolicyManager != null ? apiProductPlanPolicyManager : policyManager;
+        List<ApiProductRegistry.ApiProductPlanEntry> entries =
+                apiProductRegistry.getApiProductPlanEntriesForApi(api.getId(), environmentId);
 
-        return entries
-            .stream()
-            .map(entry -> HttpSecurityPlanFactory.forPlan(api.getId(), entry.plan(), productPlanPolicyManager, executionPhase))
-            .filter(Objects::nonNull)
-            .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
-            .toList();
+        return entries.stream()
+                .map(entry -> HttpSecurityPlanFactory.forPlan(
+                        api.getId(), entry.plan(), productPlanPolicyManager, executionPhase))
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
+                .toList();
     }
 
-    private static List<HttpSecurityPlan> getApiPlans(Api api, PolicyManager policyManager, ExecutionPhase executionPhase) {
+    private static List<HttpSecurityPlan> getApiPlans(
+            Api api, PolicyManager policyManager, ExecutionPhase executionPhase) {
         return stream(api.getPlans())
-            .map(plan -> HttpSecurityPlanFactory.forPlan(api.getId(), plan, policyManager, executionPhase))
-            .filter(Objects::nonNull)
-            .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
-            .toList();
+                .map(plan -> HttpSecurityPlanFactory.forPlan(api.getId(), plan, policyManager, executionPhase))
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
+                .toList();
     }
 
     @Nonnull
@@ -161,15 +155,14 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
     }
 
     public Completable execute(HttpPlainExecutionContext ctx) {
-        return chain
-            .flatMapSingle(httpSecurityPlan -> httpSecurityPlan.onWellKnown(ctx))
-            .any(Boolean::booleanValue)
-            .flatMapCompletable(onWellKnown -> {
-                if (onWellKnown) {
-                    return ctx.interrupt();
-                }
-                return Completable.complete();
-            })
-            .andThen(super.execute(ctx));
+        return chain.flatMapSingle(httpSecurityPlan -> httpSecurityPlan.onWellKnown(ctx))
+                .any(Boolean::booleanValue)
+                .flatMapCompletable(onWellKnown -> {
+                    if (onWellKnown) {
+                        return ctx.interrupt();
+                    }
+                    return Completable.complete();
+                })
+                .andThen(super.execute(ctx));
     }
 }

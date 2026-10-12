@@ -57,23 +57,18 @@ public class ElasticsearchReporterConfiguration {
 
         if (reporterConfiguration.getSslKeystoreType() != null) {
             if (reporterConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.JKS_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(
-                    new HttpClientJksSslConfiguration(
-                        reporterConfiguration.getSslKeystore(),
-                        reporterConfiguration.getSslKeystorePassword()
-                    )
-                );
-            } else if (reporterConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PFX_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(
-                    new HttpClientPfxSslConfiguration(
-                        reporterConfiguration.getSslKeystore(),
-                        reporterConfiguration.getSslKeystorePassword()
-                    )
-                );
-            } else if (reporterConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PEM_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(
-                    new HttpClientPemSslConfiguration(reporterConfiguration.getSslPemCerts(), reporterConfiguration.getSslPemKeys())
-                );
+                clientConfiguration.setSslConfig(new HttpClientJksSslConfiguration(
+                        reporterConfiguration.getSslKeystore(), reporterConfiguration.getSslKeystorePassword()));
+            } else if (reporterConfiguration
+                    .getSslKeystoreType()
+                    .equalsIgnoreCase(ClientSslConfiguration.PFX_KEYSTORE_TYPE)) {
+                clientConfiguration.setSslConfig(new HttpClientPfxSslConfiguration(
+                        reporterConfiguration.getSslKeystore(), reporterConfiguration.getSslKeystorePassword()));
+            } else if (reporterConfiguration
+                    .getSslKeystoreType()
+                    .equalsIgnoreCase(ClientSslConfiguration.PEM_KEYSTORE_TYPE)) {
+                clientConfiguration.setSslConfig(new HttpClientPemSslConfiguration(
+                        reporterConfiguration.getSslPemCerts(), reporterConfiguration.getSslPemKeys()));
             }
         }
 
@@ -87,21 +82,20 @@ public class ElasticsearchReporterConfiguration {
 
     @Bean
     public FreeMarkerComponent freeMarkerComponent(
-        @Value("${reporters.elasticsearch.template_mapping.path:#{null}}") String templateMappingPath
-    ) {
+            @Value("${reporters.elasticsearch.template_mapping.path:#{null}}") String templateMappingPath) {
         return FreeMarkerComponent.builder()
-            .path(templateMappingPath != null ? Path.of(templateMappingPath) : null)
-            .classLoader(getClass().getClassLoader())
-            .classLoaderTemplateBase("freemarker")
-            .build();
+                .path(templateMappingPath != null ? Path.of(templateMappingPath) : null)
+                .classLoader(getClass().getClassLoader())
+                .classLoaderTemplateBase("freemarker")
+                .build();
     }
 
     @Bean
     public PipelineConfiguration pipelineConfiguration(
-        @Value("${reporters.elasticsearch.pipeline.plugins.ingest:" + DEFAULT_PIPELINE_INGEST_PLUGINS + "}") String ingestPlugins,
-        @Value("${reporters.elasticsearch.user_agent.regex_file:#{null}}") String userAgentRegexFile,
-        FreeMarkerComponent freeMarkerComponent
-    ) {
+            @Value("${reporters.elasticsearch.pipeline.plugins.ingest:" + DEFAULT_PIPELINE_INGEST_PLUGINS + "}")
+                    String ingestPlugins,
+            @Value("${reporters.elasticsearch.user_agent.regex_file:#{null}}") String userAgentRegexFile,
+            FreeMarkerComponent freeMarkerComponent) {
         return new PipelineConfiguration(ingestPlugins, userAgentRegexFile, freeMarkerComponent);
     }
 }

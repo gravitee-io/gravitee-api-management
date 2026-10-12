@@ -31,8 +31,11 @@ public interface KeyStoreMapper {
 
     // V4
     io.gravitee.definition.model.v4.ssl.jks.JKSKeyStore mapToV4(JKSKeyStore jksKeyStore);
+
     io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore mapToV4(PKCS12KeyStore pkcs12KeyStore);
+
     io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore mapToV4(PEMKeyStore pemKeyStore);
+
     io.gravitee.definition.model.v4.ssl.none.NoneKeyStore mapToV4(NoneKeyStore noneKeyStore);
 
     default io.gravitee.definition.model.v4.ssl.KeyStore mapToV4(KeyStore keyStore) {
@@ -55,8 +58,11 @@ public interface KeyStoreMapper {
     }
 
     JKSKeyStore map(io.gravitee.definition.model.v4.ssl.jks.JKSKeyStore jksKeyStore);
+
     PKCS12KeyStore map(io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore pkcs12KeyStore);
+
     PEMKeyStore map(io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore pemKeyStore);
+
     NoneKeyStore map(io.gravitee.definition.model.v4.ssl.none.NoneKeyStore noneKeyStore);
 
     default KeyStore map(io.gravitee.definition.model.v4.ssl.KeyStore keyStore) {
@@ -79,8 +85,11 @@ public interface KeyStoreMapper {
 
     // V2
     io.gravitee.definition.model.ssl.jks.JKSKeyStore mapToV2(JKSKeyStore jksKeyStore);
+
     io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore mapToV2(PKCS12KeyStore pkcs12KeyStore);
+
     io.gravitee.definition.model.ssl.pem.PEMKeyStore mapToV2(PEMKeyStore pemKeyStore);
+
     io.gravitee.definition.model.ssl.none.NoneKeyStore mapToV2(NoneKeyStore noneKeyStore);
 
     default io.gravitee.definition.model.ssl.KeyStoreType mapToKeyStoreType(KeyStoreType type) {
@@ -117,8 +126,11 @@ public interface KeyStoreMapper {
     }
 
     JKSKeyStore map(io.gravitee.definition.model.ssl.jks.JKSKeyStore jksKeyStore);
+
     PKCS12KeyStore map(io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore pkcs12KeyStore);
+
     PEMKeyStore map(io.gravitee.definition.model.ssl.pem.PEMKeyStore pemKeyStore);
+
     NoneKeyStore map(io.gravitee.definition.model.ssl.none.NoneKeyStore noneKeyStore);
 
     default KeyStoreType mapKeyStoreType(io.gravitee.definition.model.ssl.KeyStoreType type) {

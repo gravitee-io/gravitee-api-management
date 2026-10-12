@@ -29,47 +29,52 @@ public class ApplicationModelFixtures {
 
     private ApplicationModelFixtures() {}
 
-    protected static final ApplicationSettings.ApplicationSettingsBuilder APPLICATION_SETTINGS_BUILDER = ApplicationSettings.builder()
-        .app(SimpleApplicationSettings.builder().clientId("clientId").build())
-        .oauth(OAuthClientSettings.builder().clientId("clientId").build());
+    protected static final ApplicationSettings.ApplicationSettingsBuilder APPLICATION_SETTINGS_BUILDER =
+            ApplicationSettings.builder()
+                    .app(SimpleApplicationSettings.builder()
+                            .clientId("clientId")
+                            .build())
+                    .oauth(OAuthClientSettings.builder().clientId("clientId").build());
 
-    private static final ApplicationListItem.ApplicationListItemBuilder BASE_APPLICATION_LIST_ITEM = ApplicationListItem.builder()
-        .id("my-application")
-        .name("My application")
-        .description("Description")
-        .apiKeyMode(ApiKeyMode.EXCLUSIVE)
-        .background("background")
-        .backgroundUrl("https://background.gravitee.io")
-        .createdAt(new Date())
-        .updatedAt(new Date())
-        .disableMembershipNotifications(true)
-        .domain("domain")
-        .groups(Set.of("group1", "group2"))
-        .origin(Origin.MANAGEMENT)
-        .picture("picture")
-        .pictureUrl("https://picture.gravitee.io")
-        .primaryOwner(PrimaryOwnerModelFixtures.aPrimaryOwnerEntity())
-        .settings(APPLICATION_SETTINGS_BUILDER.build())
-        .status("ACTIVE")
-        .type("iOS");
+    private static final ApplicationListItem.ApplicationListItemBuilder BASE_APPLICATION_LIST_ITEM =
+            ApplicationListItem.builder()
+                    .id("my-application")
+                    .name("My application")
+                    .description("Description")
+                    .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                    .background("background")
+                    .backgroundUrl("https://background.gravitee.io")
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .disableMembershipNotifications(true)
+                    .domain("domain")
+                    .groups(Set.of("group1", "group2"))
+                    .origin(Origin.MANAGEMENT)
+                    .picture("picture")
+                    .pictureUrl("https://picture.gravitee.io")
+                    .primaryOwner(PrimaryOwnerModelFixtures.aPrimaryOwnerEntity())
+                    .settings(APPLICATION_SETTINGS_BUILDER.build())
+                    .status("ACTIVE")
+                    .type("iOS");
 
-    private static final ApplicationEntity.ApplicationEntityBuilder BASE_APPLICATION_ENTITY = ApplicationEntity.builder()
-        .id("my-application")
-        .name("My application")
-        .description("Description")
-        .apiKeyMode(ApiKeyMode.EXCLUSIVE)
-        .background("background")
-        .createdAt(new Date())
-        .updatedAt(new Date())
-        .disableMembershipNotifications(true)
-        .domain("domain")
-        .groups(Set.of("group1", "group2"))
-        .origin(Origin.MANAGEMENT)
-        .picture("picture")
-        .primaryOwner(PrimaryOwnerModelFixtures.aPrimaryOwnerEntity())
-        .settings(APPLICATION_SETTINGS_BUILDER.build())
-        .status("ACTIVE")
-        .type("iOS");
+    private static final ApplicationEntity.ApplicationEntityBuilder BASE_APPLICATION_ENTITY =
+            ApplicationEntity.builder()
+                    .id("my-application")
+                    .name("My application")
+                    .description("Description")
+                    .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                    .background("background")
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .disableMembershipNotifications(true)
+                    .domain("domain")
+                    .groups(Set.of("group1", "group2"))
+                    .origin(Origin.MANAGEMENT)
+                    .picture("picture")
+                    .primaryOwner(PrimaryOwnerModelFixtures.aPrimaryOwnerEntity())
+                    .settings(APPLICATION_SETTINGS_BUILDER.build())
+                    .status("ACTIVE")
+                    .type("iOS");
 
     public static ApplicationListItem anApplicationListItem() {
         return BASE_APPLICATION_LIST_ITEM.build();

@@ -103,58 +103,55 @@ class AuthzHydrationPlacementTest {
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of()));
         lenient()
-            .when(deployerFactory.createAuthzEntityDeployer())
-            .thenReturn(new AuthzEntityDeployer(port, new NoopDistributedSyncService()));
+                .when(deployerFactory.createAuthzEntityDeployer())
+                .thenReturn(new AuthzEntityDeployer(port, new NoopDistributedSyncService()));
         lenient()
-            .when(deployerFactory.createAuthzPolicyDeployer())
-            .thenReturn(new AuthzPolicyDeployer(port, new NoopDistributedSyncService()));
+                .when(deployerFactory.createAuthzPolicyDeployer())
+                .thenReturn(new AuthzPolicyDeployer(port, new NoopDistributedSyncService()));
 
-        provisionConsumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.reply(new JsonObject().put("ok", true)));
+        provisionConsumer = vertx.eventBus()
+                .consumer(
+                        AuthzPdpSynchronizer.PROVISION_ADDRESS,
+                        message -> message.reply(new JsonObject().put("ok", true)));
 
         entitySynchronizer = new AuthzEntitySynchronizer(
-            fetcher,
-            new AuthzEntityMapper(new ObjectMapper()),
-            deployerFactory,
-            port,
-            entityPlacement,
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzEntityMapper(new ObjectMapper()),
+                deployerFactory,
+                port,
+                entityPlacement,
+                executor(),
+                executor());
         AuthzPolicySynchronizer policySynchronizer = new AuthzPolicySynchronizer(
-            fetcher,
-            new AuthzPolicyMapper(new ObjectMapper()),
-            deployerFactory,
-            port,
-            policyPlacement,
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzPolicyMapper(new ObjectMapper()),
+                deployerFactory,
+                port,
+                policyPlacement,
+                executor(),
+                executor());
 
         AuthzSchemaSynchronizer schemaSynchronizer = new AuthzSchemaSynchronizer(
-            fetcher,
-            new AuthzSchemaMapper(new ObjectMapper()),
-            deployerFactory,
-            port,
-            new AuthzScopePlacement(),
-            executor(),
-            executor()
-        );
+                fetcher,
+                new AuthzSchemaMapper(new ObjectMapper()),
+                deployerFactory,
+                port,
+                new AuthzScopePlacement(),
+                executor(),
+                executor());
         pdpSynchronizer = new AuthzPdpSynchronizer(
-            fetcher,
-            new AuthzPdpMapper(new ObjectMapper()),
-            schemaSynchronizer,
-            policySynchronizer,
-            entitySynchronizer,
-            node,
-            gatewayConfiguration,
-            vertx,
-            hostedScopes,
-            executor(),
-            executor(),
-            new AuthzAppliedRevisions()
-        );
+                fetcher,
+                new AuthzPdpMapper(new ObjectMapper()),
+                schemaSynchronizer,
+                policySynchronizer,
+                entitySynchronizer,
+                node,
+                gatewayConfiguration,
+                vertx,
+                hostedScopes,
+                executor(),
+                executor(),
+                new AuthzAppliedRevisions());
     }
 
     @AfterEach
@@ -172,16 +169,20 @@ class AuthzHydrationPlacementTest {
         // the entity to scope-b through the engine port AND records scope-b in the shared placement.
         Event pdpPublish = pdpEvent("evt-pdp", "scope-b");
         Event entityForScopeB = entityEvent("scope-b");
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(pdpPublish))
-        );
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(Flowable.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(entityForScopeB))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(pdpPublish)));
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(entityForScopeB)));
 
-        pdpSynchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of(ENV)).test().await().assertComplete();
+        pdpSynchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of(ENV))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(entityPlacement.applied(ENV + ":" + ENTITY_ID)).containsExactly("scope-b");
 
@@ -190,34 +191,44 @@ class AuthzHydrationPlacementTest {
         // scope-b in the shared placement.
         port.ops.clear();
         Event entityNarrowedToScopeA = entityEvent("scope-a");
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(entityNarrowedToScopeA))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(entityNarrowedToScopeA)));
 
-        entitySynchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of(ENV)).test().await().assertComplete();
+        entitySynchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of(ENV))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(port.ops).contains("removeEntity:" + ENGINE_UID + ":[scope-b]");
         assertThat(entityPlacement.applied(ENV + ":" + ENTITY_ID)).containsExactly("scope-a");
-        assertThat(port.schemaOps).as("an entity retarget must not reach the schema route").isEmpty();
+        assertThat(port.schemaOps)
+                .as("an entity retarget must not reach the schema route")
+                .isEmpty();
     }
 
     @Test
-    void a_scope_hydrated_with_an_entity_is_NOT_evicted_when_a_later_wildcard_publish_widens_it() throws InterruptedException {
+    void a_scope_hydrated_with_an_entity_is_NOT_evicted_when_a_later_wildcard_publish_widens_it()
+            throws InterruptedException {
         // Cycle 1: provision scope-b and hydrate it with the entity (targets scope-b only). Records
         // scope-b as the concrete applied placement — exactly the state a tagged node reaches after
         // hydrating a wildcard document into the scope it hosts.
         Event pdpPublish = pdpEvent("evt-pdp", "scope-b");
         Event entityForScopeB = entityEvent("scope-b");
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(pdpPublish))
-        );
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(Flowable.empty());
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(entityForScopeB))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(pdpPublish)));
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any()))
+                .thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(entityForScopeB)));
 
-        pdpSynchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of(ENV)).test().await().assertComplete();
+        pdpSynchronizer
+                .synchronize(-1L, Instant.now().toEpochMilli(), Set.of(ENV))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(entityPlacement.applied(ENV + ":" + ENTITY_ID)).containsExactly("scope-b");
 
@@ -227,15 +238,20 @@ class AuthzHydrationPlacementTest {
         // ungated, wipe the document from the scope it must stay on. A wildcard drops nothing.
         port.ops.clear();
         Event entityWidenedToWildcard = entityEvent("*");
-        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any())).thenReturn(
-            Flowable.just(List.of(entityWidenedToWildcard))
-        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any()))
+                .thenReturn(Flowable.just(List.of(entityWidenedToWildcard)));
 
-        entitySynchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of(ENV)).test().await().assertComplete();
+        entitySynchronizer
+                .synchronize(1L, Instant.now().toEpochMilli(), Set.of(ENV))
+                .test()
+                .await()
+                .assertComplete();
 
         assertThat(port.ops).noneMatch(op -> op.startsWith("removeEntity:"));
         assertThat(port.ops).contains("addOrUpdateEntity:" + ENGINE_UID + ":[*]");
-        assertThat(port.schemaOps).as("an entity widen must not reach the schema route").isEmpty();
+        assertThat(port.schemaOps)
+                .as("an entity widen must not reach the schema route")
+                .isEmpty();
     }
 
     private static ThreadPoolExecutor executor() {
@@ -246,7 +262,10 @@ class AuthzHydrationPlacementTest {
         Event event = new Event();
         event.setId(id);
         event.setType(EventType.PUBLISH_AUTHZ_PDP);
-        event.setPayload(new JsonObject().put("targetPdpId", targetPdpId).put("environmentId", ENV).encode());
+        event.setPayload(new JsonObject()
+                .put("targetPdpId", targetPdpId)
+                .put("environmentId", ENV)
+                .encode());
         event.setProperties(Map.of(Event.EventProperties.AUTHZ_PDP_ID.getValue(), id));
         return event;
     }
@@ -255,16 +274,14 @@ class AuthzHydrationPlacementTest {
         Event event = new Event();
         event.setId(ENTITY_ID);
         event.setType(EventType.PUBLISH_AUTHZ_ENTITY);
-        event.setPayload(
-            new JsonObject()
+        event.setPayload(new JsonObject()
                 .put("entityId", ENTITY_ID)
                 .put("kind", "RESOURCE")
                 .put("attributes", new JsonObject())
                 .put("parents", List.of())
                 .put("environmentId", ENV)
                 .put("targetPdpIds", List.of(targetPdpId))
-                .encode()
-        );
+                .encode());
         return event;
     }
 
@@ -272,7 +289,8 @@ class AuthzHydrationPlacementTest {
     void the_schema_recorder_is_live_so_an_absence_of_schema_ops_is_a_real_assertion() {
         assertThat(port.schemaOps).isEmpty();
 
-        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("scope-1"), 1L).blockingAwait();
+        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("scope-1"), 1L)
+                .blockingAwait();
 
         assertThat(port.schemaOps).containsExactly("addOrUpdateSchema:probe");
     }
@@ -283,13 +301,12 @@ class AuthzHydrationPlacementTest {
 
         @Override
         public Completable addOrUpdateEntity(
-            String environmentId,
-            String uid,
-            Map<String, Object> attributes,
-            List<String> parents,
-            Set<String> targetPdpIds,
-            long updatedAt
-        ) {
+                String environmentId,
+                String uid,
+                Map<String, Object> attributes,
+                List<String> parents,
+                Set<String> targetPdpIds,
+                long updatedAt) {
             ops.add("addOrUpdateEntity:" + uid + ":" + new TreeSet<>(targetPdpIds));
             return Completable.complete();
         }
@@ -302,14 +319,13 @@ class AuthzHydrationPlacementTest {
 
         @Override
         public Completable addOrUpdatePolicy(
-            String environmentId,
-            String docId,
-            String name,
-            String policyText,
-            Set<String> targetPdpIds,
-            long updatedAt,
-            String revision
-        ) {
+                String environmentId,
+                String docId,
+                String name,
+                String policyText,
+                Set<String> targetPdpIds,
+                long updatedAt,
+                String revision) {
             ops.add("addOrUpdatePolicy:" + docId);
             return Completable.complete();
         }
@@ -324,13 +340,12 @@ class AuthzHydrationPlacementTest {
 
         @Override
         public Completable addOrUpdateSchema(
-            String environmentId,
-            String docId,
-            String name,
-            String schemaText,
-            Set<String> targetPdpIds,
-            long updatedAt
-        ) {
+                String environmentId,
+                String docId,
+                String name,
+                String schemaText,
+                Set<String> targetPdpIds,
+                long updatedAt) {
             schemaOps.add("addOrUpdateSchema:" + docId);
             return Completable.complete();
         }

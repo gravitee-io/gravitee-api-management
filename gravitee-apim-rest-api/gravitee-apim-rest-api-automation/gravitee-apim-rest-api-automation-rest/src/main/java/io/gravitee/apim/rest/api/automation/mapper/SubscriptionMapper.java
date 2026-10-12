@@ -34,23 +34,21 @@ import org.mapstruct.factory.Mappers;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper(uses = { DateMapper.class, OriginContextMapper.class, ServiceMapper.class, ConfigurationSerializationMapper.class })
+@Mapper(
+        uses = {DateMapper.class, OriginContextMapper.class, ServiceMapper.class, ConfigurationSerializationMapper.class
+        })
 public interface SubscriptionMapper {
     SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
 
     default SubscriptionState subscriptionSpecAndStatusToSubscriptionState(
-        String apiHrid,
-        SubscriptionSpec spec,
-        SubscriptionCRDStatus status
-    ) {
+            String apiHrid, SubscriptionSpec spec, SubscriptionCRDStatus status) {
         var state = new SubscriptionState(
-            status.getId(),
-            status.getEnvironmentId(),
-            status.getOrganizationId(),
-            toErrors(status.getErrors()),
-            apiHrid,
-            status.getStartingAt() != null ? status.getStartingAt().toOffsetDateTime() : null
-        );
+                status.getId(),
+                status.getEnvironmentId(),
+                status.getOrganizationId(),
+                toErrors(status.getErrors()),
+                apiHrid,
+                status.getStartingAt() != null ? status.getStartingAt().toOffsetDateTime() : null);
         mapSpecToState(spec, state);
         state.setEndingAt(status.getEndingAt() != null ? status.getEndingAt().toOffsetDateTime() : null);
         return state;

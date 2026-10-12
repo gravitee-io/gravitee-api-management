@@ -112,8 +112,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
-        );
+                new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
 
         // register API Entity serializers
         when(applicationContext.getBean(MembershipService.class)).thenReturn(membershipService);
@@ -129,15 +128,14 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         apiDefaultSerializer.setApplicationContext(applicationContext);
 
         apiExportService = new ApiExportServiceImpl(
-            objectMapper,
-            pageService,
-            planService,
-            apiService,
-            roleService,
-            apiConverter,
-            planConverter,
-            new CustomResourceDefinitionMapper()
-        );
+                objectMapper,
+                pageService,
+                planService,
+                apiService,
+                roleService,
+                apiConverter,
+                planConverter,
+                new CustomResourceDefinitionMapper());
 
         apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer));
         SimpleModule module = new SimpleModule();
@@ -164,7 +162,8 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         proxy.setLogging(logging);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
-        Endpoint endpoint = Endpoint.builder().name("default").target("http://test").build();
+        Endpoint endpoint =
+                Endpoint.builder().name("default").target("http://test").build();
         endpointGroup.setEndpoints(Collections.singleton(endpoint));
         LoadBalancer loadBalancer = new LoadBalancer();
         loadBalancer.setType(LoadBalancerType.ROUND_ROBIN);
@@ -183,7 +182,8 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         responseTemplate.setStatusCode(400);
         responseTemplate.setBody("{\"bad\":\"news\"}");
         responseTemplate.setPropagateErrorKeyToLogs(false);
-        apiEntity.setResponseTemplates(Collections.singletonMap("API_KEY_MISSING", Collections.singletonMap("*/*", responseTemplate)));
+        apiEntity.setResponseTemplates(
+                Collections.singletonMap("API_KEY_MISSING", Collections.singletonMap("*/*", responseTemplate)));
 
         when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
         PageEntity folder = new PageEntity();
@@ -229,9 +229,8 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         httpFetcher.setSource(httpSourceEntity);
         httpFetcher.setContent("SHOULD BE REMOVED");
 
-        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true))).thenReturn(
-            List.of(folder, githubFetcher, fetcherGithubSwagger, fetcherGithubMarkdown, httpFetcher)
-        );
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true)))
+                .thenReturn(List.of(folder, githubFetcher, fetcherGithubSwagger, fetcherGithubMarkdown, httpFetcher));
 
         String poRoleId = "9ca07fdb-e143-45be-9c7d-44946a94968e";
         String poRoleName = "PRIMARY_OWNER";
@@ -240,7 +239,8 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         poRole.setName(poRoleName);
         poRole.setId(poRoleId);
 
-        when(roleService.findByScope(RoleScope.API, GraviteeContext.getDefaultOrganization())).thenReturn(List.of(poRole));
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getDefaultOrganization()))
+                .thenReturn(List.of(poRole));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setMemberId("johndoe");
@@ -251,14 +251,15 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         memberEntity.setId(membership.getMemberId());
         memberEntity.setType(membership.getMemberType());
         memberEntity.setRoles(Collections.singletonList(poRole));
-        when(
-            membershipService.getMembersByReference(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID))
-        ).thenReturn(Collections.singleton(memberEntity));
+        when(membershipService.getMembersByReference(
+                        eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID)))
+                .thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
         userEntity.setId(memberEntity.getId());
         userEntity.setSource(userEntity.getId() + "-source");
         userEntity.setSourceId(userEntity.getId() + "-sourceId");
-        when(userService.findById(GraviteeContext.getExecutionContext(), memberEntity.getId())).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), memberEntity.getId()))
+                .thenReturn(userEntity);
 
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         primaryOwnerEntity.setDisplayName("johndoe-sourceId");
@@ -278,55 +279,74 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
 
         Set<PlanEntity> set = new HashSet<>();
         set.add(publishedPlan);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(set);
+        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID))
+                .thenReturn(set);
     }
 
     @Test
     public void shouldConvertAsCustomResourceDefinition() throws Exception {
         ApiExportQuery exportQuery = ApiExportQuery.builder().build();
-        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
-        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource.yml");
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(
+                GraviteeContext.getExecutionContext(), API_ID, exportQuery);
+        String expectedExport =
+                getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource.yml");
         Assertions.assertThat(actualExport).isEqualTo(expectedExport);
     }
 
     @Test
     public void shouldConvertAsCustomResourceDefinition_removingIds() throws Exception {
         ApiExportQuery exportQuery = ApiExportQuery.builder().removeIds(true).build();
-        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
-        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-noIds.yml");
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(
+                GraviteeContext.getExecutionContext(), API_ID, exportQuery);
+        String expectedExport =
+                getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-noIds.yml");
         Assertions.assertThat(actualExport).isEqualTo(expectedExport);
     }
 
     @Test
     public void shouldConvertAsCustomResourceDefinition_settingContextRef() throws Exception {
-        ApiExportQuery exportQuery = ApiExportQuery.builder().contextRefName("apim-dev-ctx").contextRefNamespace("default").build();
-        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
-        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-contextRef.yml");
+        ApiExportQuery exportQuery = ApiExportQuery.builder()
+                .contextRefName("apim-dev-ctx")
+                .contextRefNamespace("default")
+                .build();
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(
+                GraviteeContext.getExecutionContext(), API_ID, exportQuery);
+        String expectedExport =
+                getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-contextRef.yml");
         Assertions.assertThat(actualExport).isEqualTo(expectedExport);
     }
 
     @Test
     public void shouldConvertAsCustomResourceDefinition_settingVersion() throws Exception {
-        ApiExportQuery exportQuery = ApiExportQuery.builder().version("1.0.0-alpha").build();
-        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
-        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-version.yml");
+        ApiExportQuery exportQuery =
+                ApiExportQuery.builder().version("1.0.0-alpha").build();
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(
+                GraviteeContext.getExecutionContext(), API_ID, exportQuery);
+        String expectedExport =
+                getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-version.yml");
         Assertions.assertThat(actualExport).isEqualTo(expectedExport);
     }
 
     @Test
     public void shouldConvertAsCustomResourceDefinition_settingContextPath() throws Exception {
-        ApiExportQuery exportQuery = ApiExportQuery.builder().contextPath("/test-updated").build();
-        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
-        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-contextPath.yml");
+        ApiExportQuery exportQuery =
+                ApiExportQuery.builder().contextPath("/test-updated").build();
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(
+                GraviteeContext.getExecutionContext(), API_ID, exportQuery);
+        String expectedExport =
+                getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-contextPath.yml");
         Assertions.assertThat(actualExport).isEqualTo(expectedExport);
     }
 
     @Test
     public void shouldConvertAsCustomResourceDefinition_withStartedState() throws Exception {
-        ApiExportQuery exportQuery = ApiExportQuery.builder().contextPath("/test").build();
+        ApiExportQuery exportQuery =
+                ApiExportQuery.builder().contextPath("/test").build();
         apiEntity.setState(Lifecycle.State.STARTED);
-        String actualExport = apiExportService.exportAsCustomResourceDefinition(GraviteeContext.getExecutionContext(), API_ID, exportQuery);
-        String expectedExport = getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-state-started.yml");
+        String actualExport = apiExportService.exportAsCustomResourceDefinition(
+                GraviteeContext.getExecutionContext(), API_ID, exportQuery);
+        String expectedExport =
+                getExpected("io/gravitee/rest/api/management/service/export-convertAsCustomResource-state-started.yml");
         Assertions.assertThat(actualExport).isEqualTo(expectedExport);
     }
 

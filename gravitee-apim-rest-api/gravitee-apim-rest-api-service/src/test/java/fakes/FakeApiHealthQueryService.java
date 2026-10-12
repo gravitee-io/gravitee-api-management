@@ -41,8 +41,11 @@ public class FakeApiHealthQueryService implements ApiHealthQueryService {
     }
 
     @Override
-    public Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(AverageHealthCheckResponseTimeOvertimeQuery query) {
-        return averageHealthCheckResponseTimeOvertime == null ? Maybe.empty() : Maybe.just(averageHealthCheckResponseTimeOvertime);
+    public Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(
+            AverageHealthCheckResponseTimeOvertimeQuery query) {
+        return averageHealthCheckResponseTimeOvertime == null
+                ? Maybe.empty()
+                : Maybe.just(averageHealthCheckResponseTimeOvertime);
     }
 
     @Override

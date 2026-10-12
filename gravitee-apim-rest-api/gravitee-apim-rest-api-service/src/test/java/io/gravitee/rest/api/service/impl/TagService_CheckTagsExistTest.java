@@ -76,10 +76,12 @@ public class TagService_CheckTagsExistTest {
 
     @Test
     public void should_throw_error_if_no_tags_found() throws TechnicalException {
-        when(tagRepository.findByKeysAndReference(Set.of("tag-1", "tag-2"), ORG_ID, TagReferenceType.ORGANIZATION)).thenReturn(Set.of());
-        assertThrows(TagNotFoundException.class, () ->
-            tagService.checkTagsExist(Set.of("tag-1", "tag-2"), ORG_ID, io.gravitee.rest.api.model.TagReferenceType.ORGANIZATION)
-        );
+        when(tagRepository.findByKeysAndReference(Set.of("tag-1", "tag-2"), ORG_ID, TagReferenceType.ORGANIZATION))
+                .thenReturn(Set.of());
+        assertThrows(
+                TagNotFoundException.class,
+                () -> tagService.checkTagsExist(
+                        Set.of("tag-1", "tag-2"), ORG_ID, io.gravitee.rest.api.model.TagReferenceType.ORGANIZATION));
     }
 
     @Test
@@ -90,11 +92,13 @@ public class TagService_CheckTagsExistTest {
         tags.add("tag-1");
         tags.add("tag-2");
 
-        when(tagRepository.findByKeysAndReference(tags, ORG_ID, TagReferenceType.ORGANIZATION)).thenReturn(Set.of(tag1));
+        when(tagRepository.findByKeysAndReference(tags, ORG_ID, TagReferenceType.ORGANIZATION))
+                .thenReturn(Set.of(tag1));
 
-        assertThrows(TagNotFoundException.class, () ->
-            tagService.checkTagsExist(tags, ORG_ID, io.gravitee.rest.api.model.TagReferenceType.ORGANIZATION)
-        );
+        assertThrows(
+                TagNotFoundException.class,
+                () -> tagService.checkTagsExist(
+                        tags, ORG_ID, io.gravitee.rest.api.model.TagReferenceType.ORGANIZATION));
 
         verify(tagRepository, times(1)).findByKeysAndReference(any(), any(), any());
     }
@@ -106,11 +110,11 @@ public class TagService_CheckTagsExistTest {
         Tag tag2 = getRepositoryTag("tag-2");
         tag2.setKey("tag-2");
 
-        when(tagRepository.findByKeysAndReference(Set.of("tag-1", "tag-2"), ORG_ID, TagReferenceType.ORGANIZATION)).thenReturn(
-            Set.of(tag1, tag2)
-        );
+        when(tagRepository.findByKeysAndReference(Set.of("tag-1", "tag-2"), ORG_ID, TagReferenceType.ORGANIZATION))
+                .thenReturn(Set.of(tag1, tag2));
 
-        tagService.checkTagsExist(Set.of("tag-1", "tag-2"), ORG_ID, io.gravitee.rest.api.model.TagReferenceType.ORGANIZATION);
+        tagService.checkTagsExist(
+                Set.of("tag-1", "tag-2"), ORG_ID, io.gravitee.rest.api.model.TagReferenceType.ORGANIZATION);
 
         verify(tagRepository, times(1)).findByKeysAndReference(any(), any(), any());
     }
@@ -120,9 +124,11 @@ public class TagService_CheckTagsExistTest {
         Tag tag1 = getRepositoryTag("tag-1");
         tag1.setKey("key-1");
 
-        when(tagRepository.findByKeysAndReference(Set.of("key-1"), ORG_ID, TagReferenceType.ORGANIZATION)).thenReturn(Set.of(tag1));
+        when(tagRepository.findByKeysAndReference(Set.of("key-1"), ORG_ID, TagReferenceType.ORGANIZATION))
+                .thenReturn(Set.of(tag1));
 
-        tagService.checkTagsExist(new HashSet<>(Set.of("key-1")), ORG_ID, io.gravitee.rest.api.model.TagReferenceType.ORGANIZATION);
+        tagService.checkTagsExist(
+                new HashSet<>(Set.of("key-1")), ORG_ID, io.gravitee.rest.api.model.TagReferenceType.ORGANIZATION);
     }
 
     private Tag getRepositoryTag(String id) {

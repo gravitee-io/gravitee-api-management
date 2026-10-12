@@ -23,8 +23,11 @@ import java.util.Set;
 
 public interface UserCrudService {
     Optional<BaseUserEntity> findBaseUserById(String id);
+
     Set<BaseUserEntity> findBaseUsersByIds(List<String> userIds);
+
     List<BaseUserEntity> findBaseUsersByEmail(String organizationId, String email);
+
     BaseUserEntity getBaseUser(String id);
 
     default BaseUserEntity create(BaseUserEntity user) {

@@ -33,9 +33,8 @@ class AccessibleApiScopeDomainServiceTest {
     @Test
     void should_keep_only_apis_of_the_wanted_types() {
         var accessible = List.of(
-            new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
-            new AccessibleApi("api-message", "Message API", ApiType.MESSAGE)
-        );
+                new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                new AccessibleApi("api-message", "Message API", ApiType.MESSAGE));
 
         var scope = service.computeScope(accessible, Set.of(ApiType.HTTP_PROXY), null);
 
@@ -58,9 +57,8 @@ class AccessibleApiScopeDomainServiceTest {
     @Test
     void should_intersect_with_the_user_supplied_api_filter() {
         var accessible = List.of(
-            new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY),
-            new AccessibleApi("api-2", "API 2", ApiType.HTTP_PROXY)
-        );
+                new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY),
+                new AccessibleApi("api-2", "API 2", ApiType.HTTP_PROXY));
 
         var scope = service.computeScope(accessible, Set.of(ApiType.HTTP_PROXY), Set.of("api-1"));
 

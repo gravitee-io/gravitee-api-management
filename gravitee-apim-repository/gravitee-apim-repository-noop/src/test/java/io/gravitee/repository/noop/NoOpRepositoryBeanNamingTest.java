@@ -39,19 +39,18 @@ class NoOpRepositoryBeanNamingTest {
 
     static Stream<Class<?>> configurations() {
         return Stream.of(
-            NoOpAnalyticsRepositoryConfiguration.class,
-            NoOpManagementRepositoryConfiguration.class,
-            NoOpRateLimitRepositoryConfiguration.class
-        );
+                NoOpAnalyticsRepositoryConfiguration.class,
+                NoOpManagementRepositoryConfiguration.class,
+                NoOpRateLimitRepositoryConfiguration.class);
     }
 
     @ParameterizedTest
     @MethodSource("configurations")
     void every_repository_bean_is_named_so_the_plugin_handler_publishes_it(Class<?> configuration) {
         List<String> beanNames = Arrays.stream(configuration.getDeclaredMethods())
-            .filter(method -> method.isAnnotationPresent(Bean.class))
-            .map(Method::getName)
-            .toList();
+                .filter(method -> method.isAnnotationPresent(Bean.class))
+                .map(Method::getName)
+                .toList();
 
         assertThat(beanNames).isNotEmpty();
         assertThat(beanNames).allSatisfy(name -> assertThat(name).endsWith("Repository"));

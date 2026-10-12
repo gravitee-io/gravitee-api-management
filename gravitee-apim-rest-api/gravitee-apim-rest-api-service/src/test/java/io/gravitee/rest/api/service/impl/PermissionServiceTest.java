@@ -82,7 +82,7 @@ public class PermissionServiceTest {
         userCUDEnvironment.setScope(RoleScope.ORGANIZATION);
 
         Map<String, char[]> perms = new HashMap<>();
-        perms.put(OrganizationPermission.ROLE.name(), new char[] { 'C', 'U', 'D' });
+        perms.put(OrganizationPermission.ROLE.name(), new char[] {'C', 'U', 'D'});
 
         userCUDEnvironment.setPermissions(perms);
         user.setRoles(Collections.singleton(userCUDEnvironment));
@@ -102,7 +102,7 @@ public class PermissionServiceTest {
         userCUDEnvironment.setScope(RoleScope.ENVIRONMENT);
 
         Map<String, char[]> perms = new HashMap<>();
-        perms.put(EnvironmentPermission.API.name(), new char[] { 'C', 'U', 'D' });
+        perms.put(EnvironmentPermission.API.name(), new char[] {'C', 'U', 'D'});
 
         userCUDEnvironment.setPermissions(perms);
         user.setRoles(Collections.singleton(userCUDEnvironment));
@@ -122,7 +122,7 @@ public class PermissionServiceTest {
         userCUDEnvironment.setScope(RoleScope.ENVIRONMENT);
 
         Map<String, char[]> perms = new HashMap<>();
-        perms.put(EnvironmentPermission.APPLICATION.name(), new char[] { 'C', 'U', 'D' });
+        perms.put(EnvironmentPermission.APPLICATION.name(), new char[] {'C', 'U', 'D'});
 
         userCUDEnvironment.setPermissions(perms);
         user.setRoles(Collections.singleton(userCUDEnvironment));
@@ -143,20 +143,20 @@ public class PermissionServiceTest {
         doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
         Map<String, char[]> perms = new HashMap<>();
-        perms.put(ApiPermission.ALERT.name(), new char[] { 'R' });
-        perms.put(ApiPermission.ANALYTICS.name(), new char[] { 'C', 'D' });
+        perms.put(ApiPermission.ALERT.name(), new char[] {'R'});
+        perms.put(ApiPermission.ANALYTICS.name(), new char[] {'C', 'D'});
 
         UserMembership userMembership = new UserMembership();
         userMembership.setReference("apiId");
         doReturn(Collections.singletonList(userMembership))
-            .when(membershipService)
-            .findUserMembership(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, USER_NAME);
+                .when(membershipService)
+                .findUserMembership(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, USER_NAME);
 
         RoleEntity apiRole = new RoleEntity();
         apiRole.setPermissions(perms);
         doReturn(Collections.singleton(apiRole))
-            .when(membershipService)
-            .getRoles(MembershipReferenceType.API, "apiId", MembershipMemberType.USER, USER_NAME);
+                .when(membershipService)
+                .getRoles(MembershipReferenceType.API, "apiId", MembershipMemberType.USER, USER_NAME);
 
         assertTrue(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
         SecurityContextHolder.clearContext();
@@ -169,7 +169,7 @@ public class PermissionServiceTest {
         reset(membershipService);
 
         Map<String, char[]> perms = new HashMap<>();
-        perms.put(ApiPermission.RATING.name(), new char[] { 'C', 'U' });
+        perms.put(ApiPermission.RATING.name(), new char[] {'C', 'U'});
         RoleEntity apiRole = new RoleEntity();
         apiRole.setName("RATING");
         apiRole.setScope(RoleScope.API);
@@ -186,12 +186,12 @@ public class PermissionServiceTest {
         doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
 
         doReturn(List.of(userMembership))
-            .when(membershipService)
-            .findUserMembership(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, USER_NAME);
+                .when(membershipService)
+                .findUserMembership(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, USER_NAME);
 
         doReturn(Collections.singleton(apiRole))
-            .when(membershipService)
-            .getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, USER_NAME);
+                .when(membershipService)
+                .getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, USER_NAME);
 
         assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
         SecurityContextHolder.clearContext();
@@ -213,17 +213,17 @@ public class PermissionServiceTest {
         userMembership.setReference(API_ID);
 
         doReturn(List.of(userMembership))
-            .when(membershipService)
-            .findUserMembership(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, USER_NAME);
+                .when(membershipService)
+                .findUserMembership(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, USER_NAME);
 
         Map<String, char[]> perms = new HashMap<>();
-        perms.put(ApiPermission.ALERT.name(), new char[] { 'R' });
+        perms.put(ApiPermission.ALERT.name(), new char[] {'R'});
         RoleEntity apiRole = new RoleEntity();
         apiRole.setPermissions(perms);
 
         doReturn(Collections.singleton(apiRole))
-            .when(membershipService)
-            .getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, USER_NAME);
+                .when(membershipService)
+                .getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, USER_NAME);
 
         assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
         SecurityContextHolder.clearContext();
@@ -233,14 +233,11 @@ public class PermissionServiceTest {
     public void shouldByPassChecksBecauseIsOrganizationAdmin() {
         setSecurityContext(true);
         assertTrue(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
-        assertTrue(
-            permissionService.hasPermission(
+        assertTrue(permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
                 RolePermission.API_MEMBER,
                 "reference-id",
-                RolePermissionAction.UPDATE
-            )
-        );
+                RolePermissionAction.UPDATE));
         SecurityContextHolder.clearContext();
     }
 
@@ -259,14 +256,11 @@ public class PermissionServiceTest {
         doReturn(user).when(userService).findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
         doReturn(null).when(membershipService).getUserMemberPermissions(any(), any(), any(), any());
         assertFalse(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME));
-        assertFalse(
-            permissionService.hasPermission(
+        assertFalse(permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
                 RolePermission.API_MEMBER,
                 "reference-id",
-                RolePermissionAction.UPDATE
-            )
-        );
+                RolePermissionAction.UPDATE));
         SecurityContextHolder.clearContext();
     }
 
@@ -274,7 +268,8 @@ public class PermissionServiceTest {
         final Authentication authentication = mock(Authentication.class);
         final GrantedAuthority grantedAuthority = mock(GrantedAuthority.class);
         if (isOrganizationAdmin) {
-            when(grantedAuthority.getAuthority()).thenReturn(RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name());
+            when(grantedAuthority.getAuthority())
+                    .thenReturn(RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name());
         }
         doReturn(List.of(grantedAuthority)).when(authentication).getAuthorities();
         final SecurityContext securityContext = mock(SecurityContext.class);
@@ -285,16 +280,14 @@ public class PermissionServiceTest {
     @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
-                }
-
-                @Override
-                public void setAuthentication(Authentication authentication) {}
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
             }
-        );
+
+            @Override
+            public void setAuthentication(Authentication authentication) {}
+        });
     }
 }

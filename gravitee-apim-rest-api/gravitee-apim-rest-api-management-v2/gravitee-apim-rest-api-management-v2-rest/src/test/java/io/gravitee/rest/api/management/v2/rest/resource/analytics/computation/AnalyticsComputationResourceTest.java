@@ -106,42 +106,30 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         @BeforeEach
         void setUp() {
             var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
-            when(
-                analyticsRepository.searchHTTPMeasures(
-                    eq(queryContext),
-                    argThat(query -> query.metrics().getFirst().metric() == Metric.HTTP_REQUESTS)
-                )
-            ).thenReturn(
-                new MeasuresResult(
-                    List.of(
-                        new MetricMeasuresResult(
+            when(analyticsRepository.searchHTTPMeasures(
+                            eq(queryContext),
+                            argThat(query -> query.metrics().getFirst().metric() == Metric.HTTP_REQUESTS)))
+                    .thenReturn(new MeasuresResult(List.of(new MetricMeasuresResult(
                             Metric.HTTP_REQUESTS,
-                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42)
-                        )
-                    )
-                )
-            );
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42)))));
 
-            when(
-                analyticsRepository.searchMessageMeasures(
-                    eq(queryContext),
-                    argThat(query -> query.metrics().getFirst().metric() == Metric.MESSAGES)
-                )
-            ).thenReturn(
-                new MeasuresResult(
-                    List.of(
-                        new MetricMeasuresResult(
+            when(analyticsRepository.searchMessageMeasures(
+                            eq(queryContext),
+                            argThat(query -> query.metrics().getFirst().metric() == Metric.MESSAGES)))
+                    .thenReturn(new MeasuresResult(List.of(new MetricMeasuresResult(
                             Metric.MESSAGES,
-                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42)
-                        )
-                    )
-                )
-            );
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 42)))));
 
-            when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
-                new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
-            );
-            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
+            when(analyticsQueryContextLoader.load(any(), any()))
+                    .thenReturn(new AnalyticsQueryContext(
+                            null,
+                            new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                            Set.of(),
+                            Map.of(),
+                            Map.of(),
+                            Map.of()));
+            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any()))
+                    .thenAnswer(inv -> inv.getArgument(1));
         }
 
         @Test
@@ -169,21 +157,22 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         void should_return_counts() {
             var response = rootTarget().path("measures").request().post(Entity.json(aCountMeasureRequest()));
 
-            assertThat(response)
-                .hasStatus(200)
-                .asEntity(MeasuresResponse.class)
-                .satisfies(measuresResponse -> {
-                    assertThat(measuresResponse.getMetrics()).containsExactlyInAnyOrder(
-                        new MeasuresResponseMetricsInner()
-                            .name(MetricName.HTTP_REQUESTS)
-                            .unit(UnitName.NUMBER)
-                            .measures(List.of(new Measure().name(MeasureName.COUNT).value(42))),
-                        new MeasuresResponseMetricsInner()
-                            .name(MetricName.MESSAGES)
-                            .unit(UnitName.NUMBER)
-                            .measures(List.of(new Measure().name(MeasureName.COUNT).value(42)))
-                    );
-                });
+            assertThat(response).hasStatus(200).asEntity(MeasuresResponse.class).satisfies(measuresResponse -> {
+                assertThat(measuresResponse.getMetrics())
+                        .containsExactlyInAnyOrder(
+                                new MeasuresResponseMetricsInner()
+                                        .name(MetricName.HTTP_REQUESTS)
+                                        .unit(UnitName.NUMBER)
+                                        .measures(List.of(new Measure()
+                                                .name(MeasureName.COUNT)
+                                                .value(42))),
+                                new MeasuresResponseMetricsInner()
+                                        .name(MetricName.MESSAGES)
+                                        .unit(UnitName.NUMBER)
+                                        .measures(List.of(new Measure()
+                                                .name(MeasureName.COUNT)
+                                                .value(42))));
+            });
         }
 
         @Test
@@ -217,35 +206,23 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         @Test
         void should_return_response_time_with_milliseconds_unit() {
             var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
-            when(
-                analyticsRepository.searchHTTPMeasures(
-                    eq(queryContext),
-                    argThat(query -> query.metrics().getFirst().metric() == Metric.HTTP_GATEWAY_RESPONSE_TIME)
-                )
-            ).thenReturn(
-                new MeasuresResult(
-                    List.of(
-                        new MetricMeasuresResult(
+            when(analyticsRepository.searchHTTPMeasures(
+                            eq(queryContext),
+                            argThat(query -> query.metrics().getFirst().metric() == Metric.HTTP_GATEWAY_RESPONSE_TIME)))
+                    .thenReturn(new MeasuresResult(List.of(new MetricMeasuresResult(
                             Metric.HTTP_GATEWAY_RESPONSE_TIME,
-                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.AVG, 150)
-                        )
-                    )
-                )
-            );
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.AVG, 150)))));
 
             var response = rootTarget().path("measures").request().post(Entity.json(aResponseTimeMeasureRequest()));
 
-            assertThat(response)
-                .hasStatus(200)
-                .asEntity(MeasuresResponse.class)
-                .satisfies(measuresResponse -> {
-                    assertThat(measuresResponse.getMetrics()).containsExactly(
-                        new MeasuresResponseMetricsInner()
-                            .name(MetricName.HTTP_GATEWAY_RESPONSE_TIME)
-                            .unit(UnitName.MILLISECONDS)
-                            .measures(List.of(new Measure().name(MeasureName.AVG).value(150)))
-                    );
-                });
+            assertThat(response).hasStatus(200).asEntity(MeasuresResponse.class).satisfies(measuresResponse -> {
+                assertThat(measuresResponse.getMetrics())
+                        .containsExactly(new MeasuresResponseMetricsInner()
+                                .name(MetricName.HTTP_GATEWAY_RESPONSE_TIME)
+                                .unit(UnitName.MILLISECONDS)
+                                .measures(List.of(
+                                        new Measure().name(MeasureName.AVG).value(150))));
+            });
         }
     }
 
@@ -256,40 +233,36 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         void setUp() {
             var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
 
-            when(
-                analyticsRepository.searchHTTPFacets(eq(queryContext), argThat(query -> query.facets().getFirst() == Facet.HTTP_STATUS))
-            ).thenReturn(
-                new FacetsResult(
-                    List.of(
-                        new MetricFacetsResult(
+            when(analyticsRepository.searchHTTPFacets(
+                            eq(queryContext), argThat(query -> query.facets().getFirst() == Facet.HTTP_STATUS)))
+                    .thenReturn(new FacetsResult(List.of(new MetricFacetsResult(
                             Metric.HTTP_REQUESTS,
                             List.of(
-                                FacetBucketResult.ofMeasures(
-                                    "100-199",
-                                    Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 100)
-                                ),
-                                FacetBucketResult.ofMeasures(
-                                    "200-299",
-                                    Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 200)
-                                )
-                            )
-                        )
-                    )
-                )
-            );
+                                    FacetBucketResult.ofMeasures(
+                                            "100-199",
+                                            Map.of(
+                                                    io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT,
+                                                    100)),
+                                    FacetBucketResult.ofMeasures(
+                                            "200-299",
+                                            Map.of(
+                                                    io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT,
+                                                    200)))))));
 
-            when(
-                bucketNamesPostprocessor.mapBucketNames(
-                    any(),
-                    any(),
-                    any(io.gravitee.apim.core.analytics_engine.model.FacetsResponse.class)
-                )
-            ).thenAnswer(invocation -> invocation.getArgument(2));
+            when(bucketNamesPostprocessor.mapBucketNames(
+                            any(), any(), any(io.gravitee.apim.core.analytics_engine.model.FacetsResponse.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
-                new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
-            );
-            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
+            when(analyticsQueryContextLoader.load(any(), any()))
+                    .thenReturn(new AnalyticsQueryContext(
+                            null,
+                            new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                            Set.of(),
+                            Map.of(),
+                            Map.of(),
+                            Map.of()));
+            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any()))
+                    .thenAnswer(inv -> inv.getArgument(1));
         }
 
         @Test
@@ -345,18 +318,14 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
             var response = rootTarget().path("facets").request().post(Entity.json(aRequestCountFacetRequest()));
 
             assertThat(response)
-                .hasStatus(200)
-                .asEntity(FacetsResponse.class)
-                .isEqualTo(
-                    new FacetsResponse().metrics(
-                        List.of(
-                            new FacetsResponseMetricsInner()
-                                .name(MetricName.HTTP_REQUESTS)
-                                .unit(UnitName.NUMBER)
-                                .buckets(List.of(expectLeafBucket("100-199", 100), expectLeafBucket("200-299", 200)))
-                        )
-                    )
-                );
+                    .hasStatus(200)
+                    .asEntity(FacetsResponse.class)
+                    .isEqualTo(new FacetsResponse()
+                            .metrics(List.of(new FacetsResponseMetricsInner()
+                                    .name(MetricName.HTTP_REQUESTS)
+                                    .unit(UnitName.NUMBER)
+                                    .buckets(List.of(
+                                            expectLeafBucket("100-199", 100), expectLeafBucket("200-299", 200))))));
         }
 
         private static Bucket expectLeafBucket(String key, Number count) {
@@ -378,40 +347,38 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
             var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
             var interval = Duration.ofHours(1).toMillis();
 
-            when(analyticsRepository.searchHTTPTimeSeries(eq(queryContext), argThat(query -> query.interval() == interval))).thenReturn(
-                new TimeSeriesResult(
-                    List.of(
-                        new MetricTimeSeriesResult(
+            when(analyticsRepository.searchHTTPTimeSeries(
+                            eq(queryContext), argThat(query -> query.interval() == interval)))
+                    .thenReturn(new TimeSeriesResult(List.of(new MetricTimeSeriesResult(
                             Metric.HTTP_REQUESTS,
                             List.of(
-                                TimeSeriesBucketResult.ofMeasures(
-                                    "2025-11-07T00:00:00Z",
-                                    1762473600000L,
-                                    Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 100)
-                                ),
-                                TimeSeriesBucketResult.ofMeasures(
-                                    "2025-11-08T00:00:00Z",
-                                    1762560000000L,
-                                    Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 200)
-                                )
-                            )
-                        )
-                    )
-                )
-            );
+                                    TimeSeriesBucketResult.ofMeasures(
+                                            "2025-11-07T00:00:00Z",
+                                            1762473600000L,
+                                            Map.of(
+                                                    io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT,
+                                                    100)),
+                                    TimeSeriesBucketResult.ofMeasures(
+                                            "2025-11-08T00:00:00Z",
+                                            1762560000000L,
+                                            Map.of(
+                                                    io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT,
+                                                    200)))))));
 
-            when(
-                bucketNamesPostprocessor.mapBucketNames(
-                    any(),
-                    any(),
-                    any(io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse.class)
-                )
-            ).thenAnswer(invocation -> invocation.getArgument(2));
+            when(bucketNamesPostprocessor.mapBucketNames(
+                            any(), any(), any(io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
-                new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
-            );
-            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
+            when(analyticsQueryContextLoader.load(any(), any()))
+                    .thenReturn(new AnalyticsQueryContext(
+                            null,
+                            new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                            Set.of(),
+                            Map.of(),
+                            Map.of(),
+                            Map.of()));
+            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any()))
+                    .thenAnswer(inv -> inv.getArgument(1));
         }
 
         @Test
@@ -437,7 +404,8 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
 
         @Test
         void should_fail_with_too_much_facets() {
-            var invalidRequest = aRequestCountTimeSeries().by(List.of(FacetName.API, FacetName.APPLICATION, FacetName.PLAN));
+            var invalidRequest =
+                    aRequestCountTimeSeries().by(List.of(FacetName.API, FacetName.APPLICATION, FacetName.PLAN));
             var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
 
             assertThat(response).hasStatus(400);
@@ -464,23 +432,15 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
             var response = rootTarget().path("time-series").request().post(Entity.json(aRequestCountTimeSeries()));
 
             assertThat(response)
-                .hasStatus(200)
-                .asEntity(TimeSeriesResponse.class)
-                .isEqualTo(
-                    new TimeSeriesResponse().metrics(
-                        List.of(
-                            new TimeSeriesResponseMetricsInner()
-                                .name(MetricName.HTTP_REQUESTS)
-                                .unit(UnitName.NUMBER)
-                                .buckets(
-                                    List.of(
-                                        expectLeafBucket("2025-11-07T00:00:00Z", 1762473600000L, 100),
-                                        expectLeafBucket("2025-11-08T00:00:00Z", 1762560000000L, 200)
-                                    )
-                                )
-                        )
-                    )
-                );
+                    .hasStatus(200)
+                    .asEntity(TimeSeriesResponse.class)
+                    .isEqualTo(new TimeSeriesResponse()
+                            .metrics(List.of(new TimeSeriesResponseMetricsInner()
+                                    .name(MetricName.HTTP_REQUESTS)
+                                    .unit(UnitName.NUMBER)
+                                    .buckets(List.of(
+                                            expectLeafBucket("2025-11-07T00:00:00Z", 1762473600000L, 100),
+                                            expectLeafBucket("2025-11-08T00:00:00Z", 1762560000000L, 200))))));
         }
 
         private static TimeSeriesBucket expectLeafBucket(String key, Long timestamp, Number count) {
@@ -500,48 +460,32 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         @BeforeEach
         void setUp() {
             Mockito.reset(analyticsRepository, queryFilterTransformer);
-            when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
-                new AnalyticsQueryContext(
-                    null,
-                    new ExecutionContext(ORGANIZATION, ENVIRONMENT),
-                    Set.of("api-1", "api-2"),
-                    Map.of(),
-                    Map.of(),
-                    Map.of()
-                )
-            );
+            when(analyticsQueryContextLoader.load(any(), any()))
+                    .thenReturn(new AnalyticsQueryContext(
+                            null,
+                            new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                            Set.of("api-1", "api-2"),
+                            Map.of(),
+                            Map.of(),
+                            Map.of()));
         }
 
         @Test
         void should_forward_transformer_api_filter_to_es_query() {
             var apiFilter = new io.gravitee.apim.core.analytics_engine.model.Filter(
-                FilterSpec.Name.API,
-                FilterOperator.IN,
-                Set.of("api-1")
-            );
-            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenReturn(List.of(apiFilter));
+                    FilterSpec.Name.API, FilterOperator.IN, Set.of("api-1"));
+            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any()))
+                    .thenReturn(List.of(apiFilter));
 
             var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
-            when(analyticsRepository.searchHTTPMeasures(eq(queryContext), any())).thenReturn(
-                new MeasuresResult(
-                    List.of(
-                        new MetricMeasuresResult(
+            when(analyticsRepository.searchHTTPMeasures(eq(queryContext), any()))
+                    .thenReturn(new MeasuresResult(List.of(new MetricMeasuresResult(
                             Metric.HTTP_REQUESTS,
-                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 10)
-                        )
-                    )
-                )
-            );
-            when(analyticsRepository.searchMessageMeasures(eq(queryContext), any())).thenReturn(
-                new MeasuresResult(
-                    List.of(
-                        new MetricMeasuresResult(
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 10)))));
+            when(analyticsRepository.searchMessageMeasures(eq(queryContext), any()))
+                    .thenReturn(new MeasuresResult(List.of(new MetricMeasuresResult(
                             Metric.MESSAGES,
-                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 5)
-                        )
-                    )
-                )
-            );
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 5)))));
 
             rootTarget().path("measures").request().post(Entity.json(aCountMeasureRequest()));
 
@@ -557,45 +501,33 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         @Test
         void should_scope_api_filter_to_authorized_ids() {
             var authorizedIds = Set.of("api-1", "api-2");
-            var apiFilter = new io.gravitee.apim.core.analytics_engine.model.Filter(FilterSpec.Name.API, FilterOperator.IN, authorizedIds);
-            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenReturn(List.of(apiFilter));
+            var apiFilter = new io.gravitee.apim.core.analytics_engine.model.Filter(
+                    FilterSpec.Name.API, FilterOperator.IN, authorizedIds);
+            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any()))
+                    .thenReturn(List.of(apiFilter));
 
             var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
-            when(analyticsRepository.searchHTTPMeasures(eq(queryContext), any())).thenReturn(
-                new MeasuresResult(
-                    List.of(
-                        new MetricMeasuresResult(
+            when(analyticsRepository.searchHTTPMeasures(eq(queryContext), any()))
+                    .thenReturn(new MeasuresResult(List.of(new MetricMeasuresResult(
                             Metric.HTTP_REQUESTS,
-                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 10)
-                        )
-                    )
-                )
-            );
-            when(analyticsRepository.searchMessageMeasures(eq(queryContext), any())).thenReturn(
-                new MeasuresResult(
-                    List.of(
-                        new MetricMeasuresResult(
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 10)))));
+            when(analyticsRepository.searchMessageMeasures(eq(queryContext), any()))
+                    .thenReturn(new MeasuresResult(List.of(new MetricMeasuresResult(
                             Metric.MESSAGES,
-                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 5)
-                        )
-                    )
-                )
-            );
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 5)))));
 
             rootTarget().path("measures").request().post(Entity.json(aCountMeasureRequest()));
 
             var queryCaptor = ArgumentCaptor.forClass(MeasuresQuery.class);
             verify(analyticsRepository).searchHTTPMeasures(eq(queryContext), queryCaptor.capture());
 
-            var apiFilterInQuery = queryCaptor
-                .getValue()
-                .filters()
-                .stream()
-                .filter(f -> f.name() == Filter.Name.API)
-                .findFirst()
-                .orElseThrow();
+            var apiFilterInQuery = queryCaptor.getValue().filters().stream()
+                    .filter(f -> f.name() == Filter.Name.API)
+                    .findFirst()
+                    .orElseThrow();
 
-            Assertions.assertThat((Collection<String>) apiFilterInQuery.value()).containsExactlyInAnyOrderElementsOf(authorizedIds);
+            Assertions.assertThat((Collection<String>) apiFilterInQuery.value())
+                    .containsExactlyInAnyOrderElementsOf(authorizedIds);
         }
     }
 }

@@ -17,5 +17,6 @@ package io.gravitee.apim.core.theme.domain_service;
 
 public interface ThemePortalNextAssetsDomainService {
     String getPortalNextLogo();
+
     String getPortalNextFavicon();
 }

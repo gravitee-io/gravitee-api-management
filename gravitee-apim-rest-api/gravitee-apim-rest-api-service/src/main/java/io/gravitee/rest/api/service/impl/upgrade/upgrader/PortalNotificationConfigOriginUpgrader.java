@@ -38,7 +38,8 @@ public class PortalNotificationConfigOriginUpgrader implements Upgrader {
 
     PortalNotificationConfigRepository portalNotificationConfigRepository;
 
-    public PortalNotificationConfigOriginUpgrader(@Lazy PortalNotificationConfigRepository portalNotificationConfigRepository) {
+    public PortalNotificationConfigOriginUpgrader(
+            @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository) {
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
     }
 
@@ -48,20 +49,18 @@ public class PortalNotificationConfigOriginUpgrader implements Upgrader {
     }
 
     private boolean applyUpgrade() throws TechnicalException {
-        List<PortalNotificationConfig> portalNotificationConfigs = portalNotificationConfigRepository
-            .findAll()
-            .stream()
-            .filter(portalNotificationConfig -> portalNotificationConfig.getOrigin() == null)
-            .map(portalNotificationConfig -> {
-                portalNotificationConfig.setOrigin(Origin.MANAGEMENT);
-                try {
-                    portalNotificationConfigRepository.update(portalNotificationConfig);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-                return portalNotificationConfig;
-            })
-            .toList();
+        List<PortalNotificationConfig> portalNotificationConfigs = portalNotificationConfigRepository.findAll().stream()
+                .filter(portalNotificationConfig -> portalNotificationConfig.getOrigin() == null)
+                .map(portalNotificationConfig -> {
+                    portalNotificationConfig.setOrigin(Origin.MANAGEMENT);
+                    try {
+                        portalNotificationConfigRepository.update(portalNotificationConfig);
+                    } catch (TechnicalException e) {
+                        throw new TechnicalManagementException(e);
+                    }
+                    return portalNotificationConfig;
+                })
+                .toList();
         log.info("Migrating portalNotificationConfig: {} with origin set", portalNotificationConfigs.size());
         return true;
     }

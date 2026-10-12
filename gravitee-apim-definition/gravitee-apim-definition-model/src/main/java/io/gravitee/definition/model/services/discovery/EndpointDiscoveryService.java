@@ -31,7 +31,8 @@ import lombok.experimental.SuperBuilder;
 public class EndpointDiscoveryService extends Service {
 
     public static final String SERVICE_KEY = "discovery";
-    public static final Map<String, String> PROVIDERS_PLUGIN_MAPPING = Collections.singletonMap("CONSUL", "consul-service-discovery");
+    public static final Map<String, String> PROVIDERS_PLUGIN_MAPPING =
+            Collections.singletonMap("CONSUL", "consul-service-discovery");
 
     public EndpointDiscoveryService() {
         super(SERVICE_KEY);

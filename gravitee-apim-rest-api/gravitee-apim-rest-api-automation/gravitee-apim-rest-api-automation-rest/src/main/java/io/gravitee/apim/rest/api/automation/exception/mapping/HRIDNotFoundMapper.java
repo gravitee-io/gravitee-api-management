@@ -29,10 +29,16 @@ public class HRIDNotFoundMapper extends AbstractDomainExceptionMapper<HRIDNotFou
 
     @Override
     public Response toResponse(HRIDNotFoundException e) {
-        return Response.status(e.getHttpStatusCode()).type(MediaType.APPLICATION_JSON_TYPE).entity(validationDomainError(e)).build();
+        return Response.status(e.getHttpStatusCode())
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(validationDomainError(e))
+                .build();
     }
 
     private Error validationDomainError(HRIDNotFoundException vde) {
-        return new Error().httpStatus(vde.getHttpStatusCode()).technicalCode(vde.getTechnicalCode()).message(vde.getMessage());
+        return new Error()
+                .httpStatus(vde.getHttpStatusCode())
+                .technicalCode(vde.getTechnicalCode())
+                .message(vde.getMessage());
     }
 }

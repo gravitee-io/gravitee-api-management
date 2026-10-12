@@ -41,7 +41,8 @@ public class CategoryDomainServiceImpl implements CategoryDomainService {
     private final CategoryMapper categoryMapper;
     private final ApiCategoryOrderRepository apiCategoryOrderRepository;
 
-    public CategoryDomainServiceImpl(CategoryMapper categoryMapper, @Lazy ApiCategoryOrderRepository apiCategoryOrderRepository) {
+    public CategoryDomainServiceImpl(
+            CategoryMapper categoryMapper, @Lazy ApiCategoryOrderRepository apiCategoryOrderRepository) {
         this.categoryMapper = categoryMapper;
         this.apiCategoryOrderRepository = apiCategoryOrderRepository;
     }
@@ -65,12 +66,20 @@ public class CategoryDomainServiceImpl implements CategoryDomainService {
     public void updateOrderCategoriesOfApi(String apiId, @Nullable Collection<String> categoryIds) {
         try {
             var previousCategories = apiCategoryOrderRepository.findAllByApiId(apiId);
-            apiCategoryOrderRepository.delete(apiId, previousCategories.stream().map(ApiCategoryOrder::getCategoryId).toList());
+            apiCategoryOrderRepository.delete(
+                    apiId,
+                    previousCategories.stream()
+                            .map(ApiCategoryOrder::getCategoryId)
+                            .toList());
 
             if (!isEmpty(categoryIds)) {
                 int index = 0;
                 for (String categoryId : categoryIds) {
-                    ApiCategoryOrder categoryOrder = ApiCategoryOrder.builder().categoryId(categoryId).apiId(apiId).order(index++).build();
+                    ApiCategoryOrder categoryOrder = ApiCategoryOrder.builder()
+                            .categoryId(categoryId)
+                            .apiId(apiId)
+                            .order(index++)
+                            .build();
                     apiCategoryOrderRepository.create(categoryOrder);
                 }
             }

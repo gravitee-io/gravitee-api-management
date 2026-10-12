@@ -97,13 +97,11 @@ public class ApiService_FindByIdAsMapTest {
 
     @BeforeEach
     void setup() {
-        objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", new ApiPermissionFilter()))
-        );
+        objectMapper.setFilterProvider(new SimpleFilterProvider(
+                Collections.singletonMap("apiMembershipTypeFilter", new ApiPermissionFilter())));
         CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
-        ApiConverter apiConverter = Mockito.spy(
-            new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
-        );
+        ApiConverter apiConverter = Mockito.spy(new ApiConverter(
+                objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class)));
         apiService.setApiConverter(apiConverter);
         apiService.setObjectMapper(objectMapper);
     }
@@ -129,17 +127,34 @@ public class ApiService_FindByIdAsMapTest {
         userEntity.setId("user");
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(primaryOwner);
-        when(apiMetadataService.findAllByApi(new ExecutionContext(environment), "api-id")).thenReturn(buildMetadatas());
+        when(apiMetadataService.findAllByApi(new ExecutionContext(environment), "api-id"))
+                .thenReturn(buildMetadatas());
 
         var resultMap = apiService.findByIdAsMap("api-id");
 
         assertThat(resultMap)
-            .containsEntry("id", "api-id")
-            .containsEntry("name", "test api")
-            .containsKey("primaryOwner")
-            .containsEntry("metadata", Map.of("metadata3", "metadataValue3", "metadata2", "metadataValue2", "metadata1", "metadataValue1"))
-            // ensure those API data have been explicitly removed from map
-            .doesNotContainKeys("picture", "proxy", "paths", "properties", "services", "resources", "response_templates", "path_mappings");
+                .containsEntry("id", "api-id")
+                .containsEntry("name", "test api")
+                .containsKey("primaryOwner")
+                .containsEntry(
+                        "metadata",
+                        Map.of(
+                                "metadata3",
+                                "metadataValue3",
+                                "metadata2",
+                                "metadataValue2",
+                                "metadata1",
+                                "metadataValue1"))
+                // ensure those API data have been explicitly removed from map
+                .doesNotContainKeys(
+                        "picture",
+                        "proxy",
+                        "paths",
+                        "properties",
+                        "services",
+                        "resources",
+                        "response_templates",
+                        "path_mappings");
     }
 
     @Test
@@ -164,15 +179,32 @@ public class ApiService_FindByIdAsMapTest {
         userEntity.setId("user");
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(primaryOwner);
-        when(apiMetadataService.findAllByApi(new ExecutionContext(environment), "api-id")).thenReturn(buildMetadatas());
+        when(apiMetadataService.findAllByApi(new ExecutionContext(environment), "api-id"))
+                .thenReturn(buildMetadatas());
         var resultMap = apiService.findByIdAsMap("api-id");
 
         assertThat(resultMap)
-            .containsEntry("id", "api-id")
-            .containsEntry("name", "test api with null definitionVersion")
-            .containsKey("primaryOwner")
-            .containsEntry("metadata", Map.of("metadata3", "metadataValue3", "metadata2", "metadataValue2", "metadata1", "metadataValue1"))
-            .doesNotContainKeys("picture", "proxy", "paths", "properties", "services", "resources", "response_templates", "path_mappings");
+                .containsEntry("id", "api-id")
+                .containsEntry("name", "test api with null definitionVersion")
+                .containsKey("primaryOwner")
+                .containsEntry(
+                        "metadata",
+                        Map.of(
+                                "metadata3",
+                                "metadataValue3",
+                                "metadata2",
+                                "metadataValue2",
+                                "metadata1",
+                                "metadataValue1"))
+                .doesNotContainKeys(
+                        "picture",
+                        "proxy",
+                        "paths",
+                        "properties",
+                        "services",
+                        "resources",
+                        "response_templates",
+                        "path_mappings");
 
         assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
     }
@@ -194,7 +226,8 @@ public class ApiService_FindByIdAsMapTest {
 
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
 
-        io.gravitee.rest.api.model.v4.api.ApiEntity mockApiEntity = mock(io.gravitee.rest.api.model.v4.api.ApiEntity.class);
+        io.gravitee.rest.api.model.v4.api.ApiEntity mockApiEntity =
+                mock(io.gravitee.rest.api.model.v4.api.ApiEntity.class);
         when(mockApiEntity.getId()).thenReturn("api-id-v4");
         when(mockApiEntity.getName()).thenReturn("test api v4");
         when(mockApiEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
@@ -202,27 +235,44 @@ public class ApiService_FindByIdAsMapTest {
 
         when(apiRepository.findById("api-id-v4")).thenReturn(Optional.of(api));
         when(environmentService.findById(ENV_ID)).thenReturn(environment);
-        when(apiSearchService.findById(new ExecutionContext(environment), "api-id-v4")).thenReturn(mockApiEntity);
-        when(apiMetadataService.findAllByApi(new ExecutionContext(environment), "api-id-v4")).thenReturn(buildMetadatas());
+        when(apiSearchService.findById(new ExecutionContext(environment), "api-id-v4"))
+                .thenReturn(mockApiEntity);
+        when(apiMetadataService.findAllByApi(new ExecutionContext(environment), "api-id-v4"))
+                .thenReturn(buildMetadatas());
 
         var resultMap = apiService.findByIdAsMap("api-id-v4");
 
         assertThat(resultMap)
-            .containsEntry("id", "api-id-v4")
-            .containsEntry("name", "test api v4")
-            .containsEntry("definitionVersion", "4.0.0")
-            .containsKey("primaryOwner")
-            .containsEntry("metadata", Map.of("metadata3", "metadataValue3", "metadata2", "metadataValue2", "metadata1", "metadataValue1"))
-            .doesNotContainKeys("picture", "proxy", "paths", "properties", "services", "resources", "response_templates", "path_mappings");
+                .containsEntry("id", "api-id-v4")
+                .containsEntry("name", "test api v4")
+                .containsEntry("definitionVersion", "4.0.0")
+                .containsKey("primaryOwner")
+                .containsEntry(
+                        "metadata",
+                        Map.of(
+                                "metadata3",
+                                "metadataValue3",
+                                "metadata2",
+                                "metadataValue2",
+                                "metadata1",
+                                "metadataValue1"))
+                .doesNotContainKeys(
+                        "picture",
+                        "proxy",
+                        "paths",
+                        "properties",
+                        "services",
+                        "resources",
+                        "response_templates",
+                        "path_mappings");
         verifyNoMoreInteractions(apiSearchService);
     }
 
     private List<ApiMetadataEntity> buildMetadatas() {
         return List.of(
-            buildMetadata("metadata1", "metadataValue1"),
-            buildMetadata("metadata2", "metadataValue2"),
-            buildMetadata("metadata3", "metadataValue3")
-        );
+                buildMetadata("metadata1", "metadataValue1"),
+                buildMetadata("metadata2", "metadataValue2"),
+                buildMetadata("metadata3", "metadataValue3"));
     }
 
     private ApiMetadataEntity buildMetadata(String key, String value) {

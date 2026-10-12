@@ -52,7 +52,7 @@ public class NativeApiLogPermissionUpgraderTest {
 
     private static final String NATIVE_LOG = ApiPermission.NATIVE_LOG.getName();
     private static final String NATIVE_ANALYTICS = ApiPermission.NATIVE_ANALYTICS.getName();
-    private static final char[] READ_ONLY = { READ.getId() };
+    private static final char[] READ_ONLY = {READ.getId()};
     private static final String OWNER_ID = "owner-id";
     private static final String ORG_A = "org-a";
     private static final String ORG_B = "org-b";
@@ -72,7 +72,8 @@ public class NativeApiLogPermissionUpgraderTest {
         mockOrganizations(orgId);
 
         RoleEntity owner = restrictedRole(OWNER_ID);
-        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId)).thenReturn(Optional.of(owner));
+        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId))
+                .thenReturn(Optional.of(owner));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -93,7 +94,7 @@ public class NativeApiLogPermissionUpgraderTest {
         mockOrganizations(orgId);
 
         // Pre-existing partial state: NATIVE_LOG present with a customised value (CRUD), NATIVE_ANALYTICS missing.
-        char[] charPermission = { 'C', 'R', 'U', 'D' };
+        char[] charPermission = {'C', 'R', 'U', 'D'};
         RoleEntity owner = new RoleEntity();
         owner.setId(OWNER_ID);
         owner.setName(ROLE_API_OWNER.getName());
@@ -101,7 +102,8 @@ public class NativeApiLogPermissionUpgraderTest {
         partial.put(NATIVE_LOG, charPermission);
         owner.setPermissions(partial);
 
-        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId)).thenReturn(Optional.of(owner));
+        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId))
+                .thenReturn(Optional.of(owner));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -129,7 +131,8 @@ public class NativeApiLogPermissionUpgraderTest {
         existing.put(NATIVE_ANALYTICS, READ_ONLY);
         owner.setPermissions(existing);
 
-        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId)).thenReturn(Optional.of(owner));
+        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId))
+                .thenReturn(Optional.of(owner));
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -147,13 +150,16 @@ public class NativeApiLogPermissionUpgraderTest {
         owner.setName(ROLE_API_OWNER.getName());
         owner.setPermissions(null);
 
-        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId)).thenReturn(Optional.of(owner));
+        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId))
+                .thenReturn(Optional.of(owner));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         ArgumentCaptor<UpdateRoleEntity> updateCaptor = ArgumentCaptor.forClass(UpdateRoleEntity.class);
         verify(roleService).update(any(ExecutionContext.class), updateCaptor.capture());
-        assertThat(updateCaptor.getValue().getPermissions()).containsKey(NATIVE_LOG).containsKey(NATIVE_ANALYTICS);
+        assertThat(updateCaptor.getValue().getPermissions())
+                .containsKey(NATIVE_LOG)
+                .containsKey(NATIVE_ANALYTICS);
 
         verifyPrimaryOwnerSync(orgId);
     }
@@ -163,7 +169,8 @@ public class NativeApiLogPermissionUpgraderTest {
         String orgId = GraviteeContext.getDefaultOrganization();
         mockOrganizations(orgId);
 
-        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId)).thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId))
+                .thenReturn(Optional.empty());
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -179,28 +186,28 @@ public class NativeApiLogPermissionUpgraderTest {
         when(orgB.getId()).thenReturn(ORG_B);
         when(organizationRepository.findAll()).thenReturn(Set.of(orgA, orgB));
 
-        List.of(ORG_A, ORG_B).forEach(orgId ->
-            when(roleService.findByScopeAndName(eq(API), eq(ROLE_API_OWNER.getName()), eq(orgId))).thenReturn(
-                Optional.of(restrictedRole("owner-" + orgId))
-            )
-        );
+        List.of(ORG_A, ORG_B)
+                .forEach(orgId -> when(roleService.findByScopeAndName(eq(API), eq(ROLE_API_OWNER.getName()), eq(orgId)))
+                        .thenReturn(Optional.of(restrictedRole("owner-" + orgId))));
 
         assertThat(upgrader.upgrade()).isTrue();
 
         verify(roleService, times(2)).update(any(ExecutionContext.class), any(UpdateRoleEntity.class));
-        verify(roleService, times(2)).createOrUpdateSystemRole(
-            any(ExecutionContext.class),
-            eq(PRIMARY_OWNER),
-            eq(API),
-            any(Permission[].class),
-            any(String.class)
-        );
+        verify(roleService, times(2))
+                .createOrUpdateSystemRole(
+                        any(ExecutionContext.class),
+                        eq(PRIMARY_OWNER),
+                        eq(API),
+                        any(Permission[].class),
+                        any(String.class));
     }
 
     @Test
-    public void throws_UpgraderException_when_organization_repository_throws_RuntimeException() throws TechnicalException {
+    public void throws_UpgraderException_when_organization_repository_throws_RuntimeException()
+            throws TechnicalException {
         assertThrows(UpgraderException.class, () -> {
-            when(organizationRepository.findAll()).thenThrow(new RuntimeException("OrganizationRepository connection failure"));
+            when(organizationRepository.findAll())
+                    .thenThrow(new RuntimeException("OrganizationRepository connection failure"));
             upgrader.upgrade();
         });
     }
@@ -211,10 +218,11 @@ public class NativeApiLogPermissionUpgraderTest {
             String orgId = GraviteeContext.getDefaultOrganization();
             mockOrganizations(orgId);
 
-            when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId)).thenReturn(Optional.of(restrictedRole(OWNER_ID)));
+            when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId))
+                    .thenReturn(Optional.of(restrictedRole(OWNER_ID)));
             doThrow(new RuntimeException("RoleService update failure"))
-                .when(roleService)
-                .update(any(ExecutionContext.class), any(UpdateRoleEntity.class));
+                    .when(roleService)
+                    .update(any(ExecutionContext.class), any(UpdateRoleEntity.class));
 
             upgrader.upgrade();
         });
@@ -233,18 +241,18 @@ public class NativeApiLogPermissionUpgraderTest {
 
     private void verifyPrimaryOwnerSync(String organizationId) {
         ArgumentCaptor<Permission[]> permission = ArgumentCaptor.forClass(Permission[].class);
-        verify(roleService).createOrUpdateSystemRole(
-            any(ExecutionContext.class),
-            eq(PRIMARY_OWNER),
-            eq(API),
-            permission.capture(),
-            eq(organizationId)
-        );
+        verify(roleService)
+                .createOrUpdateSystemRole(
+                        any(ExecutionContext.class),
+                        eq(PRIMARY_OWNER),
+                        eq(API),
+                        permission.capture(),
+                        eq(organizationId));
         // Primary-owner sync mirrors the API role: includes NATIVE_*, excludes REVIEWS
         // (see RoleServiceImpl.createOrUpdateSystemRoles).
         assertThat(permission.getValue())
-            .contains(ApiPermission.NATIVE_LOG, ApiPermission.NATIVE_ANALYTICS)
-            .doesNotContain(ApiPermission.REVIEWS);
+                .contains(ApiPermission.NATIVE_LOG, ApiPermission.NATIVE_ANALYTICS)
+                .doesNotContain(ApiPermission.REVIEWS);
     }
 
     private static RoleEntity restrictedRole(String id) {

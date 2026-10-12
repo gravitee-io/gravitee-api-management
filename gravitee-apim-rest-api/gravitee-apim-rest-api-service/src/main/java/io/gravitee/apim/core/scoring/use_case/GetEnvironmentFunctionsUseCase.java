@@ -28,7 +28,8 @@ public class GetEnvironmentFunctionsUseCase {
     private final ScoringFunctionQueryService scoringFunctionQueryService;
 
     public Output execute(Input input) {
-        var result = scoringFunctionQueryService.findByReference(input.environmentId(), ScoringFunction.ReferenceType.ENVIRONMENT);
+        var result = scoringFunctionQueryService.findByReference(
+                input.environmentId(), ScoringFunction.ReferenceType.ENVIRONMENT);
         return new Output(result);
     }
 

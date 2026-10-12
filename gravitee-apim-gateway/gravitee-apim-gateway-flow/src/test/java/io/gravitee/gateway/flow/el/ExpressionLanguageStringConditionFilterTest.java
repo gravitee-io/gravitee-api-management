@@ -72,7 +72,8 @@ public class ExpressionLanguageStringConditionFilterTest {
 
     @Test
     public void shouldEvaluate_invalidCondition() {
-        when(templateEngine.getValue(eq("invalid-condition"), eq(Boolean.class))).thenReturn(false);
+        when(templateEngine.getValue(eq("invalid-condition"), eq(Boolean.class)))
+                .thenReturn(false);
 
         assertFalse(evaluator.evaluate(context, "invalid-condition"));
     }

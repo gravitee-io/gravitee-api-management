@@ -72,21 +72,21 @@ public class GroupCRDSpec {
 
     public Group toGroup(String environmentId) {
         return Group.builder()
-            .origin(origin)
-            .id(id)
-            .hrid(hrid)
-            .name(name)
-            .environmentId(environmentId)
-            .apiPrimaryOwner(null)
-            .apiProductPrimaryOwner(null)
-            .eventRules(List.of())
-            .lockApiRole(false)
-            .lockApplicationRole(false)
-            .maxInvitation(Integer.MAX_VALUE)
-            .systemInvitation(false)
-            .emailInvitation(false)
-            .disableMembershipNotifications(!notifyMembers)
-            .build();
+                .origin(origin)
+                .id(id)
+                .hrid(hrid)
+                .name(name)
+                .environmentId(environmentId)
+                .apiPrimaryOwner(null)
+                .apiProductPrimaryOwner(null)
+                .eventRules(List.of())
+                .lockApiRole(false)
+                .lockApplicationRole(false)
+                .maxInvitation(Integer.MAX_VALUE)
+                .systemInvitation(false)
+                .emailInvitation(false)
+                .disableMembershipNotifications(!notifyMembers)
+                .build();
     }
 
     @AllArgsConstructor

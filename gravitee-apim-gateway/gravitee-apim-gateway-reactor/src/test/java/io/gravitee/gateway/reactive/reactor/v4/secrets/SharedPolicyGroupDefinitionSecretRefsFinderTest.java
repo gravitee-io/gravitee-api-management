@@ -25,7 +25,6 @@ import io.gravitee.secrets.api.discovery.Definition;
 import io.gravitee.secrets.api.discovery.DefinitionDescriptor;
 import io.gravitee.secrets.api.discovery.DefinitionMetadata;
 import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -53,27 +52,25 @@ class SharedPolicyGroupDefinitionSecretRefsFinderTest {
     void should_get_definition_descriptor() {
         SharedPolicyGroup spg = new SharedPolicyGroup();
         spg.setId("spg-123");
-        assertThat(underTest.toDefinitionDescriptor(spg, new DefinitionMetadata(null))).isEqualTo(
-            new DefinitionDescriptor(new Definition("shared-policy-group", "spg-123"), Optional.empty())
-        );
-        assertThat(underTest.toDefinitionDescriptor(spg, new DefinitionMetadata("v2"))).isEqualTo(
-            new DefinitionDescriptor(new Definition("shared-policy-group", "spg-123"), Optional.of("v2"))
-        );
+        assertThat(underTest.toDefinitionDescriptor(spg, new DefinitionMetadata(null)))
+                .isEqualTo(
+                        new DefinitionDescriptor(new Definition("shared-policy-group", "spg-123"), Optional.empty()));
+        assertThat(underTest.toDefinitionDescriptor(spg, new DefinitionMetadata("v2")))
+                .isEqualTo(
+                        new DefinitionDescriptor(new Definition("shared-policy-group", "spg-123"), Optional.of("v2")));
     }
 
     @Test
     void should_not_fail_with_null_or_empty_policies() {
         SharedPolicyGroup withNull = new SharedPolicyGroup();
         withNull.setPolicies(null);
-        assertThatCode(() ->
-            underTest.findSecretRefs(withNull, (config, location, setter) -> setter.accept(config))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> underTest.findSecretRefs(withNull, (config, location, setter) -> setter.accept(config)))
+                .doesNotThrowAnyException();
 
         SharedPolicyGroup withEmpty = new SharedPolicyGroup();
         withEmpty.setPolicies(List.of());
-        assertThatCode(() ->
-            underTest.findSecretRefs(withEmpty, (config, location, setter) -> setter.accept(config))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> underTest.findSecretRefs(withEmpty, (config, location, setter) -> setter.accept(config)))
+                .doesNotThrowAnyException();
     }
 
     @Test

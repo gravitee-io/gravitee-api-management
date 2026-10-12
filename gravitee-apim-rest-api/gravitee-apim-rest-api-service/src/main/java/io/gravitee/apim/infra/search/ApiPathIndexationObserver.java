@@ -72,7 +72,10 @@ public class ApiPathIndexationObserver implements IndexationObserver {
         } catch (RuntimeException e) {
             // Bad definition / unexpected shape: skip this event rather than blocking the dispatcher. Index state is
             // unchanged; the next successful onIndex for this api will repair it.
-            log.warn("Skipping onIndex for [{}] due to extraction failure", source.getClass().getName(), e);
+            log.warn(
+                    "Skipping onIndex for [{}] due to extraction failure",
+                    source.getClass().getName(),
+                    e);
             return;
         }
         if (snapshot == null) {
@@ -103,58 +106,58 @@ public class ApiPathIndexationObserver implements IndexationObserver {
         }
         var apiId = source.getId();
         if (apiId == null) {
-            log.warn("onDelete received api Indexable with null id (class=[{}]); skipping", source.getClass().getName());
+            log.warn(
+                    "onDelete received api Indexable with null id (class=[{}]); skipping",
+                    source.getClass().getName());
             return;
         }
         apiPathIndex.removeForApi(apiId);
     }
 
     private static boolean isApiIndexable(Indexable source) {
-        return (
-            source instanceof IndexableApi || source instanceof io.gravitee.rest.api.model.api.ApiEntity || source instanceof ApiEntity
-        );
+        return (source instanceof IndexableApi
+                || source instanceof io.gravitee.rest.api.model.api.ApiEntity
+                || source instanceof ApiEntity);
     }
 
     private Optional<ApiPathSnapshot> extract(Indexable source) {
         return switch (source) {
             case IndexableApi indexable -> {
                 var api = indexable.getApi();
-                yield Optional.of(
-                    new ApiPathSnapshot(
+                yield Optional.of(new ApiPathSnapshot(
                         api.getEnvironmentId(),
                         api.getId(),
                         ApiPathExtractor.extractPaths(api),
-                        api.getUpdatedAt() == null ? null : api.getUpdatedAt().toInstant()
-                    )
-                );
+                        api.getUpdatedAt() == null ? null : api.getUpdatedAt().toInstant()));
             }
-            case io.gravitee.rest.api.model.api.ApiEntity v3 -> Optional.of(
-                new ApiPathSnapshot(
-                    v3.getReferenceId(),
-                    v3.getId(),
-                    v3.getProxy() == null ? List.of() : ApiPathExtractor.extractPathsFromVirtualHosts(v3.getProxy().getVirtualHosts()),
-                    v3.getUpdatedAt() == null ? null : v3.getUpdatedAt().toInstant()
-                )
-            );
-            case ApiEntity v4 -> Optional.of(
-                new ApiPathSnapshot(
-                    v4.getReferenceId(),
-                    v4.getId(),
-                    ApiPathExtractor.extractPathsFromV4Listeners(v4.getListeners()),
-                    v4.getUpdatedAt() == null ? null : v4.getUpdatedAt().toInstant()
-                )
-            );
+            case io.gravitee.rest.api.model.api.ApiEntity v3 ->
+                Optional.of(new ApiPathSnapshot(
+                        v3.getReferenceId(),
+                        v3.getId(),
+                        v3.getProxy() == null
+                                ? List.of()
+                                : ApiPathExtractor.extractPathsFromVirtualHosts(
+                                        v3.getProxy().getVirtualHosts()),
+                        v3.getUpdatedAt() == null ? null : v3.getUpdatedAt().toInstant()));
+            case ApiEntity v4 ->
+                Optional.of(new ApiPathSnapshot(
+                        v4.getReferenceId(),
+                        v4.getId(),
+                        ApiPathExtractor.extractPathsFromV4Listeners(v4.getListeners()),
+                        v4.getUpdatedAt() == null ? null : v4.getUpdatedAt().toInstant()));
             default -> {
                 // Non-API Indexable (PageEntity, UserEntity, ApiProduct, ...) — not our concern.
                 // But if a NEW api-bearing Indexable subclass ships without updating this switch, it would silently
                 // bypass the path index. We can't statically detect that, so log the unknown class once per type.
-                if (looksLikeApiIndexable(source) && warnedUnknownClasses.add(source.getClass().getName())) {
+                if (looksLikeApiIndexable(source)
+                        && warnedUnknownClasses.add(source.getClass().getName())) {
                     log.warn(
-                        "Unrecognised Indexable type [{}] in ApiPathIndexationObserver.extract — path index will not be updated for this type until the observer is taught about it",
-                        source.getClass().getName()
-                    );
+                            "Unrecognised Indexable type [{}] in ApiPathIndexationObserver.extract — path index will not be updated for this type until the observer is taught about it",
+                            source.getClass().getName());
                 } else {
-                    log.debug("onIndex ignoring non-API Indexable class=[{}]", source.getClass().getName());
+                    log.debug(
+                            "onIndex ignoring non-API Indexable class=[{}]",
+                            source.getClass().getName());
                 }
                 yield Optional.empty();
             }

@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
 public class PlansDataFixUpgrader implements Upgrader {
 
     private static final String PLAN_DESCRIPTION =
-        "This plan has been recreated during a data fix process. See documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8";
+            "This plan has been recreated during a data fix process. See documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8";
     private static final String PLAN_NAME_SUFFIX = "-Recreated";
     private final Map<String, ExecutionContext> executionContextByEnvironment = new ConcurrentHashMap<>();
 
@@ -96,7 +96,9 @@ public class PlansDataFixUpgrader implements Upgrader {
         if (enabled) {
             return this.wrapException(this::applyUpgrade);
         }
-        log.info("Skipping {} execution cause it's not enabled in configuration", this.getClass().getSimpleName());
+        log.info(
+                "Skipping {} execution cause it's not enabled in configuration",
+                this.getClass().getSimpleName());
         return true;
     }
 
@@ -104,15 +106,18 @@ public class PlansDataFixUpgrader implements Upgrader {
         AtomicBoolean upgradeFailed = new AtomicBoolean(false);
 
         var apis = apiRepository
-            .search(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(), null, ApiFieldFilter.allFields())
-            .toList();
+                .search(
+                        new ApiCriteria.Builder()
+                                .definitionVersion(List.of(DefinitionVersion.V2))
+                                .build(),
+                        null,
+                        ApiFieldFilter.allFields())
+                .toList();
 
         for (var api : apis) {
             try {
-                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                    api.getDefinition(),
-                    io.gravitee.definition.model.Api.class
-                );
+                io.gravitee.definition.model.Api apiDefinition =
+                        objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
                 ExecutionContext executionContext = getApiExecutionContext(api);
                 if (executionContext != null) {
                     fixApiPlans(executionContext, api, apiDefinition);
@@ -130,8 +135,9 @@ public class PlansDataFixUpgrader implements Upgrader {
         return !upgradeFailed.get();
     }
 
-    protected void fixApiPlans(ExecutionContext executionContext, Api api, io.gravitee.definition.model.Api apiDefinition)
-        throws Exception {
+    protected void fixApiPlans(
+            ExecutionContext executionContext, Api api, io.gravitee.definition.model.Api apiDefinition)
+            throws Exception {
         Set<Plan> apiPlans = planRepository.findByApi(api.getId());
         List<io.gravitee.definition.model.Plan> definitionPlans = apiDefinition.getPlans();
 
@@ -148,9 +154,8 @@ public class PlansDataFixUpgrader implements Upgrader {
         log.info("Plans anomalies found for API \"{}\" ({}) :", api.getName(), api.getId());
 
         Map<String, Plan> apiPlansMap = apiPlans.stream().collect(toMap(Plan::getId, plan -> plan));
-        Map<String, io.gravitee.definition.model.Plan> definitionPlansMap = definitionPlans
-            .stream()
-            .collect(toMap(io.gravitee.definition.model.Plan::getId, plan -> plan, (plan1, plan2) -> plan1));
+        Map<String, io.gravitee.definition.model.Plan> definitionPlansMap = definitionPlans.stream()
+                .collect(toMap(io.gravitee.definition.model.Plan::getId, plan -> plan, (plan1, plan2) -> plan1));
 
         // close plans in plans table, which are absent from api definition
         List<Plan> closedPlans = closeExtraApiPlans(definitionPlansMap, apiPlansMap);
@@ -168,10 +173,8 @@ public class PlansDataFixUpgrader implements Upgrader {
     }
 
     protected List<Plan> createMissingApiPlans(
-        Map<String, io.gravitee.definition.model.Plan> definitionPlansMap,
-        Map<String, Plan> apiPlansMap,
-        Api api
-    ) throws TechnicalException {
+            Map<String, io.gravitee.definition.model.Plan> definitionPlansMap, Map<String, Plan> apiPlansMap, Api api)
+            throws TechnicalException {
         List<Plan> addedPlans = new ArrayList<>();
         for (Map.Entry<String, io.gravitee.definition.model.Plan> definitionPlanEntry : definitionPlansMap.entrySet()) {
             String planId = definitionPlanEntry.getKey();
@@ -179,11 +182,10 @@ public class PlansDataFixUpgrader implements Upgrader {
                 io.gravitee.definition.model.Plan definitionPlan = definitionPlanEntry.getValue();
                 Plan newApiPlan = planFromDefinitionPlan(definitionPlan, api.getId());
                 log.info(
-                    "- Will create plan \"{}\" for API \"{}\" ({}), which is missing in plans table",
-                    newApiPlan.getName(),
-                    api.getName(),
-                    api.getId()
-                );
+                        "- Will create plan \"{}\" for API \"{}\" ({}), which is missing in plans table",
+                        newApiPlan.getName(),
+                        api.getName(),
+                        api.getId());
 
                 planRepository.create(newApiPlan);
 
@@ -197,17 +199,17 @@ public class PlansDataFixUpgrader implements Upgrader {
     }
 
     protected List<Plan> closeExtraApiPlans(
-        Map<String, io.gravitee.definition.model.Plan> definitionPlansMap,
-        Map<String, Plan> apiPlansMap
-    ) throws TechnicalException {
-        List<Plan> extraPlans = apiPlansMap
-            .values()
-            .stream()
-            .filter(apiPlan -> apiPlan.getStatus() != Plan.Status.CLOSED)
-            .filter(apiPlan -> !definitionPlansMap.containsKey(apiPlan.getId()))
-            .collect(toList());
+            Map<String, io.gravitee.definition.model.Plan> definitionPlansMap, Map<String, Plan> apiPlansMap)
+            throws TechnicalException {
+        List<Plan> extraPlans = apiPlansMap.values().stream()
+                .filter(apiPlan -> apiPlan.getStatus() != Plan.Status.CLOSED)
+                .filter(apiPlan -> !definitionPlansMap.containsKey(apiPlan.getId()))
+                .collect(toList());
         for (Plan plan : extraPlans) {
-            log.info("- Will close plan \"{}\" ({}), cause it's absent from api definition", plan.getName(), plan.getId());
+            log.info(
+                    "- Will close plan \"{}\" ({}), cause it's absent from api definition",
+                    plan.getName(),
+                    plan.getId());
             plan.setStatus(Plan.Status.CLOSED);
 
             planRepository.update(plan);
@@ -237,10 +239,10 @@ public class PlansDataFixUpgrader implements Upgrader {
     }
 
     private void updateApiDefinitionPlans(
-        Api api,
-        io.gravitee.definition.model.Api apiDefinition,
-        Map<String, io.gravitee.definition.model.Plan> definitionPlansMap
-    ) throws TechnicalException, JsonProcessingException {
+            Api api,
+            io.gravitee.definition.model.Api apiDefinition,
+            Map<String, io.gravitee.definition.model.Plan> definitionPlansMap)
+            throws TechnicalException, JsonProcessingException {
         apiDefinition.setPlans(new ArrayList<>(definitionPlansMap.values()));
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
@@ -248,31 +250,33 @@ public class PlansDataFixUpgrader implements Upgrader {
     }
 
     private boolean hasPlansDataAnomaly(Set<Plan> apiPlans, List<io.gravitee.definition.model.Plan> definitionPlans) {
-        List<String> apiPlansIds = apiPlans
-            .stream()
-            .filter(plan -> plan.getStatus() != Plan.Status.CLOSED)
-            .map(Plan::getId)
-            .toList();
-        List<String> definitionPlansIds = definitionPlans.stream().map(io.gravitee.definition.model.Plan::getId).toList();
+        List<String> apiPlansIds = apiPlans.stream()
+                .filter(plan -> plan.getStatus() != Plan.Status.CLOSED)
+                .map(Plan::getId)
+                .toList();
+        List<String> definitionPlansIds = definitionPlans.stream()
+                .map(io.gravitee.definition.model.Plan::getId)
+                .toList();
         return apiPlansIds.size() != definitionPlansIds.size() || !definitionPlansIds.containsAll(apiPlansIds);
     }
 
-    protected void sendEmailToApiOwner(ExecutionContext executionContext, Api api, List<Plan> createdPlans, List<Plan> closedPlans) {
+    protected void sendEmailToApiOwner(
+            ExecutionContext executionContext, Api api, List<Plan> createdPlans, List<Plan> closedPlans) {
         getApiOwnerEmail(executionContext.getOrganizationId(), api).ifPresent(apiOwnerEmail -> {
             log.debug("Sending report email to api {} owner", api.getId());
             emailService.sendAsyncEmailNotification(
-                executionContext,
-                new EmailNotificationBuilder()
-                    .params(Map.of("api", api, "closedPlans", closedPlans, "createdPlans", createdPlans))
-                    .to(apiOwnerEmail)
-                    .template(EmailNotificationBuilder.EmailTemplate.API_PLANS_DATA_FIXED)
-                    .build()
-            );
+                    executionContext,
+                    new EmailNotificationBuilder()
+                            .params(Map.of("api", api, "closedPlans", closedPlans, "createdPlans", createdPlans))
+                            .to(apiOwnerEmail)
+                            .template(EmailNotificationBuilder.EmailTemplate.API_PLANS_DATA_FIXED)
+                            .build());
         });
     }
 
     private Optional<String> getApiOwnerEmail(String organizationId, Api api) {
-        return Optional.ofNullable(primaryOwnerService.getPrimaryOwner(organizationId, api.getId()).getEmail());
+        return Optional.ofNullable(
+                primaryOwnerService.getPrimaryOwner(organizationId, api.getId()).getEmail());
     }
 
     private void logWarningHeaderBlock() {
@@ -284,7 +288,8 @@ public class PlansDataFixUpgrader implements Upgrader {
         log.warn("We detected database anomalies in your plans data.");
         log.warn("");
         log.warn("Database anomalies will be fixed.");
-        log.warn("See related documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8");
+        log.warn(
+                "See related documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8");
         log.warn("");
         log.warn("##############################################################");
         log.warn("");
@@ -293,7 +298,10 @@ public class PlansDataFixUpgrader implements Upgrader {
     private ExecutionContext getApiExecutionContext(Api api) {
         return executionContextByEnvironment.computeIfAbsent(api.getEnvironmentId(), envId -> {
             try {
-                return environmentRepository.findById(api.getEnvironmentId()).map(ExecutionContext::new).orElse(null);
+                return environmentRepository
+                        .findById(api.getEnvironmentId())
+                        .map(ExecutionContext::new)
+                        .orElse(null);
             } catch (TechnicalException e) {
                 log.error("failed to find environment {}", api.getEnvironmentId(), e);
                 return null;

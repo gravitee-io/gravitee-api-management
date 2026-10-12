@@ -39,10 +39,11 @@ public class LdapAuthenticationProvider implements AuthenticationProvider<Securi
         log.info("Configuring an LDAP Identity Provider");
 
         LdapAuthenticationProviderConfigurer<AuthenticationManagerBuilder> ldapAuthenticationProviderConfigurer =
-            new LdapAuthenticationProviderConfigurer<>();
+                new LdapAuthenticationProviderConfigurer<>();
 
         // Create LDAP context
-        DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(environment.getProperty("context.url"));
+        DefaultSpringSecurityContextSource contextSource =
+                new DefaultSpringSecurityContextSource(environment.getProperty("context.url"));
         contextSource.setBase(environment.getProperty("context.base"));
         contextSource.setUserDn(environment.getProperty("context.username"));
         contextSource.setPassword(environment.getProperty("context.password"));
@@ -50,17 +51,15 @@ public class LdapAuthenticationProvider implements AuthenticationProvider<Securi
         contextSource.afterPropertiesSet();
 
         ldapAuthenticationProviderConfigurer
-            .userSearchBase(environment.getProperty("authentication.user.base", ""))
-            .userSearchFilter(environment.getProperty("authentication.user.filter"))
-            .groupSearchBase(environment.getProperty("authentication.group.base", ""))
-            .groupSearchFilter(environment.getProperty("authentication.group.filter", "(uniqueMember={0})"))
-            .groupRoleAttribute(environment.getProperty("authentication.group.role.attribute", "cn"))
-            .rolePrefix("");
+                .userSearchBase(environment.getProperty("authentication.user.base", ""))
+                .userSearchFilter(environment.getProperty("authentication.user.filter"))
+                .groupSearchBase(environment.getProperty("authentication.group.base", ""))
+                .groupSearchFilter(environment.getProperty("authentication.group.filter", "(uniqueMember={0})"))
+                .groupRoleAttribute(environment.getProperty("authentication.group.role.attribute", "cn"))
+                .rolePrefix("");
 
         DefaultLdapAuthoritiesPopulator populator = new DefaultLdapAuthoritiesPopulator(
-            contextSource,
-            environment.getProperty("authentication.group.base", "")
-        );
+                contextSource, environment.getProperty("authentication.group.base", ""));
         populator.setRolePrefix("");
         populator.setGroupRoleAttribute(environment.getProperty("authentication.group.role.attribute", "cn"));
         populator.setGroupSearchFilter(environment.getProperty("authentication.group.filter", "(uniqueMember={0})"));
@@ -68,7 +67,8 @@ public class LdapAuthenticationProvider implements AuthenticationProvider<Securi
         ldapAuthenticationProviderConfigurer.ldapAuthoritiesPopulator(populator).contextSource(contextSource);
 
         // set up LDAP mapper
-        UserDetailsContextPropertiesMapper userDetailsContextPropertiesMapper = new UserDetailsContextPropertiesMapper();
+        UserDetailsContextPropertiesMapper userDetailsContextPropertiesMapper =
+                new UserDetailsContextPropertiesMapper();
         userDetailsContextPropertiesMapper.setEnvironment(environment);
         userDetailsContextPropertiesMapper.afterPropertiesSet();
         ldapAuthenticationProviderConfigurer.userDetailsContextMapper(userDetailsContextPropertiesMapper);

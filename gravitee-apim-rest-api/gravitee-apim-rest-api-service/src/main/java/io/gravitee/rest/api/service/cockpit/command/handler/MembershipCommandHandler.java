@@ -75,69 +75,58 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
             }
 
             ExecutionContext executionContext = new ExecutionContext(
-                membershipPayload.organizationId(),
-                membershipReferenceType.equals(MembershipReferenceType.ENVIRONMENT) ? membershipPayload.referenceId() : null
-            );
+                    membershipPayload.organizationId(),
+                    membershipReferenceType.equals(MembershipReferenceType.ENVIRONMENT)
+                            ? membershipPayload.referenceId()
+                            : null);
 
             final UserEntity userEntity = userService.findBySource(
-                executionContext.getOrganizationId(),
-                COCKPIT_SOURCE,
-                membershipPayload.userId(),
-                false
-            );
-            final RoleEntity roleEntity = findRole(executionContext.getOrganizationId(), roleScope, membershipPayload.role());
-            final MembershipService.MembershipReference membershipReference = new MembershipService.MembershipReference(
-                membershipReferenceType,
-                membershipPayload.referenceId()
-            );
-            final MembershipService.MembershipMember membershipMember = new MembershipService.MembershipMember(
-                userEntity.getId(),
-                null,
-                MembershipMemberType.USER
-            );
-            final MembershipService.MembershipRole membershipRole = new MembershipService.MembershipRole(
-                roleEntity.getScope(),
-                roleEntity.getName()
-            );
+                    executionContext.getOrganizationId(), COCKPIT_SOURCE, membershipPayload.userId(), false);
+            final RoleEntity roleEntity =
+                    findRole(executionContext.getOrganizationId(), roleScope, membershipPayload.role());
+            final MembershipService.MembershipReference membershipReference =
+                    new MembershipService.MembershipReference(membershipReferenceType, membershipPayload.referenceId());
+            final MembershipService.MembershipMember membershipMember =
+                    new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER);
+            final MembershipService.MembershipRole membershipRole =
+                    new MembershipService.MembershipRole(roleEntity.getScope(), roleEntity.getName());
 
             membershipService.updateRolesToMemberOnReference(
-                executionContext,
-                membershipReference,
-                membershipMember,
-                Collections.singletonList(membershipRole),
-                COCKPIT_SOURCE,
-                false
-            );
+                    executionContext,
+                    membershipReference,
+                    membershipMember,
+                    Collections.singletonList(membershipRole),
+                    COCKPIT_SOURCE,
+                    false);
 
             log.info(
-                "Role [{}] assigned on {} [{}] for user [{}] and organization [{}].",
-                membershipPayload.role(),
-                membershipPayload.referenceType(),
-                membershipPayload.referenceId(),
-                userEntity.getId(),
-                membershipPayload.organizationId()
-            );
-            return Single.just(new MembershipReply(command.getId()));
-        } catch (Exception e) {
-            String errorDetails =
-                "Error occurred when trying to assign role [%s] on %s [%s] for cockpit user [%s] and organization [%s].".formatted(
+                    "Role [{}] assigned on {} [{}] for user [{}] and organization [{}].",
                     membershipPayload.role(),
                     membershipPayload.referenceType(),
                     membershipPayload.referenceId(),
-                    membershipPayload.userId(),
-                    membershipPayload.organizationId()
-                );
+                    userEntity.getId(),
+                    membershipPayload.organizationId());
+            return Single.just(new MembershipReply(command.getId()));
+        } catch (Exception e) {
+            String errorDetails =
+                    "Error occurred when trying to assign role [%s] on %s [%s] for cockpit user [%s] and organization [%s]."
+                            .formatted(
+                                    membershipPayload.role(),
+                                    membershipPayload.referenceType(),
+                                    membershipPayload.referenceId(),
+                                    membershipPayload.userId(),
+                                    membershipPayload.organizationId());
             log.error(errorDetails, e);
             return Single.just(new MembershipReply(command.getId(), errorDetails));
         }
     }
 
     private RoleEntity findRole(String organizationId, RoleScope roleScope, String roleName) {
-        // Need to map cockpit role to apim role (ORGANIZATION_PRIMARY_OWNER | ORGANIZATION_OWNER -> ADMIN, ENVIRONMENT_PRIMARY_OWNER | ENVIRONMENT_OWNER -> ADMIN).
-        final String mappedRoleName = roleName
-            .replace(roleScope.name() + "_", "")
-            .replace("PRIMARY_OWNER", "ADMIN")
-            .replace("OWNER", "ADMIN");
+        // Need to map cockpit role to apim role (ORGANIZATION_PRIMARY_OWNER | ORGANIZATION_OWNER -> ADMIN,
+        // ENVIRONMENT_PRIMARY_OWNER | ENVIRONMENT_OWNER -> ADMIN).
+        final String mappedRoleName = roleName.replace(roleScope.name() + "_", "")
+                .replace("PRIMARY_OWNER", "ADMIN")
+                .replace("OWNER", "ADMIN");
 
         final Optional<RoleEntity> role = roleService.findByScopeAndName(roleScope, mappedRoleName, organizationId);
 

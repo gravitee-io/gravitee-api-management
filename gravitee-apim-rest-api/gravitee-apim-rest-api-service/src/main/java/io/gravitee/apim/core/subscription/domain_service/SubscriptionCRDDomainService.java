@@ -25,5 +25,6 @@ import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
  */
 public interface SubscriptionCRDDomainService {
     SubscriptionEntity createOrUpdate(AuditInfo auditInfo, SubscriptionCRDSpec spec);
+
     void delete(AuditInfo auditInfo, String id);
 }

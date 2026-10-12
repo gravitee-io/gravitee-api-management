@@ -78,12 +78,13 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     public Completable execute(ExecutionContext ctx, ExecutionPhase phase) {
         return resolveFlows(ctx)
-            .doOnNext(flow -> {
-                ctx.withLogger(log).debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
-                ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
-            })
-            .concatMapCompletable(flow -> executeFlow(ctx, flow, phase))
-            .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
+                .doOnNext(flow -> {
+                    ctx.withLogger(log)
+                            .debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
+                    ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
+                })
+                .concatMapCompletable(flow -> executeFlow(ctx, flow, phase))
+                .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
     }
 
     /**
@@ -122,8 +123,8 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     private Completable executeFlow(final ExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
         HttpPolicyChain policyChain = policyChainFactory.create(id, flow, phase);
-        return HookHelper.hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase).doOnSubscribe(subscription ->
-            ctx.withLogger(log).debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name())
-        );
+        return HookHelper.hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase)
+                .doOnSubscribe(subscription -> ctx.withLogger(log)
+                        .debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name()));
     }
 }

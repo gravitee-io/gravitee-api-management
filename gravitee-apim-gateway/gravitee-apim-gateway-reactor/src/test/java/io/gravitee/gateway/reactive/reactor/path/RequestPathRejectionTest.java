@@ -50,9 +50,10 @@ class RequestPathRejectionTest {
     class Under_raw {
 
         @ParameterizedTest
-        @ValueSource(strings = { CANONICAL, WITH_DOT_SEGMENTS, WITH_ENCODED_DOT_SEGMENTS, MALFORMED_PERCENT })
+        @ValueSource(strings = {CANONICAL, WITH_DOT_SEGMENTS, WITH_ENCODED_DOT_SEGMENTS, MALFORMED_PERCENT})
         void should_never_reject_since_the_gateway_decides_nothing_about_the_path(final String path) {
-            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.RAW), path)).isFalse();
+            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.RAW), path))
+                    .isFalse();
         }
     }
 
@@ -60,14 +61,16 @@ class RequestPathRejectionTest {
     class Under_reject {
 
         @ParameterizedTest
-        @ValueSource(strings = { WITH_DOT_SEGMENTS, WITH_ENCODED_DOT_SEGMENTS, MALFORMED_PERCENT })
+        @ValueSource(strings = {WITH_DOT_SEGMENTS, WITH_ENCODED_DOT_SEGMENTS, MALFORMED_PERCENT})
         void should_reject_a_path_that_is_not_already_in_its_normalized_form(final String path) {
-            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.REJECT), path)).isTrue();
+            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.REJECT), path))
+                    .isTrue();
         }
 
         @Test
         void should_let_a_canonical_path_through() {
-            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.REJECT), CANONICAL)).isFalse();
+            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.REJECT), CANONICAL))
+                    .isFalse();
         }
     }
 
@@ -75,16 +78,18 @@ class RequestPathRejectionTest {
     class Under_normalize {
 
         @ParameterizedTest
-        @ValueSource(strings = { CANONICAL, WITH_DOT_SEGMENTS, WITH_ENCODED_DOT_SEGMENTS })
+        @ValueSource(strings = {CANONICAL, WITH_DOT_SEGMENTS, WITH_ENCODED_DOT_SEGMENTS})
         void should_let_through_anything_that_has_a_normalized_form(final String path) {
-            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.NORMALIZE), path)).isFalse();
+            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.NORMALIZE), path))
+                    .isFalse();
         }
 
         @Test
         void should_still_reject_a_path_that_has_no_normalized_form_at_all() {
             // The one case a caller reading only the mode would miss: there is nothing to resolve,
             // so NORMALIZE has no more to offer than REJECT and the request is refused either way.
-            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.NORMALIZE), MALFORMED_PERCENT)).isTrue();
+            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.NORMALIZE), MALFORMED_PERCENT))
+                    .isTrue();
         }
     }
 
@@ -95,12 +100,15 @@ class RequestPathRejectionTest {
         void should_be_refused_like_any_other_dot_segment() {
             // A servlet container strips the ;params before resolving, so this is a traversal to
             // every receiver that matters — and REJECT exists to refuse traversals.
-            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.REJECT), "/alpha/api/..;/..;/beta")).isTrue();
+            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.REJECT), "/alpha/api/..;/..;/beta"))
+                    .isTrue();
         }
 
         @Test
         void should_be_resolvable_rather_than_refused_under_normalize() {
-            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.NORMALIZE), "/alpha/api/..;/..;/beta")).isFalse();
+            assertThat(RequestPathRejection.applies(
+                            configured(RequestPathHandling.NORMALIZE), "/alpha/api/..;/..;/beta"))
+                    .isFalse();
         }
     }
 }

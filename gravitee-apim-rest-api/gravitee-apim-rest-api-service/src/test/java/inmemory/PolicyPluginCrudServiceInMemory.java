@@ -17,7 +17,6 @@ package inmemory;
 
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
-import io.gravitee.rest.api.service.exceptions.PolicyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,10 +33,9 @@ public class PolicyPluginCrudServiceInMemory implements PolicyPluginCrudService,
             throw new TechnicalManagementException("policyId should not be null");
         }
 
-        return storage
-            .stream()
-            .filter(policyPlugin -> policyId.equals(policyPlugin.getId()))
-            .findFirst();
+        return storage.stream()
+                .filter(policyPlugin -> policyId.equals(policyPlugin.getId()))
+                .findFirst();
     }
 
     @Override

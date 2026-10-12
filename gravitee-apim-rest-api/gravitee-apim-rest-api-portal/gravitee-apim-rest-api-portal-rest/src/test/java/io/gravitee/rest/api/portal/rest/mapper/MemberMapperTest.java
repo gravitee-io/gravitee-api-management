@@ -79,7 +79,7 @@ public class MemberMapperTest {
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
 
-        //init
+        // init
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setName("OWNER");
 
@@ -99,24 +99,29 @@ public class MemberMapperTest {
 
         when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromPath(""));
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), MEMBER_ID)).thenReturn(userEntity);
+        when(userService.findById(GraviteeContext.getExecutionContext(), MEMBER_ID))
+                .thenReturn(userEntity);
         when(userMapper.convert(userEntity)).thenCallRealMethod();
         when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
 
-        //Test
+        // Test
         Member responseMember = memberMapper.convert(GraviteeContext.getExecutionContext(), memberEntity, uriInfo);
         assertNotNull(responseMember);
-        assertEquals(now.toEpochMilli(), responseMember.getCreatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                now.toEpochMilli(), responseMember.getCreatedAt().toInstant().toEpochMilli());
         assertEquals(MEMBER_ID, responseMember.getId());
         assertEquals("OWNER", responseMember.getRole());
-        assertEquals(now.toEpochMilli(), responseMember.getUpdatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                now.toEpochMilli(), responseMember.getUpdatedAt().toInstant().toEpochMilli());
 
         User user = responseMember.getUser();
         assertNotNull(user);
         assertEquals(MEMBER_DISPLAYNAME, user.getDisplayName());
         assertEquals(MEMBER_EMAIL, user.getEmail());
         assertEquals(MEMBER_ID, user.getId());
-        assertEquals("environments/DEFAULT/users/" + MEMBER_ID + "/avatar?", user.getLinks().getAvatar());
+        assertEquals(
+                "environments/DEFAULT/users/" + MEMBER_ID + "/avatar?",
+                user.getLinks().getAvatar());
     }
 
     @Test
@@ -126,35 +131,41 @@ public class MemberMapperTest {
         Date userUpdatedAt = Date.from(now);
 
         Membership membership = Membership.builder()
-            .id("00000000-0000-0000-0000-000000000001")
-            .memberId(MEMBER_ID)
-            .memberType(Membership.Type.USER)
-            .referenceType(Membership.ReferenceType.APPLICATION)
-            .referenceId("application-id")
-            .roleId("role-id")
-            .createdAt(nowDate.toInstant().atZone(ZoneId.systemDefault()))
-            .updatedAt(nowDate.toInstant().atZone(ZoneId.systemDefault()))
-            .build();
+                .id("00000000-0000-0000-0000-000000000001")
+                .memberId(MEMBER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.APPLICATION)
+                .referenceId("application-id")
+                .roleId("role-id")
+                .createdAt(nowDate.toInstant().atZone(ZoneId.systemDefault()))
+                .updatedAt(nowDate.toInstant().atZone(ZoneId.systemDefault()))
+                .build();
         BaseUserEntity baseUser = BaseUserEntity.builder()
-            .id(MEMBER_ID)
-            .firstname("my-member")
-            .lastname("display-name")
-            .email(MEMBER_EMAIL)
-            .updatedAt(userUpdatedAt)
-            .build();
+                .id(MEMBER_ID)
+                .firstname("my-member")
+                .lastname("display-name")
+                .email(MEMBER_EMAIL)
+                .updatedAt(userUpdatedAt)
+                .build();
         RoleEntity role = new RoleEntity();
         role.setName("OWNER");
 
         when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromPath(""));
         when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
 
-        Member responseMember = memberMapper.convert(List.of(membership), List.of(baseUser), Map.of("role-id", role), uriInfo).get(0);
+        Member responseMember = memberMapper
+                .convert(List.of(membership), List.of(baseUser), Map.of("role-id", role), uriInfo)
+                .get(0);
 
         assertNotNull(responseMember);
-        assertEquals(nowDate.toInstant().toEpochMilli(), responseMember.getCreatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                nowDate.toInstant().toEpochMilli(),
+                responseMember.getCreatedAt().toInstant().toEpochMilli());
         assertEquals(MEMBER_ID, responseMember.getId());
         assertEquals("OWNER", responseMember.getRole());
-        assertEquals(nowDate.toInstant().toEpochMilli(), responseMember.getUpdatedAt().toInstant().toEpochMilli());
+        assertEquals(
+                nowDate.toInstant().toEpochMilli(),
+                responseMember.getUpdatedAt().toInstant().toEpochMilli());
 
         User responseUser = responseMember.getUser();
         assertNotNull(responseUser);
@@ -162,8 +173,8 @@ public class MemberMapperTest {
         assertEquals(MEMBER_EMAIL, responseUser.getEmail());
         assertEquals(MEMBER_ID, responseUser.getId());
         assertEquals(
-            "environments/DEFAULT/users/" + MEMBER_ID + "/avatar?" + userUpdatedAt.toInstant().toEpochMilli(),
-            responseUser.getLinks().getAvatar()
-        );
+                "environments/DEFAULT/users/" + MEMBER_ID + "/avatar?"
+                        + userUpdatedAt.toInstant().toEpochMilli(),
+                responseUser.getLinks().getAvatar());
     }
 }

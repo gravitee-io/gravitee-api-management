@@ -34,7 +34,8 @@ public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlt
 
     @Override
     public ApiKeyEntity update(ApiKeyEntity entity) {
-        OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(entity.getId()));
+        OptionalInt index =
+                this.findIndex(this.storage, apiKey -> apiKey.getId().equals(entity.getId()));
         if (index.isPresent()) {
             storage.set(index.getAsInt(), entity);
             return entity;

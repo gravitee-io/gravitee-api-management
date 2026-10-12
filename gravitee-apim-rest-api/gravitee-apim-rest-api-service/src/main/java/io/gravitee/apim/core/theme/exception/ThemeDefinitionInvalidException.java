@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.theme.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.theme.model.ThemeType;
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,13 +23,11 @@ public class ThemeDefinitionInvalidException extends ValidationDomainException {
 
     public ThemeDefinitionInvalidException(String themeType, Object definition) {
         super(
-            "Theme definition invalid for theme type [" + themeType + "]",
-            Map.of(
-                "themeDefinition",
-                Optional.ofNullable(definition)
-                    .map(def -> definition.toString())
-                    .orElse("")
-            )
-        );
+                "Theme definition invalid for theme type [" + themeType + "]",
+                Map.of(
+                        "themeDefinition",
+                        Optional.ofNullable(definition)
+                                .map(def -> definition.toString())
+                                .orElse("")));
     }
 }

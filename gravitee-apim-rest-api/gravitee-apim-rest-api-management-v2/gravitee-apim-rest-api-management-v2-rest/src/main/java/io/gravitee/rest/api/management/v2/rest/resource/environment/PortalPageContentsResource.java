@@ -56,14 +56,12 @@ public class PortalPageContentsResource extends AbstractResource {
     @GET
     @Path("/{portalPageContentId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ)})
     public io.gravitee.rest.api.management.v2.rest.model.PortalPageContent getPortalPageContent(
-        @PathParam("portalPageContentId") String portalPageContentId
-    ) {
+            @PathParam("portalPageContentId") String portalPageContentId) {
         try {
             var result = getPortalPageContentUseCase.execute(
-                new GetPortalPageContentUseCase.Input(PortalPageContentId.of(portalPageContentId))
-            );
+                    new GetPortalPageContentUseCase.Input(PortalPageContentId.of(portalPageContentId)));
 
             return PortalPageContentMapper.INSTANCE.map(result.content());
         } catch (IllegalArgumentException e) {
@@ -75,20 +73,16 @@ public class PortalPageContentsResource extends AbstractResource {
     @Path("/{portalPageContentId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     public io.gravitee.rest.api.management.v2.rest.model.PortalPageContent updatePortalPageContent(
-        @PathParam("portalPageContentId") String portalPageContentId,
-        @Valid io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent updatePortalPageContent
-    ) {
+            @PathParam("portalPageContentId") String portalPageContentId,
+            @Valid io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent updatePortalPageContent) {
         final var executionContext = getExecutionContext();
-        var result = updatePortalPageContentUseCase.execute(
-            new UpdatePortalPageContentUseCase.Input(
+        var result = updatePortalPageContentUseCase.execute(new UpdatePortalPageContentUseCase.Input(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 portalPageContentId,
-                PortalPageContentMapper.INSTANCE.map(updatePortalPageContent)
-            )
-        );
+                PortalPageContentMapper.INSTANCE.map(updatePortalPageContent)));
 
         return PortalPageContentMapper.INSTANCE.map(result.portalPageContent());
     }
@@ -97,20 +91,17 @@ public class PortalPageContentsResource extends AbstractResource {
     @Path("/{portalPageContentId}/configuration")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)})
     public io.gravitee.rest.api.management.v2.rest.model.PortalPageContent updatePortalPageContentConfiguration(
-        @PathParam("portalPageContentId") String portalPageContentId,
-        @Valid io.gravitee.rest.api.management.v2.rest.model.PortalPageOpenApiConfiguration configuration
-    ) {
+            @PathParam("portalPageContentId") String portalPageContentId,
+            @Valid io.gravitee.rest.api.management.v2.rest.model.PortalPageOpenApiConfiguration configuration) {
         final var executionContext = getExecutionContext();
         var result = updatePortalPageContentConfigurationUseCase.execute(
-            new UpdatePortalPageContentConfigurationUseCase.Input(
-                executionContext.getOrganizationId(),
-                executionContext.getEnvironmentId(),
-                portalPageContentId,
-                PortalPageContentMapper.INSTANCE.mapToConfiguration(configuration)
-            )
-        );
+                new UpdatePortalPageContentConfigurationUseCase.Input(
+                        executionContext.getOrganizationId(),
+                        executionContext.getEnvironmentId(),
+                        portalPageContentId,
+                        PortalPageContentMapper.INSTANCE.mapToConfiguration(configuration)));
 
         return PortalPageContentMapper.INSTANCE.map(result.portalPageContent());
     }

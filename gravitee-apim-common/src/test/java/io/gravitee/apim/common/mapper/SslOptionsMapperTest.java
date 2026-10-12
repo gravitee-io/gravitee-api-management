@@ -60,20 +60,19 @@ class SslOptionsMapperTest {
         @Test
         void should_map_pem_keyStore() {
             final SslOptions sslOptions = SslOptions.builder()
-                .trustAll(false)
-                .keyStore(
-                    PEMKeyStore.builder()
-                        .keyPath("keyPath")
-                        .keyContent("keyContent")
-                        .certPath("certPath")
-                        .certContent("certContent")
-                        .build()
-                )
-                .build();
+                    .trustAll(false)
+                    .keyStore(PEMKeyStore.builder()
+                            .keyPath("keyPath")
+                            .keyContent("keyContent")
+                            .certPath("certPath")
+                            .certContent("certContent")
+                            .build())
+                    .build();
             final var result = SslOptionsMapper.INSTANCE.map(sslOptions);
             assertThat(result.keyStore()).hasValueSatisfying(resultKeystore -> {
                 assertThat(resultKeystore.getType()).isEqualTo(KeyStoreType.PEM);
-                final var resultPEMKeyStore = castInto(resultKeystore, io.gravitee.node.vertx.client.ssl.pem.PEMKeyStore.class);
+                final var resultPEMKeyStore =
+                        castInto(resultKeystore, io.gravitee.node.vertx.client.ssl.pem.PEMKeyStore.class);
                 assertThat(resultPEMKeyStore.getKeyPath()).isEqualTo("keyPath");
                 assertThat(resultPEMKeyStore.getKeyContent()).isEqualTo("keyContent");
                 assertThat(resultPEMKeyStore.getCertPath()).isEqualTo("certPath");
@@ -84,13 +83,17 @@ class SslOptionsMapperTest {
         @Test
         void should_map_pem_trustStore() {
             final SslOptions sslOptions = SslOptions.builder()
-                .trustAll(false)
-                .trustStore(PEMTrustStore.builder().path("path").content("content").build())
-                .build();
+                    .trustAll(false)
+                    .trustStore(PEMTrustStore.builder()
+                            .path("path")
+                            .content("content")
+                            .build())
+                    .build();
             final var result = SslOptionsMapper.INSTANCE.map(sslOptions);
             assertThat(result.trustStore()).hasValueSatisfying(resultTrustStore -> {
                 assertThat(resultTrustStore.getType()).isEqualTo(TrustStoreType.PEM);
-                final var resultPEMTrustStore = castInto(resultTrustStore, io.gravitee.node.vertx.client.ssl.pem.PEMTrustStore.class);
+                final var resultPEMTrustStore =
+                        castInto(resultTrustStore, io.gravitee.node.vertx.client.ssl.pem.PEMTrustStore.class);
                 assertThat(resultPEMTrustStore.getPath()).isEqualTo("path");
                 assertThat(resultPEMTrustStore.getContent()).isEqualTo("content");
             });
@@ -103,21 +106,20 @@ class SslOptionsMapperTest {
         @Test
         void should_map_jks_keyStore() {
             final SslOptions sslOptions = SslOptions.builder()
-                .trustAll(false)
-                .keyStore(
-                    JKSKeyStore.builder()
-                        .path("path")
-                        .content("content")
-                        .password("password")
-                        .alias("alias")
-                        .keyPassword("keyPassword")
-                        .build()
-                )
-                .build();
+                    .trustAll(false)
+                    .keyStore(JKSKeyStore.builder()
+                            .path("path")
+                            .content("content")
+                            .password("password")
+                            .alias("alias")
+                            .keyPassword("keyPassword")
+                            .build())
+                    .build();
             final var result = SslOptionsMapper.INSTANCE.map(sslOptions);
             assertThat(result.keyStore()).hasValueSatisfying(resultKeystore -> {
                 assertThat(resultKeystore.getType()).isEqualTo(KeyStoreType.JKS);
-                final var resultJKSKeyStore = castInto(resultKeystore, io.gravitee.node.vertx.client.ssl.jks.JKSKeyStore.class);
+                final var resultJKSKeyStore =
+                        castInto(resultKeystore, io.gravitee.node.vertx.client.ssl.jks.JKSKeyStore.class);
                 assertThat(resultJKSKeyStore.getPath()).isEqualTo("path");
                 assertThat(resultJKSKeyStore.getContent()).isEqualTo("content");
                 assertThat(resultJKSKeyStore.getPassword()).isEqualTo("password");
@@ -129,13 +131,19 @@ class SslOptionsMapperTest {
         @Test
         void should_map_jks_trustStore() {
             final SslOptions sslOptions = SslOptions.builder()
-                .trustAll(false)
-                .trustStore(JKSTrustStore.builder().path("path").content("content").password("password").alias("alias").build())
-                .build();
+                    .trustAll(false)
+                    .trustStore(JKSTrustStore.builder()
+                            .path("path")
+                            .content("content")
+                            .password("password")
+                            .alias("alias")
+                            .build())
+                    .build();
             final var result = SslOptionsMapper.INSTANCE.map(sslOptions);
             assertThat(result.trustStore()).hasValueSatisfying(resultTrustStore -> {
                 assertThat(resultTrustStore.getType()).isEqualTo(TrustStoreType.JKS);
-                final var resultJKSTrustStore = castInto(resultTrustStore, io.gravitee.node.vertx.client.ssl.jks.JKSTrustStore.class);
+                final var resultJKSTrustStore =
+                        castInto(resultTrustStore, io.gravitee.node.vertx.client.ssl.jks.JKSTrustStore.class);
                 assertThat(resultJKSTrustStore.getPath()).isEqualTo("path");
                 assertThat(resultJKSTrustStore.getContent()).isEqualTo("content");
                 assertThat(resultJKSTrustStore.getPassword()).isEqualTo("password");
@@ -150,21 +158,20 @@ class SslOptionsMapperTest {
         @Test
         void should_map_pkcs12_keyStore() {
             final SslOptions sslOptions = SslOptions.builder()
-                .trustAll(false)
-                .keyStore(
-                    PKCS12KeyStore.builder()
-                        .path("path")
-                        .content("content")
-                        .password("password")
-                        .alias("alias")
-                        .keyPassword("keyPassword")
-                        .build()
-                )
-                .build();
+                    .trustAll(false)
+                    .keyStore(PKCS12KeyStore.builder()
+                            .path("path")
+                            .content("content")
+                            .password("password")
+                            .alias("alias")
+                            .keyPassword("keyPassword")
+                            .build())
+                    .build();
             final var result = SslOptionsMapper.INSTANCE.map(sslOptions);
             assertThat(result.keyStore()).hasValueSatisfying(resultKeystore -> {
                 assertThat(resultKeystore.getType()).isEqualTo(KeyStoreType.PKCS12);
-                final var resultPKCS12KeyStore = castInto(resultKeystore, io.gravitee.node.vertx.client.ssl.pkcs12.PKCS12KeyStore.class);
+                final var resultPKCS12KeyStore =
+                        castInto(resultKeystore, io.gravitee.node.vertx.client.ssl.pkcs12.PKCS12KeyStore.class);
                 assertThat(resultPKCS12KeyStore.getPath()).isEqualTo("path");
                 assertThat(resultPKCS12KeyStore.getContent()).isEqualTo("content");
                 assertThat(resultPKCS12KeyStore.getPassword()).isEqualTo("password");
@@ -176,16 +183,19 @@ class SslOptionsMapperTest {
         @Test
         void should_map_pkcs12_trustStore() {
             final SslOptions sslOptions = SslOptions.builder()
-                .trustAll(false)
-                .trustStore(PKCS12TrustStore.builder().path("path").content("content").password("password").alias("alias").build())
-                .build();
+                    .trustAll(false)
+                    .trustStore(PKCS12TrustStore.builder()
+                            .path("path")
+                            .content("content")
+                            .password("password")
+                            .alias("alias")
+                            .build())
+                    .build();
             final var result = SslOptionsMapper.INSTANCE.map(sslOptions);
             assertThat(result.trustStore()).hasValueSatisfying(resultTrustStore -> {
                 assertThat(resultTrustStore.getType()).isEqualTo(TrustStoreType.PKCS12);
-                final var resultPKCS12TrustStore = castInto(
-                    resultTrustStore,
-                    io.gravitee.node.vertx.client.ssl.pkcs12.PKCS12TrustStore.class
-                );
+                final var resultPKCS12TrustStore =
+                        castInto(resultTrustStore, io.gravitee.node.vertx.client.ssl.pkcs12.PKCS12TrustStore.class);
                 assertThat(resultPKCS12TrustStore.getPath()).isEqualTo("path");
                 assertThat(resultPKCS12TrustStore.getContent()).isEqualTo("content");
                 assertThat(resultPKCS12TrustStore.getPassword()).isEqualTo("password");
@@ -199,7 +209,10 @@ class SslOptionsMapperTest {
 
         @Test
         void should_map_none_keyStore() {
-            final SslOptions sslOptions = SslOptions.builder().trustAll(false).keyStore(NoneKeyStore.builder().build()).build();
+            final SslOptions sslOptions = SslOptions.builder()
+                    .trustAll(false)
+                    .keyStore(NoneKeyStore.builder().build())
+                    .build();
             final var result = SslOptionsMapper.INSTANCE.map(sslOptions);
             assertThat(result.keyStore()).hasValueSatisfying(resultKeystore -> {
                 assertThat(resultKeystore.getType()).isEqualTo(KeyStoreType.NONE);
@@ -208,7 +221,10 @@ class SslOptionsMapperTest {
 
         @Test
         void should_map_none_trustStore() {
-            final SslOptions sslOptions = SslOptions.builder().trustAll(false).trustStore(NoneTrustStore.builder().build()).build();
+            final SslOptions sslOptions = SslOptions.builder()
+                    .trustAll(false)
+                    .trustStore(NoneTrustStore.builder().build())
+                    .build();
             final var result = SslOptionsMapper.INSTANCE.map(sslOptions);
             assertThat(result.trustStore()).hasValueSatisfying(resultTrustStore -> {
                 assertThat(resultTrustStore.getType()).isEqualTo(TrustStoreType.NONE);
@@ -220,13 +236,9 @@ class SslOptionsMapperTest {
         if (keyStoreSubclass.isAssignableFrom(keyStore.getClass())) {
             return keyStoreSubclass.cast(keyStore);
         } else {
-            fail(
-                String.format(
+            fail(String.format(
                     "Cannot map keyStore of type %s into type %s",
-                    keyStore.getClass().getSimpleName(),
-                    keyStoreSubclass.getSimpleName()
-                )
-            );
+                    keyStore.getClass().getSimpleName(), keyStoreSubclass.getSimpleName()));
         }
         return null;
     }
@@ -235,13 +247,9 @@ class SslOptionsMapperTest {
         if (trustStoreSubclass.isAssignableFrom(trustStore.getClass())) {
             return trustStoreSubclass.cast(trustStore);
         } else {
-            fail(
-                String.format(
+            fail(String.format(
                     "Cannot map trustStore of type %s into type %s",
-                    trustStore.getClass().getSimpleName(),
-                    trustStoreSubclass.getSimpleName()
-                )
-            );
+                    trustStore.getClass().getSimpleName(), trustStoreSubclass.getSimpleName()));
         }
         return null;
     }

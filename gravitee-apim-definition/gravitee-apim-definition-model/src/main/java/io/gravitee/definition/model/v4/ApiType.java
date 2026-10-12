@@ -37,15 +37,14 @@ public enum ApiType {
     PROXY("proxy");
 
     private static final Map<String, ApiType> LABELS_MAP = Map.ofEntries(
-        Map.entry(A2A_PROXY.label, A2A_PROXY),
-        Map.entry(AUTHZ.label, AUTHZ),
-        Map.entry(EDGE.label, EDGE),
-        Map.entry(LLM_PROXY.label, LLM_PROXY),
-        Map.entry(MCP_PROXY.label, MCP_PROXY),
-        Map.entry(MESSAGE.label, MESSAGE),
-        Map.entry(NATIVE.label, NATIVE),
-        Map.entry(PROXY.label, PROXY)
-    );
+            Map.entry(A2A_PROXY.label, A2A_PROXY),
+            Map.entry(AUTHZ.label, AUTHZ),
+            Map.entry(EDGE.label, EDGE),
+            Map.entry(LLM_PROXY.label, LLM_PROXY),
+            Map.entry(MCP_PROXY.label, MCP_PROXY),
+            Map.entry(MESSAGE.label, MESSAGE),
+            Map.entry(NATIVE.label, NATIVE),
+            Map.entry(PROXY.label, PROXY));
 
     @JsonValue
     private final String label;

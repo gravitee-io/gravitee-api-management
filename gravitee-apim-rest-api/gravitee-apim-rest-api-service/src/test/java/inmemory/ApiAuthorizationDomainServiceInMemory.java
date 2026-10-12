@@ -47,12 +47,11 @@ public class ApiAuthorizationDomainServiceInMemory implements ApiAuthorizationDo
 
     @Override
     public Set<String> findIdsByUser(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQueryCriteria apiQueryCriteria,
-        Sortable sortable,
-        boolean manageOnly
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            ApiQueryCriteria apiQueryCriteria,
+            Sortable sortable,
+            boolean manageOnly) {
         return storage.stream().map(Api::getId).collect(Collectors.toSet());
     }
 }

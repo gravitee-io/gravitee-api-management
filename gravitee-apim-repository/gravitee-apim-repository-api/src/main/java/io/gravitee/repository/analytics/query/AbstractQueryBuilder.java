@@ -22,7 +22,8 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractQueryBuilder<QB extends AbstractQueryBuilder, Q extends AbstractQuery> implements QueryBuilder {
+public abstract class AbstractQueryBuilder<QB extends AbstractQueryBuilder, Q extends AbstractQuery>
+        implements QueryBuilder {
 
     protected final Q query;
 
@@ -58,13 +59,9 @@ public abstract class AbstractQueryBuilder<QB extends AbstractQueryBuilder, Q ex
 
     public QB terms(Map<String, Set<String>> terms) {
         if (terms != null && !terms.isEmpty()) {
-            this.query.terms(
-                terms
-                    .keySet()
-                    .stream()
+            this.query.terms(terms.keySet().stream()
                     .map(field -> new TermsFilter(field, terms.get(field)))
-                    .toList()
-            );
+                    .toList());
         }
 
         return (QB) this;

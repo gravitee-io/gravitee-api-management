@@ -95,7 +95,9 @@ public final class OtelDataStreamIndexUtils {
             // so the substituted value is also safe in the dataset slot (a hyphen would otherwise be
             // illegal there). Pure namespace-only placeholders keep their hyphens.
             boolean inDataset = datasetSlot.contains(placeholder);
-            var sanitised = inDataset ? sanitiseDatasetComponent(entry.getValue()) : sanitiseNamespaceComponent(entry.getValue());
+            var sanitised = inDataset
+                    ? sanitiseDatasetComponent(entry.getValue())
+                    : sanitiseNamespaceComponent(entry.getValue());
             resolved = resolved.replace(placeholder, sanitised);
         }
         return resolved;

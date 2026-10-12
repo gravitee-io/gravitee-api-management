@@ -30,8 +30,7 @@ public class ImportEnvironmentRulesetUseCase {
     private final ScoringRulesetCrudService scoringRulesetCrudService;
 
     public Output execute(Input input) {
-        var created = scoringRulesetCrudService.create(
-            new ScoringRuleset(
+        var created = scoringRulesetCrudService.create(new ScoringRuleset(
                 UuidString.generateRandom(),
                 input.newRuleset.name(),
                 input.newRuleset.description(),
@@ -40,9 +39,7 @@ public class ImportEnvironmentRulesetUseCase {
                 ScoringRuleset.ReferenceType.ENVIRONMENT,
                 input.newRuleset.payload(),
                 TimeProvider.now(),
-                TimeProvider.now()
-            )
-        );
+                TimeProvider.now()));
         return new Output(created.id());
     }
 

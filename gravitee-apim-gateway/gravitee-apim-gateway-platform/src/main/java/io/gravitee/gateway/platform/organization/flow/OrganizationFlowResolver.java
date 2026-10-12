@@ -36,23 +36,21 @@ public class OrganizationFlowResolver extends ConditionalFlowResolver {
     private final OrganizationManager organizationManager;
 
     public OrganizationFlowResolver(final OrganizationManager organizationManager) {
-        super(
-            new CompositeConditionEvaluator(
+        super(new CompositeConditionEvaluator(
                 new HttpMethodConditionEvaluator(),
                 new PathBasedConditionEvaluator(),
-                new ExpressionLanguageFlowConditionEvaluator()
-            )
-        );
+                new ExpressionLanguageFlowConditionEvaluator()));
         this.organizationManager = organizationManager;
     }
 
     @Override
     protected List<Flow> resolve0(final ExecutionContext context) {
-        ReactableOrganization reactableOrganization = organizationManager.getOrganization(
-            (String) context.getAttribute(ExecutionContext.ATTR_ORGANIZATION)
-        );
+        ReactableOrganization reactableOrganization =
+                organizationManager.getOrganization((String) context.getAttribute(ExecutionContext.ATTR_ORGANIZATION));
         if (reactableOrganization != null) {
-            return reactableOrganization.getFlows() != null ? reactableOrganization.getFlows() : Collections.emptyList();
+            return reactableOrganization.getFlows() != null
+                    ? reactableOrganization.getFlows()
+                    : Collections.emptyList();
         }
         return Collections.emptyList();
     }

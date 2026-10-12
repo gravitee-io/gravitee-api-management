@@ -39,7 +39,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<?>, PolicyPluginEntity> implements PolicyPluginService {
+public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<?>, PolicyPluginEntity>
+        implements PolicyPluginService {
 
     private enum POLICY_FLOW_PHASE {
         ENTRYPOINT_CONNECT,
@@ -65,9 +66,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
     public static final Set<String> INTERNAL_POLICIES_ID = Set.of("shared-policy-group-policy");
 
     protected PolicyPluginServiceImpl(
-        final JsonSchemaService jsonSchemaService,
-        final ConfigurablePluginManager<PolicyPlugin<?>> policyManager
-    ) {
+            final JsonSchemaService jsonSchemaService, final ConfigurablePluginManager<PolicyPlugin<?>> policyManager) {
         super(jsonSchemaService, policyManager);
     }
 
@@ -134,22 +133,21 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         return validateConfiguration(policyPluginEntity.getId(), configuration);
     }
 
-    public String getSchema(String policyPluginId, ApiProtocolType apiProtocolType, SchemaDisplayFormat schemaDisplayFormat) {
+    public String getSchema(
+            String policyPluginId, ApiProtocolType apiProtocolType, SchemaDisplayFormat schemaDisplayFormat) {
         List<String> schemaKeys = new ArrayList<>();
         if (apiProtocolType != null && schemaDisplayFormat != null) {
-            schemaKeys.add(
-                apiProtocolType.name().toLowerCase() +
-                    "." +
-                    PluginManifestProperties.SCHEMA_PROPERTY +
-                    "." +
-                    schemaDisplayFormat.name().toLowerCase()
-            );
+            schemaKeys.add(apiProtocolType.name().toLowerCase() + "."
+                    + PluginManifestProperties.SCHEMA_PROPERTY
+                    + "."
+                    + schemaDisplayFormat.name().toLowerCase());
         }
         if (apiProtocolType != null) {
             schemaKeys.add(apiProtocolType.name().toLowerCase() + "." + PluginManifestProperties.SCHEMA_PROPERTY);
         }
         if (schemaDisplayFormat != null) {
-            schemaKeys.add(PluginManifestProperties.SCHEMA_PROPERTY + "." + schemaDisplayFormat.name().toLowerCase());
+            schemaKeys.add(PluginManifestProperties.SCHEMA_PROPERTY + "."
+                    + schemaDisplayFormat.name().toLowerCase());
         }
         schemaKeys.add(PluginManifestProperties.SCHEMA_PROPERTY);
 
@@ -173,41 +171,34 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         try {
             if (apiProtocolType != null) {
                 return this.pluginManager.getPluginDocumentation(
-                    policyPluginId,
-                    apiProtocolType.name().toLowerCase() + "." + PluginManifestProperties.DOCUMENTATION_PROPERTY,
-                    true,
-                    true
-                );
+                        policyPluginId,
+                        apiProtocolType.name().toLowerCase() + "." + PluginManifestProperties.DOCUMENTATION_PROPERTY,
+                        true,
+                        true);
             }
             return this.pluginManager.getPluginDocumentation(policyPluginId);
         } catch (IOException ioex) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to get plugin documentation for plugin " + policyPluginId,
-                ioex
-            );
+                    "An error occurs while trying to get plugin documentation for plugin " + policyPluginId, ioex);
         }
     }
 
     private static Set<FlowPhase> getDeprecatedFlowPhase(Plugin plugin, String property) {
-        if (
-            plugin.manifest().properties() != null &&
-            plugin.manifest().properties().get(property) != null &&
-            !plugin.manifest().properties().get(property).isEmpty()
-        ) {
+        if (plugin.manifest().properties() != null
+                && plugin.manifest().properties().get(property) != null
+                && !plugin.manifest().properties().get(property).isEmpty()) {
             return Arrays.stream(plugin.manifest().properties().get(property).split(","))
-                .map(String::trim)
-                .map(POLICY_FLOW_PHASE::valueOf)
-                .map(p ->
-                    switch (p) {
+                    .map(String::trim)
+                    .map(POLICY_FLOW_PHASE::valueOf)
+                    .map(p -> switch (p) {
                         case ENTRYPOINT_CONNECT -> FlowPhase.ENTRYPOINT_CONNECT;
                         case INTERACT -> FlowPhase.INTERACT;
                         case PUBLISH, MESSAGE_REQUEST -> FlowPhase.PUBLISH;
                         case SUBSCRIBE, MESSAGE_RESPONSE -> FlowPhase.SUBSCRIBE;
                         case REQUEST -> FlowPhase.REQUEST;
                         case RESPONSE -> FlowPhase.RESPONSE;
-                    }
-                )
-                .collect(Collectors.toSet());
+                    })
+                    .collect(Collectors.toSet());
         } else {
             return Collections.emptySet();
         }
@@ -218,9 +209,13 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
             return null;
         }
 
-        var apiProtocolTypeProperty = plugin.manifest().properties().get(apiProtocolType.name().toLowerCase());
+        var apiProtocolTypeProperty =
+                plugin.manifest().properties().get(apiProtocolType.name().toLowerCase());
         if (apiProtocolTypeProperty != null) {
-            return Arrays.stream(apiProtocolTypeProperty.split(",")).map(String::trim).map(FlowPhase::valueOf).collect(Collectors.toSet());
+            return Arrays.stream(apiProtocolTypeProperty.split(","))
+                    .map(String::trim)
+                    .map(FlowPhase::valueOf)
+                    .collect(Collectors.toSet());
         } else {
             return Collections.emptySet();
         }

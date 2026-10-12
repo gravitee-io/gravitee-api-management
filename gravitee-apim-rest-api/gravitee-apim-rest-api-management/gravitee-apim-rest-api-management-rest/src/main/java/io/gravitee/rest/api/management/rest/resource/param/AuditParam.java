@@ -44,7 +44,9 @@ public class AuditParam {
     private AuditType type;
 
     @QueryParam("event")
-    @Parameter(description = "filter by the name of an event.", example = "APPLICATION_UPDATED, API_CREATED, METADATA_DELETED, ...")
+    @Parameter(
+            description = "filter by the name of an event.",
+            example = "APPLICATION_UPDATED, API_CREATED, METADATA_DELETED, ...")
     private String event;
 
     @QueryParam("from")
@@ -73,7 +75,8 @@ public class AuditParam {
             return;
         }
         if (!encrypted) {
-            throw new BadRequestException("Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
+            throw new BadRequestException(
+                    "Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
         }
         query.setProperties(Map.of(ENCRYPTED.name(), Boolean.TRUE.toString()));
     }

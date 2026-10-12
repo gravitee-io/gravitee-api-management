@@ -31,9 +31,8 @@ import org.springframework.stereotype.Repository;
  */
 @CustomLog
 @Repository
-public class JdbcPortalPageContextRepository
-    extends JdbcAbstractCrudRepository<PortalPageContext, String>
-    implements PortalPageContextRepository {
+public class JdbcPortalPageContextRepository extends JdbcAbstractCrudRepository<PortalPageContext, String>
+        implements PortalPageContextRepository {
 
     JdbcPortalPageContextRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_page_contexts");
@@ -42,17 +41,20 @@ public class JdbcPortalPageContextRepository
     @Override
     protected JdbcObjectMapper<PortalPageContext> buildOrm() {
         return JdbcObjectMapper.builder(PortalPageContext.class, this.tableName, "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("page_id", Types.NVARCHAR, String.class)
-            .addColumn("context_type", Types.NVARCHAR, PortalPageContextType.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("published", Types.BOOLEAN, boolean.class)
-            .build();
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("page_id", Types.NVARCHAR, String.class)
+                .addColumn("context_type", Types.NVARCHAR, PortalPageContextType.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("published", Types.BOOLEAN, boolean.class)
+                .build();
     }
 
     @Override
     public PortalPageContext create(PortalPageContext portalPageContext) throws TechnicalException {
-        log.debug("JdbcPortalPageContextRepository.create({}, {})", portalPageContext.getPageId(), portalPageContext.getContextType());
+        log.debug(
+                "JdbcPortalPageContextRepository.create({}, {})",
+                portalPageContext.getPageId(),
+                portalPageContext.getContextType());
 
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(portalPageContext));
@@ -63,27 +65,32 @@ public class JdbcPortalPageContextRepository
     }
 
     @Override
-    public List<PortalPageContext> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId) {
-        log.debug("JdbcPortalPageContextRepository.findAllByContextTypeAndEnvironmentId({}, {})", contextType, environmentId);
+    public List<PortalPageContext> findAllByContextTypeAndEnvironmentId(
+            PortalPageContextType contextType, String environmentId) {
+        log.debug(
+                "JdbcPortalPageContextRepository.findAllByContextTypeAndEnvironmentId({}, {})",
+                contextType,
+                environmentId);
 
         try {
             final List<PortalPageContext> portalPageContexts = jdbcTemplate.query(
-                "select id, page_id, context_type, environment_id, published from " +
-                    this.tableName +
-                    " where context_type = ? and environment_id = ?",
-                getOrm().getRowMapper(),
-                contextType.name(),
-                environmentId
-            );
+                    "select id, page_id, context_type, environment_id, published from " + this.tableName
+                            + " where context_type = ? and environment_id = ?",
+                    getOrm().getRowMapper(),
+                    contextType.name(),
+                    environmentId);
             log.debug(
-                "JdbcPortalPageContextRepository.findAllByContextTypeAndEnvironmentId({}, {}) - Done, found {} contexts",
-                contextType,
-                environmentId,
-                portalPageContexts.size()
-            );
+                    "JdbcPortalPageContextRepository.findAllByContextTypeAndEnvironmentId({}, {}) - Done, found {} contexts",
+                    contextType,
+                    environmentId,
+                    portalPageContexts.size());
             return portalPageContexts;
         } catch (final Exception ex) {
-            log.error("Failed to find PortalPageContexts by contextType [{}] and environmentId [{}]", contextType, environmentId, ex);
+            log.error(
+                    "Failed to find PortalPageContexts by contextType [{}] and environmentId [{}]",
+                    contextType,
+                    environmentId,
+                    ex);
             return List.of();
         }
     }
@@ -94,10 +101,10 @@ public class JdbcPortalPageContextRepository
 
         try {
             final PortalPageContext portalPageContext = jdbcTemplate.queryForObject(
-                "select id, page_id, context_type, environment_id, published from " + this.tableName + " where page_id = ?",
-                getOrm().getRowMapper(),
-                string
-            );
+                    "select id, page_id, context_type, environment_id, published from " + this.tableName
+                            + " where page_id = ?",
+                    getOrm().getRowMapper(),
+                    string);
             log.debug("JdbcPortalPageContextRepository.findByPageId({}) - Done", string);
             return portalPageContext;
         } catch (final Exception ex) {
@@ -112,11 +119,10 @@ public class JdbcPortalPageContextRepository
 
         try {
             final int rows = jdbcTemplate.update(
-                "update " + this.tableName + " set context_type = ?, published = ? where page_id = ?",
-                item.getContextType().name(),
-                item.isPublished(),
-                item.getPageId()
-            );
+                    "update " + this.tableName + " set context_type = ?, published = ? where page_id = ?",
+                    item.getContextType().name(),
+                    item.isPublished(),
+                    item.getPageId());
             if (rows == 0) {
                 throw new TechnicalException("Failed to update portal page context, no rows affected");
             }

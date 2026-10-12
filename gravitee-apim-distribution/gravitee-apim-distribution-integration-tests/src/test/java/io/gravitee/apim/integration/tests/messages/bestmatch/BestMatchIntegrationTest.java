@@ -75,15 +75,18 @@ public class BestMatchIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.putIfAbsent(
-                "transform-headers",
-                PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
-            );
+                    "transform-headers",
+                    PolicyBuilder.build(
+                            "transform-headers",
+                            TransformHeadersPolicy.class,
+                            TransformHeadersPolicyConfiguration.class));
         }
     }
 
@@ -97,43 +100,43 @@ public class BestMatchIntegrationTest {
          */
         Stream<Arguments> provideParameters() {
             return Stream.of(
-                Arguments.of("/books", "/books", "/books"),
-                Arguments.of("/books", "/books", "/books"),
-                Arguments.of("/books/145/chapters/12", "/books/:bookId", "/books/:bookId/chapters/:chapterId"),
-                Arguments.of("/books/9999/chapters", "/books/:bookId", "/books/9999/chapters"),
-                Arguments.of("/books/9999/chapters/random", "/books/:bookId", "/books/9999/chapters"),
-                Arguments.of("/random", "/", null),
-                Arguments.of("/books/145", "/books/:bookId", null)
-            );
+                    Arguments.of("/books", "/books", "/books"),
+                    Arguments.of("/books", "/books", "/books"),
+                    Arguments.of("/books/145/chapters/12", "/books/:bookId", "/books/:bookId/chapters/:chapterId"),
+                    Arguments.of("/books/9999/chapters", "/books/:bookId", "/books/9999/chapters"),
+                    Arguments.of("/books/9999/chapters/random", "/books/:bookId", "/books/9999/chapters"),
+                    Arguments.of("/random", "/", null),
+                    Arguments.of("/books/145", "/books/:bookId", null));
         }
 
         @ParameterizedTest
         @MethodSource("provideParameters")
-        void should_use_best_matching_flow(String path, String planFlowSelected, String apiFlowSelected, HttpClient client) {
-            client
-                .rxRequest(HttpMethod.GET, "/test" + path)
-                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    if (planFlowSelected != null) {
-                        assertThat(response.getHeader(PLAN_FLOW_SELECTED)).isEqualTo(planFlowSelected);
-                    }
-                    if (apiFlowSelected != null) {
-                        assertThat(response.getHeader(API_FLOW_SELECTED)).isEqualTo(apiFlowSelected);
-                    }
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValue(response -> {
-                    final JsonObject jsonResponse = new JsonObject(response.toString());
-                    final JsonArray items = jsonResponse.getJsonArray("items");
-                    assertThat(items).hasSize(1);
-                    final JsonObject message = items.getJsonObject(0);
-                    assertThat(message.getString("content")).isEqualTo("Mock data");
-                    return true;
-                })
-                .assertComplete();
+        void should_use_best_matching_flow(
+                String path, String planFlowSelected, String apiFlowSelected, HttpClient client) {
+            client.rxRequest(HttpMethod.GET, "/test" + path)
+                    .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON)
+                            .rxSend())
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        if (planFlowSelected != null) {
+                            assertThat(response.getHeader(PLAN_FLOW_SELECTED)).isEqualTo(planFlowSelected);
+                        }
+                        if (apiFlowSelected != null) {
+                            assertThat(response.getHeader(API_FLOW_SELECTED)).isEqualTo(apiFlowSelected);
+                        }
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertValue(response -> {
+                        final JsonObject jsonResponse = new JsonObject(response.toString());
+                        final JsonArray items = jsonResponse.getJsonArray("items");
+                        assertThat(items).hasSize(1);
+                        final JsonObject message = items.getJsonObject(0);
+                        assertThat(message.getString("content")).isEqualTo("Mock data");
+                        return true;
+                    })
+                    .assertComplete();
         }
     }
 
@@ -146,23 +149,19 @@ public class BestMatchIntegrationTest {
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
                 final io.gravitee.definition.model.v4.Api definition = (Api) api.getDefinition();
-                definition
-                    .getFlows()
-                    .stream()
-                    .flatMap(flow -> flow.selectorByType(SelectorType.CHANNEL).stream())
-                    .forEach(selector -> {
-                        ChannelSelector channelSelector = (ChannelSelector) selector;
-                        channelSelector.setChannelOperator(Operator.EQUALS);
-                    });
-                definition
-                    .getPlans()
-                    .stream()
-                    .flatMap(plan -> plan.getFlows().stream())
-                    .flatMap(flow -> flow.selectorByType(SelectorType.CHANNEL).stream())
-                    .forEach(selector -> {
-                        ChannelSelector channelSelector = (ChannelSelector) selector;
-                        channelSelector.setChannelOperator(Operator.EQUALS);
-                    });
+                definition.getFlows().stream()
+                        .flatMap(flow -> flow.selectorByType(SelectorType.CHANNEL).stream())
+                        .forEach(selector -> {
+                            ChannelSelector channelSelector = (ChannelSelector) selector;
+                            channelSelector.setChannelOperator(Operator.EQUALS);
+                        });
+                definition.getPlans().stream()
+                        .flatMap(plan -> plan.getFlows().stream())
+                        .flatMap(flow -> flow.selectorByType(SelectorType.CHANNEL).stream())
+                        .forEach(selector -> {
+                            ChannelSelector channelSelector = (ChannelSelector) selector;
+                            channelSelector.setChannelOperator(Operator.EQUALS);
+                        });
             }
         }
 
@@ -171,44 +170,44 @@ public class BestMatchIntegrationTest {
          */
         Stream<Arguments> provideParameters() {
             return Stream.of(
-                Arguments.of("/books", "/books", "/books"),
-                Arguments.of("/books", "/books", "/books"),
-                Arguments.of("/books/145/chapters/12", null, "/books/:bookId/chapters/:chapterId"),
-                Arguments.of("/books/9999/chapters", null, "/books/9999/chapters"),
-                Arguments.of("/books/9999/chapters/random", null, "/books/:bookId/chapters/:chapterId"),
-                Arguments.of("/random", null, null),
-                Arguments.of("/", "/", null),
-                Arguments.of("/books/145", "/books/:bookId", null)
-            );
+                    Arguments.of("/books", "/books", "/books"),
+                    Arguments.of("/books", "/books", "/books"),
+                    Arguments.of("/books/145/chapters/12", null, "/books/:bookId/chapters/:chapterId"),
+                    Arguments.of("/books/9999/chapters", null, "/books/9999/chapters"),
+                    Arguments.of("/books/9999/chapters/random", null, "/books/:bookId/chapters/:chapterId"),
+                    Arguments.of("/random", null, null),
+                    Arguments.of("/", "/", null),
+                    Arguments.of("/books/145", "/books/:bookId", null));
         }
 
         @ParameterizedTest
         @MethodSource("provideParameters")
-        void should_use_best_matching_flow(String path, String planFlowSelected, String apiFlowSelected, HttpClient client) {
-            client
-                .rxRequest(HttpMethod.GET, "/test" + path)
-                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    if (planFlowSelected != null) {
-                        assertThat(response.getHeader(PLAN_FLOW_SELECTED)).isEqualTo(planFlowSelected);
-                    }
-                    if (apiFlowSelected != null) {
-                        assertThat(response.getHeader(API_FLOW_SELECTED)).isEqualTo(apiFlowSelected);
-                    }
-                    return response.body();
-                })
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValue(response -> {
-                    final JsonObject jsonResponse = new JsonObject(response.toString());
-                    final JsonArray items = jsonResponse.getJsonArray("items");
-                    assertThat(items).hasSize(1);
-                    final JsonObject message = items.getJsonObject(0);
-                    assertThat(message.getString("content")).isEqualTo("Mock data");
-                    return true;
-                })
-                .assertComplete();
+        void should_use_best_matching_flow(
+                String path, String planFlowSelected, String apiFlowSelected, HttpClient client) {
+            client.rxRequest(HttpMethod.GET, "/test" + path)
+                    .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON)
+                            .rxSend())
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        if (planFlowSelected != null) {
+                            assertThat(response.getHeader(PLAN_FLOW_SELECTED)).isEqualTo(planFlowSelected);
+                        }
+                        if (apiFlowSelected != null) {
+                            assertThat(response.getHeader(API_FLOW_SELECTED)).isEqualTo(apiFlowSelected);
+                        }
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertValue(response -> {
+                        final JsonObject jsonResponse = new JsonObject(response.toString());
+                        final JsonArray items = jsonResponse.getJsonArray("items");
+                        assertThat(items).hasSize(1);
+                        final JsonObject message = items.getJsonObject(0);
+                        assertThat(message.getString("content")).isEqualTo("Mock data");
+                        return true;
+                    })
+                    .assertComplete();
         }
     }
 }

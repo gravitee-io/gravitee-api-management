@@ -48,7 +48,9 @@ public class PlanService {
 
     public void register(final ApiProductReactorDeployable apiProductReactorDeployable) {
         if (apiProductReactorDeployable != null && apiProductReactorDeployable.apiProductId() != null) {
-            plansPerApiProduct.put(apiProductReactorDeployable.apiProductId(), Set.copyOf(apiProductReactorDeployable.subscribablePlans()));
+            plansPerApiProduct.put(
+                    apiProductReactorDeployable.apiProductId(),
+                    Set.copyOf(apiProductReactorDeployable.subscribablePlans()));
         }
     }
 
@@ -65,17 +67,20 @@ public class PlanService {
     /**
      * Check if a plan is deployed for the given reference (API or API Product).
      */
-    public boolean isDeployed(final String referenceId, final String planId, final Plan.PlanReferenceType referenceType) {
+    public boolean isDeployed(
+            final String referenceId, final String planId, final Plan.PlanReferenceType referenceType) {
         if (referenceId == null || planId == null || referenceType == null) {
             return false;
         }
         return switch (referenceType) {
-            case API -> Optional.ofNullable(plansPerApi.get(referenceId))
-                .map(plans -> plans.contains(planId))
-                .orElse(false);
-            case API_PRODUCT -> Optional.ofNullable(plansPerApiProduct.get(referenceId))
-                .map(plans -> plans.contains(planId))
-                .orElse(false);
+            case API ->
+                Optional.ofNullable(plansPerApi.get(referenceId))
+                        .map(plans -> plans.contains(planId))
+                        .orElse(false);
+            case API_PRODUCT ->
+                Optional.ofNullable(plansPerApiProduct.get(referenceId))
+                        .map(plans -> plans.contains(planId))
+                        .orElse(false);
         };
     }
 }

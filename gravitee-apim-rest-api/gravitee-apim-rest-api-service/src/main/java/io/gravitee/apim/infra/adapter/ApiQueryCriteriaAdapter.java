@@ -16,14 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api.model.ApiQueryCriteria;
-import io.gravitee.apim.core.api.model.ApiSearchCriteria;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiQuery;
-import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

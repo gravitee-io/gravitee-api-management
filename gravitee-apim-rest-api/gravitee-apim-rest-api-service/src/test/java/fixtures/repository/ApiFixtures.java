@@ -31,14 +31,14 @@ public class ApiFixtures {
 
     private static Api.ApiBuilder baseBuilder() {
         return Api.builder()
-            .id("api-id")
-            .name("api-name")
-            .description("api-description")
-            .version("api-version")
-            .definitionVersion(DefinitionVersion.V4)
-            .createdAt(java.sql.Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .updatedAt(java.sql.Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-            .deployedAt(java.sql.Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
+                .id("api-id")
+                .name("api-name")
+                .description("api-description")
+                .version("api-version")
+                .definitionVersion(DefinitionVersion.V4)
+                .createdAt(java.sql.Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .updatedAt(java.sql.Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                .deployedAt(java.sql.Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
     }
 
     public static Api anApi() {
@@ -48,18 +48,18 @@ public class ApiFixtures {
     @SneakyThrows
     public static Api aV2Api() {
         return baseBuilder()
-            .definitionVersion(DefinitionVersion.V2)
-            .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV2()))
-            .build();
+                .definitionVersion(DefinitionVersion.V2)
+                .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV2()))
+                .build();
     }
 
     @SneakyThrows
     public static Api aV4Api() {
         return baseBuilder()
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV4()))
-            .build();
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV4()))
+                .build();
     }
 
     @SneakyThrows

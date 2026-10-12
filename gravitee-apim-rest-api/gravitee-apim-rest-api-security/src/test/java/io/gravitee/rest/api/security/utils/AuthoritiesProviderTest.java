@@ -86,19 +86,18 @@ public class AuthoritiesProviderTest {
         mgtRole2.setName("MGT_ROLE2");
         mgtRole2.setScope(RoleScope.ORGANIZATION);
 
-        when(
-            membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT_ID, MembershipMemberType.USER, USER_ID)
-        ).thenReturn(new HashSet<>(asList(portalRole)));
-        when(
-            membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION_ID, MembershipMemberType.USER, USER_ID)
-        ).thenReturn(new HashSet<>(asList(mgtRole1, mgtRole2)));
+        when(membershipService.getRoles(
+                        MembershipReferenceType.ENVIRONMENT, ENVIRONMENT_ID, MembershipMemberType.USER, USER_ID))
+                .thenReturn(new HashSet<>(asList(portalRole)));
+        when(membershipService.getRoles(
+                        MembershipReferenceType.ORGANIZATION, ORGANIZATION_ID, MembershipMemberType.USER, USER_ID))
+                .thenReturn(new HashSet<>(asList(mgtRole1, mgtRole2)));
 
         final Set<GrantedAuthority> grantedAuthorities = cut.retrieveAuthorities(USER_ID);
 
         assertEquals(3, grantedAuthorities.size());
         final List<GrantedAuthority> expected = AuthorityUtils.commaSeparatedStringToAuthorityList(
-            "ENVIRONMENT:PORTAL_ROLE,ORGANIZATION:MGT_ROLE1,ORGANIZATION:MGT_ROLE2"
-        );
+                "ENVIRONMENT:PORTAL_ROLE,ORGANIZATION:MGT_ROLE1,ORGANIZATION:MGT_ROLE2");
         assertTrue(grantedAuthorities.containsAll(expected));
     }
 }

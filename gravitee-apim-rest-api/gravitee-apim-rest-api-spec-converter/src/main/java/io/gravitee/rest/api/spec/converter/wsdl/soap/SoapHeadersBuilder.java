@@ -42,7 +42,8 @@ public class SoapHeadersBuilder extends AbstractSoapBuilder {
     @Override
     public XmlCursor build() {
         if (version.hasHeadersElement(bindingOperation.getBindingInput().getExtensibilityElements())) {
-            List<HeaderDef> headers = version.extractHeaderParts(bindingOperation.getBindingInput().getExtensibilityElements());
+            List<HeaderDef> headers = version.extractHeaderParts(
+                    bindingOperation.getBindingInput().getExtensibilityElements());
             for (HeaderDef header : headers) {
                 generateHeader(header);
             }

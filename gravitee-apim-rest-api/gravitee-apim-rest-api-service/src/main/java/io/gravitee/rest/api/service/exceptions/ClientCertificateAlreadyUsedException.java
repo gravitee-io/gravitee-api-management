@@ -39,7 +39,8 @@ public class ClientCertificateAlreadyUsedException extends AbstractManagementExc
 
     @Override
     public String getMessage() {
-        return "Client certificate with fingerprint [" + fingerprint + "] is already used by another active application.";
+        return "Client certificate with fingerprint [" + fingerprint
+                + "] is already used by another active application.";
     }
 
     @Override

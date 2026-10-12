@@ -39,93 +39,89 @@ import lombok.NoArgsConstructor;
 public class HookHelper {
 
     public static <T extends HttpHook> Completable hook(
-        final Supplier<Completable> completableSupplier,
-        final String componentId,
-        final List<T> hooks,
-        final HttpExecutionContext ctx,
-        final ExecutionPhase executionPhase
-    ) {
+            final Supplier<Completable> completableSupplier,
+            final String componentId,
+            final List<T> hooks,
+            final HttpExecutionContext ctx,
+            final ExecutionPhase executionPhase) {
         if (hooks != null && !hooks.isEmpty()) {
             return executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null)
-                .andThen(
-                    Completable.defer(() -> {
-                        if (executionPhase == ExecutionPhase.MESSAGE_REQUEST || executionPhase == ExecutionPhase.MESSAGE_RESPONSE) {
+                    .andThen(Completable.defer(() -> {
+                        if (executionPhase == ExecutionPhase.MESSAGE_REQUEST
+                                || executionPhase == ExecutionPhase.MESSAGE_RESPONSE) {
                             return MessageHookHelper.hook(completableSupplier, componentId, hooks, ctx, executionPhase);
                         }
                         return completableSupplier.get();
-                    })
-                )
-                .andThen(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null))
-                .onErrorResumeNext(throwable ->
-                    executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Completable.error(throwable))
-                )
-                .doOnDispose(() ->
-                    executeHooks(componentId, hooks, HookPhase.CANCEL, ctx, executionPhase, null, null)
-                        // In case of cancel phase, there is nothing to subscribe to.
-                        .subscribe()
-                );
+                    }))
+                    .andThen(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null))
+                    .onErrorResumeNext(
+                            throwable -> executeHookOnError(componentId, hooks, ctx, executionPhase, throwable)
+                                    .andThen(Completable.error(throwable)))
+                    .doOnDispose(
+                            () -> executeHooks(componentId, hooks, HookPhase.CANCEL, ctx, executionPhase, null, null)
+                                    // In case of cancel phase, there is nothing to subscribe to.
+                                    .subscribe());
         } else {
             return completableSupplier.get();
         }
     }
 
     public static <T> Maybe<T> hookMaybe(
-        final Supplier<Maybe<T>> maybeSupplier,
-        final String componentId,
-        final List<PolicyMessageHook> hooks,
-        final HttpExecutionContext ctx,
-        final ExecutionPhase executionPhase
-    ) {
+            final Supplier<Maybe<T>> maybeSupplier,
+            final String componentId,
+            final List<PolicyMessageHook> hooks,
+            final HttpExecutionContext ctx,
+            final ExecutionPhase executionPhase) {
         if (hooks != null && !hooks.isEmpty()) {
             return executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, null, null)
-                .andThen(Maybe.defer(maybeSupplier::get))
-                .switchIfEmpty(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).toMaybe())
-                .concatMap(t -> executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null).andThen(Maybe.just(t)))
-                .onErrorResumeNext(throwable ->
-                    executeHookOnError(componentId, hooks, ctx, executionPhase, throwable).andThen(Maybe.error(throwable))
-                )
-                .doOnDispose(() -> executeHooks(componentId, hooks, HookPhase.CANCEL, ctx, executionPhase, null, null).subscribe());
+                    .andThen(Maybe.defer(maybeSupplier::get))
+                    .switchIfEmpty(executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null)
+                            .toMaybe())
+                    .concatMap(t -> executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, null, null)
+                            .andThen(Maybe.just(t)))
+                    .onErrorResumeNext(
+                            throwable -> executeHookOnError(componentId, hooks, ctx, executionPhase, throwable)
+                                    .andThen(Maybe.error(throwable)))
+                    .doOnDispose(
+                            () -> executeHooks(componentId, hooks, HookPhase.CANCEL, ctx, executionPhase, null, null)
+                                    .subscribe());
         } else {
             return maybeSupplier.get();
         }
     }
 
     private static <T extends HttpHook> Completable executeHookOnError(
-        final String componentId,
-        final List<T> hooks,
-        final HttpExecutionContext ctx,
-        final ExecutionPhase executionPhase,
-        final Throwable throwable
-    ) {
+            final String componentId,
+            final List<T> hooks,
+            final HttpExecutionContext ctx,
+            final ExecutionPhase executionPhase,
+            final Throwable throwable) {
         if (InterruptionHelper.isInterruption(throwable)) {
             return executeHooks(componentId, hooks, HookPhase.INTERRUPT, ctx, executionPhase, throwable, null);
         } else if (InterruptionHelper.isInterruptionWithFailure(throwable)) {
             return executeHooks(
-                componentId,
-                hooks,
-                HookPhase.INTERRUPT_WITH,
-                ctx,
-                executionPhase,
-                throwable,
-                InterruptionHelper.extractExecutionFailure(throwable)
-            );
+                    componentId,
+                    hooks,
+                    HookPhase.INTERRUPT_WITH,
+                    ctx,
+                    executionPhase,
+                    throwable,
+                    InterruptionHelper.extractExecutionFailure(throwable));
         } else {
             return executeHooks(componentId, hooks, HookPhase.ERROR, ctx, executionPhase, throwable, null);
         }
     }
 
     private static <T extends HttpHook> Completable executeHooks(
-        final String componentId,
-        final List<T> hooks,
-        final HookPhase phase,
-        final HttpExecutionContext ctx,
-        final ExecutionPhase executionPhase,
-        final Throwable throwable,
-        final ExecutionFailure executionFailure
-    ) {
+            final String componentId,
+            final List<T> hooks,
+            final HookPhase phase,
+            final HttpExecutionContext ctx,
+            final ExecutionPhase executionPhase,
+            final Throwable throwable,
+            final ExecutionFailure executionFailure) {
         return Flowable.fromIterable(hooks)
-            .concatMapCompletable(hook ->
-                switch (phase) {
+                .concatMapCompletable(hook -> switch (phase) {
                     case PRE -> hook.pre(componentId, ctx, executionPhase);
                     case POST -> hook.post(componentId, ctx, executionPhase);
                     case INTERRUPT -> hook.interrupt(componentId, ctx, executionPhase);
@@ -135,9 +131,9 @@ public class HookHelper {
                         hook.cancel(componentId, ctx, executionPhase);
                         yield Completable.complete();
                     }
-                }
-            )
-            .doOnError(error -> ctx.withLogger(log).warn("Unable to execute '{}' hook on '{}'", phase.name(), componentId, error))
-            .onErrorComplete();
+                })
+                .doOnError(error -> ctx.withLogger(log)
+                        .warn("Unable to execute '{}' hook on '{}'", phase.name(), componentId, error))
+                .onErrorComplete();
     }
 }

@@ -51,14 +51,13 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
         Dictionary existing = dictionaries.get(environmentId).get(key);
         if (existing != null && !Objects.equals(existing.getId(), dictionary.getId())) {
             log.error(
-                "Dictionary {} (name={}) collides on runtime key '{}' in environment {} with existing dictionary {} (name={}). Incoming deploy is rejected; occupant is kept",
-                dictionary.getId(),
-                dictionary.getName(),
-                key,
-                environmentId,
-                existing.getId(),
-                existing.getName()
-            );
+                    "Dictionary {} (name={}) collides on runtime key '{}' in environment {} with existing dictionary {} (name={}). Incoming deploy is rejected; occupant is kept",
+                    dictionary.getId(),
+                    dictionary.getName(),
+                    key,
+                    environmentId,
+                    existing.getId(),
+                    existing.getName());
             return;
         }
         if (existing == null || dictionary.getDeployedAt().after(existing.getDeployedAt())) {
@@ -70,7 +69,8 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
             log.info("Dictionary {} has been deployed with {} properties", dictionary, propertyCount);
             dictionaries.get(environmentId).put(key, dictionary);
             Map<String, String> flattenedProperties = new HashMap<>((propertyCount * 4) / 3 + 1);
-            for (Map.Entry<String, DictionaryProperty> entry : dictionary.getProperties().entrySet()) {
+            for (Map.Entry<String, DictionaryProperty> entry :
+                    dictionary.getProperties().entrySet()) {
                 DictionaryProperty property = entry.getValue();
                 if (property != null && property.value() != null) {
                     flattenedProperties.put(entry.getKey(), decryptOrKeep(dictionary, entry.getKey(), property));
@@ -91,7 +91,11 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
         try {
             return dataEncryptor.decrypt(property.value());
         } catch (GeneralSecurityException | RuntimeException e) {
-            log.error("Error decrypting dictionary property value for key {} on dictionary {}", key, dictionary.getId(), e);
+            log.error(
+                    "Error decrypting dictionary property value for key {} on dictionary {}",
+                    key,
+                    dictionary.getId(),
+                    e);
             return property.value();
         }
     }
@@ -108,11 +112,10 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
             }
             if (!Objects.equals(occupant.getId(), dictionary.getId())) {
                 log.debug(
-                    "Dictionary {} was requested for undeploy but runtime key '{}' is occupied by dictionary {} — ignoring",
-                    dictionary.getId(),
-                    key,
-                    occupant.getId()
-                );
+                        "Dictionary {} was requested for undeploy but runtime key '{}' is occupied by dictionary {} — ignoring",
+                        dictionary.getId(),
+                        key,
+                        occupant.getId());
                 return;
             }
 

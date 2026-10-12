@@ -49,18 +49,14 @@ class CorsValidationServiceImplTest {
 
     private static Stream<Arguments> invalidCorsOrigins() {
         return Stream.of(
-            Arguments.of(
-                Set.of(
-                    "http://example.com",
-                    "localhost", // Not allowed
-                    "https://10.140.238.25:8080",
-                    "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}",
-                    ".*.company.com"
-                )
-            ),
-            Arguments.of(Set.of("a{")),
-            Arguments.of(Set.of("$some_env_var2"))
-        );
+                Arguments.of(Set.of(
+                        "http://example.com",
+                        "localhost", // Not allowed
+                        "https://10.140.238.25:8080",
+                        "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}",
+                        ".*.company.com")),
+                Arguments.of(Set.of("a{")),
+                Arguments.of(Set.of("$some_env_var2")));
     }
 
     @ParameterizedTest

@@ -28,9 +28,9 @@ public class AutoFetchIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("pages")
-            .name("u1")
-            .key("useAutoFetch", ascending())
-            .build();
+                .collection("pages")
+                .name("u1")
+                .key("useAutoFetch", ascending())
+                .build();
     }
 }

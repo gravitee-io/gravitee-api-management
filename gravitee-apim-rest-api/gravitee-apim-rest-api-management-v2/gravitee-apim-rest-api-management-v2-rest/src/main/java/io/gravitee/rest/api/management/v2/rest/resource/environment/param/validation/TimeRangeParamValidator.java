@@ -24,7 +24,8 @@ public class TimeRangeParamValidator implements ConstraintValidator<TimeRangePar
     public boolean isValid(TimeRange timeRange, ConstraintValidatorContext context) {
         if (timeRange.getFrom() != null && timeRange.getTo() != null && timeRange.getFrom() > timeRange.getTo()) {
             context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate("Invalid date order, 'from' must be before 'to'").addConstraintViolation();
+            context.buildConstraintViolationWithTemplate("Invalid date order, 'from' must be before 'to'")
+                    .addConstraintViolation();
             return false;
         }
 

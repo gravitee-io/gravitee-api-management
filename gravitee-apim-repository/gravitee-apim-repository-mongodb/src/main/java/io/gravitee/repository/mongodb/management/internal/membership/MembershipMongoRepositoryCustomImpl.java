@@ -31,7 +31,8 @@ public class MembershipMongoRepositoryCustomImpl implements MembershipMongoRepos
     }
 
     @Override
-    public Stream<String> findRefIdsByMemberIdAndMemberTypeAndReferenceType(String memberId, String memberType, String referenceType) {
+    public Stream<String> findRefIdsByMemberIdAndMemberTypeAndReferenceType(
+            String memberId, String memberType, String referenceType) {
         Query query = new Query();
         query.fields().include("referenceId");
         query.addCriteria(where("memberId").is(memberId));

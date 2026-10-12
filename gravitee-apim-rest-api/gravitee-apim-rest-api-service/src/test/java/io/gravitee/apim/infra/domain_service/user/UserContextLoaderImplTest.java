@@ -87,7 +87,8 @@ class UserContextLoaderImplTest {
 
     private static final String NON_ADMIN_USER_ID = UUID.randomUUID().toString();
     private static final List<Api> NON_ADMIN_APIS = List.of(API_2);
-    private static final Set<String> NON_ADMIN_API_IDS = NON_ADMIN_APIS.stream().map(Api::getId).collect(Collectors.toSet());
+    private static final Set<String> NON_ADMIN_API_IDS =
+            NON_ADMIN_APIS.stream().map(Api::getId).collect(Collectors.toSet());
     private AuditInfo auditInfo;
 
     @BeforeEach
@@ -97,7 +98,11 @@ class UserContextLoaderImplTest {
 
     private AuditInfo auditInfo(String userId) {
         var actor = AuditActor.builder().userId(userId).build();
-        return AuditInfo.builder().organizationId("DEFAULT").environmentId("DEFAULT").actor(actor).build();
+        return AuditInfo.builder()
+                .organizationId("DEFAULT")
+                .environmentId("DEFAULT")
+                .actor(actor)
+                .build();
     }
 
     /**
@@ -113,9 +118,9 @@ class UserContextLoaderImplTest {
         void setup() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ)))
+                    .thenReturn(true);
         }
 
         @Test
@@ -125,8 +130,8 @@ class UserContextLoaderImplTest {
             var context = userContextLoader.loadApis(new UserContext(auditInfo));
 
             assertThat(context.apis().orElseThrow())
-                .extracting(io.gravitee.apim.core.api.model.Api::getId)
-                .containsExactlyInAnyOrder("id1", "id2", "id3");
+                    .extracting(io.gravitee.apim.core.api.model.Api::getId)
+                    .containsExactlyInAnyOrder("id1", "id2", "id3");
             verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         }
     }
@@ -166,8 +171,14 @@ class UserContextLoaderImplTest {
             // Then
             assertThat(context.apis()).isPresent().hasValue(ApiMapper.INSTANCE.map(ALL_APIS));
             assertThat(context.apiNameById())
-                .isPresent()
-                .hasValue(Map.of(API_1.getId(), API_1.getName(), API_2.getId(), API_2.getName(), API_3.getId(), API_3.getName()));
+                    .isPresent()
+                    .hasValue(Map.of(
+                            API_1.getId(),
+                            API_1.getName(),
+                            API_2.getId(),
+                            API_2.getName(),
+                            API_3.getId(),
+                            API_3.getName()));
             verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         }
 
@@ -198,7 +209,8 @@ class UserContextLoaderImplTest {
         @Test
         void should_load_context_with_authorized_apis() {
             // Given
-            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
+            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean()))
+                    .thenReturn(NON_ADMIN_API_IDS);
             when(apiRepository.search(any(), any())).thenReturn(NON_ADMIN_APIS);
 
             // When
@@ -216,7 +228,8 @@ class UserContextLoaderImplTest {
         @Test
         void should_return_empty_list_when_no_apis_are_authorized() {
             // Given
-            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(Collections.emptySet());
+            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean()))
+                    .thenReturn(Collections.emptySet());
 
             // When
             var context = userContextLoader.loadApis(new UserContext(auditInfo));
@@ -255,7 +268,8 @@ class UserContextLoaderImplTest {
         void should_keep_the_membership_check_for_a_non_admin() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
+            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean()))
+                    .thenReturn(NON_ADMIN_API_IDS);
             when(apiRepository.search(any(), any())).thenReturn(List.of(API_2));
 
             var context = userContextLoader.loadApi(new UserContext(auditInfo), API_2.getId());
@@ -268,7 +282,8 @@ class UserContextLoaderImplTest {
         void should_yield_nothing_when_a_non_admin_is_not_a_member_of_the_api() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
+            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean()))
+                    .thenReturn(NON_ADMIN_API_IDS);
 
             // API_1 exists in the environment but this user is not a member: narrowing the query by id
             // must not become "anything in the environment".
@@ -288,9 +303,9 @@ class UserContextLoaderImplTest {
         void should_serve_a_reader_whose_access_comes_from_the_environment_role() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
-            when(
-                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
-            ).thenReturn(true);
+            when(permissionService.hasPermission(
+                            any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ)))
+                    .thenReturn(true);
             when(apiRepository.search(any(), any())).thenReturn(List.of(API_1));
 
             var context = userContextLoader.loadApi(new UserContext(auditInfo), API_1.getId());

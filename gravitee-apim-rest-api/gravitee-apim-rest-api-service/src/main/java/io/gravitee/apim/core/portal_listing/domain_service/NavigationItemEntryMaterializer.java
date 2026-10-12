@@ -63,21 +63,21 @@ class NavigationItemEntryMaterializer {
             applyUpdate(navApi, apiId, entry, parent, title, visibility);
             return (PortalNavigationApi) navigationItemCrudService.update(navApi);
         }
-        rejectIfSegmentTakenByForeignItem(auditInfo, parent, Slug.from(entry.apiHrid()).value(), navApiId, entry.location());
+        rejectIfSegmentTakenByForeignItem(
+                auditInfo, parent, Slug.from(entry.apiHrid()).value(), navApiId, entry.location());
         var create = CreatePortalNavigationItem.builder()
-            .id(navApiId)
-            .title(title)
-            .segment(Slug.from(entry.apiHrid()).value())
-            .area(AREA)
-            .type(PortalNavigationItemType.API)
-            .order(entry.order() != null ? entry.order() : 0)
-            .apiId(apiId)
-            .visibility(visibility)
-            .published(true)
-            .build();
+                .id(navApiId)
+                .title(title)
+                .segment(Slug.from(entry.apiHrid()).value())
+                .area(AREA)
+                .type(PortalNavigationItemType.API)
+                .order(entry.order() != null ? entry.order() : 0)
+                .apiId(apiId)
+                .visibility(visibility)
+                .published(true)
+                .build();
         return (PortalNavigationApi) navigationItemCrudService.create(
-            PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent)
-        );
+                PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent));
     }
 
     void dematerialize(AuditInfo auditInfo, PortalId portalId, String apiId) {
@@ -93,77 +93,74 @@ class NavigationItemEntryMaterializer {
     }
 
     PortalNavigationValidator.PendingUpdate updateForValidation(
-        AuditInfo auditInfo,
-        PortalId portalId,
-        PortalListingApiEntry entry,
-        PortalNavigationApi existing
-    ) {
+            AuditInfo auditInfo, PortalId portalId, PortalListingApiEntry entry, PortalNavigationApi existing) {
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
         var visibility = PortalVisibility.resolve(entry.visibility(), parent == null ? null : parent.getVisibility());
         var toUpdate = UpdatePortalNavigationItem.builder()
-            .type(PortalNavigationItemType.API)
-            .title(entry.apiHrid())
-            .segment(Slug.from(entry.apiHrid()).value())
-            .order(entry.order() != null ? entry.order() : 0)
-            .parentId(parent != null ? parent.getId() : null)
-            .visibility(visibility)
-            .published(true)
-            .build();
+                .type(PortalNavigationItemType.API)
+                .title(entry.apiHrid())
+                .segment(Slug.from(entry.apiHrid()).value())
+                .order(entry.order() != null ? entry.order() : 0)
+                .parentId(parent != null ? parent.getId() : null)
+                .visibility(visibility)
+                .published(true)
+                .build();
         return new PortalNavigationValidator.PendingUpdate(toUpdate, existing);
     }
 
-    CreatePortalNavigationItem itemForValidation(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
+    CreatePortalNavigationItem itemForValidation(
+            AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
         var visibility = PortalVisibility.resolve(entry.visibility(), parent == null ? null : parent.getVisibility());
         return CreatePortalNavigationItem.builder()
-            .id(rowId(auditInfo, portalId, apiId))
-            .title(entry.apiHrid())
-            .segment(Slug.from(entry.apiHrid()).value())
-            .area(AREA)
-            .type(PortalNavigationItemType.API)
-            .order(entry.order() != null ? entry.order() : 0)
-            .apiId(apiId)
-            .parentId(parent != null ? parent.getId() : null)
-            .visibility(visibility)
-            .published(true)
-            .automationMetadata(portalAutomationMetadata(portalId, entry.location()))
-            .build();
+                .id(rowId(auditInfo, portalId, apiId))
+                .title(entry.apiHrid())
+                .segment(Slug.from(entry.apiHrid()).value())
+                .area(AREA)
+                .type(PortalNavigationItemType.API)
+                .order(entry.order() != null ? entry.order() : 0)
+                .apiId(apiId)
+                .parentId(parent != null ? parent.getId() : null)
+                .visibility(visibility)
+                .published(true)
+                .automationMetadata(portalAutomationMetadata(portalId, entry.location()))
+                .build();
     }
 
     private void rejectIfSegmentTakenByForeignItem(
-        AuditInfo auditInfo,
-        PortalNavigationItemContainer parent,
-        String segment,
-        PortalNavigationItemId expectedId,
-        String location
-    ) {
-        var parentId = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
+            AuditInfo auditInfo,
+            PortalNavigationItemContainer parent,
+            String segment,
+            PortalNavigationItemId expectedId,
+            String location) {
+        var parentId = Optional.ofNullable(parent)
+                .map(PortalNavigationItemContainer::getId)
+                .orElse(null);
         navigationItemsQueryService
-            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment, NavigationItemReference.defaultReference())
-            .filter(sibling -> !sibling.getId().equals(expectedId))
-            .ifPresent(squatter -> {
-                throw PathConflictException.segmentTaken(PathConflictException.EntryKind.LISTING, location);
-            });
+                .findByParentIdAndSegment(
+                        auditInfo.environmentId(), parentId, segment, NavigationItemReference.defaultReference())
+                .filter(sibling -> !sibling.getId().equals(expectedId))
+                .ifPresent(squatter -> {
+                    throw PathConflictException.segmentTaken(PathConflictException.EntryKind.LISTING, location);
+                });
     }
 
     private static AutomationMetadata portalAutomationMetadata(PortalId portalId, String location) {
         return new AutomationMetadata(
-            AutomationMetadata.ReferenceType.PORTAL,
-            portalId.toString(),
-            null,
-            Optional.ofNullable(location),
-            Optional.empty()
-        );
+                AutomationMetadata.ReferenceType.PORTAL,
+                portalId.toString(),
+                null,
+                Optional.ofNullable(location),
+                Optional.empty());
     }
 
     private static void applyUpdate(
-        PortalNavigationApi navApi,
-        String apiId,
-        PortalListingApiEntry entry,
-        PortalNavigationItemContainer parent,
-        String title,
-        PortalVisibility visibility
-    ) {
+            PortalNavigationApi navApi,
+            String apiId,
+            PortalListingApiEntry entry,
+            PortalNavigationItemContainer parent,
+            String title,
+            PortalVisibility visibility) {
         navApi.setApiId(apiId);
         navApi.setOrder(entry.order() != null ? entry.order() : 0);
         navApi.setTitle(title);

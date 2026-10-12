@@ -28,6 +28,7 @@ public interface InstallationAccessQueryService {
     public static final String DEFAULT_CONSOLE_URL = "http://localhost:4000";
     public static final String DEFAULT_PORTAL_URL = "http://localhost:4100";
     public static final String DEFAULT_GAMMA_URL = "http://localhost:4200";
+
     String getConsoleApiPath();
 
     String getPortalApiPath();

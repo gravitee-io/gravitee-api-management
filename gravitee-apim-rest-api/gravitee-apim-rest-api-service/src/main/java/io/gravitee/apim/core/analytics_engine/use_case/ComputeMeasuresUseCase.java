@@ -53,12 +53,11 @@ public class ComputeMeasuresUseCase {
     private final AnalyticsQueryContextLoaderResolver contextLoader;
 
     public ComputeMeasuresUseCase(
-        AnalyticsQueryContextProvider queryContextResolver,
-        AnalyticsQueryValidator validator,
-        List<QueryFilterTransformer> filterTransformers,
-        UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
-        AnalyticsQueryContextLoaderResolver contextLoader
-    ) {
+            AnalyticsQueryContextProvider queryContextResolver,
+            AnalyticsQueryValidator validator,
+            List<QueryFilterTransformer> filterTransformers,
+            UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
+            AnalyticsQueryContextLoaderResolver contextLoader) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
         this.filterTransformers = filterTransformers;
@@ -84,40 +83,37 @@ public class ComputeMeasuresUseCase {
      */
     public Output executeForApis(AuditInfo auditInfo, MeasuresRequest request, Set<String> authorizedApiIds) {
         return compute(
-            new AnalyticsQueryContext(
-                auditInfo,
-                new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
-                authorizedApiIds,
-                Map.of(),
-                Map.of(),
-                Map.of()
-            ),
-            request
-        );
+                new AnalyticsQueryContext(
+                        auditInfo,
+                        new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
+                        authorizedApiIds,
+                        Map.of(),
+                        Map.of(),
+                        Map.of()),
+                request);
     }
 
     private Output compute(AnalyticsQueryContext analyticsContext, MeasuresRequest request) {
         validator.validateMeasuresRequest(request);
-        var responses = executeQueries(analyticsContext.executionContext(), analyticsContext, queryContextProvider.resolve(request));
+        var responses = executeQueries(
+                analyticsContext.executionContext(), analyticsContext, queryContextProvider.resolve(request));
         return new Output(unitEnrichmentPostProcessor.enrichUnits(MeasuresResponse.merge(responses)));
     }
 
     private List<MeasuresResponse> executeQueries(
-        ExecutionContext executionContext,
-        AnalyticsQueryContext analyticsContext,
-        Map<AnalyticsEngineQueryService, MeasuresRequest> queryExecutions
-    ) {
+            ExecutionContext executionContext,
+            AnalyticsQueryContext analyticsContext,
+            Map<AnalyticsEngineQueryService, MeasuresRequest> queryExecutions) {
         var responses = new ArrayList<MeasuresResponse>();
 
         queryExecutions.forEach((queryService, request) -> {
             var filters = transformFilters(analyticsContext, request.filters());
-            var metrics = request
-                .metrics()
-                .stream()
-                .map(m -> transformMetricFilters(analyticsContext, m))
-                .toList();
+            var metrics = request.metrics().stream()
+                    .map(m -> transformMetricFilters(analyticsContext, m))
+                    .toList();
 
-            responses.add(queryService.searchMeasures(executionContext, new MeasuresRequest(request.timeRange(), filters, metrics)));
+            responses.add(queryService.searchMeasures(
+                    executionContext, new MeasuresRequest(request.timeRange(), filters, metrics)));
         });
 
         return responses;

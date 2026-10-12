@@ -35,21 +35,18 @@ public class AuthzEntityDeployer implements Deployer<AuthzEntityReactorDeployabl
         // Evict the dropped scopes (computed by the synchronizer) before re-staging the new targets.
         Set<String> removed = deployable.removedTargetPdpIds();
         Completable eviction = removed == null || removed.isEmpty()
-            ? Completable.complete()
-            : enginePort.removeEntity(deployable.environmentId(), deployable.engineUid(), removed);
-        return eviction
-            .andThen(
-                enginePort.addOrUpdateEntity(
-                    deployable.environmentId(),
-                    deployable.engineUid(),
-                    deployable.attributes(),
-                    deployable.parents(),
-                    deployable.targetPdpIds(),
-                    deployable.updatedAt()
-                )
-            )
-            .doOnComplete(() -> log.debug("Authz entity '{}' staged for next commit", deployable.entityId()))
-            .doOnError(e -> log.warn("Failed to stage authz entity '{}': {}", deployable.entityId(), e.getMessage()));
+                ? Completable.complete()
+                : enginePort.removeEntity(deployable.environmentId(), deployable.engineUid(), removed);
+        return eviction.andThen(enginePort.addOrUpdateEntity(
+                        deployable.environmentId(),
+                        deployable.engineUid(),
+                        deployable.attributes(),
+                        deployable.parents(),
+                        deployable.targetPdpIds(),
+                        deployable.updatedAt()))
+                .doOnComplete(() -> log.debug("Authz entity '{}' staged for next commit", deployable.entityId()))
+                .doOnError(
+                        e -> log.warn("Failed to stage authz entity '{}': {}", deployable.entityId(), e.getMessage()));
     }
 
     @Override
@@ -60,9 +57,11 @@ public class AuthzEntityDeployer implements Deployer<AuthzEntityReactorDeployabl
     @Override
     public Completable undeploy(AuthzEntityReactorDeployable deployable) {
         return enginePort
-            .removeEntity(deployable.environmentId(), deployable.engineUid(), deployable.targetPdpIds())
-            .doOnComplete(() -> log.debug("Authz entity '{}' staged for removal on next commit", deployable.entityId()))
-            .doOnError(e -> log.warn("Failed to stage authz entity '{}' removal: {}", deployable.entityId(), e.getMessage()));
+                .removeEntity(deployable.environmentId(), deployable.engineUid(), deployable.targetPdpIds())
+                .doOnComplete(
+                        () -> log.debug("Authz entity '{}' staged for removal on next commit", deployable.entityId()))
+                .doOnError(e -> log.warn(
+                        "Failed to stage authz entity '{}' removal: {}", deployable.entityId(), e.getMessage()));
     }
 
     @Override

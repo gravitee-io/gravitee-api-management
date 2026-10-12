@@ -53,10 +53,13 @@ class NoneBulkCompressorTest {
     @Test
     void should_compute_per_type() throws IOException {
         TransformedReport metricsType = new TransformedReport(Buffer.buffer("metrics"), Metrics.class);
-        TransformedReport messageMetricsType = new TransformedReport(Buffer.buffer("message_metrics"), MessageMetrics.class);
+        TransformedReport messageMetricsType =
+                new TransformedReport(Buffer.buffer("message_metrics"), MessageMetrics.class);
         final CompressedBulk expectedBody = cut.compress(List.of(metricsType, messageMetricsType));
         assertThat(expectedBody.countPerType()).hasSize(2);
         assertThat(expectedBody.countPerType()).extracting(metricsType.type()).isEqualTo(1);
-        assertThat(expectedBody.countPerType()).extracting(messageMetricsType.type()).isEqualTo(1);
+        assertThat(expectedBody.countPerType())
+                .extracting(messageMetricsType.type())
+                .isEqualTo(1);
     }
 }

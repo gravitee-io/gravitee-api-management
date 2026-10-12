@@ -36,16 +36,20 @@ public class NotFoundProcessor extends AbstractProcessor<ExecutionContext> {
 
     @Override
     public void handle(ExecutionContext context) {
-        log.warn("No handler can be found for request {}, returning NOT_FOUND (404)", context.request().path());
+        log.warn(
+                "No handler can be found for request {}, returning NOT_FOUND (404)",
+                context.request().path());
         // Send a NOT_FOUND HTTP status code (404)
         context.response().status(HttpStatusCode.NOT_FOUND_404);
 
-        String message = environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
+        String message =
+                environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
         context.response().headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(message.length()));
-        context
-            .response()
-            .headers()
-            .set(HttpHeaders.CONTENT_TYPE, environment.getProperty("http.errors[404].contentType", MediaType.TEXT_PLAIN));
+        context.response()
+                .headers()
+                .set(
+                        HttpHeaders.CONTENT_TYPE,
+                        environment.getProperty("http.errors[404].contentType", MediaType.TEXT_PLAIN));
         context.response().headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
         context.response().write(Buffer.buffer(message));
 

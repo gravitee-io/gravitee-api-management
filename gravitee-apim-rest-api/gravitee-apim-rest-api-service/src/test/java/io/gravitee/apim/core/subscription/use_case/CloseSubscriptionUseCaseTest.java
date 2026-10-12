@@ -90,7 +90,8 @@ class CloseSubscriptionUseCaseTest {
 
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
-    private final TriggerNotificationDomainServiceInMemory triggerNotificationService = new TriggerNotificationDomainServiceInMemory();
+    private final TriggerNotificationDomainServiceInMemory triggerNotificationService =
+            new TriggerNotificationDomainServiceInMemory();
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
@@ -106,70 +107,65 @@ class CloseSubscriptionUseCaseTest {
         UuidString.overrideGenerator(() -> "audit-id");
 
         var userCrudService = new UserCrudServiceInMemory();
-        var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
+        var auditDomainService =
+                new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
 
         var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
-            groupQueryService,
-            membershipQueryService,
-            roleQueryService,
-            userCrudService
-        );
+                groupQueryService, membershipQueryService, roleQueryService, userCrudService);
 
         var rejectSubscriptionDomainService = new RejectSubscriptionDomainService(
-            subscriptionCrudService,
-            auditDomainService,
-            new TriggerNotificationDomainServiceInMemory(),
-            userCrudService,
-            applicationPrimaryOwnerDomainService
-        );
+                subscriptionCrudService,
+                auditDomainService,
+                new TriggerNotificationDomainServiceInMemory(),
+                userCrudService,
+                applicationPrimaryOwnerDomainService);
         var revokeApiKeyDomainService = new RevokeApiKeyDomainService(
-            apiKeyCrudService,
-            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
-            subscriptionCrudService,
-            auditDomainService,
-            triggerNotificationService
-        );
+                apiKeyCrudService,
+                new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+                subscriptionCrudService,
+                auditDomainService,
+                triggerNotificationService);
 
         usecase = new CloseSubscriptionUseCase(
-            subscriptionCrudService,
-            new CloseSubscriptionDomainService(
                 subscriptionCrudService,
-                applicationCrudService,
-                auditDomainService,
-                triggerNotificationService,
-                rejectSubscriptionDomainService,
-                revokeApiKeyDomainService,
-                apiCrudService,
-                integrationAgent
-            )
-        );
+                new CloseSubscriptionDomainService(
+                        subscriptionCrudService,
+                        applicationCrudService,
+                        auditDomainService,
+                        triggerNotificationService,
+                        rejectSubscriptionDomainService,
+                        revokeApiKeyDomainService,
+                        apiCrudService,
+                        integrationAgent));
 
-        membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
-        applicationCrudService.initWith(
-            List.of(
-                ApplicationModelFixtures.anApplicationEntity()
-                    .toBuilder()
-                    .id(APPLICATION_ID)
-                    .primaryOwner(PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
-                    .build()
-            )
-        );
+        membershipQueryService.initWith(
+                List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
+        applicationCrudService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder()
+                .id(APPLICATION_ID)
+                .primaryOwner(PrimaryOwnerEntity.builder()
+                        .id(USER_ID)
+                        .displayName("Jane")
+                        .build())
+                .build()));
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        userCrudService.initWith(
-            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        userCrudService.initWith(List.of(BaseUserEntity.builder()
+                .id(USER_ID)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiCrudService,
-            subscriptionCrudService,
-            auditCrudServiceInMemory,
-            applicationCrudService,
-            apiKeyCrudService,
-            planCrudService
-        ).forEach(InMemoryAlternative::reset);
+                        apiCrudService,
+                        subscriptionCrudService,
+                        auditCrudServiceInMemory,
+                        applicationCrudService,
+                        apiKeyCrudService,
+                        planCrudService)
+                .forEach(InMemoryAlternative::reset);
         triggerNotificationService.reset();
     }
 
@@ -184,19 +180,17 @@ class CloseSubscriptionUseCaseTest {
         var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription());
 
         // When
-        Throwable throwable = catchThrowable(() ->
-            usecase.execute(
-                Input.builder()
-                    .subscriptionId(subscription.getId())
-                    .referenceId("another-api")
-                    .referenceType(SubscriptionReferenceType.API)
-                    .auditInfo(AUDIT_INFO)
-                    .build()
-            )
-        );
+        Throwable throwable = catchThrowable(() -> usecase.execute(Input.builder()
+                .subscriptionId(subscription.getId())
+                .referenceId("another-api")
+                .referenceType(SubscriptionReferenceType.API)
+                .auditInfo(AUDIT_INFO)
+                .build()));
 
         // Then
-        assertThat(throwable).isInstanceOf(SubscriptionNotFoundException.class).hasMessageContaining(subscription.getId());
+        assertThat(throwable)
+                .isInstanceOf(SubscriptionNotFoundException.class)
+                .hasMessageContaining(subscription.getId());
     }
 
     @Test
@@ -205,14 +199,16 @@ class CloseSubscriptionUseCaseTest {
         var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription());
 
         // When
-        Throwable throwable = catchThrowable(() ->
-            usecase.execute(
-                Input.builder().subscriptionId(subscription.getId()).applicationId("another-application").auditInfo(AUDIT_INFO).build()
-            )
-        );
+        Throwable throwable = catchThrowable(() -> usecase.execute(Input.builder()
+                .subscriptionId(subscription.getId())
+                .applicationId("another-application")
+                .auditInfo(AUDIT_INFO)
+                .build()));
 
         // Then
-        assertThat(throwable).isInstanceOf(SubscriptionNotFoundException.class).hasMessageContaining(subscription.getId());
+        assertThat(throwable)
+                .isInstanceOf(SubscriptionNotFoundException.class)
+                .hasMessageContaining(subscription.getId());
     }
 
     @Test
@@ -227,110 +223,105 @@ class CloseSubscriptionUseCaseTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, names = { "CLOSED", "REJECTED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            names = {"CLOSED", "REJECTED"})
     void should_do_nothing_if_subscription_already_closed(SubscriptionEntity.Status status) {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .referenceId(api.getId())
                 .referenceType(SubscriptionReferenceType.API)
                 .status(status)
-                .build()
-        );
+                .build());
 
         // When
         var result = usecase.execute(new Input(subscription.getId(), AUDIT_INFO));
 
         // Then
-        assertThat(result.subscription()).isSameAs(subscription).extracting(SubscriptionEntity::getStatus).isEqualTo(status);
+        assertThat(result.subscription())
+                .isSameAs(subscription)
+                .extracting(SubscriptionEntity::getStatus)
+                .isEqualTo(status);
     }
 
     @Test
     void should_reject_pending_subscription() {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
-        var plan = givenExistingPlan(PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
-        givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var plan = givenExistingPlan(
+                PlanFixtures.aPlanHttpV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
+        givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .referenceId(api.getId())
                 .referenceType(SubscriptionReferenceType.API)
                 .planId(plan.getId())
                 .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+                .build());
 
         // When
         var result = usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
         assertThat(result.subscription())
-            .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
-            .containsExactly(SUBSCRIPTION_ID, SubscriptionEntity.Status.REJECTED);
+                .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
+                .containsExactly(SUBSCRIPTION_ID, SubscriptionEntity.Status.REJECTED);
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, names = { "ACCEPTED", "PAUSED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            names = {"ACCEPTED", "PAUSED"})
     void should_close_accepted_or_paused_subscription(SubscriptionEntity.Status status) {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
-        var application = givenExistingApplication(BaseApplicationEntity.builder().id(APPLICATION_ID).build());
-        givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var application = givenExistingApplication(
+                BaseApplicationEntity.builder().id(APPLICATION_ID).build());
+        givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .referenceId(api.getId())
                 .referenceType(SubscriptionReferenceType.API)
                 .applicationId(application.getId())
                 .status(status)
-                .build()
-        );
+                .build());
 
         // When
         var result = usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
         assertThat(result.subscription())
-            .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
-            .containsExactly(SUBSCRIPTION_ID, SubscriptionEntity.Status.CLOSED);
+                .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
+                .containsExactly(SUBSCRIPTION_ID, SubscriptionEntity.Status.CLOSED);
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, names = { "ACCEPTED", "PAUSED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            names = {"ACCEPTED", "PAUSED"})
     void should_close_api_product_subscription_with_product_side_effects(SubscriptionEntity.Status status) {
         // Given
         var apiProductId = "api-product-id";
-        var application = givenExistingApplication(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.EXCLUSIVE).build()
-        );
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var application = givenExistingApplication(BaseApplicationEntity.builder()
+                .id(APPLICATION_ID)
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .build());
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .referenceId(apiProductId)
                 .referenceType(SubscriptionReferenceType.API_PRODUCT)
                 .applicationId(application.getId())
                 .planId("plan-id")
                 .status(status)
-                .build()
-        );
-        givenExistingApiKeysForSubscription(
-            List.of(
-                ApiKeyFixtures.anApiKey()
-                    .toBuilder()
-                    .id("api-key-id")
-                    .key("api-key")
-                    .applicationId(application.getId())
-                    .subscriptions(List.of(subscription.getId()))
-                    .revoked(false)
-                    .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneId.systemDefault()))
-                    .build()
-            )
-        );
+                .build());
+        givenExistingApiKeysForSubscription(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .id("api-key-id")
+                .key("api-key")
+                .applicationId(application.getId())
+                .subscriptions(List.of(subscription.getId()))
+                .revoked(false)
+                .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneId.systemDefault()))
+                .build()));
 
         // When
         var result = usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
@@ -338,175 +329,158 @@ class CloseSubscriptionUseCaseTest {
         // Then
         assertThat(result.subscription().getStatus()).isEqualTo(SubscriptionEntity.Status.CLOSED);
         assertThat(apiKeyCrudService.storage()).allMatch(ApiKeyEntity::isRevoked);
-        assertThat(triggerNotificationService.getHookNotifications()).containsExactly(
-            new SubscriptionClosedApiProductHookContext(apiProductId, APPLICATION_ID, "plan-id")
-        );
-        assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(
-            new ApplicationNotification(
-                new SubscriptionClosedApplicationHookContext(APPLICATION_ID, SubscriptionReferenceType.API_PRODUCT, apiProductId, "plan-id")
-            )
-        );
+        assertThat(triggerNotificationService.getHookNotifications())
+                .containsExactly(new SubscriptionClosedApiProductHookContext(apiProductId, APPLICATION_ID, "plan-id"));
+        assertThat(triggerNotificationService.getApplicationNotifications())
+                .containsExactly(new ApplicationNotification(new SubscriptionClosedApplicationHookContext(
+                        APPLICATION_ID, SubscriptionReferenceType.API_PRODUCT, apiProductId, "plan-id")));
         assertThat(auditCrudServiceInMemory.storage())
-            .extracting(AuditEntity::getReferenceType)
-            .contains(AuditEntity.AuditReferenceType.API_PRODUCT, AuditEntity.AuditReferenceType.APPLICATION);
+                .extracting(AuditEntity::getReferenceType)
+                .contains(AuditEntity.AuditReferenceType.API_PRODUCT, AuditEntity.AuditReferenceType.APPLICATION);
         assertThat(apiCrudService.storage()).isEmpty();
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, names = { "ACCEPTED", "PAUSED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            names = {"ACCEPTED", "PAUSED"})
     void should_trigger_api_and_application_notification(SubscriptionEntity.Status status) {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
-        var application = givenExistingApplication(BaseApplicationEntity.builder().id(APPLICATION_ID).build());
-        givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var application = givenExistingApplication(
+                BaseApplicationEntity.builder().id(APPLICATION_ID).build());
+        givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .applicationId(application.getId())
                 .referenceId(api.getId())
                 .referenceType(SubscriptionReferenceType.API)
                 .planId("plan-id")
                 .status(status)
-                .build()
-        );
+                .build());
 
         // When
         usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
-        assertThat(triggerNotificationService.getHookNotifications()).containsExactly(
-            new SubscriptionClosedApiHookContext(api.getId(), APPLICATION_ID, "plan-id")
-        );
-        assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(
-            new ApplicationNotification(
-                new SubscriptionClosedApplicationHookContext(APPLICATION_ID, SubscriptionReferenceType.API, api.getId(), "plan-id")
-            )
-        );
+        assertThat(triggerNotificationService.getHookNotifications())
+                .containsExactly(new SubscriptionClosedApiHookContext(api.getId(), APPLICATION_ID, "plan-id"));
+        assertThat(triggerNotificationService.getApplicationNotifications())
+                .containsExactly(new ApplicationNotification(new SubscriptionClosedApplicationHookContext(
+                        APPLICATION_ID, SubscriptionReferenceType.API, api.getId(), "plan-id")));
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, names = { "ACCEPTED", "PAUSED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            names = {"ACCEPTED", "PAUSED"})
     void should_create_audit_for_api_and_application(SubscriptionEntity.Status status) {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
-        var application = givenExistingApplication(BaseApplicationEntity.builder().id(APPLICATION_ID).build());
-        givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var application = givenExistingApplication(
+                BaseApplicationEntity.builder().id(APPLICATION_ID).build());
+        givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .referenceId(api.getId())
                 .referenceType(SubscriptionReferenceType.API)
                 .applicationId(application.getId())
                 .status(status)
-                .build()
-        );
+                .build());
 
         // When
         usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
         assertThat(auditCrudServiceInMemory.storage())
-            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
-            .containsExactly(
-                new AuditEntity(
-                    "audit-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    AuditEntity.AuditReferenceType.API,
-                    api.getId(),
-                    USER_ID,
-                    Map.of("APPLICATION", APPLICATION_ID),
-                    SubscriptionAuditEvent.SUBSCRIPTION_CLOSED.name(),
-                    ZonedDateTime.now(),
-                    ""
-                ),
-                new AuditEntity(
-                    "audit-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    AuditEntity.AuditReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    USER_ID,
-                    Map.of("API", api.getId()),
-                    SubscriptionAuditEvent.SUBSCRIPTION_CLOSED.name(),
-                    ZonedDateTime.now(),
-                    ""
-                )
-            );
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
+                .containsExactly(
+                        new AuditEntity(
+                                "audit-id",
+                                ORGANIZATION_ID,
+                                ENVIRONMENT_ID,
+                                AuditEntity.AuditReferenceType.API,
+                                api.getId(),
+                                USER_ID,
+                                Map.of("APPLICATION", APPLICATION_ID),
+                                SubscriptionAuditEvent.SUBSCRIPTION_CLOSED.name(),
+                                ZonedDateTime.now(),
+                                ""),
+                        new AuditEntity(
+                                "audit-id",
+                                ORGANIZATION_ID,
+                                ENVIRONMENT_ID,
+                                AuditEntity.AuditReferenceType.APPLICATION,
+                                APPLICATION_ID,
+                                USER_ID,
+                                Map.of("API", api.getId()),
+                                SubscriptionAuditEvent.SUBSCRIPTION_CLOSED.name(),
+                                ZonedDateTime.now(),
+                                ""));
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, names = { "ACCEPTED", "PAUSED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            names = {"ACCEPTED", "PAUSED"})
     void should_not_revoke_keys_for_application_in_shared_api_key_mode(SubscriptionEntity.Status status) {
         // Given
         var api = givenExistingApi(ApiFixtures.aProxyApiV4());
-        var application = givenExistingApplication(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.SHARED).build()
-        );
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var application = givenExistingApplication(BaseApplicationEntity.builder()
+                .id(APPLICATION_ID)
+                .apiKeyMode(ApiKeyMode.SHARED)
+                .build());
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .referenceId(api.getId())
                 .referenceType(SubscriptionReferenceType.API)
                 .applicationId(application.getId())
                 .status(status)
-                .build()
-        );
-        givenExistingApiKeysForSubscription(
-            List.of(
-                ApiKeyFixtures.anApiKey()
-                    .toBuilder()
-                    .id("api-key-id")
-                    .key("api-key")
-                    .applicationId(application.getId())
-                    .subscriptions(List.of(subscription.getId()))
-                    .revoked(false)
-                    .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneId.systemDefault()))
-                    .build()
-            )
-        );
+                .build());
+        givenExistingApiKeysForSubscription(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .id("api-key-id")
+                .key("api-key")
+                .applicationId(application.getId())
+                .subscriptions(List.of(subscription.getId()))
+                .revoked(false)
+                .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneId.systemDefault()))
+                .build()));
 
         // When
         usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
-        var revokedKeys = apiKeyCrudService.storage().stream().filter(ApiKeyEntity::isRevoked).toList();
+        var revokedKeys = apiKeyCrudService.storage().stream()
+                .filter(ApiKeyEntity::isRevoked)
+                .toList();
         assertThat(revokedKeys).isEmpty();
     }
 
     @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, names = { "ACCEPTED", "PAUSED" })
+    @EnumSource(
+            value = SubscriptionEntity.Status.class,
+            names = {"ACCEPTED", "PAUSED"})
     void should_close_federated_subscription(SubscriptionEntity.Status status) {
         // Given
         var api = givenExistingApi(ApiFixtures.aFederatedApi());
-        var application = givenExistingApplication(
-            BaseApplicationEntity.builder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.EXCLUSIVE).build()
-        );
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures.aSubscription()
-                .toBuilder()
+        var application = givenExistingApplication(BaseApplicationEntity.builder()
+                .id(APPLICATION_ID)
+                .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+                .build());
+        var subscription = givenExistingSubscription(SubscriptionFixtures.aSubscription().toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .referenceId(api.getId())
                 .referenceType(SubscriptionReferenceType.API)
                 .applicationId(application.getId())
                 .status(status)
                 .metadata(Map.of("api-key-provider-id", "value"))
-                .build()
-        );
-        givenExistingApiKeysForSubscription(
-            List.of(
-                ApiKeyFixtures.anApiKey()
-                    .toBuilder()
-                    .id("api-key-id")
-                    .key("api-key")
-                    .applicationId(application.getId())
-                    .subscriptions(List.of(subscription.getId()))
-                    .revoked(false)
-                    .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneId.systemDefault()))
-                    .build()
-            )
-        );
+                .build());
+        givenExistingApiKeysForSubscription(List.of(ApiKeyFixtures.anApiKey().toBuilder()
+                .id("api-key-id")
+                .key("api-key")
+                .applicationId(application.getId())
+                .subscriptions(List.of(subscription.getId()))
+                .revoked(false)
+                .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneId.systemDefault()))
+                .build()));
 
         // When
         usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));

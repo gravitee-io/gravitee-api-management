@@ -25,7 +25,6 @@ import org.mapstruct.factory.Mappers;
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @Mapper
 public interface SpecGenStateMapper {
     SpecGenStateMapper INSTANCE = Mappers.getMapper(SpecGenStateMapper.class);

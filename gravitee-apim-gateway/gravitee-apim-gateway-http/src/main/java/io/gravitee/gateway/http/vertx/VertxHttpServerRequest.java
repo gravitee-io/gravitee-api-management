@@ -66,10 +66,14 @@ public class VertxHttpServerRequest implements Request {
      */
     @Deprecated
     public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+        this(
+                httpServerRequest,
+                idGenerator,
+                VertxHttpServerRequestOptions.builder().build());
     }
 
-    public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
+    public VertxHttpServerRequest(
+            HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         this.path = options.getPath();
         this.serverRequest = httpServerRequest;
         this.timestamp = options.getTimestamp() != null ? options.getTimestamp() : System.currentTimeMillis();
@@ -172,7 +176,7 @@ public class VertxHttpServerRequest implements Request {
             return null;
         }
 
-        //TODO: To be removed
+        // TODO: To be removed
         int ipv6Idx = address.host().indexOf("%");
 
         return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
@@ -185,7 +189,7 @@ public class VertxHttpServerRequest implements Request {
             return null;
         }
 
-        //TODO: To be removed
+        // TODO: To be removed
         int ipv6Idx = address.host().indexOf("%");
 
         return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();

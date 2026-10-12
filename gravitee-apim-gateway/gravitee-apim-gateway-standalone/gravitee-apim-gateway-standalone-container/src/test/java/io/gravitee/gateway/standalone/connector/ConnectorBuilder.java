@@ -31,7 +31,8 @@ public class ConnectorBuilder {
         return build(id, connector, null);
     }
 
-    public static ConnectorPlugin build(String id, Class<?> connector, Class<? extends ConnectorConfiguration> connectorConfiguration) {
+    public static ConnectorPlugin build(
+            String id, Class<?> connector, Class<? extends ConnectorConfiguration> connectorConfiguration) {
         return new ConnectorPlugin() {
             @Override
             public String id() {

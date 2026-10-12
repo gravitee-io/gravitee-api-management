@@ -23,5 +23,6 @@ import io.gravitee.apim.core.group.model.Group;
  */
 public interface GroupCrudService {
     Group create(Group group);
+
     Group update(Group group);
 }

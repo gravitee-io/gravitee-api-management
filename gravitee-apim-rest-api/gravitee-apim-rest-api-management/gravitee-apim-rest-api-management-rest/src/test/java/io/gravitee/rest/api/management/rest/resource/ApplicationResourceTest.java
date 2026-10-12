@@ -43,51 +43,51 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     @Test
     public void should_not_update_application_having_unsupported_picture() {
         var entity = UpdateApplicationEntity.builder()
-            .name("My beautiful application")
-            .description("my description")
-            .settings(new ApplicationSettings())
-            .picture("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
-            .build();
+                .name("My beautiful application")
+                .description("my description")
+                .settings(new ApplicationSettings())
+                .picture("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+                .build();
 
         final Response response = envTarget().request().put(Entity.json(entity));
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            soft
-                .assertThat(response.readEntity(String.class))
-                .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
+            soft.assertThat(response.readEntity(String.class))
+                    .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
         });
     }
 
     @Test
     public void should_not_update_application_having_unsupported_background() {
         var entity = UpdateApplicationEntity.builder()
-            .name("My beautiful application")
-            .description("my description")
-            .settings(new ApplicationSettings())
-            .background("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
-            .build();
+                .name("My beautiful application")
+                .description("my description")
+                .settings(new ApplicationSettings())
+                .background("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+                .build();
 
         final Response response = envTarget().request().put(Entity.json(entity));
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            soft
-                .assertThat(response.readEntity(String.class))
-                .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
+            soft.assertThat(response.readEntity(String.class))
+                    .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
         });
     }
 
     @Test
     public void should_update_application() {
         var entity = UpdateApplicationEntity.builder()
-            .name("My beautiful application")
-            .description("my description")
-            .settings(new ApplicationSettings())
-            .picture("data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
-            .background("data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
-            .build();
+                .name("My beautiful application")
+                .description("my description")
+                .settings(new ApplicationSettings())
+                .picture("data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+                .background("data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+                .build();
         ConsoleConfigEntity config = getConsoleConfigEntity(false);
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
-        when(applicationService.update(any(), eq("123"), eq(entity))).thenReturn(ApplicationEntity.builder().id("123").build());
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext()))
+                .thenReturn(config);
+        when(applicationService.update(any(), eq("123"), eq(entity)))
+                .thenReturn(ApplicationEntity.builder().id("123").build());
 
         final Response response = envTarget().request().put(Entity.json(entity));
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);

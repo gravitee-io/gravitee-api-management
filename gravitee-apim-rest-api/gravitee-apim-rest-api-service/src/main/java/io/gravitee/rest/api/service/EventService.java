@@ -37,68 +37,61 @@ public interface EventService {
     EventEntity findById(ExecutionContext executionContext, String id);
 
     EventEntity createApiEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        String organizationId,
-        EventType type,
-        String apiId,
-        Map<String, String> properties
-    );
+            ExecutionContext executionContext,
+            Set<String> environmentsIds,
+            String organizationId,
+            EventType type,
+            String apiId,
+            Map<String, String> properties);
 
     EventEntity createApiEvent(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        String organizationId,
-        EventType type,
-        Api api,
-        Map<String, String> properties
-    );
+            ExecutionContext executionContext,
+            final Set<String> environmentsIds,
+            String organizationId,
+            EventType type,
+            Api api,
+            Map<String, String> properties);
 
     EventEntity createDictionaryEvent(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        String organizationId,
-        EventType type,
-        Dictionary dictionary
-    );
+            ExecutionContext executionContext,
+            final Set<String> environmentsIds,
+            String organizationId,
+            EventType type,
+            Dictionary dictionary);
 
     EventEntity createDynamicDictionaryEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        String organizationId,
-        EventType type,
-        String dictionaryId
-    );
+            ExecutionContext executionContext,
+            Set<String> environmentsIds,
+            String organizationId,
+            EventType type,
+            String dictionaryId);
 
     EventEntity createOrganizationEvent(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        String organizationId,
-        EventType type,
-        OrganizationEntity organizationEntity
-    );
+            ExecutionContext executionContext,
+            final Set<String> environmentsIds,
+            String organizationId,
+            EventType type,
+            OrganizationEntity organizationEntity);
 
     EventEntity createEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        String organizationId,
-        EventType type,
-        Object object,
-        Map<String, String> properties
-    );
+            ExecutionContext executionContext,
+            Set<String> environmentsIds,
+            String organizationId,
+            EventType type,
+            Object object,
+            Map<String, String> properties);
 
     void deleteApiEvents(String apiId);
 
     Page<EventEntity> search(
-        ExecutionContext executionContext,
-        List<EventType> eventTypes,
-        Map<String, Object> properties,
-        Long from,
-        Long to,
-        int page,
-        int size,
-        final List<String> environments
-    );
+            ExecutionContext executionContext,
+            List<EventType> eventTypes,
+            Map<String, Object> properties,
+            Long from,
+            Long to,
+            int page,
+            int size,
+            final List<String> environments);
 
     Collection<EventEntity> search(ExecutionContext executionContext, EventQuery query);
 

@@ -45,15 +45,14 @@ public class CreateOrUpdateApiLinkUseCase {
     private final PortalLinkSyncDomainService syncDomainService;
 
     public record Input(
-        AuditInfo auditInfo,
-        String apiId,
-        String linkHrid,
-        String name,
-        String href,
-        String location,
-        Integer order,
-        PortalVisibility visibility
-    ) {}
+            AuditInfo auditInfo,
+            String apiId,
+            String linkHrid,
+            String name,
+            String href,
+            String location,
+            Integer order,
+            PortalVisibility visibility) {}
 
     public record Output(PortalNavigationLink link, List<Validator.Error> errors) {}
 
@@ -76,44 +75,44 @@ public class CreateOrUpdateApiLinkUseCase {
         }
 
         var linkId = PortalNavigationItemId.forApiLink(input.auditInfo(), input.apiId(), input.linkHrid());
-        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), linkId);
+        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(
+                input.auditInfo().environmentId(), linkId);
         var parentId = syncDomainService.parentIdForApi(input.auditInfo(), input.apiId(), input.location());
 
         // The shared validator throws on its first failing rule, so at most one error surfaces here.
         try {
             if (existing instanceof PortalNavigationLink existingLink) {
                 var toUpdate = UpdatePortalNavigationItem.builder()
-                    .type(PortalNavigationItemType.LINK)
-                    .title(sanitizedName)
-                    .url(sanitizedHref)
-                    .parentId(parentId)
-                    .visibility(input.visibility())
-                    .published(true)
-                    .build();
+                        .type(PortalNavigationItemType.LINK)
+                        .title(sanitizedName)
+                        .url(sanitizedHref)
+                        .parentId(parentId)
+                        .visibility(input.visibility())
+                        .published(true)
+                        .build();
                 navigationItemValidatorService.validateToUpdate(toUpdate, existingLink);
             } else {
                 var toCreate = CreatePortalNavigationItem.builder()
-                    .id(linkId)
-                    .type(PortalNavigationItemType.LINK)
-                    .title(sanitizedName)
-                    .url(sanitizedHref)
-                    .area(PortalArea.TOP_NAVBAR)
-                    .parentId(parentId)
-                    .visibility(input.visibility())
-                    .published(true)
-                    .automationMetadata(
-                        new AutomationMetadata(
-                            AutomationMetadata.ReferenceType.API,
-                            input.apiId(),
-                            null,
-                            Optional.ofNullable(input.location()),
-                            Optional.empty()
-                        )
-                    )
-                    .build();
-                navigationItemValidatorService.validateOne(toCreate, input.auditInfo().environmentId());
+                        .id(linkId)
+                        .type(PortalNavigationItemType.LINK)
+                        .title(sanitizedName)
+                        .url(sanitizedHref)
+                        .area(PortalArea.TOP_NAVBAR)
+                        .parentId(parentId)
+                        .visibility(input.visibility())
+                        .published(true)
+                        .automationMetadata(new AutomationMetadata(
+                                AutomationMetadata.ReferenceType.API,
+                                input.apiId(),
+                                null,
+                                Optional.ofNullable(input.location()),
+                                Optional.empty()))
+                        .build();
+                navigationItemValidatorService.validateOne(
+                        toCreate, input.auditInfo().environmentId());
             }
-            syncDomainService.validateForConflictsForApi(input.auditInfo(), input.apiId(), input.linkHrid(), input.location());
+            syncDomainService.validateForConflictsForApi(
+                    input.auditInfo(), input.apiId(), input.linkHrid(), input.location());
         } catch (AbstractDomainException e) {
             errors.add(Validator.Error.severe("%s", e.getMessage()));
         }
@@ -123,15 +122,14 @@ public class CreateOrUpdateApiLinkUseCase {
         }
 
         var link = syncDomainService.materializeForApi(
-            input.auditInfo(),
-            input.apiId(),
-            input.linkHrid(),
-            sanitizedName,
-            sanitizedHref,
-            input.location(),
-            input.order(),
-            input.visibility()
-        );
+                input.auditInfo(),
+                input.apiId(),
+                input.linkHrid(),
+                sanitizedName,
+                sanitizedHref,
+                input.location(),
+                input.order(),
+                input.visibility());
 
         return new Output(link, errors);
     }

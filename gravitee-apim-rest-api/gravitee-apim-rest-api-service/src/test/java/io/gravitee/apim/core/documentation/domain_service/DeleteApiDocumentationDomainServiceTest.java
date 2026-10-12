@@ -59,7 +59,8 @@ class DeleteApiDocumentationDomainServiceTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-    private static final Api API = Api.builder().id("api-id").definitionVersion(DefinitionVersion.V4).build();
+    private static final Api API =
+            Api.builder().id("api-id").definitionVersion(DefinitionVersion.V4).build();
     public static final String PAGE_ID = "page-id";
     public static final String FOLDER_ID = "folder-id";
 
@@ -76,26 +77,29 @@ class DeleteApiDocumentationDomainServiceTest {
     @BeforeEach
     void setUp() {
         updateApiDocumentationDomainService = new UpdateApiDocumentationDomainService(
-            pageCrudService,
-            pageRevisionCrudService,
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-            indexer
-        );
+                pageCrudService,
+                pageRevisionCrudService,
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                indexer);
         cut = new DeleteApiDocumentationDomainService(
-            pageCrudService,
-            pageQueryService,
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-            updateApiDocumentationDomainService,
-            planQueryService,
-            indexer
-        );
+                pageCrudService,
+                pageQueryService,
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                updateApiDocumentationDomainService,
+                planQueryService,
+                indexer);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(pageCrudService, pageRevisionCrudService, pageQueryService, planQueryService, auditCrudService, userCrudService).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(
+                        pageCrudService,
+                        pageRevisionCrudService,
+                        pageQueryService,
+                        planQueryService,
+                        auditCrudService,
+                        userCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -108,59 +112,57 @@ class DeleteApiDocumentationDomainServiceTest {
 
         @Test
         void should_throw_if_page_to_delete_has_not_api_reference_type() {
-            pageCrudService.initWith(List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.ENVIRONMENT).build()));
-            assertThatThrownBy(() -> cut.delete(API, PAGE_ID, AUDIT_INFO)).isInstanceOf(ApiPageInvalidReferenceTypeException.class);
+            pageCrudService.initWith(List.of(Page.builder()
+                    .id(PAGE_ID)
+                    .referenceType(Page.ReferenceType.ENVIRONMENT)
+                    .build()));
+            assertThatThrownBy(() -> cut.delete(API, PAGE_ID, AUDIT_INFO))
+                    .isInstanceOf(ApiPageInvalidReferenceTypeException.class);
         }
 
         @Test
         void should_throw_if_page_used_as_general_condition() {
-            pageCrudService.initWith(
-                List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).type(Page.Type.MARKDOWN).build())
-            );
-            planQueryService.initWith(
-                List.of(
-                    PlanFixtures.aPlanHttpV4()
-                        .toBuilder()
-                        .id("plan-1")
-                        .referenceId(API.getId())
-                        .generalConditions(PAGE_ID)
-                        .build()
-                        .setPlanStatus(PlanStatus.PUBLISHED)
-                )
-            );
-            assertThatThrownBy(() -> cut.delete(API, PAGE_ID, AUDIT_INFO)).isInstanceOf(ApiPageUsedAsGeneralConditionException.class);
+            pageCrudService.initWith(List.of(Page.builder()
+                    .id(PAGE_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .type(Page.Type.MARKDOWN)
+                    .build()));
+            planQueryService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                    .id("plan-1")
+                    .referenceId(API.getId())
+                    .generalConditions(PAGE_ID)
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED)));
+            assertThatThrownBy(() -> cut.delete(API, PAGE_ID, AUDIT_INFO))
+                    .isInstanceOf(ApiPageUsedAsGeneralConditionException.class);
         }
 
         @Test
         void should_throw_if_deleting_non_empty_folder() {
             final Page folder = Page.builder()
-                .id(FOLDER_ID)
-                .referenceId(API.getId())
-                .referenceType(Page.ReferenceType.API)
-                .type(Page.Type.FOLDER)
-                .build();
+                    .id(FOLDER_ID)
+                    .referenceId(API.getId())
+                    .referenceType(Page.ReferenceType.API)
+                    .type(Page.Type.FOLDER)
+                    .build();
             final Page page = Page.builder()
-                .id(PAGE_ID)
-                .referenceId(API.getId())
-                .referenceType(Page.ReferenceType.API)
-                .parentId(FOLDER_ID)
-                .type(Page.Type.MARKDOWN)
-                .build();
+                    .id(PAGE_ID)
+                    .referenceId(API.getId())
+                    .referenceType(Page.ReferenceType.API)
+                    .parentId(FOLDER_ID)
+                    .type(Page.Type.MARKDOWN)
+                    .build();
             pageCrudService.initWith(List.of(folder, page));
             pageQueryService.initWith(List.of(folder, page));
-            planQueryService.initWith(
-                List.of(
-                    PlanFixtures.aPlanHttpV4()
-                        .toBuilder()
-                        .id("plan-1")
-                        .referenceId(API.getId())
-                        .generalConditions(PAGE_ID)
-                        .build()
-                        .setPlanStatus(PlanStatus.PUBLISHED)
-                )
-            );
+            planQueryService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder()
+                    .id("plan-1")
+                    .referenceId(API.getId())
+                    .generalConditions(PAGE_ID)
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED)));
 
-            assertThatThrownBy(() -> cut.delete(API, FOLDER_ID, AUDIT_INFO)).isInstanceOf(ApiFolderNotEmptyException.class);
+            assertThatThrownBy(() -> cut.delete(API, FOLDER_ID, AUDIT_INFO))
+                    .isInstanceOf(ApiFolderNotEmptyException.class);
         }
     }
 
@@ -168,16 +170,18 @@ class DeleteApiDocumentationDomainServiceTest {
     class Deletion {
 
         static final Page BASE_PAGE = Page.builder()
-            .id(PAGE_ID)
-            .referenceId(API.getId())
-            .referenceType(Page.ReferenceType.API)
-            .type(Page.Type.MARKDOWN)
-            .build();
+                .id(PAGE_ID)
+                .referenceId(API.getId())
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.MARKDOWN)
+                .build();
 
         @Test
         void should_delete_and_update_order_of_pages() {
             final Page first = pageWithIdAndOrder("first", 0);
-            final Page second = pageWithIdAndOrder("second", 1).toBuilder().type(Page.Type.FOLDER).build();
+            final Page second = pageWithIdAndOrder("second", 1).toBuilder()
+                    .type(Page.Type.FOLDER)
+                    .build();
             final Page third = pageWithIdAndOrder("third", 2);
             final Page fourth = pageWithIdAndOrder("fourth", 3);
 
@@ -192,9 +196,9 @@ class DeleteApiDocumentationDomainServiceTest {
             syncPageStorage();
 
             assertThat(pageQueryService.searchByApiId(API.getId()))
-                .hasSize(3)
-                .extracting(Page::getId, Page::getOrder)
-                .containsExactly(tuple("first", 0), tuple("third", 1), tuple("fourth", 2));
+                    .hasSize(3)
+                    .extracting(Page::getId, Page::getOrder)
+                    .containsExactly(tuple("first", 0), tuple("third", 1), tuple("fourth", 2));
 
             // should be able to delete first page
             cut.delete(API, first.getId(), AUDIT_INFO);
@@ -203,9 +207,9 @@ class DeleteApiDocumentationDomainServiceTest {
             syncPageStorage();
 
             assertThat(pageQueryService.searchByApiId(API.getId()))
-                .hasSize(2)
-                .extracting(Page::getId, Page::getOrder)
-                .containsExactly(tuple("third", 0), tuple("fourth", 1));
+                    .hasSize(2)
+                    .extracting(Page::getId, Page::getOrder)
+                    .containsExactly(tuple("third", 0), tuple("fourth", 1));
 
             // should be able to delete last page
             cut.delete(API, fourth.getId(), AUDIT_INFO);
@@ -214,9 +218,9 @@ class DeleteApiDocumentationDomainServiceTest {
             syncPageStorage();
 
             assertThat(pageQueryService.searchByApiId(API.getId()))
-                .hasSize(1)
-                .extracting(Page::getId, Page::getOrder)
-                .containsExactly(tuple("third", 0));
+                    .hasSize(1)
+                    .extracting(Page::getId, Page::getOrder)
+                    .containsExactly(tuple("third", 0));
 
             // should be able to delete remaining page
             cut.delete(API, third.getId(), AUDIT_INFO);
@@ -226,13 +230,10 @@ class DeleteApiDocumentationDomainServiceTest {
 
             assertThat(pageQueryService.searchByApiId(API.getId())).isEmpty();
 
-            assertThat(
-                auditCrudService
-                    .storage()
-                    .stream()
-                    .filter(auditEntity -> auditEntity.getEvent().equals(PageAuditEvent.PAGE_DELETED.name()))
-                    .toList()
-            ).hasSize(4);
+            assertThat(auditCrudService.storage().stream()
+                            .filter(auditEntity -> auditEntity.getEvent().equals(PageAuditEvent.PAGE_DELETED.name()))
+                            .toList())
+                    .hasSize(4);
         }
 
         @Test
@@ -249,7 +250,11 @@ class DeleteApiDocumentationDomainServiceTest {
         }
 
         private static Page pageWithIdAndOrder(String id, int order) {
-            return BASE_PAGE.toBuilder().id(id).updatedAt(new Date()).order(order).build();
+            return BASE_PAGE.toBuilder()
+                    .id(id)
+                    .updatedAt(new Date())
+                    .order(order)
+                    .build();
         }
     }
 }

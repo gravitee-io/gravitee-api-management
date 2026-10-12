@@ -29,12 +29,10 @@ public class AttributeHelper {
         }
 
         Map<String, Serializable> filteredAttributes = new HashMap<>();
-        attributes
-            .keySet()
-            .stream()
-            .filter(key -> attributes.get(key) != null)
-            .filter(key -> attributes.get(key) instanceof Serializable)
-            .forEach(key -> filteredAttributes.put(key, (Serializable) attributes.get(key)));
+        attributes.keySet().stream()
+                .filter(key -> attributes.get(key) != null)
+                .filter(key -> attributes.get(key) instanceof Serializable)
+                .forEach(key -> filteredAttributes.put(key, (Serializable) attributes.get(key)));
 
         return filteredAttributes;
     }

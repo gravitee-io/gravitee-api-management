@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.resource.internal.v4.fake;
 
-import io.gravitee.resource.api.AbstractConfigurableResource;
 import io.gravitee.resource.api.ResourceConfiguration;
 
 /**

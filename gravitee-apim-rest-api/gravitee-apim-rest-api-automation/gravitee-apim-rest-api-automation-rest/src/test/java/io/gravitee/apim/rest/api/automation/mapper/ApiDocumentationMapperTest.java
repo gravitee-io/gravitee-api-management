@@ -37,14 +37,18 @@ import org.junit.jupiter.api.Test;
 class ApiDocumentationMapperTest {
 
     private static final PortalPageContentId DOC_ID = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1");
-    private static final AuditInfo AUDIT = AuditInfo.builder().organizationId("organization-id").environmentId("environment-id").build();
+    private static final AuditInfo AUDIT = AuditInfo.builder()
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .build();
 
     @Test
     void put_state_includes_severe_and_warning_errors() {
         var spec = aSpec();
         var errors = List.of(Validator.Error.severe("boom"), Validator.Error.warning("careful"));
 
-        var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(spec, DOC_ID.toString(), errors, AUDIT, "pets-api");
+        var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(
+                spec, DOC_ID.toString(), errors, AUDIT, "pets-api");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getErrors()).isNotNull();
@@ -55,14 +59,16 @@ class ApiDocumentationMapperTest {
 
     @Test
     void put_state_returns_null_errors_when_list_is_empty() {
-        var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(aSpec(), DOC_ID.toString(), List.of(), AUDIT, "pets-api");
+        var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(
+                aSpec(), DOC_ID.toString(), List.of(), AUDIT, "pets-api");
 
         assertThat(state.getErrors()).isNull();
     }
 
     @Test
     void put_state_returns_null_errors_when_list_is_null() {
-        var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(aSpec(), DOC_ID.toString(), null, AUDIT, "pets-api");
+        var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(
+                aSpec(), DOC_ID.toString(), null, AUDIT, "pets-api");
 
         assertThat(state.getErrors()).isNull();
     }
@@ -76,7 +82,8 @@ class ApiDocumentationMapperTest {
 
     @Test
     void put_state_sets_api_hrid_and_leaves_portal_hrid_null() {
-        var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(aSpec(), DOC_ID.toString(), List.of(), AUDIT, "pets-api");
+        var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(
+                aSpec(), DOC_ID.toString(), List.of(), AUDIT, "pets-api");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getApiHrid()).isEqualTo("pets-api");
@@ -87,20 +94,18 @@ class ApiDocumentationMapperTest {
     @Test
     void get_state_copies_persisted_entity_fields() {
         var meta = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            "api-id",
-            "Getting Started",
-            Optional.of("/getting-started"),
-            Optional.of(7)
-        );
+                AutomationMetadata.ReferenceType.API,
+                "api-id",
+                "Getting Started",
+                Optional.of("/getting-started"),
+                Optional.of(7));
         var doc = new OpenApiPageContent(
-            DOC_ID,
-            "organization-id",
-            "environment-id",
-            OpenApi.of("openapi: 3.0.0"),
-            new RedocConfiguration(),
-            meta
-        );
+                DOC_ID,
+                "organization-id",
+                "environment-id",
+                OpenApi.of("openapi: 3.0.0"),
+                new RedocConfiguration(),
+                meta);
 
         var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(doc, null, "getting-started", "pets-api");
 
@@ -136,23 +141,21 @@ class ApiDocumentationMapperTest {
     void wire_visibility_round_trips_through_domain() {
         SoftAssertions.assertSoftly(soft -> {
             var publicDomain = ApiDocumentationMapper.INSTANCE.toDomainVisibility(
-                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC
-            );
+                    io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
             soft.assertThat(publicDomain).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
-            soft
-                .assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(publicDomain))
-                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
+            soft.assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(publicDomain))
+                    .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
 
             var privateDomain = ApiDocumentationMapper.INSTANCE.toDomainVisibility(
-                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE
-            );
+                    io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
             soft.assertThat(privateDomain).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
-            soft
-                .assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(privateDomain))
-                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+            soft.assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(privateDomain))
+                    .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
 
-            soft.assertThat(ApiDocumentationMapper.INSTANCE.toDomainVisibility(null)).isNull();
-            soft.assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(null)).isNull();
+            soft.assertThat(ApiDocumentationMapper.INSTANCE.toDomainVisibility(null))
+                    .isNull();
+            soft.assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(null))
+                    .isNull();
         });
     }
 

@@ -39,32 +39,34 @@ public class MembershipQueryServiceImpl implements MembershipQueryService {
     }
 
     @Override
-    public Collection<Membership> findByReferenceAndRoleId(Membership.ReferenceType referenceType, String referenceId, String roleId) {
+    public Collection<Membership> findByReferenceAndRoleId(
+            Membership.ReferenceType referenceType, String referenceId, String roleId) {
         try {
             return membershipRepository
-                .findByReferenceAndRoleId(MembershipReferenceType.valueOf(referenceType.name()), referenceId, roleId)
-                .stream()
-                .map(MembershipAdapter.INSTANCE::toEntity)
-                .toList();
+                    .findByReferenceAndRoleId(
+                            MembershipReferenceType.valueOf(referenceType.name()), referenceId, roleId)
+                    .stream()
+                    .map(MembershipAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(String.format("An error occurs while trying to find %s membership", referenceType), e);
+            throw new TechnicalDomainException(
+                    String.format("An error occurs while trying to find %s membership", referenceType), e);
         }
     }
 
     @Override
     public Collection<Membership> findByReferencesAndRoleId(
-        Membership.ReferenceType referenceType,
-        List<String> referenceIds,
-        String roleId
-    ) {
+            Membership.ReferenceType referenceType, List<String> referenceIds, String roleId) {
         try {
             return membershipRepository
-                .findByReferencesAndRoleId(MembershipReferenceType.valueOf(referenceType.name()), referenceIds, roleId)
-                .stream()
-                .map(MembershipAdapter.INSTANCE::toEntity)
-                .toList();
+                    .findByReferencesAndRoleId(
+                            MembershipReferenceType.valueOf(referenceType.name()), referenceIds, roleId)
+                    .stream()
+                    .map(MembershipAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(String.format("An error occurs while trying to find %s membership", referenceType), e);
+            throw new TechnicalDomainException(
+                    String.format("An error occurs while trying to find %s membership", referenceType), e);
         }
     }
 
@@ -75,72 +77,54 @@ public class MembershipQueryServiceImpl implements MembershipQueryService {
 
     @Override
     public Collection<Membership> findByMemberIdAndMemberTypeAndReferenceType(
-        String memberId,
-        Membership.Type memberType,
-        Membership.ReferenceType referenceType
-    ) {
+            String memberId, Membership.Type memberType, Membership.ReferenceType referenceType) {
         try {
             return membershipRepository
-                .findByMemberIdAndMemberTypeAndReferenceType(
-                    memberId,
-                    MembershipMemberType.valueOf(memberType.name()),
-                    MembershipReferenceType.valueOf(referenceType.name())
-                )
-                .stream()
-                .map(MembershipAdapter.INSTANCE::toEntity)
-                .toList();
+                    .findByMemberIdAndMemberTypeAndReferenceType(
+                            memberId,
+                            MembershipMemberType.valueOf(memberType.name()),
+                            MembershipReferenceType.valueOf(referenceType.name()))
+                    .stream()
+                    .map(MembershipAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurs while trying to find %s memberships for member %s", referenceType, memberId),
-                e
-            );
+                    String.format(
+                            "An error occurs while trying to find %s memberships for member %s",
+                            referenceType, memberId),
+                    e);
         }
     }
 
     @Override
     public List<String> findClustersIdsThatUserBelongsTo(String memberId) {
         return fetch(
-            () ->
-                membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
-                    memberId,
-                    MembershipMemberType.USER,
-                    MembershipReferenceType.CLUSTER
-                ),
-            String.format("An error occured while trying to find clusters ids of member %s", memberId)
-        )
-            .stream()
-            .map(Membership::getReferenceId)
-            .toList();
+                        () -> membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                                memberId, MembershipMemberType.USER, MembershipReferenceType.CLUSTER),
+                        String.format("An error occured while trying to find clusters ids of member %s", memberId))
+                .stream()
+                .map(Membership::getReferenceId)
+                .toList();
     }
 
     @Override
     public Collection<Membership> findByMemberIdsAndMemberTypeAndReferenceType(
-        Collection<String> memberIds,
-        Membership.Type memberType,
-        Membership.ReferenceType referenceType
-    ) {
+            Collection<String> memberIds, Membership.Type memberType, Membership.ReferenceType referenceType) {
         return fetch(
-            () ->
-                membershipRepository.findByMemberIdsAndMemberTypeAndReferenceType(
-                    List.copyOf(memberIds),
-                    MembershipMemberType.valueOf(memberType.name()),
-                    MembershipReferenceType.valueOf(referenceType.name())
-                ),
-            String.format("An error occurs while trying to find memberships of type %s for members", referenceType)
-        );
+                () -> membershipRepository.findByMemberIdsAndMemberTypeAndReferenceType(
+                        List.copyOf(memberIds),
+                        MembershipMemberType.valueOf(memberType.name()),
+                        MembershipReferenceType.valueOf(referenceType.name())),
+                String.format(
+                        "An error occurs while trying to find memberships of type %s for members", referenceType));
     }
 
     @Override
     public Collection<Membership> findGroupsThatUserBelongsTo(String memberId) {
         return fetch(
-            () ->
-                membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
-                    memberId,
-                    MembershipMemberType.USER,
-                    MembershipReferenceType.GROUP
-                ),
-            String.format("An error occurs while trying to find Group memberships of member %s", memberId)
-        );
+                () -> membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                        memberId, MembershipMemberType.USER, MembershipReferenceType.GROUP),
+                String.format("An error occurs while trying to find Group memberships of member %s", memberId));
     }
 
     @FunctionalInterface
@@ -150,7 +134,9 @@ public class MembershipQueryServiceImpl implements MembershipQueryService {
 
     private Collection<Membership> fetch(MembershipSupplier supplier, String errorMessage) {
         try {
-            return supplier.get().stream().map(MembershipAdapter.INSTANCE::toEntity).toList();
+            return supplier.get().stream()
+                    .map(MembershipAdapter.INSTANCE::toEntity)
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(errorMessage, e);
         }

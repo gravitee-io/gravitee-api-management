@@ -40,17 +40,16 @@ public class ComputeObservabilityTimeSeriesUseCase {
     private final AnalyticsRequestPipeline pipeline;
 
     public record Input(
-        String organizationId,
-        String environmentId,
-        List<FilterCondition> filters,
-        Instant from,
-        Instant to,
-        Long interval,
-        List<AnalyticsFacetMetricQuery> metrics,
-        List<String> facets,
-        Integer facetSize,
-        List<AnalyticsNumberRange> ranges
-    ) {}
+            String organizationId,
+            String environmentId,
+            List<FilterCondition> filters,
+            Instant from,
+            Instant to,
+            Long interval,
+            List<AnalyticsFacetMetricQuery> metrics,
+            List<String> facets,
+            Integer facetSize,
+            List<AnalyticsNumberRange> ranges) {}
 
     public record Output(JsonNode response) {}
 
@@ -63,24 +62,23 @@ public class ComputeObservabilityTimeSeriesUseCase {
         }
         // Before the scope is prepared: a refused condition never reaches the data.
         var notApplied = pipeline.conditionsNotApplied(
-            input.filters,
-            input.metrics
-                .stream()
-                .map(metric -> new AnalyticsRequestPipeline.MetricConditions(metric.metricName(), metric.filters()))
-                .toList()
-        );
-        var scope = pipeline.prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
+                input.filters,
+                input.metrics.stream()
+                        .map(metric ->
+                                new AnalyticsRequestPipeline.MetricConditions(metric.metricName(), metric.filters()))
+                        .toList());
+        var scope = pipeline.prepare(
+                input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
         var query = new ObservabilityAnalyticsDataPort.TimeSeriesQuery(
-            input.organizationId,
-            input.environmentId,
-            scope,
-            input.interval,
-            input.facets,
-            input.facetSize,
-            input.metrics,
-            input.ranges,
-            notApplied
-        );
+                input.organizationId,
+                input.environmentId,
+                scope,
+                input.interval,
+                input.facets,
+                input.facetSize,
+                input.metrics,
+                input.ranges,
+                notApplied);
         analyticsDataPort.validate(query);
 
         if (scope.isEmpty()) {

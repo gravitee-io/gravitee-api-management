@@ -19,7 +19,6 @@ import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 
-import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Filters;
@@ -31,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,10 +50,7 @@ public class PlanMongoRepositoryImpl implements PlanMongoRepositoryCustom {
 
     @Override
     public List<PlanMongo> findByReferenceIdsAndReferenceTypeAndEnvironments(
-        List<String> ids,
-        Plan.PlanReferenceType planReferenceType,
-        Set<String> environments
-    ) {
+            List<String> ids, Plan.PlanReferenceType planReferenceType, Set<String> environments) {
         if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyList();
         }
@@ -67,8 +62,8 @@ public class PlanMongoRepositoryImpl implements PlanMongoRepositoryCustom {
         }
 
         AggregateIterable<Document> aggregate = mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(PlanMongo.class))
-            .aggregate(pipeline);
+                .getCollection(mongoTemplate.getCollectionName(PlanMongo.class))
+                .aggregate(pipeline);
 
         return getListFromAggregate(aggregate);
     }
@@ -86,14 +81,14 @@ public class PlanMongoRepositoryImpl implements PlanMongoRepositoryCustom {
             return;
         }
 
-        var updates = plans
-            .stream()
-            .map(plan -> new UpdateOneModel<Document>(Filters.eq("_id", plan.getId()), Updates.set("crossId", plan.getCrossId())))
-            .toList();
+        var updates = plans.stream()
+                .map(plan -> new UpdateOneModel<Document>(
+                        Filters.eq("_id", plan.getId()), Updates.set("crossId", plan.getCrossId())))
+                .toList();
 
         mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(PlanMongo.class))
-            .bulkWrite(updates, new BulkWriteOptions().ordered(false));
+                .getCollection(mongoTemplate.getCollectionName(PlanMongo.class))
+                .bulkWrite(updates, new BulkWriteOptions().ordered(false));
     }
 
     private List<PlanMongo> getListFromAggregate(AggregateIterable<Document> aggregate) {

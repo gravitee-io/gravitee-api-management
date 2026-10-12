@@ -50,16 +50,21 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     @Override
     public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
         var revisions = internalPageRevisionRepo.findAll(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
-        return new Page<>(revisions.getContent(), pageable.pageNumber(), revisions.getNumberOfElements(), revisions.getTotalElements()).map(
-            page -> mapper.map(page)
-        );
+        return new Page<>(
+                        revisions.getContent(),
+                        pageable.pageNumber(),
+                        revisions.getNumberOfElements(),
+                        revisions.getTotalElements())
+                .map(page -> mapper.map(page));
     }
 
     @Override
     public Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException {
         log.debug("Find page revision by ID [{}]", pageId);
 
-        PageRevisionMongo page = internalPageRevisionRepo.findById(new PageRevisionPkMongo(pageId, revision)).orElse(null);
+        PageRevisionMongo page = internalPageRevisionRepo
+                .findById(new PageRevisionPkMongo(pageId, revision))
+                .orElse(null);
         PageRevision res = mapper.map(page);
 
         log.debug("Find page revision by ID [{}] - Done", pageId);
@@ -83,11 +88,9 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     @Override
     public List<PageRevision> findAllByPageId(String pageId) throws TechnicalException {
         try {
-            return internalPageRevisionRepo
-                .findAllByPageId(pageId)
-                .stream()
-                .map(rev -> mapper.map(rev))
-                .collect(Collectors.toList());
+            return internalPageRevisionRepo.findAllByPageId(pageId).stream()
+                    .map(rev -> mapper.map(rev))
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("An error occurred when querying all revisions for page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when querying page revisions");
@@ -116,23 +119,19 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
 
     @Override
     public Set<PageRevision> findAll() throws TechnicalException {
-        return internalPageRevisionRepo
-            .findAll()
-            .stream()
-            .map(pageRevisionMongo -> mapper.map(pageRevisionMongo))
-            .collect(Collectors.toSet());
+        return internalPageRevisionRepo.findAll().stream()
+                .map(pageRevisionMongo -> mapper.map(pageRevisionMongo))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public List<String> deleteByPageId(String pageId) throws TechnicalException {
         try {
             log.debug("Delete revision for pageId [{}]", pageId);
-            return internalPageRevisionRepo
-                .deleteByPageId(pageId)
-                .stream()
-                .map(PageRevisionMongo::getId)
-                .map(id -> id.getPageId() + ":" + id.getRevision())
-                .toList();
+            return internalPageRevisionRepo.deleteByPageId(pageId).stream()
+                    .map(PageRevisionMongo::getId)
+                    .map(id -> id.getPageId() + ":" + id.getRevision())
+                    .toList();
         } catch (Exception e) {
             log.error("An error occurred when deleting page revision [{}]", pageId, e);
             throw new TechnicalException("An error occurred when deleting page revision");

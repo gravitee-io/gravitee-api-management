@@ -94,7 +94,8 @@ class SimpleFailureProcessorTest {
     @Test
     @DisplayName("Should handle failure without message")
     void shouldHandleFailureWithoutFailureMessage() {
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(processorFailure);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure"))
+                .thenReturn(processorFailure);
 
         cut.handle(executionContext);
 
@@ -109,7 +110,8 @@ class SimpleFailureProcessorTest {
     @Test
     @DisplayName("Should handle failure with message and without ACCEPT header")
     void shouldHandleFailureWithFailureMessageWithoutAcceptAcceptHeader() {
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(processorFailure);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure"))
+                .thenReturn(processorFailure);
         final String failureMessage = "Message";
         when(processorFailure.message()).thenReturn(failureMessage);
 
@@ -128,9 +130,10 @@ class SimpleFailureProcessorTest {
 
     @ParameterizedTest
     @DisplayName("Should handle failure with message and ACCEPT header, failure content type json")
-    @CsvSource(value = { "application/json, application/json", "*/*, application/json" })
+    @CsvSource(value = {"application/json, application/json", "*/*, application/json"})
     void shouldHandleFailureWithAcceptHeader(String acceptHeader, String expectedContentType) {
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(processorFailure);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure"))
+                .thenReturn(processorFailure);
         final String failureMessage = "Message";
         when(processorFailure.message()).thenReturn(failureMessage);
         when(processorFailure.contentType()).thenReturn(MediaType.APPLICATION_JSON);
@@ -151,11 +154,15 @@ class SimpleFailureProcessorTest {
     @ParameterizedTest
     @DisplayName("Should handle failure with message and ACCEPT header, failure content type json")
     @CsvSource(
-        value = { "application/json|application/json", "*/*|application/json", "text/html,application/json;q=0.9|application/json" },
-        delimiter = '|'
-    )
+            value = {
+                "application/json|application/json",
+                "*/*|application/json",
+                "text/html,application/json;q=0.9|application/json"
+            },
+            delimiter = '|')
     void shouldHandleFailureWithAcceptHeaderFailureNoContentType(String acceptHeader, String expectedContentType) {
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(processorFailure);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure"))
+                .thenReturn(processorFailure);
         final String failureMessage = "Message";
         when(processorFailure.message()).thenReturn(failureMessage);
         when(requestHeaders.getAll(HttpHeaderNames.ACCEPT)).thenReturn(List.of(acceptHeader));
@@ -175,7 +182,8 @@ class SimpleFailureProcessorTest {
     @Test
     @DisplayName("Should combine generic failure message with detailed policy message")
     void shouldCombineGenericAndDetailedMessages() {
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(processorFailure);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure"))
+                .thenReturn(processorFailure);
         final String policyDetailedMessage = "Signed JWT rejected: Invalid signature";
         final String genericFailureMessage = "Unauthorized";
         // Simulate JWT policy setting detailed message before SimpleFailureProcessor runs
@@ -193,7 +201,8 @@ class SimpleFailureProcessorTest {
     @Test
     @DisplayName("Should not duplicate message when failure message equals existing message")
     void shouldNotDuplicateWhenMessagesMatch() {
-        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(processorFailure);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "failure"))
+                .thenReturn(processorFailure);
         final String sameMessage = "Unauthorized";
         metrics.setMessage(sameMessage);
         when(processorFailure.message()).thenReturn(sameMessage);

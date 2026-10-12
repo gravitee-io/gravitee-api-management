@@ -28,9 +28,9 @@ public class TargetApiIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("promotions")
-            .name("tai1")
-            .key("targetApiId", ascending())
-            .build();
+                .collection("promotions")
+                .name("tai1")
+                .key("targetApiId", ascending())
+                .build();
     }
 }

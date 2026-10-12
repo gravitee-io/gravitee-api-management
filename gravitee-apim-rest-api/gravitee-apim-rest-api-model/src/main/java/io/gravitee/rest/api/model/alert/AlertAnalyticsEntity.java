@@ -26,7 +26,8 @@ public class AlertAnalyticsEntity {
 
     private List<AlertAnalyticsEntity.AlertTriggerAnalytics> alerts;
 
-    public AlertAnalyticsEntity(Map<String, Integer> bySeverity, List<AlertAnalyticsEntity.AlertTriggerAnalytics> alerts) {
+    public AlertAnalyticsEntity(
+            Map<String, Integer> bySeverity, List<AlertAnalyticsEntity.AlertTriggerAnalytics> alerts) {
         this.bySeverity = bySeverity;
         this.alerts = alerts;
     }
@@ -111,14 +112,12 @@ public class AlertAnalyticsEntity {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             AlertTriggerAnalytics that = (AlertTriggerAnalytics) o;
-            return (
-                Objects.equals(id, that.id) &&
-                Objects.equals(severity, that.severity) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description) &&
-                Objects.equals(type, that.type) &&
-                Objects.equals(eventsCount, that.eventsCount)
-            );
+            return (Objects.equals(id, that.id)
+                    && Objects.equals(severity, that.severity)
+                    && Objects.equals(name, that.name)
+                    && Objects.equals(description, that.description)
+                    && Objects.equals(type, that.type)
+                    && Objects.equals(eventsCount, that.eventsCount));
         }
 
         @Override

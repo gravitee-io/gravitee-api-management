@@ -50,11 +50,8 @@ class ApiProductDeploymentStateDomainServiceTest {
     private final PlanQueryServiceInMemory planQueryService = spy(new PlanQueryServiceInMemory());
     private final ObjectMapper objectMapper = GraviteeJacksonMapper.getInstance();
 
-    private final ApiProductDeploymentStateDomainService service = new ApiProductDeploymentStateDomainService(
-        eventLatestQueryService,
-        planQueryService,
-        objectMapper
-    );
+    private final ApiProductDeploymentStateDomainService service =
+            new ApiProductDeploymentStateDomainService(eventLatestQueryService, planQueryService, objectMapper);
 
     @AfterEach
     void tearDown() {
@@ -66,10 +63,9 @@ class ApiProductDeploymentStateDomainServiceTest {
     void should_cost_the_same_two_queries_however_many_products_there_are() throws Exception {
         // A query per product would make a page of twenty-five cost fifty round trips, and a listing's cost
         // grow with the environment.
-        var products = IntStream.range(0, 25)
-            .mapToObj(i -> aProduct("id-" + i))
-            .toList();
-        eventLatestQueryService.initWith(products.stream().map(this::aMatchingDeployEventFor).toList());
+        var products = IntStream.range(0, 25).mapToObj(i -> aProduct("id-" + i)).toList();
+        eventLatestQueryService.initWith(
+                products.stream().map(this::aMatchingDeployEventFor).toList());
 
         service.computeDeploymentState(products);
 
@@ -91,7 +87,8 @@ class ApiProductDeploymentStateDomainServiceTest {
         var deployed = aProduct("id-1");
         var drifted = aProduct("id-2");
         drifted.setApiIds(Set.of("api-1", "api-2"));
-        eventLatestQueryService.initWith(List.of(aMatchingDeployEventFor(deployed), aMatchingDeployEventFor(aProduct("id-2"))));
+        eventLatestQueryService.initWith(
+                List.of(aMatchingDeployEventFor(deployed), aMatchingDeployEventFor(aProduct("id-2"))));
 
         service.computeDeploymentState(List.of(deployed, drifted));
 
@@ -100,20 +97,25 @@ class ApiProductDeploymentStateDomainServiceTest {
     }
 
     private ApiProduct aProduct(String id) {
-        return ApiProduct.builder().id(id).name(id).environmentId(ENV_ID).apiIds(Set.of("api-1")).build();
+        return ApiProduct.builder()
+                .id(id)
+                .name(id)
+                .environmentId(ENV_ID)
+                .apiIds(Set.of("api-1"))
+                .build();
     }
 
     private Event aMatchingDeployEventFor(ApiProduct product) {
         try {
             return Event.builder()
-                .id("event-" + product.getId())
-                .type(EventType.DEPLOY_API_PRODUCT)
-                .properties(new EnumMap<>(Map.of(Event.EventProperties.API_PRODUCT_ID, product.getId())))
-                .payload(objectMapper.writeValueAsString(aProduct(product.getId())))
-                .environments(Set.of(ENV_ID))
-                .createdAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
-                .updatedAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
-                .build();
+                    .id("event-" + product.getId())
+                    .type(EventType.DEPLOY_API_PRODUCT)
+                    .properties(new EnumMap<>(Map.of(Event.EventProperties.API_PRODUCT_ID, product.getId())))
+                    .payload(objectMapper.writeValueAsString(aProduct(product.getId())))
+                    .environments(Set.of(ENV_ID))
+                    .createdAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
+                    .updatedAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
+                    .build();
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

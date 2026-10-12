@@ -31,7 +31,7 @@ public class HttpAcceptorFactory {
 
     public HttpAcceptor create(String host, String path, ReactorHandler reactor, Collection<String> serverIds) {
         return allowOverlappingApiContexts
-            ? new OverlappingHttpAcceptor(host, path, reactor, serverIds)
-            : new DefaultHttpAcceptor(host, path, reactor, serverIds);
+                ? new OverlappingHttpAcceptor(host, path, reactor, serverIds)
+                : new DefaultHttpAcceptor(host, path, reactor, serverIds);
     }
 }

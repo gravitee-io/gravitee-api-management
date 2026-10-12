@@ -35,33 +35,26 @@ public interface PortalNavigationItemsQueryService {
     List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
 
     List<PortalNavigationItem> findByAutomationReference(
-        String environmentId,
-        AutomationMetadata.ReferenceType referenceType,
-        String referenceId
-    );
+            String environmentId, AutomationMetadata.ReferenceType referenceType, String referenceId);
 
     default Optional<PortalNavigationItem> findByParentIdAndSegment(
-        String environmentId,
-        @Nullable PortalNavigationItemId parentId,
-        String segment,
-        @Nonnull NavigationItemReference reference
-    ) {
-        return findByParentIdAndEnvironmentId(environmentId, parentId)
-            .stream()
-            .filter(it -> segment.equals(it.getSegment()))
-            .filter(it -> parentId != null || reference.sharesRootNamespaceWith(it.getReference()))
-            .findFirst();
+            String environmentId,
+            @Nullable PortalNavigationItemId parentId,
+            String segment,
+            @Nonnull NavigationItemReference reference) {
+        return findByParentIdAndEnvironmentId(environmentId, parentId).stream()
+                .filter(it -> segment.equals(it.getSegment()))
+                .filter(it -> parentId != null || reference.sharesRootNamespaceWith(it.getReference()))
+                .findFirst();
     }
 
     List<PortalNavigationItem> search(PortalNavigationItemQueryCriteria criteria);
 
-    List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea);
+    List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(
+            String environmentId, PortalArea portalArea);
 
     List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-        String environmentId,
-        PortalArea area,
-        @Nonnull NavigationItemReference reference
-    );
+            String environmentId, PortalArea area, @Nonnull NavigationItemReference reference);
 
     List<PortalNavigationItem> findAllByRootId(String environmentId, PortalNavigationItemId rootId);
 
@@ -71,19 +64,20 @@ public interface PortalNavigationItemsQueryService {
      */
     default List<PortalNavigationItem> findAllWithAutoFetchEnabled() {
         // PAGEs and FOLDERs both qualify: the auto-fetch use case decides what a refresh means per type
-        return search(PortalNavigationItemQueryCriteria.builder().useAutoFetch(true).build());
+        return search(
+                PortalNavigationItemQueryCriteria.builder().useAutoFetch(true).build());
     }
 
-    default Optional<PortalNavigationPage> findNavigationPageByPortalPageContentId(String environmentId, PortalPageContentId contentId) {
+    default Optional<PortalNavigationPage> findNavigationPageByPortalPageContentId(
+            String environmentId, PortalPageContentId contentId) {
         final var criteria = PortalNavigationItemQueryCriteria.builder()
-            .environmentId(environmentId)
-            .type(PortalNavigationItemType.PAGE)
-            .build();
-        return search(criteria)
-            .stream()
-            .filter(PortalNavigationPage.class::isInstance)
-            .map(PortalNavigationPage.class::cast)
-            .filter(page -> page.getPortalPageContentId().equals(contentId))
-            .findFirst();
+                .environmentId(environmentId)
+                .type(PortalNavigationItemType.PAGE)
+                .build();
+        return search(criteria).stream()
+                .filter(PortalNavigationPage.class::isInstance)
+                .map(PortalNavigationPage.class::cast)
+                .filter(page -> page.getPortalPageContentId().equals(contentId))
+                .findFirst();
     }
 }

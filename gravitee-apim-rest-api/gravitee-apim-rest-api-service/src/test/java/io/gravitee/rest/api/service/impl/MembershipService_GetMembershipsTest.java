@@ -51,98 +51,77 @@ public class MembershipService_GetMembershipsTest {
     @BeforeEach
     public void setUp() throws Exception {
         membershipService = new MembershipServiceImpl(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            membershipRepository,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                membershipRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 
     @Test
     public void shouldGetEmptyMembersWithMembership() throws Exception {
-        when(
-            membershipRepository.findRefIdsByMemberIdAndMemberTypeAndReferenceType(
-                memberId,
-                MembershipMemberType.USER,
-                MembershipReferenceType.APPLICATION
-            )
-        ).thenReturn(Stream.of());
+        when(membershipRepository.findRefIdsByMemberIdAndMemberTypeAndReferenceType(
+                        memberId, MembershipMemberType.USER, MembershipReferenceType.APPLICATION))
+                .thenReturn(Stream.of());
 
         Set<String> referenceIds = membershipService.getReferenceIdsByMemberAndReference(
-            io.gravitee.rest.api.model.MembershipMemberType.USER,
-            memberId,
-            io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION
-        );
+                io.gravitee.rest.api.model.MembershipMemberType.USER,
+                memberId,
+                io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION);
 
         assertThat(referenceIds).as("references must be empty").isEmpty();
-        verify(membershipRepository, times(1)).findRefIdsByMemberIdAndMemberTypeAndReferenceType(
-            memberId,
-            MembershipMemberType.USER,
-            MembershipReferenceType.APPLICATION
-        );
+        verify(membershipRepository, times(1))
+                .findRefIdsByMemberIdAndMemberTypeAndReferenceType(
+                        memberId, MembershipMemberType.USER, MembershipReferenceType.APPLICATION);
     }
 
     @Test
     public void shouldGetMembersWithMembership() throws Exception {
-        when(
-            membershipRepository.findRefIdsByMemberIdAndMemberTypeAndReferenceType(
-                memberId,
-                MembershipMemberType.USER,
-                MembershipReferenceType.APPLICATION
-            )
-        ).thenReturn(Stream.of("ref-1", "m2"));
+        when(membershipRepository.findRefIdsByMemberIdAndMemberTypeAndReferenceType(
+                        memberId, MembershipMemberType.USER, MembershipReferenceType.APPLICATION))
+                .thenReturn(Stream.of("ref-1", "m2"));
 
         Set<String> referenceIds = membershipService.getReferenceIdsByMemberAndReference(
-            io.gravitee.rest.api.model.MembershipMemberType.USER,
-            memberId,
-            io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION
-        );
+                io.gravitee.rest.api.model.MembershipMemberType.USER,
+                memberId,
+                io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION);
 
         assertThat(referenceIds).hasSize(2);
-        verify(membershipRepository, times(1)).findRefIdsByMemberIdAndMemberTypeAndReferenceType(
-            memberId,
-            MembershipMemberType.USER,
-            MembershipReferenceType.APPLICATION
-        );
+        verify(membershipRepository, times(1))
+                .findRefIdsByMemberIdAndMemberTypeAndReferenceType(
+                        memberId, MembershipMemberType.USER, MembershipReferenceType.APPLICATION);
     }
 
     @Test
     public void shouldThrowTechnicalManagementException() throws Exception {
-        when(
-            membershipRepository.findRefIdsByMemberIdAndMemberTypeAndReferenceType(
-                memberId,
-                MembershipMemberType.USER,
-                MembershipReferenceType.APPLICATION
-            )
-        ).thenThrow(new TechnicalException());
+        when(membershipRepository.findRefIdsByMemberIdAndMemberTypeAndReferenceType(
+                        memberId, MembershipMemberType.USER, MembershipReferenceType.APPLICATION))
+                .thenThrow(new TechnicalException());
 
-        assertThatThrownBy(() ->
-            membershipService.getReferenceIdsByMemberAndReference(
-                io.gravitee.rest.api.model.MembershipMemberType.USER,
-                memberId,
-                io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION
-            )
-        ).isInstanceOf(TechnicalManagementException.class);
+        assertThatThrownBy(() -> membershipService.getReferenceIdsByMemberAndReference(
+                        io.gravitee.rest.api.model.MembershipMemberType.USER,
+                        memberId,
+                        io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION))
+                .isInstanceOf(TechnicalManagementException.class);
     }
 }

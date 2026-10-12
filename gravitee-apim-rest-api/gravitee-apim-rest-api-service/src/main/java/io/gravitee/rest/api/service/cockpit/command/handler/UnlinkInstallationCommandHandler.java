@@ -34,7 +34,8 @@ import org.springframework.stereotype.Component;
 @Component
 @CustomLog
 @RequiredArgsConstructor
-public class UnlinkInstallationCommandHandler implements CommandHandler<UnlinkInstallationCommand, UnlinkInstallationReply> {
+public class UnlinkInstallationCommandHandler
+        implements CommandHandler<UnlinkInstallationCommand, UnlinkInstallationReply> {
 
     private final OrganizationService organizationService;
     private final EnvironmentService environmentService;
@@ -51,18 +52,18 @@ public class UnlinkInstallationCommandHandler implements CommandHandler<UnlinkIn
 
         try {
             if (unlinkInstallationPayload.organizationCockpitId() != null) {
-                OrganizationEntity organization = this.organizationService.findByCockpitId(
-                    unlinkInstallationPayload.organizationCockpitId()
-                );
-                this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organization.getId());
+                OrganizationEntity organization =
+                        this.organizationService.findByCockpitId(unlinkInstallationPayload.organizationCockpitId());
+                this.accessPointService.deleteAccessPoints(
+                        AccessPoint.ReferenceType.ORGANIZATION, organization.getId());
             }
 
             if (unlinkInstallationPayload.environmentCockpitId() != null) {
-                EnvironmentEntity environment = this.environmentService.findByCockpitId(unlinkInstallationPayload.environmentCockpitId());
+                EnvironmentEntity environment =
+                        this.environmentService.findByCockpitId(unlinkInstallationPayload.environmentCockpitId());
                 this.accessPointService.deleteAccessPoints(
-                    io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ENVIRONMENT,
-                    environment.getId()
-                );
+                        io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ENVIRONMENT,
+                        environment.getId());
             }
 
             return Single.just(new UnlinkInstallationReply(command.getId()));

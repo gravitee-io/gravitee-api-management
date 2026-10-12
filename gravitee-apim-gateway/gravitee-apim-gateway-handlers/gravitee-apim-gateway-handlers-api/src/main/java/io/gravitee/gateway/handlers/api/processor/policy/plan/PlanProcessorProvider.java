@@ -39,18 +39,21 @@ public abstract class PlanProcessorProvider extends AbstractPolicyChainProvider 
 
             context.request().metrics().setPlan(plan);
             context.request().metrics().setApplication(application);
-            context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
+            context.request().metrics().setSubscription((String)
+                    context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
 
             return provide0(context);
         } else {
             // Fix consuming application and subscription which are data that can be used by policies (ie. rate-limit).
             context.setAttribute(ExecutionContext.ATTR_APPLICATION, APPLICATION_NAME_ANONYMOUS);
             context.setAttribute(ExecutionContext.ATTR_PLAN, PLAN_NAME_ANONYMOUS);
-            context.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, context.request().remoteAddress());
+            context.setAttribute(
+                    ExecutionContext.ATTR_SUBSCRIPTION_ID, context.request().remoteAddress());
 
             context.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
             context.request().metrics().setPlan(PLAN_NAME_ANONYMOUS);
-            context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
+            context.request().metrics().setSubscription((String)
+                    context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
 
             return new NoOpPolicyChain(context);
         }

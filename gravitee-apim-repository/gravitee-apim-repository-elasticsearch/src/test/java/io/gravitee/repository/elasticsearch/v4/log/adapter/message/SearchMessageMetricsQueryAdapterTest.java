@@ -29,10 +29,10 @@ class SearchMessageMetricsQueryAdapterTest {
     @ParameterizedTest
     @MethodSource("noFilter")
     void should_build_query_without_filter(MessageMetricsQuery.Filter filter) {
-        var result = SearchMessageMetricsQueryAdapter.adapt(MessageMetricsQuery.builder().page(1).size(20).filter(filter).build());
+        var result = SearchMessageMetricsQueryAdapter.adapt(
+                MessageMetricsQuery.builder().page(1).size(20).filter(filter).build());
 
-        assertThatJson(result).isEqualTo(
-            """
+        assertThatJson(result).isEqualTo("""
             {
               "from": 0,
               "size": 20,
@@ -40,27 +40,31 @@ class SearchMessageMetricsQueryAdapterTest {
                 "@timestamp": { "order": "desc" }
               }
             }
-            """
-        );
+            """);
     }
 
     @ParameterizedTest
     @MethodSource("getFilters")
     void should_build_query_with_filters(MessageMetricsQuery.Filter filter, String expected) {
-        var result = SearchMessageMetricsQueryAdapter.adapt(MessageMetricsQuery.builder().page(1).size(20).filter(filter).build());
+        var result = SearchMessageMetricsQueryAdapter.adapt(
+                MessageMetricsQuery.builder().page(1).size(20).filter(filter).build());
 
         assertThatJson(result).when(IGNORING_ARRAY_ORDER).isEqualTo(expected);
     }
 
     private static Stream<Arguments> noFilter() {
-        return Stream.of(Arguments.of((Object) null), Arguments.of(MessageMetricsQuery.Filter.builder().build()));
+        return Stream.of(
+                Arguments.of((Object) null),
+                Arguments.of(MessageMetricsQuery.Filter.builder().build()));
     }
 
     private static Stream<Arguments> getFilters() {
         return Stream.of(
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build(),
-                """
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -75,14 +79,13 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                    .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                                .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -98,15 +101,14 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                    .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
-                    .connectorType("entrypoint")
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                                .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                                .connectorType("entrypoint")
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -123,16 +125,15 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                    .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
-                    .connectorType("entrypoint")
-                    .operation("subscribe")
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                                .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                                .connectorType("entrypoint")
+                                .operation("subscribe")
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -150,17 +151,16 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                    .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
-                    .connectorType("entrypoint")
-                    .operation("subscribe")
-                    .connectorId("webhook")
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                                .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                                .connectorType("entrypoint")
+                                .operation("subscribe")
+                                .connectorId("webhook")
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -179,16 +179,17 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .connectorId("webhook")
-                    .connectorType("entrypoint")
-                    .operation("subscribe")
-                    .additional(java.util.Map.of("string_webhook_url", java.util.List.of("https://webhook.site/d0aa84f5-975d-4d5e-b0")))
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .connectorId("webhook")
+                                .connectorType("entrypoint")
+                                .operation("subscribe")
+                                .additional(java.util.Map.of(
+                                        "string_webhook_url",
+                                        java.util.List.of("https://webhook.site/d0aa84f5-975d-4d5e-b0")))
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -210,23 +211,19 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .connectorId("webhook")
-                    .connectorType("entrypoint")
-                    .operation("subscribe")
-                    .additional(
-                        java.util.Map.of(
-                            "string_webhook_url",
-                            java.util.List.of("https://webhook.site/test"),
-                            "int_webhook_resp-status",
-                            java.util.List.of("200")
-                        )
-                    )
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .connectorId("webhook")
+                                .connectorType("entrypoint")
+                                .operation("subscribe")
+                                .additional(java.util.Map.of(
+                                        "string_webhook_url",
+                                        java.util.List.of("https://webhook.site/test"),
+                                        "int_webhook_resp-status",
+                                        java.util.List.of("200")))
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -253,18 +250,17 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .connectorId("webhook")
-                    .connectorType("entrypoint")
-                    .operation("subscribe")
-                    .additional(
-                        java.util.Map.of("string_webhook_url", java.util.List.of("https://webhook.site/url1", "https://webhook.site/url2"))
-                    )
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .connectorId("webhook")
+                                .connectorType("entrypoint")
+                                .operation("subscribe")
+                                .additional(java.util.Map.of(
+                                        "string_webhook_url",
+                                        java.util.List.of("https://webhook.site/url1", "https://webhook.site/url2")))
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -298,16 +294,15 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .connectorId("webhook")
-                    .connectorType("entrypoint")
-                    .operation("subscribe")
-                    .additional(java.util.Map.of("keyword_webhook_app-id", java.util.List.of("app-123")))
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .connectorId("webhook")
+                                .connectorType("entrypoint")
+                                .operation("subscribe")
+                                .additional(java.util.Map.of("keyword_webhook_app-id", java.util.List.of("app-123")))
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -329,16 +324,15 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .connectorId("webhook")
-                    .connectorType("entrypoint")
-                    .operation("subscribe")
-                    .requiresAdditional(true)
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .connectorId("webhook")
+                                .connectorType("entrypoint")
+                                .operation("subscribe")
+                                .requiresAdditional(true)
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -360,16 +354,15 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .connectorId("webhook")
-                    .connectorType("entrypoint")
-                    .operation("subscribe")
-                    .requiresAdditional(false)
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .connectorId("webhook")
+                                .connectorType("entrypoint")
+                                .operation("subscribe")
+                                .requiresAdditional(false)
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -386,17 +379,16 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            ),
-            Arguments.of(
-                MessageMetricsQuery.Filter.builder()
-                    .connectorId("webhook")
-                    .connectorType("entrypoint")
-                    .operation("subscribe")
-                    .requiresAdditional(true)
-                    .additional(java.util.Map.of("int_webhook_resp-status", java.util.List.of("200")))
-                    .build(),
-                """
+                """),
+                Arguments.of(
+                        MessageMetricsQuery.Filter.builder()
+                                .connectorId("webhook")
+                                .connectorType("entrypoint")
+                                .operation("subscribe")
+                                .requiresAdditional(true)
+                                .additional(java.util.Map.of("int_webhook_resp-status", java.util.List.of("200")))
+                                .build(),
+                        """
                 {
                   "from": 0,
                   "size": 20,
@@ -423,8 +415,6 @@ class SearchMessageMetricsQueryAdapterTest {
                     "@timestamp": { "order": "desc" }
                   }
                 }
-                """
-            )
-        );
+                """));
     }
 }

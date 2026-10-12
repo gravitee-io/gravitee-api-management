@@ -50,16 +50,16 @@ public class CreateApiDocumentationDomainServiceTest {
     @BeforeEach
     void setUp() {
         createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
-            pageCrudService,
-            pageRevisionCrudService,
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-            indexer
-        );
+                pageCrudService,
+                pageRevisionCrudService,
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                indexer);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(pageCrudService, pageRevisionCrudService, auditCrudService, userCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(pageCrudService, pageRevisionCrudService, auditCrudService, userCrudService)
+                .forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -68,42 +68,41 @@ public class CreateApiDocumentationDomainServiceTest {
         @Test
         void should_create_markdown() {
             var parentPage = Page.builder()
-                .id(PARENT_ID)
-                .referenceType(Page.ReferenceType.API)
-                .referenceId("api-id")
-                .parentId("")
-                .name("parent")
-                .build();
+                    .id(PARENT_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .referenceId("api-id")
+                    .parentId("")
+                    .name("parent")
+                    .build();
             pageCrudService.initWith(List.of(parentPage));
 
             var res = createApiDocumentationDomainService.createPage(
-                Page.builder()
-                    .id(PAGE_ID)
-                    .createdAt(DATE)
-                    .updatedAt(DATE)
-                    .type(Page.Type.MARKDOWN)
-                    .name("new page")
-                    .content("nice content")
-                    .homepage(false)
-                    .visibility(Page.Visibility.PRIVATE)
-                    .parentId("parent-id")
-                    .referenceId("api-id")
-                    .referenceType(Page.ReferenceType.API)
-                    .order(1)
-                    .build(),
-                AUDIT_INFO
-            );
+                    Page.builder()
+                            .id(PAGE_ID)
+                            .createdAt(DATE)
+                            .updatedAt(DATE)
+                            .type(Page.Type.MARKDOWN)
+                            .name("new page")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("parent-id")
+                            .referenceId("api-id")
+                            .referenceType(Page.ReferenceType.API)
+                            .order(1)
+                            .build(),
+                    AUDIT_INFO);
 
             assertThat(res)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", PAGE_ID)
-                .hasFieldOrPropertyWithValue("name", "new page")
-                .hasFieldOrPropertyWithValue("type", Page.Type.MARKDOWN)
-                .hasFieldOrPropertyWithValue("content", "nice content")
-                .hasFieldOrPropertyWithValue("homepage", false)
-                .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
-                .hasFieldOrPropertyWithValue("parentId", PARENT_ID)
-                .hasFieldOrPropertyWithValue("order", 1);
+                    .isNotNull()
+                    .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                    .hasFieldOrPropertyWithValue("name", "new page")
+                    .hasFieldOrPropertyWithValue("type", Page.Type.MARKDOWN)
+                    .hasFieldOrPropertyWithValue("content", "nice content")
+                    .hasFieldOrPropertyWithValue("homepage", false)
+                    .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
+                    .hasFieldOrPropertyWithValue("parentId", PARENT_ID)
+                    .hasFieldOrPropertyWithValue("order", 1);
 
             assertThat(res.getCreatedAt()).isNotNull().isEqualTo(res.getUpdatedAt());
         }
@@ -111,33 +110,59 @@ public class CreateApiDocumentationDomainServiceTest {
         @Test
         void should_create_an_audit() {
             createApiDocumentationDomainService.createPage(
-                Page.builder()
-                    .id(PAGE_ID)
-                    .createdAt(DATE)
-                    .updatedAt(DATE)
-                    .type(Page.Type.MARKDOWN)
-                    .name("new page")
-                    .content("nice content")
-                    .homepage(false)
-                    .visibility(Page.Visibility.PRIVATE)
-                    .parentId("parent-id")
-                    .referenceId("api-id")
-                    .referenceType(Page.ReferenceType.API)
-                    .order(1)
-                    .build(),
-                AUDIT_INFO
-            );
+                    Page.builder()
+                            .id(PAGE_ID)
+                            .createdAt(DATE)
+                            .updatedAt(DATE)
+                            .type(Page.Type.MARKDOWN)
+                            .name("new page")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("parent-id")
+                            .referenceId("api-id")
+                            .referenceType(Page.ReferenceType.API)
+                            .order(1)
+                            .build(),
+                    AUDIT_INFO);
             var audit = auditCrudService.storage().get(0);
             assertThat(audit)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("referenceId", "api-id")
-                .hasFieldOrPropertyWithValue("event", "PAGE_CREATED");
+                    .isNotNull()
+                    .hasFieldOrPropertyWithValue("referenceId", "api-id")
+                    .hasFieldOrPropertyWithValue("event", "PAGE_CREATED");
         }
 
         @Test
         void should_create_a_page_revision() {
             createApiDocumentationDomainService.createPage(
-                Page.builder()
+                    Page.builder()
+                            .id(PAGE_ID)
+                            .createdAt(DATE)
+                            .updatedAt(DATE)
+                            .type(Page.Type.MARKDOWN)
+                            .name("new page")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("parent-id")
+                            .referenceId("api-id")
+                            .referenceType(Page.ReferenceType.API)
+                            .order(1)
+                            .build(),
+                    AUDIT_INFO);
+
+            var pageRevision = pageRevisionCrudService.storage().get(0);
+            assertThat(pageRevision)
+                    .isNotNull()
+                    .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
+                    .hasFieldOrPropertyWithValue("contributor", null)
+                    .hasFieldOrPropertyWithValue("name", "new page")
+                    .hasFieldOrPropertyWithValue("content", "nice content");
+        }
+
+        @Test
+        void shouldIndexPage() {
+            var page = Page.builder()
                     .id(PAGE_ID)
                     .createdAt(DATE)
                     .updatedAt(DATE)
@@ -150,35 +175,7 @@ public class CreateApiDocumentationDomainServiceTest {
                     .referenceId("api-id")
                     .referenceType(Page.ReferenceType.API)
                     .order(1)
-                    .build(),
-                AUDIT_INFO
-            );
-
-            var pageRevision = pageRevisionCrudService.storage().get(0);
-            assertThat(pageRevision)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
-                .hasFieldOrPropertyWithValue("contributor", null)
-                .hasFieldOrPropertyWithValue("name", "new page")
-                .hasFieldOrPropertyWithValue("content", "nice content");
-        }
-
-        @Test
-        void shouldIndexPage() {
-            var page = Page.builder()
-                .id(PAGE_ID)
-                .createdAt(DATE)
-                .updatedAt(DATE)
-                .type(Page.Type.MARKDOWN)
-                .name("new page")
-                .content("nice content")
-                .homepage(false)
-                .visibility(Page.Visibility.PRIVATE)
-                .parentId("parent-id")
-                .referenceId("api-id")
-                .referenceType(Page.ReferenceType.API)
-                .order(1)
-                .build();
+                    .build();
 
             createApiDocumentationDomainService.createPage(page, AUDIT_INFO);
 
@@ -192,40 +189,39 @@ public class CreateApiDocumentationDomainServiceTest {
         @Test
         void should_create_folder() {
             var parentPage = Page.builder()
-                .id(PARENT_ID)
-                .referenceType(Page.ReferenceType.API)
-                .referenceId("api-id")
-                .parentId("")
-                .name("parent")
-                .build();
+                    .id(PARENT_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .referenceId("api-id")
+                    .parentId("")
+                    .name("parent")
+                    .build();
             pageCrudService.initWith(List.of(parentPage));
 
             var res = createApiDocumentationDomainService.createPage(
-                Page.builder()
-                    .id(PAGE_ID)
-                    .createdAt(DATE)
-                    .updatedAt(DATE)
-                    .type(Page.Type.FOLDER)
-                    .name("new page")
-                    .visibility(Page.Visibility.PRIVATE)
-                    .parentId("parent-id")
-                    .referenceId("api-id")
-                    .referenceType(Page.ReferenceType.API)
-                    .order(1)
-                    .build(),
-                AUDIT_INFO
-            );
+                    Page.builder()
+                            .id(PAGE_ID)
+                            .createdAt(DATE)
+                            .updatedAt(DATE)
+                            .type(Page.Type.FOLDER)
+                            .name("new page")
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("parent-id")
+                            .referenceId("api-id")
+                            .referenceType(Page.ReferenceType.API)
+                            .order(1)
+                            .build(),
+                    AUDIT_INFO);
 
             assertThat(res)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", PAGE_ID)
-                .hasFieldOrPropertyWithValue("name", "new page")
-                .hasFieldOrPropertyWithValue("type", Page.Type.FOLDER)
-                .hasFieldOrPropertyWithValue("content", null)
-                .hasFieldOrPropertyWithValue("homepage", false)
-                .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
-                .hasFieldOrPropertyWithValue("parentId", PARENT_ID)
-                .hasFieldOrPropertyWithValue("order", 1);
+                    .isNotNull()
+                    .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                    .hasFieldOrPropertyWithValue("name", "new page")
+                    .hasFieldOrPropertyWithValue("type", Page.Type.FOLDER)
+                    .hasFieldOrPropertyWithValue("content", null)
+                    .hasFieldOrPropertyWithValue("homepage", false)
+                    .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
+                    .hasFieldOrPropertyWithValue("parentId", PARENT_ID)
+                    .hasFieldOrPropertyWithValue("order", 1);
 
             assertThat(res.getCreatedAt()).isNotNull().isEqualTo(res.getUpdatedAt());
 
@@ -233,53 +229,51 @@ public class CreateApiDocumentationDomainServiceTest {
 
             var audit = auditCrudService.storage().get(0);
             assertThat(audit)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("referenceId", "api-id")
-                .hasFieldOrPropertyWithValue("event", "PAGE_CREATED");
+                    .isNotNull()
+                    .hasFieldOrPropertyWithValue("referenceId", "api-id")
+                    .hasFieldOrPropertyWithValue("event", "PAGE_CREATED");
         }
 
         @Test
         void should_create_audit() {
             createApiDocumentationDomainService.createPage(
-                Page.builder()
-                    .id(PAGE_ID)
-                    .createdAt(DATE)
-                    .updatedAt(DATE)
-                    .type(Page.Type.FOLDER)
-                    .name("new page")
-                    .visibility(Page.Visibility.PRIVATE)
-                    .parentId("parent-id")
-                    .referenceId("api-id")
-                    .referenceType(Page.ReferenceType.API)
-                    .order(1)
-                    .build(),
-                AUDIT_INFO
-            );
+                    Page.builder()
+                            .id(PAGE_ID)
+                            .createdAt(DATE)
+                            .updatedAt(DATE)
+                            .type(Page.Type.FOLDER)
+                            .name("new page")
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("parent-id")
+                            .referenceId("api-id")
+                            .referenceType(Page.ReferenceType.API)
+                            .order(1)
+                            .build(),
+                    AUDIT_INFO);
 
             var audit = auditCrudService.storage().get(0);
             assertThat(audit)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("referenceId", "api-id")
-                .hasFieldOrPropertyWithValue("event", "PAGE_CREATED");
+                    .isNotNull()
+                    .hasFieldOrPropertyWithValue("referenceId", "api-id")
+                    .hasFieldOrPropertyWithValue("event", "PAGE_CREATED");
         }
 
         @Test
         void should_not_create_page_revision() {
             createApiDocumentationDomainService.createPage(
-                Page.builder()
-                    .id(PAGE_ID)
-                    .createdAt(DATE)
-                    .updatedAt(DATE)
-                    .type(Page.Type.FOLDER)
-                    .name("new page")
-                    .visibility(Page.Visibility.PRIVATE)
-                    .parentId("parent-id")
-                    .referenceId("api-id")
-                    .referenceType(Page.ReferenceType.API)
-                    .order(1)
-                    .build(),
-                AUDIT_INFO
-            );
+                    Page.builder()
+                            .id(PAGE_ID)
+                            .createdAt(DATE)
+                            .updatedAt(DATE)
+                            .type(Page.Type.FOLDER)
+                            .name("new page")
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("parent-id")
+                            .referenceId("api-id")
+                            .referenceType(Page.ReferenceType.API)
+                            .order(1)
+                            .build(),
+                    AUDIT_INFO);
 
             assertThat(pageRevisionCrudService.storage().size()).isEqualTo(0);
         }

@@ -41,7 +41,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<License> implements LicenseRepository {
 
-    JdbcLicenseRepository(@Value("${management.jdbc.prefix:}") String tablePrefix, @Autowired JdbcTemplate jdbcTemplate) {
+    JdbcLicenseRepository(
+            @Value("${management.jdbc.prefix:}") String tablePrefix, @Autowired JdbcTemplate jdbcTemplate) {
         super(tablePrefix, "licenses");
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -49,37 +50,34 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
     @Override
     protected JdbcObjectMapper<License> buildOrm() {
         return JdbcObjectMapper.builder(License.class, this.tableName, "reference_id")
-            .updateSql(
-                "update " +
-                    this.tableName +
-                    " set " +
-                    " reference_id = ?" +
-                    " , reference_type = ?" +
-                    " , license = ?" +
-                    " , created_at = ? " +
-                    " , updated_at = ? " +
-                    WHERE_CLAUSE +
-                    " reference_id = ? " +
-                    " and reference_type = ? "
-            )
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, License.ReferenceType.class)
-            .addColumn("license", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+                .updateSql("update " + this.tableName
+                        + " set "
+                        + " reference_id = ?"
+                        + " , reference_type = ?"
+                        + " , license = ?"
+                        + " , created_at = ? "
+                        + " , updated_at = ? "
+                        + WHERE_CLAUSE
+                        + " reference_id = ? "
+                        + " and reference_type = ? ")
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, License.ReferenceType.class)
+                .addColumn("license", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
-    public Optional<License> findById(String referenceId, License.ReferenceType referenceType) throws TechnicalException {
+    public Optional<License> findById(String referenceId, License.ReferenceType referenceType)
+            throws TechnicalException {
         log.debug("JdbcLicenseRepository.findById({}, {})", referenceId, referenceType);
         try {
             List<License> result = jdbcTemplate.query(
-                "select ol.* from " + this.tableName + " ol where ol.reference_id = ? and ol.reference_type = ?",
-                getOrm().getRowMapper(),
-                referenceId,
-                referenceType.name()
-            );
+                    "select ol.* from " + this.tableName + " ol where ol.reference_id = ? and ol.reference_type = ?",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name());
             log.debug("JdbcLicenseRepository.findById({}, {}) = {}", referenceId, referenceType, result);
             return result.stream().findFirst();
         } catch (final Exception ex) {
@@ -93,7 +91,8 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
         log.debug("JdbcLicenseRepository.create({})", license);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(license));
-            return findById(license.getReferenceId(), license.getReferenceType()).orElse(null);
+            return findById(license.getReferenceId(), license.getReferenceType())
+                    .orElse(null);
         } catch (final Exception ex) {
             log.error("Failed to create license", ex);
             throw new TechnicalException("Failed to create license", ex);
@@ -104,13 +103,15 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
     public License update(License license) throws TechnicalException {
         log.debug("JdbcLicenseRepository.update({})", license);
         try {
-            int rows = jdbcTemplate.update(
-                getOrm().buildUpdatePreparedStatementCreator(license, license.getReferenceId(), license.getReferenceType().name())
-            );
+            int rows = jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(
+                            license,
+                            license.getReferenceId(),
+                            license.getReferenceType().name()));
             if (rows == 0) {
                 throw new IllegalStateException("Unable to update " + getOrm().getTableName());
             }
-            return findById(license.getReferenceId(), license.getReferenceType()).orElse(null);
+            return findById(license.getReferenceId(), license.getReferenceType())
+                    .orElse(null);
         } catch (final Exception ex) {
             log.error("Failed to update license: {} {}", license.getReferenceId(), license.getReferenceType(), ex);
             throw new TechnicalException("Failed to update license", ex);
@@ -122,10 +123,9 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
         log.debug("JdbcLicenseRepository.delete({} {})", referenceId, referenceType);
         try {
             jdbcTemplate.update(
-                "delete from " + this.tableName + " where reference_id = ? and reference_type = ?",
-                referenceId,
-                referenceType.name()
-            );
+                    "delete from " + this.tableName + " where reference_id = ? and reference_type = ?",
+                    referenceId,
+                    referenceType.name());
         } catch (final Exception ex) {
             log.error("Failed to delete {} license:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to delete license", ex);
@@ -150,7 +150,9 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
 
             if (filter.getReferenceIds() != null && !filter.getReferenceIds().isEmpty()) {
                 first = addClause(first, query);
-                query.append(" ( reference_id in ( ").append(getOrm().buildInClause(filter.getReferenceIds())).append(" ) )");
+                query.append(" ( reference_id in ( ")
+                        .append(getOrm().buildInClause(filter.getReferenceIds()))
+                        .append(" ) )");
                 args.addAll(filter.getReferenceIds());
             }
 
@@ -186,7 +188,8 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
     public Set<License> findAll() throws TechnicalException {
         log.debug("JdbcLicenseRepository.findAll()");
         try {
-            List<License> result = jdbcTemplate.query("select ol.* from " + this.tableName + " ol", getOrm().getRowMapper());
+            List<License> result =
+                    jdbcTemplate.query("select ol.* from " + this.tableName + " ol", getOrm().getRowMapper());
             log.debug("JdbcLicenseRepository.findById() = {}", result);
             return new HashSet<>(result);
         } catch (final Exception ex) {

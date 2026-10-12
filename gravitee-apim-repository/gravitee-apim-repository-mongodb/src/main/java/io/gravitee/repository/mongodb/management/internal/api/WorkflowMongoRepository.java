@@ -28,14 +28,12 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface WorkflowMongoRepository extends MongoRepository<WorkflowMongo, String> {
-    List<WorkflowMongo> findByReferenceTypeAndReferenceIdAndTypeOrderByCreatedAtDesc(String referenceType, String referenceId, String type);
+    List<WorkflowMongo> findByReferenceTypeAndReferenceIdAndTypeOrderByCreatedAtDesc(
+            String referenceType, String referenceId, String type);
 
     @Query(value = "{ 'referenceType': ?0, 'referenceId': {$in: ?1}, 'type': ?2 }", sort = "{ 'createdAt': -1 }")
     List<WorkflowMongo> findByReferenceTypeAndReferenceIdInAndTypeOrderByCreatedAtDesc(
-        String referenceType,
-        Collection<String> referenceIds,
-        String type
-    );
+            String referenceType, Collection<String> referenceIds, String type);
 
     @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
     List<WorkflowMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);

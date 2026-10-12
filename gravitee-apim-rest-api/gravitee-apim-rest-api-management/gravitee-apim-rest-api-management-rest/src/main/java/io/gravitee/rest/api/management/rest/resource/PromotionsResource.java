@@ -66,25 +66,24 @@ public class PromotionsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Search for Promotion")
     @ApiResponse(
-        responseCode = "200",
-        description = "List promotions matching request parameters",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = PromotionEntity.class))
-        )
-    )
+            responseCode = "200",
+            description = "List promotions matching request parameters",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = PromotionEntity.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response searchPromotions(
-        @Parameter(name = "statuses", required = true) @NotNull @QueryParam("statuses") List<String> statuses,
-        @Parameter(name = "apiId", required = true) @NotNull @QueryParam("apiId") String apiId
-    ) {
+            @Parameter(name = "statuses", required = true) @NotNull @QueryParam("statuses") List<String> statuses,
+            @Parameter(name = "apiId", required = true) @NotNull @QueryParam("apiId") String apiId) {
         PromotionQuery promotionQuery = new PromotionQuery();
-        promotionQuery.setStatuses(statuses.stream().map(PromotionEntityStatus::valueOf).collect(toList()));
+        promotionQuery.setStatuses(
+                statuses.stream().map(PromotionEntityStatus::valueOf).collect(toList()));
         promotionQuery.setApiId(apiId);
 
         List<PromotionEntity> promotions = promotionService
-            .search(promotionQuery, new SortableImpl("created_at", false), null)
-            .getContent();
+                .search(promotionQuery, new SortableImpl("created_at", false), null)
+                .getContent();
 
         return Response.ok().entity(promotions).build();
     }

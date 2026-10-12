@@ -29,7 +29,7 @@ public class ApiEventMetricsFormatter extends BaseEventMetricsFormatter<ApiEvent
     protected Buffer format0(ApiEventMetrics data) {
         final Buffer buffer = super.format0(data);
 
-        //Append api event metrics
+        // Append api event metrics
         appendLong(buffer, data.getDownstreamActiveConnections());
         appendLong(buffer, data.getUpstreamActiveConnections());
         appendLong(buffer, data.getDownstreamAuthenticationFailuresCountIncrement());

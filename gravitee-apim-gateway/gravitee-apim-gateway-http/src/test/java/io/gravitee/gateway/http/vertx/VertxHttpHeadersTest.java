@@ -55,7 +55,9 @@ public class VertxHttpHeadersTest {
     @Test
     public void shouldConvertToSingleValueMap() {
         final Map<String, String> result = cut.toSingleValueMap();
-        assertThat(result).containsEntry(FIRST_HEADER, FIRST_HEADER_VALUE_1).containsEntry(SECOND_HEADER, SECOND_HEADER_VALUE);
+        assertThat(result)
+                .containsEntry(FIRST_HEADER, FIRST_HEADER_VALUE_1)
+                .containsEntry(SECOND_HEADER, SECOND_HEADER_VALUE);
 
         // In case of multiple values for one header name, this conversion is only taking the first value
         assertThat(result.values()).doesNotContain(FIRST_HEADER_VALUE_2);
@@ -73,10 +75,13 @@ public class VertxHttpHeadersTest {
         assertThat(defaultHttpHeaders.containsAllKeys(List.of(FIRST_HEADER))).isTrue();
 
         assertThat(cut.containsAllKeys(List.of(FIRST_HEADER, SECOND_HEADER))).isTrue();
-        assertThat(defaultHttpHeaders.containsAllKeys(List.of(FIRST_HEADER, SECOND_HEADER))).isTrue();
+        assertThat(defaultHttpHeaders.containsAllKeys(List.of(FIRST_HEADER, SECOND_HEADER)))
+                .isTrue();
 
-        assertThat(cut.containsAllKeys(List.of(FIRST_HEADER, SECOND_HEADER, ACCEPT_LANGUAGE))).isFalse();
-        assertThat(defaultHttpHeaders.containsAllKeys(List.of(FIRST_HEADER, SECOND_HEADER, ACCEPT_LANGUAGE))).isFalse();
+        assertThat(cut.containsAllKeys(List.of(FIRST_HEADER, SECOND_HEADER, ACCEPT_LANGUAGE)))
+                .isFalse();
+        assertThat(defaultHttpHeaders.containsAllKeys(List.of(FIRST_HEADER, SECOND_HEADER, ACCEPT_LANGUAGE)))
+                .isFalse();
 
         assertThat(cut.containsAllKeys(List.of(ACCEPT_LANGUAGE))).isFalse();
         assertThat(defaultHttpHeaders.containsAllKeys(List.of(ACCEPT_LANGUAGE))).isFalse();
@@ -150,14 +155,18 @@ public class VertxHttpHeadersTest {
         assertThat(defaultHttpHeaders.size()).isEqualTo(3);
 
         // Putting a header already present in the map
-        final List<String> firstHeaderNewValues = List.of("first-overridden-1", "first-overridden-2", "first-overridden-3");
+        final List<String> firstHeaderNewValues =
+                List.of("first-overridden-1", "first-overridden-2", "first-overridden-3");
         final List<String> firstHeaderOverridden = cut.put(FIRST_HEADER, firstHeaderNewValues);
-        final List<String> firstHeaderOverriddenDefaultHttpHeaders = defaultHttpHeaders.put(FIRST_HEADER, firstHeaderNewValues);
+        final List<String> firstHeaderOverriddenDefaultHttpHeaders =
+                defaultHttpHeaders.put(FIRST_HEADER, firstHeaderNewValues);
 
-        assertThat(firstHeaderOverridden).hasSize(2).containsExactlyElementsOf(List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2));
+        assertThat(firstHeaderOverridden)
+                .hasSize(2)
+                .containsExactlyElementsOf(List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2));
         assertThat(firstHeaderOverriddenDefaultHttpHeaders)
-            .hasSize(2)
-            .containsExactlyElementsOf(List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2));
+                .hasSize(2)
+                .containsExactlyElementsOf(List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2));
         assertThat(cut.getAll(FIRST_HEADER)).containsExactlyElementsOf(firstHeaderNewValues);
         assertThat(defaultHttpHeaders.getAll(FIRST_HEADER)).containsExactlyElementsOf(firstHeaderNewValues);
     }
@@ -174,7 +183,8 @@ public class VertxHttpHeadersTest {
     @Test
     public void shouldPutAll() {
         final List<String> putAllHeaders = List.of("test-value1", "test-value2");
-        final Map<String, List<String>> mapToAdd = Map.of("Put-All-Header", putAllHeaders, FIRST_HEADER, List.of("new-value"));
+        final Map<String, List<String>> mapToAdd =
+                Map.of("Put-All-Header", putAllHeaders, FIRST_HEADER, List.of("new-value"));
 
         cut.putAll(mapToAdd);
         defaultHttpHeaders.putAll(mapToAdd);
@@ -196,29 +206,27 @@ public class VertxHttpHeadersTest {
     @Test
     public void shouldGetValues() {
         assertThat(cut.values())
-            .hasSize(2)
-            .containsExactly(List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2), List.of(SECOND_HEADER_VALUE));
+                .hasSize(2)
+                .containsExactly(List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2), List.of(SECOND_HEADER_VALUE));
 
         assertThat(defaultHttpHeaders.values())
-            .hasSize(2)
-            .containsExactly(List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2), List.of(SECOND_HEADER_VALUE));
+                .hasSize(2)
+                .containsExactly(List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2), List.of(SECOND_HEADER_VALUE));
     }
 
     @Test
     public void shouldGetEntrySet() {
         assertThat(cut.entrySet())
-            .hasSize(2)
-            .containsExactly(
-                Map.entry(FIRST_HEADER, List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2)),
-                Map.entry(SECOND_HEADER, List.of(SECOND_HEADER_VALUE))
-            );
+                .hasSize(2)
+                .containsExactly(
+                        Map.entry(FIRST_HEADER, List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2)),
+                        Map.entry(SECOND_HEADER, List.of(SECOND_HEADER_VALUE)));
 
         assertThat(defaultHttpHeaders.entrySet())
-            .hasSize(2)
-            .containsExactly(
-                Map.entry(FIRST_HEADER, List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2)),
-                Map.entry(SECOND_HEADER, List.of(SECOND_HEADER_VALUE))
-            );
+                .hasSize(2)
+                .containsExactly(
+                        Map.entry(FIRST_HEADER, List.of(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2)),
+                        Map.entry(SECOND_HEADER, List.of(SECOND_HEADER_VALUE)));
     }
 
     @Test
@@ -238,10 +246,12 @@ public class VertxHttpHeadersTest {
         cut.add(FIRST_HEADER, "new-value");
         defaultHttpHeaders.add(FIRST_HEADER, "new-value");
 
-        assertThat(cut.getAll(FIRST_HEADER)).hasSize(3).containsExactly(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2, "new-value");
+        assertThat(cut.getAll(FIRST_HEADER))
+                .hasSize(3)
+                .containsExactly(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2, "new-value");
         assertThat(defaultHttpHeaders.getAll(FIRST_HEADER))
-            .hasSize(3)
-            .containsExactly(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2, "new-value");
+                .hasSize(3)
+                .containsExactly(FIRST_HEADER_VALUE_1, FIRST_HEADER_VALUE_2, "new-value");
     }
 
     @Test

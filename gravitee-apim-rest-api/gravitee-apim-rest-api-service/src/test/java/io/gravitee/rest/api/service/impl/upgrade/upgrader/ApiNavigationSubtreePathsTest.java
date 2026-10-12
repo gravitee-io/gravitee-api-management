@@ -38,12 +38,13 @@ class ApiNavigationSubtreePathsTest {
     void collects_a_single_folder_directly_under_the_row() {
         var guides = automationFolder("/guides");
 
-        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, Map.of(NAV_API_ROW_ID, List.of(guides)));
+        var result = ApiNavigationSubtreePaths.collect(
+                ORG, ENV, NAV_API_ROW_ID, API_ID, Map.of(NAV_API_ROW_ID, List.of(guides)));
 
-        assertThat(result).extracting(ApiNavigationSubtreePaths.PathedFolder::path).containsExactly("/guides");
         assertThat(result)
-            .extracting(f -> f.folder().getId())
-            .containsExactly(guides.getId());
+                .extracting(ApiNavigationSubtreePaths.PathedFolder::path)
+                .containsExactly("/guides");
+        assertThat(result).extracting(f -> f.folder().getId()).containsExactly(guides.getId());
     }
 
     @Test
@@ -58,7 +59,9 @@ class ApiNavigationSubtreePathsTest {
 
         var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, byParent);
 
-        assertThat(result).extracting(ApiNavigationSubtreePaths.PathedFolder::path).containsExactly("/guides", "/guides/advanced");
+        assertThat(result)
+                .extracting(ApiNavigationSubtreePaths.PathedFolder::path)
+                .containsExactly("/guides", "/guides/advanced");
     }
 
     @Test
@@ -67,14 +70,14 @@ class ApiNavigationSubtreePathsTest {
         // hand happens to sit where automation would have written one. The child beneath it would only
         // be reachable if the walk (wrongly) descended anyway.
         var handCreated = PortalNavigationItem.builder()
-            .id("22222222-2222-2222-2222-222222222222")
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .parentId(NAV_API_ROW_ID)
-            .segment("notes")
-            .rootId("22222222-2222-2222-2222-222222222222")
-            .build();
+                .id("22222222-2222-2222-2222-222222222222")
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.FOLDER)
+                .parentId(NAV_API_ROW_ID)
+                .segment("notes")
+                .rootId("22222222-2222-2222-2222-222222222222")
+                .build();
         var wouldBeChild = automationFolder("/notes/nested");
         wouldBeChild.setParentId(handCreated.getId());
 
@@ -90,16 +93,17 @@ class ApiNavigationSubtreePathsTest {
     @Test
     void gives_up_on_a_branch_with_a_blank_segment_instead_of_emitting_a_double_slash() {
         var blank = PortalNavigationItem.builder()
-            .id("33333333-3333-3333-3333-333333333333")
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .parentId(NAV_API_ROW_ID)
-            .segment("")
-            .rootId("33333333-3333-3333-3333-333333333333")
-            .build();
+                .id("33333333-3333-3333-3333-333333333333")
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.FOLDER)
+                .parentId(NAV_API_ROW_ID)
+                .segment("")
+                .rootId("33333333-3333-3333-3333-333333333333")
+                .build();
 
-        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, Map.of(NAV_API_ROW_ID, List.of(blank)));
+        var result = ApiNavigationSubtreePaths.collect(
+                ORG, ENV, NAV_API_ROW_ID, API_ID, Map.of(NAV_API_ROW_ID, List.of(blank)));
 
         assertThat(result).isEmpty();
     }
@@ -107,16 +111,17 @@ class ApiNavigationSubtreePathsTest {
     @Test
     void ignores_non_folder_children() {
         var page = PortalNavigationItem.builder()
-            .id("44444444-4444-4444-4444-444444444444")
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.PAGE)
-            .parentId(NAV_API_ROW_ID)
-            .segment("getting-started")
-            .rootId("44444444-4444-4444-4444-444444444444")
-            .build();
+                .id("44444444-4444-4444-4444-444444444444")
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.PAGE)
+                .parentId(NAV_API_ROW_ID)
+                .segment("getting-started")
+                .rootId("44444444-4444-4444-4444-444444444444")
+                .build();
 
-        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, Map.of(NAV_API_ROW_ID, List.of(page)));
+        var result = ApiNavigationSubtreePaths.collect(
+                ORG, ENV, NAV_API_ROW_ID, API_ID, Map.of(NAV_API_ROW_ID, List.of(page)));
 
         assertThat(result).isEmpty();
     }
@@ -132,20 +137,26 @@ class ApiNavigationSubtreePathsTest {
 
         var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, byParent);
 
-        assertThat(result).extracting(ApiNavigationSubtreePaths.PathedFolder::path).containsExactly("/loop");
+        assertThat(result)
+                .extracting(ApiNavigationSubtreePaths.PathedFolder::path)
+                .containsExactly("/loop");
     }
 
     /** Keyed on the API, never on the nav-api row — the shape {@code forApiFolder} has always written. */
     private static PortalNavigationItem automationFolder(String path) {
         var segment = path.substring(path.lastIndexOf('/') + 1);
-        var id = HRIDToUUID.navigation().context(ORG, ENV).api(API_ID).folder(path).id();
+        var id = HRIDToUUID.navigation()
+                .context(ORG, ENV)
+                .api(API_ID)
+                .folder(path)
+                .id();
         return PortalNavigationItem.builder()
-            .id(id)
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .segment(segment)
-            .rootId(NAV_API_ROW_ID)
-            .build();
+                .id(id)
+                .organizationId(ORG)
+                .environmentId(ENV)
+                .type(PortalNavigationItem.Type.FOLDER)
+                .segment(segment)
+                .rootId(NAV_API_ROW_ID)
+                .build();
     }
 }

@@ -29,7 +29,8 @@ public final class AuthzEntityRefClauses {
     private static final String ANY_ID_SUFFIX = "::*";
     private static final char QUOTE = '"';
     private static final char ESCAPE = '\\';
-    // Every type and id field is a keyword with ignore_above 1024: nothing longer is indexed, so nothing longer can match.
+    // Every type and id field is a keyword with ignore_above 1024: nothing longer is indexed, so nothing longer can
+    // match.
     private static final int MAX_INDEXED_LENGTH = 1024;
     private static final int MAX_MATCHABLE_LENGTH = 3 * MAX_INDEXED_LENGTH + 4;
     private static final int MAX_SPLITS_PER_REFERENCE = 16;
@@ -55,7 +56,8 @@ public final class AuthzEntityRefClauses {
         if (references == null || references.isEmpty()) {
             return JsonObject.of("match_none", JsonObject.of());
         }
-        var alternatives = new JsonArray().add(JsonObject.of("terms", JsonObject.of(idField, new JsonArray(new ArrayList<>(references)))));
+        var alternatives = new JsonArray()
+                .add(JsonObject.of("terms", JsonObject.of(idField, new JsonArray(new ArrayList<>(references)))));
         for (var reference : references) {
             if (typedBudget == 0) {
                 break;
@@ -80,9 +82,9 @@ public final class AuthzEntityRefClauses {
         }
         if (reference.length() > ANY_ID_SUFFIX.length() && reference.endsWith(ANY_ID_SUFFIX)) {
             return Optional.of(TypeAndId.anyIdOf(reference.substring(0, reference.length() - ANY_ID_SUFFIX.length())))
-                .filter(TypeAndId::isIndexable)
-                .stream()
-                .toList();
+                    .filter(TypeAndId::isIndexable)
+                    .stream()
+                    .toList();
         }
         var quoted = quotedReading(reference);
         if (quoted.isPresent()) {
@@ -103,11 +105,9 @@ public final class AuthzEntityRefClauses {
     private static List<TypeAndId> unquotedReadings(String reference) {
         var readings = new ArrayList<TypeAndId>();
         int firstQuote = reference.indexOf(QUOTE);
-        for (
-            int at = reference.indexOf(TYPE_SEPARATOR);
-            at >= 0 && readings.size() < MAX_SPLITS_PER_REFERENCE;
-            at = reference.indexOf(TYPE_SEPARATOR, at + 1)
-        ) {
+        for (int at = reference.indexOf(TYPE_SEPARATOR);
+                at >= 0 && readings.size() < MAX_SPLITS_PER_REFERENCE;
+                at = reference.indexOf(TYPE_SEPARATOR, at + 1)) {
             if (at > MAX_INDEXED_LENGTH || (firstQuote >= 0 && firstQuote < at)) {
                 break;
             }

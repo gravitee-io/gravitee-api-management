@@ -26,7 +26,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class ApiPortalSearchQueryServiceInMemory extends AbstractQueryServiceInMemory<Api> implements ApiPortalSearchQueryService {
+public class ApiPortalSearchQueryServiceInMemory extends AbstractQueryServiceInMemory<Api>
+        implements ApiPortalSearchQueryService {
 
     @Override
     public Page<Api> search(Query q) {
@@ -37,7 +38,9 @@ public class ApiPortalSearchQueryServiceInMemory extends AbstractQueryServiceInM
         Sortable sortable = q.sortable().orElse(null);
 
         int pageNumber = pageable != null ? pageable.getPageNumber() : 1;
-        int pageSize = pageable != null ? pageable.getPageSize() : (query != null && !query.isBlank() ? Integer.MAX_VALUE : 10);
+        int pageSize = pageable != null
+                ? pageable.getPageSize()
+                : (query != null && !query.isBlank() ? Integer.MAX_VALUE : 10);
 
         if (allowedApiIds != null && allowedApiIds.isEmpty()) {
             return new Page<>(List.of(), pageNumber, 0, 0);
@@ -45,17 +48,16 @@ public class ApiPortalSearchQueryServiceInMemory extends AbstractQueryServiceInM
 
         Comparator<Api> comparator = buildComparator(sortable);
 
-        List<Api> matched = storage
-            .stream()
-            .filter(api -> Objects.equals(api.getEnvironmentId(), environmentId))
-            .filter(api -> allowedApiIds == null || allowedApiIds.contains(api.getId()))
-            .filter(api -> {
-                if (query == null || query.isBlank()) return true;
-                String queryLower = query.trim().toLowerCase();
-                return api.getName() != null && api.getName().toLowerCase().contains(queryLower);
-            })
-            .sorted(comparator)
-            .toList();
+        List<Api> matched = storage.stream()
+                .filter(api -> Objects.equals(api.getEnvironmentId(), environmentId))
+                .filter(api -> allowedApiIds == null || allowedApiIds.contains(api.getId()))
+                .filter(api -> {
+                    if (query == null || query.isBlank()) return true;
+                    String queryLower = query.trim().toLowerCase();
+                    return api.getName() != null && api.getName().toLowerCase().contains(queryLower);
+                })
+                .sorted(comparator)
+                .toList();
 
         int total = matched.size();
 
@@ -76,8 +78,8 @@ public class ApiPortalSearchQueryServiceInMemory extends AbstractQueryServiceInM
             return Comparator.comparing(Api::getName, Comparator.nullsLast(Comparator.naturalOrder()));
         }
         Comparator<Api> comparator = sortable.getField().equalsIgnoreCase("name")
-            ? Comparator.comparing(Api::getName, Comparator.nullsLast(Comparator.naturalOrder()))
-            : Comparator.comparing(Api::getId, Comparator.nullsLast(Comparator.naturalOrder()));
+                ? Comparator.comparing(Api::getName, Comparator.nullsLast(Comparator.naturalOrder()))
+                : Comparator.comparing(Api::getId, Comparator.nullsLast(Comparator.naturalOrder()));
 
         return sortable.isAscOrder() ? comparator : comparator.reversed();
     }

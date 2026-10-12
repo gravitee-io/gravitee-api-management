@@ -104,12 +104,11 @@ abstract class AbstractAuthenticationResource {
     }
 
     protected Response connectUser(
-        String userId,
-        final String state,
-        final HttpServletResponse servletResponse,
-        final String accessToken,
-        final String idToken
-    ) {
+            String userId,
+            final String state,
+            final HttpServletResponse servletResponse,
+            final String accessToken,
+            final String idToken) {
         Token token = generateToken(userId, state, accessToken, idToken);
 
         final Cookie bearerCookie = cookieGenerator.generate("Bearer%20" + token.getToken());
@@ -119,7 +118,8 @@ abstract class AbstractAuthenticationResource {
     }
 
     @NonNull
-    private Token generateToken(final String userId, final String state, final String accessToken, final String idToken) {
+    private Token generateToken(
+            final String userId, final String state, final String accessToken, final String idToken) {
         UserEntity user = userService.connect(GraviteeContext.getExecutionContext(), userId);
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -127,45 +127,44 @@ abstract class AbstractAuthenticationResource {
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
         // Manage authorities, initialize it with dynamic permissions from the IDP
-        List<Map<String, String>> authorities = userDetails
-            .getAuthorities()
-            .stream()
-            .map(authority -> Maps.<String, String>builder().put("authority", authority.getAuthority()).build())
-            .collect(Collectors.toList());
+        List<Map<String, String>> authorities = userDetails.getAuthorities().stream()
+                .map(authority -> Maps.<String, String>builder()
+                        .put("authority", authority.getAuthority())
+                        .build())
+                .collect(Collectors.toList());
 
         // We must also load permissions from repository for configured environment role
         Set<RoleEntity> userRoles = membershipService.getRoles(
-            MembershipReferenceType.ENVIRONMENT,
-            GraviteeContext.getCurrentEnvironment(),
-            MembershipMemberType.USER,
-            userDetails.getId()
-        );
+                MembershipReferenceType.ENVIRONMENT,
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipMemberType.USER,
+                userDetails.getId());
         if (!userRoles.isEmpty()) {
-            userRoles.forEach(role ->
-                authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build())
-            );
+            userRoles.forEach(role -> authorities.add(Maps.<String, String>builder()
+                    .put("authority", role.getScope().toString() + ':' + role.getName())
+                    .build()));
         }
 
         // JWT signer
         Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
 
         Date issueAt = new Date();
-        Instant expireAt = issueAt
-            .toInstant()
-            .plus(Duration.ofSeconds(environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
+        Instant expireAt = issueAt.toInstant()
+                .plus(Duration.ofSeconds(
+                        environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
 
         final String sign = JWT.create()
-            .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
-            .withIssuedAt(issueAt)
-            .withExpiresAt(Date.from(expireAt))
-            .withSubject(user.getId())
-            .withClaim(JWTHelper.Claims.PERMISSIONS, authorities)
-            .withClaim(JWTHelper.Claims.EMAIL, user.getEmail())
-            .withClaim(JWTHelper.Claims.FIRSTNAME, user.getFirstname())
-            .withClaim(JWTHelper.Claims.LASTNAME, user.getLastname())
-            .withClaim(JWTHelper.Claims.ORG, user.getOrganizationId())
-            .withJWTId(UUID.randomUUID().toString())
-            .sign(algorithm);
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .withIssuedAt(issueAt)
+                .withExpiresAt(Date.from(expireAt))
+                .withSubject(user.getId())
+                .withClaim(JWTHelper.Claims.PERMISSIONS, authorities)
+                .withClaim(JWTHelper.Claims.EMAIL, user.getEmail())
+                .withClaim(JWTHelper.Claims.FIRSTNAME, user.getFirstname())
+                .withClaim(JWTHelper.Claims.LASTNAME, user.getLastname())
+                .withClaim(JWTHelper.Claims.ORG, user.getOrganizationId())
+                .withJWTId(UUID.randomUUID().toString())
+                .sign(algorithm);
 
         final Token tokenEntity = new Token();
         tokenEntity.setTokenType(TokenTypeEnum.BEARER);
@@ -184,16 +183,11 @@ abstract class AbstractAuthenticationResource {
         }
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         boolean exposeAccessToken = parameterService.findAsBoolean(
-            executionContext,
-            Key.PORTAL_AUTHENTICATION_EXPOSE_ACCESS_TOKEN,
-            ParameterReferenceType.SYSTEM
-        );
+                executionContext, Key.PORTAL_AUTHENTICATION_EXPOSE_ACCESS_TOKEN, ParameterReferenceType.SYSTEM);
         boolean exposeIdToken = parameterService.findAsBoolean(
-            executionContext,
-            Key.PORTAL_AUTHENTICATION_EXPOSE_ID_TOKEN,
-            ParameterReferenceType.SYSTEM
-        );
-        IdpOAuthTokenResponseUtils.accessTokenField(accessToken, idToken, exposeAccessToken).ifPresent(tokenEntity::setAccessToken);
+                executionContext, Key.PORTAL_AUTHENTICATION_EXPOSE_ID_TOKEN, ParameterReferenceType.SYSTEM);
+        IdpOAuthTokenResponseUtils.accessTokenField(accessToken, idToken, exposeAccessToken)
+                .ifPresent(tokenEntity::setAccessToken);
         IdpOAuthTokenResponseUtils.idTokenField(idToken, exposeIdToken).ifPresent(tokenEntity::setIdToken);
     }
 }

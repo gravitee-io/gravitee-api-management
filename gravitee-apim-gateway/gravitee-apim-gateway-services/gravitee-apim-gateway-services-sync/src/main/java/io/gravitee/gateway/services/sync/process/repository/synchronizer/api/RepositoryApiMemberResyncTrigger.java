@@ -52,26 +52,25 @@ public class RepositoryApiMemberResyncTrigger {
     private final CompositeDisposable disposables = new CompositeDisposable();
 
     public RepositoryApiMemberResyncTrigger(
-        ApiSynchronizer apiSynchronizer,
-        ApiManager apiManager,
-        ThreadPoolExecutor syncDeployerExecutor,
-        EventManager eventManager,
-        BooleanSupplier initialSyncDone
-    ) {
+            ApiSynchronizer apiSynchronizer,
+            ApiManager apiManager,
+            ThreadPoolExecutor syncDeployerExecutor,
+            EventManager eventManager,
+            BooleanSupplier initialSyncDone) {
         this.apiSynchronizer = apiSynchronizer;
         this.apiManager = apiManager;
         this.syncDeployerExecutor = syncDeployerExecutor;
         this.initialSyncDone = initialSyncDone;
 
         eventManager.subscribeForEvents(
-            event -> {
-                if (event.content() instanceof ApiProductChangedEvent productEvent) {
-                    handleProductChange(productEvent.getProductId(), productEvent.getEnvironmentId(), productEvent.getApiIds());
-                }
-            },
-            ApiProductEventType.DEPLOY,
-            ApiProductEventType.UPDATE
-        );
+                event -> {
+                    if (event.content() instanceof ApiProductChangedEvent productEvent) {
+                        handleProductChange(
+                                productEvent.getProductId(), productEvent.getEnvironmentId(), productEvent.getApiIds());
+                    }
+                },
+                ApiProductEventType.DEPLOY,
+                ApiProductEventType.UPDATE);
     }
 
     private void handleProductChange(String productId, String environmentId, Set<String> apiIds) {
@@ -87,16 +86,19 @@ public class RepositoryApiMemberResyncTrigger {
             return;
         }
         Completable pipeline = Completable.defer(() -> {
-            log.debug("Scheduling resync of {} member API(s) in environment [{}]", apiIds.size(), environmentId);
-            return apiSynchronizer
-                .resyncMemberApis(apiIds, Set.of(environmentId))
-                .andThen(
-                    Completable.fromAction(() -> {
-                        log.debug("Resync done — re-evaluating eligibility of {} API(s) for product [{}]", apiIds.size(), productId);
-                        apiManager.reEvaluateAfterProductChange(productId, apiIds);
-                    })
-                );
-        }).subscribeOn(Schedulers.from(syncDeployerExecutor));
+                    log.debug(
+                            "Scheduling resync of {} member API(s) in environment [{}]", apiIds.size(), environmentId);
+                    return apiSynchronizer
+                            .resyncMemberApis(apiIds, Set.of(environmentId))
+                            .andThen(Completable.fromAction(() -> {
+                                log.debug(
+                                        "Resync done — re-evaluating eligibility of {} API(s) for product [{}]",
+                                        apiIds.size(),
+                                        productId);
+                                apiManager.reEvaluateAfterProductChange(productId, apiIds);
+                            }));
+                })
+                .subscribeOn(Schedulers.from(syncDeployerExecutor));
 
         // The observer knows its own identity from the start, so it can take itself out of the
         // composite whatever the order of events. Capturing the Disposable returned by subscribe()
@@ -105,19 +107,21 @@ public class RepositoryApiMemberResyncTrigger {
         DisposableCompletableObserver observer = new DisposableCompletableObserver() {
             @Override
             public void onComplete() {
-                log.debug("Member API resync + re-evaluation completed for product [{}] in env [{}]", productId, environmentId);
+                log.debug(
+                        "Member API resync + re-evaluation completed for product [{}] in env [{}]",
+                        productId,
+                        environmentId);
                 disposables.delete(this);
             }
 
             @Override
             public void onError(Throwable error) {
                 log.error(
-                    "Member API resync pipeline failed for product [{}] in env [{}]: {}",
-                    productId,
-                    environmentId,
-                    error.getMessage(),
-                    error
-                );
+                        "Member API resync pipeline failed for product [{}] in env [{}]: {}",
+                        productId,
+                        environmentId,
+                        error.getMessage(),
+                        error);
                 disposables.delete(this);
             }
         };

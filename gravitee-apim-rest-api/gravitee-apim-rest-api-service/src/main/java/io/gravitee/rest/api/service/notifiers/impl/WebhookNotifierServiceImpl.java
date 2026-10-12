@@ -59,69 +59,80 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
     WebNotifierService webNotifierService;
 
     @Override
-    public void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
-        //body
+    public void trigger(
+            final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
+        // body
         String body = toJson(hook, params);
 
-        //headers
+        // headers
         Map<String, String> headers = new HashMap();
         headers.put("X-Gravitee-Event", hook.name());
         headers.put("X-Gravitee-Event-Scope", hook.getScope().name());
 
         webNotifierService.request(
-            HttpMethod.POST,
-            genericNotificationConfig.getConfig(),
-            headers,
-            body,
-            genericNotificationConfig.isUseSystemProxy()
-        );
+                HttpMethod.POST,
+                genericNotificationConfig.getConfig(),
+                headers,
+                body,
+                genericNotificationConfig.isUseSystemProxy());
     }
 
     private String toJson(final Hook hook, final Map<String, Object> params) {
         JsonObject content = new JsonObject();
-        //hook
+        // hook
         content.put("event", hook.name());
         content.put("scope", hook.getScope().name());
 
         // Generalized method to populate JSON objects
-        addJsonObject(params, PARAM_API, content, "api", GenericApiModel.class, GenericApiEntity.class, ApiNotificationTemplateData.class);
+        addJsonObject(
+                params,
+                PARAM_API,
+                content,
+                "api",
+                GenericApiModel.class,
+                GenericApiEntity.class,
+                ApiNotificationTemplateData.class);
         addJsonObject(params, PARAM_API_PRODUCT, content, "apiProduct", ApiProductTemplateModel.class);
 
         addJsonObject(
-            params,
-            PARAM_APPLICATION,
-            content,
-            "application",
-            ApplicationEntity.class,
-            ApplicationNotificationTemplateData.class
-        );
-
-        addJsonObject(params, PARAM_OWNER, content, "owner", PrimaryOwnerEntity.class, PrimaryOwnerNotificationTemplateData.class);
+                params,
+                PARAM_APPLICATION,
+                content,
+                "application",
+                ApplicationEntity.class,
+                ApplicationNotificationTemplateData.class);
 
         addJsonObject(
-            params,
-            PARAM_PLAN,
-            content,
-            "plan",
-            PlanEntity.class,
-            io.gravitee.rest.api.model.v4.plan.PlanEntity.class,
-            PlanNotificationTemplateData.class,
-            BasePlanEntity.class
-        );
+                params,
+                PARAM_OWNER,
+                content,
+                "owner",
+                PrimaryOwnerEntity.class,
+                PrimaryOwnerNotificationTemplateData.class);
 
         addJsonObject(
-            params,
-            PARAM_SUBSCRIPTION,
-            content,
-            "subscription",
-            SubscriptionEntity.class,
-            SubscriptionNotificationTemplateData.class
-        );
+                params,
+                PARAM_PLAN,
+                content,
+                "plan",
+                PlanEntity.class,
+                io.gravitee.rest.api.model.v4.plan.PlanEntity.class,
+                PlanNotificationTemplateData.class,
+                BasePlanEntity.class);
+
+        addJsonObject(
+                params,
+                PARAM_SUBSCRIPTION,
+                content,
+                "subscription",
+                SubscriptionEntity.class,
+                SubscriptionNotificationTemplateData.class);
 
         return content.encode();
     }
 
-    private void addJsonObject(Map<String, Object> params, String paramKey, JsonObject content, String jsonKey, Class<?>... dataTypes) {
+    private void addJsonObject(
+            Map<String, Object> params, String paramKey, JsonObject content, String jsonKey, Class<?>... dataTypes) {
         if (params.containsKey(paramKey)) {
             Object object = params.get(paramKey);
             JsonObject jsonObject = new JsonObject();
@@ -133,7 +144,8 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
                     return;
                 }
             }
-            throw new IllegalArgumentException("Unsupported type for " + jsonKey + ": " + object.getClass().getName());
+            throw new IllegalArgumentException(
+                    "Unsupported type for " + jsonKey + ": " + object.getClass().getName());
         }
     }
 

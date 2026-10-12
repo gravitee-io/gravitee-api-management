@@ -28,11 +28,10 @@ public class PortalListingFixtures {
 
     public static PortalListing aPortalListing() {
         return PortalListing.of(
-            PORTAL_LISTING_ID,
-            "environment-id",
-            "organization-id",
-            PortalFixtures.PORTAL_ID,
-            List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1))
-        );
+                PORTAL_LISTING_ID,
+                "environment-id",
+                "organization-id",
+                PortalFixtures.PORTAL_ID,
+                List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1)));
     }
 }

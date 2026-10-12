@@ -40,7 +40,8 @@ public final class FindAuthzDecisionLogQueryAdapter {
     private FindAuthzDecisionLogQueryAdapter() {}
 
     private static void addTerm(ArrayNode filters, String field, String value) {
-        filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(field, value)));
+        filters.add(
+                MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(field, value)));
     }
 
     public static String adapt(QueryContext queryContext, String apiId, String eventId) {
@@ -53,7 +54,9 @@ public final class FindAuthzDecisionLogQueryAdapter {
         addTerm(filters, AuthzDecisionLogFields.EVENT_ID, eventId);
 
         ObjectNode root = MAPPER.createObjectNode();
-        root.set(QUERY, MAPPER.createObjectNode().set(BOOL, MAPPER.createObjectNode().set(FILTER, filters)));
+        root.set(
+                QUERY,
+                MAPPER.createObjectNode().set(BOOL, MAPPER.createObjectNode().set(FILTER, filters)));
         root.put(SIZE, 1);
 
         return root.toString();

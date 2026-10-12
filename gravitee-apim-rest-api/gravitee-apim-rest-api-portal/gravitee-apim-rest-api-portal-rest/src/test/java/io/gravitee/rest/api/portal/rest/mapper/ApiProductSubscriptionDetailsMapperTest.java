@@ -35,26 +35,20 @@ class ApiProductSubscriptionDetailsMapperTest {
     @Test
     void should_map_api_product_subscription_details() {
         var source = new PortalApiProductSubscriptionDetails(
-            "00000000-0000-0000-0000-000000000101",
-            "API Product",
-            "1.0",
-            PortalApiProductSubscriptionDetails.Availability.AVAILABLE,
-            new PortalApiProductSubscriptionDetails.PlanSummary("plan-id", "Plan", "api-key", "STANDARD"),
-            List.of(
-                new PortalApiProductSubscriptionDetails.ApiSummary(
-                    "api-id",
-                    "API",
-                    "2.0",
-                    "PROXY",
-                    PortalApiProductSubscriptionDetails.ApiAvailability.AVAILABLE,
-                    List.of("https://gateway.example.com/api"),
-                    new PortalApiProductSubscriptionDetails.DocumentationTarget(
-                        "00000000-0000-0000-0000-000000000102",
-                        "00000000-0000-0000-0000-000000000103"
-                    )
-                )
-            )
-        );
+                "00000000-0000-0000-0000-000000000101",
+                "API Product",
+                "1.0",
+                PortalApiProductSubscriptionDetails.Availability.AVAILABLE,
+                new PortalApiProductSubscriptionDetails.PlanSummary("plan-id", "Plan", "api-key", "STANDARD"),
+                List.of(new PortalApiProductSubscriptionDetails.ApiSummary(
+                        "api-id",
+                        "API",
+                        "2.0",
+                        "PROXY",
+                        PortalApiProductSubscriptionDetails.ApiAvailability.AVAILABLE,
+                        List.of("https://gateway.example.com/api"),
+                        new PortalApiProductSubscriptionDetails.DocumentationTarget(
+                                "00000000-0000-0000-0000-000000000102", "00000000-0000-0000-0000-000000000103"))));
 
         var result = ApiProductSubscriptionDetailsMapper.INSTANCE.map(source);
 
@@ -62,49 +56,43 @@ class ApiProductSubscriptionDetailsMapperTest {
         assertThat(result.getAvailability()).isEqualTo(ApiProductSubscriptionAvailability.AVAILABLE);
         assertThat(result.getPlan().getSecurity()).isEqualTo(ApiProductSubscriptionPlan.SecurityEnum.API_KEY);
         assertThat(result.getPlan().getMode()).isEqualTo(PlanMode.STANDARD);
-        assertThat(result.getApis())
-            .singleElement()
-            .satisfies(api -> {
-                assertThat(api.getType()).isEqualTo(ApiType.PROXY);
-                assertThat(api.getAvailability()).isEqualTo(ApiProductSubscriptionApiAvailability.AVAILABLE);
-                assertThat(api.getEntrypoints()).containsExactly("https://gateway.example.com/api");
-                assertThat(api.getDocumentation().getRootId()).isEqualTo(UUID.fromString("00000000-0000-0000-0000-000000000102"));
-                assertThat(api.getDocumentation().getNavigationItemId()).isEqualTo(UUID.fromString("00000000-0000-0000-0000-000000000103"));
-            });
+        assertThat(result.getApis()).singleElement().satisfies(api -> {
+            assertThat(api.getType()).isEqualTo(ApiType.PROXY);
+            assertThat(api.getAvailability()).isEqualTo(ApiProductSubscriptionApiAvailability.AVAILABLE);
+            assertThat(api.getEntrypoints()).containsExactly("https://gateway.example.com/api");
+            assertThat(api.getDocumentation().getRootId())
+                    .isEqualTo(UUID.fromString("00000000-0000-0000-0000-000000000102"));
+            assertThat(api.getDocumentation().getNavigationItemId())
+                    .isEqualTo(UUID.fromString("00000000-0000-0000-0000-000000000103"));
+        });
     }
 
     @Test
     void should_keep_optional_values_absent_for_unavailable_data() {
         var source = new PortalApiProductSubscriptionDetails(
-            "00000000-0000-0000-0000-000000000101",
-            null,
-            null,
-            PortalApiProductSubscriptionDetails.Availability.UNAVAILABLE,
-            new PortalApiProductSubscriptionDetails.PlanSummary("plan-id", null, null, null),
-            List.of(
-                new PortalApiProductSubscriptionDetails.ApiSummary(
-                    "api-id",
-                    null,
-                    null,
-                    null,
-                    PortalApiProductSubscriptionDetails.ApiAvailability.UNAVAILABLE,
-                    List.of(),
-                    null
-                )
-            )
-        );
+                "00000000-0000-0000-0000-000000000101",
+                null,
+                null,
+                PortalApiProductSubscriptionDetails.Availability.UNAVAILABLE,
+                new PortalApiProductSubscriptionDetails.PlanSummary("plan-id", null, null, null),
+                List.of(new PortalApiProductSubscriptionDetails.ApiSummary(
+                        "api-id",
+                        null,
+                        null,
+                        null,
+                        PortalApiProductSubscriptionDetails.ApiAvailability.UNAVAILABLE,
+                        List.of(),
+                        null)));
 
         var result = ApiProductSubscriptionDetailsMapper.INSTANCE.map(source);
 
         assertThat(result.getName()).isNull();
         assertThat(result.getAvailability()).isEqualTo(ApiProductSubscriptionAvailability.UNAVAILABLE);
         assertThat(result.getPlan().getSecurity()).isNull();
-        assertThat(result.getApis())
-            .singleElement()
-            .satisfies(api -> {
-                assertThat(api.getAvailability()).isEqualTo(ApiProductSubscriptionApiAvailability.UNAVAILABLE);
-                assertThat(api.getEntrypoints()).isEmpty();
-                assertThat(api.getDocumentation()).isNull();
-            });
+        assertThat(result.getApis()).singleElement().satisfies(api -> {
+            assertThat(api.getAvailability()).isEqualTo(ApiProductSubscriptionApiAvailability.UNAVAILABLE);
+            assertThat(api.getEntrypoints()).isEmpty();
+            assertThat(api.getDocumentation()).isNull();
+        });
     }
 }

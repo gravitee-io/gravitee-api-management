@@ -56,22 +56,22 @@ class DescribeTopicUseCaseTest {
     @Test
     void should_return_topic_detail() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
         var expectedDetail = new TopicDetail(
-            "my-topic",
-            false,
-            List.of(
-                new TopicPartitionDetail(
-                    0,
-                    new KafkaNode(0, "broker-host", 9092),
-                    List.of(new KafkaNode(0, "broker-host", 9092)),
-                    List.of(new KafkaNode(0, "broker-host", 9092)),
-                    List.of()
-                )
-            ),
-            List.of(new TopicConfigEntry("retention.ms", "604800000", "DYNAMIC_TOPIC_CONFIG", false, false))
-        );
+                "my-topic",
+                false,
+                List.of(new TopicPartitionDetail(
+                        0,
+                        new KafkaNode(0, "broker-host", 9092),
+                        List.of(new KafkaNode(0, "broker-host", 9092)),
+                        List.of(new KafkaNode(0, "broker-host", 9092)),
+                        List.of())),
+                List.of(new TopicConfigEntry("retention.ms", "604800000", "DYNAMIC_TOPIC_CONFIG", false, false)));
         clusterDomainService.givenTopicDetail(expectedDetail);
 
         var result = useCase.execute(new DescribeTopicUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my-topic"));
@@ -82,12 +82,19 @@ class DescribeTopicUseCaseTest {
     @Test
     void should_propagate_kafka_explorer_exception() {
         var clusterConfig = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(clusterConfig).build());
+        clusterCrudService.create(Cluster.builder()
+                .id(CLUSTER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .configuration(clusterConfig)
+                .build());
 
-        clusterDomainService.givenException(new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
+        clusterDomainService.givenException(
+                new KafkaExplorerException("Connection failed", TechnicalCode.CONNECTION_FAILED));
 
-        assertThatThrownBy(() -> useCase.execute(new DescribeTopicUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my-topic")))
-            .isInstanceOf(KafkaExplorerException.class)
-            .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
+        assertThatThrownBy(
+                        () -> useCase.execute(new DescribeTopicUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my-topic")))
+                .isInstanceOf(KafkaExplorerException.class)
+                .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode())
+                        .isEqualTo(TechnicalCode.CONNECTION_FAILED));
     }
 }

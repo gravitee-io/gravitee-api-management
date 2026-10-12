@@ -26,12 +26,11 @@ public interface AsyncJobQueryService {
     Page<AsyncJob> listAsyncJobs(ListQuery query, Pageable pageable);
 
     record ListQuery(
-        String environmentId,
-        Optional<String> initiatorId,
-        Optional<AsyncJob.Type> type,
-        Optional<AsyncJob.Status> status,
-        Optional<String> sourceId
-    ) {
+            String environmentId,
+            Optional<String> initiatorId,
+            Optional<AsyncJob.Type> type,
+            Optional<AsyncJob.Status> status,
+            Optional<String> sourceId) {
         public ListQuery(String environmentId) {
             this(environmentId, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
         }

@@ -68,7 +68,8 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
 
     private final PortalNavigationItemRepository portalNavigationItemRepository;
 
-    public PortalNavigationItemApiOwnedRekeyUpgrader(@Lazy PortalNavigationItemRepository portalNavigationItemRepository) {
+    public PortalNavigationItemApiOwnedRekeyUpgrader(
+            @Lazy PortalNavigationItemRepository portalNavigationItemRepository) {
         this.portalNavigationItemRepository = portalNavigationItemRepository;
     }
 
@@ -86,10 +87,10 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
         // One full scan, grouped by (organizationId, environmentId) below, rather than looping
         // environments and re-querying: navigation items are few enough that this is simpler and
         // cheaper, mirroring PortalNavigationItemAutomationMetadataUpgrader#migrate.
-        Map<Map.Entry<String, String>, List<PortalNavigationItem>> byOrgAndEnv = portalNavigationItemRepository
-            .findAll()
-            .stream()
-            .collect(Collectors.groupingBy(item -> Map.entry(item.getOrganizationId(), item.getEnvironmentId())));
+        Map<Map.Entry<String, String>, List<PortalNavigationItem>> byOrgAndEnv =
+                portalNavigationItemRepository.findAll().stream()
+                        .collect(Collectors.groupingBy(
+                                item -> Map.entry(item.getOrganizationId(), item.getEnvironmentId())));
 
         for (var entry : byOrgAndEnv.entrySet()) {
             migrateEnvironment(entry.getKey().getKey(), entry.getKey().getValue(), entry.getValue());
@@ -98,18 +99,16 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
     }
 
     private void migrateEnvironment(String organizationId, String environmentId, List<PortalNavigationItem> items)
-        throws TechnicalException {
-        Map<String, List<PortalNavigationItem>> childrenByParentId = items
-            .stream()
-            .filter(item -> item.getParentId() != null)
-            .collect(Collectors.groupingBy(PortalNavigationItem::getParentId));
+            throws TechnicalException {
+        Map<String, List<PortalNavigationItem>> childrenByParentId = items.stream()
+                .filter(item -> item.getParentId() != null)
+                .collect(Collectors.groupingBy(PortalNavigationItem::getParentId));
 
         Map<String, String> folderIdToRootId = new HashMap<>();
 
-        var apiRows = items
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItem.Type.API)
-            .toList();
+        var apiRows = items.stream()
+                .filter(item -> item.getType() == PortalNavigationItem.Type.API)
+                .toList();
         for (var apiRow : apiRows) {
             realignFolders(organizationId, environmentId, apiRow, childrenByParentId, folderIdToRootId);
         }
@@ -119,14 +118,15 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
     }
 
     private void realignFolders(
-        String organizationId,
-        String environmentId,
-        PortalNavigationItem apiRow,
-        Map<String, List<PortalNavigationItem>> childrenByParentId,
-        Map<String, String> folderIdToRootId
-    ) throws TechnicalException {
+            String organizationId,
+            String environmentId,
+            PortalNavigationItem apiRow,
+            Map<String, List<PortalNavigationItem>> childrenByParentId,
+            Map<String, String> folderIdToRootId)
+            throws TechnicalException {
         var apiId = apiRow.getApiId();
-        var pathedFolders = ApiNavigationSubtreePaths.collect(organizationId, environmentId, apiRow.getId(), apiId, childrenByParentId);
+        var pathedFolders = ApiNavigationSubtreePaths.collect(
+                organizationId, environmentId, apiRow.getId(), apiId, childrenByParentId);
 
         // Pre-order: every ancestor of a folder appears earlier in this list, so its root is already
         // in folderIdToRootId by the time a descendant needs it.
@@ -134,7 +134,8 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
             var path = pathed.path();
             var folderId = pathed.folder().getId();
 
-            var parentAndRoot = parentAndRootForFolder(organizationId, environmentId, apiId, path, folderId, folderIdToRootId);
+            var parentAndRoot =
+                    parentAndRootForFolder(organizationId, environmentId, apiId, path, folderId, folderIdToRootId);
             folderIdToRootId.put(folderId, parentAndRoot.rootId());
 
             realign(pathed.folder(), parentAndRoot, apiId);
@@ -142,53 +143,64 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
     }
 
     private void realignDocPages(
-        String organizationId,
-        String environmentId,
-        List<PortalNavigationItem> items,
-        Map<String, String> folderIdToRootId
-    ) throws TechnicalException {
-        var candidates = items
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItem.Type.PAGE)
-            .filter(PortalNavigationItemApiOwnedRekeyUpgrader::isApiAutomationManaged)
-            .map(this::toDocPageCandidate)
-            // A page whose configuration will not parse has something wrong with it beyond a stale
-            // parent; leave such a row exactly as it is rather than rewriting fields on it.
-            .filter(candidate -> candidate.contentId() != null)
-            .toList();
+            String organizationId,
+            String environmentId,
+            List<PortalNavigationItem> items,
+            Map<String, String> folderIdToRootId)
+            throws TechnicalException {
+        var candidates = items.stream()
+                .filter(item -> item.getType() == PortalNavigationItem.Type.PAGE)
+                .filter(PortalNavigationItemApiOwnedRekeyUpgrader::isApiAutomationManaged)
+                .map(this::toDocPageCandidate)
+                // A page whose configuration will not parse has something wrong with it beyond a stale
+                // parent; leave such a row exactly as it is rather than rewriting fields on it.
+                .filter(candidate -> candidate.contentId() != null)
+                .toList();
 
         for (var candidate : candidates) {
-            realignAtLocation(organizationId, environmentId, candidate.page(), candidate.apiId(), candidate.location(), folderIdToRootId);
+            realignAtLocation(
+                    organizationId,
+                    environmentId,
+                    candidate.page(),
+                    candidate.apiId(),
+                    candidate.location(),
+                    folderIdToRootId);
         }
     }
 
     private void realignApiLinks(
-        String organizationId,
-        String environmentId,
-        List<PortalNavigationItem> items,
-        Map<String, String> folderIdToRootId
-    ) throws TechnicalException {
-        var links = items
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItem.Type.LINK)
-            .filter(PortalNavigationItemApiOwnedRekeyUpgrader::isApiAutomationManaged)
-            .toList();
+            String organizationId,
+            String environmentId,
+            List<PortalNavigationItem> items,
+            Map<String, String> folderIdToRootId)
+            throws TechnicalException {
+        var links = items.stream()
+                .filter(item -> item.getType() == PortalNavigationItem.Type.LINK)
+                .filter(PortalNavigationItemApiOwnedRekeyUpgrader::isApiAutomationManaged)
+                .toList();
 
         for (var link : links) {
             var metadata = link.getAutomationMetadata();
-            realignAtLocation(organizationId, environmentId, link, metadata.getReferenceId(), metadata.getLocation(), folderIdToRootId);
+            realignAtLocation(
+                    organizationId,
+                    environmentId,
+                    link,
+                    metadata.getReferenceId(),
+                    metadata.getLocation(),
+                    folderIdToRootId);
         }
     }
 
     private void realignAtLocation(
-        String organizationId,
-        String environmentId,
-        PortalNavigationItem item,
-        String apiId,
-        String location,
-        Map<String, String> folderIdToRootId
-    ) throws TechnicalException {
-        var parentAndRoot = parentAndRootForLocation(organizationId, environmentId, apiId, location, item.getId(), folderIdToRootId);
+            String organizationId,
+            String environmentId,
+            PortalNavigationItem item,
+            String apiId,
+            String location,
+            Map<String, String> folderIdToRootId)
+            throws TechnicalException {
+        var parentAndRoot = parentAndRootForLocation(
+                organizationId, environmentId, apiId, location, item.getId(), folderIdToRootId);
         realign(item, parentAndRoot, apiId);
     }
 
@@ -208,7 +220,8 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
      * The row keeps its id; only these three fields move into the API-owned scheme. Skipping a row that
      * already carries them is what makes a second run touch nothing.
      */
-    private void realign(PortalNavigationItem item, ParentAndRoot parentAndRoot, String apiId) throws TechnicalException {
+    private void realign(PortalNavigationItem item, ParentAndRoot parentAndRoot, String apiId)
+            throws TechnicalException {
         if (isAlreadyAligned(item, parentAndRoot, apiId)) {
             return;
         }
@@ -239,13 +252,12 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
      * an id that does not change either — and inherits that parent's root.
      */
     private static ParentAndRoot parentAndRootForFolder(
-        String organizationId,
-        String environmentId,
-        String apiId,
-        String path,
-        String folderId,
-        Map<String, String> folderIdToRootId
-    ) {
+            String organizationId,
+            String environmentId,
+            String apiId,
+            String path,
+            String folderId,
+            Map<String, String> folderIdToRootId) {
         var lastSlash = path.lastIndexOf('/');
         if (lastSlash <= 0) {
             return new ParentAndRoot(null, folderId);
@@ -263,13 +275,12 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
      * {@code PortalNavigationItemContainer#phantom}, whose root is its own placeholder id.
      */
     private static ParentAndRoot parentAndRootForLocation(
-        String organizationId,
-        String environmentId,
-        String apiId,
-        String location,
-        String ownId,
-        Map<String, String> folderIdToRootId
-    ) {
+            String organizationId,
+            String environmentId,
+            String apiId,
+            String location,
+            String ownId,
+            Map<String, String> folderIdToRootId) {
         if (location == null || location.isBlank() || "/".equals(location)) {
             return new ParentAndRoot(null, ownId);
         }
@@ -278,12 +289,18 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
     }
 
     private static String folderId(String organizationId, String environmentId, String apiId, String path) {
-        return HRIDToUUID.navigation().context(organizationId, environmentId).api(apiId).folder(path).id();
+        return HRIDToUUID.navigation()
+                .context(organizationId, environmentId)
+                .api(apiId)
+                .folder(path)
+                .id();
     }
 
     /** Mirrors {@code PortalNavigationItemId#normalizeLocation}, which is private and not reusable from here. */
     private static String normalizeLocation(String location) {
-        return location.endsWith("/") && location.length() > 1 ? location.substring(0, location.length() - 1) : location;
+        return location.endsWith("/") && location.length() > 1
+                ? location.substring(0, location.length() - 1)
+                : location;
     }
 
     // Mirrors PortalNavigationItemAutomationMetadataUpgrader#extractContentId.
@@ -292,7 +309,10 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
             JsonNode node = JSON.readTree(item.getConfiguration()).get(PORTAL_PAGE_CONTENT_ID);
             return node == null ? null : node.asText();
         } catch (Exception e) {
-            log.warn("Unable to parse configuration for portal navigation item {}; skipping api-owned realignment for it", item.getId(), e);
+            log.warn(
+                    "Unable to parse configuration for portal navigation item {}; skipping api-owned realignment for it",
+                    item.getId(),
+                    e);
             return null;
         }
     }

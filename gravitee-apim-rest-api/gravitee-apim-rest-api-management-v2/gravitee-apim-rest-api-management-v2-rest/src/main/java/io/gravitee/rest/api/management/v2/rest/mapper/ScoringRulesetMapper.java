@@ -23,7 +23,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class, DateMapper.class})
 public interface ScoringRulesetMapper {
     Logger log = NodeLoggerFactory.getLogger(ScoringRulesetMapper.class);
     ScoringRulesetMapper INSTANCE = Mappers.getMapper(ScoringRulesetMapper.class);

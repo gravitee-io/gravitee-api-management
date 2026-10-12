@@ -40,7 +40,8 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     private final ReactorFactoryManager reactorFactoryManager;
     private final Map<Reactable, List<ReactableAcceptors>> reactables = new ConcurrentHashMap<>();
     private final Map<Class<? extends Acceptor<?>>, List<Acceptor<?>>> acceptors = new ConcurrentHashMap<>();
-    private final Map<Class<? extends Acceptor<?>>, Class<? extends Acceptor<?>>> acceptorsClassMapping = new ConcurrentHashMap<>();
+    private final Map<Class<? extends Acceptor<?>>, Class<? extends Acceptor<?>>> acceptorsClassMapping =
+            new ConcurrentHashMap<>();
 
     @Override
     public void create(Reactable reactable) {
@@ -107,7 +108,8 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                 // Remove any handlers for the current reactable
                 List<ReactableAcceptors> previousReactableAcceptors = reactables.remove(reactable);
 
-                // Register the new handler before removing the previous http acceptor to avoid 404, especially on high throughput.
+                // Register the new handler before removing the previous http acceptor to avoid 404, especially on high
+                // throughput.
                 newReactorHandlers.forEach(reactorHandler -> register(reactable, reactorHandler));
 
                 // Null when a concurrent update()/remove() claimed the entry first
@@ -156,10 +158,9 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private void removeAcceptors(final Reactable reactable, final List<ReactableAcceptors> reactableAcceptors) {
         // Remove the http acceptors before stopping the handler to avoid 500 errors.
-        List<? extends Acceptor<?>> handlersAcceptors = reactableAcceptors
-            .stream()
-            .flatMap(reactableAcceptor -> reactableAcceptor.acceptors.stream())
-            .toList();
+        List<? extends Acceptor<?>> handlersAcceptors = reactableAcceptors.stream()
+                .flatMap(reactableAcceptor -> reactableAcceptor.acceptors.stream())
+                .toList();
 
         unregisterAcceptors(handlersAcceptors);
 

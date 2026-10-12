@@ -79,50 +79,49 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
         return provideApis().flatMap(arguments -> {
             String apiId = (String) arguments.get()[0];
             return Stream.of(
-                Arguments.of(apiId, null, null),
-                Arguments.of(apiId, "Authorization", ""),
-                Arguments.of(apiId, "Authorization", "Basic 123456789"),
-                Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
-                Arguments.of(apiId, "Authorization", "Bearer"),
-                Arguments.of(apiId, "Authorization", "Bearer "),
-                Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-            );
+                    Arguments.of(apiId, null, null),
+                    Arguments.of(apiId, "Authorization", ""),
+                    Arguments.of(apiId, "Authorization", "Basic 123456789"),
+                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                    Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
+                    Arguments.of(apiId, "Authorization", "Bearer"),
+                    Arguments.of(apiId, "Authorization", "Bearer "),
+                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token"));
         });
     }
 
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_200_success_with_jwt_and_subscription_on_the_api(
-        final String apiId,
-        final boolean requireWiremock,
-        final HttpClient client,
-        GatewayDynamicConfig.HttpConfig httpConfig
-    ) throws Exception {
+            final String apiId,
+            final boolean requireWiremock,
+            final HttpClient client,
+            GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
         String jwtToken = generateJWT(5000);
-        whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID).thenReturn(Optional.of(createSubscription(apiId, PLAN_JWT_ID, false)));
+        whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID)
+                .thenReturn(Optional.of(createSubscription(apiId, PLAN_JWT_ID, false)));
 
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                request.putHeader("Authorization", "Bearer " + jwtToken);
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(60, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body.toString()).contains("endpoint response");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    request.putHeader("Authorization", "Bearer " + jwtToken);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(60, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains("endpoint response");
+                    return true;
+                });
 
         if (requireWiremock) {
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -132,33 +131,31 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
     @ParameterizedTest
     @MethodSource("provideWrongSecurityHeaders")
     protected void should_return_401_unauthorized_with_wrong_security(
-        final String apiId,
-        final String headerName,
-        final String headerValue,
-        final HttpClient client,
-        GatewayDynamicConfig.HttpConfig httpConfig
-    ) {
+            final String apiId,
+            final String headerName,
+            final String headerValue,
+            final HttpClient client,
+            GatewayDynamicConfig.HttpConfig httpConfig) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                if (headerName != null) {
-                    request.putHeader(headerName, headerValue);
-                }
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(401);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("Unauthorized");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    if (headerName != null) {
+                        request.putHeader(headerName, headerValue);
+                    }
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(401);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("Unauthorized");
+                    return true;
+                });
 
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
@@ -166,11 +163,11 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_401_unauthorized_with_valid_jwt_but_no_subscription_on_the_api(
-        final String path,
-        final boolean requireWiremock,
-        final HttpClient client,
-        GatewayDynamicConfig.HttpConfig httpConfig
-    ) throws Exception {
+            final String path,
+            final boolean requireWiremock,
+            final HttpClient client,
+            GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
         String jwtToken = generateJWT(5000);
         assertUnauthorizedWithJwt(path, client, jwtToken, false);
     }
@@ -178,63 +175,54 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
     @ParameterizedTest
     @MethodSource("provideApis")
     protected void should_return_401_unauthorized_with_expired_jwt_and_subscription_on_the_api(
-        final String path,
-        final boolean requireWiremock,
-        final HttpClient client,
-        GatewayDynamicConfig.HttpConfig httpConfig
-    ) throws Exception {
+            final String path,
+            final boolean requireWiremock,
+            final HttpClient client,
+            GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
         String jwtToken = generateJWT(-5000);
         assertUnauthorizedWithJwt(path, client, jwtToken, true);
     }
 
     private void assertUnauthorizedWithJwt(
-        final String apiId,
-        final HttpClient client,
-        final String jwtToken,
-        final boolean withSubscription
-    ) {
+            final String apiId, final HttpClient client, final String jwtToken, final boolean withSubscription) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("data")));
 
         if (withSubscription) {
-            whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID).thenReturn(
-                Optional.of(createSubscription(apiId, PLAN_JWT_ID, false))
-            );
+            whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID)
+                    .thenReturn(Optional.of(createSubscription(apiId, PLAN_JWT_ID, false)));
         } else {
             whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID).thenReturn(Optional.empty());
         }
 
-        client
-            .rxRequest(GET, getApiPath(apiId))
-            .flatMap(request -> {
-                request.putHeader("Authorization", "Bearer " + jwtToken);
-                return request.rxSend();
-            })
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(401);
-                return response.rxBody();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(body -> {
-                assertThat(body).hasToString("Unauthorized");
-                return true;
-            });
+        client.rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    request.putHeader("Authorization", "Bearer " + jwtToken);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(401);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString("Unauthorized");
+                    return true;
+                });
 
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
 
-    protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(String api, String clientId, String plan) {
-        return when(
-            getBean(SubscriptionService.class).getByApiAndSecurityToken(
-                eq(api),
-                argThat(
-                    securityToken ->
-                        securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name()) &&
-                        securityToken.getTokenValue().equals(clientId)
-                ),
-                eq(plan)
-            )
-        );
+    protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(
+            String api, String clientId, String plan) {
+        return when(getBean(SubscriptionService.class)
+                .getByApiAndSecurityToken(
+                        eq(api),
+                        argThat(securityToken ->
+                                securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name())
+                                        && securityToken.getTokenValue().equals(clientId)),
+                        eq(plan)));
     }
 }

@@ -44,14 +44,15 @@ public class SharedPolicyGroupDeployer implements Deployer<SharedPolicyGroupReac
                 log.debug("Shared Policy Group [{}] deployed ", deployable.sharedPolicyGroupId());
             } catch (Exception e) {
                 throw new SyncException(
-                    String.format(
-                        "An error occurred when trying to deploy shared policy group %s [%s][%s].",
-                        reactableSharedPolicyGroup.getName(),
-                        reactableSharedPolicyGroup.getId(),
-                        deployable.reactableSharedPolicyGroup().getDefinition().getVersion()
-                    ),
-                    e
-                );
+                        String.format(
+                                "An error occurred when trying to deploy shared policy group %s [%s][%s].",
+                                reactableSharedPolicyGroup.getName(),
+                                reactableSharedPolicyGroup.getId(),
+                                deployable
+                                        .reactableSharedPolicyGroup()
+                                        .getDefinition()
+                                        .getVersion()),
+                        e);
             }
         });
     }
@@ -71,16 +72,16 @@ public class SharedPolicyGroupDeployer implements Deployer<SharedPolicyGroupReac
                 } else {
                     sharedPolicyGroupManager.unregister(deployable.sharedPolicyGroupId(), environmentId);
                 }
-                log.debug("Shared Policy Group [{}] of environment [{}] undeployed", deployable.sharedPolicyGroupId(), environmentId);
+                log.debug(
+                        "Shared Policy Group [{}] of environment [{}] undeployed",
+                        deployable.sharedPolicyGroupId(),
+                        environmentId);
             } catch (Exception e) {
                 throw new SyncException(
-                    String.format(
-                        "An error occurred when trying to undeploy shared policy group [%s] of environment [%s].",
-                        deployable.sharedPolicyGroupId(),
-                        environmentId
-                    ),
-                    e
-                );
+                        String.format(
+                                "An error occurred when trying to undeploy shared policy group [%s] of environment [%s].",
+                                deployable.sharedPolicyGroupId(), environmentId),
+                        e);
             }
         });
     }

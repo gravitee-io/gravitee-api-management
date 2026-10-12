@@ -25,7 +25,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Setter
 @Getter
-@EqualsAndHashCode(of = { "id" }, callSuper = false)
+@EqualsAndHashCode(
+        of = {"id"},
+        callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}client_registration_providers")
 public class ClientRegistrationProviderMongo extends DeprecatedAuditable {
 

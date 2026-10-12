@@ -28,18 +28,18 @@ class ClassicCategoryToPortalCategoryMapperTest {
     @Test
     void should_map_name_to_title_and_description_and_force_visible_true() {
         var classicCategory = Category.builder()
-            .id("category-id")
-            .environmentId("environment-id")
-            .key("classic-key")
-            .name("News")
-            .description("News category")
-            .hidden(true)
-            .order(3)
-            .highlightApi("api-id")
-            .picture("base64-picture")
-            .background("base64-background")
-            .page("documentation-page-id")
-            .build();
+                .id("category-id")
+                .environmentId("environment-id")
+                .key("classic-key")
+                .name("News")
+                .description("News category")
+                .hidden(true)
+                .order(3)
+                .highlightApi("api-id")
+                .picture("base64-picture")
+                .background("base64-background")
+                .page("documentation-page-id")
+                .build();
 
         var result = ClassicCategoryToPortalCategoryMapper.toCreatePortalCategory(classicCategory);
 
@@ -50,7 +50,11 @@ class ClassicCategoryToPortalCategoryMapperTest {
 
     @Test
     void should_force_visible_true_even_when_classic_category_is_hidden() {
-        var hiddenClassicCategory = Category.builder().name("Hidden").description("Hidden category").hidden(true).build();
+        var hiddenClassicCategory = Category.builder()
+                .name("Hidden")
+                .description("Hidden category")
+                .hidden(true)
+                .build();
 
         var result = ClassicCategoryToPortalCategoryMapper.toCreatePortalCategory(hiddenClassicCategory);
 

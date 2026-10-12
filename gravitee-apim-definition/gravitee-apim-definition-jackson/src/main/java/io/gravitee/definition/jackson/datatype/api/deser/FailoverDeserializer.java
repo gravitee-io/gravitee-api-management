@@ -46,11 +46,16 @@ public class FailoverDeserializer extends StdScalarDeserializer<Failover> {
             if (casesNode.isArray()) {
                 List<FailoverCase> cases = new ArrayList<>();
 
-                casesNode.elements().forEachRemaining(jsonNode -> cases.add(FailoverCase.valueOf(jsonNode.asText().toUpperCase())));
+                casesNode
+                        .elements()
+                        .forEachRemaining(jsonNode ->
+                                cases.add(FailoverCase.valueOf(jsonNode.asText().toUpperCase())));
 
                 failover.setCases(cases.toArray(new FailoverCase[cases.size()]));
             } else {
-                failover.setCases(new FailoverCase[] { FailoverCase.valueOf(casesNode.asText().toUpperCase()) });
+                failover.setCases(new FailoverCase[] {
+                    FailoverCase.valueOf(casesNode.asText().toUpperCase())
+                });
             }
         }
 

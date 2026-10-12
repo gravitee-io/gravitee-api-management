@@ -23,18 +23,17 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component("MembershipsMemberIdMemberTypeReferenceTypeReferenceIdIndexUpgrader")
-public class MemberIdMemberTypeReferenceTypeReferenceIdIndexUpgrader
-    extends IndexUpgrader {
+public class MemberIdMemberTypeReferenceTypeReferenceIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("memberships")
-            .name("mi1mt1rt1ri1")
-            .key("memberId", ascending())
-            .key("memberType", ascending())
-            .key("referenceType", ascending())
-            .key("referenceId", ascending())
-            .build();
+                .collection("memberships")
+                .name("mi1mt1rt1ri1")
+                .key("memberId", ascending())
+                .key("memberType", ascending())
+                .key("referenceType", ascending())
+                .key("referenceId", ascending())
+                .build();
     }
 }

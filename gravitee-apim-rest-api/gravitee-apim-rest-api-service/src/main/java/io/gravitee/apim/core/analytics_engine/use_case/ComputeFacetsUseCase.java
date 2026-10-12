@@ -55,13 +55,12 @@ public class ComputeFacetsUseCase {
     private final AnalyticsQueryContextLoaderResolver contextLoader;
 
     public ComputeFacetsUseCase(
-        AnalyticsQueryContextProvider queryContextResolver,
-        AnalyticsQueryValidator validator,
-        List<QueryFilterTransformer> filterTransformers,
-        BucketNamesPostProcessor bucketNamesPostprocessor,
-        UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
-        AnalyticsQueryContextLoaderResolver contextLoader
-    ) {
+            AnalyticsQueryContextProvider queryContextResolver,
+            AnalyticsQueryValidator validator,
+            List<QueryFilterTransformer> filterTransformers,
+            BucketNamesPostProcessor bucketNamesPostprocessor,
+            UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
+            AnalyticsQueryContextLoaderResolver contextLoader) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
         this.filterTransformers = filterTransformers;
@@ -89,7 +88,8 @@ public class ComputeFacetsUseCase {
 
         var response = FacetsResponse.merge(responses);
 
-        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(analyticsContext, input.request.facets(), response);
+        var mappedResponse =
+                bucketNamesPostprocessor.mapBucketNames(analyticsContext, input.request.facets(), response);
 
         var enriched = unitEnrichmentPostProcessor.enrichUnits(mappedResponse);
 
@@ -97,25 +97,25 @@ public class ComputeFacetsUseCase {
     }
 
     private List<FacetsResponse> executeQueries(
-        ExecutionContext executionContext,
-        AnalyticsQueryContext analyticsContext,
-        Map<AnalyticsEngineQueryService, FacetsRequest> queryContext
-    ) {
+            ExecutionContext executionContext,
+            AnalyticsQueryContext analyticsContext,
+            Map<AnalyticsEngineQueryService, FacetsRequest> queryContext) {
         var responses = new ArrayList<FacetsResponse>();
         queryContext.forEach((queryService, request) -> {
             var filters = transformFilters(analyticsContext, request.filters());
-            var metrics = request
-                .metrics()
-                .stream()
-                .map(m -> transformMetricFilters(analyticsContext, m))
-                .toList();
+            var metrics = request.metrics().stream()
+                    .map(m -> transformMetricFilters(analyticsContext, m))
+                    .toList();
 
-            responses.add(
-                queryService.searchFacets(
+            responses.add(queryService.searchFacets(
                     executionContext,
-                    new FacetsRequest(request.timeRange(), filters, metrics, request.facets(), request.limit(), request.ranges())
-                )
-            );
+                    new FacetsRequest(
+                            request.timeRange(),
+                            filters,
+                            metrics,
+                            request.facets(),
+                            request.limit(),
+                            request.ranges())));
         });
         return responses;
     }
@@ -128,7 +128,8 @@ public class ComputeFacetsUseCase {
         return result;
     }
 
-    private FacetMetricMeasuresRequest transformMetricFilters(AnalyticsQueryContext context, FacetMetricMeasuresRequest metric) {
+    private FacetMetricMeasuresRequest transformMetricFilters(
+            AnalyticsQueryContext context, FacetMetricMeasuresRequest metric) {
         if (metric.filters() == null || metric.filters().isEmpty()) {
             return metric;
         }

@@ -39,7 +39,6 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
@@ -87,12 +86,11 @@ class CreatePortalNavigationItemValidatorServiceTest {
         navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         apiProductQueryService = new ApiProductQueryServiceInMemory();
         validatorService = new PortalNavigationItemValidatorService(
-            navigationItemsQueryService,
-            pageContentQueryService,
-            apiProductQueryService,
-            new PortalNavigationItemSourceDomainServiceInMemory(),
-            apiCrudService
-        );
+                navigationItemsQueryService,
+                pageContentQueryService,
+                apiProductQueryService,
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                apiCrudService);
         navigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
         pageContentQueryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
     }
@@ -104,13 +102,13 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_item_with_provided_id_already_exists() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .id(PortalNavigationItemId.of(APIS_ID))
-                .type(PortalNavigationItemType.FOLDER)
-                .title("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .id(PortalNavigationItemId.of(APIS_ID))
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
@@ -124,14 +122,16 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_homepage_already_exists() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("title")
-                .segment("title")
-                .area(PortalArea.HOMEPAGE)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
-            navigationItemsQueryService.storage().add(PortalNavigationItem.from(createPortalNavigationItem, ORG_ID, ENV_ID, null));
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("title")
+                    .segment("title")
+                    .area(PortalArea.HOMEPAGE)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
+            navigationItemsQueryService
+                    .storage()
+                    .add(PortalNavigationItem.from(createPortalNavigationItem, ORG_ID, ENV_ID, null));
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
@@ -146,14 +146,14 @@ class CreatePortalNavigationItemValidatorServiceTest {
             // Given
             final var NON_EXISTENT_ID = PortalPageContentId.random();
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .portalPageContentId(NON_EXISTENT_ID)
-                .id(PortalNavigationItemId.random())
-                .type(PortalNavigationItemType.PAGE)
-                .title("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .portalPageContentId(NON_EXISTENT_ID)
+                    .id(PortalNavigationItemId.random())
+                    .type(PortalNavigationItemType.PAGE)
+                    .title("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
@@ -167,13 +167,13 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_if_url_is_invalid() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.LINK)
-                .title("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .url("invalid-url")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.LINK)
+                    .title("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .url("invalid-url")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
@@ -187,14 +187,14 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_has_null_api_id() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(PortalNavigationItemId.of(APIS_ID))
-                .apiId(null)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(PortalNavigationItemId.of(APIS_ID))
+                    .apiId(null)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
@@ -208,14 +208,14 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_has_empty_api_id() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(PortalNavigationItemId.of(APIS_ID))
-                .apiId("")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(PortalNavigationItemId.of(APIS_ID))
+                    .apiId("")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
@@ -229,13 +229,13 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_has_null_parent_id() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .apiId("api-id")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiId("api-id")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
@@ -249,14 +249,14 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_is_not_in_top_navbar_area() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("title")
-                .area(PortalArea.HOMEPAGE)
-                .order(0)
-                .parentId(PortalNavigationItemId.of(APIS_ID))
-                .apiId("api-id")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("title")
+                    .area(PortalArea.HOMEPAGE)
+                    .order(0)
+                    .parentId(PortalNavigationItemId.of(APIS_ID))
+                    .apiId("api-id")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
@@ -270,35 +270,36 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_api_item_has_duplicate_api_id() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(PortalNavigationItemId.of(APIS_ID))
-                .apiId("api-1")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(PortalNavigationItemId.of(APIS_ID))
+                    .apiId("api-1")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
-            assertThat(exception.getMessage()).isEqualTo("The apiId api-1 is already used by another API navigation item.");
+            assertThat(exception.getMessage())
+                    .isEqualTo("The apiId api-1 is already used by another API navigation item.");
         }
 
         @Test
         void should_fail_when_api_item_parent_hierarchy_contains_api() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(PortalNavigationItemId.of(API1_FOLDER_ID))
-                .apiId("api-id")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(PortalNavigationItemId.of(API1_FOLDER_ID))
+                    .apiId("api-id")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
@@ -312,14 +313,14 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_validate_api_item_when_payload_is_valid() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("API 2")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(PortalNavigationItemId.of(APIS_ID))
-                .apiId("api-2")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("API 2")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(PortalNavigationItemId.of(APIS_ID))
+                    .apiId("api-2")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // Then
             assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
@@ -327,30 +328,27 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
         @Test
         void should_validate_api_item_below_product_when_api_belongs_to_product() {
-            apiProductQueryService.initWith(
-                List.of(
-                    ApiProduct.builder().id("00000000-0000-0000-0000-000000000019").environmentId(ENV_ID).apiIds(Set.of("api-1")).build()
-                )
-            );
+            apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                    .id("00000000-0000-0000-0000-000000000019")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build()));
             navigationItemsQueryService
-                .storage()
-                .add(
-                    PortalNavigationItemFixtures.anApiProduct(
-                        API_PRODUCT_ID,
-                        "Product",
-                        PortalNavigationItemId.of(APIS_ID),
-                        "00000000-0000-0000-0000-000000000019"
-                    )
-                );
+                    .storage()
+                    .add(PortalNavigationItemFixtures.anApiProduct(
+                            API_PRODUCT_ID,
+                            "Product",
+                            PortalNavigationItemId.of(APIS_ID),
+                            "00000000-0000-0000-0000-000000000019"));
             var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("API 1 in product")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(PortalNavigationItemId.of(API_PRODUCT_ID))
-                .apiId("api-1")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("API 1 in product")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(PortalNavigationItemId.of(API_PRODUCT_ID))
+                    .apiId("api-1")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
         }
@@ -358,68 +356,56 @@ class CreatePortalNavigationItemValidatorServiceTest {
         @Test
         void should_validate_api_item_below_folder_nested_in_product_when_api_belongs_to_product() {
             var apiProductReference = "00000000-0000-0000-0000-000000000019";
-            apiProductQueryService.initWith(
-                List.of(ApiProduct.builder().id(apiProductReference).environmentId(ENV_ID).apiIds(Set.of("api-1")).build())
-            );
+            apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                    .id(apiProductReference)
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("api-1"))
+                    .build()));
             var apiProduct = PortalNavigationItemFixtures.anApiProduct(
-                API_PRODUCT_ID,
-                "Product",
-                PortalNavigationItemId.of(APIS_ID),
-                apiProductReference
-            );
+                    API_PRODUCT_ID, "Product", PortalNavigationItemId.of(APIS_ID), apiProductReference);
             var nestedFolder = PortalNavigationItemFixtures.aFolder(
-                "00000000-0000-0000-0000-000000000020",
-                "Product APIs",
-                apiProduct.getId()
-            );
+                    "00000000-0000-0000-0000-000000000020", "Product APIs", apiProduct.getId());
             navigationItemsQueryService.storage().addAll(List.of(apiProduct, nestedFolder));
             var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("API 1 in product folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(nestedFolder.getId())
-                .apiId("api-1")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("API 1 in product folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(nestedFolder.getId())
+                    .apiId("api-1")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
         }
 
         @Test
         void should_reject_api_item_below_product_when_api_does_not_belong_to_product() {
-            apiProductQueryService.initWith(
-                List.of(
-                    ApiProduct.builder()
-                        .id("00000000-0000-0000-0000-000000000019")
-                        .environmentId(ENV_ID)
-                        .apiIds(Set.of("allowed-api"))
-                        .build()
-                )
-            );
+            apiProductQueryService.initWith(List.of(ApiProduct.builder()
+                    .id("00000000-0000-0000-0000-000000000019")
+                    .environmentId(ENV_ID)
+                    .apiIds(Set.of("allowed-api"))
+                    .build()));
             navigationItemsQueryService
-                .storage()
-                .add(
-                    PortalNavigationItemFixtures.anApiProduct(
-                        API_PRODUCT_ID,
-                        "Product",
-                        PortalNavigationItemId.of(APIS_ID),
-                        "00000000-0000-0000-0000-000000000019"
-                    )
-                );
+                    .storage()
+                    .add(PortalNavigationItemFixtures.anApiProduct(
+                            API_PRODUCT_ID,
+                            "Product",
+                            PortalNavigationItemId.of(APIS_ID),
+                            "00000000-0000-0000-0000-000000000019"));
             var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("Other API")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(PortalNavigationItemId.of(API_PRODUCT_ID))
-                .apiId("other-api")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("Other API")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(PortalNavigationItemId.of(API_PRODUCT_ID))
+                    .apiId("other-api")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
-            var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-                validatorService.validateOne(createPortalNavigationItem, ENV_ID)
-            );
+            var exception = assertThrows(
+                    InvalidPortalNavigationItemDataException.class,
+                    () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
             assertThat(exception.getMessage()).contains("other-api", "00000000-0000-0000-0000-000000000019");
         }
 
@@ -427,67 +413,67 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_validate_all_when_payload_is_valid() {
             // Given
             final var firstCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("API 2")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(PortalNavigationItemId.of(APIS_ID))
-                .apiId("api-2")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("API 2")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(PortalNavigationItemId.of(APIS_ID))
+                    .apiId("api-2")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             final var createLinkPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.LINK)
-                .title("Documentation")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(1)
-                .url("https://example.org/docs")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.LINK)
+                    .title("Documentation")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(1)
+                    .url("https://example.org/docs")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             final var secondCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("API 3")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(2)
-                .parentId(PortalNavigationItemId.of(APIS_ID))
-                .apiId("api-3")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("API 3")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(2)
+                    .parentId(PortalNavigationItemId.of(APIS_ID))
+                    .apiId("api-3")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // Then
-            assertDoesNotThrow(() ->
-                validatorService.validateAll(
-                    List.of(firstCreateApiPortalNavigationItem, createLinkPortalNavigationItem, secondCreateApiPortalNavigationItem),
-                    ENV_ID
-                )
-            );
+            assertDoesNotThrow(() -> validatorService.validateAll(
+                    List.of(
+                            firstCreateApiPortalNavigationItem,
+                            createLinkPortalNavigationItem,
+                            secondCreateApiPortalNavigationItem),
+                    ENV_ID));
         }
 
         @Test
         void should_fail_validate_all_when_api_item_has_null_parent_id() {
             // Given
             final var validCreateLinkPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.LINK)
-                .title("Documentation")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .url("https://example.org/docs")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.LINK)
+                    .title("Documentation")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .url("https://example.org/docs")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             final var invalidCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("API 2")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(1)
-                .apiId("api-2")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("API 2")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(1)
+                    .apiId("api-2")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
-            final Executable throwing = () ->
-                validatorService.validateAll(List.of(validCreateLinkPortalNavigationItem, invalidCreateApiPortalNavigationItem), ENV_ID);
+            final Executable throwing = () -> validatorService.validateAll(
+                    List.of(validCreateLinkPortalNavigationItem, invalidCreateApiPortalNavigationItem), ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
@@ -498,51 +484,57 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_validate_all_when_api_items_have_duplicate_api_id() {
             // Given
             final var firstCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("API 2")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(PortalNavigationItemId.of(APIS_ID))
-                .apiId("shared-api-id")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("API 2")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(PortalNavigationItemId.of(APIS_ID))
+                    .apiId("shared-api-id")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             final var secondCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("API 3")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(1)
-                .parentId(PortalNavigationItemId.of(APIS_ID))
-                .apiId("shared-api-id")
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("API 3")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(1)
+                    .parentId(PortalNavigationItemId.of(APIS_ID))
+                    .apiId("shared-api-id")
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
-            final Executable throwing = () ->
-                validatorService.validateAll(List.of(firstCreateApiPortalNavigationItem, secondCreateApiPortalNavigationItem), ENV_ID);
+            final Executable throwing = () -> validatorService.validateAll(
+                    List.of(firstCreateApiPortalNavigationItem, secondCreateApiPortalNavigationItem), ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
-            assertThat(exception.getMessage()).isEqualTo("The apiId shared-api-id is already used by another API navigation item.");
+            assertThat(exception.getMessage())
+                    .isEqualTo("The apiId shared-api-id is already used by another API navigation item.");
         }
     }
 
     @Nested
     class ApiOwnedDocumentationArea {
 
-        private static final String TOP_NAVBAR_ONLY = "API-attached documentation can only be added to TOP_NAVBAR area.";
+        private static final String TOP_NAVBAR_ONLY =
+                "API-attached documentation can only be added to TOP_NAVBAR area.";
 
         @BeforeEach
         void setUp() {
             // No homepage yet, so the homepage uniqueness rule does not answer first.
             navigationItemsQueryService.initWith(List.of());
-            apiCrudService.initWith(List.of(Api.builder().id("api-id").name("My API").environmentId(ENV_ID).build()));
+            apiCrudService.initWith(List.of(Api.builder()
+                    .id("api-id")
+                    .name("My API")
+                    .environmentId(ENV_ID)
+                    .build()));
         }
 
         @Test
         void should_reject_an_api_owned_folder_outside_top_navbar() {
-            final Executable throwing = () ->
-                validatorService.validateOne(anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.HOMEPAGE), ENV_ID);
+            final Executable throwing = () -> validatorService.validateOne(
+                    anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.HOMEPAGE), ENV_ID);
 
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo(TOP_NAVBAR_ONLY);
@@ -550,8 +542,8 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
         @Test
         void should_reject_an_api_owned_link_outside_top_navbar() {
-            final Executable throwing = () ->
-                validatorService.validateOne(anApiOwned(PortalNavigationItemType.LINK, PortalArea.HOMEPAGE), ENV_ID);
+            final Executable throwing = () -> validatorService.validateOne(
+                    anApiOwned(PortalNavigationItemType.LINK, PortalArea.HOMEPAGE), ENV_ID);
 
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo(TOP_NAVBAR_ONLY);
@@ -559,42 +551,46 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
         @Test
         void should_accept_an_api_owned_folder_and_link_in_top_navbar() {
-            assertDoesNotThrow(() ->
-                validatorService.validateOne(anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR), ENV_ID)
-            );
-            assertDoesNotThrow(() ->
-                validatorService.validateOne(anApiOwned(PortalNavigationItemType.LINK, PortalArea.TOP_NAVBAR), ENV_ID)
-            );
+            assertDoesNotThrow(() -> validatorService.validateOne(
+                    anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR), ENV_ID));
+            assertDoesNotThrow(() -> validatorService.validateOne(
+                    anApiOwned(PortalNavigationItemType.LINK, PortalArea.TOP_NAVBAR), ENV_ID));
         }
 
         @Test
         void should_reject_an_item_owned_by_an_api_that_does_not_exist() {
             apiCrudService.reset();
 
-            assertThrows(ApiNotFoundException.class, () ->
-                validatorService.validateOne(anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR), ENV_ID)
-            );
+            assertThrows(
+                    ApiNotFoundException.class,
+                    () -> validatorService.validateOne(
+                            anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR), ENV_ID));
         }
 
         @Test
         void should_reject_an_item_owned_by_an_api_of_another_environment() {
-            apiCrudService.initWith(List.of(Api.builder().id("api-id").name("My API").environmentId("another-environment").build()));
+            apiCrudService.initWith(List.of(Api.builder()
+                    .id("api-id")
+                    .name("My API")
+                    .environmentId("another-environment")
+                    .build()));
 
-            assertThrows(ApiNotFoundException.class, () ->
-                validatorService.validateOne(anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR), ENV_ID)
-            );
+            assertThrows(
+                    ApiNotFoundException.class,
+                    () -> validatorService.validateOne(
+                            anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR), ENV_ID));
         }
 
         private CreatePortalNavigationItem anApiOwned(PortalNavigationItemType type, PortalArea area) {
             return CreatePortalNavigationItem.builder()
-                .type(type)
-                .title("title")
-                .area(area)
-                .order(0)
-                .url(type == PortalNavigationItemType.LINK ? "https://example.com" : null)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .reference(new NavigationItemReference.ApiReference("api-id"))
-                .build();
+                    .type(type)
+                    .title("title")
+                    .area(area)
+                    .order(0)
+                    .url(type == PortalNavigationItemType.LINK ? "https://example.com" : null)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .reference(new NavigationItemReference.ApiReference("api-id"))
+                    .build();
         }
     }
 
@@ -606,23 +602,23 @@ class CreatePortalNavigationItemValidatorServiceTest {
             var firstFolderId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000201");
             var secondFolderId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000202");
             var firstFolder = CreatePortalNavigationItem.builder()
-                .id(firstFolderId)
-                .type(PortalNavigationItemType.FOLDER)
-                .title("First folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .parentId(secondFolderId)
-                .build();
+                    .id(firstFolderId)
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("First folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .parentId(secondFolderId)
+                    .build();
             var secondFolder = CreatePortalNavigationItem.builder()
-                .id(secondFolderId)
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Second folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .parentId(firstFolderId)
-                .build();
+                    .id(secondFolderId)
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Second folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .parentId(firstFolderId)
+                    .build();
 
-            var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-                validatorService.validateAll(List.of(firstFolder, secondFolder), ENV_ID)
-            );
+            var exception = assertThrows(
+                    InvalidPortalNavigationItemDataException.class,
+                    () -> validatorService.validateAll(List.of(firstFolder, secondFolder), ENV_ID));
 
             assertThat(exception.getMessage()).isEqualTo("Cyclic dependency detected in parent hierarchy.");
         }
@@ -632,13 +628,13 @@ class CreatePortalNavigationItemValidatorServiceTest {
             // Given
             final String NON_EXISTENT_ID = "6c2c004d-c4f2-4a2b-b2c3-857a4dfcc842";
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .id(PortalNavigationItemId.random())
-                .type(PortalNavigationItemType.FOLDER)
-                .title("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
             createPortalNavigationItem.setParentId(PortalNavigationItemId.of(NON_EXISTENT_ID));
 
             // When
@@ -653,13 +649,13 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_parent_is_not_folder() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .id(PortalNavigationItemId.random())
-                .type(PortalNavigationItemType.FOLDER)
-                .title("title")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("title")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
             createPortalNavigationItem.setParentId(PortalNavigationItemId.of(PAGE11_ID));
 
             // When
@@ -674,13 +670,13 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_fail_when_parent_is_in_different_area() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .id(PortalNavigationItemId.random())
-                .type(PortalNavigationItemType.FOLDER)
-                .title("title")
-                .area(PortalArea.HOMEPAGE)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("title")
+                    .area(PortalArea.HOMEPAGE)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
             createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
             // When
@@ -688,66 +684,66 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
             // Then
             Exception exception = assertThrows(ParentAreaMismatchException.class, throwing);
-            assertThat(exception.getMessage()).isEqualTo("Parent item with id %s belongs to a different area than the child item", APIS_ID);
+            assertThat(exception.getMessage())
+                    .isEqualTo("Parent item with id %s belongs to a different area than the child item", APIS_ID);
         }
 
         @Test
         void should_fail_when_parent_is_unpublished_and_child_is_published() {
             // Given
-            final var unpublishedParent = PortalNavigationItemFixtures.aFolder(
-                "10000000-0000-0000-0000-000000000001",
-                "Unpublished parent"
-            );
+            final var unpublishedParent =
+                    PortalNavigationItemFixtures.aFolder("10000000-0000-0000-0000-000000000001", "Unpublished parent");
             unpublishedParent.setPublished(false);
             navigationItemsQueryService.storage().add(unpublishedParent);
 
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .id(PortalNavigationItemId.random())
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Published child")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(unpublishedParent.getId())
-                .published(true)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Published child")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(unpublishedParent.getId())
+                    .published(true)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
-            assertThat(exception.getMessage()).isEqualTo(
-                "Parent item with id %s must be PUBLISHED to create a published child item.".formatted(unpublishedParent.getId())
-            );
+            assertThat(exception.getMessage())
+                    .isEqualTo("Parent item with id %s must be PUBLISHED to create a published child item."
+                            .formatted(unpublishedParent.getId()));
         }
 
         @Test
         void should_fail_when_parent_is_private_and_child_visibility_is_public() {
             // Given
-            final var privateParent = PortalNavigationItemFixtures.aFolder("10000000-0000-0000-0000-000000000002", "Private parent");
+            final var privateParent =
+                    PortalNavigationItemFixtures.aFolder("10000000-0000-0000-0000-000000000002", "Private parent");
             privateParent.setVisibility(PortalVisibility.PRIVATE);
             navigationItemsQueryService.storage().add(privateParent);
 
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .id(PortalNavigationItemId.random())
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Public child")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(privateParent.getId())
-                .visibility(PortalVisibility.PUBLIC)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Public child")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(privateParent.getId())
+                    .visibility(PortalVisibility.PUBLIC)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .build();
 
             // When
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
-            assertThat(exception.getMessage()).isEqualTo(
-                "Parent item with id %s must be PUBLIC to create a public child item.".formatted(privateParent.getId())
-            );
+            assertThat(exception.getMessage())
+                    .isEqualTo("Parent item with id %s must be PUBLIC to create a public child item."
+                            .formatted(privateParent.getId()));
         }
     }
 
@@ -756,61 +752,74 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
         private PortalNavigationItemSource aSource() {
             return PortalNavigationItemSource.builder()
-                .sourceType("github-fetcher")
-                .sourceConfiguration("{\"repository\":\"docs\"}")
-                .build();
+                    .sourceType("github-fetcher")
+                    .sourceConfiguration("{\"repository\":\"docs\"}")
+                    .build();
         }
 
         @Test
         void should_accept_source_on_page() {
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.PAGE)
-                .title("Sourced page")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .source(aSource())
-                .build();
+                    .type(PortalNavigationItemType.PAGE)
+                    .title("Sourced page")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .source(aSource())
+                    .build();
 
             assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
         }
 
         private GraviteeMarkdownPageContent givenAnAutomationManagedContent() {
             var automationContent = new GraviteeMarkdownPageContent(
-                PortalPageContentId.random(),
-                ORG_ID,
-                ENV_ID,
-                GraviteeMarkdown.of("# automation"),
-                new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, "portal-id", "page", Optional.empty(), Optional.empty())
-            );
+                    PortalPageContentId.random(),
+                    ORG_ID,
+                    ENV_ID,
+                    GraviteeMarkdown.of("# automation"),
+                    new AutomationMetadata(
+                            AutomationMetadata.ReferenceType.PORTAL,
+                            "portal-id",
+                            "page",
+                            Optional.empty(),
+                            Optional.empty()));
             pageContentQueryService.storage().add(automationContent);
             return automationContent;
         }
 
         private PortalNavigationItem givenAnAutomationManagedPage(String id, PortalNavigationItemId parentId) {
-            var page = PortalNavigationItemFixtures.aPage(id, "Automation page", parentId, givenAnAutomationManagedContent().getId());
+            var page = PortalNavigationItemFixtures.aPage(
+                    id,
+                    "Automation page",
+                    parentId,
+                    givenAnAutomationManagedContent().getId());
             navigationItemsQueryService.storage().add(page);
             return page;
         }
 
-        private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder aSourcedPageUnder(PortalNavigationItemId parentId) {
+        private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder aSourcedPageUnder(
+                PortalNavigationItemId parentId) {
             return CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.PAGE)
-                .title("Sourced page")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .parentId(parentId)
-                .source(aSource());
+                    .type(PortalNavigationItemType.PAGE)
+                    .title("Sourced page")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .parentId(parentId)
+                    .source(aSource());
         }
 
         @Test
         void should_reject_source_on_a_page_whose_content_is_automation_managed() {
             var automationContent = givenAnAutomationManagedContent();
 
-            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-                validatorService.validateOne(aSourcedPageUnder(null).portalPageContentId(automationContent.getId()).build(), ENV_ID)
-            );
+            var error = assertThrows(
+                    InvalidPortalNavigationItemDataException.class,
+                    () -> validatorService.validateOne(
+                            aSourcedPageUnder(null)
+                                    .portalPageContentId(automationContent.getId())
+                                    .build(),
+                            ENV_ID));
 
             assertThat(error).hasMessageContaining("Automation API");
         }
@@ -823,7 +832,8 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(parent);
             givenAnAutomationManagedPage("00000000-0000-0000-0000-00000000aa01", parent.getId());
 
-            assertDoesNotThrow(() -> validatorService.validateOne(aSourcedPageUnder(parent.getId()).build(), ENV_ID));
+            assertDoesNotThrow(() -> validatorService.validateOne(
+                    aSourcedPageUnder(parent.getId()).build(), ENV_ID));
         }
 
         @Test
@@ -831,19 +841,20 @@ class CreatePortalNavigationItemValidatorServiceTest {
             var automationPage = givenAnAutomationManagedPage("00000000-0000-0000-0000-00000000aa02", null);
             automationPage.markAsRoot();
 
-            assertDoesNotThrow(() -> validatorService.validateOne(aSourcedPageUnder(null).build(), ENV_ID));
+            assertDoesNotThrow(
+                    () -> validatorService.validateOne(aSourcedPageUnder(null).build(), ENV_ID));
         }
 
         @Test
         void should_accept_source_on_folder() {
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Sourced folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .source(aSource())
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Sourced folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .source(aSource())
+                    .build();
 
             assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
         }
@@ -851,42 +862,42 @@ class CreatePortalNavigationItemValidatorServiceTest {
         @Test
         void should_reject_source_on_link() {
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.LINK)
-                .title("Sourced link")
-                .url("https://example.com")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .source(aSource())
-                .build();
+                    .type(PortalNavigationItemType.LINK)
+                    .title("Sourced link")
+                    .url("https://example.com")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .source(aSource())
+                    .build();
 
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
-            assertThat(exception.getMessage()).isEqualTo(
-                "An external source can only be configured on PAGE and FOLDER navigation items (got LINK)."
-            );
+            assertThat(exception.getMessage())
+                    .isEqualTo(
+                            "An external source can only be configured on PAGE and FOLDER navigation items (got LINK).");
         }
 
         @Test
         void should_reject_source_on_api() {
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.API)
-                .title("Sourced api")
-                .apiId("api-id")
-                .parentId(PortalNavigationItemId.of(APIS_ID))
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .source(aSource())
-                .build();
+                    .type(PortalNavigationItemType.API)
+                    .title("Sourced api")
+                    .apiId("api-id")
+                    .parentId(PortalNavigationItemId.of(APIS_ID))
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .source(aSource())
+                    .build();
 
             final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
-            assertThat(exception.getMessage()).isEqualTo(
-                "An external source can only be configured on PAGE and FOLDER navigation items (got API)."
-            );
+            assertThat(exception.getMessage())
+                    .isEqualTo(
+                            "An external source can only be configured on PAGE and FOLDER navigation items (got API).");
         }
     }
 
@@ -894,32 +905,36 @@ class CreatePortalNavigationItemValidatorServiceTest {
     class CreateBelowSourcedItem {
 
         private PortalNavigationItem givenASourcedFolder() {
-            var folder = PortalNavigationItemFixtures.aFolder("Sourced folder")
-                .toBuilder()
-                .source(PortalNavigationItemSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build())
-                .build();
+            var folder = PortalNavigationItemFixtures.aFolder("Sourced folder").toBuilder()
+                    .source(PortalNavigationItemSource.builder()
+                            .sourceType("http-fetcher")
+                            .sourceConfiguration("{}")
+                            .build())
+                    .build();
             folder.markAsRoot();
             navigationItemsQueryService.storage().add(folder);
             return folder;
         }
 
-        private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder aPageUnder(PortalNavigationItemId parentId) {
+        private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder aPageUnder(
+                PortalNavigationItemId parentId) {
             return CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.PAGE)
-                .title("Manual page")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .parentId(parentId);
+                    .type(PortalNavigationItemType.PAGE)
+                    .title("Manual page")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .parentId(parentId);
         }
 
         @Test
         void should_reject_creation_directly_below_a_sourced_folder() {
             var folder = givenASourcedFolder();
 
-            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-                validatorService.validateOne(aPageUnder(folder.getId()).build(), ENV_ID)
-            );
+            var error = assertThrows(
+                    InvalidPortalNavigationItemDataException.class,
+                    () -> validatorService.validateOne(
+                            aPageUnder(folder.getId()).build(), ENV_ID));
 
             assertThat(error).hasMessageContaining("subtree is managed by an external source");
         }
@@ -930,9 +945,10 @@ class CreatePortalNavigationItemValidatorServiceTest {
             var intermediate = PortalNavigationItemFixtures.aFolder("Intermediate", folder.getId());
             navigationItemsQueryService.storage().add(intermediate);
 
-            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-                validatorService.validateOne(aPageUnder(intermediate.getId()).build(), ENV_ID)
-            );
+            var error = assertThrows(
+                    InvalidPortalNavigationItemDataException.class,
+                    () -> validatorService.validateOne(
+                            aPageUnder(intermediate.getId()).build(), ENV_ID));
 
             assertThat(error).hasMessageContaining("subtree is managed by an external source");
         }
@@ -941,19 +957,22 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void should_reject_child_of_a_sourced_folder_declared_in_the_same_bulk_payload() {
             var folderId = PortalNavigationItemId.random();
             var sourcedFolder = CreatePortalNavigationItem.builder()
-                .id(folderId)
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Sourced folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .source(PortalNavigationItemSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build())
-                .build();
+                    .id(folderId)
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Sourced folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .source(PortalNavigationItemSource.builder()
+                            .sourceType("http-fetcher")
+                            .sourceConfiguration("{}")
+                            .build())
+                    .build();
             var child = aPageUnder(folderId).build();
 
-            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-                validatorService.validateAll(List.of(sourcedFolder, child), ENV_ID)
-            );
+            var error = assertThrows(
+                    InvalidPortalNavigationItemDataException.class,
+                    () -> validatorService.validateAll(List.of(sourcedFolder, child), ENV_ID));
 
             assertThat(error).hasMessageContaining("subtree is managed by an external source");
         }
@@ -964,7 +983,8 @@ class CreatePortalNavigationItemValidatorServiceTest {
             folder.markAsRoot();
             navigationItemsQueryService.storage().add(folder);
 
-            assertDoesNotThrow(() -> validatorService.validateOne(aPageUnder(folder.getId()).build(), ENV_ID));
+            assertDoesNotThrow(() ->
+                    validatorService.validateOne(aPageUnder(folder.getId()).build(), ENV_ID));
         }
     }
 
@@ -978,19 +998,19 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(preExistingChild);
 
             var newPrivateFolder = CreatePortalNavigationItem.builder()
-                .id(folderId)
-                .title("Private Guides")
-                .segment("private-guides")
-                .type(PortalNavigationItemType.FOLDER)
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .published(true)
-                .visibility(PortalVisibility.PRIVATE)
-                .build();
+                    .id(folderId)
+                    .title("Private Guides")
+                    .segment("private-guides")
+                    .type(PortalNavigationItemType.FOLDER)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build();
 
-            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-                validatorService.validateAll(List.of(newPrivateFolder), ENV_ID)
-            );
+            Exception exception = assertThrows(
+                    InvalidPortalNavigationItemDataException.class,
+                    () -> validatorService.validateAll(List.of(newPrivateFolder), ENV_ID));
             assertThat(exception.getMessage()).contains("must be PUBLIC");
         }
 
@@ -1002,15 +1022,15 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(preExistingChild);
 
             var newPrivateFolder = CreatePortalNavigationItem.builder()
-                .id(folderId)
-                .title("Private Guides")
-                .segment("private-guides")
-                .type(PortalNavigationItemType.FOLDER)
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .published(true)
-                .visibility(PortalVisibility.PRIVATE)
-                .build();
+                    .id(folderId)
+                    .title("Private Guides")
+                    .segment("private-guides")
+                    .type(PortalNavigationItemType.FOLDER)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build();
 
             assertDoesNotThrow(() -> validatorService.validateAll(List.of(newPrivateFolder), ENV_ID));
         }
@@ -1022,15 +1042,15 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(preExistingChild);
 
             var newPublicFolder = CreatePortalNavigationItem.builder()
-                .id(folderId)
-                .title("Public Guides")
-                .segment("public-guides")
-                .type(PortalNavigationItemType.FOLDER)
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(folderId)
+                    .title("Public Guides")
+                    .segment("public-guides")
+                    .type(PortalNavigationItemType.FOLDER)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
 
             assertDoesNotThrow(() -> validatorService.validateAll(List.of(newPublicFolder), ENV_ID));
         }
@@ -1048,22 +1068,21 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(preExistingChild);
 
             var toUpdate = io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem.builder()
-                .type(folder.getType())
-                .title(folder.getTitle())
-                .segment(folder.getSegment())
-                .order(folder.getOrder())
-                .parentId(folder.getParentId())
-                .visibility(PortalVisibility.PRIVATE)
-                .published(folder.getPublished())
-                .build();
-            var pendingUpdate = new io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate(
-                toUpdate,
-                folder
-            );
+                    .type(folder.getType())
+                    .title(folder.getTitle())
+                    .segment(folder.getSegment())
+                    .order(folder.getOrder())
+                    .parentId(folder.getParentId())
+                    .visibility(PortalVisibility.PRIVATE)
+                    .published(folder.getPublished())
+                    .build();
+            var pendingUpdate =
+                    new io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate(
+                            toUpdate, folder);
 
-            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-                validatorService.validate(List.of(), List.of(pendingUpdate), ENV_ID)
-            );
+            Exception exception = assertThrows(
+                    InvalidPortalNavigationItemDataException.class,
+                    () -> validatorService.validate(List.of(), List.of(pendingUpdate), ENV_ID));
             assertThat(exception.getMessage()).contains("must be PUBLIC");
         }
 
@@ -1078,18 +1097,17 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(preExistingChild);
 
             var toUpdate = io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem.builder()
-                .type(folder.getType())
-                .title(folder.getTitle())
-                .segment(folder.getSegment())
-                .order(folder.getOrder())
-                .parentId(folder.getParentId())
-                .visibility(PortalVisibility.PUBLIC)
-                .published(folder.getPublished())
-                .build();
-            var pendingUpdate = new io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate(
-                toUpdate,
-                folder
-            );
+                    .type(folder.getType())
+                    .title(folder.getTitle())
+                    .segment(folder.getSegment())
+                    .order(folder.getOrder())
+                    .parentId(folder.getParentId())
+                    .visibility(PortalVisibility.PUBLIC)
+                    .published(folder.getPublished())
+                    .build();
+            var pendingUpdate =
+                    new io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate(
+                            toUpdate, folder);
 
             assertDoesNotThrow(() -> validatorService.validate(List.of(), List.of(pendingUpdate), ENV_ID));
         }
@@ -1099,7 +1117,8 @@ class CreatePortalNavigationItemValidatorServiceTest {
             var folder = PortalNavigationItemFixtures.aFolder("public-folder");
             folder.markAsRoot();
             navigationItemsQueryService.storage().add(folder);
-            var preExistingLink = PortalNavigationItemFixtures.aLink("00000000-0000-0000-0000-0000000000aa", "Docs", folder.getId());
+            var preExistingLink =
+                    PortalNavigationItemFixtures.aLink("00000000-0000-0000-0000-0000000000aa", "Docs", folder.getId());
             preExistingLink.setVisibility(PortalVisibility.PRIVATE);
             navigationItemsQueryService.storage().add(preExistingLink);
 
@@ -1119,19 +1138,20 @@ class CreatePortalNavigationItemValidatorServiceTest {
             var folderPendingUpdate = asPrivate(folder);
             var childPendingUpdate = asPrivate(preExistingChild);
 
-            assertDoesNotThrow(() -> validatorService.validate(List.of(), List.of(folderPendingUpdate, childPendingUpdate), ENV_ID));
+            assertDoesNotThrow(() ->
+                    validatorService.validate(List.of(), List.of(folderPendingUpdate, childPendingUpdate), ENV_ID));
         }
 
         private PortalNavigationValidator.PendingUpdate asPrivate(PortalNavigationItem item) {
             var update = UpdatePortalNavigationItem.builder()
-                .type(item.getType())
-                .title(item.getTitle())
-                .segment(item.getSegment())
-                .order(item.getOrder())
-                .parentId(item.getParentId())
-                .visibility(PortalVisibility.PRIVATE)
-                .published(item.getPublished())
-                .build();
+                    .type(item.getType())
+                    .title(item.getTitle())
+                    .segment(item.getSegment())
+                    .order(item.getOrder())
+                    .parentId(item.getParentId())
+                    .visibility(PortalVisibility.PRIVATE)
+                    .published(item.getPublished())
+                    .build();
             return new PortalNavigationValidator.PendingUpdate(update, item);
         }
     }
@@ -1152,26 +1172,26 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(otherParent);
 
             var relocatingUpdate = UpdatePortalNavigationItem.builder()
-                .type(relocating.getType())
-                .title(relocating.getTitle())
-                .segment(relocating.getSegment())
-                .order(relocating.getOrder())
-                .parentId(otherParent.getId())
-                .visibility(relocating.getVisibility())
-                .published(relocating.getPublished())
-                .build();
+                    .type(relocating.getType())
+                    .title(relocating.getTitle())
+                    .segment(relocating.getSegment())
+                    .order(relocating.getOrder())
+                    .parentId(otherParent.getId())
+                    .visibility(relocating.getVisibility())
+                    .published(relocating.getPublished())
+                    .build();
             var pendingUpdate = new PortalNavigationValidator.PendingUpdate(relocatingUpdate, relocating);
             var newItem = CreatePortalNavigationItem.builder()
-                .id(PortalNavigationItemId.random())
-                .title("docs")
-                .segment(relocating.getSegment())
-                .type(PortalNavigationItemType.FOLDER)
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .parentId(parent.getId())
-                .visibility(PortalVisibility.PUBLIC)
-                .published(true)
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .title("docs")
+                    .segment(relocating.getSegment())
+                    .type(PortalNavigationItemType.FOLDER)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(parent.getId())
+                    .visibility(PortalVisibility.PUBLIC)
+                    .published(true)
+                    .build();
 
             assertDoesNotThrow(() -> validatorService.validate(List.of(newItem), List.of(pendingUpdate), ENV_ID));
         }

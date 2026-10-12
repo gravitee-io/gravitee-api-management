@@ -49,7 +49,8 @@ public class ResponseTimeProcessor implements Processor {
                 metrics.setGatewayLatencyNs(gatewayResponseTimeNs - endpointResponseTimeNs(metrics));
             } else {
                 // No monotonic origin (a request that did not go through the HTTP layer): fall back to the wall clock.
-                final long gatewayResponseTimeInMs = System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
+                final long gatewayResponseTimeInMs =
+                        System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
                 metrics.setGatewayResponseTimeMs(gatewayResponseTimeInMs);
                 if (metrics.getEndpointResponseTimeMs() > -1) {
                     metrics.setGatewayLatencyMs(gatewayResponseTimeInMs - metrics.getEndpointResponseTimeMs());
@@ -70,6 +71,8 @@ public class ResponseTimeProcessor implements Processor {
      */
     private static long endpointResponseTimeNs(final Metrics metrics) {
         final long endpointResponseTimeNs = metrics.getEndpointResponseTimeNs();
-        return endpointResponseTimeNs > -1 ? endpointResponseTimeNs : TimeUnit.MILLISECONDS.toNanos(metrics.getEndpointResponseTimeMs());
+        return endpointResponseTimeNs > -1
+                ? endpointResponseTimeNs
+                : TimeUnit.MILLISECONDS.toNanos(metrics.getEndpointResponseTimeMs());
     }
 }

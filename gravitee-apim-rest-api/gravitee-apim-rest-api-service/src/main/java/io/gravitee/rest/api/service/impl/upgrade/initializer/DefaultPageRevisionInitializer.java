@@ -52,11 +52,9 @@ public class DefaultPageRevisionInitializer implements Initializer {
                 Pageable pageable = new PageableImpl(pageNumber, pageSize);
                 pagesSubSet = pageService.findAll(pageable);
                 if (!pagesSubSet.getContent().isEmpty()) {
-                    pagesSubSet
-                        .getContent()
-                        .stream()
-                        .filter(entity -> pageService.shouldHaveRevision(entity.getType()))
-                        .forEach(entity -> pageRevisionService.create(convert(entity)));
+                    pagesSubSet.getContent().stream()
+                            .filter(entity -> pageService.shouldHaveRevision(entity.getType()))
+                            .forEach(entity -> pageRevisionService.create(convert(entity)));
                     ++pageNumber;
                 }
             } while (!pagesSubSet.getContent().isEmpty());
@@ -65,7 +63,8 @@ public class DefaultPageRevisionInitializer implements Initializer {
     }
 
     private boolean hasNoRevisions() {
-        final io.gravitee.repository.management.api.search.Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(1).build();
+        final io.gravitee.repository.management.api.search.Pageable pageable =
+                new PageableBuilder().pageNumber(0).pageSize(1).build();
         return pageRevisionService.findAll(pageable).getContent().isEmpty();
     }
 

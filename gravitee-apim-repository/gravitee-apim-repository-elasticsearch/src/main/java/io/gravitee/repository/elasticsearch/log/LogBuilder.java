@@ -130,11 +130,10 @@ final class LogBuilder {
             log.setTimestamp(dtf.parse(rawTimestamp).getTime());
         } catch (final ParseException | NumberFormatException e) {
             LogBuilder.log.warn(
-                "Skipping log doc id={} with malformed @timestamp value [{}]: {}",
-                hit.getId(),
-                rawTimestamp,
-                e.getMessage()
-            );
+                    "Skipping log doc id={} with malformed @timestamp value [{}]: {}",
+                    hit.getId(),
+                    rawTimestamp,
+                    e.getMessage());
             return null;
         }
 
@@ -291,11 +290,11 @@ final class LogBuilder {
         }
 
         return LogDiagnostic.builder()
-            .key(asTextOrNull(json.get(FIELD_KEY)))
-            .message(asTextOrNull(json.get(FIELD_MESSAGE)))
-            .componentType(asTextOrNull(json.get(FIELD_COMPONENT_TYPE)))
-            .componentName(asTextOrNull(json.get(FIELD_COMPONENT_NAME)))
-            .build();
+                .key(asTextOrNull(json.get(FIELD_KEY)))
+                .message(asTextOrNull(json.get(FIELD_MESSAGE)))
+                .componentType(asTextOrNull(json.get(FIELD_COMPONENT_TYPE)))
+                .componentName(asTextOrNull(json.get(FIELD_COMPONENT_NAME)))
+                .build();
     }
 
     private static List<LogDiagnostic> createDiagnosticsOrNull(JsonNode json) {
@@ -303,6 +302,8 @@ final class LogBuilder {
             return null;
         }
 
-        return StreamSupport.stream(json.spliterator(), false).map(LogBuilder::createDiagnosticOrNull).toList();
+        return StreamSupport.stream(json.spliterator(), false)
+                .map(LogBuilder::createDiagnosticOrNull)
+                .toList();
     }
 }

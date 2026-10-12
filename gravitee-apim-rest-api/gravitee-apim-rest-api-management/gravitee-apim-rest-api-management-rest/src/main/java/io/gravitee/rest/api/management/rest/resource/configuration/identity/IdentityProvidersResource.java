@@ -64,63 +64,61 @@ public class IdentityProvidersResource extends AbstractResource {
     @GET
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
     @Operation(
-        summary = "Get the list of identity providers",
-        description = "User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service"
-    )
+            summary = "Get the list of identity providers",
+            description = "User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "List identity providers",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = IdentityProviderListItem.class))
-        )
-    )
+            responseCode = "200",
+            description = "List identity providers",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            array = @ArraySchema(schema = @Schema(implementation = IdentityProviderListItem.class))))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<IdentityProviderListItem> getIdentityProviders() {
-        return identityProviderService
-            .findAll(GraviteeContext.getExecutionContext())
-            .stream()
-            .map(identityProvider -> {
-                IdentityProviderListItem item = new IdentityProviderListItem();
-                item.setId(identityProvider.getId());
-                item.setName(identityProvider.getName());
-                item.setDescription(identityProvider.getDescription());
-                item.setEnabled(identityProvider.isEnabled());
-                item.setType(identityProvider.getType());
-                item.setCreatedAt(identityProvider.getCreatedAt());
-                item.setUpdatedAt(identityProvider.getUpdatedAt());
-                item.setSync(identityProvider.isSyncMappings());
-                return item;
-            })
-            .collect(Collectors.toList());
+        return identityProviderService.findAll(GraviteeContext.getExecutionContext()).stream()
+                .map(identityProvider -> {
+                    IdentityProviderListItem item = new IdentityProviderListItem();
+                    item.setId(identityProvider.getId());
+                    item.setName(identityProvider.getName());
+                    item.setDescription(identityProvider.getDescription());
+                    item.setEnabled(identityProvider.isEnabled());
+                    item.setType(identityProvider.getType());
+                    item.setCreatedAt(identityProvider.getCreatedAt());
+                    item.setUpdatedAt(identityProvider.getUpdatedAt());
+                    item.setSync(identityProvider.isSyncMappings());
+                    return item;
+                })
+                .collect(Collectors.toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.CREATE) })
+    @Permissions({@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.CREATE)
+    })
     @Operation(
-        summary = "Create an identity provider",
-        description = "User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service"
-    )
+            summary = "Create an identity provider",
+            description = "User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service")
     @ApiResponse(
-        responseCode = "201",
-        description = "Identity provider successfully created",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = IdentityProviderEntity.class))
-    )
+            responseCode = "201",
+            description = "Identity provider successfully created",
+            content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = IdentityProviderEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createIdentityProvider(
-        @Parameter(name = "identity-provider", required = true) @Valid @NotNull NewIdentityProviderEntity newIdentityProviderEntity
-    ) {
+            @Parameter(name = "identity-provider", required = true) @Valid @NotNull
+                    NewIdentityProviderEntity newIdentityProviderEntity) {
         checkOpenIdConnectProviderLicense(newIdentityProviderEntity);
 
-        IdentityProviderEntity newIdentityProvider = identityProviderService.create(
-            GraviteeContext.getExecutionContext(),
-            newIdentityProviderEntity
-        );
+        IdentityProviderEntity newIdentityProvider =
+                identityProviderService.create(GraviteeContext.getExecutionContext(), newIdentityProviderEntity);
 
         if (newIdentityProvider != null) {
-            return Response.created(this.getLocationHeader(newIdentityProvider.getId())).entity(newIdentityProvider).build();
+            return Response.created(this.getLocationHeader(newIdentityProvider.getId()))
+                    .entity(newIdentityProvider)
+                    .build();
         }
 
         return Response.serverError().build();

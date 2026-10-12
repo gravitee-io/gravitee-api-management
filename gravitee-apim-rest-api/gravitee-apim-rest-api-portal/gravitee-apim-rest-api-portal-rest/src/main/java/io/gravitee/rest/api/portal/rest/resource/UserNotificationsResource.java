@@ -45,12 +45,10 @@ public class UserNotificationsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCurrentUserNotifications(@BeanParam PaginationParam paginationParam) {
-        List<PortalNotification> notifications = portalNotificationService
-            .findByUser(getAuthenticatedUser())
-            .stream()
-            .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt, Comparator.reverseOrder()))
-            .map(portalNotificationMapper::convert)
-            .collect(Collectors.toList());
+        List<PortalNotification> notifications = portalNotificationService.findByUser(getAuthenticatedUser()).stream()
+                .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt, Comparator.reverseOrder()))
+                .map(portalNotificationMapper::convert)
+                .collect(Collectors.toList());
 
         return createListResponse(GraviteeContext.getExecutionContext(), notifications, paginationParam);
     }
@@ -66,12 +64,11 @@ public class UserNotificationsResource extends AbstractResource {
     public Response delete(@PathParam("notificationId") String notificationId) {
         // Check that notification exists and belongs to user
         List<PortalNotificationEntity> userNotifications = portalNotificationService.findByUser(getAuthenticatedUser());
-        userNotifications
-            .stream()
-            .map(PortalNotificationEntity::getId)
-            .filter(id -> id.equalsIgnoreCase(notificationId))
-            .findAny()
-            .orElseThrow(() -> new PortalNotificationNotFoundException(notificationId));
+        userNotifications.stream()
+                .map(PortalNotificationEntity::getId)
+                .filter(id -> id.equalsIgnoreCase(notificationId))
+                .findAny()
+                .orElseThrow(() -> new PortalNotificationNotFoundException(notificationId));
 
         portalNotificationService.delete(notificationId);
         return Response.status(Response.Status.NO_CONTENT).build();

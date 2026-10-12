@@ -39,7 +39,8 @@ class DictionaryPropertyEncodingParityTest {
     }
 
     private void assertEncodingParity(String value, boolean encrypted) {
-        JsonNode mongoEncoding = objectMapper.valueToTree(mongoConverter.convert(new DictionaryPropertyMongo(value, encrypted)));
+        JsonNode mongoEncoding =
+                objectMapper.valueToTree(mongoConverter.convert(new DictionaryPropertyMongo(value, encrypted)));
         JsonNode jsonEncoding = objectMapper.valueToTree(new DictionaryProperty(value, encrypted));
 
         assertThat(mongoEncoding).isEqualTo(jsonEncoding);

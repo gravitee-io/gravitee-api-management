@@ -44,49 +44,51 @@ public class CreateOrUpdatePortalThemeUseCase {
     public Output execute(ValidateThemeDomainService.Input input) {
         var validation = validator.validateAndSanitize(input);
 
-        validation
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        validation.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(
+                    errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
+        });
 
         var warnings = validation.warning().orElseGet(List::of);
         var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize theme"));
 
         var envId = sanitized.auditInfo().environmentId();
-        var themeId = HRIDToUUID.portalTheme().context(sanitized.auditInfo()).hrid(sanitized.themeHrid()).id();
+        var themeId = HRIDToUUID.portalTheme()
+                .context(sanitized.auditInfo())
+                .hrid(sanitized.themeHrid())
+                .id();
         var automationMetadata = new ThemeAutomationMetadata(sanitized.themeHrid());
         var existing = themeCrudService.findByIdAndEnvironmentId(themeId, envId);
 
         Theme saved;
         if (existing.isPresent()) {
             var toUpdate = UpdateTheme.builder()
-                .id(themeId)
-                .type(ThemeType.PORTAL_NEXT)
-                .name(sanitized.name())
-                .definitionPortalNext(sanitized.definitionPortalNext())
-                .enabled(existing.get().isEnabled())
-                .logo(sanitized.logo())
-                .optionalLogo(sanitized.optionalLogo())
-                .favicon(sanitized.favicon())
-                .backgroundImage(sanitized.backgroundImage())
-                .automationMetadata(automationMetadata)
-                .build();
+                    .id(themeId)
+                    .type(ThemeType.PORTAL_NEXT)
+                    .name(sanitized.name())
+                    .definitionPortalNext(sanitized.definitionPortalNext())
+                    .enabled(existing.get().isEnabled())
+                    .logo(sanitized.logo())
+                    .optionalLogo(sanitized.optionalLogo())
+                    .favicon(sanitized.favicon())
+                    .backgroundImage(sanitized.backgroundImage())
+                    .automationMetadata(automationMetadata)
+                    .build();
             saved = themeDomainService.update(toUpdate, existing.get());
         } else {
             var toCreate = NewTheme.builder()
-                .name(sanitized.name())
-                .type(ThemeType.PORTAL_NEXT)
-                .referenceType(Theme.ReferenceType.ENVIRONMENT)
-                .referenceId(envId)
-                .definitionPortalNext(sanitized.definitionPortalNext())
-                .enabled(false)
-                .logo(sanitized.logo())
-                .optionalLogo(sanitized.optionalLogo())
-                .favicon(sanitized.favicon())
-                .backgroundImage(sanitized.backgroundImage())
-                .automationMetadata(automationMetadata)
-                .build();
+                    .name(sanitized.name())
+                    .type(ThemeType.PORTAL_NEXT)
+                    .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                    .referenceId(envId)
+                    .definitionPortalNext(sanitized.definitionPortalNext())
+                    .enabled(false)
+                    .logo(sanitized.logo())
+                    .optionalLogo(sanitized.optionalLogo())
+                    .favicon(sanitized.favicon())
+                    .backgroundImage(sanitized.backgroundImage())
+                    .automationMetadata(automationMetadata)
+                    .build();
             saved = themeDomainService.create(toCreate, themeId);
         }
 

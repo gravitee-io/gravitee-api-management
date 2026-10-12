@@ -28,5 +28,6 @@ import org.mapstruct.factory.Mappers;
 @Mapper(nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
 public interface PluginDocumentationMapper {
     PluginDocumentationMapper INSTANCE = Mappers.getMapper(PluginDocumentationMapper.class);
+
     PluginDocumentationEntity map(PluginDocumentation documentation);
 }

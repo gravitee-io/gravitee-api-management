@@ -39,7 +39,8 @@ import org.springframework.stereotype.Component;
 
 @CustomLog
 @Component
-public class DisableEnvironmentCommandHandler implements CommandHandler<DisableEnvironmentCommand, DisableEnvironmentReply> {
+public class DisableEnvironmentCommandHandler
+        implements CommandHandler<DisableEnvironmentCommand, DisableEnvironmentReply> {
 
     private final EnvironmentService environmentService;
     private final ApiRepository apiRepository;
@@ -50,14 +51,13 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
     private final UserRepository userRepository;
 
     public DisableEnvironmentCommandHandler(
-        EnvironmentService environmentService,
-        ApiStateService apiStateService,
-        @Lazy ApiRepository apiRepository,
-        AccessPointCrudService accessPointService,
-        IdentityProviderActivationService identityProviderActivationService,
-        DictionaryService dictionaryService,
-        @Lazy UserRepository userRepository
-    ) {
+            EnvironmentService environmentService,
+            ApiStateService apiStateService,
+            @Lazy ApiRepository apiRepository,
+            AccessPointCrudService accessPointService,
+            IdentityProviderActivationService identityProviderActivationService,
+            DictionaryService dictionaryService,
+            @Lazy UserRepository userRepository) {
         this.environmentService = environmentService;
         this.apiStateService = apiStateService;
         this.apiRepository = apiRepository;
@@ -83,32 +83,35 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
 
             // Stop all Environment APIs
             apiRepository
-                .search(
-                    new ApiCriteria.Builder().state(LifecycleState.STARTED).environmentId(environment.getId()).build(),
-                    new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
-                )
-                .forEach(api -> apiStateService.stopWithoutNotification(executionContext, api.getId(), userId));
+                    .search(
+                            new ApiCriteria.Builder()
+                                    .state(LifecycleState.STARTED)
+                                    .environmentId(environment.getId())
+                                    .build(),
+                            new ApiFieldFilter.Builder()
+                                    .excludeDefinition()
+                                    .excludePicture()
+                                    .build())
+                    .forEach(api -> apiStateService.stopWithoutNotification(executionContext, api.getId(), userId));
 
             // Delete related access points
             this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environment.getId());
 
-            this.dictionaryService.findAll(executionContext).forEach(dictionaryEntity ->
-                dictionaryService.stop(executionContext, dictionaryEntity.getId())
-            );
+            this.dictionaryService
+                    .findAll(executionContext)
+                    .forEach(dictionaryEntity -> dictionaryService.stop(executionContext, dictionaryEntity.getId()));
 
             // Deactivate all identity providers
             this.identityProviderActivationService.removeAllIdpsFromTarget(
-                executionContext,
-                new IdentityProviderActivationService.ActivationTarget(
-                    environment.getId(),
-                    IdentityProviderActivationReferenceType.ENVIRONMENT
-                )
-            );
+                    executionContext,
+                    new IdentityProviderActivationService.ActivationTarget(
+                            environment.getId(), IdentityProviderActivationReferenceType.ENVIRONMENT));
 
             log.info("Environment [{}] with id [{}] has been disabled.", environment.getName(), environment.getId());
             return Single.just(new DisableEnvironmentReply(command.getId()));
         } catch (Exception e) {
-            String errorDetails = "Error occurred when disabling environment [%s] with id [%s].".formatted(payload.name(), payload.id());
+            String errorDetails = "Error occurred when disabling environment [%s] with id [%s]."
+                    .formatted(payload.name(), payload.id());
             log.error(errorDetails, e);
             return Single.just(new DisableEnvironmentReply(command.getId(), errorDetails));
         }

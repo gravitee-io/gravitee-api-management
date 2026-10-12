@@ -63,15 +63,15 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class PortalNavigationItemDomainServiceTest {
 
     /** What PortalLinkSyncDomainService stamps on a portal-attached link: a real portal, never PortalId.ZERO. */
-    private static final NavigationItemReference A_PORTAL = new NavigationItemReference.PortalReference(
-        PortalId.of("11111111-1111-1111-1111-111111111111")
-    );
+    private static final NavigationItemReference A_PORTAL =
+            new NavigationItemReference.PortalReference(PortalId.of("11111111-1111-1111-1111-111111111111"));
 
     private final PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService =
-        new PortalNavigationItemsCrudServiceInMemory();
+            new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService =
-        new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsCrudService.storage());
-    private final PortalPageContentCrudServiceInMemory portalPageContentCrudService = new PortalPageContentCrudServiceInMemory();
+            new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsCrudService.storage());
+    private final PortalPageContentCrudServiceInMemory portalPageContentCrudService =
+            new PortalPageContentCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
     private PortalNavigationItemDomainService domainService;
@@ -85,14 +85,14 @@ public class PortalNavigationItemDomainServiceTest {
 
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
         domainService = new PortalNavigationItemDomainService(
-            portalNavigationItemsCrudService,
-            portalNavigationItemsQueryService,
-            portalPageContentCrudService,
-            PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
-            apiCrudService,
-            sourceDomainService,
-            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemsCrudService)
-        );
+                portalNavigationItemsCrudService,
+                portalNavigationItemsQueryService,
+                portalPageContentCrudService,
+                PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
+                apiCrudService,
+                sourceDomainService,
+                new ApiOwnedNavigationDomainService(
+                        portalNavigationItemsQueryService, portalNavigationItemsCrudService));
     }
 
     @Nested
@@ -112,40 +112,38 @@ public class PortalNavigationItemDomainServiceTest {
 
         private PortalNavigationItemSource.PortalNavigationItemSourceBuilder aSource() {
             return PortalNavigationItemSource.builder()
-                .sourceType("http-fetcher")
-                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}");
+                    .sourceType("http-fetcher")
+                    .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}");
         }
 
         private CreatePortalNavigationItem aPageToCreate(PortalNavigationItemSource source) {
             return CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.PAGE)
-                .title("Sourced Page")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                .source(source)
-                .build();
+                    .type(PortalNavigationItemType.PAGE)
+                    .title("Sourced Page")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                    .source(source)
+                    .build();
         }
 
         @Test
         void should_trigger_initial_fetch_overwriting_default_content() {
             var created = domainService.create(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                aPageToCreate(aSource().build())
-            );
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    aPageToCreate(aSource().build()));
 
             assertThat(created.getSource()).isNotNull();
             assertThat(created.getSource().getLastFetchedAt()).isEqualTo(NOW);
             assertThat(created.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
             assertThat(created.getSource().getLastFetchError()).isNull();
             assertThat(portalPageContentCrudService.storage())
-                .singleElement()
-                .satisfies(content ->
-                    assertThat(((GraviteeMarkdownPageContent) content).getContent().value()).isEqualTo(
-                        PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN
-                    )
-                );
+                    .singleElement()
+                    .satisfies(content -> assertThat(((GraviteeMarkdownPageContent) content)
+                                    .getContent()
+                                    .value())
+                            .isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN));
         }
 
         @Test
@@ -153,14 +151,14 @@ public class PortalNavigationItemDomainServiceTest {
             sourceDomainService.failNextFetchWith(new TechnicalDomainException("initial fetch failed"));
 
             var created = domainService.create(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                aPageToCreate(aSource().build())
-            );
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    aPageToCreate(aSource().build()));
 
             assertThat(created.getSource()).isNotNull();
             assertThat(created.getSource().getLastFetchedAt()).isNull();
-            assertThat(created.getSource().getLastFetchError()).isEqualTo("Unable to fetch content from source type http-fetcher.");
+            assertThat(created.getSource().getLastFetchError())
+                    .isEqualTo("Unable to fetch content from source type http-fetcher.");
             assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
         }
 
@@ -170,10 +168,9 @@ public class PortalNavigationItemDomainServiceTest {
             sourceDomainService.failNextFetchWith(new TechnicalDomainException("initial fetch failed"));
 
             var created = domainService.create(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                aPageToCreate(aSource().build())
-            );
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    aPageToCreate(aSource().build()));
 
             assertThat(created.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
             assertThat(created.getSource().getLastFetchedAt()).isNull();
@@ -184,18 +181,17 @@ public class PortalNavigationItemDomainServiceTest {
             sourceDomainService.failNextFetchWith(new TechnicalDomainException("initial fetch failed"));
 
             var created = domainService.create(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                aPageToCreate(aSource().build())
-            );
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    aPageToCreate(aSource().build()));
 
             assertThat(portalNavigationItemsCrudService.storage())
-                .singleElement()
-                .isInstanceOfSatisfying(PortalNavigationPage.class, stored -> {
-                    assertThat(stored.getId()).isEqualTo(created.getId());
-                    assertThat(stored.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
-                    assertThat(stored.getSource().getLastFetchedAt()).isNull();
-                });
+                    .singleElement()
+                    .isInstanceOfSatisfying(PortalNavigationPage.class, stored -> {
+                        assertThat(stored.getId()).isEqualTo(created.getId());
+                        assertThat(stored.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
+                        assertThat(stored.getSource().getLastFetchedAt()).isNull();
+                    });
         }
 
         @Test
@@ -203,10 +199,9 @@ public class PortalNavigationItemDomainServiceTest {
             sourceDomainService.failNextFetchWith(new TechnicalDomainException("failed for {\"token\":\"s3cr3t\"}"));
 
             var created = domainService.create(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                aPageToCreate(aSource().build())
-            );
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    aPageToCreate(aSource().build()));
 
             assertThat(created.getSource().getLastFetchError()).doesNotContain("s3cr3t");
         }
@@ -214,10 +209,7 @@ public class PortalNavigationItemDomainServiceTest {
         @Test
         void should_create_page_without_source_as_before() {
             var created = domainService.create(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                aPageToCreate(null)
-            );
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, aPageToCreate(null));
 
             assertThat(created.getSource()).isNull();
             assertThat(portalPageContentCrudService.storage()).hasSize(1);
@@ -237,26 +229,27 @@ public class PortalNavigationItemDomainServiceTest {
         void setUp() {
             TimeProvider.overrideClock(Clock.fixed(NOW, ZoneId.systemDefault()));
             var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
-                PortalPageContentId.random(),
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                ORIGINAL_CONTENT
-            );
+                    PortalPageContentId.random(),
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    ORIGINAL_CONTENT);
             portalPageContentCrudService.initWith(List.of(content));
-            page = PortalNavigationItemFixtures.aPage("00000000-0000-0000-0000-00000000f001", "Sourced Page", null)
-                .toBuilder()
-                .portalPageContentId(content.getId())
-                .source(
-                    PortalNavigationItemSource.builder()
-                        .sourceType("http-fetcher")
-                        .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
-                        .lastFetchedAt(EARLIER)
-                        .lastFetchAttemptAt(EARLIER)
-                        .build()
-                )
-                .build();
-            // Storage holds its own copy: a stamp must reach it through the crud service, not through a shared reference
-            portalNavigationItemsCrudService.initWith(List.of(page.toBuilder().source(page.getSource().toBuilder().build()).build()));
+            page =
+                    PortalNavigationItemFixtures.aPage("00000000-0000-0000-0000-00000000f001", "Sourced Page", null)
+                            .toBuilder()
+                            .portalPageContentId(content.getId())
+                            .source(PortalNavigationItemSource.builder()
+                                    .sourceType("http-fetcher")
+                                    .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
+                                    .lastFetchedAt(EARLIER)
+                                    .lastFetchAttemptAt(EARLIER)
+                                    .build())
+                            .build();
+            // Storage holds its own copy: a stamp must reach it through the crud service, not through a shared
+            // reference
+            portalNavigationItemsCrudService.initWith(List.of(page.toBuilder()
+                    .source(page.getSource().toBuilder().build())
+                    .build()));
         }
 
         @AfterEach
@@ -266,13 +259,14 @@ public class PortalNavigationItemDomainServiceTest {
 
         private PortalNavigationPage stored() {
             return (PortalNavigationPage) portalNavigationItemsQueryService.findByIdAndEnvironmentId(
-                PortalNavigationItemFixtures.ENV_ID,
-                page.getId()
-            );
+                    PortalNavigationItemFixtures.ENV_ID, page.getId());
         }
 
         private String storedContent() {
-            return ((GraviteeMarkdownPageContent) portalPageContentCrudService.storage().getFirst()).getContent().value();
+            return ((GraviteeMarkdownPageContent)
+                            portalPageContentCrudService.storage().getFirst())
+                    .getContent()
+                    .value();
         }
 
         @Test
@@ -287,9 +281,8 @@ public class PortalNavigationItemDomainServiceTest {
 
         @Test
         void should_keep_a_rename_done_while_the_fetch_was_in_flight() {
-            sourceDomainService.duringNextFetch(() ->
-                portalNavigationItemsCrudService.update(page.toBuilder().title("Renamed meanwhile").published(false).build())
-            );
+            sourceDomainService.duringNextFetch(() -> portalNavigationItemsCrudService.update(
+                    page.toBuilder().title("Renamed meanwhile").published(false).build()));
 
             domainService.fetchPageContent(page);
 
@@ -301,7 +294,8 @@ public class PortalNavigationItemDomainServiceTest {
 
         @Test
         void should_not_overwrite_content_nor_stamp_a_success_when_the_source_was_removed_during_the_fetch() {
-            sourceDomainService.duringNextFetch(() -> portalNavigationItemsCrudService.update(page.toBuilder().source(null).build()));
+            sourceDomainService.duringNextFetch(() -> portalNavigationItemsCrudService.update(
+                    page.toBuilder().source(null).build()));
 
             domainService.fetchPageContent(page);
 
@@ -311,10 +305,11 @@ public class PortalNavigationItemDomainServiceTest {
 
         @Test
         void should_not_overwrite_content_nor_stamp_a_success_when_the_source_was_changed_during_the_fetch() {
-            var otherSource = page.getSource().toBuilder().sourceConfiguration("{\"url\":\"https://example.com/other.md\"}").build();
-            sourceDomainService.duringNextFetch(() ->
-                portalNavigationItemsCrudService.update(page.toBuilder().source(otherSource).build())
-            );
+            var otherSource = page.getSource().toBuilder()
+                    .sourceConfiguration("{\"url\":\"https://example.com/other.md\"}")
+                    .build();
+            sourceDomainService.duringNextFetch(() -> portalNavigationItemsCrudService.update(
+                    page.toBuilder().source(otherSource).build()));
 
             domainService.fetchPageContent(page);
 
@@ -343,17 +338,19 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(storedContent()).isEqualTo(ORIGINAL_CONTENT);
             assertThat(stored().getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
             assertThat(stored().getSource().getLastFetchedAt()).isEqualTo(EARLIER);
-            assertThat(stored().getSource().getLastFetchError()).isEqualTo("Unable to fetch content from source type http-fetcher.");
+            assertThat(stored().getSource().getLastFetchError())
+                    .isEqualTo("Unable to fetch content from source type http-fetcher.");
         }
 
         @Test
         void should_keep_a_success_stamped_by_another_fetch_when_this_one_fails() {
             var later = Instant.parse("2026-10-05T10:00:00Z");
-            sourceDomainService.duringNextFetch(() ->
-                portalNavigationItemsCrudService.update(
-                    page.toBuilder().source(page.getSource().toBuilder().lastFetchedAt(later).lastFetchAttemptAt(later).build()).build()
-                )
-            );
+            sourceDomainService.duringNextFetch(() -> portalNavigationItemsCrudService.update(page.toBuilder()
+                    .source(page.getSource().toBuilder()
+                            .lastFetchedAt(later)
+                            .lastFetchAttemptAt(later)
+                            .build())
+                    .build()));
             sourceDomainService.failNextFetchWith(new TechnicalDomainException("fetch failed"));
 
             domainService.fetchPageContent(page);
@@ -366,12 +363,11 @@ public class PortalNavigationItemDomainServiceTest {
         @Test
         void should_not_stamp_the_failure_on_a_source_swapped_during_the_fetch() {
             var otherSource = PortalNavigationItemSource.builder()
-                .sourceType("github-fetcher")
-                .sourceConfiguration("{\"repository\":\"docs\"}")
-                .build();
-            sourceDomainService.duringNextFetch(() ->
-                portalNavigationItemsCrudService.update(page.toBuilder().source(otherSource).build())
-            );
+                    .sourceType("github-fetcher")
+                    .sourceConfiguration("{\"repository\":\"docs\"}")
+                    .build();
+            sourceDomainService.duringNextFetch(() -> portalNavigationItemsCrudService.update(
+                    page.toBuilder().source(otherSource).build()));
             sourceDomainService.failNextFetchWith(new TechnicalDomainException("fetch failed"));
 
             domainService.fetchPageContent(page);
@@ -384,9 +380,8 @@ public class PortalNavigationItemDomainServiceTest {
 
         @Test
         void should_keep_a_rename_done_while_a_failing_fetch_was_in_flight() {
-            sourceDomainService.duringNextFetch(() ->
-                portalNavigationItemsCrudService.update(page.toBuilder().title("Renamed meanwhile").build())
-            );
+            sourceDomainService.duringNextFetch(() -> portalNavigationItemsCrudService.update(
+                    page.toBuilder().title("Renamed meanwhile").build()));
             sourceDomainService.failNextFetchWith(new TechnicalDomainException("fetch failed"));
 
             domainService.fetchPageContent(page);
@@ -404,13 +399,14 @@ public class PortalNavigationItemDomainServiceTest {
             // HOMEPAGE items are always root elements (no parent allowed by the validator)
             // When
             var toCreate = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Homepage")
-                .area(PortalArea.HOMEPAGE)
-                .order(0)
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Homepage")
+                    .area(PortalArea.HOMEPAGE)
+                    .order(0)
+                    .build();
 
-            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+            var created = domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
             // Then — homepage item is always a root: rootId must equal its own id
             assertThat(created.getRootId()).isEqualTo(created.getId());
@@ -428,14 +424,15 @@ public class PortalNavigationItemDomainServiceTest {
 
             // When — add a child under parent
             var toCreate = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Child Folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Child Folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .build();
             toCreate.setParentId(parent.getId());
 
-            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+            var created = domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
             // Then — child inherits parentId and rootId directly from parent (no tree walk needed)
             assertThat(created.getParentId()).isEqualTo(parent.getId());
@@ -446,13 +443,14 @@ public class PortalNavigationItemDomainServiceTest {
         void should_set_root_id_equal_to_item_id_for_root_item() {
             // When
             var toCreate = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Root Folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Root Folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .build();
 
-            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+            var created = domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
             // Then
             assertThat(created.getRootId()).isEqualTo(created.getId());
@@ -468,14 +466,15 @@ public class PortalNavigationItemDomainServiceTest {
 
             // When
             var toCreate = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Child Folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Child Folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .build();
             toCreate.setParentId(parent.getId());
 
-            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+            var created = domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
             // Then
             assertThat(created.getRootId()).isEqualTo(parent.getId());
@@ -493,14 +492,15 @@ public class PortalNavigationItemDomainServiceTest {
 
             // When
             var toCreate = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Grandchild Folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Grandchild Folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .build();
             toCreate.setParentId(child.getId());
 
-            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+            var created = domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
             // Then: resolveRootId walked up to the root (which has rootId set) and returned root.getId()
             assertThat(created.getRootId()).isEqualTo(root.getId());
@@ -509,13 +509,14 @@ public class PortalNavigationItemDomainServiceTest {
         @Test
         void should_derive_segment_from_title_when_not_provided() {
             var toCreate = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("My Cool Folder")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("My Cool Folder")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .build();
 
-            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+            var created = domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
             assertThat(created.getSegment()).isEqualTo("my-cool-folder");
         }
@@ -523,14 +524,15 @@ public class PortalNavigationItemDomainServiceTest {
         @Test
         void should_use_explicit_segment_over_title_fallback() {
             var toCreate = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("My Cool Folder")
-                .segment("custom-slug")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("My Cool Folder")
+                    .segment("custom-slug")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .build();
 
-            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+            var created = domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
             assertThat(created.getSegment()).isEqualTo("custom-slug");
         }
@@ -542,13 +544,14 @@ public class PortalNavigationItemDomainServiceTest {
             portalNavigationItemsQueryService.initWith(List.of(existing));
 
             var toCreate = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Q/A")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Q/A")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .build();
 
-            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+            var created = domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
             assertThat(created.getSegment()).isEqualTo("q-a-2");
         }
@@ -560,13 +563,14 @@ public class PortalNavigationItemDomainServiceTest {
             portalNavigationItemsQueryService.initWith(List.of(link));
 
             var toCreate = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Q/A")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Q/A")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .build();
 
-            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+            var created = domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
             assertThat(created.getSegment()).isEqualTo("q-a-2");
         }
@@ -579,12 +583,13 @@ public class PortalNavigationItemDomainServiceTest {
             portalNavigationItemsQueryService.initWith(List.of(first, second));
 
             var toCreate = CreatePortalNavigationItem.builder()
-                .type(PortalNavigationItemType.FOLDER)
-                .title("Guides")
-                .area(PortalArea.TOP_NAVBAR)
-                .build();
+                    .type(PortalNavigationItemType.FOLDER)
+                    .title("Guides")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .build();
 
-            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+            var created = domainService.create(
+                    PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
 
             assertThat(created.getOrder()).isEqualTo(2);
         }
@@ -606,11 +611,21 @@ public class PortalNavigationItemDomainServiceTest {
 
         @Test
         void should_reorder_when_delete() {
-            PortalNavigationPage page1 = PortalNavigationItemFixtures.aPage("p1", null).toBuilder().order(1).build();
-            PortalNavigationPage page2 = PortalNavigationItemFixtures.aPage("p2", null).toBuilder().order(2).build();
-            PortalNavigationPage page3 = PortalNavigationItemFixtures.aPage("p3", null).toBuilder().order(3).build();
-            PortalNavigationPage page4 = PortalNavigationItemFixtures.aPage("p4", null).toBuilder().order(4).build();
-            PortalNavigationPage page5 = PortalNavigationItemFixtures.aPage("p5", null).toBuilder().order(5).build();
+            PortalNavigationPage page1 = PortalNavigationItemFixtures.aPage("p1", null).toBuilder()
+                    .order(1)
+                    .build();
+            PortalNavigationPage page2 = PortalNavigationItemFixtures.aPage("p2", null).toBuilder()
+                    .order(2)
+                    .build();
+            PortalNavigationPage page3 = PortalNavigationItemFixtures.aPage("p3", null).toBuilder()
+                    .order(3)
+                    .build();
+            PortalNavigationPage page4 = PortalNavigationItemFixtures.aPage("p4", null).toBuilder()
+                    .order(4)
+                    .build();
+            PortalNavigationPage page5 = PortalNavigationItemFixtures.aPage("p5", null).toBuilder()
+                    .order(5)
+                    .build();
             portalNavigationItemsCrudService.initWith(List.of(page1, page2, page3, page4, page5));
             portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
@@ -618,65 +633,58 @@ public class PortalNavigationItemDomainServiceTest {
 
             assertThat(portalNavigationItemsCrudService.storage()).hasSize(4);
             var expected = Map.of(page1.getId(), 1, page3.getId(), 2, page4.getId(), 3, page5.getId(), 4);
-            assertThat(
-                portalNavigationItemsCrudService
-                    .storage()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getOrder
-                        )
-                    )
-            )
-                .containsOnlyKeys(expected.keySet())
-                .containsAllEntriesOf(expected);
+            assertThat(portalNavigationItemsCrudService.storage().stream()
+                            .collect(Collectors.toMap(
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getOrder)))
+                    .containsOnlyKeys(expected.keySet())
+                    .containsAllEntriesOf(expected);
         }
 
         @Test
         void deleting_a_portal_root_does_not_reorder_api_subtree_roots() {
             var portalRoot = PortalNavigationPage.builder()
-                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a010"))
-                .organizationId(PortalNavigationItemFixtures.ORG_ID)
-                .environmentId(PortalNavigationItemFixtures.ENV_ID)
-                .title("Portal Root")
-                .segment("portal-root")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(0)
-                .portalPageContentId(PortalPageContentId.random())
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .build();
+                    .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a010"))
+                    .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                    .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                    .title("Portal Root")
+                    .segment("portal-root")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .portalPageContentId(PortalPageContentId.random())
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build();
             portalRoot.markAsRoot();
 
             var apiRoot1 = PortalNavigationPage.builder()
-                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a011"))
-                .organizationId(PortalNavigationItemFixtures.ORG_ID)
-                .environmentId(PortalNavigationItemFixtures.ENV_ID)
-                .title("API 1 Root")
-                .segment("api-1-root")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(1)
-                .portalPageContentId(PortalPageContentId.random())
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .reference(new NavigationItemReference.ApiReference("api-1"))
-                .build();
+                    .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a011"))
+                    .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                    .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                    .title("API 1 Root")
+                    .segment("api-1-root")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(1)
+                    .portalPageContentId(PortalPageContentId.random())
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .reference(new NavigationItemReference.ApiReference("api-1"))
+                    .build();
             apiRoot1.markAsRoot();
 
             var apiRoot2 = PortalNavigationPage.builder()
-                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a012"))
-                .organizationId(PortalNavigationItemFixtures.ORG_ID)
-                .environmentId(PortalNavigationItemFixtures.ENV_ID)
-                .title("API 2 Root")
-                .segment("api-2-root")
-                .area(PortalArea.TOP_NAVBAR)
-                .order(2)
-                .portalPageContentId(PortalPageContentId.random())
-                .published(true)
-                .visibility(PortalVisibility.PUBLIC)
-                .reference(new NavigationItemReference.ApiReference("api-2"))
-                .build();
+                    .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a012"))
+                    .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                    .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                    .title("API 2 Root")
+                    .segment("api-2-root")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(2)
+                    .portalPageContentId(PortalPageContentId.random())
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .reference(new NavigationItemReference.ApiReference("api-2"))
+                    .build();
             apiRoot2.markAsRoot();
 
             portalNavigationItemsCrudService.initWith(List.of(portalRoot, apiRoot1, apiRoot2));
@@ -684,17 +692,16 @@ public class PortalNavigationItemDomainServiceTest {
 
             domainService.delete(portalRoot);
 
-            var reloaded = portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
+            var reloaded = portalNavigationItemsCrudService.storage().stream()
+                    .collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
             assertThat(reloaded.get(apiRoot1.getId()).getOrder()).isEqualTo(1);
             assertThat(reloaded.get(apiRoot2.getId()).getOrder()).isEqualTo(2);
         }
 
         @Test
         void deleting_a_console_root_reorders_portal_attached_root_links() {
-            var consoleRoot = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000d1", "Console Root", null);
+            var consoleRoot =
+                    PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000d1", "Console Root", null);
             var link = aRootLink("00000000-0000-0000-0000-0000000000d2", "Docs", 1);
 
             portalNavigationItemsCrudService.initWith(List.of(consoleRoot, link));
@@ -702,24 +709,22 @@ public class PortalNavigationItemDomainServiceTest {
 
             domainService.delete(consoleRoot);
 
-            var reloaded = portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
+            var reloaded = portalNavigationItemsCrudService.storage().stream()
+                    .collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
             assertThat(reloaded.get(link.getId()).getOrder()).isEqualTo(0);
         }
 
         @Test
         void should_delete_page_with_content() {
             var pageContent = portalPageContentCrudService.createDefault(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                PortalPageContentType.GRAVITEE_MARKDOWN
-            );
-            var toDelete = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null)
-                .toBuilder()
-                .portalPageContentId(pageContent.getId())
-                .build();
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    PortalPageContentType.GRAVITEE_MARKDOWN);
+            var toDelete =
+                    PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null)
+                            .toBuilder()
+                            .portalPageContentId(pageContent.getId())
+                            .build();
             portalNavigationItemsCrudService.initWith(List.of(toDelete));
             portalNavigationItemsQueryService.initWith(List.of(toDelete));
             portalPageContentCrudService.initWith(List.of(pageContent));
@@ -739,48 +744,41 @@ public class PortalNavigationItemDomainServiceTest {
             // folder (root, order=1) → childFolder → grandChildPage (has content)
             //                        → childPage (has content)
             // sibling (order=2) must survive and be reordered to order=1
-            PortalNavigationFolder folder = PortalNavigationItemFixtures.aFolder("30000000-0000-4000-8000-000000000001", "Folder");
+            PortalNavigationFolder folder =
+                    PortalNavigationItemFixtures.aFolder("30000000-0000-4000-8000-000000000001", "Folder");
             folder.markAsRoot();
             folder.setOrder(1);
 
             PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
-                "30000000-0000-4000-8000-000000000002",
-                "Child Folder",
-                folder.getId()
-            );
+                    "30000000-0000-4000-8000-000000000002", "Child Folder", folder.getId());
             childFolder.updateParent(folder);
 
             var grandChildContent = portalPageContentCrudService.createDefault(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                PortalPageContentType.GRAVITEE_MARKDOWN
-            );
-            PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
-                "30000000-0000-4000-8000-000000000003",
-                "Grand Child",
-                childFolder.getId()
-            )
-                .toBuilder()
-                .portalPageContentId(grandChildContent.getId())
-                .build();
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    PortalPageContentType.GRAVITEE_MARKDOWN);
+            PortalNavigationPage grandChildPage =
+                    PortalNavigationItemFixtures.aPage(
+                                    "30000000-0000-4000-8000-000000000003", "Grand Child", childFolder.getId())
+                            .toBuilder()
+                            .portalPageContentId(grandChildContent.getId())
+                            .build();
             grandChildPage.updateParent(childFolder);
 
             var childPageContent = portalPageContentCrudService.createDefault(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                PortalPageContentType.GRAVITEE_MARKDOWN
-            );
-            PortalNavigationPage childPage = PortalNavigationItemFixtures.aPage(
-                "30000000-0000-4000-8000-000000000004",
-                "Child Page",
-                folder.getId()
-            )
-                .toBuilder()
-                .portalPageContentId(childPageContent.getId())
-                .build();
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    PortalPageContentType.GRAVITEE_MARKDOWN);
+            PortalNavigationPage childPage =
+                    PortalNavigationItemFixtures.aPage(
+                                    "30000000-0000-4000-8000-000000000004", "Child Page", folder.getId())
+                            .toBuilder()
+                            .portalPageContentId(childPageContent.getId())
+                            .build();
             childPage.updateParent(folder);
 
-            PortalNavigationFolder sibling = PortalNavigationItemFixtures.aFolder("30000000-0000-4000-8000-000000000005", "Sibling");
+            PortalNavigationFolder sibling =
+                    PortalNavigationItemFixtures.aFolder("30000000-0000-4000-8000-000000000005", "Sibling");
             sibling.markAsRoot();
             sibling.setOrder(2);
 
@@ -791,26 +789,29 @@ public class PortalNavigationItemDomainServiceTest {
             domainService.deleteWithDescendants(folder);
 
             assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
-            assertThat(portalNavigationItemsCrudService.storage().get(0).getId()).isEqualTo(sibling.getId());
-            assertThat(portalNavigationItemsCrudService.storage().get(0).getOrder()).isEqualTo(1);
+            assertThat(portalNavigationItemsCrudService.storage().get(0).getId())
+                    .isEqualTo(sibling.getId());
+            assertThat(portalNavigationItemsCrudService.storage().get(0).getOrder())
+                    .isEqualTo(1);
             assertThat(portalPageContentCrudService.storage()).isEmpty();
         }
 
         @Test
         void should_delete_single_leaf_item_without_descendants() {
             // deleteWithDescendants on a leaf item behaves identically to delete
-            PortalNavigationFolder root = PortalNavigationItemFixtures.aFolder("31000000-0000-4000-8000-000000000001", "Root");
+            PortalNavigationFolder root =
+                    PortalNavigationItemFixtures.aFolder("31000000-0000-4000-8000-000000000001", "Root");
             root.markAsRoot();
 
             var pageContent = portalPageContentCrudService.createDefault(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                PortalPageContentType.GRAVITEE_MARKDOWN
-            );
-            PortalNavigationPage page = PortalNavigationItemFixtures.aPage("31000000-0000-4000-8000-000000000002", "Page", root.getId())
-                .toBuilder()
-                .portalPageContentId(pageContent.getId())
-                .build();
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    PortalPageContentType.GRAVITEE_MARKDOWN);
+            PortalNavigationPage page =
+                    PortalNavigationItemFixtures.aPage("31000000-0000-4000-8000-000000000002", "Page", root.getId())
+                            .toBuilder()
+                            .portalPageContentId(pageContent.getId())
+                            .build();
             page.updateParent(root);
 
             portalNavigationItemsCrudService.initWith(List.of(root, page));
@@ -819,11 +820,9 @@ public class PortalNavigationItemDomainServiceTest {
 
             domainService.deleteWithDescendants(page);
 
-            var remainingIds = portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId)
-                .toList();
+            var remainingIds = portalNavigationItemsCrudService.storage().stream()
+                    .map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId)
+                    .toList();
             assertThat(remainingIds).containsOnly(root.getId());
             assertThat(portalPageContentCrudService.storage()).isEmpty();
         }
@@ -831,31 +830,27 @@ public class PortalNavigationItemDomainServiceTest {
         @Test
         void should_delete_legacy_item_with_zero_root_id_using_parent_child_traversal() {
             // Given — legacy items that never had markAsRoot() called, so rootId == ZERO
-            PortalNavigationFolder folder = PortalNavigationItemFixtures.aFolder("33000000-0000-4000-8000-000000000001", "Legacy Folder");
+            PortalNavigationFolder folder =
+                    PortalNavigationItemFixtures.aFolder("33000000-0000-4000-8000-000000000001", "Legacy Folder");
             // No markAsRoot() → rootId stays at ZERO
             folder.setOrder(1);
 
             PortalNavigationFolder child = PortalNavigationItemFixtures.aFolder(
-                "33000000-0000-4000-8000-000000000002",
-                "Legacy Child",
-                folder.getId()
-            );
+                    "33000000-0000-4000-8000-000000000002", "Legacy Child", folder.getId());
 
             var childPageContent = portalPageContentCrudService.createDefault(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                PortalPageContentType.GRAVITEE_MARKDOWN
-            );
-            PortalNavigationPage childPage = PortalNavigationItemFixtures.aPage(
-                "33000000-0000-4000-8000-000000000003",
-                "Legacy Child Page",
-                folder.getId()
-            )
-                .toBuilder()
-                .portalPageContentId(childPageContent.getId())
-                .build();
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    PortalPageContentType.GRAVITEE_MARKDOWN);
+            PortalNavigationPage childPage =
+                    PortalNavigationItemFixtures.aPage(
+                                    "33000000-0000-4000-8000-000000000003", "Legacy Child Page", folder.getId())
+                            .toBuilder()
+                            .portalPageContentId(childPageContent.getId())
+                            .build();
 
-            PortalNavigationFolder sibling = PortalNavigationItemFixtures.aFolder("33000000-0000-4000-8000-000000000004", "Sibling");
+            PortalNavigationFolder sibling =
+                    PortalNavigationItemFixtures.aFolder("33000000-0000-4000-8000-000000000004", "Sibling");
             sibling.setOrder(2);
 
             portalNavigationItemsCrudService.initWith(List.of(folder, child, childPage, sibling));
@@ -866,11 +861,9 @@ public class PortalNavigationItemDomainServiceTest {
             domainService.deleteWithDescendants(folder);
 
             // Then — folder and all its descendants deleted; sibling survives
-            var remainingIds = portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId)
-                .toList();
+            var remainingIds = portalNavigationItemsCrudService.storage().stream()
+                    .map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId)
+                    .toList();
             assertThat(remainingIds).containsOnly(sibling.getId());
             assertThat(portalPageContentCrudService.storage()).isEmpty();
         }
@@ -880,51 +873,40 @@ public class PortalNavigationItemDomainServiceTest {
             // Root → SubtreeA (folder) → PageA (has content)
             //      → SubtreeB (folder) → PageB (has content)
             // Delete SubtreeA. SubtreeB and PageB must survive.
-            PortalNavigationFolder root = PortalNavigationItemFixtures.aFolder("32000000-0000-4000-8000-000000000001", "Root");
+            PortalNavigationFolder root =
+                    PortalNavigationItemFixtures.aFolder("32000000-0000-4000-8000-000000000001", "Root");
             root.markAsRoot();
 
             PortalNavigationFolder subtreeA = PortalNavigationItemFixtures.aFolder(
-                "32000000-0000-4000-8000-000000000002",
-                "Subtree A",
-                root.getId()
-            );
+                    "32000000-0000-4000-8000-000000000002", "Subtree A", root.getId());
             subtreeA.updateParent(root);
 
             var pageAContent = portalPageContentCrudService.createDefault(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                PortalPageContentType.GRAVITEE_MARKDOWN
-            );
-            PortalNavigationPage pageA = PortalNavigationItemFixtures.aPage(
-                "32000000-0000-4000-8000-000000000003",
-                "Page A",
-                subtreeA.getId()
-            )
-                .toBuilder()
-                .portalPageContentId(pageAContent.getId())
-                .build();
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    PortalPageContentType.GRAVITEE_MARKDOWN);
+            PortalNavigationPage pageA =
+                    PortalNavigationItemFixtures.aPage(
+                                    "32000000-0000-4000-8000-000000000003", "Page A", subtreeA.getId())
+                            .toBuilder()
+                            .portalPageContentId(pageAContent.getId())
+                            .build();
             pageA.updateParent(subtreeA);
 
             PortalNavigationFolder subtreeB = PortalNavigationItemFixtures.aFolder(
-                "32000000-0000-4000-8000-000000000004",
-                "Subtree B",
-                root.getId()
-            );
+                    "32000000-0000-4000-8000-000000000004", "Subtree B", root.getId());
             subtreeB.updateParent(root);
 
             var pageBContent = portalPageContentCrudService.createDefault(
-                PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID,
-                PortalPageContentType.GRAVITEE_MARKDOWN
-            );
-            PortalNavigationPage pageB = PortalNavigationItemFixtures.aPage(
-                "32000000-0000-4000-8000-000000000005",
-                "Page B",
-                subtreeB.getId()
-            )
-                .toBuilder()
-                .portalPageContentId(pageBContent.getId())
-                .build();
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    PortalPageContentType.GRAVITEE_MARKDOWN);
+            PortalNavigationPage pageB =
+                    PortalNavigationItemFixtures.aPage(
+                                    "32000000-0000-4000-8000-000000000005", "Page B", subtreeB.getId())
+                            .toBuilder()
+                            .portalPageContentId(pageBContent.getId())
+                            .build();
             pageB.updateParent(subtreeB);
 
             portalNavigationItemsCrudService.initWith(List.of(root, subtreeA, pageA, subtreeB, pageB));
@@ -933,11 +915,9 @@ public class PortalNavigationItemDomainServiceTest {
 
             domainService.deleteWithDescendants(subtreeA);
 
-            var remainingIds = portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId)
-                .collect(Collectors.toSet());
+            var remainingIds = portalNavigationItemsCrudService.storage().stream()
+                    .map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId)
+                    .collect(Collectors.toSet());
             assertThat(remainingIds).containsExactlyInAnyOrder(root.getId(), subtreeB.getId(), pageB.getId());
             assertThat(portalPageContentCrudService.storage()).hasSize(1);
             assertThat(portalPageContentCrudService.storage().get(0).getId()).isEqualTo(pageBContent.getId());
@@ -954,19 +934,20 @@ public class PortalNavigationItemDomainServiceTest {
             portalNavigationItemsQueryService.initWith(List.of(existing));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title("updated-name")
-                .visibility(existing.getVisibility())
-                .type(existing.getType())
-                .order(existing.getOrder())
-                .parentId(existing.getParentId())
-                .published(existing.getPublished())
-                .build();
+                    .title("updated-name")
+                    .visibility(existing.getVisibility())
+                    .type(existing.getType())
+                    .order(existing.getOrder())
+                    .parentId(existing.getParentId())
+                    .published(existing.getPublished())
+                    .build();
 
             var updated = domainService.update(toUpdate, existing);
 
             assertThat(updated.getTitle()).isEqualTo("updated-name");
             assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
-            assertThat(portalNavigationItemsCrudService.storage().getFirst().getTitle()).isEqualTo("updated-name");
+            assertThat(portalNavigationItemsCrudService.storage().getFirst().getTitle())
+                    .isEqualTo("updated-name");
         }
 
         @Test
@@ -976,13 +957,13 @@ public class PortalNavigationItemDomainServiceTest {
             portalNavigationItemsQueryService.initWith(List.of(existing));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title("New Page Title")
-                .visibility(existing.getVisibility())
-                .type(existing.getType())
-                .order(existing.getOrder())
-                .parentId(existing.getParentId())
-                .published(existing.getPublished())
-                .build();
+                    .title("New Page Title")
+                    .visibility(existing.getVisibility())
+                    .type(existing.getType())
+                    .order(existing.getOrder())
+                    .parentId(existing.getParentId())
+                    .published(existing.getPublished())
+                    .build();
 
             var updated = domainService.update(toUpdate, existing);
 
@@ -996,14 +977,14 @@ public class PortalNavigationItemDomainServiceTest {
             portalNavigationItemsQueryService.initWith(List.of(existing));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title("New Page Title")
-                .segment("explicit-slug")
-                .visibility(existing.getVisibility())
-                .type(existing.getType())
-                .order(existing.getOrder())
-                .parentId(existing.getParentId())
-                .published(existing.getPublished())
-                .build();
+                    .title("New Page Title")
+                    .segment("explicit-slug")
+                    .visibility(existing.getVisibility())
+                    .type(existing.getType())
+                    .order(existing.getOrder())
+                    .parentId(existing.getParentId())
+                    .published(existing.getPublished())
+                    .build();
 
             var updated = domainService.update(toUpdate, existing);
 
@@ -1012,19 +993,20 @@ public class PortalNavigationItemDomainServiceTest {
 
         @Test
         void should_append_suffix_when_sibling_has_same_slug_after_rename() {
-            var existing = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "Old Title", null);
+            var existing =
+                    PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "Old Title", null);
             var sibling = PortalNavigationItemFixtures.aPage("00000000-0000-0000-0000-000000000099", "Q&A", null);
             portalNavigationItemsCrudService.initWith(List.of(existing, sibling));
             portalNavigationItemsQueryService.initWith(List.of(existing, sibling));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title("Q/A")
-                .visibility(existing.getVisibility())
-                .type(existing.getType())
-                .order(existing.getOrder())
-                .parentId(existing.getParentId())
-                .published(existing.getPublished())
-                .build();
+                    .title("Q/A")
+                    .visibility(existing.getVisibility())
+                    .type(existing.getType())
+                    .order(existing.getOrder())
+                    .parentId(existing.getParentId())
+                    .published(existing.getPublished())
+                    .build();
 
             var updated = domainService.update(toUpdate, existing);
 
@@ -1034,20 +1016,26 @@ public class PortalNavigationItemDomainServiceTest {
         @Test
         void should_update_order_decrementing_order() {
             // Given
-            PortalNavigationPage page1 = PortalNavigationItemFixtures.aPage("p1", null).toBuilder().order(0).build();
-            PortalNavigationPage page2 = PortalNavigationItemFixtures.aPage("p2", null).toBuilder().order(1).build();
-            PortalNavigationPage page3 = PortalNavigationItemFixtures.aPage("p3", null).toBuilder().order(2).build();
+            PortalNavigationPage page1 = PortalNavigationItemFixtures.aPage("p1", null).toBuilder()
+                    .order(0)
+                    .build();
+            PortalNavigationPage page2 = PortalNavigationItemFixtures.aPage("p2", null).toBuilder()
+                    .order(1)
+                    .build();
+            PortalNavigationPage page3 = PortalNavigationItemFixtures.aPage("p3", null).toBuilder()
+                    .order(2)
+                    .build();
             portalNavigationItemsCrudService.initWith(List.of(page1, page2, page3));
             portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .order(3)
-                .title(page1.getTitle())
-                .visibility(page1.getVisibility())
-                .type(page1.getType())
-                .parentId(page1.getParentId())
-                .published(page1.getPublished())
-                .build();
+                    .order(3)
+                    .title(page1.getTitle())
+                    .visibility(page1.getVisibility())
+                    .type(page1.getType())
+                    .parentId(page1.getParentId())
+                    .published(page1.getPublished())
+                    .build();
 
             // When
             var result = domainService.update(toUpdate, page1);
@@ -1056,19 +1044,12 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(result.getOrder()).isEqualTo(2);
 
             var expected = Map.of(page2.getId(), 0, page3.getId(), 1, page1.getId(), 2);
-            assertThat(
-                portalNavigationItemsCrudService
-                    .storage()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getOrder
-                        )
-                    )
-            )
-                .containsOnlyKeys(expected.keySet())
-                .containsAllEntriesOf(expected);
+            assertThat(portalNavigationItemsCrudService.storage().stream()
+                            .collect(Collectors.toMap(
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getOrder)))
+                    .containsOnlyKeys(expected.keySet())
+                    .containsAllEntriesOf(expected);
         }
 
         @Test
@@ -1076,49 +1057,59 @@ public class PortalNavigationItemDomainServiceTest {
             // Completes the trio around create and delete: reordering an existing root has to see the
             // whole rendered root list, which mixes a console root's PortalId.ZERO with a portal-attached
             // link's own portal id.
-            var consoleRoot = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000e1", "Console Root", null);
+            var consoleRoot =
+                    PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000e1", "Console Root", null);
             var first = aRootLink("00000000-0000-0000-0000-0000000000e2", "Docs", 1);
             var second = aRootLink("00000000-0000-0000-0000-0000000000e3", "Status", 2);
             portalNavigationItemsCrudService.initWith(List.of(consoleRoot, first, second));
             portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .order(2)
-                .title(consoleRoot.getTitle())
-                .visibility(consoleRoot.getVisibility())
-                .type(consoleRoot.getType())
-                .parentId(consoleRoot.getParentId())
-                .published(consoleRoot.getPublished())
-                .build();
+                    .order(2)
+                    .title(consoleRoot.getTitle())
+                    .visibility(consoleRoot.getVisibility())
+                    .type(consoleRoot.getType())
+                    .parentId(consoleRoot.getParentId())
+                    .published(consoleRoot.getPublished())
+                    .build();
 
             var result = domainService.update(toUpdate, consoleRoot);
 
             assertThat(result.getOrder()).isEqualTo(2);
-            var orders = portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder));
-            assertThat(orders).containsEntry(first.getId(), 0).containsEntry(second.getId(), 1).containsEntry(consoleRoot.getId(), 2);
+            var orders = portalNavigationItemsCrudService.storage().stream()
+                    .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder));
+            assertThat(orders)
+                    .containsEntry(first.getId(), 0)
+                    .containsEntry(second.getId(), 1)
+                    .containsEntry(consoleRoot.getId(), 2);
         }
 
         @Test
         void should_update_order_incrementing_order() {
             // Given
-            PortalNavigationPage page1 = PortalNavigationItemFixtures.aPage("p1", null).toBuilder().order(0).build();
-            PortalNavigationPage page2 = PortalNavigationItemFixtures.aPage("p2", null).toBuilder().order(1).build();
-            PortalNavigationPage page3 = PortalNavigationItemFixtures.aPage("p3", null).toBuilder().order(2).build();
-            PortalNavigationPage page4 = PortalNavigationItemFixtures.aPage("p4", null).toBuilder().order(3).build();
+            PortalNavigationPage page1 = PortalNavigationItemFixtures.aPage("p1", null).toBuilder()
+                    .order(0)
+                    .build();
+            PortalNavigationPage page2 = PortalNavigationItemFixtures.aPage("p2", null).toBuilder()
+                    .order(1)
+                    .build();
+            PortalNavigationPage page3 = PortalNavigationItemFixtures.aPage("p3", null).toBuilder()
+                    .order(2)
+                    .build();
+            PortalNavigationPage page4 = PortalNavigationItemFixtures.aPage("p4", null).toBuilder()
+                    .order(3)
+                    .build();
             portalNavigationItemsCrudService.initWith(List.of(page1, page2, page3, page4));
             portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .order(1)
-                .title(page4.getTitle())
-                .visibility(page4.getVisibility())
-                .type(page4.getType())
-                .parentId(page4.getParentId())
-                .published(page4.getPublished())
-                .build();
+                    .order(1)
+                    .title(page4.getTitle())
+                    .visibility(page4.getVisibility())
+                    .type(page4.getType())
+                    .parentId(page4.getParentId())
+                    .published(page4.getPublished())
+                    .build();
 
             // When
             var result = domainService.update(toUpdate, page4);
@@ -1127,40 +1118,43 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(result.getOrder()).isEqualTo(1);
 
             var expected = Map.of(page1.getId(), 0, page2.getId(), 2, page4.getId(), 1, page3.getId(), 3);
-            assertThat(
-                portalNavigationItemsCrudService
-                    .storage()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getOrder
-                        )
-                    )
-            )
-                .containsOnlyKeys(expected.keySet())
-                .containsAllEntriesOf(expected);
+            assertThat(portalNavigationItemsCrudService.storage().stream()
+                            .collect(Collectors.toMap(
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getOrder)))
+                    .containsOnlyKeys(expected.keySet())
+                    .containsAllEntriesOf(expected);
         }
 
         @Test
         void should_update_parent_id_and_recalculate_orders() {
             // Given
-            PortalNavigationFolder parent1 = PortalNavigationItemFixtures.aFolder("parent1").toBuilder().order(0).build();
-            PortalNavigationFolder parent2 = PortalNavigationItemFixtures.aFolder("parent2").toBuilder().order(1).build();
-            PortalNavigationPage child1 = PortalNavigationItemFixtures.aPage("child1", parent1.getId()).toBuilder().order(0).build();
-            PortalNavigationPage child2 = PortalNavigationItemFixtures.aPage("child2", parent1.getId()).toBuilder().order(1).build();
-            PortalNavigationPage child3 = PortalNavigationItemFixtures.aPage("child3", parent2.getId()).toBuilder().order(0).build();
+            PortalNavigationFolder parent1 = PortalNavigationItemFixtures.aFolder("parent1").toBuilder()
+                    .order(0)
+                    .build();
+            PortalNavigationFolder parent2 = PortalNavigationItemFixtures.aFolder("parent2").toBuilder()
+                    .order(1)
+                    .build();
+            PortalNavigationPage child1 = PortalNavigationItemFixtures.aPage("child1", parent1.getId()).toBuilder()
+                    .order(0)
+                    .build();
+            PortalNavigationPage child2 = PortalNavigationItemFixtures.aPage("child2", parent1.getId()).toBuilder()
+                    .order(1)
+                    .build();
+            PortalNavigationPage child3 = PortalNavigationItemFixtures.aPage("child3", parent2.getId()).toBuilder()
+                    .order(0)
+                    .build();
             portalNavigationItemsCrudService.initWith(List.of(parent1, parent2, child1, child2, child3));
             portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .order(child1.getOrder())
-                .title(child1.getTitle())
-                .visibility(child1.getVisibility())
-                .type(child1.getType())
-                .parentId(parent2.getId())
-                .published(child1.getPublished())
-                .build();
+                    .order(child1.getOrder())
+                    .title(child1.getTitle())
+                    .visibility(child1.getVisibility())
+                    .type(child1.getType())
+                    .parentId(parent2.getId())
+                    .published(child1.getPublished())
+                    .build();
 
             // When
             var result = domainService.update(toUpdate, child1);
@@ -1171,37 +1165,25 @@ public class PortalNavigationItemDomainServiceTest {
 
             // Check orders under parent1
             var expectedParent1 = Map.of(child2.getId(), 0);
-            assertThat(
-                portalNavigationItemsCrudService
-                    .storage()
-                    .stream()
-                    .filter(item -> item.getParentId() != null && item.getParentId().equals(parent1.getId()))
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getOrder
-                        )
-                    )
-            )
-                .containsOnlyKeys(expectedParent1.keySet())
-                .containsAllEntriesOf(expectedParent1);
+            assertThat(portalNavigationItemsCrudService.storage().stream()
+                            .filter(item -> item.getParentId() != null
+                                    && item.getParentId().equals(parent1.getId()))
+                            .collect(Collectors.toMap(
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getOrder)))
+                    .containsOnlyKeys(expectedParent1.keySet())
+                    .containsAllEntriesOf(expectedParent1);
 
             // Check orders under parent2
             var expectedParent2 = Map.of(child1.getId(), 0, child3.getId(), 1);
-            assertThat(
-                portalNavigationItemsCrudService
-                    .storage()
-                    .stream()
-                    .filter(item -> item.getParentId() != null && item.getParentId().equals(parent2.getId()))
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getOrder
-                        )
-                    )
-            )
-                .containsOnlyKeys(expectedParent2.keySet())
-                .containsAllEntriesOf(expectedParent2);
+            assertThat(portalNavigationItemsCrudService.storage().stream()
+                            .filter(item -> item.getParentId() != null
+                                    && item.getParentId().equals(parent2.getId()))
+                            .collect(Collectors.toMap(
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getOrder)))
+                    .containsOnlyKeys(expectedParent2.keySet())
+                    .containsAllEntriesOf(expectedParent2);
         }
 
         @Test
@@ -1216,13 +1198,13 @@ public class PortalNavigationItemDomainServiceTest {
 
             // When — move child to root level (parentId = null)
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title(child.getTitle())
-                .visibility(child.getVisibility())
-                .type(child.getType())
-                .order(0)
-                .parentId(null)
-                .published(child.getPublished())
-                .build();
+                    .title(child.getTitle())
+                    .visibility(child.getVisibility())
+                    .type(child.getType())
+                    .order(0)
+                    .parentId(null)
+                    .published(child.getPublished())
+                    .build();
 
             var updated = domainService.update(toUpdate, child);
 
@@ -1246,13 +1228,13 @@ public class PortalNavigationItemDomainServiceTest {
 
             // When — move child under root2
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title(child.getTitle())
-                .visibility(child.getVisibility())
-                .type(child.getType())
-                .order(0)
-                .parentId(root2.getId())
-                .published(child.getPublished())
-                .build();
+                    .title(child.getTitle())
+                    .visibility(child.getVisibility())
+                    .type(child.getType())
+                    .order(0)
+                    .parentId(root2.getId())
+                    .published(child.getPublished())
+                    .build();
 
             var updated = domainService.update(toUpdate, child);
 
@@ -1260,12 +1242,10 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(updated.getRootId()).isEqualTo(root2.getId());
 
             // And grandchild rootId propagated to root2.getId()
-            var grandchildInStorage = portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .filter(item -> item.getId().equals(grandchild.getId()))
-                .findFirst()
-                .orElseThrow();
+            var grandchildInStorage = portalNavigationItemsCrudService.storage().stream()
+                    .filter(item -> item.getId().equals(grandchild.getId()))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(grandchildInStorage.getRootId()).isEqualTo(root2.getId());
         }
 
@@ -1285,13 +1265,13 @@ public class PortalNavigationItemDomainServiceTest {
 
             // When — change order within same parent
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title(child.getTitle())
-                .visibility(child.getVisibility())
-                .type(child.getType())
-                .order(1)
-                .parentId(root.getId())
-                .published(child.getPublished())
-                .build();
+                    .title(child.getTitle())
+                    .visibility(child.getVisibility())
+                    .type(child.getType())
+                    .order(1)
+                    .parentId(root.getId())
+                    .published(child.getPublished())
+                    .build();
 
             var updated = domainService.update(toUpdate, child);
 
@@ -1316,18 +1296,20 @@ public class PortalNavigationItemDomainServiceTest {
             PortalNavigationFolder intermediary2 = PortalNavigationItemFixtures.aFolder("intermediary2", root2.getId());
             intermediary2.updateParent(root2); // intermediary2.rootId = root2.id
 
-            portalNavigationItemsCrudService.initWith(List.of(root1, intermediary1, item, childOfItem, root2, intermediary2));
-            portalNavigationItemsQueryService.initWith(List.of(root1, intermediary1, item, childOfItem, root2, intermediary2));
+            portalNavigationItemsCrudService.initWith(
+                    List.of(root1, intermediary1, item, childOfItem, root2, intermediary2));
+            portalNavigationItemsQueryService.initWith(
+                    List.of(root1, intermediary1, item, childOfItem, root2, intermediary2));
 
             // When — move item (non-root) under intermediary2 (non-root under a different root)
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title(item.getTitle())
-                .visibility(item.getVisibility())
-                .type(item.getType())
-                .order(0)
-                .parentId(intermediary2.getId())
-                .published(item.getPublished())
-                .build();
+                    .title(item.getTitle())
+                    .visibility(item.getVisibility())
+                    .type(item.getType())
+                    .order(0)
+                    .parentId(intermediary2.getId())
+                    .published(item.getPublished())
+                    .build();
 
             var updated = domainService.update(toUpdate, item);
 
@@ -1335,12 +1317,10 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(updated.getRootId()).isEqualTo(root2.getId());
 
             // And childOfItem.rootId propagated to root2.id
-            var childInStorage = portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .filter(i -> i.getId().equals(childOfItem.getId()))
-                .findFirst()
-                .orElseThrow();
+            var childInStorage = portalNavigationItemsCrudService.storage().stream()
+                    .filter(i -> i.getId().equals(childOfItem.getId()))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(childInStorage.getRootId()).isEqualTo(root2.getId());
         }
 
@@ -1359,13 +1339,13 @@ public class PortalNavigationItemDomainServiceTest {
 
             // When — move child to root level (parentId = null)
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title(child.getTitle())
-                .visibility(child.getVisibility())
-                .type(child.getType())
-                .order(0)
-                .parentId(null)
-                .published(child.getPublished())
-                .build();
+                    .title(child.getTitle())
+                    .visibility(child.getVisibility())
+                    .type(child.getType())
+                    .order(0)
+                    .parentId(null)
+                    .published(child.getPublished())
+                    .build();
 
             var updated = domainService.update(toUpdate, child);
 
@@ -1373,12 +1353,10 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(updated.getRootId()).isEqualTo(updated.getId());
 
             // And grandchild.rootId propagated to child.id
-            var grandchildInStorage = portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .filter(i -> i.getId().equals(grandchild.getId()))
-                .findFirst()
-                .orElseThrow();
+            var grandchildInStorage = portalNavigationItemsCrudService.storage().stream()
+                    .filter(i -> i.getId().equals(grandchild.getId()))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(grandchildInStorage.getRootId()).isEqualTo(updated.getId());
         }
 
@@ -1387,12 +1365,14 @@ public class PortalNavigationItemDomainServiceTest {
             // Given — root1 (with a child page) is itself a root; root2 has a non-root child folder
             PortalNavigationFolder root1 = PortalNavigationItemFixtures.aFolder("root1-being-moved");
             root1.markAsRoot(); // root1.rootId = root1.id
-            PortalNavigationPage childOfRoot1 = PortalNavigationItemFixtures.aPage("child-of-root1-being-moved", root1.getId());
+            PortalNavigationPage childOfRoot1 =
+                    PortalNavigationItemFixtures.aPage("child-of-root1-being-moved", root1.getId());
             childOfRoot1.updateParent(root1); // childOfRoot1.rootId = root1.id
 
             PortalNavigationFolder root2 = PortalNavigationItemFixtures.aFolder("root2-target");
             root2.markAsRoot();
-            PortalNavigationFolder childOfRoot2 = PortalNavigationItemFixtures.aFolder("child-of-root2-target", root2.getId());
+            PortalNavigationFolder childOfRoot2 =
+                    PortalNavigationItemFixtures.aFolder("child-of-root2-target", root2.getId());
             childOfRoot2.updateParent(root2); // childOfRoot2.rootId = root2.id
 
             portalNavigationItemsCrudService.initWith(List.of(root1, childOfRoot1, root2, childOfRoot2));
@@ -1400,13 +1380,13 @@ public class PortalNavigationItemDomainServiceTest {
 
             // When — move root1 under childOfRoot2 (root → non-root)
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .title(root1.getTitle())
-                .visibility(root1.getVisibility())
-                .type(root1.getType())
-                .order(0)
-                .parentId(childOfRoot2.getId())
-                .published(root1.getPublished())
-                .build();
+                    .title(root1.getTitle())
+                    .visibility(root1.getVisibility())
+                    .type(root1.getType())
+                    .order(0)
+                    .parentId(childOfRoot2.getId())
+                    .published(root1.getPublished())
+                    .build();
 
             var updated = domainService.update(toUpdate, root1);
 
@@ -1414,266 +1394,207 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(updated.getRootId()).isEqualTo(root2.getId());
 
             // And childOfRoot1.rootId also propagated to root2.id
-            var childOfRoot1InStorage = portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .filter(i -> i.getId().equals(childOfRoot1.getId()))
-                .findFirst()
-                .orElseThrow();
+            var childOfRoot1InStorage = portalNavigationItemsCrudService.storage().stream()
+                    .filter(i -> i.getId().equals(childOfRoot1.getId()))
+                    .findFirst()
+                    .orElseThrow();
             assertThat(childOfRoot1InStorage.getRootId()).isEqualTo(root2.getId());
         }
 
         @Test
         void should_update_subtree_when_folder_visibility_changes_from_public_to_private() {
             // Given
-            PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("10000000-0000-4000-8000-000000000001", "Parent");
+            PortalNavigationFolder parentFolder =
+                    PortalNavigationItemFixtures.aFolder("10000000-0000-4000-8000-000000000001", "Parent");
             PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
-                "10000000-0000-4000-8000-000000000002",
-                "Child",
-                parentFolder.getId()
-            );
+                    "10000000-0000-4000-8000-000000000002", "Child", parentFolder.getId());
             PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
-                "10000000-0000-4000-8000-000000000003",
-                "Grand Child",
-                childFolder.getId()
-            );
+                    "10000000-0000-4000-8000-000000000003", "Grand Child", childFolder.getId());
             portalNavigationItemsCrudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
             portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .order(parentFolder.getOrder())
-                .title(parentFolder.getTitle())
-                .visibility(PortalVisibility.PRIVATE)
-                .type(parentFolder.getType())
-                .parentId(parentFolder.getParentId())
-                .published(parentFolder.getPublished())
-                .build();
+                    .order(parentFolder.getOrder())
+                    .title(parentFolder.getTitle())
+                    .visibility(PortalVisibility.PRIVATE)
+                    .type(parentFolder.getType())
+                    .parentId(parentFolder.getParentId())
+                    .published(parentFolder.getPublished())
+                    .build();
 
             // When
             var result = domainService.update(toUpdate, parentFolder);
 
             // Then
             assertThat(result.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
-            assertThat(
-                portalNavigationItemsCrudService
-                    .storage()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getVisibility
-                        )
-                    )
-            )
-                .containsEntry(parentFolder.getId(), PortalVisibility.PRIVATE)
-                .containsEntry(childFolder.getId(), PortalVisibility.PRIVATE)
-                .containsEntry(grandChildPage.getId(), PortalVisibility.PRIVATE);
+            assertThat(portalNavigationItemsCrudService.storage().stream()
+                            .collect(Collectors.toMap(
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getVisibility)))
+                    .containsEntry(parentFolder.getId(), PortalVisibility.PRIVATE)
+                    .containsEntry(childFolder.getId(), PortalVisibility.PRIVATE)
+                    .containsEntry(grandChildPage.getId(), PortalVisibility.PRIVATE);
         }
 
         @Test
         void should_not_propagate_visibility_when_folder_changes_from_private_to_public() {
-            PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("10000000-0000-4000-8000-000000000004", "Parent");
+            PortalNavigationFolder parentFolder =
+                    PortalNavigationItemFixtures.aFolder("10000000-0000-4000-8000-000000000004", "Parent");
             parentFolder.setVisibility(PortalVisibility.PRIVATE);
             PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
-                "10000000-0000-4000-8000-000000000005",
-                "Child",
-                parentFolder.getId()
-            );
+                    "10000000-0000-4000-8000-000000000005", "Child", parentFolder.getId());
             childFolder.setVisibility(PortalVisibility.PRIVATE);
             PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
-                "10000000-0000-4000-8000-000000000006",
-                "Grand Child",
-                childFolder.getId()
-            );
+                    "10000000-0000-4000-8000-000000000006", "Grand Child", childFolder.getId());
             grandChildPage.setVisibility(PortalVisibility.PRIVATE);
             portalNavigationItemsCrudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
             portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .order(parentFolder.getOrder())
-                .title(parentFolder.getTitle())
-                .visibility(PortalVisibility.PUBLIC)
-                .type(parentFolder.getType())
-                .parentId(parentFolder.getParentId())
-                .published(parentFolder.getPublished())
-                .build();
+                    .order(parentFolder.getOrder())
+                    .title(parentFolder.getTitle())
+                    .visibility(PortalVisibility.PUBLIC)
+                    .type(parentFolder.getType())
+                    .parentId(parentFolder.getParentId())
+                    .published(parentFolder.getPublished())
+                    .build();
 
             var result = domainService.update(toUpdate, parentFolder);
 
             assertThat(result.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
-            assertThat(
-                portalNavigationItemsCrudService
-                    .storage()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getVisibility
-                        )
-                    )
-            )
-                .containsEntry(parentFolder.getId(), PortalVisibility.PUBLIC)
-                .containsEntry(childFolder.getId(), PortalVisibility.PRIVATE)
-                .containsEntry(grandChildPage.getId(), PortalVisibility.PRIVATE);
+            assertThat(portalNavigationItemsCrudService.storage().stream()
+                            .collect(Collectors.toMap(
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getVisibility)))
+                    .containsEntry(parentFolder.getId(), PortalVisibility.PUBLIC)
+                    .containsEntry(childFolder.getId(), PortalVisibility.PRIVATE)
+                    .containsEntry(grandChildPage.getId(), PortalVisibility.PRIVATE);
         }
 
         @Test
         void should_update_subtree_when_folder_published_changes_from_false_to_true_and_propagation_enabled() {
-            PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000001", "Parent")
-                .toBuilder()
-                .published(false)
-                .build();
-            PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
-                "20000000-0000-4000-8000-000000000002",
-                "Child",
-                parentFolder.getId()
-            )
-                .toBuilder()
-                .published(false)
-                .build();
-            PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
-                "20000000-0000-4000-8000-000000000003",
-                "Grand Child",
-                childFolder.getId()
-            )
-                .toBuilder()
-                .published(false)
-                .build();
+            PortalNavigationFolder parentFolder =
+                    PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000001", "Parent").toBuilder()
+                            .published(false)
+                            .build();
+            PortalNavigationFolder childFolder =
+                    PortalNavigationItemFixtures.aFolder(
+                                    "20000000-0000-4000-8000-000000000002", "Child", parentFolder.getId())
+                            .toBuilder()
+                            .published(false)
+                            .build();
+            PortalNavigationPage grandChildPage =
+                    PortalNavigationItemFixtures.aPage(
+                                    "20000000-0000-4000-8000-000000000003", "Grand Child", childFolder.getId())
+                            .toBuilder()
+                            .published(false)
+                            .build();
             portalNavigationItemsCrudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
             portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .order(parentFolder.getOrder())
-                .title(parentFolder.getTitle())
-                .visibility(parentFolder.getVisibility())
-                .type(parentFolder.getType())
-                .parentId(parentFolder.getParentId())
-                .published(true)
-                .build();
+                    .order(parentFolder.getOrder())
+                    .title(parentFolder.getTitle())
+                    .visibility(parentFolder.getVisibility())
+                    .type(parentFolder.getType())
+                    .parentId(parentFolder.getParentId())
+                    .published(true)
+                    .build();
 
             var result = domainService.update(toUpdate, parentFolder, true);
 
             assertThat(result.getPublished()).isTrue();
-            assertThat(
-                portalNavigationItemsCrudService
-                    .storage()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getPublished
-                        )
-                    )
-            )
-                .containsEntry(parentFolder.getId(), true)
-                .containsEntry(childFolder.getId(), true)
-                .containsEntry(grandChildPage.getId(), true);
+            assertThat(portalNavigationItemsCrudService.storage().stream()
+                            .collect(Collectors.toMap(
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getPublished)))
+                    .containsEntry(parentFolder.getId(), true)
+                    .containsEntry(childFolder.getId(), true)
+                    .containsEntry(grandChildPage.getId(), true);
         }
 
         @Test
         void should_not_update_subtree_when_folder_published_changes_from_false_to_true_and_propagation_disabled() {
-            PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000004", "Parent")
-                .toBuilder()
-                .published(false)
-                .build();
-            PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
-                "20000000-0000-4000-8000-000000000005",
-                "Child",
-                parentFolder.getId()
-            )
-                .toBuilder()
-                .published(false)
-                .build();
-            PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
-                "20000000-0000-4000-8000-000000000006",
-                "Grand Child",
-                childFolder.getId()
-            )
-                .toBuilder()
-                .published(false)
-                .build();
+            PortalNavigationFolder parentFolder =
+                    PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000004", "Parent").toBuilder()
+                            .published(false)
+                            .build();
+            PortalNavigationFolder childFolder =
+                    PortalNavigationItemFixtures.aFolder(
+                                    "20000000-0000-4000-8000-000000000005", "Child", parentFolder.getId())
+                            .toBuilder()
+                            .published(false)
+                            .build();
+            PortalNavigationPage grandChildPage =
+                    PortalNavigationItemFixtures.aPage(
+                                    "20000000-0000-4000-8000-000000000006", "Grand Child", childFolder.getId())
+                            .toBuilder()
+                            .published(false)
+                            .build();
             portalNavigationItemsCrudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
             portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .order(parentFolder.getOrder())
-                .title(parentFolder.getTitle())
-                .visibility(parentFolder.getVisibility())
-                .type(parentFolder.getType())
-                .parentId(parentFolder.getParentId())
-                .published(true)
-                .build();
+                    .order(parentFolder.getOrder())
+                    .title(parentFolder.getTitle())
+                    .visibility(parentFolder.getVisibility())
+                    .type(parentFolder.getType())
+                    .parentId(parentFolder.getParentId())
+                    .published(true)
+                    .build();
 
             var result = domainService.update(toUpdate, parentFolder, false);
 
             assertThat(result.getPublished()).isTrue();
-            assertThat(
-                portalNavigationItemsCrudService
-                    .storage()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getPublished
-                        )
-                    )
-            )
-                .containsEntry(parentFolder.getId(), true)
-                .containsEntry(childFolder.getId(), false)
-                .containsEntry(grandChildPage.getId(), false);
+            assertThat(portalNavigationItemsCrudService.storage().stream()
+                            .collect(Collectors.toMap(
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getPublished)))
+                    .containsEntry(parentFolder.getId(), true)
+                    .containsEntry(childFolder.getId(), false)
+                    .containsEntry(grandChildPage.getId(), false);
         }
 
         @Test
         void should_update_subtree_when_folder_published_changes_from_true_to_false_and_propagation_disabled() {
-            PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000007", "Parent")
-                .toBuilder()
-                .published(true)
-                .build();
-            PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
-                "20000000-0000-4000-8000-000000000008",
-                "Child",
-                parentFolder.getId()
-            )
-                .toBuilder()
-                .published(true)
-                .build();
-            PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
-                "20000000-0000-4000-8000-000000000009",
-                "Grand Child",
-                childFolder.getId()
-            )
-                .toBuilder()
-                .published(true)
-                .build();
+            PortalNavigationFolder parentFolder =
+                    PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000007", "Parent").toBuilder()
+                            .published(true)
+                            .build();
+            PortalNavigationFolder childFolder =
+                    PortalNavigationItemFixtures.aFolder(
+                                    "20000000-0000-4000-8000-000000000008", "Child", parentFolder.getId())
+                            .toBuilder()
+                            .published(true)
+                            .build();
+            PortalNavigationPage grandChildPage =
+                    PortalNavigationItemFixtures.aPage(
+                                    "20000000-0000-4000-8000-000000000009", "Grand Child", childFolder.getId())
+                            .toBuilder()
+                            .published(true)
+                            .build();
             portalNavigationItemsCrudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
             portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
             var toUpdate = UpdatePortalNavigationItem.builder()
-                .order(parentFolder.getOrder())
-                .title(parentFolder.getTitle())
-                .visibility(parentFolder.getVisibility())
-                .type(parentFolder.getType())
-                .parentId(parentFolder.getParentId())
-                .published(false)
-                .build();
+                    .order(parentFolder.getOrder())
+                    .title(parentFolder.getTitle())
+                    .visibility(parentFolder.getVisibility())
+                    .type(parentFolder.getType())
+                    .parentId(parentFolder.getParentId())
+                    .published(false)
+                    .build();
 
             var result = domainService.update(toUpdate, parentFolder, false);
 
             assertThat(result.getPublished()).isFalse();
-            assertThat(
-                portalNavigationItemsCrudService
-                    .storage()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
-                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getPublished
-                        )
-                    )
-            )
-                .containsEntry(parentFolder.getId(), false)
-                .containsEntry(childFolder.getId(), false)
-                .containsEntry(grandChildPage.getId(), false);
+            assertThat(portalNavigationItemsCrudService.storage().stream()
+                            .collect(Collectors.toMap(
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                                    io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getPublished)))
+                    .containsEntry(parentFolder.getId(), false)
+                    .containsEntry(childFolder.getId(), false)
+                    .containsEntry(grandChildPage.getId(), false);
         }
     }
 
@@ -1684,8 +1605,9 @@ public class PortalNavigationItemDomainServiceTest {
         private static final NavigationItemReference API_REFERENCE = new NavigationItemReference.ApiReference(API_ID);
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
-        void should_propagate_publication_to_both_physical_and_api_owned_documentation_without_changing_structure(boolean published) {
+        @ValueSource(booleans = {true, false})
+        void should_propagate_publication_to_both_physical_and_api_owned_documentation_without_changing_structure(
+                boolean published) {
             var api = standaloneApi(!published);
             var physicalPage = PortalNavigationItemFixtures.aPage("Physical page", api.getId());
             physicalPage.updateParent(api);
@@ -1693,25 +1615,24 @@ public class PortalNavigationItemDomainServiceTest {
             var ownedPage = ownedPage("Owned page", null, !published);
             ownedPage.setOrder(5);
             var ownedLink = PortalNavigationLink.builder()
-                .id(PortalNavigationItemId.random())
-                .organizationId(PortalNavigationItemFixtures.ORG_ID)
-                .environmentId(PortalNavigationItemFixtures.ENV_ID)
-                .title("Owned link")
-                .segment("owned-link")
-                .area(PortalArea.TOP_NAVBAR)
-                .visibility(PortalVisibility.PUBLIC)
-                .url("https://example.com")
-                .reference(API_REFERENCE)
-                .published(!published)
-                .order(9)
-                .build();
+                    .id(PortalNavigationItemId.random())
+                    .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                    .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                    .title("Owned link")
+                    .segment("owned-link")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .url("https://example.com")
+                    .reference(API_REFERENCE)
+                    .published(!published)
+                    .order(9)
+                    .build();
             ownedLink.markAsRoot();
             var nestedFolder = ownedFolder("Nested folder", ownedFolder, !published);
             var nestedPage = ownedPage("Nested page", nestedFolder, !published);
             physicalPage.setPublished(!published);
             portalNavigationItemsCrudService.initWith(
-                List.of(api, physicalPage, ownedFolder, ownedPage, ownedLink, nestedFolder, nestedPage)
-            );
+                    List.of(api, physicalPage, ownedFolder, ownedPage, ownedLink, nestedFolder, nestedPage));
             var structureBefore = structureSnapshot();
 
             domainService.update(publicationUpdate(api, published), api, published);
@@ -1721,7 +1642,7 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
+        @ValueSource(booleans = {true, false})
         void should_traverse_api_and_folders_already_having_target_publication_status(boolean published) {
             var root = PortalNavigationItemFixtures.aFolder("Root");
             root.markAsRoot();
@@ -1737,8 +1658,7 @@ public class PortalNavigationItemDomainServiceTest {
             var nestedFolder = ownedFolder("Nested folder", ownedFolder, published);
             var nestedPage = ownedPage("Nested page", nestedFolder, !published);
             portalNavigationItemsCrudService.initWith(
-                List.of(root, api, physicalFolder, physicalPage, ownedFolder, nestedFolder, nestedPage)
-            );
+                    List.of(root, api, physicalFolder, physicalPage, ownedFolder, nestedFolder, nestedPage));
 
             domainService.update(publicationUpdate(root, published), root, published);
 
@@ -1761,7 +1681,7 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
+        @ValueSource(booleans = {true, false})
         void should_not_propagate_when_selected_item_publication_status_is_unchanged(boolean published) {
             var api = standaloneApi(published);
             var ownedFolder = ownedFolder("Owned folder", null, !published);
@@ -1777,18 +1697,14 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
+        @ValueSource(booleans = {true, false})
         void should_not_change_product_documentation_when_updating_standalone_api(boolean published) {
             var api = standaloneApi(!published);
             var ownedPage = ownedPage("Owned page", null, !published);
             var product = PortalNavigationItemFixtures.anApiProduct();
             product.markAsRoot();
             var productApi = PortalNavigationItemFixtures.anApi(
-                PortalNavigationItemFixtures.API1_ID,
-                "Product API",
-                product.getId(),
-                API_ID
-            );
+                    PortalNavigationItemFixtures.API1_ID, "Product API", product.getId(), API_ID);
             productApi.updateParent(product);
             var productPage = PortalNavigationItemFixtures.aPage("Product page", productApi.getId());
             productPage.updateParent(productApi);
@@ -1804,8 +1720,9 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
-        void should_only_unpublish_physical_documentation_when_api_is_directly_or_indirectly_inside_product(boolean nested) {
+        @ValueSource(booleans = {true, false})
+        void should_only_unpublish_physical_documentation_when_api_is_directly_or_indirectly_inside_product(
+                boolean nested) {
             var product = PortalNavigationItemFixtures.anApiProduct();
             product.markAsRoot();
             var folder = PortalNavigationItemFixtures.aFolder("Product folder", product.getId());
@@ -1841,7 +1758,7 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
+        @ValueSource(booleans = {true, false})
         void should_propagate_through_product_physical_subtree_without_api_owned_documentation(boolean published) {
             var root = PortalNavigationItemFixtures.aFolder("Root");
             root.markAsRoot();
@@ -1863,14 +1780,16 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(booleans = { true, false })
+        @ValueSource(booleans = {true, false})
         void should_not_propagate_private_visibility_to_api_owned_documentation(boolean changePublication) {
             var api = standaloneApi(true);
             var physicalPage = PortalNavigationItemFixtures.aPage("Physical page", api.getId());
             var ownedFolder = ownedFolder("Owned folder", null, true);
             var ownedPage = ownedPage("Owned page", ownedFolder, true);
             portalNavigationItemsCrudService.initWith(List.of(api, physicalPage, ownedFolder, ownedPage));
-            var update = publicationUpdate(api, !changePublication).toBuilder().visibility(PortalVisibility.PRIVATE).build();
+            var update = publicationUpdate(api, !changePublication).toBuilder()
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build();
 
             domainService.update(update, api, false);
 
@@ -1885,16 +1804,17 @@ public class PortalNavigationItemDomainServiceTest {
         void should_not_propagate_publication_to_documentation_of_another_api_environment_or_area() {
             var api = standaloneApi(true);
             var ownedPage = ownedPage("Owned page", null, true);
-            var otherApiPage = ownedPage("Other API page", null, true)
-                .toBuilder()
-                .reference(new NavigationItemReference.ApiReference("other-api"))
-                .build();
-            var otherEnvironmentPage = ownedPage("Other environment page", null, true)
-                .toBuilder()
-                .environmentId("other-environment")
-                .build();
-            var otherAreaPage = ownedPage("Other area page", null, true).toBuilder().area(PortalArea.HOMEPAGE).build();
-            portalNavigationItemsCrudService.initWith(List.of(api, ownedPage, otherApiPage, otherEnvironmentPage, otherAreaPage));
+            var otherApiPage = ownedPage("Other API page", null, true).toBuilder()
+                    .reference(new NavigationItemReference.ApiReference("other-api"))
+                    .build();
+            var otherEnvironmentPage = ownedPage("Other environment page", null, true).toBuilder()
+                    .environmentId("other-environment")
+                    .build();
+            var otherAreaPage = ownedPage("Other area page", null, true).toBuilder()
+                    .area(PortalArea.HOMEPAGE)
+                    .build();
+            portalNavigationItemsCrudService.initWith(
+                    List.of(api, ownedPage, otherApiPage, otherEnvironmentPage, otherAreaPage));
 
             domainService.update(publicationUpdate(api, false), api, false);
 
@@ -1912,27 +1832,33 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         private PortalNavigationFolder ownedFolder(String title, PortalNavigationFolder parent, boolean published) {
-            var folder = PortalNavigationItemFixtures.aFolder(title).toBuilder().reference(API_REFERENCE).published(published).build();
+            var folder = PortalNavigationItemFixtures.aFolder(title).toBuilder()
+                    .reference(API_REFERENCE)
+                    .published(published)
+                    .build();
             folder.attachTo(parent);
             return folder;
         }
 
         private PortalNavigationPage ownedPage(String title, PortalNavigationFolder parent, boolean published) {
-            var page = PortalNavigationItemFixtures.aPage(title, null).toBuilder().reference(API_REFERENCE).published(published).build();
+            var page = PortalNavigationItemFixtures.aPage(title, null).toBuilder()
+                    .reference(API_REFERENCE)
+                    .published(published)
+                    .build();
             page.attachTo(parent);
             return page;
         }
 
         private UpdatePortalNavigationItem publicationUpdate(PortalNavigationItem item, boolean published) {
             return UpdatePortalNavigationItem.builder()
-                .type(item.getType())
-                .title(item.getTitle())
-                .segment(item.getSegment())
-                .order(item.getOrder())
-                .parentId(item.getParentId())
-                .visibility(item.getVisibility())
-                .published(published)
-                .build();
+                    .type(item.getType())
+                    .title(item.getTitle())
+                    .segment(item.getSegment())
+                    .order(item.getOrder())
+                    .parentId(item.getParentId())
+                    .visibility(item.getVisibility())
+                    .published(published)
+                    .build();
         }
 
         private void assertPublished(boolean published, PortalNavigationItem... items) {
@@ -1946,54 +1872,48 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         private List<ItemStructure> structureSnapshot() {
-            return portalNavigationItemsCrudService
-                .storage()
-                .stream()
-                .map(item ->
-                    new ItemStructure(
-                        item.getId(),
-                        item.getReference(),
-                        item.getParentId(),
-                        item.getRootId(),
-                        item.getOrder(),
-                        item.getSegment(),
-                        item.getArea(),
-                        item.getEnvironmentId(),
-                        item instanceof PortalNavigationPage page ? page.getPortalPageContentId() : null,
-                        item instanceof PortalNavigationLink link ? link.getUrl() : null
-                    )
-                )
-                .toList();
+            return portalNavigationItemsCrudService.storage().stream()
+                    .map(item -> new ItemStructure(
+                            item.getId(),
+                            item.getReference(),
+                            item.getParentId(),
+                            item.getRootId(),
+                            item.getOrder(),
+                            item.getSegment(),
+                            item.getArea(),
+                            item.getEnvironmentId(),
+                            item instanceof PortalNavigationPage page ? page.getPortalPageContentId() : null,
+                            item instanceof PortalNavigationLink link ? link.getUrl() : null))
+                    .toList();
         }
 
         private record ItemStructure(
-            PortalNavigationItemId id,
-            NavigationItemReference reference,
-            PortalNavigationItemId parentId,
-            PortalNavigationItemId rootId,
-            Integer order,
-            String segment,
-            PortalArea area,
-            String environmentId,
-            PortalPageContentId contentId,
-            String url
-        ) {}
+                PortalNavigationItemId id,
+                NavigationItemReference reference,
+                PortalNavigationItemId parentId,
+                PortalNavigationItemId rootId,
+                Integer order,
+                String segment,
+                PortalArea area,
+                String environmentId,
+                PortalPageContentId contentId,
+                String url) {}
     }
 
     private static PortalNavigationLink aRootLink(String id, String title, int order) {
         var link = PortalNavigationLink.builder()
-            .id(PortalNavigationItemId.of(id))
-            .organizationId(PortalNavigationItemFixtures.ORG_ID)
-            .environmentId(PortalNavigationItemFixtures.ENV_ID)
-            .title(title)
-            .segment(PortalNavigationItem.slugify(title).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(order)
-            .url("https://example.com")
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .reference(A_PORTAL)
-            .build();
+                .id(PortalNavigationItemId.of(id))
+                .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                .title(title)
+                .segment(PortalNavigationItem.slugify(title).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(order)
+                .url("https://example.com")
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(A_PORTAL)
+                .build();
         link.markAsRoot();
         return link;
     }

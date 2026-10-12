@@ -39,11 +39,10 @@ class HistogramGridTest {
 
         static Stream<Instant> window_starts() {
             return Stream.of(
-                Instant.parse("2026-08-24T10:17:42.123Z"),
-                Instant.parse("2026-08-24T10:30:00Z"),
-                Instant.parse("2026-08-24T00:00:00.001Z"),
-                Instant.parse("1969-12-31T23:52:30Z")
-            );
+                    Instant.parse("2026-08-24T10:17:42.123Z"),
+                    Instant.parse("2026-08-24T10:30:00Z"),
+                    Instant.parse("2026-08-24T00:00:00.001Z"),
+                    Instant.parse("1969-12-31T23:52:30Z"));
         }
 
         @ParameterizedTest
@@ -57,7 +56,8 @@ class HistogramGridTest {
 
             // Then
             assertThat(offset).isGreaterThanOrEqualTo(0).isLessThan(interval.toMillis());
-            assertThat((windowStart.toEpochMilli() - offset) % interval.toMillis()).isZero();
+            assertThat((windowStart.toEpochMilli() - offset) % interval.toMillis())
+                    .isZero();
         }
 
         @Test
@@ -85,7 +85,8 @@ class HistogramGridTest {
         }
 
         @ParameterizedTest
-        @MethodSource("io.gravitee.repository.elasticsearch.utils.HistogramGridTest#intervals_that_do_not_amount_to_a_millisecond")
+        @MethodSource(
+                "io.gravitee.repository.elasticsearch.utils.HistogramGridTest#intervals_that_do_not_amount_to_a_millisecond")
         void should_not_shift_the_grid_when_the_interval_is_not_usable(final Duration interval) {
             // Given
             final Instant windowStart = Instant.parse("2026-08-24T10:17:42.123Z");
@@ -129,7 +130,8 @@ class HistogramGridTest {
         }
 
         @ParameterizedTest
-        @MethodSource("io.gravitee.repository.elasticsearch.utils.HistogramGridTest#intervals_that_do_not_amount_to_a_millisecond")
+        @MethodSource(
+                "io.gravitee.repository.elasticsearch.utils.HistogramGridTest#intervals_that_do_not_amount_to_a_millisecond")
         void should_return_the_window_end_when_the_interval_is_not_usable(final Duration interval) {
             // Given
             final Instant from = Instant.parse("2026-08-24T09:00:07Z");

@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import java.util.HashMap;
-import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -58,7 +57,7 @@ class FilterValuesResponseAdapterTest {
 
     @Test
     void should_extract_values_from_composite_buckets() {
-        var response = buildSearchResponse(new String[] { "gw-1", "gw-2", "gw-3" }, null, 0);
+        var response = buildSearchResponse(new String[] {"gw-1", "gw-2", "gw-3"}, null, 0);
 
         var result = adapter.adapt(response);
 
@@ -69,7 +68,7 @@ class FilterValuesResponseAdapterTest {
     @Test
     void should_extract_after_key() {
         var afterKeyNode = MAPPER.createObjectNode().put("value", "gw-3");
-        var response = buildSearchResponse(new String[] { "gw-1", "gw-2", "gw-3" }, afterKeyNode, 0);
+        var response = buildSearchResponse(new String[] {"gw-1", "gw-2", "gw-3"}, afterKeyNode, 0);
 
         var result = adapter.adapt(response);
 
@@ -79,20 +78,23 @@ class FilterValuesResponseAdapterTest {
 
     @Test
     void should_extract_after_key_with_type_aware_values() {
-        var afterKeyNode = MAPPER.createObjectNode().put("value", "gw-3").put("timestamp", 1700000000000L).put("status", 200);
-        var response = buildSearchResponse(new String[] { "gw-1" }, afterKeyNode, 0);
+        var afterKeyNode = MAPPER.createObjectNode()
+                .put("value", "gw-3")
+                .put("timestamp", 1700000000000L)
+                .put("status", 200);
+        var response = buildSearchResponse(new String[] {"gw-1"}, afterKeyNode, 0);
 
         var result = adapter.adapt(response);
 
         assertThat(result.afterKey())
-            .containsEntry("value", "gw-3")
-            .containsEntry("timestamp", 1700000000000L)
-            .containsEntry("status", 200);
+                .containsEntry("value", "gw-3")
+                .containsEntry("timestamp", 1700000000000L)
+                .containsEntry("status", 200);
     }
 
     @Test
     void should_return_null_after_key_when_missing() {
-        var response = buildSearchResponse(new String[] { "gw-1" }, null, 0);
+        var response = buildSearchResponse(new String[] {"gw-1"}, null, 0);
 
         var result = adapter.adapt(response);
 
@@ -101,7 +103,7 @@ class FilterValuesResponseAdapterTest {
 
     @Test
     void should_extract_total_count_from_cardinality_aggregation() {
-        var response = buildSearchResponse(new String[] { "gw-1", "gw-2" }, null, 42);
+        var response = buildSearchResponse(new String[] {"gw-1", "gw-2"}, null, 42);
 
         var result = adapter.adapt(response);
 
@@ -110,7 +112,7 @@ class FilterValuesResponseAdapterTest {
 
     @Test
     void should_return_zero_total_count_when_cardinality_aggregation_missing() {
-        var response = buildSearchResponse(new String[] { "gw-1" }, null, 0);
+        var response = buildSearchResponse(new String[] {"gw-1"}, null, 0);
         response.getAggregations().remove("total_count");
 
         var result = adapter.adapt(response);

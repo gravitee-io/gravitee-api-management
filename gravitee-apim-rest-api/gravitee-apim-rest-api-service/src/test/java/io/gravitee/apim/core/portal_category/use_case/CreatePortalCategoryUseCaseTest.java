@@ -46,7 +46,8 @@ class CreatePortalCategoryUseCaseTest {
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
         portalCategoryQueryServiceInMemory = new PortalCategoryQueryServiceInMemory();
-        var domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, portalCategoryQueryServiceInMemory);
+        var domainService =
+                new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, portalCategoryQueryServiceInMemory);
         useCase = new CreatePortalCategoryUseCase(domainService, portalCategoryCrudServiceInMemory);
     }
 
@@ -58,7 +59,11 @@ class CreatePortalCategoryUseCaseTest {
 
     @Test
     void should_create_portal_category() {
-        var toCreate = CreatePortalCategory.builder().title("Weather").description("Weather APIs").visible(true).build();
+        var toCreate = CreatePortalCategory.builder()
+                .title("Weather")
+                .description("Weather APIs")
+                .visible(true)
+                .build();
 
         var output = useCase.execute(new CreatePortalCategoryUseCase.Input(ENVIRONMENT_ID, toCreate));
 
@@ -72,22 +77,19 @@ class CreatePortalCategoryUseCaseTest {
     void should_throw_when_title_is_blank() {
         var toCreate = CreatePortalCategory.builder().title("").build();
 
-        assertThatThrownBy(() -> useCase.execute(new CreatePortalCategoryUseCase.Input(ENVIRONMENT_ID, toCreate))).isInstanceOf(
-            ValidationDomainException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new CreatePortalCategoryUseCase.Input(ENVIRONMENT_ID, toCreate)))
+                .isInstanceOf(ValidationDomainException.class);
         assertThat(portalCategoryCrudServiceInMemory.storage()).isEmpty();
     }
 
     @Test
     void should_throw_when_title_already_exists_in_the_environment() {
         portalCategoryQueryServiceInMemory.initWith(
-            List.of(PortalCategory.of(PortalCategoryId.random(), ENVIRONMENT_ID, "Weather", null, true))
-        );
+                List.of(PortalCategory.of(PortalCategoryId.random(), ENVIRONMENT_ID, "Weather", null, true)));
         var toCreate = CreatePortalCategory.builder().title("Weather").build();
 
-        assertThatThrownBy(() -> useCase.execute(new CreatePortalCategoryUseCase.Input(ENVIRONMENT_ID, toCreate))).isInstanceOf(
-            PortalCategoryTitleAlreadyExistsException.class
-        );
+        assertThatThrownBy(() -> useCase.execute(new CreatePortalCategoryUseCase.Input(ENVIRONMENT_ID, toCreate)))
+                .isInstanceOf(PortalCategoryTitleAlreadyExistsException.class);
         assertThat(portalCategoryCrudServiceInMemory.storage()).isEmpty();
     }
 }

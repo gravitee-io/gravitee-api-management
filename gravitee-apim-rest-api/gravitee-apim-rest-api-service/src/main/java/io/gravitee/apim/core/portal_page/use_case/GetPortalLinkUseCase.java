@@ -34,7 +34,8 @@ public class GetPortalLinkUseCase {
     public record Output(PortalNavigationLink link) {}
 
     public Output execute(Input input) {
-        var item = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), input.linkId());
+        var item = navigationItemsQueryService.findByIdAndEnvironmentId(
+                input.auditInfo().environmentId(), input.linkId());
         if (!(item instanceof PortalNavigationLink link)) {
             throw new PortalLinkNotFoundException(input.linkId().toString());
         }

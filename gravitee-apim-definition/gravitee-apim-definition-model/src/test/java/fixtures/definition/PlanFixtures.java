@@ -22,8 +22,6 @@ import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class PlanFixtures {
@@ -37,14 +35,23 @@ public class PlanFixtures {
     private static final String API_KEY_PLAN_NAME = "API Key";
     private static final String API_KEY_PLAN_SECURITY_TYPE = "api-key";
 
-    private static final Supplier<Plan.PlanBuilder> BASE_HTTP_V4 = () ->
-        Plan.builder().id(PLAN_ID).name(PLAN_NAME).status(PlanStatus.PUBLISHED).mode(PlanMode.STANDARD);
+    private static final Supplier<Plan.PlanBuilder> BASE_HTTP_V4 = () -> Plan.builder()
+            .id(PLAN_ID)
+            .name(PLAN_NAME)
+            .status(PlanStatus.PUBLISHED)
+            .mode(PlanMode.STANDARD);
 
-    private static final Supplier<NativePlan.NativePlanBuilder> BASE_NATIVE_V4 = () ->
-        NativePlan.builder().id(PLAN_ID).name(PLAN_NAME).status(PlanStatus.PUBLISHED).mode(PlanMode.STANDARD);
+    private static final Supplier<NativePlan.NativePlanBuilder> BASE_NATIVE_V4 = () -> NativePlan.builder()
+            .id(PLAN_ID)
+            .name(PLAN_NAME)
+            .status(PlanStatus.PUBLISHED)
+            .mode(PlanMode.STANDARD);
 
-    private static final Supplier<io.gravitee.definition.model.Plan.PlanBuilder> BASE_V2 = () ->
-        io.gravitee.definition.model.Plan.builder().id(PLAN_ID).name(PLAN_NAME).status("PUBLISHED");
+    private static final Supplier<io.gravitee.definition.model.Plan.PlanBuilder> BASE_V2 =
+            () -> io.gravitee.definition.model.Plan.builder()
+                    .id(PLAN_ID)
+                    .name(PLAN_NAME)
+                    .status("PUBLISHED");
 
     private PlanFixtures() {}
 
@@ -53,27 +60,43 @@ public class PlanFixtures {
         private HttpV4Definition() {}
 
         public static Plan aKeylessV4() {
-            return (Plan) BASE_HTTP_V4.get()
-                .id(KEYLESS_PLAN_ID)
-                .name(KEYLESS_PLAN_NAME)
-                .security(PlanSecurity.builder().type(KEYLESS_PLAN_SECURITY_TYPE).build())
-                .build();
+            return (Plan) BASE_HTTP_V4
+                    .get()
+                    .id(KEYLESS_PLAN_ID)
+                    .name(KEYLESS_PLAN_NAME)
+                    .security(PlanSecurity.builder()
+                            .type(KEYLESS_PLAN_SECURITY_TYPE)
+                            .build())
+                    .build();
         }
 
         public static Plan anApiKeyV4() {
-            return (Plan) BASE_HTTP_V4.get()
-                .id(API_KEY_PLAN_ID)
-                .name(API_KEY_PLAN_NAME)
-                .security(PlanSecurity.builder().type(API_KEY_PLAN_SECURITY_TYPE).build())
-                .build();
+            return (Plan) BASE_HTTP_V4
+                    .get()
+                    .id(API_KEY_PLAN_ID)
+                    .name(API_KEY_PLAN_NAME)
+                    .security(PlanSecurity.builder()
+                            .type(API_KEY_PLAN_SECURITY_TYPE)
+                            .build())
+                    .build();
         }
 
         public static Plan aPushPlan() {
-            return (Plan) BASE_HTTP_V4.get().id("push").name("Push Plan").mode(PlanMode.PUSH).build();
+            return (Plan) BASE_HTTP_V4
+                    .get()
+                    .id("push")
+                    .name("Push Plan")
+                    .mode(PlanMode.PUSH)
+                    .build();
         }
 
         public static Plan anMtlsPlanV4() {
-            return (Plan) BASE_HTTP_V4.get().id("mtls").name("mTLS Plan").security(PlanSecurity.builder().type("mtls").build()).build();
+            return (Plan) BASE_HTTP_V4
+                    .get()
+                    .id("mtls")
+                    .name("mTLS Plan")
+                    .security(PlanSecurity.builder().type("mtls").build())
+                    .build();
         }
     }
 
@@ -82,55 +105,72 @@ public class PlanFixtures {
         private NativeV4Definition() {}
 
         public static NativePlan aKeylessV4() {
-            return (NativePlan) BASE_NATIVE_V4.get()
-                .id(KEYLESS_PLAN_ID)
-                .name(KEYLESS_PLAN_NAME)
-                .security(PlanSecurity.builder().type(KEYLESS_PLAN_SECURITY_TYPE).build())
-                .build();
+            return (NativePlan) BASE_NATIVE_V4
+                    .get()
+                    .id(KEYLESS_PLAN_ID)
+                    .name(KEYLESS_PLAN_NAME)
+                    .security(PlanSecurity.builder()
+                            .type(KEYLESS_PLAN_SECURITY_TYPE)
+                            .build())
+                    .build();
         }
 
         public static NativePlan anApiKeyV4() {
-            return (NativePlan) BASE_NATIVE_V4.get()
-                .id(API_KEY_PLAN_ID)
-                .name(API_KEY_PLAN_NAME)
-                .security(PlanSecurity.builder().type(API_KEY_PLAN_SECURITY_TYPE).build())
-                .build();
+            return (NativePlan) BASE_NATIVE_V4
+                    .get()
+                    .id(API_KEY_PLAN_ID)
+                    .name(API_KEY_PLAN_NAME)
+                    .security(PlanSecurity.builder()
+                            .type(API_KEY_PLAN_SECURITY_TYPE)
+                            .build())
+                    .build();
         }
 
         public static NativePlan aPushPlan() {
-            return (NativePlan) BASE_NATIVE_V4.get().id("push").name("Push Plan").mode(PlanMode.PUSH).build();
+            return (NativePlan) BASE_NATIVE_V4
+                    .get()
+                    .id("push")
+                    .name("Push Plan")
+                    .mode(PlanMode.PUSH)
+                    .build();
         }
 
         public static NativePlan anMtlsPlanV4() {
-            return (NativePlan) BASE_NATIVE_V4.get()
-                .id("mtls")
-                .name("mTLS Plan")
-                .security(PlanSecurity.builder().type("mtls").build())
-                .build();
+            return (NativePlan) BASE_NATIVE_V4
+                    .get()
+                    .id("mtls")
+                    .name("mTLS Plan")
+                    .security(PlanSecurity.builder().type("mtls").build())
+                    .build();
         }
     }
 
     public static io.gravitee.definition.model.Plan aKeylessV2() {
         return BASE_V2.get()
-            .id(KEYLESS_PLAN_ID)
-            .name(KEYLESS_PLAN_NAME)
-            .security(KEYLESS_PLAN_SECURITY_TYPE)
-            .securityDefinition("{\"nice\": \"config\"}")
-            .build();
+                .id(KEYLESS_PLAN_ID)
+                .name(KEYLESS_PLAN_NAME)
+                .security(KEYLESS_PLAN_SECURITY_TYPE)
+                .securityDefinition("{\"nice\": \"config\"}")
+                .build();
     }
 
     public static io.gravitee.definition.model.Plan anApiKeyV2() {
-        return BASE_V2.get().id(API_KEY_PLAN_ID).name(API_KEY_PLAN_NAME).security(API_KEY_PLAN_SECURITY_TYPE).build();
+        return BASE_V2.get()
+                .id(API_KEY_PLAN_ID)
+                .name(API_KEY_PLAN_NAME)
+                .security(API_KEY_PLAN_SECURITY_TYPE)
+                .build();
     }
 
     public static FederatedPlan aFederatedPlan() {
         return FederatedPlan.builder()
-            .id(PLAN_ID)
-            .mode(PlanMode.STANDARD)
-            .providerId("provider-id")
-            .status(PlanStatus.PUBLISHED)
-            .security(PlanSecurity.builder().type(API_KEY_PLAN_SECURITY_TYPE).build())
-            .build();
+                .id(PLAN_ID)
+                .mode(PlanMode.STANDARD)
+                .providerId("provider-id")
+                .status(PlanStatus.PUBLISHED)
+                .security(
+                        PlanSecurity.builder().type(API_KEY_PLAN_SECURITY_TYPE).build())
+                .build();
     }
 
     public static SubscriptionParameter subscriptionParameter() {

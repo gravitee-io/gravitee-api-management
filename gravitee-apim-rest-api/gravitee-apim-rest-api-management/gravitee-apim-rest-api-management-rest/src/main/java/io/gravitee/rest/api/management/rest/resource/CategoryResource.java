@@ -74,21 +74,21 @@ public class CategoryResource extends AbstractCategoryResource {
 
     @GET
     @Produces(APPLICATION_JSON)
-    @Operation(summary = "Get the category", description = "User must have the PORTAL_CATEGORY[READ] permission to use this service")
+    @Operation(
+            summary = "Get the category",
+            description = "User must have the PORTAL_CATEGORY[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Category's definition",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = CategoryEntity.class))
-    )
+            responseCode = "200",
+            description = "Category's definition",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = CategoryEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public CategoryEntity getCategory() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         boolean canShowCategory = hasPermission(
-            executionContext,
-            RolePermission.ENVIRONMENT_CATEGORY,
-            executionContext.getEnvironmentId(),
-            RolePermissionAction.READ
-        );
+                executionContext,
+                RolePermission.ENVIRONMENT_CATEGORY,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ);
         CategoryEntity category = categoryService.findById(categoryId, executionContext.getEnvironmentId());
 
         if (!canShowCategory && category.isHidden()) {
@@ -103,47 +103,44 @@ public class CategoryResource extends AbstractCategoryResource {
     @GET
     @Path("picture")
     @Operation(
-        summary = "Get the category's picture",
-        description = "User must have the PORTAL_CATEGORY[READ] permission to use this service"
-    )
+            summary = "Get the category's picture",
+            description = "User must have the PORTAL_CATEGORY[READ] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Category's picture",
-        content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
-    )
+            responseCode = "200",
+            description = "Category's picture",
+            content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCategoryPicture(@Context Request request) throws CategoryNotFoundException {
         return getImageResponse(
-            GraviteeContext.getExecutionContext(),
-            request,
-            categoryService.getPicture(GraviteeContext.getCurrentEnvironment(), categoryId)
-        );
+                GraviteeContext.getExecutionContext(),
+                request,
+                categoryService.getPicture(GraviteeContext.getCurrentEnvironment(), categoryId));
     }
 
     @GET
     @Path("background")
-    @Operation(summary = "Get the Category's background", description = "User must have the READ permission to use this service")
+    @Operation(
+            summary = "Get the Category's background",
+            description = "User must have the READ permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Category's background",
-        content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary"))
-    )
+            responseCode = "200",
+            description = "Category's background",
+            content = @Content(mediaType = "*/*", schema = @Schema(type = "string", format = "binary")))
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCategoryBackground(@Context Request request) throws CategoryNotFoundException {
         return getImageResponse(
-            GraviteeContext.getExecutionContext(),
-            request,
-            categoryService.getBackground(GraviteeContext.getCurrentEnvironment(), categoryId)
-        );
+                GraviteeContext.getExecutionContext(),
+                request,
+                categoryService.getBackground(GraviteeContext.getCurrentEnvironment(), categoryId));
     }
 
-    private Response getImageResponse(final ExecutionContext executionContext, Request request, InlinePictureEntity image) {
+    private Response getImageResponse(
+            final ExecutionContext executionContext, Request request, InlinePictureEntity image) {
         boolean canShowCategory = hasPermission(
-            executionContext,
-            RolePermission.ENVIRONMENT_CATEGORY,
-            executionContext.getEnvironmentId(),
-            RolePermissionAction.READ
-        );
+                executionContext,
+                RolePermission.ENVIRONMENT_CATEGORY,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ);
         CategoryEntity category = categoryService.findById(categoryId, GraviteeContext.getCurrentEnvironment());
 
         if (!canShowCategory && category.isHidden()) {
@@ -171,20 +168,25 @@ public class CategoryResource extends AbstractCategoryResource {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return Response.ok(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
+        return Response.ok(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update the category", description = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service")
+    @Operation(
+            summary = "Update the category",
+            description = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service")
     @ApiResponse(
-        responseCode = "200",
-        description = "Category successfully updated",
-        content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = CategoryEntity.class))
-    )
+            responseCode = "200",
+            description = "Category successfully updated",
+            content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = CategoryEntity.class)))
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE)})
     public Response updateCategory(@Valid @NotNull final UpdateCategoryEntity category) {
         try {
             ImageUtils.verify(category.getPicture());
@@ -193,17 +195,20 @@ public class CategoryResource extends AbstractCategoryResource {
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 
-        CategoryEntity categoryEntity = categoryService.update(GraviteeContext.getExecutionContext(), categoryId, category);
+        CategoryEntity categoryEntity =
+                categoryService.update(GraviteeContext.getExecutionContext(), categoryId, category);
         setPictures(categoryEntity, false);
 
         return Response.ok(categoryEntity).build();
     }
 
     @DELETE
-    @Operation(summary = "Delete the category", description = "User must have the PORTAL_CATEGORY[DELETE] permission to use this service")
+    @Operation(
+            summary = "Delete the category",
+            description = "User must have the PORTAL_CATEGORY[DELETE] permission to use this service")
     @ApiResponse(responseCode = "204", description = "Category successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.DELETE) })
+    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.DELETE)})
     public void deleteCategory() {
         categoryService.delete(GraviteeContext.getExecutionContext(), categoryId);
     }

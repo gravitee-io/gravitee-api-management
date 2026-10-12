@@ -47,7 +47,8 @@ public class InstallationCommandHandler implements CommandHandler<InstallationCo
     public Single<InstallationReply> handle(InstallationCommand command) {
         InstallationCommandPayload installationPayload = command.getPayload();
 
-        final Map<String, String> additionalInformation = this.installationService.getOrInitialize().getAdditionalInformation();
+        final Map<String, String> additionalInformation =
+                this.installationService.getOrInitialize().getAdditionalInformation();
         additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_STATUS, installationPayload.status());
         try {
             this.installationService.setAdditionalInformation(additionalInformation);

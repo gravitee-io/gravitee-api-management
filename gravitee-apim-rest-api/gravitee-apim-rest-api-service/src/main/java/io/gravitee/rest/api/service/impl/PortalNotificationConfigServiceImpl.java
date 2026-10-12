@@ -51,10 +51,9 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
     private final GroupService groupService;
 
     public PortalNotificationConfigServiceImpl(
-        @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
-        MembershipService membershipService,
-        GroupService groupService
-    ) {
+            @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
+            MembershipService membershipService,
+            GroupService groupService) {
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
         this.membershipService = membershipService;
         this.groupService = groupService;
@@ -63,20 +62,19 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
     @Override
     public PortalNotificationConfigEntity save(PortalNotificationConfigEntity notificationEntity) {
         try {
-            if (notificationEntity.getHooks() == null || notificationEntity.getHooks().isEmpty()) {
+            if (notificationEntity.getHooks() == null
+                    || notificationEntity.getHooks().isEmpty()) {
                 portalNotificationConfigRepository.delete(convert(notificationEntity));
                 return PortalNotificationConfigEntity.newDefaultEmpty(
-                    notificationEntity.getUser(),
-                    notificationEntity.getReferenceType(),
-                    notificationEntity.getReferenceId(),
-                    notificationEntity.getOrganizationId()
-                );
+                        notificationEntity.getUser(),
+                        notificationEntity.getReferenceType(),
+                        notificationEntity.getReferenceId(),
+                        notificationEntity.getOrganizationId());
             } else {
                 Optional<PortalNotificationConfig> optionalConfig = portalNotificationConfigRepository.findById(
-                    notificationEntity.getUser(),
-                    NotificationReferenceType.valueOf(notificationEntity.getReferenceType()),
-                    notificationEntity.getReferenceId()
-                );
+                        notificationEntity.getUser(),
+                        NotificationReferenceType.valueOf(notificationEntity.getReferenceType()),
+                        notificationEntity.getReferenceId());
 
                 PortalNotificationConfig notificationConfig = convert(notificationEntity);
 
@@ -94,36 +92,32 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             }
         } catch (TechnicalException te) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to save the notification settings " + notificationEntity,
-                te
-            );
+                    "An error occurs while trying to save the notification settings " + notificationEntity, te);
         }
     }
 
     @Override
-    public PortalNotificationConfigEntity findById(String user, NotificationReferenceType referenceType, String referenceId) {
+    public PortalNotificationConfigEntity findById(
+            String user, NotificationReferenceType referenceType, String referenceId) {
         try {
-            Optional<PortalNotificationConfig> optionalConfig = portalNotificationConfigRepository.findById(
-                user,
-                referenceType,
-                referenceId
-            );
+            Optional<PortalNotificationConfig> optionalConfig =
+                    portalNotificationConfigRepository.findById(user, referenceType, referenceId);
             if (optionalConfig.isPresent()) {
                 return convert(optionalConfig.get());
             }
             var notif = PortalNotificationConfigEntity.newDefaultEmpty(
-                user,
-                referenceType.name(),
-                referenceId,
-                GraviteeContext.getExecutionContext().getOrganizationId()
-            );
-            notif.setGroupHooks(findGroupHooks(GraviteeContext.getExecutionContext(), user, referenceType, referenceId));
+                    user,
+                    referenceType.name(),
+                    referenceId,
+                    GraviteeContext.getExecutionContext().getOrganizationId());
+            notif.setGroupHooks(
+                    findGroupHooks(GraviteeContext.getExecutionContext(), user, referenceType, referenceId));
             return notif;
         } catch (TechnicalException te) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to get the notification settings " + user + "/" + referenceType + "/" + referenceId,
-                te
-            );
+                    "An error occurs while trying to get the notification settings " + user + "/" + referenceType + "/"
+                            + referenceId,
+                    te);
         }
     }
 
@@ -132,7 +126,8 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         try {
             portalNotificationConfigRepository.deleteByUser(user);
         } catch (TechnicalException te) {
-            throw new TechnicalManagementException("An error occurs while trying to delete notification settings for user " + user, te);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to delete notification settings for user " + user, te);
         }
     }
 
@@ -142,9 +137,9 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(referenceId, referenceType);
         } catch (TechnicalException te) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to delete notification settings for reference " + referenceType + " / " + referenceId,
-                te
-            );
+                    "An error occurs while trying to delete notification settings for reference " + referenceType
+                            + " / " + referenceId,
+                    te);
         }
     }
 
@@ -152,16 +147,10 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
     public void removeGroupIds(String apiId, Set<String> groupIds) {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String primaryOwnerUserId = membershipService.getPrimaryOwnerUserId(
-            executionContext.getOrganizationId(),
-            MembershipReferenceType.API,
-            apiId
-        );
+                executionContext.getOrganizationId(), MembershipReferenceType.API, apiId);
         try {
             Optional<PortalNotificationConfig> notification = portalNotificationConfigRepository.findById(
-                primaryOwnerUserId,
-                NotificationReferenceType.API,
-                apiId
-            );
+                    primaryOwnerUserId, NotificationReferenceType.API, apiId);
             if (notification.isPresent() && notification.get().getGroups() != null) {
                 PortalNotificationConfig portalNotificationConfig = notification.get();
                 portalNotificationConfig.getGroups().removeAll(groupIds);
@@ -169,22 +158,22 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to get the notification settings " + primaryOwnerUserId + "/API/" + apiId,
-                e
-            );
+                    "An error occurs while trying to get the notification settings " + primaryOwnerUserId + "/API/"
+                            + apiId,
+                    e);
         }
     }
 
     private PortalNotificationConfig convert(PortalNotificationConfigEntity entity) {
         return PortalNotificationConfig.builder()
-            .referenceType(NotificationReferenceType.valueOf(entity.getReferenceType()))
-            .referenceId(entity.getReferenceId())
-            .user(entity.getUser())
-            .hooks(entity.getHooks())
-            .groups(Set.copyOf(entity.getGroups()))
-            .origin(entity.getOrigin())
-            .organizationId(entity.getOrganizationId())
-            .build();
+                .referenceType(NotificationReferenceType.valueOf(entity.getReferenceType()))
+                .referenceId(entity.getReferenceId())
+                .user(entity.getUser())
+                .hooks(entity.getHooks())
+                .groups(Set.copyOf(entity.getGroups()))
+                .origin(entity.getOrigin())
+                .organizationId(entity.getOrganizationId())
+                .build();
     }
 
     private PortalNotificationConfigEntity convert(PortalNotificationConfig portalNotificationConfig) {
@@ -197,32 +186,25 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         entity.setGroups(List.copyOf(portalNotificationConfig.getGroups()));
         entity.setOrigin(portalNotificationConfig.getOrigin());
         entity.setOrganizationId(portalNotificationConfig.getOrganizationId());
-        entity.setGroupHooks(
-            findGroupHooks(
+        entity.setGroupHooks(findGroupHooks(
                 GraviteeContext.getExecutionContext(),
                 portalNotificationConfig.getUser(),
                 portalNotificationConfig.getReferenceType(),
-                portalNotificationConfig.getReferenceId()
-            )
-        );
+                portalNotificationConfig.getReferenceId()));
         return entity;
     }
 
     private Set<String> findGroupHooks(
-        ExecutionContext executionContext,
-        String userId,
-        NotificationReferenceType referenceType,
-        String referenceId
-    ) {
+            ExecutionContext executionContext,
+            String userId,
+            NotificationReferenceType referenceType,
+            String referenceId) {
         try {
             if (referenceType != NotificationReferenceType.API) {
                 return Set.of();
             }
             var primaryOwnerUserId = membershipService.getPrimaryOwnerUserId(
-                executionContext.getOrganizationId(),
-                MembershipReferenceType.API,
-                referenceId
-            );
+                    executionContext.getOrganizationId(), MembershipReferenceType.API, referenceId);
 
             var poNotif = portalNotificationConfigRepository.findById(primaryOwnerUserId, referenceType, referenceId);
 
@@ -234,7 +216,9 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
 
             var poNotifHooks = poNotif.map(PortalNotificationConfig::getHooks).orElse(List.of());
 
-            var groupIds = groupService.findByUser(userId).stream().map(GroupEntity::getId).toList();
+            var groupIds = groupService.findByUser(userId).stream()
+                    .map(GroupEntity::getId)
+                    .toList();
 
             var hasGroupHooks = groupIds.stream().anyMatch(poNotifGroups::contains);
 

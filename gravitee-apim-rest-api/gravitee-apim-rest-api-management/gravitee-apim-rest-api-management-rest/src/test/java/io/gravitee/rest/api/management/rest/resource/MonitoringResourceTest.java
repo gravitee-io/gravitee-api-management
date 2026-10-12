@@ -49,7 +49,8 @@ public class MonitoringResourceTest extends AbstractResourceTest {
         MonitoringData mockMonitoringData = new MonitoringData();
         when(instanceService.findByEvent(any(), any())).thenReturn(mockInstance);
         when(monitoringService.findMonitoring(any(), any())).thenReturn(mockMonitoringData);
-        when(environmentService.findOrganizationIdsByEnvironments(any())).thenReturn(new HashSet<>(Collections.singleton("DEFAULT")));
+        when(environmentService.findOrganizationIdsByEnvironments(any()))
+                .thenReturn(new HashSet<>(Collections.singleton("DEFAULT")));
 
         Response response = envTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

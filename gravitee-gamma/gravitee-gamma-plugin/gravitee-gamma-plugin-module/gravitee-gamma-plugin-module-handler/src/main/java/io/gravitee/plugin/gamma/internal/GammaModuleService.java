@@ -37,7 +37,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class GammaModuleService {
 
-    static final Map<String, String> CONTENT_TYPES = Map.of("mjs", "application/javascript", "woff", "font/woff", "woff2", "font/woff2");
+    static final Map<String, String> CONTENT_TYPES =
+            Map.of("mjs", "application/javascript", "woff", "font/woff", "woff2", "font/woff2");
     public static final String UI_DIR = "ui";
 
     private final GammaModuleManager gammaModuleManager;
@@ -132,11 +133,11 @@ public class GammaModuleService {
     private GammaModuleDefinition convert(GammaModulePlugin module) {
         String manifest = readManifest(module);
         return GammaModuleDefinition.builder()
-            .id(module.id())
-            .name(module.manifest().name())
-            .version(module.manifest().version())
-            .mfManifest(manifest)
-            .build();
+                .id(module.id())
+                .name(module.manifest().name())
+                .version(module.manifest().version())
+                .mfManifest(manifest)
+                .build();
     }
 
     private String readManifest(GammaModulePlugin module) {

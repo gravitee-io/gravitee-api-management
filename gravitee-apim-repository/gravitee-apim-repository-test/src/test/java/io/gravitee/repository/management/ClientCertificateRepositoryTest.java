@@ -126,7 +126,9 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     @Test
     public void should_delete() throws Exception {
         Optional<ClientCertificate> optionalCertificate = clientCertificateRepository.findById("cert-to-delete");
-        assertThat(optionalCertificate).as("Certificate should exist before deletion").isPresent();
+        assertThat(optionalCertificate)
+                .as("Certificate should exist before deletion")
+                .isPresent();
 
         clientCertificateRepository.delete("cert-to-delete");
 
@@ -137,21 +139,19 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     @Test
     public void should_find_by_application_id_with_pagination() throws Exception {
         Page<ClientCertificate> page = clientCertificateRepository.findByApplicationId(
-            "app-1",
-            new PageableBuilder().pageNumber(0).pageSize(10).build()
-        );
+                "app-1", new PageableBuilder().pageNumber(0).pageSize(10).build());
 
         assertThat(page).isNotNull();
         assertThat(page.getTotalElements()).isEqualTo(2);
-        assertThat(page.getContent()).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-2");
+        assertThat(page.getContent())
+                .extracting(ClientCertificate::getId)
+                .containsExactlyInAnyOrder("cert-1", "cert-2");
     }
 
     @Test
     public void should_find_by_application_id_with_pagination_page_size() throws Exception {
         Page<ClientCertificate> page = clientCertificateRepository.findByApplicationId(
-            "app-1",
-            new PageableBuilder().pageNumber(0).pageSize(1).build()
-        );
+                "app-1", new PageableBuilder().pageNumber(0).pageSize(1).build());
 
         assertThat(page).isNotNull();
         assertThat(page.getTotalElements()).isEqualTo(2);
@@ -160,10 +160,8 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_find_by_application_id_and_statuses() throws Exception {
-        List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdAndStatuses(
-            "app-1",
-            ClientCertificateStatus.ACTIVE
-        );
+        List<ClientCertificate> certificates =
+                clientCertificateRepository.findByApplicationIdAndStatuses("app-1", ClientCertificateStatus.ACTIVE);
 
         assertThat(certificates).isNotNull().hasSize(1);
         assertThat(certificates).extracting(ClientCertificate::getId).containsExactly("cert-1");
@@ -172,10 +170,7 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     @Test
     public void should_find_by_application_id_and_multiple_statuses() throws Exception {
         List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdAndStatuses(
-            "app-1",
-            ClientCertificateStatus.ACTIVE,
-            ClientCertificateStatus.SCHEDULED
-        );
+                "app-1", ClientCertificateStatus.ACTIVE, ClientCertificateStatus.SCHEDULED);
 
         assertThat(certificates).isNotNull().hasSize(2);
         assertThat(certificates).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-2");
@@ -183,10 +178,8 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_return_empty_when_no_matching_statuses() throws Exception {
-        List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdAndStatuses(
-            "app-1",
-            ClientCertificateStatus.REVOKED
-        );
+        List<ClientCertificate> certificates =
+                clientCertificateRepository.findByApplicationIdAndStatuses("app-1", ClientCertificateStatus.REVOKED);
 
         assertThat(certificates).isNotNull().isEmpty();
     }
@@ -201,21 +194,18 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     @Test
     public void should_find_by_application_ids_and_statuses() throws Exception {
         List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
-            List.of("app-1", "app-3"),
-            ClientCertificateStatus.ACTIVE
-        );
+                List.of("app-1", "app-3"), ClientCertificateStatus.ACTIVE);
 
         assertThat(certificates).isNotNull().hasSize(2);
-        assertThat(certificates).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-to-update");
+        assertThat(certificates)
+                .extracting(ClientCertificate::getId)
+                .containsExactlyInAnyOrder("cert-1", "cert-to-update");
     }
 
     @Test
     public void should_find_by_application_ids_and_multiple_statuses() throws Exception {
         List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
-            List.of("app-1", "app-2"),
-            ClientCertificateStatus.ACTIVE,
-            ClientCertificateStatus.ACTIVE_WITH_END
-        );
+                List.of("app-1", "app-2"), ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END);
 
         assertThat(certificates).isNotNull().hasSize(2);
         assertThat(certificates).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-3");
@@ -223,27 +213,24 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_return_empty_when_application_ids_is_empty() throws Exception {
-        List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
-            List.of(),
-            ClientCertificateStatus.ACTIVE
-        );
+        List<ClientCertificate> certificates =
+                clientCertificateRepository.findByApplicationIdsAndStatuses(List.of(), ClientCertificateStatus.ACTIVE);
 
         assertThat(certificates).isNotNull().isEmpty();
     }
 
     @Test
     public void should_return_empty_when_application_ids_is_null() throws Exception {
-        List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
-            null,
-            ClientCertificateStatus.ACTIVE
-        );
+        List<ClientCertificate> certificates =
+                clientCertificateRepository.findByApplicationIdsAndStatuses(null, ClientCertificateStatus.ACTIVE);
 
         assertThat(certificates).isNotNull().isEmpty();
     }
 
     @Test
     public void should_return_empty_when_statuses_is_empty_for_application_ids() throws Exception {
-        List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(List.of("app-1", "app-2"));
+        List<ClientCertificate> certificates =
+                clientCertificateRepository.findByApplicationIdsAndStatuses(List.of("app-1", "app-2"));
 
         assertThat(certificates).isNotNull().isEmpty();
     }
@@ -251,9 +238,7 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     @Test
     public void should_return_empty_when_statuses_is_null_for_application_ids() throws Exception {
         List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
-            List.of("app-1", "app-2"),
-            (ClientCertificateStatus[]) null
-        );
+                List.of("app-1", "app-2"), (ClientCertificateStatus[]) null);
 
         assertThat(certificates).isNotNull().isEmpty();
     }
@@ -261,9 +246,7 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     @Test
     public void should_return_empty_when_no_matching_application_ids() throws Exception {
         List<ClientCertificate> certificates = clientCertificateRepository.findByApplicationIdsAndStatuses(
-            List.of("unknown-app-1", "unknown-app-2"),
-            ClientCertificateStatus.ACTIVE
-        );
+                List.of("unknown-app-1", "unknown-app-2"), ClientCertificateStatus.ACTIVE);
 
         assertThat(certificates).isNotNull().isEmpty();
     }
@@ -274,7 +257,9 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
         var certificates = clientCertificateRepository.findByStatuses(ClientCertificateStatus.ACTIVE);
 
         assertThat(certificates).isNotNull().hasSize(2);
-        assertThat(certificates).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-to-update");
+        assertThat(certificates)
+                .extracting(ClientCertificate::getId)
+                .containsExactlyInAnyOrder("cert-1", "cert-to-update");
     }
 
     @Test
@@ -289,10 +274,13 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     @Test
     @SneakyThrows
     public void should_find_by_multiple_statuses() {
-        var certificates = clientCertificateRepository.findByStatuses(ClientCertificateStatus.ACTIVE, ClientCertificateStatus.SCHEDULED);
+        var certificates = clientCertificateRepository.findByStatuses(
+                ClientCertificateStatus.ACTIVE, ClientCertificateStatus.SCHEDULED);
 
         assertThat(certificates).isNotNull().hasSize(3);
-        assertThat(certificates).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-2", "cert-to-update");
+        assertThat(certificates)
+                .extracting(ClientCertificate::getId)
+                .containsExactlyInAnyOrder("cert-1", "cert-2", "cert-to-update");
     }
 
     @Test
@@ -327,7 +315,8 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
         certificate.setFingerprint("NEW123");
         certificate.setEnvironmentId("env-new");
         certificate.setStatus(ClientCertificateStatus.SCHEDULED);
-        assertThatThrownBy(() -> clientCertificateRepository.update(certificate)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> clientCertificateRepository.update(certificate))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -336,7 +325,8 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     }
 
     @Test
-    public void should_return_true_when_fingerprint_exists_for_active_application_with_non_revoked_certificate() throws Exception {
+    public void should_return_true_when_fingerprint_exists_for_active_application_with_non_revoked_certificate()
+            throws Exception {
         // cert-1 has fingerprint ABC123, belongs to app-1 which is ACTIVE, and has status ACTIVE
         boolean exists = clientCertificateRepository.existsByFingerprintAndActiveApplication("ABC123", "env-1");
 
@@ -361,7 +351,8 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_return_false_when_fingerprint_does_not_exist() throws Exception {
-        boolean exists = clientCertificateRepository.existsByFingerprintAndActiveApplication("UNKNOWN_FINGERPRINT", "env-1");
+        boolean exists =
+                clientCertificateRepository.existsByFingerprintAndActiveApplication("UNKNOWN_FINGERPRINT", "env-1");
 
         assertThat(exists).isFalse();
     }
@@ -376,7 +367,8 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_return_false_when_fingerprint_exists_only_on_excluded_application() throws Exception {
-        boolean exists = clientCertificateRepository.existsByFingerprintAndActiveApplication("ABC123", "env-1", "app-1");
+        boolean exists =
+                clientCertificateRepository.existsByFingerprintAndActiveApplication("ABC123", "env-1", "app-1");
 
         assertThat(exists).isFalse();
     }
@@ -385,17 +377,13 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     public void should_delete_by_application_id() throws Exception {
         // app-1 has 2 certificates: cert-1 and cert-2
         Page<ClientCertificate> beforeDelete = clientCertificateRepository.findByApplicationId(
-            "app-1",
-            new PageableBuilder().pageNumber(0).pageSize(10).build()
-        );
+                "app-1", new PageableBuilder().pageNumber(0).pageSize(10).build());
         assertThat(beforeDelete.getTotalElements()).isEqualTo(2);
 
         clientCertificateRepository.deleteByApplicationId("app-1");
 
         Page<ClientCertificate> afterDelete = clientCertificateRepository.findByApplicationId(
-            "app-1",
-            new PageableBuilder().pageNumber(0).pageSize(10).build()
-        );
+                "app-1", new PageableBuilder().pageNumber(0).pageSize(10).build());
         assertThat(afterDelete.getTotalElements()).isZero();
     }
 }

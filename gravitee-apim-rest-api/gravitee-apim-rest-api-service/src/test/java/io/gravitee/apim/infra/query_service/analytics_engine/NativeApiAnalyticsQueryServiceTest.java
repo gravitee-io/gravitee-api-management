@@ -70,7 +70,8 @@ class NativeApiAnalyticsQueryServiceTest {
         var response = service.searchFacets(EXECUTION_CONTEXT, aFacetsRequest());
 
         assertThat(response.metrics()).isEmpty();
-        verify(analyticsRepository).searchNativeApiFacets(eq(EXECUTION_CONTEXT.getQueryContext()), queryCaptor.capture());
+        verify(analyticsRepository)
+                .searchNativeApiFacets(eq(EXECUTION_CONTEXT.getQueryContext()), queryCaptor.capture());
         var captured = queryCaptor.getValue();
         assertThat(captured.facets()).contains(Facet.NATIVE_CONNECTION_STATUS);
         assertThat(captured.filters()).anySatisfy(f -> {
@@ -82,8 +83,8 @@ class NativeApiAnalyticsQueryServiceTest {
     @Test
     void searchMeasures_throws_UnsupportedOperationException() {
         assertThatThrownBy(() -> service.searchMeasures(EXECUTION_CONTEXT, aMeasuresRequest()))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("measures");
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("measures");
         verifyNoInteractions(analyticsRepository);
     }
 
@@ -95,7 +96,8 @@ class NativeApiAnalyticsQueryServiceTest {
         var response = service.searchTimeSeries(EXECUTION_CONTEXT, aTimeSeriesRequest());
 
         assertThat(response).isNotNull();
-        verify(analyticsRepository).searchNativeApiTimeSeries(eq(EXECUTION_CONTEXT.getQueryContext()), queryCaptor.capture());
+        verify(analyticsRepository)
+                .searchNativeApiTimeSeries(eq(EXECUTION_CONTEXT.getQueryContext()), queryCaptor.capture());
         var captured = queryCaptor.getValue();
         assertThat(captured.facets()).contains(Facet.NATIVE_CONNECTION_STATUS);
         assertThat(captured.interval()).isEqualTo(3_600_000L);
@@ -107,13 +109,12 @@ class NativeApiAnalyticsQueryServiceTest {
 
     private static FacetsRequest aFacetsRequest() {
         return new FacetsRequest(
-            new TimeRange(FROM, TO),
-            List.of(new Filter(FilterSpec.Name.API, FilterOperator.EQ, API_ID)),
-            List.of(),
-            List.of(FacetSpec.Name.NATIVE_CONNECTION_STATUS),
-            null,
-            null
-        );
+                new TimeRange(FROM, TO),
+                List.of(new Filter(FilterSpec.Name.API, FilterOperator.EQ, API_ID)),
+                List.of(),
+                List.of(FacetSpec.Name.NATIVE_CONNECTION_STATUS),
+                null,
+                null);
     }
 
     private static MeasuresRequest aMeasuresRequest() {
@@ -122,20 +123,16 @@ class NativeApiAnalyticsQueryServiceTest {
 
     private static TimeSeriesRequest aTimeSeriesRequest() {
         return new TimeSeriesRequest(
-            new TimeRange(FROM, TO),
-            3_600_000L,
-            List.of(new Filter(FilterSpec.Name.API, FilterOperator.EQ, API_ID)),
-            List.of(
-                new FacetMetricMeasuresRequest(
-                    MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY,
-                    List.of(MetricSpec.Measure.COUNT),
-                    List.of(),
-                    List.of()
-                )
-            ),
-            List.of(FacetSpec.Name.NATIVE_CONNECTION_STATUS),
-            null,
-            List.of()
-        );
+                new TimeRange(FROM, TO),
+                3_600_000L,
+                List.of(new Filter(FilterSpec.Name.API, FilterOperator.EQ, API_ID)),
+                List.of(new FacetMetricMeasuresRequest(
+                        MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY,
+                        List.of(MetricSpec.Measure.COUNT),
+                        List.of(),
+                        List.of())),
+                List.of(FacetSpec.Name.NATIVE_CONNECTION_STATUS),
+                null,
+                List.of());
     }
 }

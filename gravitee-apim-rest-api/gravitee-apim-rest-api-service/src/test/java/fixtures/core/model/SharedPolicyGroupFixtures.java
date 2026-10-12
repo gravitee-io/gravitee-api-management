@@ -33,8 +33,7 @@ public class SharedPolicyGroupFixtures {
 
     private SharedPolicyGroupFixtures() {}
 
-    private static final Supplier<SharedPolicyGroup.SharedPolicyGroupBuilder> BASE = () ->
-        SharedPolicyGroup.builder()
+    private static final Supplier<SharedPolicyGroup.SharedPolicyGroupBuilder> BASE = () -> SharedPolicyGroup.builder()
             .id("sharedPolicyGroupId")
             .environmentId("environmentId")
             .organizationId("organizationId")
@@ -45,7 +44,11 @@ public class SharedPolicyGroupFixtures {
             .version(1)
             .apiType(ApiType.MESSAGE)
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED)
-            .steps(List.of(Step.builder().policy("policyId").name("Step name").configuration("{\"key\":\"value\"}").build()))
+            .steps(List.of(Step.builder()
+                    .policy("policyId")
+                    .name("Step name")
+                    .configuration("{\"key\":\"value\"}")
+                    .build()))
             .phase(FlowPhase.REQUEST)
             .deployedAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
@@ -56,42 +59,51 @@ public class SharedPolicyGroupFixtures {
     }
 
     private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD.builder()
-        .hrid("my-shared-policy-group-crd")
-        .name("My Shared Policy Group CRD")
-        .apiType(io.gravitee.definition.model.v4.ApiType.PROXY)
-        .phase(io.gravitee.apim.core.plugin.model.FlowPhase.REQUEST);
+            .hrid("my-shared-policy-group-crd")
+            .name("My Shared Policy Group CRD")
+            .apiType(io.gravitee.definition.model.v4.ApiType.PROXY)
+            .phase(io.gravitee.apim.core.plugin.model.FlowPhase.REQUEST);
 
     public static SharedPolicyGroupCRD aSharedPolicyGroupCRD() {
         return CRD_BASE.build();
     }
 
     public static SharedPolicyGroupCRDStatus aSharedPolicyGroupCRDStatus() {
-        return new SharedPolicyGroupCRDStatus(UUID.random().toString(), UUID.random().toString(), "organizationId", "environmentId", null);
+        return new SharedPolicyGroupCRDStatus(
+                UUID.random().toString(), UUID.random().toString(), "organizationId", "environmentId", null);
     }
 
-    private static final Supplier<CreateSharedPolicyGroup.CreateSharedPolicyGroupBuilder> CREATE_BASE = () ->
-        CreateSharedPolicyGroup.builder().name("name").apiType(ApiType.MESSAGE).phase(FlowPhase.REQUEST);
+    private static final Supplier<CreateSharedPolicyGroup.CreateSharedPolicyGroupBuilder> CREATE_BASE =
+            () -> CreateSharedPolicyGroup.builder()
+                    .name("name")
+                    .apiType(ApiType.MESSAGE)
+                    .phase(FlowPhase.REQUEST);
 
     public static CreateSharedPolicyGroup aCreateSharedPolicyGroup() {
         return CREATE_BASE.get().build();
     }
 
     public static CreateSharedPolicyGroup aCreateSharedPolicyGroupWithAllFields() {
-        return CREATE_BASE.get()
-            .description("description")
-            .crossId("crossId")
-            .steps(List.of(Step.builder().policy("policyId").name("Step name").configuration("{\"key\":\"value\"}").build()))
-            .build();
+        return CREATE_BASE
+                .get()
+                .description("description")
+                .crossId("crossId")
+                .steps(List.of(Step.builder()
+                        .policy("policyId")
+                        .name("Step name")
+                        .configuration("{\"key\":\"value\"}")
+                        .build()))
+                .build();
     }
 
     public static SharedPolicyGroupPolicyPlugin aSharedPolicyGroupPolicyPlugin() {
         return SharedPolicyGroupPolicyPlugin.builder()
-            .id("sharedPolicyGroupId")
-            .name("name")
-            .description("description")
-            .apiType(ApiType.MESSAGE)
-            .phase(FlowPhase.SUBSCRIBE)
-            .policyId("shared-policy-group-policy")
-            .build();
+                .id("sharedPolicyGroupId")
+                .name("name")
+                .description("description")
+                .apiType(ApiType.MESSAGE)
+                .phase(FlowPhase.SUBSCRIBE)
+                .policyId("shared-policy-group-policy")
+                .build();
     }
 }

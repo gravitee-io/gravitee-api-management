@@ -90,10 +90,10 @@ class GammaModuleHandlerTest {
         handler.managementType = "mongodb";
         when(applicationContext.getBean("managementMongoTemplate")).thenReturn(applicationContext);
         PluginClassLoader pluginClassLoader = mock(PluginClassLoader.class);
-        when(pluginClassLoaderFactory.getOrCreateClassLoader(any(Plugin.class), any(ClassLoader.class))).thenReturn(pluginClassLoader);
-        when(pluginClassLoader.loadClass(anyString())).thenAnswer(invocation ->
-            getClass().getClassLoader().loadClass(invocation.getArgument(0))
-        );
+        when(pluginClassLoaderFactory.getOrCreateClassLoader(any(Plugin.class), any(ClassLoader.class)))
+                .thenReturn(pluginClassLoader);
+        when(pluginClassLoader.loadClass(anyString()))
+                .thenAnswer(invocation -> getClass().getClassLoader().loadClass(invocation.getArgument(0)));
     }
 
     private void setField(Class<?> clazz, String fieldName, Object value) throws Exception {
@@ -163,13 +163,14 @@ class GammaModuleHandlerTest {
         when(plugin.clazz()).thenReturn(AGammaModule.class.getName());
         when(manifest.version()).thenReturn("1.0.0");
         when(plugin.deployed()).thenReturn(true);
-        when(plugin.dependencies()).thenReturn(
-            new URL[] { GammaModuleHandlerTest.class.getProtectionDomain().getCodeSource().getLocation() }
-        );
+        when(plugin.dependencies()).thenReturn(new URL[] {
+            GammaModuleHandlerTest.class.getProtectionDomain().getCodeSource().getLocation()
+        });
 
         ApplicationContext pluginCtx = mock(ApplicationContext.class);
         when(pluginCtx.getBeanDefinitionNames()).thenReturn(new String[0]);
-        when(pluginContextFactory.create(any(GammaModulePluginHandler.GammaModulePluginContextConfigurer.class))).thenReturn(pluginCtx);
+        when(pluginContextFactory.create(any(GammaModulePluginHandler.GammaModulePluginContextConfigurer.class)))
+                .thenReturn(pluginCtx);
 
         handler.handle(plugin);
 
@@ -195,11 +196,14 @@ class GammaModuleHandlerTest {
 
         ApplicationContext pluginCtx = mock(ApplicationContext.class);
         when(pluginCtx.getBeanDefinitionNames()).thenReturn(new String[0]);
-        when(pluginContextFactory.create(any(GammaModulePluginHandler.GammaModulePluginContextConfigurer.class))).thenReturn(pluginCtx);
+        when(pluginContextFactory.create(any(GammaModulePluginHandler.GammaModulePluginContextConfigurer.class)))
+                .thenReturn(pluginCtx);
 
         handler.handle(plugin);
 
-        verify(pluginClassLoaderFactory).getOrCreateClassLoader(eq(plugin), eq(applicationContext.getClass().getClassLoader()));
+        verify(pluginClassLoaderFactory)
+                .getOrCreateClassLoader(
+                        eq(plugin), eq(applicationContext.getClass().getClassLoader()));
     }
 
     @Test
@@ -215,7 +219,8 @@ class GammaModuleHandlerTest {
 
         ApplicationContext pluginCtx = mock(ApplicationContext.class);
         when(pluginCtx.getBeanDefinitionNames()).thenReturn(new String[0]);
-        when(pluginContextFactory.create(any(GammaModulePluginHandler.GammaModulePluginContextConfigurer.class))).thenReturn(pluginCtx);
+        when(pluginContextFactory.create(any(GammaModulePluginHandler.GammaModulePluginContextConfigurer.class)))
+                .thenReturn(pluginCtx);
 
         handler.handle(plugin);
 

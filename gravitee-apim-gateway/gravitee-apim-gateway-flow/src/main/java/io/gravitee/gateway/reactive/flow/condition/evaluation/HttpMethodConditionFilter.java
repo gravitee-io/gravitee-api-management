@@ -16,8 +16,6 @@
 package io.gravitee.gateway.reactive.flow.condition.evaluation;
 
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.http.HttpConditionFilter;
@@ -31,8 +29,8 @@ import io.reactivex.rxjava3.core.Maybe;
  * @author GraviteeSource Team
  */
 public class HttpMethodConditionFilter
-    extends io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator
-    implements HttpConditionFilter<Flow> {
+        extends io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator
+        implements HttpConditionFilter<Flow> {
 
     @Override
     public Maybe<Flow> filter(HttpBaseExecutionContext ctx, Flow flow) {

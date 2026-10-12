@@ -55,7 +55,8 @@ class DebugDeployerTest {
         @Test
         void should_deploy_debug_reactable() {
             Reactable reactable = mock(Reactable.class);
-            DebugDeployable deployable = DebugDeployable.builder().id("id").reactable(reactable).build();
+            DebugDeployable deployable =
+                    DebugDeployable.builder().id("id").reactable(reactable).build();
             cut.deploy(deployable).test().assertComplete();
             verify(eventManager).publishEvent(ReactorEvent.DEBUG, reactable);
             verifyNoMoreInteractions(eventManager);
@@ -64,7 +65,8 @@ class DebugDeployerTest {
         @Test
         void should_return_error_when_api_manager_throw_exception() {
             Reactable reactable = mock(Reactable.class);
-            DebugDeployable deployable = DebugDeployable.builder().id("id").reactable(reactable).build();
+            DebugDeployable deployable =
+                    DebugDeployable.builder().id("id").reactable(reactable).build();
             doThrow(new SyncException("error")).when(eventManager).publishEvent(ReactorEvent.DEBUG, reactable);
             cut.deploy(deployable).test().assertFailure(SyncException.class);
             verify(eventManager).publishEvent(ReactorEvent.DEBUG, reactable);

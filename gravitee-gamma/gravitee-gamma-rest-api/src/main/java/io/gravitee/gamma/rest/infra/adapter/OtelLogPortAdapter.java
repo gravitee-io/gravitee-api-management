@@ -52,16 +52,19 @@ public class OtelLogPortAdapter implements OtelLogPort {
         // bound the result. Time range isn't useful at the trace-detail granularity. The caller
         // (GetTraceDetailUseCase) decides which keys go where — env / api / … land in the record-
         // attribute slot here because that's where gravitee-reporter-otel stamps them.
-        OtelLogSearchCriteria criteria = new OtelLogSearchCriteria(traceId, attributeFilters, Map.of(), null, null, null);
+        OtelLogSearchCriteria criteria =
+                new OtelLogSearchCriteria(traceId, attributeFilters, Map.of(), null, null, null);
 
         List<SpanEvent> events = new ArrayList<>();
         List<PayloadLog> payloadLogs = new ArrayList<>();
-        for (OtelLogRecord record : otelLogRepository.findLogs(queryContext, criteria).blockingGet()) {
+        for (OtelLogRecord record :
+                otelLogRepository.findLogs(queryContext, criteria).blockingGet()) {
             String eventName = record.attributes().get(EVENT_NAME_ATTRIBUTE);
             if (eventName != null) {
                 events.add(new SpanEvent(record.spanId(), eventName, record.timestamp(), record.attributes()));
             } else {
-                payloadLogs.add(new PayloadLog(record.spanId(), record.timestamp(), record.severity(), record.body(), record.attributes()));
+                payloadLogs.add(new PayloadLog(
+                        record.spanId(), record.timestamp(), record.severity(), record.body(), record.attributes()));
             }
         }
         return new TraceLogs(events, payloadLogs);

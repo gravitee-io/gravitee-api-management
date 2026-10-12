@@ -49,10 +49,12 @@ public class AbstractRepositoryConfigurationTest {
         environment.setProperty("management.mongodb.uri", "mongodb://localhost:27017/custom-db");
         assertEquals("custom-db", abstractRepositoryConfiguration.getDatabaseName());
 
-        environment.setProperty("management.mongodb.uri", "mongodb://user:password@localhost:27017/custom-db?authSource=admin");
+        environment.setProperty(
+                "management.mongodb.uri", "mongodb://user:password@localhost:27017/custom-db?authSource=admin");
         assertEquals("custom-db", abstractRepositoryConfiguration.getDatabaseName());
 
-        environment.setProperty("management.mongodb.uri", "mongodb://user:pa#ss+wo*rd@localhost:27017/custom-db?authSource=admin");
+        environment.setProperty(
+                "management.mongodb.uri", "mongodb://user:pa#ss+wo*rd@localhost:27017/custom-db?authSource=admin");
         assertEquals("custom-db", abstractRepositoryConfiguration.getDatabaseName());
     }
 

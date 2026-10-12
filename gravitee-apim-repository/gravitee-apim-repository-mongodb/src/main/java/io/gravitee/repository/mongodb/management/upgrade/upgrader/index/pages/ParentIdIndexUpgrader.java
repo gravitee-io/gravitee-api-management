@@ -28,9 +28,9 @@ public class ParentIdIndexUpgrader extends IndexUpgrader {
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("pages")
-            .name("pid1")
-            .key("parentId", ascending())
-            .build();
+                .collection("pages")
+                .name("pid1")
+                .key("parentId", ascending())
+                .build();
     }
 }

@@ -66,7 +66,8 @@ class DefaultManagementDeploymentContextTest {
     void should_get_component_from_applicationContext() {
         final PluginConfigurationHelper pluginConfigurationHelper = new PluginConfigurationHelper(null, null);
         when(applicationContext.getBean(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
-        final DefaultManagementDeploymentContext cut = new DefaultManagementDeploymentContext(new Api(), applicationContext);
+        final DefaultManagementDeploymentContext cut =
+                new DefaultManagementDeploymentContext(new Api(), applicationContext);
         assertThat(cut.getComponent(PluginConfigurationHelper.class)).isEqualTo(pluginConfigurationHelper);
         verify(applicationContext).getBean(any(Class.class));
     }

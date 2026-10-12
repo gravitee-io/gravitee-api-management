@@ -28,7 +28,8 @@ import java.util.Set;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PersistentMockEndpointConnectorFactory implements HttpEndpointAsyncConnectorFactory<PersistentMockEndpointConnector> {
+public class PersistentMockEndpointConnectorFactory
+        implements HttpEndpointAsyncConnectorFactory<PersistentMockEndpointConnector> {
 
     private final PluginConfigurationHelper pluginConfigurationHelper;
 
@@ -48,15 +49,12 @@ public class PersistentMockEndpointConnectorFactory implements HttpEndpointAsync
 
     @Override
     public PersistentMockEndpointConnector createConnector(
-        DeploymentContext deploymentContext,
-        String configuration,
-        String sharedConfiguration
-    ) {
+            DeploymentContext deploymentContext, String configuration, String sharedConfiguration) {
         try {
             return new PersistentMockEndpointConnector(
-                pluginConfigurationHelper.readConfiguration(MockEndpointConnectorConfiguration.class, configuration),
-                deploymentContext.getComponent(MessageStorage.class)
-            );
+                    pluginConfigurationHelper.readConfiguration(
+                            MockEndpointConnectorConfiguration.class, configuration),
+                    deploymentContext.getComponent(MessageStorage.class));
         } catch (PluginConfigurationException e) {
             return null;
         }

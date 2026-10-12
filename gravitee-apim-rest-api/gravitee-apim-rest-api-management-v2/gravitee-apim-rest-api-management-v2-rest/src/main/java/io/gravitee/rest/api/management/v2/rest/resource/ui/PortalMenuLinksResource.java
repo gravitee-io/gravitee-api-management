@@ -58,39 +58,46 @@ public class PortalMenuLinksResource extends AbstractResource {
     private final PortalMenuLinkMapper mapper = PortalMenuLinkMapper.INSTANCE;
 
     @GET
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.READ }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SETTINGS,
+                acls = {RolePermissionAction.READ})
+    })
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalMenuLinks(@BeanParam @Valid PaginationParam paginationParam) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         var portalMenuLinks = listAllPortalMenuLinksForEnvironmentUseCase
-            .execute(new ListAllPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
-            .portalMenuLinkList();
+                .execute(new ListAllPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
+                .portalMenuLinkList();
 
         var portalMenuLinksSubset = computePaginationData(portalMenuLinks, paginationParam);
 
-        return Response.ok(
-            new PortalMenuLinksResponse()
-                .data(mapper.map(portalMenuLinksSubset))
-                .pagination(PaginationInfo.computePaginationInfo(portalMenuLinks.size(), portalMenuLinksSubset.size(), paginationParam))
-                .links(computePaginationLinks(portalMenuLinks.size(), paginationParam))
-        ).build();
+        return Response.ok(new PortalMenuLinksResponse()
+                        .data(mapper.map(portalMenuLinksSubset))
+                        .pagination(PaginationInfo.computePaginationInfo(
+                                portalMenuLinks.size(), portalMenuLinksSubset.size(), paginationParam))
+                        .links(computePaginationLinks(portalMenuLinks.size(), paginationParam)))
+                .build();
     }
 
     @POST
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({
+        @Permission(
+                value = RolePermission.ENVIRONMENT_SETTINGS,
+                acls = {RolePermissionAction.UPDATE})
+    })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createPortalMenuLink(@Valid @NotNull final CreatePortalMenuLink createPortalMenuLink) {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        var output = createPortalMenuLinkUseCase.execute(
-            new CreatePortalMenuLinkUseCase.Input(executionContext.getEnvironmentId(), mapper.map(createPortalMenuLink))
-        );
+        var output = createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input(
+                executionContext.getEnvironmentId(), mapper.map(createPortalMenuLink)));
 
         return Response.created(this.getLocationHeader(output.portalMenuLink().getId()))
-            .entity(mapper.map(output.portalMenuLink()))
-            .build();
+                .entity(mapper.map(output.portalMenuLink()))
+                .build();
     }
 
     @Path("{portalMenuLinkId}")

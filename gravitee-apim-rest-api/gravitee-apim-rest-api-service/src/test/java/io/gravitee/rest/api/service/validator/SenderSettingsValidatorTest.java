@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 class SenderSettingsValidatorTest {
 
     private static final String INVALID_FROM_MESSAGE =
-        "must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")";
+            "must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")";
     private static final Predicate<Key> NOTHING_SKIPPED = key -> false;
 
     private final SenderSettingsValidator cut = new SenderSettingsValidator();
@@ -47,97 +47,109 @@ class SenderSettingsValidatorTest {
 
     @Test
     void should_accept_an_unchanged_invalid_from() {
-        assertThatCode(() ->
-            cut.validateChanges(email("Example, Inc <noreply@example.com>"), email("Example, Inc <noreply@example.com>"), NOTHING_SKIPPED)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> cut.validateChanges(
+                        email("Example, Inc <noreply@example.com>"),
+                        email("Example, Inc <noreply@example.com>"),
+                        NOTHING_SKIPPED))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_reject_a_changed_invalid_from() {
-        var e = catchThrowableOfType(ConstraintViolationException.class, () ->
-            cut.validateChanges(email("not-an-email"), email("noreply@example.com"), NOTHING_SKIPPED)
-        );
+        var e = catchThrowableOfType(
+                ConstraintViolationException.class,
+                () -> cut.validateChanges(email("not-an-email"), email("noreply@example.com"), NOTHING_SKIPPED));
 
-        assertThat(e.getConstraintViolations()).extracting(ConstraintViolation::getMessage).containsExactly(INVALID_FROM_MESSAGE);
+        assertThat(e.getConstraintViolations())
+                .extracting(ConstraintViolation::getMessage)
+                .containsExactly(INVALID_FROM_MESSAGE);
     }
 
     @Test
     void should_reject_a_changed_from_with_two_addresses_with_the_dedicated_message() {
-        var e = catchThrowableOfType(ConstraintViolationException.class, () ->
-            cut.validateChanges(email("a@example.com, b@example.com"), email("noreply@example.com"), NOTHING_SKIPPED)
-        );
+        var e = catchThrowableOfType(
+                ConstraintViolationException.class,
+                () -> cut.validateChanges(
+                        email("a@example.com, b@example.com"), email("noreply@example.com"), NOTHING_SKIPPED));
 
         assertThat(e.getConstraintViolations())
-            .extracting(ConstraintViolation::getMessage)
-            .containsExactly("must be a single sender address");
+                .extracting(ConstraintViolation::getMessage)
+                .containsExactly("must be a single sender address");
     }
 
     @Test
     void should_accept_a_changed_valid_from() {
-        assertThatCode(() ->
-            cut.validateChanges(email("Example <noreply@example.com>"), email("noreply@example.com"), NOTHING_SKIPPED)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> cut.validateChanges(
+                        email("Example <noreply@example.com>"), email("noreply@example.com"), NOTHING_SKIPPED))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_not_check_unchanged_branded_senders_when_only_the_from_changed() {
-        List<BrandedSenderConfig> legacy = List.of(brandedSender("legacy.example.com", "Legacy, Inc <noreply@example.com>"));
+        List<BrandedSenderConfig> legacy =
+                List.of(brandedSender("legacy.example.com", "Legacy, Inc <noreply@example.com>"));
         Email submitted = email(legacy);
         submitted.setFrom("Example <noreply@example.com>");
 
-        assertThatCode(() -> cut.validateChanges(submitted, email(legacy), NOTHING_SKIPPED)).doesNotThrowAnyException();
+        assertThatCode(() -> cut.validateChanges(submitted, email(legacy), NOTHING_SKIPPED))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_not_check_a_skipped_from() {
-        assertThatCode(() ->
-            cut.validateChanges(email("\"user@my.domain\""), email("noreply@example.com"), key -> key == Key.EMAIL_FROM)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> cut.validateChanges(
+                        email("\"user@my.domain\""), email("noreply@example.com"), key -> key == Key.EMAIL_FROM))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_accept_an_unchanged_invalid_branded_sender_next_to_a_new_valid_one() {
         BrandedSenderConfig legacy = brandedSender("legacy.example.com", "Legacy, Inc <noreply@example.com>");
 
-        assertThatCode(() ->
-            cut.validateChanges(
-                email(List.of(legacy, brandedSender("example.org", "noreply@example.org"))),
-                email(List.of(legacy)),
-                NOTHING_SKIPPED
-            )
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> cut.validateChanges(
+                        email(List.of(legacy, brandedSender("example.org", "noreply@example.org"))),
+                        email(List.of(legacy)),
+                        NOTHING_SKIPPED))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_check_a_changed_branded_sender_as_a_whole_entry() {
         BrandedSenderConfig legacy = brandedSender("legacy.example.com", "Legacy, Inc <noreply@example.com>");
-        BrandedSenderConfig legacyWithExtraDomain = brandedSender(List.of("legacy.example.com", "other.example.com"), legacy.getFrom());
+        BrandedSenderConfig legacyWithExtraDomain =
+                brandedSender(List.of("legacy.example.com", "other.example.com"), legacy.getFrom());
 
-        var e = catchThrowableOfType(ConstraintViolationException.class, () ->
-            cut.validateChanges(email(List.of(legacyWithExtraDomain)), email(List.of(legacy)), NOTHING_SKIPPED)
-        );
+        var e = catchThrowableOfType(
+                ConstraintViolationException.class,
+                () -> cut.validateChanges(
+                        email(List.of(legacyWithExtraDomain)), email(List.of(legacy)), NOTHING_SKIPPED));
 
-        assertThat(e.getConstraintViolations()).extracting(ConstraintViolation::getMessage).containsExactly(INVALID_FROM_MESSAGE);
+        assertThat(e.getConstraintViolations())
+                .extracting(ConstraintViolation::getMessage)
+                .containsExactly(INVALID_FROM_MESSAGE);
     }
 
     @Test
     void should_reject_a_new_branded_sender_with_an_invalid_domain() {
-        var e = catchThrowableOfType(ConstraintViolationException.class, () ->
-            cut.validateChanges(email(List.of(brandedSender("not a domain", "noreply@example.org"))), email(List.of()), NOTHING_SKIPPED)
-        );
+        var e = catchThrowableOfType(
+                ConstraintViolationException.class,
+                () -> cut.validateChanges(
+                        email(List.of(brandedSender("not a domain", "noreply@example.org"))),
+                        email(List.of()),
+                        NOTHING_SKIPPED));
 
-        assertThat(e.getConstraintViolations()).extracting(ConstraintViolation::getMessage).contains("must be a valid domain name");
+        assertThat(e.getConstraintViolations())
+                .extracting(ConstraintViolation::getMessage)
+                .contains("must be a valid domain name");
     }
 
     @Test
     void should_not_check_skipped_branded_senders() {
-        assertThatCode(() ->
-            cut.validateChanges(
-                email(List.of(brandedSender("example.com", "Example, Inc <noreply@example.com>"))),
-                email(List.of()),
-                key -> key == Key.EMAIL_BRANDED_SENDERS
-            )
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> cut.validateChanges(
+                        email(List.of(brandedSender("example.com", "Example, Inc <noreply@example.com>"))),
+                        email(List.of()),
+                        key -> key == Key.EMAIL_BRANDED_SENDERS))
+                .doesNotThrowAnyException();
     }
 
     private static Email email(String from) {

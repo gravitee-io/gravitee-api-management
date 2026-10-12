@@ -44,42 +44,43 @@ class ImportSubscriptionCRDUseCaseTest {
 
     private static final String ORGANIZATION_ID = "org-id";
     private static final String ENVIRONMENT_ID = "env-id";
-    private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id");
+    private static final AuditInfo AUDIT_INFO =
+            AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-id");
     private static final String SUBSCRIPTION_ID = "subscription-id";
 
     private static final SubscriptionCRDSpec SPEC = SubscriptionCRDSpec.builder()
-        .id(SUBSCRIPTION_ID)
-        .referenceId("api-id")
-        .referenceType(SubscriptionReferenceType.API)
-        .applicationId("application-id")
-        .planId("plan-id")
-        .apiKeys(List.of(ApiKeyCRDSpec.builder().key("custom-key").build()))
-        .build();
+            .id(SUBSCRIPTION_ID)
+            .referenceId("api-id")
+            .referenceType(SubscriptionReferenceType.API)
+            .applicationId("application-id")
+            .planId("plan-id")
+            .apiKeys(List.of(ApiKeyCRDSpec.builder().key("custom-key").build()))
+            .build();
 
     private final SubscriptionCRDDomainService subscriptionCRDDomainService = mock(SubscriptionCRDDomainService.class);
-    private final ValidateSubscriptionCRDDomainService validateSubscriptionCRDDomainService = mock(
-        ValidateSubscriptionCRDDomainService.class
-    );
+    private final ValidateSubscriptionCRDDomainService validateSubscriptionCRDDomainService =
+            mock(ValidateSubscriptionCRDDomainService.class);
 
-    private final ImportSubscriptionCRDUseCase cut = new ImportSubscriptionCRDUseCase(
-        subscriptionCRDDomainService,
-        validateSubscriptionCRDDomainService
-    );
+    private final ImportSubscriptionCRDUseCase cut =
+            new ImportSubscriptionCRDUseCase(subscriptionCRDDomainService, validateSubscriptionCRDDomainService);
 
     @Test
     void should_import_with_sanitized_input() {
-        var sanitizedSpec = SPEC.toBuilder().apiKeys(List.of(ApiKeyCRDSpec.builder().key("another-custom-key").build())).build();
-        when(validateSubscriptionCRDDomainService.validateAndSanitize(any(ValidateSubscriptionCRDDomainService.Input.class))).thenReturn(
-            Validator.Result.ofValue(new ValidateSubscriptionCRDDomainService.Input(AUDIT_INFO, sanitizedSpec))
-        );
-        when(subscriptionCRDDomainService.createOrUpdate(AUDIT_INFO, sanitizedSpec)).thenReturn(
-            SubscriptionEntity.builder()
-                .id(SUBSCRIPTION_ID)
-                .status(SubscriptionEntity.Status.ACCEPTED)
-                .startingAt(ZonedDateTime.now())
-                .endingAt(ZonedDateTime.now().plusDays(30))
-                .build()
-        );
+        var sanitizedSpec = SPEC.toBuilder()
+                .apiKeys(List.of(
+                        ApiKeyCRDSpec.builder().key("another-custom-key").build()))
+                .build();
+        when(validateSubscriptionCRDDomainService.validateAndSanitize(
+                        any(ValidateSubscriptionCRDDomainService.Input.class)))
+                .thenReturn(Validator.Result.ofValue(
+                        new ValidateSubscriptionCRDDomainService.Input(AUDIT_INFO, sanitizedSpec)));
+        when(subscriptionCRDDomainService.createOrUpdate(AUDIT_INFO, sanitizedSpec))
+                .thenReturn(SubscriptionEntity.builder()
+                        .id(SUBSCRIPTION_ID)
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .startingAt(ZonedDateTime.now())
+                        .endingAt(ZonedDateTime.now().plusDays(30))
+                        .build());
 
         var output = cut.execute(new ImportSubscriptionCRDUseCase.Input(AUDIT_INFO, SPEC));
 
@@ -89,13 +90,14 @@ class ImportSubscriptionCRDUseCaseTest {
 
     @Test
     void should_reject_import_when_validation_contains_severe_errors() {
-        when(validateSubscriptionCRDDomainService.validateAndSanitize(any(ValidateSubscriptionCRDDomainService.Input.class))).thenReturn(
-            Validator.Result.ofErrors(List.of(Validator.Error.severe("apiKeys is only allowed for API_KEY plans")))
-        );
+        when(validateSubscriptionCRDDomainService.validateAndSanitize(
+                        any(ValidateSubscriptionCRDDomainService.Input.class)))
+                .thenReturn(Validator.Result.ofErrors(
+                        List.of(Validator.Error.severe("apiKeys is only allowed for API_KEY plans"))));
 
         assertThatThrownBy(() -> cut.execute(new ImportSubscriptionCRDUseCase.Input(AUDIT_INFO, SPEC)))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("Unable to import because of errors")
-            .hasMessageContaining("apiKeys is only allowed for API_KEY plans");
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("Unable to import because of errors")
+                .hasMessageContaining("apiKeys is only allowed for API_KEY plans");
     }
 }

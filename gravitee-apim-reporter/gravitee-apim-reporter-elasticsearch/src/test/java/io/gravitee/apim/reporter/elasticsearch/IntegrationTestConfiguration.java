@@ -53,7 +53,8 @@ public class IntegrationTestConfiguration {
     @Bean
     public ReporterConfiguration configuration(ElasticsearchContainer elasticSearchContainer) {
         ReporterConfiguration elasticConfiguration = new ReporterConfiguration();
-        elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://" + elasticSearchContainer.getHttpHostAddress())));
+        elasticConfiguration.setEndpoints(
+                Collections.singletonList(new Endpoint("http://" + elasticSearchContainer.getHttpHostAddress())));
         elasticConfiguration.setUsername("elastic");
         elasticConfiguration.setPassword(ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
         return elasticConfiguration;
@@ -66,9 +67,8 @@ public class IntegrationTestConfiguration {
 
     private static ElasticsearchContainer startContainer() {
         final String version = System.getProperty("elasticsearch.version", ELASTICSEARCH_DEFAULT_VERSION);
-        final ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer(
-            "docker.elastic.co/elasticsearch/elasticsearch:" + version
-        );
+        final ElasticsearchContainer elasticsearchContainer =
+                new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:" + version);
         elasticsearchContainer.withEnv("cluster.name", CLUSTER_NAME);
         // Left alone, the node sizes its heap at half the memory it can see — 3.7GB of the CI machine, for
         // the handful of documents these tests index.

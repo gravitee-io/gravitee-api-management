@@ -16,9 +16,6 @@
 package inmemory;
 
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
-import io.gravitee.apim.core.utils.CollectionUtils;
-import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.rest.api.service.ResourceService;
 import lombok.AllArgsConstructor;
 
 /**

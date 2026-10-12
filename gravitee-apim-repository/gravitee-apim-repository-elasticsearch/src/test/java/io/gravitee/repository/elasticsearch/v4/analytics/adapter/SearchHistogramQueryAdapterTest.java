@@ -51,7 +51,8 @@ class SearchHistogramQueryAdapterTest {
     public static final String STRING_QUERY_PTR = "/query/bool/filter/2/query_string/query";
     public static final String INTERVAL_PTR = "/aggregations/by_date/date_histogram/fixed_interval";
     public static final String FIELD_FIELD_PTR = "/aggregations/by_date/aggregations/by_status/terms/field";
-    public static final String AVG_FIELD_PTR = "/aggregations/by_date/aggregations/avg_gateway-response-time-ms/avg/field";
+    public static final String AVG_FIELD_PTR =
+            "/aggregations/by_date/aggregations/avg_gateway-response-time-ms/avg/field";
 
     private final SearchHistogramQueryAdapter cut = new SearchHistogramQueryAdapter();
 
@@ -61,12 +62,12 @@ class SearchHistogramQueryAdapterTest {
         @Test
         void should_generate_expected_histogram_query_json() throws JsonProcessingException {
             HistogramQuery query = new HistogramQuery(
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                new TimeRange(FROM, TO, INTERVAL),
-                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
-                Optional.empty(),
-                null
-            );
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(FROM, TO, INTERVAL),
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                            "status", AggregationType.FIELD)),
+                    Optional.empty(),
+                    null);
 
             String result = cut.adapt(query);
             ObjectMapper mapper = new ObjectMapper();
@@ -83,12 +84,12 @@ class SearchHistogramQueryAdapterTest {
         @Test
         void should_generate_expected_avg_aggregation_query_json() throws JsonProcessingException {
             HistogramQuery query = new HistogramQuery(
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                new TimeRange(FROM, TO, INTERVAL),
-                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG)),
-                Optional.empty(),
-                null
-            );
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(FROM, TO, INTERVAL),
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                            "gateway-response-time-ms", AggregationType.AVG)),
+                    Optional.empty(),
+                    null);
 
             String result = cut.adapt(query);
             ObjectMapper mapper = new ObjectMapper();
@@ -105,12 +106,12 @@ class SearchHistogramQueryAdapterTest {
         @Test
         void should_generate_expected_histogram_query_json_with_query_parameter() throws JsonProcessingException {
             HistogramQuery query = new HistogramQuery(
-                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
-                new TimeRange(FROM, TO, INTERVAL),
-                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
-                Optional.of("status:200 AND method:GET"),
-                null
-            );
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(FROM, TO, INTERVAL),
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                            "status", AggregationType.FIELD)),
+                    Optional.of("status:200 AND method:GET"),
+                    null);
 
             String result = cut.adapt(query);
             ObjectMapper mapper = new ObjectMapper();
@@ -168,21 +169,20 @@ class SearchHistogramQueryAdapterTest {
                 """;
             SearchResponse response = new SearchResponse();
             Aggregation byDateAgg = new Aggregation();
-            ArrayNode bucketsNode = (ArrayNode) mapper.readTree(json).get("aggregations").get("by_date").get("buckets");
+            ArrayNode bucketsNode = (ArrayNode)
+                    mapper.readTree(json).get("aggregations").get("by_date").get("buckets");
             List<JsonNode> buckets = new java.util.ArrayList<>();
             bucketsNode.forEach(buckets::add);
             byDateAgg.setBuckets(buckets);
             response.setAggregations(Map.of("by_date", byDateAgg));
 
-            cut.adapt(
-                new HistogramQuery(
+            cut.adapt(new HistogramQuery(
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     new TimeRange(FROM, TO, INTERVAL),
-                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                            "status", AggregationType.FIELD)),
                     Optional.empty(),
-                    null
-                )
-            );
+                    null));
 
             List<HistogramAggregate> result = cut.adaptResponse(response);
 
@@ -225,21 +225,20 @@ class SearchHistogramQueryAdapterTest {
                 """;
             SearchResponse response = new SearchResponse();
             Aggregation byDateAgg = new Aggregation();
-            ArrayNode bucketsNode = (ArrayNode) mapper.readTree(json).get("aggregations").get("by_date").get("buckets");
+            ArrayNode bucketsNode = (ArrayNode)
+                    mapper.readTree(json).get("aggregations").get("by_date").get("buckets");
             List<JsonNode> buckets = new java.util.ArrayList<>();
             bucketsNode.forEach(buckets::add);
             byDateAgg.setBuckets(buckets);
             response.setAggregations(Map.of("by_date", byDateAgg));
 
-            cut.adapt(
-                new HistogramQuery(
+            cut.adapt(new HistogramQuery(
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     new TimeRange(FROM, TO, INTERVAL),
-                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG)),
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                            "gateway-response-time-ms", AggregationType.AVG)),
                     Optional.empty(),
-                    null
-                )
-            );
+                    null));
 
             List<HistogramAggregate> result = cut.adaptResponse(response);
 

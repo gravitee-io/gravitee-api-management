@@ -24,14 +24,13 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public record TimeSeriesRequest(
-    TimeRange timeRange,
-    Long interval,
-    List<Filter> filters,
-    List<FacetMetricMeasuresRequest> metrics,
-    List<FacetSpec.Name> facets,
-    Integer limit,
-    List<NumberRange> ranges
-) {
+        TimeRange timeRange,
+        Long interval,
+        List<Filter> filters,
+        List<FacetMetricMeasuresRequest> metrics,
+        List<FacetSpec.Name> facets,
+        Integer limit,
+        List<NumberRange> ranges) {
     public TimeSeriesRequest(TimeRange timeRange, Long interval, List<Filter> filters) {
         this(timeRange, interval, filters, List.of(), List.of(), null, List.of());
     }

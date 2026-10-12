@@ -57,13 +57,13 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
         try {
             log.debug("Finding API Product by environmentId: {} and name: {}", environmentId, name);
 
-            return apiProductRepository.findByEnvironmentIdAndName(environmentId, name).map(ApiProductAdapter.INSTANCE::toModel);
+            return apiProductRepository
+                    .findByEnvironmentIdAndName(environmentId, name)
+                    .map(ApiProductAdapter.INSTANCE::toModel);
         } catch (TechnicalException ex) {
             String errorMessage = String.format(
-                "An error occurred while finding API Product by environmentId: %s and name: %s",
-                environmentId,
-                name
-            );
+                    "An error occurred while finding API Product by environmentId: %s and name: %s",
+                    environmentId, name);
             throw new TechnicalDomainException(errorMessage, ex);
         }
     }
@@ -73,11 +73,12 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
         try {
             log.debug("Finding all API Products for environment: {}", environmentId);
 
-            Set<io.gravitee.repository.management.model.ApiProduct> repoApiProducts = apiProductRepository.findByEnvironmentId(
-                environmentId
-            );
+            Set<io.gravitee.repository.management.model.ApiProduct> repoApiProducts =
+                    apiProductRepository.findByEnvironmentId(environmentId);
 
-            return repoApiProducts.stream().map(ApiProductAdapter.INSTANCE::toModel).collect(Collectors.toSet());
+            return repoApiProducts.stream()
+                    .map(ApiProductAdapter.INSTANCE::toModel)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to find API Products", e);
         }
@@ -90,12 +91,12 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
         }
         try {
             log.debug("Finding API Products for environment: {} and ids: {}", environmentId, ids);
-            Set<io.gravitee.repository.management.model.ApiProduct> repoApiProducts = apiProductRepository.findByIds(ids);
-            return repoApiProducts
-                .stream()
-                .filter(repoApiProduct -> environmentId.equals(repoApiProduct.getEnvironmentId()))
-                .map(ApiProductAdapter.INSTANCE::toModel)
-                .collect(Collectors.toSet());
+            Set<io.gravitee.repository.management.model.ApiProduct> repoApiProducts =
+                    apiProductRepository.findByIds(ids);
+            return repoApiProducts.stream()
+                    .filter(repoApiProduct -> environmentId.equals(repoApiProduct.getEnvironmentId()))
+                    .map(ApiProductAdapter.INSTANCE::toModel)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to find API Products by ids", e);
         }
@@ -109,10 +110,12 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
                 log.debug("apiProductId is null, returning empty");
                 return Optional.empty();
             }
-            Optional<io.gravitee.repository.management.model.ApiProduct> repoApiProduct = apiProductRepository.findById(apiProductId);
+            Optional<io.gravitee.repository.management.model.ApiProduct> repoApiProduct =
+                    apiProductRepository.findById(apiProductId);
             return repoApiProduct.map(ApiProductAdapter.INSTANCE::toModel);
         } catch (TechnicalException ex) {
-            String errorMessage = String.format("An error occurred while finding API Product by apiProductId: %s", apiProductId);
+            String errorMessage =
+                    String.format("An error occurred while finding API Product by apiProductId: %s", apiProductId);
             throw new TechnicalDomainException(errorMessage, ex);
         }
     }
@@ -120,13 +123,18 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
     @Override
     public ApiProduct findById(ExecutionContext executionContext, String apiProductId) {
         try {
-            Optional<io.gravitee.repository.management.model.ApiProduct> optApiProduct = apiProductRepository.findById(apiProductId);
+            Optional<io.gravitee.repository.management.model.ApiProduct> optApiProduct =
+                    apiProductRepository.findById(apiProductId);
             if (executionContext.hasEnvironmentId()) {
-                optApiProduct = optApiProduct.filter(result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
+                optApiProduct = optApiProduct.filter(
+                        result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
             }
-            return optApiProduct.map(ApiProductAdapter.INSTANCE::toModel).orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
+            return optApiProduct
+                    .map(ApiProductAdapter.INSTANCE::toModel)
+                    .orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find an API Product using its ID: " + apiProductId, ex);
+            throw new TechnicalManagementException(
+                    "An error occurs while trying to find an API Product using its ID: " + apiProductId, ex);
         }
     }
 
@@ -134,8 +142,11 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
     public Set<ApiProduct> findByApiId(String apiId) {
         try {
             log.debug("Finding all API Products containing API ID: {}", apiId);
-            Set<io.gravitee.repository.management.model.ApiProduct> repoApiProducts = apiProductRepository.findByApiId(apiId);
-            return repoApiProducts.stream().map(ApiProductAdapter.INSTANCE::toModel).collect(Collectors.toSet());
+            Set<io.gravitee.repository.management.model.ApiProduct> repoApiProducts =
+                    apiProductRepository.findByApiId(apiId);
+            return repoApiProducts.stream()
+                    .map(ApiProductAdapter.INSTANCE::toModel)
+                    .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to find API Products by API ID", e);
         }
@@ -148,15 +159,17 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
         }
         try {
             log.debug("Searching API Products by ids: {} and environmentId: {}", ids, environmentId);
-            var criteria = new ApiProductCriteria.Builder().ids(ids).environmentId(environmentId).build();
+            var criteria = new ApiProductCriteria.Builder()
+                    .ids(ids)
+                    .environmentId(environmentId)
+                    .build();
             var sortable = new SortableBuilder().field("name").setAsc(true).build();
 
-            Page<io.gravitee.repository.management.model.ApiProduct> page = apiProductRepository.search(
-                criteria,
-                sortable,
-                convert(pageable)
-            );
-            List<ApiProduct> content = page.getContent().stream().map(ApiProductAdapter.INSTANCE::toModel).toList();
+            Page<io.gravitee.repository.management.model.ApiProduct> page =
+                    apiProductRepository.search(criteria, sortable, convert(pageable));
+            List<ApiProduct> content = page.getContent().stream()
+                    .map(ApiProductAdapter.INSTANCE::toModel)
+                    .toList();
             return new Page<>(content, pageable.getPageNumber(), content.size(), page.getTotalElements());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to search API Products by ids", e);
@@ -170,12 +183,17 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
         }
         try {
             log.debug("Finding API Product ids in environment {} attached to groups {}", environmentId, groupIds);
-            ApiProductCriteria criteria = new ApiProductCriteria.Builder().environmentId(environmentId).groups(groupIds).build();
+            ApiProductCriteria criteria = new ApiProductCriteria.Builder()
+                    .environmentId(environmentId)
+                    .groups(groupIds)
+                    .build();
             Page<String> page = apiProductRepository.searchIds(
-                List.of(criteria),
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build(),
-                null
-            );
+                    List.of(criteria),
+                    new PageableBuilder()
+                            .pageNumber(0)
+                            .pageSize(Integer.MAX_VALUE)
+                            .build(),
+                    null);
             List<String> content = page.getContent();
             return content == null ? Set.of() : new HashSet<>(content);
         } catch (TechnicalException e) {
@@ -190,14 +208,17 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
         }
         try {
             log.debug("Finding API Products for API IDs: {}", apiIds);
-            Set<io.gravitee.repository.management.model.ApiProduct> repoProducts = apiProductRepository.findApiProductsByApiIds(apiIds);
+            Set<io.gravitee.repository.management.model.ApiProduct> repoProducts =
+                    apiProductRepository.findApiProductsByApiIds(apiIds);
             Map<String, Set<ApiProduct>> productsByApiId = new HashMap<>();
             for (io.gravitee.repository.management.model.ApiProduct repoProduct : repoProducts) {
                 ApiProduct product = ApiProductAdapter.INSTANCE.toModel(repoProduct);
                 if (repoProduct.getApiIds() != null) {
                     for (String apiId : repoProduct.getApiIds()) {
                         if (apiIds.contains(apiId)) {
-                            productsByApiId.computeIfAbsent(apiId, k -> new HashSet<>()).add(product);
+                            productsByApiId
+                                    .computeIfAbsent(apiId, k -> new HashSet<>())
+                                    .add(product);
                         }
                     }
                 }

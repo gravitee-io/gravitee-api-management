@@ -22,18 +22,18 @@ import java.util.UUID;
 public class ConnectionLogFixtures {
 
     private static final BaseConnectionLog.BaseConnectionLogBuilder<?, ?> BASE = BaseConnectionLog.builder()
-        .apiId("api-id")
-        .applicationId("app-id")
-        .planId("plan-id")
-        .clientIdentifier("client-identifier")
-        .status(200)
-        .method(HttpMethod.GET)
-        .transactionId("transaction-id")
-        .requestEnded(true)
-        .timestamp("2020-02-01T20:00:00.00Z")
-        .gatewayResponseTime(42)
-        .uri("/my-api")
-        .endpoint("https://my-api-example.com");
+            .apiId("api-id")
+            .applicationId("app-id")
+            .planId("plan-id")
+            .clientIdentifier("client-identifier")
+            .status(200)
+            .method(HttpMethod.GET)
+            .transactionId("transaction-id")
+            .requestEnded(true)
+            .timestamp("2020-02-01T20:00:00.00Z")
+            .gatewayResponseTime(42)
+            .uri("/my-api")
+            .endpoint("https://my-api-example.com");
 
     public ConnectionLogFixtures(String defaultApiId, String defaultApplicationId, String defaultPlanId) {
         BASE.apiId(defaultApiId).applicationId(defaultApplicationId).planId(defaultPlanId);

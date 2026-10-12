@@ -60,7 +60,10 @@ public class TcpSecuredBackendIntegrationTest {
 
         @Override
         protected void configureWireMock(WireMockConfiguration configuration) {
-            configuration.httpsPort(backendPort).keystorePath(ResourceUtils.toPath("certs/keystore01.jks")).keystorePassword("password");
+            configuration
+                    .httpsPort(backendPort)
+                    .keystorePath(ResourceUtils.toPath("certs/keystore01.jks"))
+                    .keystorePassword("password");
         }
 
         @Override
@@ -69,12 +72,14 @@ public class TcpSecuredBackendIntegrationTest {
                 throw new AssertionError("TCP api should only be v4 api");
             }
             final Api apiDefinition = (Api) reactableApi.getDefinition();
-            final Endpoint tcpEndpoint = apiDefinition.getEndpointGroups().getFirst().getEndpoints().getFirst();
+            final Endpoint tcpEndpoint =
+                    apiDefinition.getEndpointGroups().getFirst().getEndpoints().getFirst();
 
-            tcpEndpoint.setConfiguration(tcpEndpoint.getConfiguration().replace("\"secured\":false", "\"secured\":true"));
+            tcpEndpoint.setConfiguration(
+                    tcpEndpoint.getConfiguration().replace("\"secured\":false", "\"secured\":true"));
 
             tcpEndpoint.setSharedConfigurationOverride(
-                """
+                    """
                 {
                   "ssl": {
                               "trustAll": false,
@@ -85,30 +90,29 @@ public class TcpSecuredBackendIntegrationTest {
                               }
                             }
                             }
-                """.replace("<<path>>", ResourceUtils.toPath("certs/truststore01.jks"))
-            );
+                """.replace("<<path>>", ResourceUtils.toPath("certs/truststore01.jks")));
             updateEndpointsPort(apiDefinition, backendPort);
         }
 
         @Test
-        @DeployApi({ "/apis/v4/tcp/api.json" })
+        @DeployApi({"/apis/v4/tcp/api.json"})
         void should_call_secured_backend_via_tcp_proxy(HttpClient httpClient) {
             wiremock.stubFor(get("/test").willReturn(ok("backend response")));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(buffer -> {
-                    assertThat(buffer).hasToString("backend response");
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertValue(buffer -> {
+                        assertThat(buffer).hasToString("backend response");
+                        return true;
+                    })
+                    .assertNoErrors();
 
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/test")));
         }
@@ -123,12 +127,12 @@ public class TcpSecuredBackendIntegrationTest {
         @Override
         protected void configureWireMock(WireMockConfiguration configuration) {
             configuration
-                .httpsPort(backendPort)
-                .needClientAuth(true)
-                .keystorePath(ResourceUtils.toPath("certs/keystore01.jks"))
-                .keystorePassword("password")
-                .trustStorePath(ResourceUtils.toPath("certs/truststore01.jks"))
-                .trustStorePassword("password");
+                    .httpsPort(backendPort)
+                    .needClientAuth(true)
+                    .keystorePath(ResourceUtils.toPath("certs/keystore01.jks"))
+                    .keystorePassword("password")
+                    .trustStorePath(ResourceUtils.toPath("certs/truststore01.jks"))
+                    .trustStorePassword("password");
         }
 
         @Override
@@ -137,12 +141,13 @@ public class TcpSecuredBackendIntegrationTest {
                 throw new AssertionError("TCP api should only be v4 api");
             }
             final Api apiDefinition = (Api) reactableApi.getDefinition();
-            final Endpoint tcpEndpoint = apiDefinition.getEndpointGroups().getFirst().getEndpoints().getFirst();
+            final Endpoint tcpEndpoint =
+                    apiDefinition.getEndpointGroups().getFirst().getEndpoints().getFirst();
 
-            tcpEndpoint.setConfiguration(tcpEndpoint.getConfiguration().replace("\"secured\":false", "\"secured\":true"));
+            tcpEndpoint.setConfiguration(
+                    tcpEndpoint.getConfiguration().replace("\"secured\":false", "\"secured\":true"));
 
-            tcpEndpoint.setSharedConfigurationOverride(
-                """
+            tcpEndpoint.setSharedConfigurationOverride("""
                 {
                   "ssl": {
                               "trustAll": false,
@@ -157,30 +162,29 @@ public class TcpSecuredBackendIntegrationTest {
                               }
                             }
                             }
-                """
-            );
+                """);
             updateEndpointsPort(apiDefinition, backendPort);
         }
 
         @Test
-        @DeployApi({ "/apis/v4/tcp/api.json" })
+        @DeployApi({"/apis/v4/tcp/api.json"})
         void should_call_secured_backend_via_tcp_proxy(HttpClient httpClient) {
             wiremock.stubFor(get("/test").willReturn(ok("backend response")));
 
             httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(HttpClientRequest::rxSend)
-                .flatMap(response -> {
-                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                    return response.body();
-                })
-                .test()
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(buffer -> {
-                    assertThat(buffer).hasToString("backend response");
-                    return true;
-                })
-                .assertNoErrors();
+                    .rxRequest(HttpMethod.GET, "/test")
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(30, TimeUnit.SECONDS)
+                    .assertValue(buffer -> {
+                        assertThat(buffer).hasToString("backend response");
+                        return true;
+                    })
+                    .assertNoErrors();
 
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/test")));
         }
@@ -190,12 +194,14 @@ public class TcpSecuredBackendIntegrationTest {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-            entrypoints.putIfAbsent("tcp-proxy", EntrypointBuilder.build("tcp-proxy", TcpProxyEntrypointConnectorFactory.class));
+            entrypoints.putIfAbsent(
+                    "tcp-proxy", EntrypointBuilder.build("tcp-proxy", TcpProxyEntrypointConnectorFactory.class));
         }
 
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-            endpoints.putIfAbsent("tcp-proxy", EndpointBuilder.build("tcp-proxy", TcpProxyEndpointConnectorFactory.class));
+            endpoints.putIfAbsent(
+                    "tcp-proxy", EndpointBuilder.build("tcp-proxy", TcpProxyEndpointConnectorFactory.class));
         }
 
         @Override
@@ -208,18 +214,16 @@ public class TcpSecuredBackendIntegrationTest {
 
         @Override
         protected void configureHttpClient(
-            HttpClientOptions options,
-            PoolOptions poolOptions,
-            GatewayDynamicConfig.Config gatewayConfig,
-            ParameterContext parameterContext
-        ) {
-            options
-                .setDefaultHost("localhost")
-                .setDefaultPort(gatewayConfig.tcpPort())
-                .setForceSni(true)
-                .setSsl(true)
-                .setVerifyHost(false)
-                .setTrustAll(true);
+                HttpClientOptions options,
+                PoolOptions poolOptions,
+                GatewayDynamicConfig.Config gatewayConfig,
+                ParameterContext parameterContext) {
+            options.setDefaultHost("localhost")
+                    .setDefaultPort(gatewayConfig.tcpPort())
+                    .setForceSni(true)
+                    .setSsl(true)
+                    .setVerifyHost(false)
+                    .setTrustAll(true);
         }
     }
 }

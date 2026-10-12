@@ -38,7 +38,7 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
     public ObjectMapperResolver() {
         mapper = new GraviteeMapper();
 
-        //because Permissions are represented as char[]
+        // because Permissions are represented as char[]
         mapper.enable(SerializationFeature.WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS);
 
         // register filter provider
@@ -54,6 +54,7 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
 
     private void registerFilterProvider() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        mapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+        mapper.setFilterProvider(
+                new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
     }
 }

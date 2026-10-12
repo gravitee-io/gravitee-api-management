@@ -84,32 +84,26 @@ public class ApisResource_CreateApiFromSwaggerTest extends AbstractResourceTest 
         environmentEntity.setId(ENVIRONMENT_ID);
         environmentEntity.setOrganizationId(ORGANIZATION);
         when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environmentEntity);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID)).thenReturn(environmentEntity);
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID))
+                .thenReturn(environmentEntity);
 
-        parametersQueryService.initWith(
-            List.of(
-                new Parameter(
-                    Key.API_PRIMARY_OWNER_MODE.key(),
-                    ENVIRONMENT_ID,
-                    ParameterReferenceType.ENVIRONMENT,
-                    ApiPrimaryOwnerMode.USER.name()
-                )
-            )
-        );
+        parametersQueryService.initWith(List.of(new Parameter(
+                Key.API_PRIMARY_OWNER_MODE.key(),
+                ENVIRONMENT_ID,
+                ParameterReferenceType.ENVIRONMENT,
+                ApiPrimaryOwnerMode.USER.name())));
         userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_NAME).build()));
     }
 
     @Test
     public void should_not_import_when_no_definition_permission() {
         // Given
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_API,
-                ENVIRONMENT_ID,
-                RolePermissionAction.CREATE
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_API,
+                        ENVIRONMENT_ID,
+                        RolePermissionAction.CREATE))
+                .thenReturn(false);
 
         // When
         var response = rootTarget().request().post(null);
@@ -122,34 +116,41 @@ public class ApisResource_CreateApiFromSwaggerTest extends AbstractResourceTest 
     @SneakyThrows
     public void should_return_resources_in_response_on_success() {
         // Given
-        when(oaiDomainService.convert(any(), any(), any(), anyBoolean(), anyBoolean())).thenReturn(
-            ImportDefinition.builder()
-                .apiExport(
-                    ApiExport.builder()
-                        .definitionVersion(DefinitionVersion.V4)
-                        .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path("/path").build())).build()))
-                        .build()
-                )
-                .build()
-        );
+        when(oaiDomainService.convert(any(), any(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(ImportDefinition.builder()
+                        .apiExport(ApiExport.builder()
+                                .definitionVersion(DefinitionVersion.V4)
+                                .listeners(List.of(HttpListener.builder()
+                                        .paths(List.of(
+                                                Path.builder().path("/path").build()))
+                                        .build()))
+                                .build())
+                        .build());
 
-        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).configuration("{\"key\":\"value\"}").build();
+        var resource = Resource.builder()
+                .name("cache-resource")
+                .type("cache")
+                .enabled(true)
+                .configuration("{\"key\":\"value\"}")
+                .build();
         var baseApi = ApiFixtures.aProxyApiV4();
-        var createdApi = baseApi
-            .toBuilder()
-            .id("imported-api-id")
-            .environmentId(ENVIRONMENT_ID)
-            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
-            .build();
+        var createdApi = baseApi.toBuilder()
+                .id("imported-api-id")
+                .environmentId(ENVIRONMENT_ID)
+                .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder()
+                        .resources(List.of(resource))
+                        .build())
+                .build();
         var apiWithFlows = new ApiWithFlows(createdApi, List.of());
         when(createApiDomainService.create(any(), any(), any(), any(), any())).thenReturn(apiWithFlows);
 
-        var swagger = Resources.getResource("io/gravitee/rest/api/management/v2/rest/resource/api/openapi-withExtensions.json");
+        var swagger = Resources.getResource(
+                "io/gravitee/rest/api/management/v2/rest/resource/api/openapi-withExtensions.json");
 
         // When
         var response = rootTarget()
-            .request()
-            .post(Entity.json(new ImportSwaggerDescriptor().payload(Resources.toString(swagger, Charsets.UTF_8))));
+                .request()
+                .post(Entity.json(new ImportSwaggerDescriptor().payload(Resources.toString(swagger, Charsets.UTF_8))));
 
         // Then
         assertThat(response.getStatus()).isEqualTo(CREATED_201);
@@ -162,24 +163,26 @@ public class ApisResource_CreateApiFromSwaggerTest extends AbstractResourceTest 
     @SneakyThrows
     public void should_throw_invalid_paths_exception() {
         // Given
-        when(oaiDomainService.convert(any(), any(), any(), anyBoolean(), anyBoolean())).thenReturn(
-            ImportDefinition.builder()
-                .apiExport(
-                    ApiExport.builder()
-                        .definitionVersion(DefinitionVersion.V4)
-                        .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path("/path").build())).build()))
-                        .build()
-                )
-                .build()
-        );
-        when(createApiDomainService.create(any(), any(), any(), any(), any())).thenThrow(new InvalidPathsException("Invalid paths"));
+        when(oaiDomainService.convert(any(), any(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(ImportDefinition.builder()
+                        .apiExport(ApiExport.builder()
+                                .definitionVersion(DefinitionVersion.V4)
+                                .listeners(List.of(HttpListener.builder()
+                                        .paths(List.of(
+                                                Path.builder().path("/path").build()))
+                                        .build()))
+                                .build())
+                        .build());
+        when(createApiDomainService.create(any(), any(), any(), any(), any()))
+                .thenThrow(new InvalidPathsException("Invalid paths"));
 
-        var resource = Resources.getResource("io/gravitee/rest/api/management/v2/rest/resource/api/openapi-withExtensions.json");
+        var resource = Resources.getResource(
+                "io/gravitee/rest/api/management/v2/rest/resource/api/openapi-withExtensions.json");
 
         // When
         var response = rootTarget()
-            .request()
-            .post(Entity.json(new ImportSwaggerDescriptor().payload(Resources.toString(resource, Charsets.UTF_8))));
+                .request()
+                .post(Entity.json(new ImportSwaggerDescriptor().payload(Resources.toString(resource, Charsets.UTF_8))));
 
         // Then
         var error = response.readEntity(Error.class);

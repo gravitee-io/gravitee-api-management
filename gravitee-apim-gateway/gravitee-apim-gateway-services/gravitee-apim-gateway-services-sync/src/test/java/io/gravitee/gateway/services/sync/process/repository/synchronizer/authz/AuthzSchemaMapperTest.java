@@ -29,9 +29,7 @@ class AuthzSchemaMapperTest {
 
     @Test
     void toDeploy_yields_a_deployable_carrying_the_schema_source_and_targets() {
-        Event event = event(
-            "evt-1",
-            """
+        Event event = event("evt-1", """
             {
               "id": "doc-uuid-1",
               "name": "Fleet schema",
@@ -39,8 +37,7 @@ class AuthzSchemaMapperTest {
               "environmentId": "env-1",
               "targetPdpIds": ["stock@eu", "orders"]
             }
-            """
-        );
+            """);
         event.setUpdatedAt(new Date(1_700_000_000_000L));
 
         AuthzSchemaReactorDeployable d = mapper.toDeploy(event).blockingGet();
@@ -57,71 +54,46 @@ class AuthzSchemaMapperTest {
 
     @Test
     void toDeploy_falls_back_to_the_id_when_the_name_is_missing() {
-        AuthzSchemaReactorDeployable d = mapper
-            .toDeploy(
-                event(
-                    "evt-2",
-                    """
+        AuthzSchemaReactorDeployable d = mapper.toDeploy(event("evt-2", """
                     {"id": "doc-uuid-2", "environmentId": "env-1", "schemaText": "entity User;"}
-                    """
-                )
-            )
-            .blockingGet();
+                    """)).blockingGet();
 
         assertThat(d.name()).isEqualTo("doc-uuid-2");
     }
 
     @Test
     void toDeploy_skips_an_event_without_an_id() {
-        AuthzSchemaReactorDeployable d = mapper
-            .toDeploy(
-                event(
-                    "evt-3",
-                    """
+        AuthzSchemaReactorDeployable d = mapper.toDeploy(event("evt-3", """
                     {"schemaText": "entity User;"}
-                    """
-                )
-            )
-            .blockingGet();
+                    """)).blockingGet();
 
         assertThat(d).isNull();
     }
 
     @Test
     void toDeploy_skips_an_event_whose_schemaText_is_blank() {
-        AuthzSchemaReactorDeployable d = mapper
-            .toDeploy(
-                event(
-                    "evt-4",
-                    """
+        AuthzSchemaReactorDeployable d = mapper.toDeploy(event("evt-4", """
                     {"id": "doc-uuid-4", "schemaText": "   "}
-                    """
-                )
-            )
-            .blockingGet();
+                    """)).blockingGet();
 
-        assertThat(d).as("a blank document would flip the engine out of the no-schema state for nothing").isNull();
+        assertThat(d)
+                .as("a blank document would flip the engine out of the no-schema state for nothing")
+                .isNull();
     }
 
     @Test
     void toDeploy_skips_an_unparseable_payload_instead_of_failing_the_cycle() {
-        AuthzSchemaReactorDeployable d = mapper.toDeploy(event("evt-5", "{not json")).blockingGet();
+        AuthzSchemaReactorDeployable d =
+                mapper.toDeploy(event("evt-5", "{not json")).blockingGet();
 
         assertThat(d).isNull();
     }
 
     @Test
     void toUndeploy_needs_only_the_id_and_the_targets() {
-        AuthzSchemaReactorDeployable d = mapper
-            .toUndeploy(
-                event(
-                    "evt-6",
-                    """
+        AuthzSchemaReactorDeployable d = mapper.toUndeploy(event("evt-6", """
                     {"id": "doc-uuid-6", "environmentId": "env-1", "targetPdpIds": ["orders"]}
-                    """
-                )
-            )
-            .blockingGet();
+                    """)).blockingGet();
 
         assertThat(d).isNotNull();
         assertThat(d.docId()).isEqualTo("doc-uuid-6");
@@ -131,16 +103,9 @@ class AuthzSchemaMapperTest {
 
     @Test
     void toUndeploy_does_not_require_schemaText() {
-        AuthzSchemaReactorDeployable d = mapper
-            .toUndeploy(
-                event(
-                    "evt-7",
-                    """
+        AuthzSchemaReactorDeployable d = mapper.toUndeploy(event("evt-7", """
                     {"id": "doc-uuid-7", "environmentId": "env-1"}
-                    """
-                )
-            )
-            .blockingGet();
+                    """)).blockingGet();
 
         assertThat(d).isNotNull();
         assertThat(d.docId()).isEqualTo("doc-uuid-7");
@@ -150,64 +115,38 @@ class AuthzSchemaMapperTest {
     void toDeploy_skips_an_event_without_an_environmentId() {
         // Without it AuthzHostedScopes#serves looks up "null:<base>", matches nothing, and the document is
         // dropped further downstream with no trace at all. AuthzPdpMapper guards the same field.
-        AuthzSchemaReactorDeployable d = mapper
-            .toDeploy(
-                event(
-                    "evt-no-env",
-                    """
+        AuthzSchemaReactorDeployable d =
+                mapper.toDeploy(event("evt-no-env", """
                     {"id": "doc-uuid-10", "schemaText": "entity User;", "targetPdpIds": ["orders"]}
-                    """
-                )
-            )
-            .blockingGet();
+                    """)).blockingGet();
 
         assertThat(d).isNull();
     }
 
     @Test
     void toUndeploy_skips_an_event_without_an_environmentId() {
-        AuthzSchemaReactorDeployable d = mapper
-            .toUndeploy(
-                event(
-                    "evt-no-env-undeploy",
-                    """
+        AuthzSchemaReactorDeployable d =
+                mapper.toUndeploy(event("evt-no-env-undeploy", """
                     {"id": "doc-uuid-11", "targetPdpIds": ["orders"]}
-                    """
-                )
-            )
-            .blockingGet();
+                    """)).blockingGet();
 
         assertThat(d).isNull();
     }
 
     @Test
     void toUndeploy_skips_an_event_without_an_id() {
-        AuthzSchemaReactorDeployable d = mapper
-            .toUndeploy(
-                event(
-                    "evt-8",
-                    """
+        AuthzSchemaReactorDeployable d = mapper.toUndeploy(event("evt-8", """
                     {"name": "orphan"}
-                    """
-                )
-            )
-            .blockingGet();
+                    """)).blockingGet();
 
         assertThat(d).isNull();
     }
 
     @Test
     void an_absent_target_set_maps_to_empty_not_null() {
-        AuthzSchemaReactorDeployable d = mapper
-            .toDeploy(
-                event(
-                    "evt-9",
-                    """
+        AuthzSchemaReactorDeployable d = mapper.toDeploy(event("evt-9", """
                     {"id": "doc-uuid-9", "environmentId": "env-1", "schemaText": "entity User;"}
-                    """
-                )
-            )
-            .blockingGet();
+                    """)).blockingGet();
 
         assertThat(d.targetPdpIds()).isNotNull().isEmpty();
     }

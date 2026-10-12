@@ -31,16 +31,18 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AncestorValidationTest {
 
-    private static final PortalNavigationItemId FIRST_FOLDER_ID = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000201");
-    private static final PortalNavigationItemId SECOND_FOLDER_ID = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000202");
+    private static final PortalNavigationItemId FIRST_FOLDER_ID =
+            PortalNavigationItemId.of("00000000-0000-0000-0000-000000000201");
+    private static final PortalNavigationItemId SECOND_FOLDER_ID =
+            PortalNavigationItemId.of("00000000-0000-0000-0000-000000000202");
 
     @Test
     void should_reject_cycle_when_checking_api_ancestors() {
         var context = cyclicContext();
 
         assertThatThrownBy(() -> ApiAncestorValidation.ensureNoApiInAncestors(FIRST_FOLDER_ID, context))
-            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-            .hasMessage("Cyclic dependency detected in parent hierarchy.");
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessage("Cyclic dependency detected in parent hierarchy.");
     }
 
     @Test
@@ -48,29 +50,28 @@ class AncestorValidationTest {
         var context = cyclicContext();
 
         assertThatThrownBy(() -> ApiProductAncestorValidation.findApiProductId(FIRST_FOLDER_ID, context))
-            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-            .hasMessage("Cyclic dependency detected in parent hierarchy.");
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessage("Cyclic dependency detected in parent hierarchy.");
     }
 
     private static CreateValidationContext cyclicContext() {
         var firstFolder = folder(FIRST_FOLDER_ID, SECOND_FOLDER_ID);
         var secondFolder = folder(SECOND_FOLDER_ID, FIRST_FOLDER_ID);
         return new CreateValidationContext(
-            List.of(),
-            Map.of(),
-            Map.of(firstFolder.getId(), firstFolder, secondFolder.getId(), secondFolder),
-            Map.of(),
-            List.of()
-        );
+                List.of(),
+                Map.of(),
+                Map.of(firstFolder.getId(), firstFolder, secondFolder.getId(), secondFolder),
+                Map.of(),
+                List.of());
     }
 
     private static CreatePortalNavigationItem folder(PortalNavigationItemId id, PortalNavigationItemId parentId) {
         return CreatePortalNavigationItem.builder()
-            .id(id)
-            .type(PortalNavigationItemType.FOLDER)
-            .title("Folder")
-            .area(PortalArea.TOP_NAVBAR)
-            .parentId(parentId)
-            .build();
+                .id(id)
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(parentId)
+                .build();
     }
 }

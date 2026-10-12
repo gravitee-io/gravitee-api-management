@@ -84,7 +84,8 @@ public class ShutdownProcessorTest {
         when(node.lifecycleState()).thenReturn(Lifecycle.State.STOPPING);
         when(request.version()).thenReturn(HttpVersion.HTTP_1_0);
 
-        cut.handler(context -> verify(headers).set(io.vertx.core.http.HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE));
+        cut.handler(context ->
+                verify(headers).set(io.vertx.core.http.HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE));
         cut.handle(context);
     }
 
@@ -93,7 +94,8 @@ public class ShutdownProcessorTest {
         when(node.lifecycleState()).thenReturn(Lifecycle.State.STOPPING);
         when(request.version()).thenReturn(HttpVersion.HTTP_1_1);
 
-        cut.handler(context -> verify(headers).set(io.vertx.core.http.HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE));
+        cut.handler(context ->
+                verify(headers).set(io.vertx.core.http.HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE));
         cut.handle(context);
     }
 
@@ -102,7 +104,8 @@ public class ShutdownProcessorTest {
         when(node.lifecycleState()).thenReturn(Lifecycle.State.STOPPING);
         when(request.version()).thenReturn(HttpVersion.HTTP_2);
 
-        cut.handler(context -> verify(headers).set(io.vertx.core.http.HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_GO_AWAY));
+        cut.handler(context ->
+                verify(headers).set(io.vertx.core.http.HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_GO_AWAY));
         cut.handle(context);
     }
 }

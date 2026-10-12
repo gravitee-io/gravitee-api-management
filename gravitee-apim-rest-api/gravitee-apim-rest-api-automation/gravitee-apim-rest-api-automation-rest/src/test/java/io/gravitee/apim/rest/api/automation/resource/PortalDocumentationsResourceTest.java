@@ -58,7 +58,8 @@ class PortalDocumentationsResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/portals/" + PORTAL_HRID + "/documentations";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/portals/" + PORTAL_HRID
+                + "/documentations";
     }
 
     @Nested
@@ -66,22 +67,18 @@ class PortalDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_populated_state_when_validation_passes() {
-            when(validatePortalDocumentationUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalDocumentationUseCase.Output(
-                    PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"),
-                    List.of()
-                )
-            );
+            when(validatePortalDocumentationUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalDocumentationUseCase.Output(
+                            PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"), List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-documentation.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-documentation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                verify(validatePortalDocumentationUseCase).execute(any(CreateOrUpdatePortalDocumentationUseCase.Input.class));
+                verify(validatePortalDocumentationUseCase)
+                        .execute(any(CreateOrUpdatePortalDocumentationUseCase.Input.class));
                 verifyNoInteractions(createOrUpdatePortalDocumentationUseCase);
 
                 var state = response.readEntity(DocumentationState.class);
@@ -104,20 +101,16 @@ class PortalDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_with_errors_when_validation_fails() {
-            when(validatePortalDocumentationUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalDocumentationUseCase.Output(
-                    PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"),
-                    List.of(Validator.Error.severe("location must start with '/'"))
-                )
-            );
+            when(validatePortalDocumentationUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalDocumentationUseCase.Output(
+                            PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"),
+                            List.of(Validator.Error.severe("location must start with '/'"))));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-documentation.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-documentation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verifyNoInteractions(createOrUpdatePortalDocumentationUseCase);
 
@@ -130,13 +123,11 @@ class PortalDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_hrid_is_missing() {
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .queryParam("dryRun", true)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("invalid-portal-documentation.json")))
-            ) {
+                    .put(Entity.json(readJSON("invalid-portal-documentation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(validatePortalDocumentationUseCase);
                 verifyNoInteractions(createOrUpdatePortalDocumentationUseCase);
@@ -149,21 +140,17 @@ class PortalDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_or_update_portal_documentation() {
-            when(createOrUpdatePortalDocumentationUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalDocumentationUseCase.Output(
-                    PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"),
-                    List.of()
-                )
-            );
+            when(createOrUpdatePortalDocumentationUseCase.execute(any()))
+                    .thenReturn(new CreateOrUpdatePortalDocumentationUseCase.Output(
+                            PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1"), List.of()));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-documentation.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-documentation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                verify(createOrUpdatePortalDocumentationUseCase).execute(any(CreateOrUpdatePortalDocumentationUseCase.Input.class));
+                verify(createOrUpdatePortalDocumentationUseCase)
+                        .execute(any(CreateOrUpdatePortalDocumentationUseCase.Input.class));
 
                 var state = response.readEntity(DocumentationState.class);
                 SoftAssertions.assertSoftly(soft -> {
@@ -177,16 +164,13 @@ class PortalDocumentationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_validation_severe_error_raised() {
-            when(createOrUpdatePortalDocumentationUseCase.execute(any())).thenThrow(
-                new ValidationDomainException("location must start with '/'")
-            );
+            when(createOrUpdatePortalDocumentationUseCase.execute(any()))
+                    .thenThrow(new ValidationDomainException("location must start with '/'"));
 
-            try (
-                var response = rootTarget()
+            try (var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("portal-documentation.json")))
-            ) {
+                    .put(Entity.json(readJSON("portal-documentation.json")))) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
         }

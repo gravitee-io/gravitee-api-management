@@ -26,9 +26,8 @@ import java.util.List;
 public record MetricQueryDto(String name, List<String> measures, List<FilterConditionDto> filters) {
     public AnalyticsMetricQuery toCore() {
         return new AnalyticsMetricQuery(
-            name,
-            measures != null ? measures : List.of(),
-            RequestEntries.map(filters, "metrics[].filters", FilterConditionDto::toCore)
-        );
+                name,
+                measures != null ? measures : List.of(),
+                RequestEntries.map(filters, "metrics[].filters", FilterConditionDto::toCore));
     }
 }

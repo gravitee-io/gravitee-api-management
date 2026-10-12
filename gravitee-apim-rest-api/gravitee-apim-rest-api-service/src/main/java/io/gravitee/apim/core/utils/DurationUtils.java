@@ -28,27 +28,26 @@ public class DurationUtils {
     public static Duration buildIntervalFromTimePeriod(Instant from, Instant to) {
         Duration duration = Duration.between(from, to);
         return INTERVAL.stream()
-            .filter(id -> id.dataDuration().compareTo(duration) <= 0)
-            .max(Comparator.comparing(IntervalData::dataDuration))
-            .map(IntervalData::interval)
-            .orElse(Duration.ofDays(1));
+                .filter(id -> id.dataDuration().compareTo(duration) <= 0)
+                .max(Comparator.comparing(IntervalData::dataDuration))
+                .map(IntervalData::interval)
+                .orElse(Duration.ofDays(1));
     }
 
     private static final Collection<IntervalData> INTERVAL = List.of(
-        new IntervalData(Duration.ofMinutes(1), Duration.ofSeconds(1)),
-        new IntervalData(Duration.ofMinutes(5), Duration.ofSeconds(10)),
-        new IntervalData(Duration.ofMinutes(30), Duration.ofSeconds(15)),
-        new IntervalData(Duration.ofHours(1), Duration.ofSeconds(30)),
-        new IntervalData(Duration.ofHours(3), Duration.ofMinutes(1)),
-        new IntervalData(Duration.ofHours(6), Duration.ofMinutes(2)),
-        new IntervalData(Duration.ofHours(12), Duration.ofMinutes(5)),
-        new IntervalData(Duration.ofDays(1), Duration.ofMinutes(10)),
-        new IntervalData(Duration.ofDays(3), Duration.ofMinutes(30)),
-        new IntervalData(Duration.ofDays(7), Duration.ofHours(1)),
-        new IntervalData(Duration.ofDays(14), Duration.ofHours(3)),
-        new IntervalData(Duration.ofDays(30), Duration.ofHours(6)),
-        new IntervalData(Duration.ofDays(90), Duration.ofHours(12))
-    );
+            new IntervalData(Duration.ofMinutes(1), Duration.ofSeconds(1)),
+            new IntervalData(Duration.ofMinutes(5), Duration.ofSeconds(10)),
+            new IntervalData(Duration.ofMinutes(30), Duration.ofSeconds(15)),
+            new IntervalData(Duration.ofHours(1), Duration.ofSeconds(30)),
+            new IntervalData(Duration.ofHours(3), Duration.ofMinutes(1)),
+            new IntervalData(Duration.ofHours(6), Duration.ofMinutes(2)),
+            new IntervalData(Duration.ofHours(12), Duration.ofMinutes(5)),
+            new IntervalData(Duration.ofDays(1), Duration.ofMinutes(10)),
+            new IntervalData(Duration.ofDays(3), Duration.ofMinutes(30)),
+            new IntervalData(Duration.ofDays(7), Duration.ofHours(1)),
+            new IntervalData(Duration.ofDays(14), Duration.ofHours(3)),
+            new IntervalData(Duration.ofDays(30), Duration.ofHours(6)),
+            new IntervalData(Duration.ofDays(90), Duration.ofHours(12)));
 
     private record IntervalData(Duration dataDuration, Duration interval) {}
 }

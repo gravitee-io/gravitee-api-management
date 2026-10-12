@@ -20,47 +20,49 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.time.Duration;
 
-public class MessageSamplingSettingsValidator implements ConstraintValidator<ValidMessageSamplingSettings, MessageSampling> {
+public class MessageSamplingSettingsValidator
+        implements ConstraintValidator<ValidMessageSamplingSettings, MessageSampling> {
 
     @Override
     public boolean isValid(MessageSampling messageSampling, ConstraintValidatorContext constraintValidatorContext) {
         final boolean validCountSettings = validateCountSettings(messageSampling, constraintValidatorContext);
-        final boolean validProbabilisticSettings = validateProbabilisticSettings(messageSampling, constraintValidatorContext);
+        final boolean validProbabilisticSettings =
+                validateProbabilisticSettings(messageSampling, constraintValidatorContext);
         final boolean validTemporalSettings = validateTemporalSettings(messageSampling, constraintValidatorContext);
-        final boolean validWindowedCountSettings = validateWindowedCountSettings(messageSampling, constraintValidatorContext);
+        final boolean validWindowedCountSettings =
+                validateWindowedCountSettings(messageSampling, constraintValidatorContext);
 
         return validCountSettings && validProbabilisticSettings && validTemporalSettings && validWindowedCountSettings;
     }
 
-    private static boolean validateCountSettings(MessageSampling messageSampling, ConstraintValidatorContext constraintValidatorContext) {
+    private static boolean validateCountSettings(
+            MessageSampling messageSampling, ConstraintValidatorContext constraintValidatorContext) {
         final MessageSampling.Count count = messageSampling.getCount();
         if (count.getDefaultValue() < count.getLimit()) {
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate("Invalid count default value, 'default' should be greater than 'limit'")
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate(
+                            "Invalid count default value, 'default' should be greater than 'limit'")
+                    .addConstraintViolation();
             return false;
         }
         return true;
     }
 
     private static boolean validateProbabilisticSettings(
-        MessageSampling messageSampling,
-        ConstraintValidatorContext constraintValidatorContext
-    ) {
+            MessageSampling messageSampling, ConstraintValidatorContext constraintValidatorContext) {
         final MessageSampling.Probabilistic probabilistic = messageSampling.getProbabilistic();
         if (probabilistic.getDefaultValue() > probabilistic.getLimit()) {
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate("Invalid probabilistic default value, 'default' should be lower than 'limit'")
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate(
+                            "Invalid probabilistic default value, 'default' should be lower than 'limit'")
+                    .addConstraintViolation();
             return false;
         }
         return true;
     }
 
     private static boolean validateTemporalSettings(
-        MessageSampling messageSampling,
-        ConstraintValidatorContext constraintValidatorContext
-    ) {
+            MessageSampling messageSampling, ConstraintValidatorContext constraintValidatorContext) {
         final MessageSampling.Temporal temporal = messageSampling.getTemporal();
 
         boolean hasValidationConstraint = false;
@@ -71,30 +73,36 @@ public class MessageSamplingSettingsValidator implements ConstraintValidator<Val
             defaultDuration = Duration.parse(temporal.getDefaultValue());
         } catch (Exception e) {
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate("Invalid temporal default value, 'default' should be a valid ISO-8601 date")
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate(
+                            "Invalid temporal default value, 'default' should be a valid ISO-8601 date")
+                    .addConstraintViolation();
             hasValidationConstraint = true;
         }
         try {
             limitDuration = Duration.parse(temporal.getLimit());
         } catch (Exception e) {
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate("Invalid temporal limit value, 'limit' should be a valid ISO-8601 date")
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate(
+                            "Invalid temporal limit value, 'limit' should be a valid ISO-8601 date")
+                    .addConstraintViolation();
             hasValidationConstraint = true;
         }
 
-        if (defaultDuration != null && limitDuration != null && defaultDuration.getSeconds() < limitDuration.getSeconds()) {
+        if (defaultDuration != null
+                && limitDuration != null
+                && defaultDuration.getSeconds() < limitDuration.getSeconds()) {
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate("Invalid temporal default value, 'default' should be greater than 'limit'")
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate(
+                            "Invalid temporal default value, 'default' should be greater than 'limit'")
+                    .addConstraintViolation();
             hasValidationConstraint = true;
         }
 
         return !hasValidationConstraint;
     }
 
-    private boolean validateWindowedCountSettings(MessageSampling messageSampling, ConstraintValidatorContext constraintValidatorContext) {
+    private boolean validateWindowedCountSettings(
+            MessageSampling messageSampling, ConstraintValidatorContext constraintValidatorContext) {
         MessageSampling.WindowedCount windowedCount = messageSampling.getWindowedCount();
         boolean hasValidationConstraint = false;
         Sampling.WindowedCount defaultValue = null;
@@ -103,15 +111,16 @@ public class MessageSamplingSettingsValidator implements ConstraintValidator<Val
             defaultValue = Sampling.parseWindowedCount(windowedCount.getDefaultValue());
         } catch (Exception e) {
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate("Invalid windowed count 'default' value: cannot parse")
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate("Invalid windowed count 'default' value: cannot parse")
+                    .addConstraintViolation();
             hasValidationConstraint = true;
         }
 
         if (defaultValue != null && defaultValue.count() < 0) {
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate("Invalid windowed count 'default' value: count must be positive")
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate(
+                            "Invalid windowed count 'default' value: count must be positive")
+                    .addConstraintViolation();
             hasValidationConstraint = true;
         }
 
@@ -119,25 +128,25 @@ public class MessageSamplingSettingsValidator implements ConstraintValidator<Val
             limit = Sampling.parseWindowedCount(windowedCount.getLimit());
         } catch (Exception e) {
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate("Invalid windowed count 'limit' value: cannot parse")
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate("Invalid windowed count 'limit' value: cannot parse")
+                    .addConstraintViolation();
             hasValidationConstraint = true;
         }
 
         if (limit != null && limit.count() < 0) {
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate("Invalid windowed count 'limit' value: count must be positive")
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate(
+                            "Invalid windowed count 'limit' value: count must be positive")
+                    .addConstraintViolation();
             // if this one fails, the next will always fail useless to continue
             return false;
         }
 
         if (defaultValue != null && limit != null && defaultValue.ratePerSeconds() > limit.ratePerSeconds()) {
             constraintValidatorContext
-                .buildConstraintViolationWithTemplate(
-                    "Invalid windowed count default value, 'default' should have a lower rate than 'limit'"
-                )
-                .addConstraintViolation();
+                    .buildConstraintViolationWithTemplate(
+                            "Invalid windowed count default value, 'default' should have a lower rate than 'limit'")
+                    .addConstraintViolation();
             hasValidationConstraint = true;
         }
 

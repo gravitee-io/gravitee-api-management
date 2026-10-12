@@ -71,7 +71,10 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     public void setUp() {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -93,23 +96,24 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
         portalNavigationItemsQueryService.initWith(items);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
-        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", true).request().get();
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR)
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         // Then
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).hasSize(13));
+                .hasStatus(OK_200)
+                .asEntity(PortalNavigationItemsResponse.class)
+                .satisfies(entity -> assertThat(entity.getItems()).hasSize(13));
     }
 
     @Test
@@ -117,30 +121,27 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         var apiProduct = PortalNavigationItemFixtures.anApiProduct();
         apiProduct.markAsRoot();
         var apiChild = PortalNavigationItemFixtures.anApi(
-            "00000000-0000-0000-0000-000000000020",
-            "Product API",
-            apiProduct.getId(),
-            "api-1"
-        );
+                "00000000-0000-0000-0000-000000000020", "Product API", apiProduct.getId(), "api-1");
         apiChild.updateParent(apiProduct);
         apiProduct.setEnvironmentId(ENVIRONMENT);
         apiChild.setEnvironmentId(ENVIRONMENT);
         portalNavigationItemsQueryService.initWith(java.util.List.of(apiProduct, apiChild));
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
-        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", true).request().get();
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR)
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).hasSize(2));
+                .hasStatus(OK_200)
+                .asEntity(PortalNavigationItemsResponse.class)
+                .satisfies(entity -> assertThat(entity.getItems()).hasSize(2));
     }
 
     @Test
@@ -150,28 +151,25 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         allItems.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
         portalNavigationItemsQueryService.initWith(allItems);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
-        Response response = target
-            .queryParam("area", PortalArea.TOP_NAVBAR)
-            .queryParam("parentId", PortalNavigationItemFixtures.APIS_ID)
-            .queryParam("loadChildren", false)
-            .request()
-            .get();
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR)
+                .queryParam("parentId", PortalNavigationItemFixtures.APIS_ID)
+                .queryParam("loadChildren", false)
+                .request()
+                .get();
 
         // Then
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).hasSize(4));
+                .hasStatus(OK_200)
+                .asEntity(PortalNavigationItemsResponse.class)
+                .satisfies(entity -> assertThat(entity.getItems()).hasSize(4));
     }
 
     @Test
@@ -181,30 +179,30 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
         portalNavigationItemsQueryService.initWith(items);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
-        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", false).request().get();
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR)
+                .queryParam("loadChildren", false)
+                .request()
+                .get();
 
         // Then
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> {
-                // Should only return top-level items (parentId == null)
-                var topLevelItems = items
-                    .stream()
-                    .filter(item -> item.getParentId() == null)
-                    .toList();
-                assertThat(entity.getItems()).hasSize(topLevelItems.size());
-            });
+                .hasStatus(OK_200)
+                .asEntity(PortalNavigationItemsResponse.class)
+                .satisfies(entity -> {
+                    // Should only return top-level items (parentId == null)
+                    var topLevelItems = items.stream()
+                            .filter(item -> item.getParentId() == null)
+                            .toList();
+                    assertThat(entity.getItems()).hasSize(topLevelItems.size());
+                });
     }
 
     @Test
@@ -214,44 +212,40 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
         portalNavigationItemsQueryService.initWith(items);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
-        Response response = target
-            .queryParam("area", PortalArea.TOP_NAVBAR)
-            .queryParam("parentId", PortalNavigationItemFixtures.APIS_ID)
-            .queryParam("loadChildren", true)
-            .request()
-            .get();
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR)
+                .queryParam("parentId", PortalNavigationItemFixtures.APIS_ID)
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         // Then
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).hasSize(9));
+                .hasStatus(OK_200)
+                .asEntity(PortalNavigationItemsResponse.class)
+                .satisfies(entity -> assertThat(entity.getItems()).hasSize(9));
     }
 
     @Test
     void should_not_return_portal_navigation_items_when_no_permission() {
         // Given
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(false);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(false);
 
         // When
-        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR).request().get();
+        Response response =
+                target.queryParam("area", PortalArea.TOP_NAVBAR).request().get();
 
         // Then
         assertThat(response).hasStatus(FORBIDDEN_403);
@@ -264,23 +258,21 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
         portalNavigationItemsQueryService.initWith(items);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
         Response response = target.queryParam("loadChildren", true).request().get();
 
         // Then
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).isNotEmpty());
+                .hasStatus(OK_200)
+                .asEntity(PortalNavigationItemsResponse.class)
+                .satisfies(entity -> assertThat(entity.getItems()).isNotEmpty());
     }
 
     @Test
@@ -290,39 +282,41 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         items.forEach(item -> item.setEnvironmentId(ENVIRONMENT));
         portalNavigationItemsQueryService.initWith(items);
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
-        Response response = target.queryParam("area", "TOP_NAVBAR").queryParam("loadChildren", true).request().get();
+        Response response = target.queryParam("area", "TOP_NAVBAR")
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         // Then
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).isNotEmpty());
+                .hasStatus(OK_200)
+                .asEntity(PortalNavigationItemsResponse.class)
+                .satisfies(entity -> assertThat(entity.getItems()).isNotEmpty());
     }
 
     @Test
     void should_return_400_when_invalid_area_is_provided() {
         // Given
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
-        Response response = target.queryParam("area", "invalidArea").queryParam("loadChildren", true).request().get();
+        Response response = target.queryParam("area", "invalidArea")
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         // Then
         assertThat(response).hasStatus(400);
@@ -330,77 +324,82 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         Map<String, Object> body = response.readEntity(new GenericType<>() {});
 
         assertThat(body)
-            .containsKey("message")
-            .extractingByKey("message")
-            .asString()
-            .contains("Invalid value")
-            .contains("invalidArea")
-            .contains("area");
+                .containsKey("message")
+                .extractingByKey("message")
+                .asString()
+                .contains("Invalid value")
+                .contains("invalidArea")
+                .contains("area");
     }
 
     @Test
     void should_not_include_apis_metadata_by_default() {
         // Given
-        var apiNavItem = PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-000000000030", "API 1", null, "api-1");
+        var apiNavItem =
+                PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-000000000030", "API 1", null, "api-1");
         apiNavItem.setEnvironmentId(ENVIRONMENT);
         portalNavigationItemsQueryService.initWith(java.util.List.of(apiNavItem));
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
-        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", true).request().get();
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR)
+                .queryParam("loadChildren", true)
+                .request()
+                .get();
 
         // Then
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getMetadata()).isNull());
+                .hasStatus(OK_200)
+                .asEntity(PortalNavigationItemsResponse.class)
+                .satisfies(entity -> assertThat(entity.getMetadata()).isNull());
     }
 
     @Test
     void should_include_apis_metadata_when_includes_apis_is_requested() {
         // Given
-        var api = fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENVIRONMENT).build();
-        var apiNavItem = PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-000000000030", "API 1", null, api.getId());
+        var api = fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder()
+                .environmentId(ENVIRONMENT)
+                .build();
+        var apiNavItem =
+                PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-000000000030", "API 1", null, api.getId());
         apiNavItem.setEnvironmentId(ENVIRONMENT);
         portalNavigationItemsQueryService.initWith(java.util.List.of(apiNavItem));
         apiPortalSearchQueryService.initWith(java.util.List.of(api));
 
-        when(
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_DOCUMENTATION,
-                ENVIRONMENT,
-                RolePermissionAction.READ
-            )
-        ).thenReturn(true);
+        when(permissionService.hasPermission(
+                        GraviteeContext.getExecutionContext(),
+                        RolePermission.ENVIRONMENT_DOCUMENTATION,
+                        ENVIRONMENT,
+                        RolePermissionAction.READ))
+                .thenReturn(true);
 
         // When
-        Response response = target
-            .queryParam("area", PortalArea.TOP_NAVBAR)
-            .queryParam("loadChildren", true)
-            .queryParam("includes", "apis")
-            .request()
-            .get();
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR)
+                .queryParam("loadChildren", true)
+                .queryParam("includes", "apis")
+                .request()
+                .get();
 
         // Then
         assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> {
-                assertThat(entity.getMetadata()).isNotNull();
-                assertThat(entity.getMetadata().getApis()).containsKey(apiNavItem.getId().toString());
-                var summary = entity.getMetadata().getApis().get(apiNavItem.getId().toString());
-                assertThat(summary.getId()).isEqualTo(api.getId());
-                assertThat(summary.getName()).isEqualTo(api.getName());
-                assertThat(summary.getContextPath()).isEqualTo("/http_proxy");
-            });
+                .hasStatus(OK_200)
+                .asEntity(PortalNavigationItemsResponse.class)
+                .satisfies(entity -> {
+                    assertThat(entity.getMetadata()).isNotNull();
+                    assertThat(entity.getMetadata().getApis())
+                            .containsKey(apiNavItem.getId().toString());
+                    var summary = entity.getMetadata()
+                            .getApis()
+                            .get(apiNavItem.getId().toString());
+                    assertThat(summary.getId()).isEqualTo(api.getId());
+                    assertThat(summary.getName()).isEqualTo(api.getName());
+                    assertThat(summary.getContextPath()).isEqualTo("/http_proxy");
+                });
     }
 }

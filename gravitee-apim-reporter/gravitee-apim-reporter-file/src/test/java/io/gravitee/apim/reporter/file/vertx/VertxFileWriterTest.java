@@ -54,7 +54,8 @@ class VertxFileWriterTest {
     @BeforeEach
     void setup() {
         when(configuration.getFilename()).thenReturn("/metrics/%s-yyyy_mm_dd");
-        vertxFileWriter = new VertxFileWriter<>(mock(Vertx.class), MetricsType.REQUEST, mock(Formatter.class), "filename", configuration);
+        vertxFileWriter = new VertxFileWriter<>(
+                mock(Vertx.class), MetricsType.REQUEST, mock(Formatter.class), "filename", configuration);
     }
 
     @Test
@@ -62,7 +63,9 @@ class VertxFileWriterTest {
         when(configuration.getRetainDays()).thenReturn(10L);
 
         long currentTimeMs = NOW.toInstant(ZONE).toEpochMilli();
-        when(file.lastModified()).thenReturn(NOW.toInstant(ZONE).minus(10, DAYS).minus(1, SECONDS).toEpochMilli());
+        when(file.lastModified())
+                .thenReturn(
+                        NOW.toInstant(ZONE).minus(10, DAYS).minus(1, SECONDS).toEpochMilli());
 
         assertThat(vertxFileWriter.shouldDeleteFile(file, currentTimeMs)).isTrue();
     }
@@ -72,7 +75,8 @@ class VertxFileWriterTest {
         when(configuration.getRetainDays()).thenReturn(10L);
 
         long currentTimeMs = NOW.toInstant(ZONE).toEpochMilli();
-        when(file.lastModified()).thenReturn(NOW.toInstant(ZONE).minus(10, DAYS).plus(1, SECONDS).toEpochMilli());
+        when(file.lastModified())
+                .thenReturn(NOW.toInstant(ZONE).minus(10, DAYS).plus(1, SECONDS).toEpochMilli());
 
         assertThat(vertxFileWriter.shouldDeleteFile(file, currentTimeMs)).isFalse();
     }

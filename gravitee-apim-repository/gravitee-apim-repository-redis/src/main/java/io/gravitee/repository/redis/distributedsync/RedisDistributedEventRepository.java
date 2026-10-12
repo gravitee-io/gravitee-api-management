@@ -100,20 +100,22 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
 
     public RedisDistributedEventRepository(final RedisClient redisClient) {
         this.redisClient = redisClient;
-        this.redisClient.redisApi()
-            .flatMap(redisAPI -> redisAPI.ftCreate(buildSearchIndex()))
-            .onFailure(throwable -> {
-                if (!"Index already exists".equals(throwable.getMessage())) {
-                    log.error("Unable to create distributed-event index", throwable);
-                }
-            });
+        this.redisClient
+                .redisApi()
+                .flatMap(redisAPI -> redisAPI.ftCreate(buildSearchIndex()))
+                .onFailure(throwable -> {
+                    if (!"Index already exists".equals(throwable.getMessage())) {
+                        log.error("Unable to create distributed-event index", throwable);
+                    }
+                });
     }
 
     @Override
-    public Flowable<DistributedEvent> search(final DistributedEventCriteria criteria, final Long page, final Long size) {
+    public Flowable<DistributedEvent> search(
+            final DistributedEventCriteria criteria, final Long page, final Long size) {
         return send(redisAPI -> redisAPI.ftSearch(buildSearchArgs(criteria, page, size)))
-            .filter(response -> response.type() == ResponseType.MULTI)
-            .flattenStreamAsFlowable(this::mapSearchResults);
+                .filter(response -> response.type() == ResponseType.MULTI)
+                .flattenStreamAsFlowable(this::mapSearchResults);
     }
 
     /**
@@ -129,24 +131,24 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     public Flowable<DistributedEvent> searchAll(final DistributedEventCriteria criteria, final long batchSize) {
         return Flowable.defer(() -> {
             AtomicLong cursorId = new AtomicLong(NO_CURSOR);
-            return send(redisAPI ->
-                cursorId.get() == NO_CURSOR
-                    ? redisAPI.ftAggregate(buildAggregateArgs(criteria, batchSize))
-                    : redisAPI.ftCursor(List.of("READ", REDIS_INDEX_NAME, String.valueOf(cursorId.get())))
-            )
-                .flattenStreamAsFlowable(response -> {
-                    // A cursor response is a 2-element array: the search results and the next cursor id (0 when exhausted)
-                    cursorId.set(response.get(1).toLong());
-                    return mapSearchResults(response.get(0));
-                })
-                .repeatUntil(() -> cursorId.get() == 0)
-                .doFinally(() -> closeCursor(cursorId.get()));
+            return send(redisAPI -> cursorId.get() == NO_CURSOR
+                            ? redisAPI.ftAggregate(buildAggregateArgs(criteria, batchSize))
+                            : redisAPI.ftCursor(List.of("READ", REDIS_INDEX_NAME, String.valueOf(cursorId.get()))))
+                    .flattenStreamAsFlowable(response -> {
+                        // A cursor response is a 2-element array: the search results and the next cursor id (0 when
+                        // exhausted)
+                        cursorId.set(response.get(1).toLong());
+                        return mapSearchResults(response.get(0));
+                    })
+                    .repeatUntil(() -> cursorId.get() == 0)
+                    .doFinally(() -> closeCursor(cursorId.get()));
         });
     }
 
     @Override
     public Completable createOrUpdate(final DistributedEvent distributedEvent) {
-        if (distributedEvent.getClusterId() == null || distributedEvent.getClusterId().isBlank()) {
+        if (distributedEvent.getClusterId() == null
+                || distributedEvent.getClusterId().isBlank()) {
             return Completable.error(new IllegalArgumentException(CLUSTER_ID_REQUIRED_MESSAGE));
         }
         return createOrUpdateKey(buildEventKey(distributedEvent), distributedEvent);
@@ -154,33 +156,38 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
 
     @Override
     public Completable updateAll(
-        final String clusterId,
-        final DistributedEventType refType,
-        final String refId,
-        final DistributedSyncAction syncAction,
-        final Date updatedAt
-    ) {
+            final String clusterId,
+            final DistributedEventType refType,
+            final String refId,
+            final DistributedSyncAction syncAction,
+            final Date updatedAt) {
         if (clusterId == null || clusterId.isBlank()) {
             return Completable.error(new IllegalArgumentException(CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE));
         }
-        String matchingKey = REDIS_KEY_PREFIX + clusterId + REDIS_KEY_SEPARATOR + refType.name() + REDIS_KEY_SEPARATOR + refId + "*";
+        String matchingKey =
+                REDIS_KEY_PREFIX + clusterId + REDIS_KEY_SEPARATOR + refType.name() + REDIS_KEY_SEPARATOR + refId + "*";
         return Completable.defer(() -> {
             // SCAN cursors are unsigned 64-bit values
             AtomicLong cursor = new AtomicLong(0);
-            return send(redisAPI -> redisAPI.scan(List.of(String.valueOf(cursor.get()), "MATCH", matchingKey, "COUNT", SCAN_BATCH_SIZE)))
-                .filter(response -> response.type() == ResponseType.MULTI)
-                .flattenStreamAsFlowable(response -> {
-                    cursor.set(response.get(0).toLong());
-                    Response keys = response.get(1);
-                    return keys.stream();
-                })
-                .map(Response::toString)
-                .repeatUntil(() -> cursor.get() == 0)
-                .flatMapCompletable(
-                    key -> createOrUpdateKey(key, DistributedEvent.builder().syncAction(syncAction).updatedAt(updatedAt).build()),
-                    false,
-                    UPDATE_MAX_CONCURRENCY
-                );
+            return send(redisAPI -> redisAPI.scan(
+                            List.of(String.valueOf(cursor.get()), "MATCH", matchingKey, "COUNT", SCAN_BATCH_SIZE)))
+                    .filter(response -> response.type() == ResponseType.MULTI)
+                    .flattenStreamAsFlowable(response -> {
+                        cursor.set(response.get(0).toLong());
+                        Response keys = response.get(1);
+                        return keys.stream();
+                    })
+                    .map(Response::toString)
+                    .repeatUntil(() -> cursor.get() == 0)
+                    .flatMapCompletable(
+                            key -> createOrUpdateKey(
+                                    key,
+                                    DistributedEvent.builder()
+                                            .syncAction(syncAction)
+                                            .updatedAt(updatedAt)
+                                            .build()),
+                            false,
+                            UPDATE_MAX_CONCURRENCY);
         });
     }
 
@@ -189,8 +196,7 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         // caller — createOrUpdate or updateAll — or the deployer parallelism), back-pressuring instead of
         // overflowing the Redis waiting queue. The retry runs inside the permit, and the per-attempt timeout
         // guarantees a permit is never held indefinitely.
-        return writeGate.runGated(
-            send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent)))
+        return writeGate.runGated(send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent)))
                 .ignoreElement()
                 // Bound each attempt: a half-open connection can leave a command unresolved forever, which —
                 // since the permit is shared and process-wide — would pin a permit and eventually stall ALL
@@ -204,22 +210,20 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                 // this runs off the Vert.x context — so it only reconnects on genuine connection-drop errors.
                 .doOnError(throwable -> {
                     redisClient.notifyConnectionFailure(throwable);
-                    log.debug("Distributed event write attempt failed (will retry if recoverable): {}", throwable.toString());
+                    log.debug(
+                            "Distributed event write attempt failed (will retry if recoverable): {}",
+                            throwable.toString());
                 })
                 // Heal a short Redis blip within the sync cycle: retry recoverable write failures with an
                 // exponential backoff, then surface the last error so the sync window is replayed. HSET is
                 // idempotent, so retrying is safe. Uses the shared RxHelper policy rather than a bespoke one.
-                .retryWhen(
-                    RxHelper.retryExponentialBackoff(
+                .retryWhen(RxHelper.retryExponentialBackoff(
                         WRITE_RETRY_INITIAL_BACKOFF_MS,
                         WRITE_RETRY_MAX_BACKOFF_MS,
                         TimeUnit.MILLISECONDS,
                         2,
                         WRITE_RETRY_MAX_ATTEMPTS,
-                        RedisDistributedEventRepository::isRetryableWriteFailure
-                    )
-                )
-        );
+                        RedisDistributedEventRepository::isRetryableWriteFailure)));
     }
 
     /**
@@ -241,12 +245,10 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             final String message = current.getMessage();
             if (message != null) {
                 final String normalized = message.toLowerCase(Locale.ROOT);
-                if (
-                    normalized.contains("timeout") ||
-                    normalized.contains("closed") ||
-                    normalized.contains("connection is not available") ||
-                    normalized.contains("waiting queue is full")
-                ) {
+                if (normalized.contains("timeout")
+                        || normalized.contains("closed")
+                        || normalized.contains("connection is not available")
+                        || normalized.contains("waiting queue is full")) {
                     return true;
                 }
             }
@@ -255,35 +257,34 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     }
 
     private Single<Response> send(final Function<RedisAPI, Future<Response>> command) {
-        return Single.defer(() -> Single.fromCompletionStage(redisClient.redisApi().flatMap(command).toCompletionStage()));
+        return Single.defer(() -> Single.fromCompletionStage(
+                redisClient.redisApi().flatMap(command).toCompletionStage()));
     }
 
     private Stream<DistributedEvent> mapSearchResults(final Response searchResults) {
-        return getSearchResults(searchResults)
-            .stream()
-            .filter(item -> item.type() == ResponseType.MULTI)
-            .map(this::mapSearchResponse);
+        return getSearchResults(searchResults).stream()
+                .filter(item -> item.type() == ResponseType.MULTI)
+                .map(this::mapSearchResponse);
     }
 
     private List<String> buildSearchIndex() {
         return List.of(
-            REDIS_INDEX_NAME,
-            "ON",
-            "HASH",
-            "PREFIX",
-            "1",
-            REDIS_KEY_PREFIX,
-            "SCHEMA",
-            DistributedEvent.Fields.clusterId,
-            "TAG",
-            DistributedEvent.Fields.type,
-            "TAG",
-            DistributedEvent.Fields.syncAction,
-            "TAG",
-            DistributedEvent.Fields.updatedAt,
-            "NUMERIC",
-            "SORTABLE"
-        );
+                REDIS_INDEX_NAME,
+                "ON",
+                "HASH",
+                "PREFIX",
+                "1",
+                REDIS_KEY_PREFIX,
+                "SCHEMA",
+                DistributedEvent.Fields.clusterId,
+                "TAG",
+                DistributedEvent.Fields.type,
+                "TAG",
+                DistributedEvent.Fields.syncAction,
+                "TAG",
+                DistributedEvent.Fields.updatedAt,
+                "NUMERIC",
+                "SORTABLE");
     }
 
     private List<String> buildSearchArgs(DistributedEventCriteria criteria, Long page, Long size) {
@@ -305,27 +306,27 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
 
     private List<String> buildAggregateArgs(final DistributedEventCriteria criteria, final long batchSize) {
         return List.of(
-            REDIS_INDEX_NAME,
-            buildSearchQuery(criteria),
-            "LOAD",
-            "5",
-            "@" + DistributedEvent.Fields.id,
-            "@" + DistributedEvent.Fields.payload,
-            "@" + DistributedEvent.Fields.type,
-            "@" + DistributedEvent.Fields.syncAction,
-            "@" + DistributedEvent.Fields.updatedAt,
-            "WITHCURSOR",
-            "COUNT",
-            String.valueOf(batchSize)
-        );
+                REDIS_INDEX_NAME,
+                buildSearchQuery(criteria),
+                "LOAD",
+                "5",
+                "@" + DistributedEvent.Fields.id,
+                "@" + DistributedEvent.Fields.payload,
+                "@" + DistributedEvent.Fields.type,
+                "@" + DistributedEvent.Fields.syncAction,
+                "@" + DistributedEvent.Fields.updatedAt,
+                "WITHCURSOR",
+                "COUNT",
+                String.valueOf(batchSize));
     }
 
     private void closeCursor(final long cursorId) {
         if (cursorId > 0) {
             redisClient
-                .redisApi()
-                .flatMap(redisAPI -> redisAPI.ftCursor(List.of("DEL", REDIS_INDEX_NAME, String.valueOf(cursorId))))
-                .onFailure(throwable -> log.debug("Unable to close distributed-event cursor {}", cursorId, throwable));
+                    .redisApi()
+                    .flatMap(redisAPI -> redisAPI.ftCursor(List.of("DEL", REDIS_INDEX_NAME, String.valueOf(cursorId))))
+                    .onFailure(
+                            throwable -> log.debug("Unable to close distributed-event cursor {}", cursorId, throwable));
         }
     }
 
@@ -336,29 +337,36 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
 
         var query = new StringBuilder();
         if (criteria.getClusterId() != null) {
-            query
-                .append("@")
-                .append(DistributedEvent.Fields.clusterId)
-                .append(":{")
-                .append(RediSearchTagValues.escapeTagValue(criteria.getClusterId()))
-                .append("}");
+            query.append("@")
+                    .append(DistributedEvent.Fields.clusterId)
+                    .append(":{")
+                    .append(RediSearchTagValues.escapeTagValue(criteria.getClusterId()))
+                    .append("}");
         }
 
         if (criteria.getType() != null) {
-            query.append("@" + DistributedEvent.Fields.type + ":{").append(criteria.getType()).append("}");
+            query.append("@" + DistributedEvent.Fields.type + ":{")
+                    .append(criteria.getType())
+                    .append("}");
         }
 
         if (criteria.getSyncActions() != null) {
             var syncActions = criteria.getSyncActions().stream().map(Enum::name).collect(Collectors.joining("|"));
-            query.append("@" + DistributedEvent.Fields.syncAction + ":{").append(syncActions).append("}");
+            query.append("@" + DistributedEvent.Fields.syncAction + ":{")
+                    .append(syncActions)
+                    .append("}");
         }
 
         if (criteria.getFrom() > 0) {
-            query.append("@" + DistributedEvent.Fields.updatedAt + ":[").append(criteria.getFrom()).append(" +inf]");
+            query.append("@" + DistributedEvent.Fields.updatedAt + ":[")
+                    .append(criteria.getFrom())
+                    .append(" +inf]");
         }
 
         if (criteria.getTo() > 0) {
-            query.append("@" + DistributedEvent.Fields.updatedAt + ":[-inf ").append(criteria.getTo()).append("]");
+            query.append("@" + DistributedEvent.Fields.updatedAt + ":[-inf ")
+                    .append(criteria.getTo())
+                    .append("]");
         }
 
         // If no criteria have been applied, retrieve all events
@@ -439,19 +447,17 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         var builder = new StringBuilder().append(REDIS_KEY_PREFIX).append(distributedEvent.getClusterId());
 
         if (distributedEvent.getRefId() != null && distributedEvent.getRefType() != null) {
-            builder
-                .append(REDIS_KEY_SEPARATOR)
-                .append(distributedEvent.getRefType().name())
-                .append(REDIS_KEY_SEPARATOR)
-                .append(distributedEvent.getRefId());
+            builder.append(REDIS_KEY_SEPARATOR)
+                    .append(distributedEvent.getRefType().name())
+                    .append(REDIS_KEY_SEPARATOR)
+                    .append(distributedEvent.getRefId());
         }
 
-        return builder
-            .append(REDIS_KEY_SEPARATOR)
-            .append(distributedEvent.getType().name())
-            .append(REDIS_KEY_SEPARATOR)
-            .append(distributedEvent.getId())
-            .toString();
+        return builder.append(REDIS_KEY_SEPARATOR)
+                .append(distributedEvent.getType().name())
+                .append(REDIS_KEY_SEPARATOR)
+                .append(distributedEvent.getId())
+                .toString();
     }
 
     /*
@@ -474,6 +480,7 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
      * property of the Response object
      */
     private Response getResultAttributes(Response response) {
-        return Optional.ofNullable(response.get(REDIS_RESPONSE_ATTRIBUTES_FIELD)).orElse(response);
+        return Optional.ofNullable(response.get(REDIS_RESPONSE_ATTRIBUTES_FIELD))
+                .orElse(response);
     }
 }

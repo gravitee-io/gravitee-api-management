@@ -20,7 +20,8 @@ import java.util.Date;
 
 @Schema(name = "ValidateCertificateResponse", description = "Result of validating a PEM-encoded client certificate")
 public record ValidateCertificateResponse(
-    @Schema(description = "Expiration date extracted from the certificate") Date certificateExpiration,
-    @Schema(description = "Subject of the certificate") String subject,
-    @Schema(description = "Issuer of the certificate") String issuer
-) {}
+        @Schema(description = "Expiration date extracted from the certificate")
+        Date certificateExpiration,
+
+        @Schema(description = "Subject of the certificate") String subject,
+        @Schema(description = "Issuer of the certificate") String issuer) {}

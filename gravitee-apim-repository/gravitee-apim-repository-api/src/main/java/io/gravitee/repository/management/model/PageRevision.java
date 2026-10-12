@@ -53,27 +53,24 @@ public class PageRevision {
 
     @Override
     public String toString() {
-        return (
-            "Page{" +
-            "pageId='" +
-            pageId +
-            '\'' +
-            ", revision=" +
-            revision +
-            ", name='" +
-            name +
-            '\'' +
-            ", content='" +
-            content +
-            '\'' +
-            ", hash='" +
-            hash +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", contributor=" +
-            contributor +
-            '}'
-        );
+        return ("Page{" + "pageId='"
+                + pageId
+                + '\''
+                + ", revision="
+                + revision
+                + ", name='"
+                + name
+                + '\''
+                + ", content='"
+                + content
+                + '\''
+                + ", hash='"
+                + hash
+                + '\''
+                + ", createdAt="
+                + createdAt
+                + ", contributor="
+                + contributor
+                + '}');
     }
 }

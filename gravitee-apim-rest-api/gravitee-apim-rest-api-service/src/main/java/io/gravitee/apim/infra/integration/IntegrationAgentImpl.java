@@ -62,16 +62,22 @@ public class IntegrationAgentImpl implements IntegrationAgent {
 
     private final Optional<ExchangeController> exchangeController;
 
-    public IntegrationAgentImpl(@Qualifier("integrationExchangeController") Optional<ExchangeController> exchangeController) {
+    public IntegrationAgentImpl(
+            @Qualifier("integrationExchangeController") Optional<ExchangeController> exchangeController) {
         this.exchangeController = exchangeController;
     }
 
     @Override
     public Single<Status> getAgentStatusFor(String integrationId) {
         return Maybe.fromOptional(exchangeController)
-            .flatMap(controller -> controller.channelsMetricsForTarget(integrationId).toList().toMaybe())
-            .map(metrics -> metrics != null && metrics.stream().anyMatch(ChannelMetric::active) ? Status.CONNECTED : Status.DISCONNECTED)
-            .switchIfEmpty(Single.just(Status.DISCONNECTED));
+                .flatMap(controller -> controller
+                        .channelsMetricsForTarget(integrationId)
+                        .toList()
+                        .toMaybe())
+                .map(metrics -> metrics != null && metrics.stream().anyMatch(ChannelMetric::active)
+                        ? Status.CONNECTED
+                        : Status.DISCONNECTED)
+                .switchIfEmpty(Single.just(Status.DISCONNECTED));
     }
 
     @Override
@@ -80,25 +86,24 @@ public class IntegrationAgentImpl implements IntegrationAgent {
 
         log.debug("Start ingestion for [integrationId={}]", integrationId);
         return sendStartIngestCommand(command, integrationId)
-            .flatMap(reply ->
-                reply.getCommandStatus() != CommandStatus.SUCCEEDED
-                    ? Single.error(new IntegrationIngestionException(reply.getErrorDetails()))
-                    : Single.just(new IngestStarted(ingestJobId, reply.getPayload().total()))
-            )
-            .doOnSuccess(started ->
-                log.debug("APIs ingestion for [integrationId={}] has started [total={}]", integrationId, started.total())
-            );
+                .flatMap(reply -> reply.getCommandStatus() != CommandStatus.SUCCEEDED
+                        ? Single.error(new IntegrationIngestionException(reply.getErrorDetails()))
+                        : Single.just(new IngestStarted(
+                                ingestJobId, reply.getPayload().total())))
+                .doOnSuccess(started -> log.debug(
+                        "APIs ingestion for [integrationId={}] has started [total={}]",
+                        integrationId,
+                        started.total()));
     }
 
     @Override
     public Single<IntegrationSubscription> subscribe(
-        String integrationId,
-        FederatedApi api,
-        SubscriptionParameter subscriptionParameter,
-        String subscriptionId,
-        BaseApplicationEntity application,
-        Map<String, String> providerMetadata
-    ) {
+            String integrationId,
+            FederatedApi api,
+            SubscriptionParameter subscriptionParameter,
+            String subscriptionId,
+            BaseApplicationEntity application,
+            Map<String, String> providerMetadata) {
         Map<String, String> metadata = api.getServer() != null ? new HashMap<>(api.getServer()) : new HashMap<>();
         metadata.putAll(providerMetadata);
         SubscriptionType type;
@@ -107,43 +112,41 @@ public class IntegrationAgentImpl implements IntegrationAgent {
             metadata.put(Subscription.METADATA_PLAN_ID, apiKeyParams.plan().getProviderId());
         } else if (subscriptionParameter instanceof SubscriptionParameter.OAuth oauthParams) {
             type = SubscriptionType.OAUTH;
-            metadata.putAll(
-                Map.of(
+            metadata.putAll(Map.of(
                     Subscription.METADATA_PLAN_ID,
                     oauthParams.plan().getProviderId(),
                     Subscription.METADATA_CONSUMER_KEY,
-                    oauthParams.clientId()
-                )
-            );
+                    oauthParams.clientId()));
         } else {
-            return Single.error(
-                new IntegrationIngestionException("Unsupported subscription type: " + subscriptionParameter.plan().getSecurity().getType())
-            );
+            return Single.error(new IntegrationIngestionException("Unsupported subscription type: "
+                    + subscriptionParameter.plan().getSecurity().getType()));
         }
         var payload = new SubscribeCommand.Payload(
-            api.getProviderId(),
-            Subscription.builder()
-                .graviteeSubscriptionId(subscriptionId)
-                .graviteeApplicationId(application.getId())
-                .graviteeApplicationName(application.getName())
-                .type(type)
-                .metadata(metadata)
-                .build()
-        );
+                api.getProviderId(),
+                Subscription.builder()
+                        .graviteeSubscriptionId(subscriptionId)
+                        .graviteeApplicationId(application.getId())
+                        .graviteeApplicationName(application.getName())
+                        .type(type)
+                        .metadata(metadata)
+                        .build());
 
-        return sendSubscribeCommand(new SubscribeCommand(payload), integrationId).flatMap(reply -> {
-            if (reply.getCommandStatus() == CommandStatus.ERROR) {
-                return Single.error(new IntegrationSubscriptionException(reply.getErrorDetails()));
-            }
-            var subscriptionResult = reply.getPayload().subscription();
-            return switch (payload.subscription().type()) {
-                case API_KEY -> Single.just(apiKey(integrationId, subscriptionResult.apiKey(), subscriptionResult.metadata()));
-                case OAUTH -> Single.just(oAuth(integrationId, subscriptionResult.metadata()));
-                default -> Single.error(
-                    new IntegrationSubscriptionException("Unsupported subscription type: " + payload.subscription().type())
-                );
-            };
-        });
+        return sendSubscribeCommand(new SubscribeCommand(payload), integrationId)
+                .flatMap(reply -> {
+                    if (reply.getCommandStatus() == CommandStatus.ERROR) {
+                        return Single.error(new IntegrationSubscriptionException(reply.getErrorDetails()));
+                    }
+                    var subscriptionResult = reply.getPayload().subscription();
+                    return switch (payload.subscription().type()) {
+                        case API_KEY ->
+                            Single.just(
+                                    apiKey(integrationId, subscriptionResult.apiKey(), subscriptionResult.metadata()));
+                        case OAUTH -> Single.just(oAuth(integrationId, subscriptionResult.metadata()));
+                        default ->
+                            Single.error(new IntegrationSubscriptionException("Unsupported subscription type: "
+                                    + payload.subscription().type()));
+                    };
+                });
     }
 
     @Override
@@ -160,15 +163,16 @@ public class IntegrationAgentImpl implements IntegrationAgent {
             metadata.putAll(subscription.getMetadata());
         }
         var payload = new UnsubscribeCommand.Payload(
-            api.getProviderId(),
-            Subscription.builder().graviteeSubscriptionId(subscription.getId()).metadata(metadata).build()
-        );
+                api.getProviderId(),
+                Subscription.builder()
+                        .graviteeSubscriptionId(subscription.getId())
+                        .metadata(metadata)
+                        .build());
 
-        return sendUnsubscribeCommand(new UnsubscribeCommand(payload), integrationId).flatMapCompletable(reply ->
-            reply.getCommandStatus() == CommandStatus.ERROR
-                ? Completable.error(new IntegrationSubscriptionException(reply.getErrorDetails()))
-                : Completable.complete()
-        );
+        return sendUnsubscribeCommand(new UnsubscribeCommand(payload), integrationId)
+                .flatMapCompletable(reply -> reply.getCommandStatus() == CommandStatus.ERROR
+                        ? Completable.error(new IntegrationSubscriptionException(reply.getErrorDetails()))
+                        : Completable.complete());
     }
 
     @Override
@@ -182,64 +186,55 @@ public class IntegrationAgentImpl implements IntegrationAgent {
             }
             boolean isPartialDiscovery = discoverReply.getPayload().isPartialDiscovery();
 
-            List<IntegrationApi> integrationApis = discoverReply
-                .getPayload()
-                .apis()
-                .stream()
-                .map(api -> IntegrationAdapter.INSTANCE.map(api, integrationId))
-                .toList();
+            List<IntegrationApi> integrationApis = discoverReply.getPayload().apis().stream()
+                    .map(api -> IntegrationAdapter.INSTANCE.map(api, integrationId))
+                    .toList();
 
             log.debug(
-                "Discovered APIs for [integrationId={}] total: [{}], partial discovery: [{}]",
-                integrationId,
-                integrationApis.size(),
-                isPartialDiscovery
-            );
+                    "Discovered APIs for [integrationId={}] total: [{}], partial discovery: [{}]",
+                    integrationId,
+                    integrationApis.size(),
+                    isPartialDiscovery);
             return Single.just(new DiscoveredApis(integrationApis, isPartialDiscovery));
         });
     }
 
-    private Single<StartIngestReply> sendStartIngestCommand(StartIngestCommand startIngestCommand, String integrationId) {
+    private Single<StartIngestReply> sendStartIngestCommand(
+            StartIngestCommand startIngestCommand, String integrationId) {
         return exchangeController
-            .map(controller ->
-                controller
-                    .sendCommand(startIngestCommand, integrationId)
-                    .cast(StartIngestReply.class)
-                    .onErrorReturn(throwable -> new StartIngestReply(startIngestCommand.getId(), throwable.getMessage()))
-            )
-            .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
+                .map(controller -> controller
+                        .sendCommand(startIngestCommand, integrationId)
+                        .cast(StartIngestReply.class)
+                        .onErrorReturn(
+                                throwable -> new StartIngestReply(startIngestCommand.getId(), throwable.getMessage())))
+                .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
     }
 
     private Single<SubscribeReply> sendSubscribeCommand(SubscribeCommand subscribeCommand, String integrationId) {
         return exchangeController
-            .map(controller ->
-                controller
-                    .sendCommand(subscribeCommand, integrationId)
-                    .cast(SubscribeReply.class)
-                    .onErrorReturn(throwable -> new SubscribeReply(subscribeCommand.getId(), throwable.getMessage()))
-            )
-            .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
+                .map(controller -> controller
+                        .sendCommand(subscribeCommand, integrationId)
+                        .cast(SubscribeReply.class)
+                        .onErrorReturn(
+                                throwable -> new SubscribeReply(subscribeCommand.getId(), throwable.getMessage())))
+                .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
     }
 
     private Single<UnsubscribeReply> sendUnsubscribeCommand(UnsubscribeCommand command, String integrationId) {
         return exchangeController
-            .map(controller ->
-                controller
-                    .sendCommand(command, integrationId)
-                    .cast(UnsubscribeReply.class)
-                    .onErrorReturn(throwable -> new UnsubscribeReply(command.getId(), throwable.getMessage()))
-            )
-            .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
+                .map(controller -> controller
+                        .sendCommand(command, integrationId)
+                        .cast(UnsubscribeReply.class)
+                        .onErrorReturn(throwable -> new UnsubscribeReply(command.getId(), throwable.getMessage())))
+                .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
     }
 
     private Single<DiscoverReply> sendDiscoverCommand(DiscoverCommand command, String integrationId) {
         return exchangeController
-            .map(controller ->
-                controller
-                    .sendCommand(command, integrationId)
-                    .cast(DiscoverReply.class)
-                    .onErrorReturn(throwable -> new DiscoverReply(command.getId(), throwable.getMessage()))
-            )
-            .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
+                .map(controller -> controller
+                        .sendCommand(command, integrationId)
+                        .cast(DiscoverReply.class)
+                        .onErrorReturn(throwable -> new DiscoverReply(command.getId(), throwable.getMessage())))
+                .orElse(Single.error(new TechnicalDomainException("Federation feature not enabled")));
     }
 }

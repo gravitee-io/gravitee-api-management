@@ -36,30 +36,34 @@ class SslOptionsMapperTest {
 
         @ParameterizedTest
         @ValueSource(
-            strings = {
-                "{ \"trustStore\": { \"type\": \"NONE\" } }",
-                "{ \"trustStore\": { \"type\": \"none\" } }",
-                "{ \"trustStore\": { \"type\": \"\" } }",
-            }
-        )
+                strings = {
+                    "{ \"trustStore\": { \"type\": \"NONE\" } }",
+                    "{ \"trustStore\": { \"type\": \"none\" } }",
+                    "{ \"trustStore\": { \"type\": \"\" } }",
+                })
         void should_deserialize_none_truststore(String json) throws JsonProcessingException {
             var result = mapper.readValue(json, SslOptions.class);
 
-            assertThat(result).isInstanceOf(SslOptions.class).extracting(SslOptions::getTrustStore).isInstanceOf(NoneTrustStore.class);
+            assertThat(result)
+                    .isInstanceOf(SslOptions.class)
+                    .extracting(SslOptions::getTrustStore)
+                    .isInstanceOf(NoneTrustStore.class);
         }
 
         @ParameterizedTest
         @ValueSource(
-            strings = {
-                "{ \"keyStore\": { \"type\": \"NONE\" } }",
-                "{ \"keyStore\": { \"type\": \"none\" } }",
-                "{ \"keyStore\": { \"type\": \"\" } }",
-            }
-        )
+                strings = {
+                    "{ \"keyStore\": { \"type\": \"NONE\" } }",
+                    "{ \"keyStore\": { \"type\": \"none\" } }",
+                    "{ \"keyStore\": { \"type\": \"\" } }",
+                })
         void should_deserialize_none_keystore(String json) throws JsonProcessingException {
             var result = mapper.readValue(json, SslOptions.class);
 
-            assertThat(result).isInstanceOf(SslOptions.class).extracting(SslOptions::getKeyStore).isInstanceOf(NoneKeyStore.class);
+            assertThat(result)
+                    .isInstanceOf(SslOptions.class)
+                    .extracting(SslOptions::getKeyStore)
+                    .isInstanceOf(NoneKeyStore.class);
         }
     }
 
@@ -73,7 +77,8 @@ class SslOptionsMapperTest {
 
             var result = mapper.writeValueAsString(sslOptions);
 
-            assertThatJson(result).isEqualTo("{\"hostnameVerifier\":true,\"trustAll\":false,\"trustStore\":{\"type\":\"NONE\"}}");
+            assertThatJson(result)
+                    .isEqualTo("{\"hostnameVerifier\":true,\"trustAll\":false,\"trustStore\":{\"type\":\"NONE\"}}");
         }
 
         @Test
@@ -83,7 +88,8 @@ class SslOptionsMapperTest {
 
             var result = mapper.writeValueAsString(sslOptions);
 
-            assertThatJson(result).isEqualTo("{\"hostnameVerifier\":true,\"trustAll\":false,\"keyStore\":{\"type\":\"NONE\"}}");
+            assertThatJson(result)
+                    .isEqualTo("{\"hostnameVerifier\":true,\"trustAll\":false,\"keyStore\":{\"type\":\"NONE\"}}");
         }
     }
 }

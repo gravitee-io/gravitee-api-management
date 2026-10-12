@@ -46,10 +46,9 @@ public interface ApplicationService {
     Set<ApplicationListItem> findByIds(final ExecutionContext executionContext, Collection<String> applicationIds);
 
     Set<ApplicationListItem> findByIdsAndStatus(
-        final ExecutionContext executionContext,
-        Collection<String> applicationIds,
-        ApplicationStatus applicationStatus
-    );
+            final ExecutionContext executionContext,
+            Collection<String> applicationIds,
+            ApplicationStatus applicationStatus);
 
     default Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username) {
         return findByUser(executionContext, username, null);
@@ -64,12 +63,11 @@ public interface ApplicationService {
     Set<String> findIdsByUser(final ExecutionContext executionContext, String username, Sortable sortable);
 
     Set<String> findIdsByUserAndPermission(
-        ExecutionContext executionContext,
-        String username,
-        Sortable sortable,
-        RolePermission rolePermission,
-        RolePermissionAction... acl
-    );
+            ExecutionContext executionContext,
+            String username,
+            Sortable sortable,
+            RolePermission rolePermission,
+            RolePermissionAction... acl);
 
     Set<String> findIdsByOrganization(String organizationId);
 
@@ -77,15 +75,20 @@ public interface ApplicationService {
 
     Set<ApplicationListItem> findByGroups(ExecutionContext executionContext, List<String> groupId);
 
-    Set<ApplicationListItem> findByGroupsAndStatus(ExecutionContext executionContext, List<String> groupId, String status);
+    Set<ApplicationListItem> findByGroupsAndStatus(
+            ExecutionContext executionContext, List<String> groupId, String status);
 
-    ApplicationEntity create(final ExecutionContext executionContext, NewApplicationEntity application, String username);
+    ApplicationEntity create(
+            final ExecutionContext executionContext, NewApplicationEntity application, String username);
 
-    ApplicationEntity update(final ExecutionContext executionContext, String applicationId, UpdateApplicationEntity application);
+    ApplicationEntity update(
+            final ExecutionContext executionContext, String applicationId, UpdateApplicationEntity application);
 
-    void syncClientCertificates(ExecutionContext executionContext, String applicationId, UpdateApplicationEntity application);
+    void syncClientCertificates(
+            ExecutionContext executionContext, String applicationId, UpdateApplicationEntity application);
 
-    ApplicationEntity updateApiKeyMode(final ExecutionContext executionContext, String applicationId, ApiKeyMode apiKeyMode);
+    ApplicationEntity updateApiKeyMode(
+            final ExecutionContext executionContext, String applicationId, ApiKeyMode apiKeyMode);
 
     ApplicationEntity renewClientSecret(final ExecutionContext executionContext, String applicationId);
 
@@ -100,13 +103,13 @@ public interface ApplicationService {
     Map<String, Object> findByIdAsMap(String id) throws TechnicalException;
 
     Page<ApplicationListItem> search(
-        final ExecutionContext executionContext,
-        ApplicationQuery applicationQuery,
-        Sortable sortable,
-        Pageable pageable
-    );
+            final ExecutionContext executionContext,
+            ApplicationQuery applicationQuery,
+            Sortable sortable,
+            Pageable pageable);
 
-    Set<String> searchIds(final ExecutionContext executionContext, ApplicationQuery applicationQuery, Sortable sortable);
+    Set<String> searchIds(
+            final ExecutionContext executionContext, ApplicationQuery applicationQuery, Sortable sortable);
 
     Set<String> findUserApplicationsIds(ExecutionContext executionContext, String username, ApplicationStatus status);
 }

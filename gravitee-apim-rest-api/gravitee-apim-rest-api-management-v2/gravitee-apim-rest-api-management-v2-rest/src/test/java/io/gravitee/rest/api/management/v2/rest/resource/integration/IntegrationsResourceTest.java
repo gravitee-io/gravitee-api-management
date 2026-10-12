@@ -99,7 +99,10 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
     public void init() throws TechnicalException {
         target = rootTarget();
 
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder()
+                .id(ENVIRONMENT)
+                .organizationId(ORGANIZATION)
+                .build();
         when(environmentService.findById(ENVIRONMENT)).thenReturn(environmentEntity);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environmentEntity);
 
@@ -108,11 +111,15 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
 
         roleQueryService.resetSystemRoles(ORGANIZATION);
         enableApiPrimaryOwnerMode(ENVIRONMENT, ApiPrimaryOwnerMode.USER);
-        givenExistingUsers(
-            List.of(BaseUserEntity.builder().id(USER_NAME).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
-        );
+        givenExistingUsers(List.of(BaseUserEntity.builder()
+                .id(USER_NAME)
+                .firstname("Jane")
+                .lastname("Doe")
+                .email("jane.doe@gravitee.io")
+                .build()));
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION))
+                .thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
@@ -128,92 +135,88 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_create_integration() {
-            //Given
+            // Given
             var createIntegration = new CreateIntegration()
-                .name(INTEGRATION_NAME)
-                .description(INTEGRATION_DESCRIPTION)
-                .provider(CREATED_INTEGRATION_PROVIDER);
+                    .name(INTEGRATION_NAME)
+                    .description(INTEGRATION_DESCRIPTION)
+                    .provider(CREATED_INTEGRATION_PROVIDER);
 
-            //When
+            // When
             Response response = target.request().post(Entity.json(createIntegration));
 
-            //Then
+            // Then
 
             assertThat(response)
-                .hasStatus(HttpStatusCode.CREATED_201)
-                .asEntity(Integration.class)
-                .isEqualTo(
-                    new Integration()
-                        .id(INTEGRATION_ID)
-                        .name(INTEGRATION_NAME)
-                        .description(INTEGRATION_DESCRIPTION)
-                        .provider(CREATED_INTEGRATION_PROVIDER)
-                );
+                    .hasStatus(HttpStatusCode.CREATED_201)
+                    .asEntity(Integration.class)
+                    .isEqualTo(new Integration()
+                            .id(INTEGRATION_ID)
+                            .name(INTEGRATION_NAME)
+                            .description(INTEGRATION_DESCRIPTION)
+                            .provider(CREATED_INTEGRATION_PROVIDER));
         }
 
         @Test
         void should_list_the_created_integration_under_the_entered_name() {
-            //Given
-            var createIntegration = new CreateIntegration().name(INTEGRATION_NAME).provider(CREATED_INTEGRATION_PROVIDER);
+            // Given
+            var createIntegration =
+                    new CreateIntegration().name(INTEGRATION_NAME).provider(CREATED_INTEGRATION_PROVIDER);
             target.request().post(Entity.json(createIntegration)).close();
 
-            //When
+            // When
             Response response = target.request().get();
 
-            //Then
+            // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(IntegrationsResponse.class)
-                .extracting(IntegrationsResponse::getData, InstanceOfAssertFactories.list(Integration.class))
-                .extracting(Integration::getName)
-                .containsExactly(INTEGRATION_NAME);
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(IntegrationsResponse.class)
+                    .extracting(IntegrationsResponse::getData, InstanceOfAssertFactories.list(Integration.class))
+                    .extracting(Integration::getName)
+                    .containsExactly(INTEGRATION_NAME);
         }
 
         @Test
         void should_throw_bad_request_when_name_is_missing() {
-            //Given
-            CreateIntegration createIntegration = new CreateIntegration()
-                .description(INTEGRATION_DESCRIPTION)
-                .provider(CREATED_INTEGRATION_PROVIDER);
+            // Given
+            CreateIntegration createIntegration =
+                    new CreateIntegration().description(INTEGRATION_DESCRIPTION).provider(CREATED_INTEGRATION_PROVIDER);
 
-            //When
+            // When
             Response response = target.request().post(Entity.json(createIntegration));
 
-            //Then
+            // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.BAD_REQUEST_400)
-                .asError()
-                .extracting(Error::getDetails, InstanceOfAssertFactories.list(ErrorDetailsInner.class))
-                .extracting(ErrorDetailsInner::getLocation)
-                .containsExactly("name");
+                    .hasStatus(HttpStatusCode.BAD_REQUEST_400)
+                    .asError()
+                    .extracting(Error::getDetails, InstanceOfAssertFactories.list(ErrorDetailsInner.class))
+                    .extracting(ErrorDetailsInner::getLocation)
+                    .containsExactly("name");
         }
 
         @Test
         void should_throw_bad_request_when_payload_is_empty() {
-            //When
+            // When
             Response response = target.request().post(Entity.json(null));
 
-            //Then
+            // Then
             assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
         }
 
         @Test
         public void should_return_403_when_incorrect_permission() {
-            //Given
+            // Given
             CreateIntegration createIntegration = new CreateIntegration().name("Barbicha");
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
-                    eq(ENVIRONMENT),
-                    eq(RolePermissionAction.CREATE)
-                )
-            ).thenReturn(false);
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.ENVIRONMENT_INTEGRATION),
+                            eq(ENVIRONMENT),
+                            eq(RolePermissionAction.CREATE)))
+                    .thenReturn(false);
 
-            //When
+            // When
             Response response = target.request().post(Entity.json(createIntegration));
 
-            //Then
+            // Then
             assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
         }
     }
@@ -224,20 +227,16 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         @BeforeEach
         void setup() {
             var integration = IntStream.range(0, 15)
-                .mapToObj(i -> IntegrationFixture.anApiIntegration())
-                .toList();
+                    .mapToObj(i -> IntegrationFixture.anApiIntegration())
+                    .toList();
             integrationCrudServiceInMemory.initializeWith(integration);
-            membershipQueryServiceInMemory.initWith(
-                List.of(
-                    Membership.builder()
-                        .memberId(USER_NAME)
-                        .referenceId(INTEGRATION_ID)
-                        .roleId("int-po-id-fake-org")
-                        .referenceType(Membership.ReferenceType.INTEGRATION)
-                        .memberType(Membership.Type.USER)
-                        .build()
-                )
-            );
+            membershipQueryServiceInMemory.initWith(List.of(Membership.builder()
+                    .memberId(USER_NAME)
+                    .referenceId(INTEGRATION_ID)
+                    .roleId("int-po-id-fake-org")
+                    .referenceType(Membership.ReferenceType.INTEGRATION)
+                    .memberType(Membership.Type.USER)
+                    .build()));
         }
 
         @Test
@@ -245,117 +244,148 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
             var integrationOtherEnv = IntegrationFixture.anApiIntegration("other-env");
             integrationCrudServiceInMemory.create(integrationOtherEnv);
 
-            //When
-            Response response = target.queryParam("page", 1).queryParam("perPage", 5).request().get();
+            // When
+            Response response = target.queryParam("page", 1)
+                    .queryParam("perPage", 5)
+                    .request()
+                    .get();
 
-            //Then
+            // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(IntegrationsResponse.class)
-                .extracting(IntegrationsResponse::getPagination)
-                .isEqualTo(new Pagination().page(1).perPage(5).pageItemsCount(5).pageCount(3).totalCount(15L));
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(IntegrationsResponse.class)
+                    .extracting(IntegrationsResponse::getPagination)
+                    .isEqualTo(new Pagination()
+                            .page(1)
+                            .perPage(5)
+                            .pageItemsCount(5)
+                            .pageCount(3)
+                            .totalCount(15L));
         }
 
         @Test
         void get_second_page_of_integrations() {
-            //When
-            Response response = target.queryParam("page", 2).queryParam("perPage", 2).request().get();
+            // When
+            Response response = target.queryParam("page", 2)
+                    .queryParam("perPage", 2)
+                    .request()
+                    .get();
 
-            //Then
+            // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(IntegrationsResponse.class)
-                .extracting(IntegrationsResponse::getPagination)
-                .isEqualTo(new Pagination().page(2).perPage(2).pageItemsCount(2).pageCount(8).totalCount(15L));
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(IntegrationsResponse.class)
+                    .extracting(IntegrationsResponse::getPagination)
+                    .isEqualTo(new Pagination()
+                            .page(2)
+                            .perPage(2)
+                            .pageItemsCount(2)
+                            .pageCount(8)
+                            .totalCount(15L));
         }
 
         @Test
         void get_first_page_with_page_size_10_when_pagination_param_missing() {
-            //When
+            // When
             Response response = target.request().get();
 
-            //Then
+            // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(IntegrationsResponse.class)
-                .extracting(IntegrationsResponse::getPagination)
-                .isEqualTo(new Pagination().page(1).perPage(10).pageItemsCount(10).pageCount(2).totalCount(15L));
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(IntegrationsResponse.class)
+                    .extracting(IntegrationsResponse::getPagination)
+                    .isEqualTo(new Pagination()
+                            .page(1)
+                            .perPage(10)
+                            .pageItemsCount(10)
+                            .pageCount(2)
+                            .totalCount(15L));
         }
 
         @Test
         void get_sorted_list_of_integrations() {
-            //Given
+            // Given
             var name = "most-recent-integration";
             var description = "should-be-returned-first";
             var provider = "test-provider";
             var recentDate = ZonedDateTime.parse("2024-02-03T20:22:02.00Z");
             var integration = new io.gravitee.apim.core.integration.model.Integration.ApiIntegration(
-                INTEGRATION_ID,
-                name,
-                description,
-                provider,
-                "my-env",
-                recentDate,
-                recentDate,
-                Set.of()
-            );
+                    INTEGRATION_ID, name, description, provider, "my-env", recentDate, recentDate, Set.of());
             integrationCrudServiceInMemory.create(integration);
 
-            //When
+            // When
             Response response = target.request().get();
 
-            //Then
+            // Then
             assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(IntegrationsResponse.class)
-                .extracting(IntegrationsResponse::getData)
-                .extracting(List::getFirst)
-                .isEqualTo(
-                    new Integration()
-                        .id(INTEGRATION_ID)
-                        .name(name)
-                        .description(description)
-                        .provider(provider)
-                        .agentStatus(Integration.AgentStatusEnum.CONNECTED)
-                        .primaryOwner(new PrimaryOwner().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe"))
-                        .groups(List.of())
-                );
+                    .hasStatus(HttpStatusCode.OK_200)
+                    .asEntity(IntegrationsResponse.class)
+                    .extracting(IntegrationsResponse::getData)
+                    .extracting(List::getFirst)
+                    .isEqualTo(new Integration()
+                            .id(INTEGRATION_ID)
+                            .name(name)
+                            .description(description)
+                            .provider(provider)
+                            .agentStatus(Integration.AgentStatusEnum.CONNECTED)
+                            .primaryOwner(new PrimaryOwner()
+                                    .id("UnitTests")
+                                    .email("jane.doe@gravitee.io")
+                                    .displayName("Jane Doe"))
+                            .groups(List.of()));
         }
 
         @Test
         void should_compute_links() {
-            Response response = target.queryParam("page", 2).queryParam("perPage", 5).request().get();
+            Response response = target.queryParam("page", 2)
+                    .queryParam("perPage", 5)
+                    .request()
+                    .get();
 
             assertThat(response)
-                .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .extracting(ApiLogsResponse::getLinks)
-                .isEqualTo(
-                    new Links()
-                        .self(target.queryParam("page", 2).queryParam("perPage", 5).getUri().toString())
-                        .first(target.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
-                        .last(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
-                        .previous(target.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
-                        .next(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
-                );
+                    .hasStatus(OK_200)
+                    .asEntity(ApiLogsResponse.class)
+                    .extracting(ApiLogsResponse::getLinks)
+                    .isEqualTo(new Links()
+                            .self(target.queryParam("page", 2)
+                                    .queryParam("perPage", 5)
+                                    .getUri()
+                                    .toString())
+                            .first(target.queryParam("page", 1)
+                                    .queryParam("perPage", 5)
+                                    .getUri()
+                                    .toString())
+                            .last(target.queryParam("page", 3)
+                                    .queryParam("perPage", 5)
+                                    .getUri()
+                                    .toString())
+                            .previous(target.queryParam("page", 1)
+                                    .queryParam("perPage", 5)
+                                    .getUri()
+                                    .toString())
+                            .next(target.queryParam("page", 3)
+                                    .queryParam("perPage", 5)
+                                    .getUri()
+                                    .toString()));
         }
 
         @Test
         void should_return_403_when_incorrect_permission() {
-            //Given
-            when(
-                permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
-                    eq(ENVIRONMENT),
-                    eq(RolePermissionAction.READ)
-                )
-            ).thenReturn(false);
+            // Given
+            when(permissionService.hasPermission(
+                            eq(GraviteeContext.getExecutionContext()),
+                            eq(RolePermission.ENVIRONMENT_INTEGRATION),
+                            eq(ENVIRONMENT),
+                            eq(RolePermissionAction.READ)))
+                    .thenReturn(false);
 
-            //When
-            Response response = target.queryParam("page", 1).queryParam("perPage", 5).request().get();
+            // When
+            Response response = target.queryParam("page", 1)
+                    .queryParam("perPage", 5)
+                    .request()
+                    .get();
 
-            //Then
+            // Then
             assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
         }
     }

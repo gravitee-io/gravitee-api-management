@@ -38,9 +38,9 @@ class GraviteeDefinitionJacksonJsonSerializerTest {
         var result = serializer.serialize(importDefinition);
 
         // Then
-        assertThatJson(result).isEqualTo(
-            IOUtils.toString(new FileInputStream("src/test/resources/export/export_proxy.json"), StandardCharsets.UTF_8)
-        );
+        assertThatJson(result)
+                .isEqualTo(IOUtils.toString(
+                        new FileInputStream("src/test/resources/export/export_proxy.json"), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -53,7 +53,10 @@ class GraviteeDefinitionJacksonJsonSerializerTest {
         var result = serializer.serialize(messageDefinition);
 
         // Then - operations must be uppercase to match REST API model's OperationsEnum.fromValue()
-        assertThatJson(result).inPath("$.api.flows[0].selectors[0].operations").isArray().containsExactlyInAnyOrder("SUBSCRIBE", "PUBLISH");
+        assertThatJson(result)
+                .inPath("$.api.flows[0].selectors[0].operations")
+                .isArray()
+                .containsExactlyInAnyOrder("SUBSCRIBE", "PUBLISH");
         assertThatJson(result).inPath("$.api.flows[0].selectors[0].type").isEqualTo("CHANNEL");
     }
 

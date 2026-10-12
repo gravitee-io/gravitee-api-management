@@ -45,63 +45,53 @@ public class SubscriptionExpandHelper {
     private final ApplicationService applicationService;
     private final UserService userService;
 
-    public SubscriptionExpandHelper(PlanSearchService planSearchService, ApplicationService applicationService, UserService userService) {
+    public SubscriptionExpandHelper(
+            PlanSearchService planSearchService, ApplicationService applicationService, UserService userService) {
         this.planSearchService = planSearchService;
         this.applicationService = applicationService;
         this.userService = userService;
     }
 
     public void expandForApiProduct(
-        ExecutionContext executionContext,
-        String apiProductId,
-        List<Subscription> subscriptions,
-        Set<String> expands
-    ) {
+            ExecutionContext executionContext,
+            String apiProductId,
+            List<Subscription> subscriptions,
+            Set<String> expands) {
         if (expands == null || expands.isEmpty()) {
             return;
         }
         if (expands.contains(EXPAND_PLAN)) {
-            final Set<String> planIds = subscriptions
-                .stream()
-                .map(sub -> sub.getPlan().getId())
-                .collect(Collectors.toSet());
-            final Collection<BasePlan> plans = planMapper.mapToBasePlans(planSearchService.findByIdIn(executionContext, planIds));
+            final Set<String> planIds =
+                    subscriptions.stream().map(sub -> sub.getPlan().getId()).collect(Collectors.toSet());
+            final Collection<BasePlan> plans =
+                    planMapper.mapToBasePlans(planSearchService.findByIdIn(executionContext, planIds));
             plans.forEach(plan -> {
                 plan.setApiId(null);
                 plan.setApiProductId(apiProductId);
-                subscriptions
-                    .stream()
-                    .filter(sub -> sub.getPlan().getId().equals(plan.getId()))
-                    .forEach(sub -> sub.setPlan(plan));
+                subscriptions.stream()
+                        .filter(sub -> sub.getPlan().getId().equals(plan.getId()))
+                        .forEach(sub -> sub.setPlan(plan));
             });
         }
         if (expands.contains(EXPAND_APPLICATION)) {
-            final Set<String> applicationIds = subscriptions
-                .stream()
-                .map(sub -> sub.getApplication().getId())
-                .collect(Collectors.toSet());
+            final Set<String> applicationIds = subscriptions.stream()
+                    .map(sub -> sub.getApplication().getId())
+                    .collect(Collectors.toSet());
             final Collection<BaseApplication> applications = applicationMapper.mapToBaseApplicationList(
-                applicationService.findByIds(executionContext, applicationIds)
-            );
-            applications.forEach(application ->
-                subscriptions
-                    .stream()
+                    applicationService.findByIds(executionContext, applicationIds));
+            applications.forEach(application -> subscriptions.stream()
                     .filter(sub -> sub.getApplication().getId().equals(application.getId()))
-                    .forEach(sub -> sub.setApplication(application))
-            );
+                    .forEach(sub -> sub.setApplication(application)));
         }
         if (expands.contains(EXPAND_SUBSCRIBED_BY)) {
-            final Set<String> userIds = subscriptions
-                .stream()
-                .map(sub -> sub.getSubscribedBy().getId())
-                .collect(Collectors.toSet());
-            final Collection<BaseUser> users = userMapper.mapToBaseUserList(userService.findByIds(executionContext, userIds));
-            users.forEach(user ->
-                subscriptions
-                    .stream()
+            final Set<String> userIds = subscriptions.stream()
+                    .map(sub -> sub.getSubscribedBy().getId())
+                    .collect(Collectors.toSet());
+            final Collection<BaseUser> users =
+                    userMapper.mapToBaseUserList(userService.findByIds(executionContext, userIds));
+            users.forEach(user -> subscriptions.stream()
                     .filter(sub -> sub.getSubscribedBy().getId().equals(user.getId()))
-                    .forEach(sub -> sub.setSubscribedBy(user))
-            );
+                    .forEach(sub -> sub.setSubscribedBy(user)));
         }
     }
 }

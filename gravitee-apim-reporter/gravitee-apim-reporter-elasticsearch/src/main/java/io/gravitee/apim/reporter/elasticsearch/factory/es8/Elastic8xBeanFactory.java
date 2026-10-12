@@ -36,8 +36,8 @@ public class Elastic8xBeanFactory implements BeanFactory {
     @Override
     public IndexNameGenerator createIndexNameGenerator(final ReporterConfiguration configuration) {
         return configuration.isIlmManagedIndex()
-            ? new PerTypeIndexNameGenerator(configuration)
-            : new PerTypeAndDateIndexNameGenerator(configuration);
+                ? new PerTypeIndexNameGenerator(configuration)
+                : new PerTypeAndDateIndexNameGenerator(configuration);
     }
 
     @Override
@@ -47,11 +47,10 @@ public class Elastic8xBeanFactory implements BeanFactory {
 
     @Override
     public IndexPreparer createIndexPreparer(
-        final ReporterConfiguration configuration,
-        final PipelineConfiguration pipelineConfiguration,
-        final FreeMarkerComponent freeMarkerComponent,
-        final Client client
-    ) {
+            final ReporterConfiguration configuration,
+            final PipelineConfiguration pipelineConfiguration,
+            final FreeMarkerComponent freeMarkerComponent,
+            final Client client) {
         return new ES8IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, client);
     }
 }

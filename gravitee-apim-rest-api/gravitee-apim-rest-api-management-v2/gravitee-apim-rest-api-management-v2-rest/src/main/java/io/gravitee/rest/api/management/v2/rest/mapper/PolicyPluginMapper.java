@@ -46,23 +46,25 @@ public interface PolicyPluginMapper {
 
     @Named("flowPhaseCompatibility")
     default PolicyPluginAllOfFlowPhaseCompatibility mapToFlowPhaseCompatibility(
-        Map<
-            io.gravitee.rest.api.model.v4.policy.ApiProtocolType,
-            Set<io.gravitee.rest.api.model.v4.policy.FlowPhase>
-        > flowPhaseCompatibility
-    ) {
+            Map<
+                            io.gravitee.rest.api.model.v4.policy.ApiProtocolType,
+                            Set<io.gravitee.rest.api.model.v4.policy.FlowPhase>>
+                    flowPhaseCompatibility) {
         if (flowPhaseCompatibility == null) {
             return null;
         }
         var policyPluginAllOfFlowPhaseCompatibility = new PolicyPluginAllOfFlowPhaseCompatibility();
         if (flowPhaseCompatibility.get(ApiProtocolType.HTTP_PROXY) != null) {
-            policyPluginAllOfFlowPhaseCompatibility.HTTP_PROXY(mapToFlowPhase(flowPhaseCompatibility.get(ApiProtocolType.HTTP_PROXY)));
+            policyPluginAllOfFlowPhaseCompatibility.HTTP_PROXY(
+                    mapToFlowPhase(flowPhaseCompatibility.get(ApiProtocolType.HTTP_PROXY)));
         }
         if (flowPhaseCompatibility.get(ApiProtocolType.HTTP_MESSAGE) != null) {
-            policyPluginAllOfFlowPhaseCompatibility.HTTP_MESSAGE(mapToFlowPhase(flowPhaseCompatibility.get(ApiProtocolType.HTTP_MESSAGE)));
+            policyPluginAllOfFlowPhaseCompatibility.HTTP_MESSAGE(
+                    mapToFlowPhase(flowPhaseCompatibility.get(ApiProtocolType.HTTP_MESSAGE)));
         }
         if (flowPhaseCompatibility.get(ApiProtocolType.NATIVE_KAFKA) != null) {
-            policyPluginAllOfFlowPhaseCompatibility.NATIVE_KAFKA(mapToFlowPhase(flowPhaseCompatibility.get(ApiProtocolType.NATIVE_KAFKA)));
+            policyPluginAllOfFlowPhaseCompatibility.NATIVE_KAFKA(
+                    mapToFlowPhase(flowPhaseCompatibility.get(ApiProtocolType.NATIVE_KAFKA)));
         }
         var mcpProxyPhases = flowPhaseCompatibility.get(ApiProtocolType.MCP_PROXY);
         if (mcpProxyPhases != null) {

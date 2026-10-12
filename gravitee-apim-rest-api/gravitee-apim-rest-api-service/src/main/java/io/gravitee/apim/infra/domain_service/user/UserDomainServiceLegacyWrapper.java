@@ -36,7 +36,8 @@ public class UserDomainServiceLegacyWrapper implements UserDomainService {
     @Override
     public Optional<BaseUserEntity> findBySource(String organizationId, String source, String sourceId) {
         try {
-            return Optional.ofNullable(UserAdapter.INSTANCE.fromUser(userService.findBySource(organizationId, source, sourceId, false)));
+            return Optional.ofNullable(
+                    UserAdapter.INSTANCE.fromUser(userService.findBySource(organizationId, source, sourceId, false)));
         } catch (UserNotFoundException e) {
             return Optional.empty();
         }

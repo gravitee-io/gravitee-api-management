@@ -55,28 +55,27 @@ public class EventMetricsAnalyticsQueryService implements AnalyticsEngineQuerySe
     @Override
     public Set<Name> metrics() {
         return Set.of(
-            Name.NATIVE_MESSAGES_PRODUCED_DOWNSTREAM,
-            Name.NATIVE_MESSAGES_PRODUCED_UPSTREAM,
-            Name.NATIVE_MESSAGES_CONSUMED_DOWNSTREAM,
-            Name.NATIVE_MESSAGES_CONSUMED_UPSTREAM,
-            Name.NATIVE_BYTES_PRODUCED_DOWNSTREAM,
-            Name.NATIVE_BYTES_PRODUCED_UPSTREAM,
-            Name.NATIVE_BYTES_CONSUMED_DOWNSTREAM,
-            Name.NATIVE_BYTES_CONSUMED_UPSTREAM,
-            Name.NATIVE_ACTIVE_CONNECTIONS_DOWNSTREAM,
-            Name.NATIVE_ACTIVE_CONNECTIONS_UPSTREAM,
-            Name.NATIVE_AUTHENTICATIONS_SUCCESS_DOWNSTREAM,
-            Name.NATIVE_AUTHENTICATIONS_SUCCESS_UPSTREAM,
-            Name.NATIVE_AUTHENTICATIONS_FAILURE_DOWNSTREAM,
-            Name.NATIVE_AUTHENTICATIONS_FAILURE_UPSTREAM,
-            Name.NATIVE_OPERATIONS_RECEIVED,
-            Name.NATIVE_OPERATIONS_FORWARDED,
-            Name.NATIVE_OPERATIONS_ANSWERED,
-            Name.NATIVE_OPERATIONS_COMPLETED,
-            Name.NATIVE_OPERATION_GATEWAY_REQUEST_DURATION,
-            Name.NATIVE_OPERATION_BROKER_DURATION,
-            Name.NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION
-        );
+                Name.NATIVE_MESSAGES_PRODUCED_DOWNSTREAM,
+                Name.NATIVE_MESSAGES_PRODUCED_UPSTREAM,
+                Name.NATIVE_MESSAGES_CONSUMED_DOWNSTREAM,
+                Name.NATIVE_MESSAGES_CONSUMED_UPSTREAM,
+                Name.NATIVE_BYTES_PRODUCED_DOWNSTREAM,
+                Name.NATIVE_BYTES_PRODUCED_UPSTREAM,
+                Name.NATIVE_BYTES_CONSUMED_DOWNSTREAM,
+                Name.NATIVE_BYTES_CONSUMED_UPSTREAM,
+                Name.NATIVE_ACTIVE_CONNECTIONS_DOWNSTREAM,
+                Name.NATIVE_ACTIVE_CONNECTIONS_UPSTREAM,
+                Name.NATIVE_AUTHENTICATIONS_SUCCESS_DOWNSTREAM,
+                Name.NATIVE_AUTHENTICATIONS_SUCCESS_UPSTREAM,
+                Name.NATIVE_AUTHENTICATIONS_FAILURE_DOWNSTREAM,
+                Name.NATIVE_AUTHENTICATIONS_FAILURE_UPSTREAM,
+                Name.NATIVE_OPERATIONS_RECEIVED,
+                Name.NATIVE_OPERATIONS_FORWARDED,
+                Name.NATIVE_OPERATIONS_ANSWERED,
+                Name.NATIVE_OPERATIONS_COMPLETED,
+                Name.NATIVE_OPERATION_GATEWAY_REQUEST_DURATION,
+                Name.NATIVE_OPERATION_BROKER_DURATION,
+                Name.NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION);
     }
 
     @Override
@@ -84,9 +83,8 @@ public class EventMetricsAnalyticsQueryService implements AnalyticsEngineQuerySe
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchEventMetricsMeasures(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.EVENT_METRICS, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.EVENT_METRICS, query));
     }
 
     @Override
@@ -94,9 +92,8 @@ public class EventMetricsAnalyticsQueryService implements AnalyticsEngineQuerySe
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchEventMetricsFacets(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.EVENT_METRICS, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.EVENT_METRICS, query));
     }
 
     @Override
@@ -104,8 +101,7 @@ public class EventMetricsAnalyticsQueryService implements AnalyticsEngineQuerySe
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchEventMetricsTimeSeries(context.getQueryContext(), query);
         return IgnoredFilters.mark(
-            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
-            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.EVENT_METRICS, query)
-        );
+                AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+                IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.EVENT_METRICS, query));
     }
 }

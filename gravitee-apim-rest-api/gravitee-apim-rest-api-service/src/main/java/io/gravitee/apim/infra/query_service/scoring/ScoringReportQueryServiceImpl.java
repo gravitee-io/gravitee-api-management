@@ -49,36 +49,34 @@ public class ScoringReportQueryServiceImpl extends AbstractService implements Sc
             return scoringReportRepository.findLatestFor(apiId).map(ScoringReportAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             log.error("An error occurred while finding Scoring Report by API id", e);
-            throw new TechnicalManagementException("An error occurred while finding Scoring Report of API: " + apiId, e);
+            throw new TechnicalManagementException(
+                    "An error occurred while finding Scoring Report of API: " + apiId, e);
         }
     }
 
     @Override
     public Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(
-        String environmentId,
-        Collection<ApiType> apiTypes,
-        Pageable pageable
-    ) {
+            String environmentId, Collection<ApiType> apiTypes, Pageable pageable) {
         try {
             return scoringReportRepository
-                .findEnvironmentLatestReports(environmentId, apiTypes, convert(pageable))
-                .map(ScoringReportAdapter.INSTANCE::toEntity);
+                    .findEnvironmentLatestReports(environmentId, apiTypes, convert(pageable))
+                    .map(ScoringReportAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             log.error("An error occurred while finding latest Scoring Reports for environment", e);
             throw new TechnicalManagementException(
-                "An error occurred while finding latest Scoring Reports for environment: " + environmentId,
-                e
-            );
+                    "An error occurred while finding latest Scoring Reports for environment: " + environmentId, e);
         }
     }
 
     @Override
     public EnvironmentOverview getEnvironmentScoringSummary(String environmentId) {
         try {
-            return ScoringReportAdapter.INSTANCE.toEntity(scoringReportRepository.getScoringEnvironmentSummary(environmentId));
+            return ScoringReportAdapter.INSTANCE.toEntity(
+                    scoringReportRepository.getScoringEnvironmentSummary(environmentId));
         } catch (TechnicalException e) {
             log.error("An error occurred while getting Scoring Environment Summary of {}", environmentId, e);
-            throw new TechnicalManagementException("An error occurred while getting Scoring Environment Summary of " + environmentId, e);
+            throw new TechnicalManagementException(
+                    "An error occurred while getting Scoring Environment Summary of " + environmentId, e);
         }
     }
 }

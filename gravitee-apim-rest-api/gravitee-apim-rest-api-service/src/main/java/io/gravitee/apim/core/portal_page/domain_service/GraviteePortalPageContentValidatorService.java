@@ -55,28 +55,29 @@ public class GraviteePortalPageContentValidatorService implements PortalPageCont
         final var environmentId = existingContent.getEnvironmentId();
         final var portalPageContentId = existingContent.getId();
         final var navigationPage = portalNavigationItemsQueryService.findNavigationPageByPortalPageContentId(
-            environmentId,
-            portalPageContentId
-        );
+                environmentId, portalPageContentId);
         if (navigationPage.isEmpty()) {
             return;
         }
 
         final var markdown = updateContent.getContent();
         final var organizationId = existingContent.getOrganizationId();
-        final var enclosingApiId = portalNavigationEnclosingApiDomainService.findEnclosingApiId(environmentId, navigationPage.get());
+        final var enclosingApiId =
+                portalNavigationEnclosingApiDomainService.findEnclosingApiId(environmentId, navigationPage.get());
 
         tryDryRender(markdown, organizationId, environmentId, enclosingApiId);
     }
 
-    private void tryDryRender(String markdown, String organizationId, String environmentId, Optional<String> enclosingApiId) {
+    private void tryDryRender(
+            String markdown, String organizationId, String environmentId, Optional<String> enclosingApiId) {
         final Map<String, Object> model = enclosingApiId
-            .<Map<String, Object>>map(id -> Map.of("api", apiTemplateModelProvider.getApiTemplateModel(organizationId, environmentId, id)))
-            .orElseGet(() -> Map.of("metadata", environmentTemplateModelProvider.getEnvironmentMetadata(environmentId)));
+                .<Map<String, Object>>map(id ->
+                        Map.of("api", apiTemplateModelProvider.getApiTemplateModel(organizationId, environmentId, id)))
+                .orElseGet(() ->
+                        Map.of("metadata", environmentTemplateModelProvider.getEnvironmentMetadata(environmentId)));
         try {
             portalNavigationTemplatingService.renderGraviteeMarkdown(
-                new RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of(markdown), model)
-            );
+                    new RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of(markdown), model));
         } catch (PortalPageContentTemplateException e) {
             throw new InvalidPortalPageContentTemplateException(e.getMessage(), e);
         }

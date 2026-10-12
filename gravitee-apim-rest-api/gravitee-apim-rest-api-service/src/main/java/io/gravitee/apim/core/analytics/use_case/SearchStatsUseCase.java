@@ -35,21 +35,18 @@ public class SearchStatsUseCase {
     private final AnalyticsQueryService analyticsQueryService;
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        ApiAnalyticsSpecification.forSearchStatsAnalytics().throwIfNotSatisfied(
-            apiCrudService.get(input.api()),
-            executionContext,
-            input.from(),
-            input.to()
-        );
+        ApiAnalyticsSpecification.forSearchStatsAnalytics()
+                .throwIfNotSatisfied(apiCrudService.get(input.api()), executionContext, input.from(), input.to());
 
         var statsQuery = new AnalyticsQueryService.StatsQuery(
-            AnalyticsQueryService.SearchTermId.forApi(input.api()),
-            input.field(),
-            Instant.ofEpochMilli(input.from()),
-            Instant.ofEpochMilli(input.to()),
-            input.query()
-        );
-        var result = analyticsQueryService.searchStatsAnalytics(executionContext, statsQuery).orElse(null);
+                AnalyticsQueryService.SearchTermId.forApi(input.api()),
+                input.field(),
+                Instant.ofEpochMilli(input.from()),
+                Instant.ofEpochMilli(input.to()),
+                input.query());
+        var result = analyticsQueryService
+                .searchStatsAnalytics(executionContext, statsQuery)
+                .orElse(null);
 
         return new Output(result);
     }

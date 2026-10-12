@@ -66,41 +66,33 @@ public class MongoSubscriptionRepositoryTest {
         SubscriptionMongo subscriptionMongo = new SubscriptionMongo();
         subscriptionMongo.setId("sub-api-product-1");
 
-        when(
-            internalSubscriptionRepository.findByReferenceIdAndReferenceType(
-                "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-                SubscriptionReferenceType.API_PRODUCT.name()
-            )
-        ).thenReturn(List.of(subscriptionMongo));
+        when(internalSubscriptionRepository.findByReferenceIdAndReferenceType(
+                        "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", SubscriptionReferenceType.API_PRODUCT.name()))
+                .thenReturn(List.of(subscriptionMongo));
 
         Subscription mapped = new Subscription();
         mapped.setId("sub-api-product-1");
         when(mapper.map(subscriptionMongo)).thenReturn(mapped);
 
         Set<Subscription> result = mongoSubscriptionRepository.findByReferenceIdAndReferenceType(
-            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-            SubscriptionReferenceType.API_PRODUCT
-        );
+                "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", SubscriptionReferenceType.API_PRODUCT);
 
         assertThat(result).hasSize(1);
         assertThat(result.iterator().next().getId()).isEqualTo("sub-api-product-1");
-        verify(internalSubscriptionRepository).findByReferenceIdAndReferenceType(
-            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-            SubscriptionReferenceType.API_PRODUCT.name()
-        );
+        verify(internalSubscriptionRepository)
+                .findByReferenceIdAndReferenceType(
+                        "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", SubscriptionReferenceType.API_PRODUCT.name());
     }
 
     @Test
     public void shouldWrapExceptionWhenFindingByReferenceIdAndReferenceType() {
-        when(internalSubscriptionRepository.findByReferenceIdAndReferenceType(anyString(), anyString())).thenThrow(
-            new RuntimeException("mongo failure")
-        );
+        when(internalSubscriptionRepository.findByReferenceIdAndReferenceType(anyString(), anyString()))
+                .thenThrow(new RuntimeException("mongo failure"));
 
-        assertThatThrownBy(() ->
-            mongoSubscriptionRepository.findByReferenceIdAndReferenceType("ref", SubscriptionReferenceType.API_PRODUCT)
-        )
-            .isInstanceOf(TechnicalException.class)
-            .hasMessageContaining("find subscriptions by reference");
+        assertThatThrownBy(() -> mongoSubscriptionRepository.findByReferenceIdAndReferenceType(
+                        "ref", SubscriptionReferenceType.API_PRODUCT))
+                .isInstanceOf(TechnicalException.class)
+                .hasMessageContaining("find subscriptions by reference");
     }
 
     @Test
@@ -108,43 +100,37 @@ public class MongoSubscriptionRepositoryTest {
         SubscriptionMongo subscriptionMongo = new SubscriptionMongo();
         subscriptionMongo.setId("sub-api-product-1");
 
-        when(
-            internalSubscriptionRepository.findByIdAndReferenceIdAndReferenceType(
-                "sub-api-product-1",
-                "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-                SubscriptionReferenceType.API_PRODUCT.name()
-            )
-        ).thenReturn(Optional.of(subscriptionMongo));
+        when(internalSubscriptionRepository.findByIdAndReferenceIdAndReferenceType(
+                        "sub-api-product-1",
+                        "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
+                        SubscriptionReferenceType.API_PRODUCT.name()))
+                .thenReturn(Optional.of(subscriptionMongo));
 
         Subscription mapped = new Subscription();
         mapped.setId("sub-api-product-1");
         when(mapper.map(subscriptionMongo)).thenReturn(mapped);
 
         Optional<Subscription> result = mongoSubscriptionRepository.findByIdAndReferenceIdAndReferenceType(
-            "sub-api-product-1",
-            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-            SubscriptionReferenceType.API_PRODUCT
-        );
+                "sub-api-product-1", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", SubscriptionReferenceType.API_PRODUCT);
 
         assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo("sub-api-product-1");
-        verify(internalSubscriptionRepository).findByIdAndReferenceIdAndReferenceType(
-            "sub-api-product-1",
-            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
-            SubscriptionReferenceType.API_PRODUCT.name()
-        );
+        verify(internalSubscriptionRepository)
+                .findByIdAndReferenceIdAndReferenceType(
+                        "sub-api-product-1",
+                        "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
+                        SubscriptionReferenceType.API_PRODUCT.name());
     }
 
     @Test
     public void shouldWrapExceptionWhenFindingByIdAndReferenceIdAndReferenceType() {
-        when(internalSubscriptionRepository.findByIdAndReferenceIdAndReferenceType(anyString(), anyString(), anyString())).thenThrow(
-            new RuntimeException("mongo failure")
-        );
+        when(internalSubscriptionRepository.findByIdAndReferenceIdAndReferenceType(
+                        anyString(), anyString(), anyString()))
+                .thenThrow(new RuntimeException("mongo failure"));
 
-        assertThatThrownBy(() ->
-            mongoSubscriptionRepository.findByIdAndReferenceIdAndReferenceType("sub-id", "ref", SubscriptionReferenceType.API_PRODUCT)
-        )
-            .isInstanceOf(TechnicalException.class)
-            .hasMessageContaining("find subscription by id and reference");
+        assertThatThrownBy(() -> mongoSubscriptionRepository.findByIdAndReferenceIdAndReferenceType(
+                        "sub-id", "ref", SubscriptionReferenceType.API_PRODUCT))
+                .isInstanceOf(TechnicalException.class)
+                .hasMessageContaining("find subscription by id and reference");
     }
 }

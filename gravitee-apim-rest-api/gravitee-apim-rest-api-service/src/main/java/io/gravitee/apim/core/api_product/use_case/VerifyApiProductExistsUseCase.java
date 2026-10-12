@@ -31,11 +31,9 @@ public class VerifyApiProductExistsUseCase {
 
     public void execute(Input input) {
         Optional<ApiProduct> product = apiProductQueryService.findById(input.apiProductId());
-        if (
-            product.isEmpty() ||
-            !input.environmentId().equals(product.get().getEnvironmentId()) ||
-            !input.kindFilter().matches(product.get())
-        ) {
+        if (product.isEmpty()
+                || !input.environmentId().equals(product.get().getEnvironmentId())
+                || !input.kindFilter().matches(product.get())) {
             throw new ApiProductNotFoundException(input.apiProductId());
         }
     }

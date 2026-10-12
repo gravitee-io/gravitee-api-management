@@ -99,17 +99,16 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     private final ObjectMapper objectMapper;
 
     public PromotionServiceImpl(
-        ApiSearchService apiSearchService,
-        ApiDuplicatorService apiDuplicatorService,
-        ApiExportService apiExportService,
-        CockpitPromotionService cockpitPromotionService,
-        @Lazy PromotionRepository promotionRepository,
-        EnvironmentService environmentService,
-        UserService userService,
-        PermissionService permissionService,
-        AuditService auditService,
-        ObjectMapper objectMapper
-    ) {
+            ApiSearchService apiSearchService,
+            ApiDuplicatorService apiDuplicatorService,
+            ApiExportService apiExportService,
+            CockpitPromotionService cockpitPromotionService,
+            @Lazy PromotionRepository promotionRepository,
+            EnvironmentService environmentService,
+            UserService userService,
+            PermissionService permissionService,
+            AuditService auditService,
+            ObjectMapper objectMapper) {
         this.apiSearchService = apiSearchService;
         this.apiDuplicatorService = apiDuplicatorService;
         this.apiExportService = apiExportService;
@@ -126,50 +125,44 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId) {
         EnvironmentEntity environmentEntity = environmentService.findById(environmentId);
 
-        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = this.cockpitPromotionService.listPromotionTargets(
-            organizationId,
-            environmentId
-        );
+        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply =
+                this.cockpitPromotionService.listPromotionTargets(organizationId, environmentId);
         if (listCockpitReply.getStatus() == CockpitReplyStatus.SUCCEEDED) {
-            return listCockpitReply
-                .getReply()
-                .stream()
-                .filter(target -> !target.getId().equals(environmentEntity.getCockpitId()))
-                .collect(Collectors.toList());
+            return listCockpitReply.getReply().stream()
+                    .filter(target -> !target.getId().equals(environmentEntity.getCockpitId()))
+                    .collect(Collectors.toList());
         }
         throw new BridgeOperationException(BridgeOperation.LIST_ENVIRONMENT);
     }
 
     @Override
     public PromotionEntity create(
-        ExecutionContext executionContext,
-        final String sourceEnvironmentId,
-        String apiId,
-        PromotionRequestEntity promotionRequest,
-        String userId
-    ) {
+            ExecutionContext executionContext,
+            final String sourceEnvironmentId,
+            String apiId,
+            PromotionRequestEntity promotionRequest,
+            String userId) {
         // FIXME: can we get the version from target environment
         // Groups are exported as names and resolved (or auto-created) on the target, matching V2 import.
         EnvironmentEntity currentEnvironmentEntity = environmentService.findById(sourceEnvironmentId);
         String apiDefinition = apiExportService.exportAsJson(
-            new ExecutionContext(currentEnvironmentEntity.getOrganizationId(), currentEnvironmentEntity.getId()),
-            apiId,
-            ApiSerializer.Version.DEFAULT.getVersion(),
-            "members"
-        );
+                new ExecutionContext(currentEnvironmentEntity.getOrganizationId(), currentEnvironmentEntity.getId()),
+                apiId,
+                ApiSerializer.Version.DEFAULT.getVersion(),
+                "members");
         UserEntity author = userService.findById(executionContext, userId);
 
         PromotionQuery promotionQuery = new PromotionQuery();
         promotionQuery.setStatuses(List.of(PromotionEntityStatus.CREATED, PromotionEntityStatus.TO_BE_VALIDATED));
         promotionQuery.setApiId(apiId);
 
-        List<PromotionEntity> inProgressPromotions = search(promotionQuery, null, null)
-            .getContent()
-            .stream()
-            .filter(promotionEntity -> promotionEntity.getTargetEnvCockpitId().equals(promotionRequest.getTargetEnvCockpitId()))
-            .collect(Collectors.toList());
+        List<PromotionEntity> inProgressPromotions = search(promotionQuery, null, null).getContent().stream()
+                .filter(promotionEntity ->
+                        promotionEntity.getTargetEnvCockpitId().equals(promotionRequest.getTargetEnvCockpitId()))
+                .collect(Collectors.toList());
         if (!inProgressPromotions.isEmpty()) {
-            throw new PromotionAlreadyInProgressException(inProgressPromotions.get(0).getId());
+            throw new PromotionAlreadyInProgressException(
+                    inProgressPromotions.get(0).getId());
         }
 
         Promotion promotionToSave = convert(apiId, apiDefinition, currentEnvironmentEntity, promotionRequest, author);
@@ -179,21 +172,19 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             createdPromotion = promotionRepository.create(promotionToSave);
 
             auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(emptyMap())
-                    .event(PROMOTION_CREATED)
-                    .createdAt(createdPromotion.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(createdPromotion)
-                    .build(),
-                createdPromotion.getApiId()
-            );
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(emptyMap())
+                            .event(PROMOTION_CREATED)
+                            .createdAt(createdPromotion.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(createdPromotion)
+                            .build(),
+                    createdPromotion.getApiId());
         } catch (TechnicalException exception) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to create a promotion request for API %s", apiId),
-                exception
-            );
+                    String.format("An error occurs while trying to create a promotion request for API %s", apiId),
+                    exception);
         }
 
         return convert(createdPromotion);
@@ -201,20 +192,22 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
     @Override
     public PromotionEntity promote(ExecutionContext executionContext, String id) throws TechnicalException {
-        PromotionEntity promotionEntity = convert(promotionRepository.findById(id).orElseThrow(() -> new PromotionNotFoundException(id)));
+        PromotionEntity promotionEntity =
+                convert(promotionRepository.findById(id).orElseThrow(() -> new PromotionNotFoundException(id)));
 
-        CockpitReply<PromotionEntity> cockpitReply = cockpitPromotionService.requestPromotion(executionContext, promotionEntity);
+        CockpitReply<PromotionEntity> cockpitReply =
+                cockpitPromotionService.requestPromotion(executionContext, promotionEntity);
 
         promotionEntity.setStatus(
-            cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED ? PromotionEntityStatus.ERROR : PromotionEntityStatus.TO_BE_VALIDATED
-        );
+                cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED
+                        ? PromotionEntityStatus.ERROR
+                        : PromotionEntityStatus.TO_BE_VALIDATED);
         try {
             promotionRepository.update(convert(promotionEntity));
         } catch (TechnicalException exception) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to update promotion %s", promotionEntity.getId()),
-                exception
-            );
+                    String.format("An error occurs while trying to update promotion %s", promotionEntity.getId()),
+                    exception);
         }
 
         if (cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED) {
@@ -238,7 +231,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 // The Cockpit round-trip may echo a promotion without its targetApiId (e.g. the source environment
                 // replaying a promotion request). Never lose the link to the API already promoted: it is what lets
                 // the next promotion update that API in place when the crossId lookup misses.
-                if (promotion.getTargetApiId() == null && existingPromotion.get().getTargetApiId() != null) {
+                if (promotion.getTargetApiId() == null
+                        && existingPromotion.get().getTargetApiId() != null) {
                     promotion.setTargetApiId(existingPromotion.get().getTargetApiId());
                 }
                 createdOrUpdatedPromotion = promotionRepository.update(promotion);
@@ -250,9 +244,9 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             return convert(createdOrUpdatedPromotion);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to create or update a promotion using its id {}" + promotionEntity.getId(),
-                e
-            );
+                    "An error occurs while trying to create or update a promotion using its id {}"
+                            + promotionEntity.getId(),
+                    e);
         }
     }
 
@@ -298,8 +292,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             PromotionCriteria criteria = queryToCriteriaBuilder(query).build();
 
             Page<PromotionEntity> promotions = promotionRepository
-                .search(criteria, convert(sortable), convert(pageable))
-                .map(this::convert);
+                    .search(criteria, convert(sortable), convert(pageable))
+                    .map(this::convert);
 
             log.debug("Searching promotions - Done with {} elements", promotions.getPageElements());
 
@@ -310,49 +304,50 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     }
 
     @Override
-    public PromotionEntity processPromotion(final ExecutionContext executionContext, String promotionId, boolean accepted) {
+    public PromotionEntity processPromotion(
+            final ExecutionContext executionContext, String promotionId, boolean accepted) {
         try {
             final Promotion promotion = promotionRepository
-                .findById(promotionId)
-                .orElseThrow(() -> new PromotionNotFoundException(promotionId));
+                    .findById(promotionId)
+                    .orElseThrow(() -> new PromotionNotFoundException(promotionId));
 
             EnvironmentEntity environment = environmentService.findByCockpitId(promotion.getTargetEnvCockpitId());
-            ExecutionContext targetExecutionContext = new ExecutionContext(executionContext.getOrganizationId(), environment.getId());
+            ExecutionContext targetExecutionContext =
+                    new ExecutionContext(executionContext.getOrganizationId(), environment.getId());
 
             promotion.setStatus(accepted ? PromotionStatus.ACCEPTED : PromotionStatus.REJECTED);
 
             JsonNode apiDefinition = objectMapper.readTree(promotion.getApiDefinition());
 
-            String apiIdToUpdate = findAlreadyPromotedTargetApi(executionContext, environment, promotion, apiDefinition);
+            String apiIdToUpdate =
+                    findAlreadyPromotedTargetApi(executionContext, environment, promotion, apiDefinition);
 
             if (PromotionStatus.ACCEPTED.equals(promotion.getStatus())) {
                 ApiEntity promoted;
 
                 if (apiIdToUpdate == null) {
-                    if (!permissionService.hasPermission(targetExecutionContext, ENVIRONMENT_API, environment.getId(), CREATE)) {
+                    if (!permissionService.hasPermission(
+                            targetExecutionContext, ENVIRONMENT_API, environment.getId(), CREATE)) {
                         throw new ForbiddenAccessException();
                     }
-                    promoted = apiDuplicatorService.createWithImportedDefinition(targetExecutionContext, promotion.getApiDefinition());
+                    promoted = apiDuplicatorService.createWithImportedDefinition(
+                            targetExecutionContext, promotion.getApiDefinition());
                 } else {
-                    if (!permissionService.hasPermission(targetExecutionContext, ENVIRONMENT_API, environment.getId(), UPDATE)) {
+                    if (!permissionService.hasPermission(
+                            targetExecutionContext, ENVIRONMENT_API, environment.getId(), UPDATE)) {
                         throw new ForbiddenAccessException();
                     }
 
                     promoted = apiDuplicatorService.updateWithImportedDefinition(
-                        targetExecutionContext,
-                        apiIdToUpdate,
-                        apiDefinition.toString()
-                    );
+                            targetExecutionContext, apiIdToUpdate, apiDefinition.toString());
                 }
                 promotion.setTargetApiId(promoted.getId());
             }
 
             final PromotionEntity promotionEntity = convert(promotion);
 
-            final CockpitReply<PromotionEntity> cockpitReply = cockpitPromotionService.processPromotion(
-                targetExecutionContext,
-                promotionEntity
-            );
+            final CockpitReply<PromotionEntity> cockpitReply =
+                    cockpitPromotionService.processPromotion(targetExecutionContext, promotionEntity);
 
             if (cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED) {
                 throw new BridgeOperationException(BridgeOperation.PROMOTE_API);
@@ -361,16 +356,15 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             final Promotion updated = promotionRepository.update(promotion);
 
             auditService.createApiAuditLog(
-                targetExecutionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(emptyMap())
-                    .event(PROMOTION_PROCESSED)
-                    .createdAt(updated.getCreatedAt())
-                    .oldValue(null)
-                    .newValue(updated)
-                    .build(),
-                updated.getApiId()
-            );
+                    targetExecutionContext,
+                    AuditService.AuditLogData.builder()
+                            .properties(emptyMap())
+                            .event(PROMOTION_PROCESSED)
+                            .createdAt(updated.getCreatedAt())
+                            .oldValue(null)
+                            .newValue(updated)
+                            .build(),
+                    updated.getApiId());
 
             return convert(updated);
         } catch (TechnicalException | IOException ex) {
@@ -379,12 +373,11 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     }
 
     private Promotion convert(
-        String apiId,
-        String apiDefinition,
-        EnvironmentEntity source,
-        PromotionRequestEntity target,
-        UserEntity author
-    ) {
+            String apiId,
+            String apiDefinition,
+            EnvironmentEntity source,
+            PromotionRequestEntity target,
+            UserEntity author) {
         PromotionAuthor promotionAuthor = new PromotionAuthor();
         promotionAuthor.setUserId(author.getId());
         promotionAuthor.setDisplayName(author.getDisplayName());
@@ -493,35 +486,39 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     }
 
     protected String findAlreadyPromotedTargetApi(
-        ExecutionContext executionContext,
-        EnvironmentEntity environment,
-        Promotion promotion,
-        JsonNode apiDefinition
-    ) {
+            ExecutionContext executionContext,
+            EnvironmentEntity environment,
+            Promotion promotion,
+            JsonNode apiDefinition) {
         // find target API by crossId first, then fallback on last promotion target ID
-        return findAlreadyPromotedApiByCrossId(environment, apiDefinition).orElseGet(() ->
-            findAlreadyPromotedApiFromLastPromotion(executionContext, promotion)
-        );
+        return findAlreadyPromotedApiByCrossId(environment, apiDefinition)
+                .orElseGet(() -> findAlreadyPromotedApiFromLastPromotion(executionContext, promotion));
     }
 
     private Optional<String> findAlreadyPromotedApiByCrossId(EnvironmentEntity environment, JsonNode apiDefinition) {
         return apiDefinition.hasNonNull("crossId")
-            ? apiSearchService.findIdByEnvironmentIdAndCrossId(environment.getId(), apiDefinition.get("crossId").asText())
-            : Optional.empty();
+                ? apiSearchService.findIdByEnvironmentIdAndCrossId(
+                        environment.getId(), apiDefinition.get("crossId").asText())
+                : Optional.empty();
     }
 
-    private String findAlreadyPromotedApiFromLastPromotion(final ExecutionContext executionContext, Promotion promotion) {
+    private String findAlreadyPromotedApiFromLastPromotion(
+            final ExecutionContext executionContext, Promotion promotion) {
         final PromotionQuery promotionQuery = new PromotionQuery();
         promotionQuery.setStatuses(Collections.singletonList(PromotionEntityStatus.ACCEPTED));
         promotionQuery.setTargetEnvCockpitIds(singletonList(promotion.getTargetEnvCockpitId()));
         promotionQuery.setTargetApiExists(true);
         promotionQuery.setApiId(promotion.getApiId());
-        List<PromotionEntity> previousPromotions = search(promotionQuery, new SortableImpl("created_at", false), null).getContent();
+        List<PromotionEntity> previousPromotions = search(promotionQuery, new SortableImpl("created_at", false), null)
+                .getContent();
         if (!CollectionUtils.isEmpty(previousPromotions)) {
             PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
             return apiSearchService.exists(lastAcceptedPromotion.getTargetApiId())
-                ? apiSearchService.findGenericById(executionContext, lastAcceptedPromotion.getTargetApiId(), false, false, false).getId()
-                : null;
+                    ? apiSearchService
+                            .findGenericById(
+                                    executionContext, lastAcceptedPromotion.getTargetApiId(), false, false, false)
+                            .getId()
+                    : null;
         }
         return null;
     }

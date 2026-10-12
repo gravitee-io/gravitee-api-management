@@ -93,14 +93,16 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     public String getPlatformFlowSchemaForm(ExecutionContext executionContext) {
         log.debug("Get platform schema form");
         String fileContent = getFileContent("/flow/platform-flow-schema-form.json");
-        List<TagEntity> tags = tagService.findByReference(executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION);
+        List<TagEntity> tags =
+                tagService.findByReference(executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION);
         if (tags.size() > 0) {
             log.debug("Append {} tag(s) to platform schema form", tags.size());
             try {
                 final ObjectMapper mapper = new ObjectMapper();
                 JsonNode jsonSchema = mapper.readTree(fileContent);
 
-                final ObjectNode consumers = (ObjectNode) jsonSchema.get("properties").get("consumers");
+                final ObjectNode consumers =
+                        (ObjectNode) jsonSchema.get("properties").get("consumers");
                 final ArrayNode enumNode = (ArrayNode) consumers.get("items").get("enum");
 
                 Map<String, String> titleMap = new HashMap<>();
@@ -115,7 +117,8 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
 
                 return jsonSchema.toPrettyString();
             } catch (JsonProcessingException ex) {
-                throw new TechnicalManagementException("An error occurs while append tags to platform flow schema form", ex);
+                throw new TechnicalManagementException(
+                        "An error occurs while append tags to platform flow schema form", ex);
             }
         }
 
@@ -126,12 +129,10 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     public List<Flow> findByReference(FlowReferenceType flowReferenceType, String referenceId) {
         try {
             log.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
-            return flowRepository
-                .findByReference(flowReferenceType, referenceId)
-                .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .map(flowConverter::toDefinition)
-                .collect(Collectors.toList());
+            return flowRepository.findByReference(flowReferenceType, referenceId).stream()
+                    .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                    .map(flowConverter::toDefinition)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while find flows by reference", ex);
         }
@@ -145,12 +146,13 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 flowRepository.deleteByReferenceIdAndReferenceType(referenceId, flowReferenceType);
                 return List.of();
             }
-            Map<String, io.gravitee.repository.management.model.flow.Flow> dbFlowsById = flowRepository
-                .findByReference(flowReferenceType, referenceId)
-                .stream()
-                .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
+            Map<String, io.gravitee.repository.management.model.flow.Flow> dbFlowsById =
+                    flowRepository.findByReference(flowReferenceType, referenceId).stream()
+                            .collect(Collectors.toMap(
+                                    io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
 
-            Set<String> flowIdsToSave = flows.stream().map(Flow::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+            Set<String> flowIdsToSave =
+                    flows.stream().map(Flow::getId).filter(Objects::nonNull).collect(Collectors.toSet());
 
             for (String dbFlowId : dbFlowsById.keySet()) {
                 if (!flowIdsToSave.contains(dbFlowId)) {
@@ -178,11 +180,10 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 savedFlows.addAll(flowRepository.updateAll(toUpdate));
             }
 
-            return savedFlows
-                .stream()
-                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
-                .map(flowConverter::toDefinition)
-                .collect(Collectors.toList());
+            return savedFlows.stream()
+                    .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                    .map(flowConverter::toDefinition)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while save flows", ex);
         }

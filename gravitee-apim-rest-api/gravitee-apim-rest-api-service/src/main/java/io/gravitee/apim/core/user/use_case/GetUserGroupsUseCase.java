@@ -46,58 +46,63 @@ public class GetUserGroupsUseCase {
 
     public Output execute(Input input) {
         var memberships = membershipQueryService
-            .findByMemberIdAndMemberTypeAndReferenceType(input.userId, Membership.Type.USER, Membership.ReferenceType.GROUP)
-            .stream()
-            .toList();
+                .findByMemberIdAndMemberTypeAndReferenceType(
+                        input.userId, Membership.Type.USER, Membership.ReferenceType.GROUP)
+                .stream()
+                .toList();
 
         if (memberships.isEmpty()) {
             return new Output(List.of(), 0);
         }
 
-        Set<String> groupIds = memberships.stream().map(Membership::getReferenceId).collect(Collectors.toSet());
+        Set<String> groupIds =
+                memberships.stream().map(Membership::getReferenceId).collect(Collectors.toSet());
 
-        var groupPage = groupQueryService.searchByIds(groupIds, input.environmentId, new PageableImpl(input.page, input.perPage));
+        var groupPage = groupQueryService.searchByIds(
+                groupIds, input.environmentId, new PageableImpl(input.page, input.perPage));
 
         // Build role map: roleId -> Role (resolved in one pass)
-        Set<String> roleIds = memberships.stream().map(Membership::getRoleId).filter(Objects::nonNull).collect(Collectors.toSet());
-        Map<String, Role> rolesById = roleQueryService.findByIds(roleIds).stream().collect(Collectors.toMap(Role::getId, r -> r));
+        Set<String> roleIds = memberships.stream()
+                .map(Membership::getRoleId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<String, Role> rolesById =
+                roleQueryService.findByIds(roleIds).stream().collect(Collectors.toMap(Role::getId, r -> r));
 
         // Build roles per group: groupId -> (scope -> roleName)
         Map<String, Map<String, String>> rolesByGroupId = new HashMap<>();
         for (Membership m : memberships) {
             Role role = rolesById.get(m.getRoleId());
             if (role != null) {
-                rolesByGroupId.computeIfAbsent(m.getReferenceId(), k -> new HashMap<>()).put(role.getScope().name(), role.getName());
+                rolesByGroupId
+                        .computeIfAbsent(m.getReferenceId(), k -> new HashMap<>())
+                        .put(role.getScope().name(), role.getName());
             }
         }
 
         // Resolve environment names in one pass
-        Set<String> environmentIds = groupPage
-            .getContent()
-            .stream()
-            .map(Group::getEnvironmentId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
+        Set<String> environmentIds = groupPage.getContent().stream()
+                .map(Group::getEnvironmentId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         Map<String, String> environmentNames = resolveEnvironmentNames(environmentIds);
 
         // Compute apiPrimaryOwner for each group in the page
         Map<String, Boolean> apiPrimaryOwnerByGroupId = computeApiPrimaryOwner(groupPage.getContent());
 
-        List<UserGroup> data = groupPage
-            .getContent()
-            .stream()
-            .map(group -> {
-                String envId = group.getEnvironmentId();
-                return UserGroup.builder()
-                    .id(group.getId())
-                    .name(group.getName())
-                    .environmentId(envId)
-                    .environmentName(envId != null ? environmentNames.get(envId) : null)
-                    .roles(rolesByGroupId.getOrDefault(group.getId(), Map.of()))
-                    .apiPrimaryOwner(apiPrimaryOwnerByGroupId.getOrDefault(group.getId(), false))
-                    .build();
-            })
-            .toList();
+        List<UserGroup> data = groupPage.getContent().stream()
+                .map(group -> {
+                    String envId = group.getEnvironmentId();
+                    return UserGroup.builder()
+                            .id(group.getId())
+                            .name(group.getName())
+                            .environmentId(envId)
+                            .environmentName(envId != null ? environmentNames.get(envId) : null)
+                            .roles(rolesByGroupId.getOrDefault(group.getId(), Map.of()))
+                            .apiPrimaryOwner(apiPrimaryOwnerByGroupId.getOrDefault(group.getId(), false))
+                            .build();
+                })
+                .toList();
 
         return new Output(data, groupPage.getTotalElements());
     }
@@ -109,29 +114,24 @@ public class GetUserGroupsUseCase {
 
         for (Group group : groups) {
             var apiMemberships = membershipQueryService.findByMemberIdAndMemberTypeAndReferenceType(
-                group.getId(),
-                Membership.Type.GROUP,
-                Membership.ReferenceType.API
-            );
+                    group.getId(), Membership.Type.GROUP, Membership.ReferenceType.API);
             apiMembershipsByGroupId.put(group.getId(), new ArrayList<>(apiMemberships));
             apiMemberships.forEach(m -> {
                 if (m.getRoleId() != null) apiMembershipRoleIds.add(m.getRoleId());
             });
         }
 
-        Map<String, Role> apiRolesById = roleQueryService
-            .findByIds(apiMembershipRoleIds)
-            .stream()
-            .collect(Collectors.toMap(Role::getId, r -> r));
+        Map<String, Role> apiRolesById = roleQueryService.findByIds(apiMembershipRoleIds).stream()
+                .collect(Collectors.toMap(Role::getId, r -> r));
 
         for (Group group : groups) {
-            boolean isPrimaryOwner = apiMembershipsByGroupId
-                .getOrDefault(group.getId(), List.of())
-                .stream()
-                .anyMatch(m -> {
-                    Role role = apiRolesById.get(m.getRoleId());
-                    return role != null && role.getScope() == Role.Scope.API && "PRIMARY_OWNER".equals(role.getName());
-                });
+            boolean isPrimaryOwner = apiMembershipsByGroupId.getOrDefault(group.getId(), List.of()).stream()
+                    .anyMatch(m -> {
+                        Role role = apiRolesById.get(m.getRoleId());
+                        return role != null
+                                && role.getScope() == Role.Scope.API
+                                && "PRIMARY_OWNER".equals(role.getName());
+                    });
             result.put(group.getId(), isPrimaryOwner);
         }
 

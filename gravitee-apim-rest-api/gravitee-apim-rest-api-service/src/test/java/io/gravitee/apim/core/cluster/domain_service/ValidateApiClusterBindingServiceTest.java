@@ -51,27 +51,27 @@ class ValidateApiClusterBindingServiceTest {
 
     @Test
     void should_throw_when_bound_virtual_cluster_is_missing() {
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, boundDefinition(VC_CROSS_ID)))
-            .isInstanceOf(ApiNotDeployableException.class)
-            .hasMessageContaining(VC_CROSS_ID);
+        assertThatThrownBy(
+                        () -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, boundDefinition(VC_CROSS_ID)))
+                .isInstanceOf(ApiNotDeployableException.class)
+                .hasMessageContaining(VC_CROSS_ID);
     }
 
     @Test
     void should_throw_when_bound_virtual_cluster_is_not_deployed() {
         clusterQueryService.initWith(List.of(virtualCluster(ClusterLifecycleState.UNDEPLOYED)));
 
-        assertThatThrownBy(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, boundDefinition(VC_CROSS_ID))).isInstanceOf(
-            ApiNotDeployableException.class
-        );
+        assertThatThrownBy(
+                        () -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, boundDefinition(VC_CROSS_ID)))
+                .isInstanceOf(ApiNotDeployableException.class);
     }
 
     @Test
     void should_pass_when_bound_virtual_cluster_is_deployed() {
         clusterQueryService.initWith(List.of(virtualCluster(ClusterLifecycleState.DEPLOYED)));
 
-        assertThatCode(() ->
-            service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, boundDefinition(VC_CROSS_ID))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, boundDefinition(VC_CROSS_ID)))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -79,72 +79,60 @@ class ValidateApiClusterBindingServiceTest {
         // PENDING = deployed at the gateway with not-yet-redeployed edits, so still a valid target.
         clusterQueryService.initWith(List.of(virtualCluster(ClusterLifecycleState.PENDING)));
 
-        assertThatCode(() ->
-            service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, boundDefinition(VC_CROSS_ID))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, boundDefinition(VC_CROSS_ID)))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_be_noop_for_non_native_api() {
-        assertThatCode(() ->
-            service.validateDeployable("api-1", ENV_ID, ApiType.PROXY, boundDefinition(VC_CROSS_ID))
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.PROXY, boundDefinition(VC_CROSS_ID)))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_be_noop_when_api_is_not_bound_to_a_virtual_cluster() throws Exception {
-        String definition = objectMapper.writeValueAsString(
-            NativeApi.builder()
-                .endpointGroups(
-                    List.of(
-                        NativeEndpointGroup.builder()
-                            .endpoints(List.of(NativeEndpoint.builder().type("mock").configuration("{}").build()))
-                            .build()
-                    )
-                )
-                .build()
-        );
+        String definition = objectMapper.writeValueAsString(NativeApi.builder()
+                .endpointGroups(List.of(NativeEndpointGroup.builder()
+                        .endpoints(List.of(NativeEndpoint.builder()
+                                .type("mock")
+                                .configuration("{}")
+                                .build()))
+                        .build()))
+                .build());
 
-        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, definition)).doesNotThrowAnyException();
+        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, definition))
+                .doesNotThrowAnyException();
     }
 
     @Test
     void should_be_noop_for_null_and_malformed_definition() {
-        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, null)).doesNotThrowAnyException();
-        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, "{ not-json")).doesNotThrowAnyException();
+        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, null))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, "{ not-json"))
+                .doesNotThrowAnyException();
     }
 
     private Cluster virtualCluster(ClusterLifecycleState lifecycleState) {
         return Cluster.builder()
-            .id("cluster-id")
-            .crossId(VC_CROSS_ID)
-            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
-            .name("Mesh")
-            .environmentId(ENV_ID)
-            .lifecycleState(lifecycleState)
-            .build();
+                .id("cluster-id")
+                .crossId(VC_CROSS_ID)
+                .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+                .name("Mesh")
+                .environmentId(ENV_ID)
+                .lifecycleState(lifecycleState)
+                .build();
     }
 
     private String boundDefinition(String vcCrossId) {
         try {
-            return objectMapper.writeValueAsString(
-                NativeApi.builder()
-                    .endpointGroups(
-                        List.of(
-                            NativeEndpointGroup.builder()
-                                .endpoints(
-                                    List.of(
-                                        NativeEndpoint.builder()
-                                            .type("native-kafka-virtual-cluster")
-                                            .configuration("{\"virtualClusterCrossId\":\"" + vcCrossId + "\"}")
-                                            .build()
-                                    )
-                                )
-                                .build()
-                        )
-                    )
-                    .build()
-            );
+            return objectMapper.writeValueAsString(NativeApi.builder()
+                    .endpointGroups(List.of(NativeEndpointGroup.builder()
+                            .endpoints(List.of(NativeEndpoint.builder()
+                                    .type("native-kafka-virtual-cluster")
+                                    .configuration("{\"virtualClusterCrossId\":\"" + vcCrossId + "\"}")
+                                    .build()))
+                            .build()))
+                    .build());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

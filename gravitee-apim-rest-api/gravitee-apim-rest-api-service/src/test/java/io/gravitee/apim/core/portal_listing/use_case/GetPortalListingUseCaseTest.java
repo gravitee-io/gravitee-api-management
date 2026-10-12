@@ -38,15 +38,17 @@ import org.junit.jupiter.api.Test;
 class GetPortalListingUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
-        .organizationId("organization-id")
-        .environmentId("environment-id")
-        .actor(AuditActor.builder().userId("user-id").build())
-        .build();
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .actor(AuditActor.builder().userId("user-id").build())
+            .build();
     private static final String PORTAL_HRID = "default-portal";
     private static final String LISTING_HRID = "default-listing";
-    private static final PortalListingId LISTING_ID = PortalListingId.of(
-        HRIDToUUID.portalListing().context(AUDIT_INFO).portal(PORTAL_HRID).hrid(LISTING_HRID).id()
-    );
+    private static final PortalListingId LISTING_ID = PortalListingId.of(HRIDToUUID.portalListing()
+            .context(AUDIT_INFO)
+            .portal(PORTAL_HRID)
+            .hrid(LISTING_HRID)
+            .id());
 
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
     private GetPortalListingUseCase useCase;
@@ -73,7 +75,8 @@ class GetPortalListingUseCaseTest {
 
     @Test
     void should_throw_when_missing() {
-        var throwable = catchThrowable(() -> useCase.execute(new GetPortalListingUseCase.Input(AUDIT_INFO, LISTING_ID)));
+        var throwable =
+                catchThrowable(() -> useCase.execute(new GetPortalListingUseCase.Input(AUDIT_INFO, LISTING_ID)));
 
         assertThat(throwable).isInstanceOf(PortalListingNotFoundException.class);
     }
@@ -83,24 +86,25 @@ class GetPortalListingUseCaseTest {
         portalListingCrudService.initWith(List.of(aListing()));
 
         var otherEnvAudit = AuditInfo.builder()
-            .organizationId("organization-id")
-            .environmentId("other-env")
-            .actor(AuditActor.builder().userId("user-id").build())
-            .build();
+                .organizationId("organization-id")
+                .environmentId("other-env")
+                .actor(AuditActor.builder().userId("user-id").build())
+                .build();
 
-        var throwable = catchThrowable(() -> useCase.execute(new GetPortalListingUseCase.Input(otherEnvAudit, LISTING_ID)));
+        var throwable =
+                catchThrowable(() -> useCase.execute(new GetPortalListingUseCase.Input(otherEnvAudit, LISTING_ID)));
 
         assertThat(throwable).isInstanceOf(PortalListingNotFoundException.class);
     }
 
     private static PortalListing aListing() {
-        var portalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
+        var portalId = PortalId.of(
+                HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
         return PortalListing.of(
-            LISTING_ID,
-            AUDIT_INFO.environmentId(),
-            AUDIT_INFO.organizationId(),
-            portalId,
-            List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1))
-        );
+                LISTING_ID,
+                AUDIT_INFO.environmentId(),
+                AUDIT_INFO.organizationId(),
+                portalId,
+                List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1)));
     }
 }

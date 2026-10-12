@@ -51,7 +51,8 @@ public class StillPrimaryOwnerException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        String message = "The " + primaryOwnerMode.name().toLowerCase() + " is still primary owner of '" + apiCount + "' APIs";
+        String message =
+                "The " + primaryOwnerMode.name().toLowerCase() + " is still primary owner of '" + apiCount + "' APIs";
         if (ApiPrimaryOwnerMode.USER == primaryOwnerMode) {
             message += " and '" + applicationCount + "' Applications.";
         }

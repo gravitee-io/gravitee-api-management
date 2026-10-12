@@ -25,7 +25,7 @@ import org.mapstruct.factory.Mappers;
  * @deprecated since 4.10.0, use {@link io.gravitee.plugin.mappers.SslOptionsMapper} instead
  */
 @Deprecated(since = "4.10.0", forRemoval = true)
-@Mapper(uses = { KeyStoreMapper.class, TrustStoreMapper.class })
+@Mapper(uses = {KeyStoreMapper.class, TrustStoreMapper.class})
 public interface SslOptionsMapper {
     SslOptionsMapper INSTANCE = Mappers.getMapper(SslOptionsMapper.class);
 

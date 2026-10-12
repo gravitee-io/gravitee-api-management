@@ -49,12 +49,9 @@ public class ListenerEntrypointInvalidDlqException extends AbstractManagementExc
 
     @Override
     public String getMessage() {
-        return (
-            "The dlq defined for the entrypoint [" +
-            type +
-            "] must target a valid endpoint supporting PUBLISH mode (target [" +
-            dlqTarget +
-            "])."
-        );
+        return ("The dlq defined for the entrypoint [" + type
+                + "] must target a valid endpoint supporting PUBLISH mode (target ["
+                + dlqTarget
+                + "]).");
     }
 }

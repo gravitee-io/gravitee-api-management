@@ -38,11 +38,10 @@ import org.mapstruct.NullValueMappingStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(
-    componentModel = MappingConstants.ComponentModel.SPRING,
-    uses = { JsonDeserializer.class, JsonDeserializer.class },
-    injectionStrategy = InjectionStrategy.FIELD,
-    nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL
-)
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        uses = {JsonDeserializer.class, JsonDeserializer.class},
+        injectionStrategy = InjectionStrategy.FIELD,
+        nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL)
 @CustomLog
 public abstract class SubscriptionAdapter {
 
@@ -102,7 +101,9 @@ public abstract class SubscriptionAdapter {
     public abstract SubscriptionEntity toCore(io.gravitee.rest.api.model.SubscriptionEntity subscription);
 
     public SubscriptionEntity.Status toCore(SubscriptionStatus status) {
-        return status == SubscriptionStatus.RESUMED ? SubscriptionEntity.Status.ACCEPTED : SubscriptionEntity.Status.valueOf(status.name());
+        return status == SubscriptionStatus.RESUMED
+                ? SubscriptionEntity.Status.ACCEPTED
+                : SubscriptionEntity.Status.valueOf(status.name());
     }
 
     @Mapping(target = "status", ignore = true)
@@ -131,7 +132,9 @@ public abstract class SubscriptionAdapter {
     @Mapping(target = "configuration", source = "consumerConfiguration")
     public abstract SubscriptionEntity fromSpec(SubscriptionCRDSpec spec);
 
-    @Mapping(target = "entrypointConfiguration", expression = "java(serializeConsumerConfiguration(consumerConfiguration))")
+    @Mapping(
+            target = "entrypointConfiguration",
+            expression = "java(serializeConsumerConfiguration(consumerConfiguration))")
     public abstract SubscriptionConfiguration map(ConsumerConfiguration consumerConfiguration);
 
     @Mapping(target = "request", ignore = true)
@@ -173,8 +176,7 @@ public abstract class SubscriptionAdapter {
 
     @Named("mapReferenceTypeFromRepository")
     protected SubscriptionReferenceType mapReferenceTypeFromRepository(
-        io.gravitee.repository.management.model.SubscriptionReferenceType repoType
-    ) {
+            io.gravitee.repository.management.model.SubscriptionReferenceType repoType) {
         if (repoType == null) {
             return null;
         }
@@ -183,8 +185,7 @@ public abstract class SubscriptionAdapter {
 
     @Named("mapReferenceTypeToRepository")
     protected io.gravitee.repository.management.model.SubscriptionReferenceType mapReferenceTypeToRepository(
-        SubscriptionReferenceType coreType
-    ) {
+            SubscriptionReferenceType coreType) {
         if (coreType == null) {
             return null;
         }
@@ -232,7 +233,10 @@ public abstract class SubscriptionAdapter {
         public JacksonSubscriptionConfiguration() {}
 
         public JacksonSubscriptionConfiguration(SubscriptionConfiguration configuration) {
-            super(configuration.getEntrypointId(), configuration.getChannel(), configuration.getEntrypointConfiguration());
+            super(
+                    configuration.getEntrypointId(),
+                    configuration.getChannel(),
+                    configuration.getEntrypointConfiguration());
         }
 
         @JsonRawValue

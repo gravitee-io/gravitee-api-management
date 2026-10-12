@@ -23,7 +23,9 @@ class AuthzReplayResponderRemovedTest {
 
     @Test
     void replay_responder_is_not_on_the_classpath() {
-        assertThat(classExists("io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzReplayResponder")).isFalse();
+        assertThat(classExists(
+                        "io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzReplayResponder"))
+                .isFalse();
     }
 
     private static boolean classExists(String fqcn) {

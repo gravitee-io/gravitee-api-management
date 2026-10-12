@@ -19,7 +19,6 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
@@ -40,20 +39,23 @@ public class LogEndpointResponse extends LogResponse {
 
     public void setupCapture(HttpExecutionContextInternal ctx) {
         if (isLogHeaders()) {
-            // Set a headers captor to capture the response headers coming from the endpoint, excluding any already set response headers (set by a policy, processor, ...).
+            // Set a headers captor to capture the response headers coming from the endpoint, excluding any already set
+            // response headers (set by a policy, processor, ...).
             response.setHeaders(new LogHeadersCaptor(response.headers()));
         }
 
         response.registerBuffersInterceptor(chunks -> {
             // Nothing to prepare for the endpoint response.
-            if (isLogPayload() && loggingContext.isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
+            if (isLogPayload()
+                    && loggingContext.isContentTypeLoggable(
+                            response.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
                 final Buffer buffer = Buffer.buffer();
                 if (loggingContext.isBodyLoggable()) {
-                    chunks = chunks
-                        .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
-                        .doFinally(() -> {
-                            if (buffer.length() > 0) this.setBody(buffer.toString());
-                        });
+                    chunks = chunks.doOnNext(chunk ->
+                                    BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
+                            .doFinally(() -> {
+                                if (buffer.length() > 0) this.setBody(buffer.toString());
+                            });
                 } else {
                     this.setBody("BODY NOT CAPTURED");
                 }
@@ -76,10 +78,14 @@ public class LogEndpointResponse extends LogResponse {
         }
         int status = response.status();
         if (status != 0) {
-            final ExecutionFailure executionFailure = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+            final ExecutionFailure executionFailure =
+                    ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
             if (executionFailure != null) {
                 status = executionFailure.statusCode();
-                if (isLogPayload() && loggingContext.isBodyLoggable() && executionFailure.message() != null && this.getBody() == null) {
+                if (isLogPayload()
+                        && loggingContext.isBodyLoggable()
+                        && executionFailure.message() != null
+                        && this.getBody() == null) {
                     this.setBody(executionFailure.message());
                 }
             }

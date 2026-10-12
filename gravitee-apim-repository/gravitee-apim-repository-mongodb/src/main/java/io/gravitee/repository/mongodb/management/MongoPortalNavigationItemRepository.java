@@ -60,9 +60,14 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
-    public List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId) {
-        log.debug("Find all PortalNavigationItem by organizationId [{}] and environmentId [{}]", organizationId, environmentId);
-        Set<PortalNavigationItemMongo> items = internalRepo.findAllByOrganizationIdAndEnvironmentId(organizationId, environmentId);
+    public List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(
+            String organizationId, String environmentId) {
+        log.debug(
+                "Find all PortalNavigationItem by organizationId [{}] and environmentId [{}]",
+                organizationId,
+                environmentId);
+        Set<PortalNavigationItemMongo> items =
+                internalRepo.findAllByOrganizationIdAndEnvironmentId(organizationId, environmentId);
         List<PortalNavigationItem> mapped = items.stream().map(mapper::map).collect(Collectors.toList());
         log.debug("Find all PortalNavigationItem - Done, found {} items", mapped.size());
         return mapped;
@@ -70,20 +75,19 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
 
     @Override
     public List<PortalNavigationItem> findByAutomationReference(
-        String environmentId,
-        AutomationTargetReferenceType referenceType,
-        String referenceId
-    ) throws TechnicalException {
-        log.debug("Find PortalNavigationItem by automation reference [env={}, type={}, id={}]", environmentId, referenceType, referenceId);
-        return internalRepo
-            .findByEnvironmentIdAndAutomationMetadata_ReferenceTypeAndAutomationMetadata_ReferenceId(
+            String environmentId, AutomationTargetReferenceType referenceType, String referenceId)
+            throws TechnicalException {
+        log.debug(
+                "Find PortalNavigationItem by automation reference [env={}, type={}, id={}]",
                 environmentId,
                 referenceType,
-                referenceId
-            )
-            .stream()
-            .map(mapper::map)
-            .toList();
+                referenceId);
+        return internalRepo
+                .findByEnvironmentIdAndAutomationMetadata_ReferenceTypeAndAutomationMetadata_ReferenceId(
+                        environmentId, referenceType, referenceId)
+                .stream()
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
@@ -96,14 +100,16 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
-    public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId) {
+    public List<PortalNavigationItem> findAllByAreaAndEnvironmentId(
+            PortalNavigationItem.Area area, String environmentId) {
         log.debug("Find all PortalNavigationItem by area [{}], environmentId [{}]", area, environmentId);
         Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndEnvironmentId(area, environmentId);
         return items.stream().map(mapper::map).collect(Collectors.toList());
     }
 
     @Override
-    public List<PortalNavigationItem> searchByCriteria(PortalNavigationItemCriteria criteria) throws TechnicalException {
+    public List<PortalNavigationItem> searchByCriteria(PortalNavigationItemCriteria criteria)
+            throws TechnicalException {
         log.debug("Search PortalNavigationItem by criteria [{}]", criteria);
         try {
             Query query = buildQuery(criteria);
@@ -149,7 +155,8 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
             if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
                 query.addCriteria(where("apiId").in(criteria.getApiIds()));
             }
-            if (criteria.getApiProductIds() != null && !criteria.getApiProductIds().isEmpty()) {
+            if (criteria.getApiProductIds() != null
+                    && !criteria.getApiProductIds().isEmpty()) {
                 query.addCriteria(where("apiProductId").in(criteria.getApiProductIds()));
             }
             if (hasText(criteria.getType())) {
@@ -171,25 +178,25 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
-    public List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(PortalNavigationItem.Area area, String environmentId) {
-        log.debug("Find all PortalNavigationItem by area [{}], environmentId [{}] and parentId is null", area, environmentId);
-        Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndEnvironmentIdAndParentIdIsNull(area, environmentId);
+    public List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(
+            PortalNavigationItem.Area area, String environmentId) {
+        log.debug(
+                "Find all PortalNavigationItem by area [{}], environmentId [{}] and parentId is null",
+                area,
+                environmentId);
+        Set<PortalNavigationItemMongo> items =
+                internalRepo.findAllByAreaAndEnvironmentIdAndParentIdIsNull(area, environmentId);
         return items.stream().map(mapper::map).collect(Collectors.toList());
     }
 
     @Override
     public List<PortalNavigationItem> findAllTopLevelByAreaAndEnvironmentAndReference(
-        PortalNavigationItem.Area area,
-        String environmentId,
-        PortalNavigationReferenceType referenceType,
-        String referenceId
-    ) {
+            PortalNavigationItem.Area area,
+            String environmentId,
+            PortalNavigationReferenceType referenceType,
+            String referenceId) {
         Set<PortalNavigationItemMongo> items = internalRepo.findAllTopLevelByAreaAndEnvironmentAndReference(
-            area,
-            environmentId,
-            referenceType,
-            referenceId
-        );
+                area, environmentId, referenceType, referenceId);
         return items.stream().map(mapper::map).collect(Collectors.toList());
     }
 
@@ -208,11 +215,13 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
-    public boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) throws TechnicalException {
+    public boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration)
+            throws TechnicalException {
         log.debug("Update configuration of PortalNavigationItem [{}] if unchanged", id);
         try {
             var query = new Query(where("_id").is(id).and("configuration").is(expectedConfiguration));
-            var result = mongoTemplate.updateFirst(query, Update.update("configuration", configuration), PortalNavigationItemMongo.class);
+            var result = mongoTemplate.updateFirst(
+                    query, Update.update("configuration", configuration), PortalNavigationItemMongo.class);
             return result.getMatchedCount() == 1;
         } catch (Exception ex) {
             throw new TechnicalException("Failed to update the configuration of portal navigation item " + id, ex);

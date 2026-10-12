@@ -106,8 +106,11 @@ class NativeApiLogsMapperTest {
         // fails on a core constant it cannot map, so adding one here without adding it to openapi-apis.yaml is
         // a compile error. The other direction is silent — a status declared only in the spec is a value the
         // API documents and can never return.
-        assertThat(
-            Arrays.stream(NativeApiLog.ConnectionStatusEnum.values()).map(NativeApiLog.ConnectionStatusEnum::getValue).toList()
-        ).containsExactlyInAnyOrderElementsOf(Arrays.stream(NativeConnectionStatus.values()).map(Enum::name).toList());
+        assertThat(Arrays.stream(NativeApiLog.ConnectionStatusEnum.values())
+                        .map(NativeApiLog.ConnectionStatusEnum::getValue)
+                        .toList())
+                .containsExactlyInAnyOrderElementsOf(Arrays.stream(NativeConnectionStatus.values())
+                        .map(Enum::name)
+                        .toList());
     }
 }

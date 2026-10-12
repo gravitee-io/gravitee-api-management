@@ -110,13 +110,16 @@ class RedisRateLimitRepositoryTest {
         when(redisClient.scriptSource("ratelimit")).thenReturn("the-script-source");
         when(redisClient.redisApi()).thenReturn(Future.succeededFuture(redisAPI));
         // EVALSHA fails because the slot's master never received the SCRIPT LOAD.
-        when(redisAPI.evalsha(anyList())).thenReturn(Future.failedFuture(new RuntimeException("NOSCRIPT No matching script")));
+        when(redisAPI.evalsha(anyList()))
+                .thenReturn(Future.failedFuture(new RuntimeException("NOSCRIPT No matching script")));
         // EVAL (with the source) succeeds — Redis caches it on that node and returns the rate.
         Response evalResponse = mockRateResponse(7L, 5L, 123L, "sub-1");
         when(redisAPI.eval(anyList())).thenReturn(Future.succeededFuture(evalResponse));
 
         var repository = new RedisRateLimitRepository(redisClient, 2000);
-        RateLimit result = repository.incrementAndGet("my-key", 1, () -> new RateLimit("my-key")).blockingGet();
+        RateLimit result = repository
+                .incrementAndGet("my-key", 1, () -> new RateLimit("my-key"))
+                .blockingGet();
 
         // The result must be mapped from the fallback EVAL response, not the supplier default.
         assertThat(result.getCounter()).isEqualTo(7L);
@@ -136,32 +139,40 @@ class RedisRateLimitRepositoryTest {
         when(redisClient.scriptSha1("ratelimit")).thenReturn("the-sha");
         when(redisClient.redisApi()).thenReturn(Future.succeededFuture(redisAPI));
         // A non-NOSCRIPT error (e.g. LOADING) must NOT trigger an EVAL replay — the script may have run.
-        when(redisAPI.evalsha(anyList())).thenReturn(Future.failedFuture(new RuntimeException("LOADING Redis is loading the dataset")));
+        when(redisAPI.evalsha(anyList()))
+                .thenReturn(Future.failedFuture(new RuntimeException("LOADING Redis is loading the dataset")));
 
         var repository = new RedisRateLimitRepository(redisClient, 2000);
 
-        assertThatThrownBy(() -> repository.incrementAndGet("my-key", 1, () -> new RateLimit("my-key")).blockingGet()).hasMessageContaining(
-            "LOADING"
-        );
+        assertThatThrownBy(() -> repository
+                        .incrementAndGet("my-key", 1, () -> new RateLimit("my-key"))
+                        .blockingGet())
+                .hasMessageContaining("LOADING");
         verify(redisAPI, never()).eval(anyList());
     }
 
     @Test
     void fails_fast_when_redis_is_not_connected() {
         connected.set(false);
-        var repository = new RedisRateLimitRepository(stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
+        var repository = new RedisRateLimitRepository(
+                stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
 
-        assertThatThrownBy(() -> repository.incrementAndGet("k", 1, () -> new RateLimit("k")).blockingGet())
-            .isInstanceOf(RuntimeException.class)
-            .hasCauseInstanceOf(RedisNotConnectedException.class);
+        assertThatThrownBy(() -> repository
+                        .incrementAndGet("k", 1, () -> new RateLimit("k"))
+                        .blockingGet())
+                .isInstanceOf(RuntimeException.class)
+                .hasCauseInstanceOf(RedisNotConnectedException.class);
     }
 
     @Test
     void maps_successful_evalsha_response() {
         evalshaHandler = args -> Future.succeededFuture(rateResponse(7L, 100L, 123L, "sub-1"));
-        var repository = new RedisRateLimitRepository(stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
+        var repository = new RedisRateLimitRepository(
+                stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
 
-        RateLimit result = repository.incrementAndGet("my-key", 1, () -> new RateLimit("my-key")).blockingGet();
+        RateLimit result = repository
+                .incrementAndGet("my-key", 1, () -> new RateLimit("my-key"))
+                .blockingGet();
 
         assertThat(result.getCounter()).isEqualTo(7L);
         assertThat(result.getLimit()).isEqualTo(100L);
@@ -179,7 +190,8 @@ class RedisRateLimitRepositoryTest {
         Promise<Response> redisPromise = Promise.promise();
         evalshaHandler = args -> redisPromise.future();
 
-        var repository = new RedisRateLimitRepository(stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
+        var repository = new RedisRateLimitRepository(
+                stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
         CountDownLatch subscribed = new CountDownLatch(1);
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<RateLimit> result = new AtomicReference<>();
@@ -187,17 +199,16 @@ class RedisRateLimitRepositoryTest {
 
         vertx.runOnContext(v -> {
             repository
-                .incrementAndGet("k", 1, () -> new RateLimit("k"))
-                .subscribe(
-                    rl -> {
-                        result.set(rl);
-                        done.countDown();
-                    },
-                    t -> {
-                        error.set(t);
-                        done.countDown();
-                    }
-                );
+                    .incrementAndGet("k", 1, () -> new RateLimit("k"))
+                    .subscribe(
+                            rl -> {
+                                result.set(rl);
+                                done.countDown();
+                            },
+                            t -> {
+                                error.set(t);
+                                done.countDown();
+                            });
             subscribed.countDown();
             try {
                 Thread.sleep(OPERATION_TIMEOUT_MS * 4L);
@@ -211,7 +222,9 @@ class RedisRateLimitRepositoryTest {
         redisPromise.complete(rateResponse(3L, 10L, 99L, "sub"));
 
         assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
-        assertThat(error.get()).as("must not raise a false RedisOperationTimeoutException").isNull();
+        assertThat(error.get())
+                .as("must not raise a false RedisOperationTimeoutException")
+                .isNull();
         assertThat(result.get()).isNotNull();
         assertThat(result.get().getCounter()).isEqualTo(3L);
     }
@@ -222,21 +235,17 @@ class RedisRateLimitRepositoryTest {
         Promise<Response> redisPromise = Promise.promise();
         evalshaHandler = args -> redisPromise.future();
 
-        var repository = new RedisRateLimitRepository(stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
+        var repository = new RedisRateLimitRepository(
+                stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<Throwable> error = new AtomicReference<>();
 
-        vertx.runOnContext(v ->
-            repository
+        vertx.runOnContext(v -> repository
                 .incrementAndGet("k", 1, () -> new RateLimit("k"))
-                .subscribe(
-                    rl -> done.countDown(),
-                    t -> {
-                        error.set(t);
-                        done.countDown();
-                    }
-                )
-        );
+                .subscribe(rl -> done.countDown(), t -> {
+                    error.set(t);
+                    done.countDown();
+                }));
 
         assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
         assertThat(error.get()).isInstanceOf(RedisOperationTimeoutException.class);
@@ -259,17 +268,16 @@ class RedisRateLimitRepositoryTest {
         AtomicReference<Throwable> error = new AtomicReference<>();
 
         repository
-            .incrementAndGet("k", 1, () -> new RateLimit("k"))
-            .subscribe(
-                rl -> {
-                    result.set(rl);
-                    done.countDown();
-                },
-                t -> {
-                    error.set(t);
-                    done.countDown();
-                }
-            );
+                .incrementAndGet("k", 1, () -> new RateLimit("k"))
+                .subscribe(
+                        rl -> {
+                            result.set(rl);
+                            done.countDown();
+                        },
+                        t -> {
+                            error.set(t);
+                            done.countDown();
+                        });
 
         // Resolve API after the old operation.timeout budget would have expired.
         Thread.sleep(OPERATION_TIMEOUT_MS * 3L);
@@ -285,11 +293,13 @@ class RedisRateLimitRepositoryTest {
     @Timeout(5)
     void propagates_non_timeout_redis_failures() {
         evalshaHandler = args -> Future.failedFuture(new RuntimeException("LOADING Redis is loading the dataset"));
-        var repository = new RedisRateLimitRepository(stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
+        var repository = new RedisRateLimitRepository(
+                stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
 
-        assertThatThrownBy(() -> repository.incrementAndGet("k", 1, () -> new RateLimit("k")).blockingGet()).hasMessageContaining(
-            "LOADING"
-        );
+        assertThatThrownBy(() -> repository
+                        .incrementAndGet("k", 1, () -> new RateLimit("k"))
+                        .blockingGet())
+                .hasMessageContaining("LOADING");
         assertThat(connectionFailureNotifications.get()).isEqualTo(1);
     }
 
@@ -299,7 +309,11 @@ class RedisRateLimitRepositoryTest {
      * Constructor args match RedisClient (VertxRedisClientFactory + RedisClientOptions).
      */
     private RedisClient stubRedisClient(Future<RedisAPI> api) {
-        RedisClientOptions options = RedisClientOptions.builder().host("127.0.0.1").port(1).connectTimeout(500).build();
+        RedisClientOptions options = RedisClientOptions.builder()
+                .host("127.0.0.1")
+                .port(1)
+                .connectTimeout(500)
+                .build();
         return new RedisClient(vertx, new VertxRedisClientFactory(vertx), options, Map.of()) {
             @Override
             public boolean isConnected() {
@@ -325,24 +339,22 @@ class RedisRateLimitRepositoryTest {
 
     private RedisAPI redisApiProxy() {
         return (RedisAPI) Proxy.newProxyInstance(
-            RedisAPI.class.getClassLoader(),
-            new Class<?>[] { RedisAPI.class },
-            (proxy, method, args) -> {
-                if ("evalsha".equals(method.getName()) && args != null && args.length == 1) {
-                    @SuppressWarnings("unchecked")
-                    List<String> command = (List<String>) args[0];
-                    return evalshaHandler.apply(command);
-                }
-                if ("toString".equals(method.getName())) {
-                    return "RedisAPI-stub";
-                }
-                throw new UnsupportedOperationException("Unexpected RedisAPI call: " + method.getName());
-            }
-        );
+                RedisAPI.class.getClassLoader(), new Class<?>[] {RedisAPI.class}, (proxy, method, args) -> {
+                    if ("evalsha".equals(method.getName()) && args != null && args.length == 1) {
+                        @SuppressWarnings("unchecked")
+                        List<String> command = (List<String>) args[0];
+                        return evalshaHandler.apply(command);
+                    }
+                    if ("toString".equals(method.getName())) {
+                        return "RedisAPI-stub";
+                    }
+                    throw new UnsupportedOperationException("Unexpected RedisAPI call: " + method.getName());
+                });
     }
 
     private static Response rateResponse(long counter, long limit, long reset, String subscription) {
-        List<Response> fields = List.of(longResponse(counter), longResponse(limit), longResponse(reset), stringResponse(subscription));
+        List<Response> fields =
+                List.of(longResponse(counter), longResponse(limit), longResponse(reset), stringResponse(subscription));
         return new Response() {
             @Override
             public ResponseType type() {
@@ -423,6 +435,7 @@ class RedisRateLimitRepositoryTest {
     }
 
     private static List<String> argThatStartsWith(String first) {
-        return org.mockito.ArgumentMatchers.argThat(list -> list != null && !list.isEmpty() && first.equals(list.get(0)));
+        return org.mockito.ArgumentMatchers.argThat(
+                list -> list != null && !list.isEmpty() && first.equals(list.get(0)));
     }
 }

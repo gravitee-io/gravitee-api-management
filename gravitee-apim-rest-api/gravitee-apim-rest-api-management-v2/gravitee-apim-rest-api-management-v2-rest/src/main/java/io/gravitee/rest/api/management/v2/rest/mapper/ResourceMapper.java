@@ -20,7 +20,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class })
+@Mapper(uses = {ConfigurationSerializationMapper.class})
 public interface ResourceMapper {
     ResourceMapper INSTANCE = Mappers.getMapper(ResourceMapper.class);
 

@@ -74,11 +74,10 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
     @Test
     public void shouldBeBadRequestIfContentLengthGreaterThanMediaMaxSize() throws IOException {
         StreamDataBodyPart filePart = new StreamDataBodyPart(
-            "file",
-            this.getClass().getResource("/media/logo.svg").openStream(),
-            "logo.svg",
-            MediaType.valueOf("image/svg+xml")
-        );
+                "file",
+                this.getClass().getResource("/media/logo.svg").openStream(),
+                "logo.svg",
+                MediaType.valueOf("image/svg+xml"));
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final FormDataBodyPart fileNameBodyPart = new FormDataBodyPart("fileName", "logo.svg");
@@ -95,12 +94,12 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
         when(mediaService.getMediaMaxSize(any())).thenReturn(10L);
 
         final Response response = envTarget()
-            .path(API)
-            .path("pages")
-            .path(PAGE)
-            .path("media")
-            .request()
-            .post(Entity.entity(multiPart, multiPart.getMediaType()));
+                .path(API)
+                .path("pages")
+                .path(PAGE)
+                .path("media")
+                .request()
+                .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
         final UploadUnauthorized result = response.readEntity(UploadUnauthorized.class);
@@ -110,11 +109,10 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
     @Test
     public void shouldAttachMediaToApiPage() throws IOException {
         StreamDataBodyPart filePart = new StreamDataBodyPart(
-            "file",
-            this.getClass().getResource("/media/logo.svg").openStream(),
-            "logo.svg",
-            MediaType.valueOf("image/svg+xml")
-        );
+                "file",
+                this.getClass().getResource("/media/logo.svg").openStream(),
+                "logo.svg",
+                MediaType.valueOf("image/svg+xml"));
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final FormDataBodyPart fileNameBodyPart = new FormDataBodyPart("fileName", "logo.svg");
@@ -131,7 +129,8 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
         when(mediaService.getMediaMaxSize(any())).thenReturn(10L);
 
         final String mediaHash = "#MEDIA_HASH";
-        when(mediaService.saveApiMedia(eq(GraviteeContext.getExecutionContext()), eq(API), any())).thenReturn(mediaHash);
+        when(mediaService.saveApiMedia(eq(GraviteeContext.getExecutionContext()), eq(API), any()))
+                .thenReturn(mediaHash);
 
         final Date attachedAt = new Date();
         PageEntity pageEntity = new PageEntity();
@@ -142,17 +141,22 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
         when(pageService.attachMedia(eq(PAGE), eq(mediaHash), any())).thenReturn(Optional.of(pageEntity));
 
         final Response response = envTarget()
-            .path(API)
-            .path("pages")
-            .path(PAGE)
-            .path("media")
-            .request()
-            .post(Entity.entity(multiPart, multiPart.getMediaType()));
+                .path(API)
+                .path("pages")
+                .path(PAGE)
+                .path("media")
+                .request()
+                .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
         assertThat(response.getStatus()).isEqualTo(CREATED_201);
-        assertThat(response.getHeaders().getFirst(HttpHeaders.LOCATION)).isEqualTo(
-            envTarget().path(API).path("pages").path(PAGE).path("media").getUri().toString()
-        );
+        assertThat(response.getHeaders().getFirst(HttpHeaders.LOCATION))
+                .isEqualTo(envTarget()
+                        .path(API)
+                        .path("pages")
+                        .path(PAGE)
+                        .path("media")
+                        .getUri()
+                        .toString());
 
         final MediaEntity result = response.readEntity(MediaEntity.class);
         assertThat(result.getHash()).isEqualTo(mediaHash);
@@ -166,11 +170,10 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotAttachMediaToApiPageBecausePageDoesNotBelongToApi() throws IOException {
         StreamDataBodyPart filePart = new StreamDataBodyPart(
-            "file",
-            this.getClass().getResource("/media/logo.svg").openStream(),
-            "logo.svg",
-            MediaType.valueOf("image/svg+xml")
-        );
+                "file",
+                this.getClass().getResource("/media/logo.svg").openStream(),
+                "logo.svg",
+                MediaType.valueOf("image/svg+xml"));
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final FormDataBodyPart fileNameBodyPart = new FormDataBodyPart("fileName", "logo.svg");
@@ -184,12 +187,12 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
         doReturn(pageMock).when(pageService).findById(PAGE);
 
         final Response response = envTarget()
-            .path(API)
-            .path("pages")
-            .path(PAGE)
-            .path("media")
-            .request()
-            .post(Entity.entity(multiPart, multiPart.getMediaType()));
+                .path(API)
+                .path("pages")
+                .path(PAGE)
+                .path("media")
+                .request()
+                .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
         assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
     }

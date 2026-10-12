@@ -48,7 +48,8 @@ public class ApiProductSearchServiceImpl implements ApiProductSearchService {
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
 
     @Override
-    public Page<ApiProduct> search(ExecutionContext executionContext, QueryBuilder<IndexableApiProduct> queryBuilder, Pageable pageable) {
+    public Page<ApiProduct> search(
+            ExecutionContext executionContext, QueryBuilder<IndexableApiProduct> queryBuilder, Pageable pageable) {
         var query = queryBuilder.build();
 
         SearchResult searchResult = searchEngineService.search(executionContext, query);
@@ -65,24 +66,22 @@ public class ApiProductSearchServiceImpl implements ApiProductSearchService {
         }
 
         Set<ApiProduct> apiProducts = apiProductQueryService.findByEnvironmentIdAndIdIn(
-            executionContext.getEnvironmentId(),
-            Set.copyOf(pageIds)
-        );
+                executionContext.getEnvironmentId(), Set.copyOf(pageIds));
 
         Map<String, ApiProduct> byId = new LinkedHashMap<>();
         apiProducts.forEach(apiProduct -> byId.put(apiProduct.getId(), apiProduct));
 
-        Map<String, PrimaryOwnerEntity> primaryOwnersById = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwners(
-            executionContext.getOrganizationId(),
-            byId.keySet()
-        );
+        Map<String, PrimaryOwnerEntity> primaryOwnersById =
+                apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwners(
+                        executionContext.getOrganizationId(), byId.keySet());
 
-        List<ApiProduct> orderedPage = pageIds
-            .stream()
-            .map(byId::get)
-            .filter(Objects::nonNull)
-            .map(apiProduct -> apiProduct.toBuilder().primaryOwner(primaryOwnersById.get(apiProduct.getId())).build())
-            .collect(toList());
+        List<ApiProduct> orderedPage = pageIds.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(apiProduct -> apiProduct.toBuilder()
+                        .primaryOwner(primaryOwnersById.get(apiProduct.getId()))
+                        .build())
+                .collect(toList());
 
         return new Page<>(orderedPage, pageable.getPageNumber(), orderedPage.size(), sortedIds.size());
     }

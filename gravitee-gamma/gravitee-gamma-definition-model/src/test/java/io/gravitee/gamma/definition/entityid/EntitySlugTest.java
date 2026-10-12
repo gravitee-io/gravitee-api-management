@@ -30,26 +30,27 @@ class EntitySlugTest {
      */
     @ParameterizedTest
     @ValueSource(
-        strings = {
-            "Crème Brûlée",
-            "claude.ai",
-            "gpt-3.5",
-            "list_pull_requests",
-            "GitHub MCP!!",
-            "  spaced out  ",
-            "-leading-dash-",
-            "_under_score_",
-            "日本語モデル",
-            "a..b",
-            "***",
-            "v1.2.3-beta",
-            "Smart Router #1",
-        }
-    )
+            strings = {
+                "Crème Brûlée",
+                "claude.ai",
+                "gpt-3.5",
+                "list_pull_requests",
+                "GitHub MCP!!",
+                "  spaced out  ",
+                "-leading-dash-",
+                "_under_score_",
+                "日本語モデル",
+                "a..b",
+                "***",
+                "v1.2.3-beta",
+                "Smart Router #1",
+            })
     void toSlug_output_is_always_a_valid_entity_id_segment(String name) {
         String slug = EntitySlug.toSlug(name);
         if (slug != null) {
-            assertThat(EntityId.isValid("model." + slug)).as("toSlug(\"%s\") = \"%s\" must be a valid entityId slug", name, slug).isTrue();
+            assertThat(EntityId.isValid("model." + slug))
+                    .as("toSlug(\"%s\") = \"%s\" must be a valid entityId slug", name, slug)
+                    .isTrue();
         }
     }
 

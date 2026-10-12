@@ -21,9 +21,14 @@ import java.util.Optional;
 
 public interface PageQueryService {
     List<Page> searchByApiId(String apiId);
+
     Optional<Page> findHomepageByApiId(String apiId);
+
     List<Page> searchByApiIdAndParentId(String apiId, String parentId);
+
     Optional<Page> findByApiIdAndParentIdAndNameAndType(String apiId, String parentId, String name, Page.Type type);
+
     long countByParentIdAndIsPublished(String parentId);
+
     Optional<Page> findByNameAndReferenceId(String name, String referenceId);
 }

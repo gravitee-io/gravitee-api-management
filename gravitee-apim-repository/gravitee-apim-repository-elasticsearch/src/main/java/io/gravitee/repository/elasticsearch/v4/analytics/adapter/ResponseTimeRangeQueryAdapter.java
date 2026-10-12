@@ -34,14 +34,18 @@ public class ResponseTimeRangeQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static final List<String> FILTERED_ENTRYPOINT_TYPES = List.of("http-post", "http-get", "http-proxy", "llm-proxy");
+    private static final List<String> FILTERED_ENTRYPOINT_TYPES =
+            List.of("http-post", "http-get", "http-proxy", "llm-proxy");
     private static final String TIME_FIELD = "@timestamp";
     private static final String RESPONSE_TIME_FIELD = "gateway-response-time-ms";
     private static final String REDUCE_OPERATION = "avg";
     private static final String HISTOGRAM = "by_date";
 
     public String queryAdapt(ElasticsearchInfo esInfo, ResponseTimeRangeQuery query) {
-        return json().put("size", 0).<ObjectNode>set("query", query(query)).set("aggregations", aggregations(esInfo, query)).toString();
+        return json().put("size", 0)
+                .<ObjectNode>set("query", query(query))
+                .set("aggregations", aggregations(esInfo, query))
+                .toString();
     }
 
     public Maybe<AverageAggregate> responseAdapt(SearchResponse response) {
@@ -54,28 +58,30 @@ public class ResponseTimeRangeQueryAdapter {
             return Maybe.empty();
         }
 
-        final var averageConnectionDuration = entrypointsAggregation
-            .getBuckets()
-            .stream()
-            .map(json ->
-                Map.of(json.get("key_as_string").asText(), json.get(REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD).get("value").asDouble())
-            )
-            .reduce(new LinkedHashMap<>(), (acc, b) -> {
-                acc.putAll(b);
-                return acc;
-            });
-        double avg = averageConnectionDuration
-            .values()
-            .stream()
-            .mapToDouble(e -> e)
-            .average()
-            .orElse(0);
+        final var averageConnectionDuration = entrypointsAggregation.getBuckets().stream()
+                .map(json -> Map.of(
+                        json.get("key_as_string").asText(),
+                        json.get(REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD)
+                                .get("value")
+                                .asDouble()))
+                .reduce(new LinkedHashMap<>(), (acc, b) -> {
+                    acc.putAll(b);
+                    return acc;
+                });
+        double avg = averageConnectionDuration.values().stream()
+                .mapToDouble(e -> e)
+                .average()
+                .orElse(0);
 
         return Maybe.just(buildFromSource(averageConnectionDuration, avg));
     }
 
-    private static AverageAggregate buildFromSource(Map<String, Double> averageConnectionDuration, double globalAverage) {
-        return AverageAggregate.builder().average(globalAverage).averageBy(averageConnectionDuration).build();
+    private static AverageAggregate buildFromSource(
+            Map<String, Double> averageConnectionDuration, double globalAverage) {
+        return AverageAggregate.builder()
+                .average(globalAverage)
+                .averageBy(averageConnectionDuration)
+                .build();
     }
 
     private ObjectNode query(ResponseTimeRangeQuery query) {
@@ -106,27 +112,32 @@ public class ResponseTimeRangeQueryAdapter {
     }
 
     private ObjectNode aggregations(ElasticsearchInfo esInfo, ResponseTimeRangeQuery query) {
-        String intervalFieldName = esInfo.getVersion().canUseDateHistogramFixedInterval() ? "fixed_interval" : "interval";
-        ObjectNode histogram = json()
-            .put("field", TIME_FIELD)
-            .put(intervalFieldName, query.interval().toMillis() + "ms")
-            .put("offset", HistogramGrid.offsetMillis(query.from(), query.interval()) + "ms")
-            .put("min_doc_count", 0)
-            .set(
-                "extended_bounds",
-                json()
-                    // we don't need to align it on interval ES make it for us
-                    .put("min", query.from().toEpochMilli())
-                    .put("max", query.to().toEpochMilli())
-            );
+        String intervalFieldName =
+                esInfo.getVersion().canUseDateHistogramFixedInterval() ? "fixed_interval" : "interval";
+        ObjectNode histogram = json().put("field", TIME_FIELD)
+                .put(intervalFieldName, query.interval().toMillis() + "ms")
+                .put("offset", HistogramGrid.offsetMillis(query.from(), query.interval()) + "ms")
+                .put("min_doc_count", 0)
+                .set(
+                        "extended_bounds",
+                        json()
+                                // we don't need to align it on interval ES make it for us
+                                .put("min", query.from().toEpochMilli())
+                                .put("max", query.to().toEpochMilli()));
         String script =
-            "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }";
+                "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }";
         ObjectNode agg = json().set(
-            REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD,
-            json().set(REDUCE_OPERATION, json().set("script", json().put("lang", "painless").put("source", script)))
-        );
+                        REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD,
+                        json().set(
+                                        REDUCE_OPERATION,
+                                        json().set(
+                                                        "script",
+                                                        json().put("lang", "painless")
+                                                                .put("source", script))));
 
-        return json().set(HISTOGRAM, json().<ObjectNode>set("date_histogram", histogram).set("aggregations", agg));
+        return json().set(
+                        HISTOGRAM,
+                        json().<ObjectNode>set("date_histogram", histogram).set("aggregations", agg));
     }
 
     private ObjectNode json() {

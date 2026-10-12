@@ -38,12 +38,14 @@ public class ValidatePortalDomainService implements Validator<ValidatePortalDoma
 
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
-    public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure) implements Validator.Input {}
+    public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure)
+            implements Validator.Input {}
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
-        errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portal().getId(), "hrid"));
+        errors.addAll(portalAutomationScopeEnforcer.validate(
+                input.auditInfo(), input.portal().getId(), "hrid"));
         var structure = input.structure() == null ? PortalNavigationStructure.empty() : input.structure();
         structure.areas().forEach((area, paths) -> errors.addAll(validateArea(area, paths)));
         return Result.ofBoth(input, errors);

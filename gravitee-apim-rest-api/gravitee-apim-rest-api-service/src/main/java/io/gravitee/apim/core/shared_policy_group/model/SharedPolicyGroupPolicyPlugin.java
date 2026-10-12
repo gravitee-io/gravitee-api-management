@@ -66,12 +66,12 @@ public class SharedPolicyGroupPolicyPlugin {
 
     public static SharedPolicyGroupPolicyPlugin fromSharedPolicyGroup(SharedPolicyGroup sharedPolicyGroup) {
         return SharedPolicyGroupPolicyPlugin.builder()
-            .id(sharedPolicyGroup.getCrossId())
-            .name(sharedPolicyGroup.getName())
-            .description(sharedPolicyGroup.getDescription())
-            .prerequisiteMessage(sharedPolicyGroup.getPrerequisiteMessage())
-            .apiType(sharedPolicyGroup.getApiType())
-            .phase(sharedPolicyGroup.getPhase())
-            .build();
+                .id(sharedPolicyGroup.getCrossId())
+                .name(sharedPolicyGroup.getName())
+                .description(sharedPolicyGroup.getDescription())
+                .prerequisiteMessage(sharedPolicyGroup.getPrerequisiteMessage())
+                .apiType(sharedPolicyGroup.getApiType())
+                .phase(sharedPolicyGroup.getPhase())
+                .build();
     }
 }

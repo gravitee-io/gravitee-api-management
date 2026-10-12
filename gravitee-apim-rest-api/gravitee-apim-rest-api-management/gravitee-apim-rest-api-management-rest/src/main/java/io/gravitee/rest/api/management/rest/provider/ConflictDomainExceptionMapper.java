@@ -26,8 +26,12 @@ public class ConflictDomainExceptionMapper extends AbstractExceptionMapper<Confl
     public Response toResponse(ConflictDomainException exception) {
         final Response.Status error = Response.Status.CONFLICT;
         return Response.status(error)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(convert(exception, error.getStatusCode(), null, exception.getId() == null ? null : Map.of("id", exception.getId())))
-            .build();
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(convert(
+                        exception,
+                        error.getStatusCode(),
+                        null,
+                        exception.getId() == null ? null : Map.of("id", exception.getId())))
+                .build();
     }
 }

@@ -50,13 +50,12 @@ public class JavaRegexFormatAttribute extends AbstractFormatAttribute {
         try {
             Pattern.compile(input);
         } catch (PatternSyntaxException pse) {
-            ProcessingMessage processingMessage = data
-                .newMessage()
-                .put("domain", "validation")
-                .put("keyword", "format")
-                .put("attribute", NAME)
-                .setMessage("Invalid java regular expression [" + input + "]")
-                .put("value", input);
+            ProcessingMessage processingMessage = data.newMessage()
+                    .put("domain", "validation")
+                    .put("keyword", "format")
+                    .put("attribute", NAME)
+                    .setMessage("Invalid java regular expression [" + input + "]")
+                    .put("value", input);
 
             report.error(processingMessage);
         }

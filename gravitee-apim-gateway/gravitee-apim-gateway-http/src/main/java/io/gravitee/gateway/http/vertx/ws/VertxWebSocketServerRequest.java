@@ -37,20 +37,21 @@ public class VertxWebSocketServerRequest extends VertxHttpServerRequest {
      */
     @Deprecated
     public VertxWebSocketServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+        this(
+                httpServerRequest,
+                idGenerator,
+                VertxHttpServerRequestOptions.builder().build());
     }
 
     public VertxWebSocketServerRequest(
-        HttpServerRequest httpServerRequest,
-        IdGenerator idGenerator,
-        VertxHttpServerRequestOptions options
-    ) {
+            HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         super(httpServerRequest, idGenerator, options);
         this.vertxWebSocket = new VertxWebSocket(httpServerRequest);
     }
 
     @Override
-    public Request bodyHandler(io.gravitee.gateway.api.handler.Handler<io.gravitee.gateway.api.buffer.Buffer> bodyHandler) {
+    public Request bodyHandler(
+            io.gravitee.gateway.api.handler.Handler<io.gravitee.gateway.api.buffer.Buffer> bodyHandler) {
         return this;
     }
 

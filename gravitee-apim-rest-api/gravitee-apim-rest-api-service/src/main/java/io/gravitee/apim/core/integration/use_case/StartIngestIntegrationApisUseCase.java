@@ -86,137 +86,134 @@ public class StartIngestIntegrationApisUseCase {
         if (!licenseDomainService.isFederationFeatureAllowed(organizationId)) {
             return Single.error(NotAllowedDomainException.noLicenseForFederation());
         }
-        var integ = integrationCrudService.findById(integrationId).filter(integration -> integration.environmentId().equals(environmentId));
+        var integ = integrationCrudService
+                .findById(integrationId)
+                .filter(integration -> integration.environmentId().equals(environmentId));
         if (integ.isEmpty()) {
             return Single.error(new IntegrationNotFoundException(integrationId));
         }
         return switch (integ.get()) {
-            case Integration.ApiIntegration apiIntegration -> Single.just(apiIntegration)
-                .flatMap(integration -> startApiIngestion(input, integration, auditInfo))
-                .doOnError(throwable -> log.error("Error to start ingest {}", integrationId, throwable));
+            case Integration.ApiIntegration apiIntegration ->
+                Single.just(apiIntegration)
+                        .flatMap(integration -> startApiIngestion(input, integration, auditInfo))
+                        .doOnError(throwable -> log.error("Error to start ingest {}", integrationId, throwable));
             case Integration.A2aIntegration a2aIntegration -> a2aIngestions(a2aIntegration, auditInfo);
         };
     }
 
-    private Single<AsyncJob.Status> startApiIngestion(Input input, Integration.ApiIntegration integration, AuditInfo auditInfo) {
+    private Single<AsyncJob.Status> startApiIngestion(
+            Input input, Integration.ApiIntegration integration, AuditInfo auditInfo) {
         return integrationAgent
-            .startIngest(integration.id(), UuidString.generateRandom(), input.apiIds())
-            .map(ingestStarted -> {
-                log.info("Ingestion started for integration {}", integration.id());
+                .startIngest(integration.id(), UuidString.generateRandom(), input.apiIds())
+                .map(ingestStarted -> {
+                    log.info("Ingestion started for integration {}", integration.id());
 
-                if (ingestStarted.total() == 0) {
-                    log.info("No APIs to ingest for integration {}", integration.id());
-                    return AsyncJob.Status.SUCCESS;
-                }
+                    if (ingestStarted.total() == 0) {
+                        log.info("No APIs to ingest for integration {}", integration.id());
+                        return AsyncJob.Status.SUCCESS;
+                    }
 
-                asyncJobCrudService.create(
-                    newIngestJob(ingestStarted.ingestJobId(), integration, auditInfo.actor().userId(), ingestStarted.total())
-                );
+                    asyncJobCrudService.create(newIngestJob(
+                            ingestStarted.ingestJobId(),
+                            integration,
+                            auditInfo.actor().userId(),
+                            ingestStarted.total()));
 
-                return AsyncJob.Status.PENDING;
-            });
+                    return AsyncJob.Status.PENDING;
+                });
     }
 
     private Single<AsyncJob.Status> a2aIngestions(Integration.A2aIntegration a2aIntegration, AuditInfo auditInfo) {
         try (var bulk = apiIndexerDomainService.bulk(auditInfo)) {
             return Flowable.fromIterable(a2aIntegration.wellKnownUrls())
-                .flatMapMaybe(url -> a2aIngestion(bulk, url.url(), a2aIntegration, auditInfo))
-                .toList()
-                .flatMap(failedUrls -> {
-                    if (!failedUrls.isEmpty()) {
-                        return Single.error(new FederatedAgentIngestionException(failedUrls));
-                    } else {
-                        return Single.just(AsyncJob.Status.SUCCESS);
-                    }
-                });
+                    .flatMapMaybe(url -> a2aIngestion(bulk, url.url(), a2aIntegration, auditInfo))
+                    .toList()
+                    .flatMap(failedUrls -> {
+                        if (!failedUrls.isEmpty()) {
+                            return Single.error(new FederatedAgentIngestionException(failedUrls));
+                        } else {
+                            return Single.just(AsyncJob.Status.SUCCESS);
+                        }
+                    });
         } catch (Exception e) {
             return Single.error(new FederatedAgentIngestionException("Ingestion failed", e));
         }
     }
 
     private Maybe<String> a2aIngestion(
-        ApiIndexerDomainService.Bulk bulk,
-        String url,
-        Integration.A2aIntegration a2aIntegration,
-        AuditInfo auditInfo
-    ) {
+            ApiIndexerDomainService.Bulk bulk,
+            String url,
+            Integration.A2aIntegration a2aIntegration,
+            AuditInfo auditInfo) {
         return a2aAgentFetcher
-            .fetchAgentCard(url)
-            .toMaybe()
-            .flatMap(federatedAgent -> {
-                var owner = apiPrimaryOwnerFactory.createForNewApi(
-                    auditInfo.organizationId(),
-                    a2aIntegration.environmentId(),
-                    auditInfo.actor().userId()
-                );
-                String id = UuidString.generateForEnvironment(
-                    a2aIntegration.environmentId(),
-                    a2aIntegration.id(),
-                    url,
-                    federatedAgent.getUrl()
-                );
+                .fetchAgentCard(url)
+                .toMaybe()
+                .flatMap(federatedAgent -> {
+                    var owner = apiPrimaryOwnerFactory.createForNewApi(
+                            auditInfo.organizationId(),
+                            a2aIntegration.environmentId(),
+                            auditInfo.actor().userId());
+                    String id = UuidString.generateForEnvironment(
+                            a2aIntegration.environmentId(), a2aIntegration.id(), url, federatedAgent.getUrl());
 
-                Api api = Api.builder()
-                    .id(id)
-                    .name(federatedAgent.getName())
-                    .description(federatedAgent.getDescription())
-                    .version(federatedAgent.getVersion())
-                    .createdAt(TimeProvider.now())
-                    .updatedAt(TimeProvider.now())
-                    .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
-                    .environmentId(a2aIntegration.environmentId())
-                    .originContext(new OriginContext.Integration(a2aIntegration.id(), a2aIntegration.name(), a2aIntegration.provider()))
-                    .apiDefinitionValue(federatedAgent)
-                    .build();
-                UnaryOperator<Api> updater = update(api);
+                    Api api = Api.builder()
+                            .id(id)
+                            .name(federatedAgent.getName())
+                            .description(federatedAgent.getDescription())
+                            .version(federatedAgent.getVersion())
+                            .createdAt(TimeProvider.now())
+                            .updatedAt(TimeProvider.now())
+                            .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                            .environmentId(a2aIntegration.environmentId())
+                            .originContext(new OriginContext.Integration(
+                                    a2aIntegration.id(), a2aIntegration.name(), a2aIntegration.provider()))
+                            .apiDefinitionValue(federatedAgent)
+                            .build();
+                    UnaryOperator<Api> updater = update(api);
 
-                apiCrudService
-                    .findById(id)
-                    .ifPresentOrElse(
-                        previous -> updateFederatedApiDomainService.update(id, updater, bulk.auditInfo(), owner, bulk.get()),
-                        () ->
-                            createApiDomainService.create(
-                                api,
-                                owner,
-                                auditInfo,
-                                e -> validateFederatedApi.validateAndSanitizeForCreation(e, owner),
-                                bulk.get()
-                            )
-                    );
+                    apiCrudService
+                            .findById(id)
+                            .ifPresentOrElse(
+                                    previous -> updateFederatedApiDomainService.update(
+                                            id, updater, bulk.auditInfo(), owner, bulk.get()),
+                                    () -> createApiDomainService.create(
+                                            api,
+                                            owner,
+                                            auditInfo,
+                                            e -> validateFederatedApi.validateAndSanitizeForCreation(e, owner),
+                                            bulk.get()));
 
-                Plan plan = fromIntegration(api, federatedAgent);
-                planCrudService
-                    .findById(plan.getId())
-                    .ifPresentOrElse(
-                        existingPlan -> updatePlanDomainService.update(plan, List.of(), Map.of(), api, bulk.auditInfo()),
-                        () -> createPlanDomainService.create(plan, List.of(), api, bulk.auditInfo())
-                    );
+                    Plan plan = fromIntegration(api, federatedAgent);
+                    planCrudService
+                            .findById(plan.getId())
+                            .ifPresentOrElse(
+                                    existingPlan -> updatePlanDomainService.update(
+                                            plan, List.of(), Map.of(), api, bulk.auditInfo()),
+                                    () -> createPlanDomainService.create(plan, List.of(), api, bulk.auditInfo()));
 
-                return Maybe.<String>empty();
-            })
-            .onErrorReturnItem(url);
+                    return Maybe.<String>empty();
+                })
+                .onErrorReturnItem(url);
     }
 
     public AsyncJob newIngestJob(String id, Integration integration, String initiatorId, Long total) {
         var now = TimeProvider.now();
         return AsyncJob.builder()
-            .id(id)
-            .sourceId(integration.id())
-            .environmentId(integration.environmentId())
-            .initiatorId(initiatorId)
-            .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
-            .status(AsyncJob.Status.PENDING)
-            .upperLimit(total)
-            .createdAt(now)
-            .updatedAt(now)
-            .deadLine(now.plus(Duration.ofMinutes(5)))
-            .build();
+                .id(id)
+                .sourceId(integration.id())
+                .environmentId(integration.environmentId())
+                .initiatorId(initiatorId)
+                .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
+                .status(AsyncJob.Status.PENDING)
+                .upperLimit(total)
+                .createdAt(now)
+                .updatedAt(now)
+                .deadLine(now.plus(Duration.ofMinutes(5)))
+                .build();
     }
 
     static UnaryOperator<Api> update(Api newOne) {
-        return previousApi ->
-            previousApi
-                .toBuilder()
+        return previousApi -> previousApi.toBuilder()
                 .name(newOne.getName())
                 .description(newOne.getDescription())
                 .version(newOne.getVersion())
@@ -227,27 +224,29 @@ public class StartIngestIntegrationApisUseCase {
     public static Plan fromIntegration(Api api, FederatedAgent federatedAgent) {
         var id = UuidString.generateForEnvironment(api.getId(), PlanSecurityType.KEY_LESS.getLabel());
         var now = TimeProvider.now();
-        var oid = federatedAgent.getProvider() != null ? federatedAgent.getProvider().organization() : null;
+        var oid = federatedAgent.getProvider() != null
+                ? federatedAgent.getProvider().organization()
+                : null;
         return Plan.builder()
-            .id(id)
-            .name("Key less plan")
-            .description("Default plan")
-            .referenceId(api.getId())
-            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
-            .federatedPlanDefinition(
-                FederatedPlan.builder()
-                    .id(id)
-                    .providerId(oid)
-                    .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS.getLabel()).build())
-                    .status(PlanStatus.PUBLISHED)
-                    .build()
-            )
-            .characteristics(List.of())
-            .environmentId(api.getEnvironmentId())
-            .createdAt(now)
-            .updatedAt(now)
-            .validation(Plan.PlanValidationType.MANUAL)
-            .build();
+                .id(id)
+                .name("Key less plan")
+                .description("Default plan")
+                .referenceId(api.getId())
+                .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
+                .federatedPlanDefinition(FederatedPlan.builder()
+                        .id(id)
+                        .providerId(oid)
+                        .security(PlanSecurity.builder()
+                                .type(PlanSecurityType.KEY_LESS.getLabel())
+                                .build())
+                        .status(PlanStatus.PUBLISHED)
+                        .build())
+                .characteristics(List.of())
+                .environmentId(api.getEnvironmentId())
+                .createdAt(now)
+                .updatedAt(now)
+                .validation(Plan.PlanValidationType.MANUAL)
+                .build();
     }
 
     public record Input(String integrationId, List<String> apiIds, AuditInfo auditInfo) {}

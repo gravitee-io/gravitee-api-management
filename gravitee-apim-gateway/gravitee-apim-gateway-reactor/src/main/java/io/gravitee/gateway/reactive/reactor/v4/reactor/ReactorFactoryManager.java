@@ -45,12 +45,11 @@ public class ReactorFactoryManager {
 
     public List<ReactorHandler> create(final Reactable reactable) {
         if (reactable != null) {
-            return reactorFactories
-                .stream()
-                .filter(reactorFactory -> reactorFactory.support(reactable.getClass()))
-                .filter(reactorFactory -> reactorFactory.canCreate(reactable))
-                .map(reactorFactory -> reactorFactory.create(reactable))
-                .collect(Collectors.toList());
+            return reactorFactories.stream()
+                    .filter(reactorFactory -> reactorFactory.support(reactable.getClass()))
+                    .filter(reactorFactory -> reactorFactory.canCreate(reactable))
+                    .map(reactorFactory -> reactorFactory.create(reactable))
+                    .collect(Collectors.toList());
         }
         return List.of();
     }

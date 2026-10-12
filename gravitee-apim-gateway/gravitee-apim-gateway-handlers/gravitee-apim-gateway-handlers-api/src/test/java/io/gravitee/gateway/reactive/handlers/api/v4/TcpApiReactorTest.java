@@ -146,22 +146,29 @@ class TcpApiReactorTest {
         lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
 
         lenient().when(defaultInvoker.invoke(any(TcpExecutionContext.class))).thenReturn(spyInvokerChain);
-        lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(defaultInvoker);
+        lenient()
+                .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))
+                .thenReturn(defaultInvoker);
         lenient().when(entrypointConnector.handleRequest(ctx)).thenReturn(spyEntrypointRequest);
         lenient().when(entrypointConnector.handleResponse(ctx)).thenReturn(spyEntrypointResponse);
 
         lenient().when(entrypointConnectorResolver.resolve(ctx)).thenReturn(entrypointConnector);
         lenient()
-            .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR))
-            .thenReturn(entrypointConnector);
+                .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR))
+                .thenReturn(entrypointConnector);
         lenient().when(entrypointConnector.supportedApi()).thenReturn(ApiType.PROXY);
 
-        when(configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null)).thenReturn(null);
-        when(configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null)).thenReturn(null);
-        when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
+        when(configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null))
+                .thenReturn(null);
+        when(configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null))
+                .thenReturn(null);
+        when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L))
+                .thenReturn(10_000L);
 
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
-        lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10000L);
+        lenient()
+                .when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay())
+                .thenReturn(10000L);
 
         cut = buildApiReactor();
 
@@ -176,15 +183,14 @@ class TcpApiReactorTest {
         TcpApiReactor tcpApiReactor = null;
         try {
             tcpApiReactor = new TcpApiReactor(
-                api,
-                node,
-                configuration,
-                new DefaultDeploymentContext(),
-                entrypointConnectorPluginManager,
-                endpointManager,
-                requestTimeoutConfiguration,
-                tracingContext
-            );
+                    api,
+                    node,
+                    configuration,
+                    new DefaultDeploymentContext(),
+                    entrypointConnectorPluginManager,
+                    endpointManager,
+                    requestTimeoutConfiguration,
+                    tracingContext);
             ReflectionTestUtils.setField(tcpApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(tcpApiReactor, "defaultInvoker", defaultInvoker);
             tcpApiReactor.doStart();
@@ -200,7 +206,10 @@ class TcpApiReactorTest {
 
         verify(ctx).setAttribute(ContextAttributes.ATTR_API, API_ID);
         verify(ctx).setAttribute(ContextAttributes.ATTR_API_NAME, API_ID);
-        verify(ctx).setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
+        verify(ctx)
+                .setAttribute(
+                        ContextAttributes.ATTR_API_DEPLOYED_AT,
+                        api.getDeployedAt().getTime());
         verify(ctx).setAttribute(ContextAttributes.ATTR_ORGANIZATION, ORGANIZATION_ID);
         verify(ctx).setAttribute(ContextAttributes.ATTR_ENVIRONMENT, ENVIRONMENT_ID);
     }
