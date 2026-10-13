@@ -70,8 +70,9 @@ public class GammaObservabilityFilterConfiguration {
     @Bean
     public ObservabilityFilterDataPort observabilityFilterDataPort(
         GetFilterValuesUseCase getFilterValuesUseCase,
-        ResolveFilterLabelsUseCase resolveFilterLabelsUseCase
+        ResolveFilterLabelsUseCase resolveFilterLabelsUseCase,
+        EntrypointScopeProvider entrypointScopeProvider
     ) {
-        return new ObservabilityFilterDataPortAdapter(getFilterValuesUseCase, resolveFilterLabelsUseCase);
+        return new ObservabilityFilterDataPortAdapter(getFilterValuesUseCase, resolveFilterLabelsUseCase, entrypointScopeProvider);
     }
 }

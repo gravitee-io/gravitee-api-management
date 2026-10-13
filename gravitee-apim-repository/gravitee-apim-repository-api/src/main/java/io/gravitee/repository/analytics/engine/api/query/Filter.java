@@ -83,6 +83,8 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         AUTHZ_REASON,
         AUTHZ_PDP,
         AUTHZ_SEARCH_TYPE,
+        /** Internal: carries a {@link TrafficScope}, never offered to a user. */
+        TRAFFIC_SCOPE,
     }
 
     public enum Operator {

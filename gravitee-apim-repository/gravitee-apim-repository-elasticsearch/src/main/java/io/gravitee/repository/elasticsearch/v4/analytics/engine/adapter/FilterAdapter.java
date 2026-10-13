@@ -22,6 +22,7 @@ import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
 import io.gravitee.repository.analytics.engine.api.query.Query;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.gravitee.repository.elasticsearch.v4.shared.AuthzEntityRefClauses;
 import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
@@ -29,6 +30,7 @@ import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -72,7 +74,8 @@ public class FilterAdapter {
         Filter.Name.MCP_PROXY_RESOURCE,
         Filter.Name.MCP_PROXY_PROMPT,
         Filter.Name.URI,
-        Filter.Name.ENTRYPOINT
+        Filter.Name.ENTRYPOINT,
+        Filter.Name.TRAFFIC_SCOPE
     );
 
     /**
@@ -95,7 +98,8 @@ public class FilterAdapter {
         Filter.Name.MESSAGE_OPERATION_TYPE,
         Filter.Name.MESSAGE_COUNT,
         Filter.Name.MESSAGE_SIZE,
-        Filter.Name.MESSAGE_ERROR_COUNT
+        Filter.Name.MESSAGE_ERROR_COUNT,
+        Filter.Name.TRAFFIC_SCOPE
     );
 
     /**
@@ -147,7 +151,8 @@ public class FilterAdapter {
         Filter.Name.NATIVE_CONNECTION_STATUS,
         Filter.Name.NATIVE_FAILURE_SIDE,
         Filter.Name.NATIVE_CLIENT_ID,
-        Filter.Name.NATIVE_CLIENT_SOFTWARE_NAME
+        Filter.Name.NATIVE_CLIENT_SOFTWARE_NAME,
+        Filter.Name.TRAFFIC_SCOPE
     );
 
     /**
@@ -161,7 +166,8 @@ public class FilterAdapter {
         Filter.Name.APPLICATION,
         Filter.Name.PLAN,
         Filter.Name.NATIVE_TOPIC,
-        Filter.Name.NATIVE_OPERATION
+        Filter.Name.NATIVE_OPERATION,
+        Filter.Name.TRAFFIC_SCOPE
     );
 
     static final List<Filter.Name> EDGE_FILTER_NAMES = List.of(
@@ -175,7 +181,8 @@ public class FilterAdapter {
         Filter.Name.EDGE_CLIENT,
         Filter.Name.EDGE_VERSION,
         Filter.Name.EDGE_MODEL,
-        Filter.Name.EDGE_TOOL
+        Filter.Name.EDGE_TOOL,
+        Filter.Name.TRAFFIC_SCOPE
     );
 
     static final List<Filter.Name> AUTHZ_FILTER_NAMES = List.of(
@@ -188,7 +195,8 @@ public class FilterAdapter {
         Filter.Name.AUTHZ_ACTION,
         Filter.Name.AUTHZ_RESOURCE_ID,
         Filter.Name.AUTHZ_REASON,
-        Filter.Name.AUTHZ_PDP
+        Filter.Name.AUTHZ_PDP,
+        Filter.Name.TRAFFIC_SCOPE
     );
 
     static final List<Filter.Name> AUTHZ_TRAFFIC_FILTER_NAMES = List.of(
@@ -198,7 +206,8 @@ public class FilterAdapter {
         Filter.Name.AUTHZ_SEARCH_TYPE,
         Filter.Name.AUTHZ_ACTION,
         Filter.Name.AUTHZ_SUBJECT_ID,
-        Filter.Name.AUTHZ_RESOURCE_ID
+        Filter.Name.AUTHZ_RESOURCE_ID,
+        Filter.Name.TRAFFIC_SCOPE
     );
 
     /**
@@ -262,7 +271,7 @@ public class FilterAdapter {
         boolean hasEntrypointFilter = false;
         for (var filter : query.filters()) {
             if (shouldAdaptForHTTP(filter)) {
-                jsonFilters.add(filter(filter));
+                jsonFilters.add(httpFilter(filter));
                 if (filter.name() == Filter.Name.ENTRYPOINT) {
                     hasEntrypointFilter = true;
                 }
@@ -470,7 +479,17 @@ public class FilterAdapter {
         return filter(filter, AuthzEntityRefClauses.bareIdsOnly());
     }
 
+    /** The HTTP documents carry the entrypoint, so a traffic scope reads both of its arms there. */
+    private JsonObject httpFilter(Filter filter) {
+        return filter.name() == Filter.Name.TRAFFIC_SCOPE
+            ? EntrypointScopeClause.trafficScope(trafficScopeOf(filter), apiTerms(filter))
+            : filter(filter);
+    }
+
     private JsonObject filter(Filter filter, AuthzEntityRefClauses entityRefs) {
+        if (filter.name() == Filter.Name.TRAFFIC_SCOPE) {
+            return EntrypointScopeClause.trafficScopeApis(trafficScopeOf(filter), apiTerms(filter));
+        }
         if (filter.name() == Filter.Name.HTTP_STATUS_CODE_GROUP) {
             return statusCodeGroupFilter(filter);
         }
@@ -501,6 +520,24 @@ public class FilterAdapter {
      */
     private static JsonObject entrypointFilter(Filter filter) {
         return EntrypointScopeClause.exactly(stringValues(filter.value()));
+    }
+
+    /**
+     * The calls of the APIs the scope names, or made through one of its entrypoints on any API. Every other search
+     * gets the first arm alone: the entrypoints that add a kind serve request-shaped calls, so none of the calls the
+     * second arm adds writes a native, edge, authz or message document. Message queries thus keep the direct read,
+     * and their connection phase never collects the request ids of calls that have no messages.
+     */
+    private static TrafficScope trafficScopeOf(Filter filter) {
+        if (!(filter.value() instanceof TrafficScope scope)) {
+            throw new IllegalArgumentException("A TRAFFIC_SCOPE filter carries a TrafficScope, got: " + filter.value());
+        }
+        return scope;
+    }
+
+    private Function<List<String>, JsonObject> apiTerms(Filter filter) {
+        var field = fieldResolver.fromFilter(filter);
+        return apiIds -> JsonObject.of("terms", JsonObject.of(field, new JsonArray(apiIds)));
     }
 
     private JsonObject entityRefFilter(Filter filter, AuthzEntityRefClauses entityRefs) {

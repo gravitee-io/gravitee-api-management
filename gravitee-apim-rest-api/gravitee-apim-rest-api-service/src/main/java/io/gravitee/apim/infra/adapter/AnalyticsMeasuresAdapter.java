@@ -34,6 +34,7 @@ import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
@@ -123,4 +124,19 @@ public interface AnalyticsMeasuresAdapter {
 
     @ValueMapping(source = "CONTAINS", target = MappingConstants.THROW_EXCEPTION)
     Filter.Operator toFilterOperator(io.gravitee.apim.core.observability.model.FilterOperator operator);
+
+    /** Written by hand for the value, which MapStruct would pass through as is: a traffic scope changes model. */
+    default Filter toFilter(io.gravitee.apim.core.analytics_engine.model.Filter filter) {
+        if (filter == null) {
+            return null;
+        }
+        return new Filter(toFilterName(filter.name()), toFilterOperator(filter.operator()), toFilterValue(filter.value()));
+    }
+
+    private static Object toFilterValue(Object value) {
+        if (value instanceof io.gravitee.apim.core.analytics_engine.model.TrafficScope scope) {
+            return new TrafficScope(scope.apiIds(), scope.entrypointIds());
+        }
+        return value;
+    }
 }

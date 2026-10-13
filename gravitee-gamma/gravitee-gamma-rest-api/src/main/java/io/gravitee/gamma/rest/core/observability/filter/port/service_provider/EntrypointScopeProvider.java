@@ -15,7 +15,9 @@
  */
 package io.gravitee.gamma.rest.core.observability.filter.port.service_provider;
 
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Reads the observability entrypoint registry, which records what each entrypoint's traffic means for the
@@ -35,4 +37,10 @@ public interface EntrypointScopeProvider {
      * Console and only Gamma asks for the exclusion.
      */
     List<String> excludedFromLogs();
+
+    /**
+     * The entrypoint ids whose calls belong to one of these kinds whatever the type of the API serving them, e.g.
+     * {@code mcp} for MCP: a module scoped by those kinds sees those calls of any API it can read.
+     */
+    Set<String> entrypointsAdding(Set<ApiType> kinds);
 }

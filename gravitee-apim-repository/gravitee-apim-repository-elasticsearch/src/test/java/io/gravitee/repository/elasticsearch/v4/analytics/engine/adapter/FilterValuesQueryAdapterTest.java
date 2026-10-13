@@ -17,8 +17,12 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
+import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -135,6 +139,27 @@ class FilterValuesQueryAdapterTest {
 
         var terms = boolFilter.getJsonObject(0).getJsonObject("terms").getJsonArray("api-id");
         assertThat(terms).containsExactlyInAnyOrder("a1", "a2");
+    }
+
+    /** The values a module scoped by API kind offers come from the calls it shows, nothing else. */
+    @Test
+    void should_offer_only_the_values_of_the_calls_in_the_traffic_scope() {
+        var query = FilterValuesQuery.builder()
+            .esFieldName("application-id")
+            .size(10)
+            .apiIds(Set.of("studio", "orders"))
+            .trafficScope(new TrafficScope(Set.of("studio"), Set.of("mcp")))
+            .build();
+
+        var boolFilter = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+
+        assertThat(boolFilter).hasSize(2);
+        assertThat(boolFilter.getJsonObject(1)).isEqualTo(
+            EntrypointScopeClause.apisOrEntrypoints(
+                JsonObject.of("terms", JsonObject.of("api-id", new JsonArray(List.of("studio")))),
+                List.of("mcp")
+            )
+        );
     }
 
     @Test

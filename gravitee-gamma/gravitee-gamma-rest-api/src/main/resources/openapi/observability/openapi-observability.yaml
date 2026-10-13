@@ -52,6 +52,14 @@ tags:
           was selected are both kept. An explicit `ENTRYPOINT` condition is exact (see *Filters*).
           Query `GET /observability/filters/ENTRYPOINT/values` for the values present in your own
           data.
+
+          API kind scope: an `API_TYPE` condition selects every call of the readable APIs of those
+          kinds and, on any other readable API, the calls made through an entrypoint that belongs to
+          one of those kinds whatever the API's type: `mcp` for `MCP`, `agent-to-agent` for `A2A`. An
+          MCP tool server, an `HTTP_PROXY` API exposing `mcp`, thus counts under `MCP` with its MCP
+          calls only and under `HTTP_PROXY` with all its calls. Such a call reported without an
+          entrypoint id (a request refused by a gateway older than 4.13) does not count under the
+          added kind.
     - name: Analytics
       description: |
           Environment-wide analytics computation: aggregate measures, faceted breakdowns, and
@@ -69,8 +77,11 @@ tags:
           Every condition is ANDed, the same filter included: a widget's own conditions are appended
           to the dashboard's, and `HTTP_STATUS = 200` with `HTTP_STATUS = 500` counts nothing.
           Conditions that cannot overlap answer an empty result, not a 400: a measure is then zero.
-          Several `API` conditions narrow the readable APIs to their intersection, and so do several
-          `API_TYPE` conditions; neither ever widens what the caller can read.
+          Several `API` conditions narrow the readable APIs to their intersection, and several
+          `API_TYPE` conditions narrow the API kinds to theirs; neither ever widens what the caller
+          can read.
+
+          API kind scope: as described under *Logs*.
 
           A filter condition the queried metric does not carry, such as a Kafka filter on an HTTP
           metric, is not applied to that metric: its result is not narrowed by that condition. Each
@@ -269,7 +280,9 @@ paths:
                   description: |
                       API kind(s) to restrict returned values to. Repeat for multiple values.
                       When present, ENUM filters only return values matching the requested kinds,
-                      and KEYWORD filters only return entities associated with APIs of the requested kinds.
+                      and KEYWORD filters only return values of the calls those kinds select: every call
+                      of the APIs of those kinds, plus the calls an entrypoint adds to one of them on any
+                      other API (see the API kind scope under *Logs*).
                       When absent, no API-type constraint is applied (backward compatible).
                   example: MCP
                   schema:
@@ -775,7 +788,8 @@ paths:
 
                 **Supported API types**: `HTTP_PROXY`, `LLM`, `MCP`, `A2A`, `MESSAGE`, `NATIVE`
                 and `AUTHZ`. Which requests of a `MESSAGE` API appear is the entrypoint scope's
-                decision, not the API kind's.
+                decision, not the API kind's, except that `A2A` also selects the `agent-to-agent`
+                calls of any API (see the API kind scope under the *Logs* tag).
             operationId: searchObservabilityLogs
             parameters:
                 - name: page
@@ -2261,7 +2275,9 @@ components:
                         Read by id from the API definition, scoped to the environment, rather than off
                         the connection document, which does not carry it: a direct link to a detail has
                         no list row to inherit it from, and the client needs it to pick the right
-                        detail view.
+                        detail view. A call that belongs to another kind through its entrypoint keeps the
+                        stored type: an MCP call on an `HTTP_PROXY` API reads `HTTP_PROXY`, and its
+                        `entrypointId` (`mcp`) tells it apart.
                     example: "MESSAGE"
                 transactionId:
                     type: string
@@ -2475,7 +2491,10 @@ components:
                     example: "Petstore API"
                 apiType:
                     type: string
-                    description: API kind as stored in the definition (e.g. `HTTP_PROXY`, `LLM`, `MCP`).
+                    description: |
+                        API kind as stored in the definition (e.g. `HTTP_PROXY`, `LLM`, `MCP`), also on a row
+                        that belongs to another kind through its entrypoint: an MCP call on an `HTTP_PROXY`
+                        API reads `HTTP_PROXY`.
                     example: "HTTP_PROXY"
                 timestamp:
                     type: string

@@ -64,6 +64,7 @@ import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQ
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -366,6 +367,29 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                 .filteredOn(filter -> filter.name() == FilterSpec.Name.HTTP_STATUS)
                 .extracting(Filter::value)
                 .containsExactly("200", "500");
+        }
+
+        @Test
+        void should_hand_the_traffic_scope_to_the_engine_with_every_readable_api_authorized() {
+            when(computeMeasuresUseCase.executeForApis(any(), any(), any())).thenReturn(
+                new ComputeMeasuresUseCase.Output(new MeasuresResponse(List.of()))
+            );
+            var aim = new PreparedScope(
+                SCOPE.from(),
+                SCOPE.to(),
+                List.of(new FilterCondition("API", FilterOperator.IN, List.of("studio", "orders"))),
+                Set.of("studio", "orders"),
+                new TrafficScope(Set.of("studio"), Set.of("mcp"))
+            );
+
+            adapter.computeMeasures(measuresQuery(aim, new AnalyticsMetricQuery(null, "HTTP_REQUESTS", List.of("COUNT"), List.of())));
+
+            var captor = ArgumentCaptor.forClass(MeasuresRequest.class);
+            verify(computeMeasuresUseCase).executeForApis(any(), captor.capture(), eq(Set.of("studio", "orders")));
+            assertThat(captor.getValue().filters())
+                .filteredOn(filter -> filter.name() == FilterSpec.Name.TRAFFIC_SCOPE)
+                .extracting(Filter::value)
+                .containsExactly(new io.gravitee.apim.core.analytics_engine.model.TrafficScope(Set.of("studio"), Set.of("mcp")));
         }
 
         // Gamma's readable APIs come from the same rule as the engine's context: reloading it per group

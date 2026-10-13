@@ -125,5 +125,12 @@ public record FilterSpec(
         AUTHZ_REASON,
         AUTHZ_PDP,
         AUTHZ_SEARCH_TYPE,
+        /** Internal: carries a {@link TrafficScope}, built by the back end and absent from the catalog. */
+        TRAFFIC_SCOPE;
+
+        /** Built by the back end itself: never in the catalog, never offered to nor accepted from a caller. */
+        public boolean isInternal() {
+            return this == TRAFFIC_SCOPE;
+        }
     }
 }

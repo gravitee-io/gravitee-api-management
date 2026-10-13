@@ -37,6 +37,7 @@ import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery.Sort;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.common.query.QueryContext;
@@ -1571,6 +1572,25 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             void should_reach_requests_without_an_entrypoint_only_through_the_synthetic_value() {
                 assertThat(count(api(), entrypoints("(none)"))).isEqualTo(1L);
                 assertThat(count(api(), entrypoints("mcp", "(none)"))).isEqualTo(2L);
+            }
+
+            /** A hybrid API in a module scoped by kind: only its calls through an entrypoint adding that kind. */
+            @Test
+            void should_count_only_the_calls_an_entrypoint_adds_to_the_kind_when_the_api_is_not_in_scope_by_type() {
+                var aim = new Filter(
+                    Filter.Name.TRAFFIC_SCOPE,
+                    Filter.Operator.IN,
+                    new TrafficScope(Set.of(), Set.of("mcp", "agent-to-agent"))
+                );
+
+                assertThat(count(api(), aim)).isEqualTo(2L);
+            }
+
+            @Test
+            void should_count_every_call_of_an_api_in_scope_by_type() {
+                var aim = new Filter(Filter.Name.TRAFFIC_SCOPE, Filter.Operator.IN, new TrafficScope(Set.of(SCOPE_API), Set.of("mcp")));
+
+                assertThat(count(api(), aim)).isEqualTo(count(api()));
             }
         }
 

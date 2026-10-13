@@ -134,11 +134,16 @@ public final class DashboardWidgetRequestMapper {
     }
 
     private static FilterSpec.Name parseFilterName(String value) {
+        FilterSpec.Name name;
         try {
-            return FilterSpec.Name.valueOf(value);
+            name = FilterSpec.Name.valueOf(value);
         } catch (IllegalArgumentException e) {
             throw new InvalidQueryException("Unknown filter name: " + value);
         }
+        if (name.isInternal()) {
+            throw new InvalidQueryException("Unknown filter name: " + value);
+        }
+        return name;
     }
 
     private static FilterOperator parseFilterOperator(String value) {

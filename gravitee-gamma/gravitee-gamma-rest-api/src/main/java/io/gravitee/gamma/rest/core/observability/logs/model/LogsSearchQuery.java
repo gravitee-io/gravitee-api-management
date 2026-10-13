@@ -42,5 +42,7 @@ public record LogsSearchQuery(
     int perPage,
     RecordType recordType,
     /** Absent for decision rows, which carry no entrypoint. */
-    EntrypointScope entrypointScope
+    EntrypointScope entrypointScope,
+    /** Which calls of {@code apiIds} are searched; absent when the API type alone decides. */
+    TrafficScope trafficScope
 ) {}

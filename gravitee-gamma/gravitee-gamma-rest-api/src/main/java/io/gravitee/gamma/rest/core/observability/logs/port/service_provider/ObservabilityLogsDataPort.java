@@ -37,7 +37,8 @@ import java.util.Optional;
 public interface ObservabilityLogsDataPort {
     /**
      * An API the current caller is allowed to read, carrying the definition-level type so the use
-     * case can filter by signal-relevant API kinds without leaking repository details.
+     * case can filter by signal-relevant API kinds without leaking repository details. The type is
+     * one way into a kind; an entrypoint adding the kind is the other, read off the calls.
      */
     record AccessibleApi(String id, String name, ApiType type) {}
 

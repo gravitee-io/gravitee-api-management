@@ -67,7 +67,7 @@ public class NativeApiFieldResolver implements FieldResolver {
     @Override
     public String fromFilter(Filter filter) {
         return switch (filter.name()) {
-            case API -> RequestV2MetricsV4Fields.API_ID.v4Metrics();
+            case API, TRAFFIC_SCOPE -> RequestV2MetricsV4Fields.API_ID.v4Metrics();
             case APPLICATION -> RequestV2MetricsV4Fields.APPLICATION_ID.v4Metrics();
             case PLAN -> RequestV2MetricsV4Fields.PLAN_ID.v4Metrics();
             case NATIVE_CONNECTION_STATUS -> CONNECTION_STATUS_FIELD;
