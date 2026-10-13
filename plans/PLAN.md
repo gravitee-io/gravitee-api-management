@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: STORY-04
     content: "Return a newly created API-owned item the way the tree returns it, so the editor draws it in the right place."
-    status: pending
+    status: completed
   - id: STORY-05
     content: "Allow an item's owner to change, and carry the new owner down its whole subtree."
     status: completed
@@ -642,6 +642,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 5. Regression pass over the four affected rules, one test each, asserting each still fires.
 
 #### STORY-04 — Return a newly created API-owned item the way the tree returns it
+**Status:** Done under [PORTAL-254](https://gravitee.atlassian.net/browse/PORTAL-254), as [#21063](https://github.com/gravitee-io/gravitee-api-management/pull/21063), for single and bulk creation, including a parent created in the same bulk request. The rendering was extracted into `PortalNavigationItemRenderingDomainService`, which the tree read and both creates now share. Responses under the API path keep the stored parent, as STORY-14 requires.
 **Why:** the create response currently returns the stored item, whose parent is empty, so the editor draws a newly created page at the top of the portal instead of under the API.
 **Acceptance criteria:**
 - Creating a page under an API's listing row returns a parent equal to that listing row, matching what a subsequent tree read returns.
@@ -1572,7 +1573,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | An imported folder lands half-owned | High | Closed for an import under the API path ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698)); open for an import through the portal editor (STORY-08) |
 | An update sends a short payload and unlinks a sourced page or rejects every link | High | STORY-29's payload builder is tested for both failures first, and every update goes through it |
 | zone.js turns out to be required and patches globals across Gamma | Medium | STORY-20 settles it before anything depends on it |
-| Create response misleads the editor about where the page is | Medium | STORY-04 |
+| Create response misleads the editor about where the page is | Medium | Closed: STORY-04 ([#21063](https://github.com/gravitee-io/gravitee-api-management/pull/21063)) returns the created item the way the tree does |
 | Publishing impossible when no top-level section exists | Medium | Accepted: the publish dialog explains it, a portal administrator adds a section (decision 3), and STORY-35 adds a default one |
 | Deleting an API from the console leaks documentation and page text | Medium | STORY-37, or an accepted known issue |
 | The migration cannot be reversed | Medium | In-place updates, unchanged ids, logging, run-twice test (STORY-19) |
