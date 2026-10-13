@@ -57,6 +57,12 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         );
     }
 
+    public static InvalidPortalNavigationItemDataException apiListedInMoreThanOnePlace(String apiId) {
+        return new InvalidPortalNavigationItemDataException(
+            "The API %s is listed in more than one place, so an item cannot be moved out of its documentation.".formatted(apiId)
+        );
+    }
+
     public static InvalidPortalNavigationItemDataException notAPage(String itemId) {
         return new InvalidPortalNavigationItemDataException("The navigation item %s is not a page and has no content.".formatted(itemId));
     }

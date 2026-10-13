@@ -1641,6 +1641,128 @@ class UpdatePortalNavigationItemUseCaseTest {
             assertThat(find(managed).getReference()).isEqualTo(PORTAL);
         }
 
+        /**
+         * The documentation of an API is shown under each of its standalone listings, so taking an item out of
+         * the API takes it out of all of them, while the caller pointed at one.
+         */
+        @Nested
+        class OutOfAnApiListedInMoreThanOnePlace {
+
+            private static final String LISTED_IN_MORE_THAN_ONE_PLACE = "listed in more than one place";
+
+            @Test
+            void should_refuse_moving_an_item_out_of_an_api_listed_in_two_places() {
+                listedInTwoPlaces(API_A);
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+                assertThatThrownBy(() -> move(page, section.getId()))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining(LISTED_IN_MORE_THAN_ONE_PLACE);
+                assertOwnedRootOf(API_A, page);
+            }
+
+            @Test
+            void should_refuse_moving_a_nested_item_out_of_an_api_listed_in_two_places() {
+                listedInTwoPlaces(API_A);
+                var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
+
+                assertThatThrownBy(() -> move(page, null))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining(LISTED_IN_MORE_THAN_ONE_PLACE);
+                assertThat(find(page).getReference()).isEqualTo(API_A);
+                assertThat(find(page).getParentId()).isEqualTo(folder.getId());
+            }
+
+            @Test
+            void should_refuse_moving_an_item_to_another_api_when_the_api_it_leaves_is_listed_in_two_places() {
+                listedInTwoPlaces(API_A);
+                var listingOfB = aListingOf(API_B);
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+                assertThatThrownBy(() -> move(page, listingOfB.getId()))
+                    .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                    .hasMessageContaining(LISTED_IN_MORE_THAN_ONE_PLACE);
+                assertOwnedRootOf(API_A, page);
+            }
+
+            @Test
+            void should_move_an_item_out_of_an_api_listed_once() {
+                aListingOf(API_A);
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+                move(page, section.getId());
+
+                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+                assertThat(find(page).getParentId()).isEqualTo(section.getId());
+            }
+
+            @Test
+            void should_move_an_item_out_of_an_api_listed_once_and_inside_an_api_product() {
+                aListingOf(API_A);
+                var product = store(
+                    PortalNavigationItemFixtures.anApiProduct(
+                        PortalNavigationItemId.random().json(),
+                        "Product",
+                        section.getId(),
+                        "product-ref"
+                    )
+                );
+                store(PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "Member", product.getId(), API_A.apiId()));
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+                move(page, section.getId());
+
+                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+            }
+
+            @Test
+            void should_move_an_item_out_of_an_api_that_is_not_listed() {
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", null)));
+
+                move(page, section.getId());
+
+                assertThat(find(page).getReference()).isEqualTo(PORTAL);
+            }
+
+            @Test
+            void should_still_move_an_item_into_an_api_listed_in_two_places() {
+                var listing = listedInTwoPlaces(API_A);
+                var page = store(PortalNavigationItemFixtures.aPage("Guide", section.getId()));
+
+                move(page, listing.getId());
+
+                assertOwnedRootOf(API_A, page);
+            }
+
+            @Test
+            void should_still_move_an_item_between_two_folders_of_an_api_listed_in_two_places() {
+                listedInTwoPlaces(API_A);
+                var from = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Basics")));
+                var to = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Advanced")));
+                var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", from.getId())));
+
+                move(page, to.getId());
+
+                assertThat(find(page).getParentId()).isEqualTo(to.getId());
+                assertThat(find(page).getReference()).isEqualTo(API_A);
+            }
+
+            /** No validated path can create a second standalone listing, so it is stored as older data would be. */
+            private PortalNavigationApi listedInTwoPlaces(ApiReference api) {
+                var otherSection = store(PortalNavigationItemFixtures.aFolder("Other section"));
+                store(
+                    PortalNavigationItemFixtures.anApi(
+                        PortalNavigationItemId.random().json(),
+                        "Second listing of " + api.apiId(),
+                        otherSection.getId(),
+                        api.apiId()
+                    )
+                );
+                return aListingOf(api);
+            }
+        }
+
         private PortalNavigationApi aListingOf(ApiReference api) {
             return store(
                 PortalNavigationItemFixtures.anApi(
