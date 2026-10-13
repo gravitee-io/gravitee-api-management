@@ -97,6 +97,9 @@ jest.mock('../../components/detail/documentation/OpenApiPreview', () => ({
         </div>
     ),
 }));
+jest.mock('../../components/detail/documentation/AsyncApiPreview', () => ({
+    AsyncApiPreview: ({ content }: { content: string }) => <div aria-label="Preview">AsyncAPI preview: {content}</div>,
+}));
 
 const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
@@ -300,15 +303,12 @@ describe('ApiDocumentationEditPage', () => {
             expect(screen.getByText('Private')).toBeInTheDocument();
         });
 
-        it('edits an AsyncAPI document, saying its preview is not available yet', async () => {
+        it('edits an AsyncAPI document next to a preview of it', async () => {
             givenContent('asyncapi: 3.0.0\n', 'ASYNCAPI');
             renderPage('petstore');
 
             expect((await editor()).dataset.language).toBe('yaml');
-            expect(screen.queryByLabelText('Preview')).not.toBeInTheDocument();
-            expect(
-                screen.getByText("AsyncAPI preview isn't available here yet. The developer portal renders this page once it's published."),
-            ).toBeInTheDocument();
+            expect(screen.getByLabelText('Preview')).toHaveTextContent('AsyncAPI preview: asyncapi: 3.0.0');
         });
 
         it('previews the OpenAPI document being typed', async () => {

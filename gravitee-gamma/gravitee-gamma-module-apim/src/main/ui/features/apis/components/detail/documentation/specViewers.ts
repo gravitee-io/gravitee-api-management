@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { AsyncApiProps } from '@asyncapi/react-component';
+import type { ComponentType } from 'react';
 import type { SwaggerUIOptions } from 'swagger-ui';
 
 /** What Swagger UI returns: its whole system, of which `@types/swagger-ui` leaves out the actions. */
@@ -26,7 +28,9 @@ export interface RedocStandalone {
     init(spec: object, options: Record<string, unknown>, element: HTMLElement, callback?: (error?: unknown) => void): void;
 }
 
-// Each viewer weighs over a megabyte: they load, with their styles, only when a page of their kind is
+export type AsyncApiViewer = ComponentType<AsyncApiProps>;
+
+// Each viewer weighs one to three megabytes: they load, with their styles, only when a page of their kind is
 // previewed.
 
 export async function loadSwaggerUi(): Promise<SwaggerUiFactory> {
@@ -35,4 +39,8 @@ export async function loadSwaggerUi(): Promise<SwaggerUiFactory> {
 
 export async function loadRedoc(): Promise<RedocStandalone> {
     return (await import('./specViewerBundles/redoc')).default;
+}
+
+export async function loadAsyncApiViewer(): Promise<AsyncApiViewer> {
+    return (await import('./specViewerBundles/asyncApi')).default;
 }

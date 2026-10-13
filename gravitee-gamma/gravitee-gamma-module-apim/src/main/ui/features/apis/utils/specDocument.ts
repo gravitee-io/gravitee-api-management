@@ -17,7 +17,7 @@ import { load, YAMLException } from 'js-yaml';
 
 import type { PortalPageContentType } from '../types/apiDocumentation';
 
-export type SpecContentType = Extract<PortalPageContentType, 'OPENAPI'>;
+export type SpecContentType = Exclude<PortalPageContentType, 'GRAVITEE_MARKDOWN'>;
 
 export type SpecDocument = Record<string, unknown>;
 
@@ -25,12 +25,13 @@ export type SpecDocumentResult = { status: 'valid'; document: SpecDocument } | {
 
 const SPEC_KINDS: Record<SpecContentType, { label: string; rootFields: string[]; rootFieldsLabel: string }> = {
     OPENAPI: { label: 'OpenAPI', rootFields: ['openapi', 'swagger'], rootFieldsLabel: 'an openapi or swagger' },
+    ASYNCAPI: { label: 'AsyncAPI', rootFields: ['asyncapi'], rootFieldsLabel: 'an asyncapi' },
 };
 
 const BLANK_OR_COMMENT_LINE = /^\s*(#.*)?$/;
 
 /**
- * Reads an OpenAPI document so a viewer only ever receives a parsed document of the right kind. JSON goes
+ * Reads an OpenAPI or AsyncAPI document so a viewer only ever receives a parsed document of the right kind. JSON goes
  * through the YAML parser too, which accepts it and reports errors with a line number either way.
  */
 export function parseSpecDocument(type: SpecContentType, content: string): SpecDocumentResult {

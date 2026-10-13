@@ -20,7 +20,7 @@ import type { SpecPreview } from '../../../hooks/useSpecPreview';
 import type { SpecDocument } from '../../../utils/specDocument';
 
 /**
- * What an OpenAPI preview shows around its viewer: why the preview is out of date, or why there is
+ * What an OpenAPI or AsyncAPI preview shows around its viewer: why the preview is out of date, or why there is
  * nothing to preview. The viewer is only ever given a document that parsed.
  */
 export function SpecPreviewFrame({
