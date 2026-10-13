@@ -101,6 +101,14 @@ export class ApiError extends Error {
     }
 }
 
+/**
+ * The platform did not answer: no response at all, or a server error, as during a rolling restart. Any
+ * other status is an answer, which waiting would not change.
+ */
+export function isPlatformUnavailable(error: unknown): boolean {
+    return error instanceof TypeError || (error instanceof ApiError && error.status >= 500);
+}
+
 function createClient(backend: Backend) {
     return {
         get: <T>(path: string, init?: RequestInit) => request<T>(backend, path, init),

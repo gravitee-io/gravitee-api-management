@@ -25,11 +25,13 @@ import {
     Separator,
     Spinner,
 } from '@gravitee/graphene-core';
+import { TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState, type SubmitEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
+import { isPlatformUnavailable } from '../../../shared/api/api-client';
 import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
-import { useIdentityProviders, useLocalLoginEnabled, useLogin, useRegistrationEnabled } from '../auth.selectors';
+import { useIdentityProviders, useLocalLoginEnabled, useLogin, useRegistrationEnabled, useSessionCheckFailed } from '../auth.selectors';
 import { useAuthStore } from '../auth.store';
 import type { SocialIdentityProvider } from '../auth.types';
 import { AuthPageShell } from './AuthPageShell';
@@ -38,6 +40,9 @@ import { IdpIcon } from './IdpIcons';
 const NO_LOGIN_METHOD_MESSAGE = 'No sign-in method is configured. Contact your administrator.';
 const HEX_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const SSO_LOGIN_DESCRIPTION = 'Continue with your identity provider.';
+const SESSION_ALERT_ID = 'login-session-alert';
+/** Said when the platform did not answer, whether it was checking the session or signing in. */
+const PLATFORM_MAY_BE_UPDATING = 'The platform may be updating. Reload the page in a minute, or sign in again.';
 
 /**
  * Only the identity-provider route needs a supporting line. With local login the two
@@ -58,6 +63,7 @@ export function LoginPage() {
     const localLoginEnabled = useLocalLoginEnabled();
     const registrationEnabled = useRegistrationEnabled();
     const refreshLoginMethods = useBootstrapStore(s => s.refreshLoginMethods);
+    const sessionCheckFailed = useSessionCheckFailed();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -74,8 +80,9 @@ export function LoginPage() {
         try {
             await login(username, password);
             navigate(searchParams.get('redirect') || '/', { replace: true });
-        } catch {
-            setError("That username and password don't match. Try again.");
+        } catch (signInError) {
+            // Waiting only helps when the platform did not answer: any other failure keeps the usual message.
+            setError(isPlatformUnavailable(signInError) ? PLATFORM_MAY_BE_UPDATING : "That username and password don't match. Try again.");
         } finally {
             setLoading(false);
         }
@@ -94,6 +101,7 @@ export function LoginPage() {
     const noLoginMethod = !localLoginEnabled && identityProviders.length === 0;
     const displayError = error || (noLoginMethod ? NO_LOGIN_METHOD_MESSAGE : '');
     const description = loginCardDescription(noLoginMethod, localLoginEnabled);
+    const showSessionAlert = sessionCheckFailed && !error;
 
     return (
         <AuthPageShell
@@ -120,6 +128,17 @@ export function LoginPage() {
                 </Alert>
             ) : null}
 
+            {/* The user may well be signed in: this page opened because the platform could not tell.
+                A warning, not the red of a failed sign-in: nothing is known to be wrong yet.
+                Outside the form, which only local login has. */}
+            {showSessionAlert ? (
+                <Alert id={SESSION_ALERT_ID} variant="warning" role="alert" className="mb-4">
+                    <TriangleAlertIcon aria-hidden />
+                    <AlertTitle>Could not check your session</AlertTitle>
+                    <AlertDescription>{PLATFORM_MAY_BE_UPDATING}</AlertDescription>
+                </Alert>
+            ) : null}
+
             {localLoginEnabled ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Field orientation="vertical" className="gap-2">
@@ -133,6 +152,9 @@ export function LoginPage() {
                             required
                             autoComplete="username"
                             placeholder="Enter your username"
+                            // The alert is there when the page opens, when a screen reader does not announce it:
+                            // the field that takes the focus carries it instead.
+                            aria-describedby={showSessionAlert ? SESSION_ALERT_ID : undefined}
                             // eslint-disable-next-line jsx-a11y/no-autofocus
                             autoFocus
                         />
