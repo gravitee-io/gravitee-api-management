@@ -119,7 +119,9 @@ export function validateIdentityProviderForm(form: IdentityProviderFormState): R
         errors.name = `The identity provider has to be at most ${IDENTITY_PROVIDER_NAME_MAX} characters long.`;
 
     if (!form.configuration.clientId.trim()) errors.clientId = 'Client Id is required.';
-    if (!form.configuration.clientSecret.trim()) errors.clientSecret = 'Client Secret is required.';
+    if (form.configuration.tokenEndpointAuthMethod !== 'none' && !form.configuration.clientSecret.trim()) {
+        errors.clientSecret = 'Client Secret is required.';
+    }
 
     if (form.type === 'GRAVITEEIO_AM') {
         if (!form.configuration.serverURL?.trim()) errors.serverURL = 'Server URL is required.';
@@ -193,6 +195,7 @@ function compactConfiguration(form: IdentityProviderFormState): IdentityProvider
     if (form.type === 'GOOGLE' || form.type === 'GITHUB') {
         return { clientId, clientSecret };
     }
+    const authMethod = optionalTrimmed(form.configuration.tokenEndpointAuthMethod);
     if (form.type === 'GRAVITEEIO_AM') {
         return {
             clientId,
@@ -201,6 +204,7 @@ function compactConfiguration(form: IdentityProviderFormState): IdentityProvider
             domain: form.configuration.domain?.trim() ?? '',
             scopes: form.configuration.scopes ? [...form.configuration.scopes] : [],
             ...(color ? { color } : {}),
+            ...(authMethod ? { tokenEndpointAuthMethod: authMethod } : {}),
         };
     }
     return {
@@ -213,6 +217,7 @@ function compactConfiguration(form: IdentityProviderFormState): IdentityProvider
         userLogoutEndpoint: optionalTrimmed(form.configuration.userLogoutEndpoint),
         scopes: form.configuration.scopes ? [...form.configuration.scopes] : [],
         ...(color ? { color } : {}),
+        ...(authMethod ? { tokenEndpointAuthMethod: authMethod } : {}),
     };
 }
 

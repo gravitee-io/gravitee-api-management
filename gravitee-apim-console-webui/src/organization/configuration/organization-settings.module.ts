@@ -67,6 +67,7 @@ import { OrgSettingsIdentityProviderComponent } from './identity-provider/org-se
 import { OrgSettingsIdentityProviderGithubComponent } from './identity-provider/org-settings-identity-provider-github/org-settings-identity-provider-github.component';
 import { OrgSettingsIdentityProviderGoogleComponent } from './identity-provider/org-settings-identity-provider-google/org-settings-identity-provider-google.component';
 import { OrgSettingsIdentityProviderGraviteeioAmComponent } from './identity-provider/org-settings-identity-provider-graviteeio-am/org-settings-identity-provider-graviteeio-am.component';
+import { OrgSettingsIdentityProviderClientSecretComponent } from './identity-provider/org-settings-identity-provider-client-secret/org-settings-identity-provider-client-secret.component';
 import { OrgSettingsIdentityProviderOidcComponent } from './identity-provider/org-settings-identity-provider-oidc/org-settings-identity-provider-oidc.component';
 import { OrgSettingsNotificationTemplatesComponent } from './notification-templates/org-settings-notification-templates.component';
 import { OrgSettingsCockpitComponent } from './cockpit/org-settings-cockpit.component';
@@ -167,6 +168,7 @@ import { GioTooltipOnEllipsisModule } from '../../shared/components/gio-tooltip-
     OrgSettingsIdentityProvidersComponent,
     OrgSettingsIdentityProviderComponent,
     OrgSettingsIdentityProviderGoogleComponent,
+    OrgSettingsIdentityProviderClientSecretComponent,
     OrgSettingsIdentityProviderOidcComponent,
     OrgSettingsIdentityProviderGraviteeioAmComponent,
     OrgSettingsIdentityProviderGithubComponent,

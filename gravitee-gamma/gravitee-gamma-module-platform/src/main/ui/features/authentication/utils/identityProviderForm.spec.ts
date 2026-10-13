@@ -41,6 +41,22 @@ describe('identityProviderForm', () => {
         );
     });
 
+    it('allows an empty client secret when the OIDC client authenticates with none', () => {
+        const form = formWithType(emptyIdentityProviderForm(), 'OIDC');
+        form.name = 'Public provider';
+        form.configuration.clientId = 'public-client';
+        form.configuration.tokenEndpointAuthMethod = 'none';
+        form.configuration.tokenEndpoint = 'https://idp.example/token';
+        form.configuration.authorizeEndpoint = 'https://idp.example/authorize';
+        form.configuration.userInfoEndpoint = 'https://idp.example/userinfo';
+        form.configuration.scopes = ['openid'];
+        form.userProfileMapping.id = 'sub';
+
+        expect(validateIdentityProviderForm(form).clientSecret).toBeUndefined();
+        expect(formToCreatePayload(form).configuration.clientSecret).toBe('');
+        expect(formToCreatePayload(form).configuration.tokenEndpointAuthMethod).toBe('none');
+    });
+
     it('rejects a name shorter than the classic minimum of 2 characters', () => {
         const form = { ...emptyIdentityProviderForm(), name: 'a' };
         expect(validateIdentityProviderForm(form).name).toBe(
