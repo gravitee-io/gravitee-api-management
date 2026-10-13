@@ -31,6 +31,7 @@ import io.gravitee.apim.reporter.elasticsearch.mapping.opensearch.OpenSearchInde
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.utils.Type;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -271,6 +272,18 @@ class IndexTemplateTest {
         assertThat(preparerFor(esDir, configuration).generateIndexTemplate(type)).contains("\"bad\\\"policy\"");
     }
 
+    @ParameterizedTest(name = "{0} decisions mapping types strings only inside additional-metrics")
+    @MethodSource("all_trees")
+    void should_scope_every_decisions_dynamic_template_to_additional_metrics(String esDir) throws Exception {
+        var dynamicTemplates = decisionsMappings(esDir).path("dynamic_templates");
+
+        assertThat(dynamicTemplates.isArray()).isTrue();
+        assertThat(dynamicTemplates.valueStream().flatMap(template -> template.valueStream()))
+            .isNotEmpty()
+            .allSatisfy(template -> assertThat(template.path("path_match").asText()).startsWith("additional-metrics."))
+            .noneSatisfy(template -> assertThat(template.path("match_mapping_type").asText()).isEqualTo("string"));
+    }
+
     @ParameterizedTest(name = "{0} decisions mapping keeps the matched rule version")
     @MethodSource("all_trees")
     void should_map_the_matched_rule_version_as_a_keyword(String esDir) throws Exception {
@@ -278,6 +291,23 @@ class IndexTemplateTest {
 
         assertThat(matchedRules.path("type").asText()).isEqualTo("nested");
         assertThat(matchedRules.path("properties").path("version").path("type").asText()).isEqualTo("keyword");
+    }
+
+    @ParameterizedTest(name = "{0} decisions mapping types string and json additional metrics as text")
+    @MethodSource("all_trees")
+    void should_map_string_and_json_additional_metrics_as_text(String esDir) throws Exception {
+        var typeByPath = decisionsMappings(esDir)
+            .path("dynamic_templates")
+            .valueStream()
+            .flatMap(JsonNode::valueStream)
+            .collect(
+                Collectors.toMap(
+                    template -> template.path("path_match").asText(),
+                    template -> template.path("mapping").path("type").asText()
+                )
+            );
+
+        assertThat(typeByPath).containsEntry("additional-metrics.string_*", "text").containsEntry("additional-metrics.json_*", "text");
     }
 
     @ParameterizedTest(name = "{0} renders no authz-decisions template")
