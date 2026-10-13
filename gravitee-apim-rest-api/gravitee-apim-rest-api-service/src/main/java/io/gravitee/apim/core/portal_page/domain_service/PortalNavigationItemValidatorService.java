@@ -302,12 +302,12 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     private static boolean vacatesSlot(PendingUpdate update) {
         var existing = update.existing();
         var toUpdate = update.toUpdate();
+        // A root handed to another owner leaves its slot although neither its parent nor its segment changes
+        boolean changesOwner = toUpdate.getReference() != null;
         return (
             !Objects.equals(existing.getParentId(), toUpdate.getParentId()) ||
             !Objects.equals(existing.getSegment(), toUpdate.getSegment()) ||
-            // A root handed to another owner leaves its slot although neither its parent nor its segment changes
-            toUpdate.getReference() !=
-            null
+            changesOwner
         );
     }
 

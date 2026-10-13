@@ -449,10 +449,10 @@ public class PortalNavigationItemDomainService {
 
         List<PortalNavigationItem> siblingsToUpdate = new ArrayList<>();
         if (changesList) {
-            siblingsToUpdate.addAll(this.reorderDestinationSiblingsOnInsertion(updatedItem));
+            siblingsToUpdate.addAll(this.reorderDestinationSiblingsOnInsertion(updatedItem, destinationOwner));
             siblingsToUpdate.addAll(this.reorderOriginSiblings(originalOrder, updatedItem, originalParentId, originOwner));
         } else if (!Objects.equals(originalOrder, updatedItem.getOrder())) {
-            siblingsToUpdate.addAll(this.reorderDestinationSiblings(originalOrder, updatedItem));
+            siblingsToUpdate.addAll(this.reorderDestinationSiblings(originalOrder, updatedItem, destinationOwner));
         }
         siblingsToUpdate.forEach(crudService::update);
 
@@ -645,13 +645,11 @@ public class PortalNavigationItemDomainService {
             .toList();
     }
 
-    private List<PortalNavigationItem> reorderDestinationSiblingsOnInsertion(PortalNavigationItem updatedItem) {
-        return this.retrieveSiblingItems(
-                updatedItem.getParentId(),
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+    private List<PortalNavigationItem> reorderDestinationSiblingsOnInsertion(
+        PortalNavigationItem updatedItem,
+        NavigationItemReference destinationOwner
+    ) {
+        return this.retrieveSiblingItems(updatedItem.getParentId(), updatedItem.getEnvironmentId(), updatedItem.getArea(), destinationOwner)
             .stream()
             .filter(sibling -> !Objects.equals(sibling.getId(), updatedItem.getId()) && sibling.getOrder() >= updatedItem.getOrder())
             .peek(sibling -> {
@@ -660,19 +658,18 @@ public class PortalNavigationItemDomainService {
             .toList();
     }
 
-    private List<PortalNavigationItem> reorderDestinationSiblings(Integer originalOrder, PortalNavigationItem updatedItem) {
+    private List<PortalNavigationItem> reorderDestinationSiblings(
+        Integer originalOrder,
+        PortalNavigationItem updatedItem,
+        NavigationItemReference destinationOwner
+    ) {
         Predicate<PortalNavigationItem> shouldBeDecremented = sibling ->
             sibling.getOrder() > originalOrder && sibling.getOrder() <= updatedItem.getOrder();
 
         Predicate<PortalNavigationItem> shouldBeIncremented = sibling ->
             sibling.getOrder() >= updatedItem.getOrder() && sibling.getOrder() < originalOrder;
 
-        return this.retrieveSiblingItems(
-                updatedItem.getParentId(),
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+        return this.retrieveSiblingItems(updatedItem.getParentId(), updatedItem.getEnvironmentId(), updatedItem.getArea(), destinationOwner)
             .stream()
             .filter(
                 sibling ->
