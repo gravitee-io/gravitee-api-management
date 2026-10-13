@@ -190,6 +190,16 @@ public class HttpProtocolVerticle extends AbstractVerticle {
             // subscription.
             .exceptionHandler(event -> gracefulDispose(dispatchDisposable))
             .closeHandler(event -> gracefulDispose(dispatchDisposable));
+
+        // An HTTP/2 client cancels a single request by resetting its stream and keeps the connection open, so the
+        // connection handlers above never fire. The response close handler does, per stream. A response that ended
+        // normally is skipped so post-response processing (reporting) is not cut short.
+        final HttpServerResponse response = request.response();
+        response.closeHandler(event -> {
+            if (!response.ended()) {
+                gracefulDispose(dispatchDisposable);
+            }
+        });
     }
 
     private void gracefulDispose(Disposable dispatchDisposable) {
