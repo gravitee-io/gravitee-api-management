@@ -129,6 +129,12 @@ class DecisionReportIndexingIntegrationTest {
         assertThat(hitsOnTheForbiddenDecision(term("additional-metrics.keyword_authz_tools", "book"))).isOne();
     }
 
+    @Test
+    void should_map_string_and_json_additional_metrics_as_text_only() {
+        assertThat(client.getFieldTypes(dataStream, "additional-metrics.string_authz_note").blockingGet()).containsExactly("text");
+        assertThat(client.getFieldTypes(dataStream, "additional-metrics.json_authz_context").blockingGet()).containsExactly("text");
+    }
+
     private BulkResponse report(DecisionReport decision) {
         try {
             var bulk = new NoneBulkCompressor().compress(List.of(transformer.transform(decision))).compressed();
@@ -181,7 +187,9 @@ class DecisionReportIndexingIntegrationTest {
                 Set.of(
                     new AdditionalMetric.IntegerMetric("int_authz_batch-index", 1),
                     new AdditionalMetric.IntegerMetric("int_authz_batch-size", 2),
-                    new AdditionalMetric.KeywordListMetric("keyword_authz_tools", List.of("search", "book"))
+                    new AdditionalMetric.KeywordListMetric("keyword_authz_tools", List.of("search", "book")),
+                    new AdditionalMetric.StringMetric("string_authz_note", "the quick brown fox"),
+                    new AdditionalMetric.JSONMetric("json_authz_context", "{\"tenant\":\"acme\"}")
                 )
             )
             .build();
