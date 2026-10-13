@@ -150,7 +150,7 @@ isProject: false
 
 **One hard blocker.** STORY-01 fixes a bug that ships today: saving a page in the classic editor silently detaches it from its API. It bites only GitOps-created documentation at the moment, but once all documentation belongs to the API it happens on nearly every edit. Nothing else in Phase 2 onward should start before it lands.
 
-**Still open:** seven decisions, six of which block a story not done yet — see [Decisions that block stories](#decisions-that-block-stories).
+**Still open:** six decisions, five of which block a story not done yet — see [Decisions that block stories](#decisions-that-block-stories).
 
 ---
 
@@ -684,13 +684,15 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 #### STORY-07 — Refuse moving an item out of an API listed in more than one place
 **Why:** there is no way to express which portal the caller meant, so the move would silently remove the item from every other portal listing that API.
 **Acceptance criteria:**
-- Moving an item out of an API with more than one listing row is rejected with a clear error.
-- The same move on an API with exactly one listing row succeeds.
+- Moving an item out of an API with more than one standalone listing row is rejected with a clear error, whether the item would go to the portal or to another API (decision 9).
+- The same move on an API with exactly one standalone listing row succeeds, including when the API is also listed inside an API product: that listing does not show the API's documentation, so it does not count.
+- Moving an item into such an API, or between two places inside it, is not refused.
 **Files:**
-- *create* `CORE/portal_page/domain_service/validation/` — a new update rule rejecting the ambiguous move
-- *edit* `CORE/portal_page/domain_service/PortalNavigationItemValidatorService.java` — register it in the update rule list
-- *edit* `CORE/portal_page/query_service/PortalNavigationItemsQueryService.java` — a count of listing rows for an API, if STORY-01 has not already added the lookup
-**Size:** S · **Depends on:** STORY-05 · **Blocked by:** decision 9
+- *edit* `CORE/portal_page/domain_service/validation/OwnerChangeRule.java` — the refusal, next to the two others STORY-05 added for a move that changes the owner. No new rule class
+- *edit* `CORE/portal_page/domain_service/PortalNavigationItemValidatorService.java` — also load the environment's navigation items when an update changes the owner, so the rule can count the listings for a page or a link
+- *edit* `CORE/portal_page/exception/InvalidPortalNavigationItemDataException.java` — the error
+**Size:** S · **Depends on:** STORY-05
+**Note:** an API cannot be given two standalone listings through the current rules, so today the refusal is only reached with data older than the uniqueness rule, or once an environment has several portals. It is built now so that it is in place before then. No count is added to the query service: the rule reads the listings from the validation context.
 
 #### STORY-08 — Carry API ownership into the contents of an imported folder
 **Status:** Half done. An import under the API path stores the folder and everything in it as owned by the API, with an owner set explicitly ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698), under PORTAL-231). An import through the portal editor still has to take the owner from the parent it lands under: STORY-03 ([#20955](https://github.com/gravitee-io/gravitee-api-management/pull/20955)) does not cover the import path.
@@ -1540,7 +1542,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | 6 | May the migration delete a duplicate starter page that still matches the template? | 19 |
 | 7 | Confirm Documentation stays hidden for federated APIs | 23 |
 | 8 | Migrate-and-dedupe or skip, for an API listed more than once | 19 |
-| 9 | Moving an item out of an API listed in several portals — refuse, or define the semantic? | 07 |
+| 9 | ~~Moving an item out of an API listed in several portals — refuse, or define the semantic?~~ **Settled: refuse.** Defining it would need the caller to say which listing they mean, and a way to remove an item from one listing only, which the ownership model does not have. Only standalone listings count: a listing inside an API product does not show the API's documentation. | — |
 
 **Settled during design, recorded so the reasoning is not relitigated:**
 
