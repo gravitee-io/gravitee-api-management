@@ -17,6 +17,7 @@ import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { ApiDocumentationEditPage } from './ApiDocumentationEditPage';
@@ -55,6 +56,11 @@ jest.mock('@gravitee/graphene-core', () => ({
     useLayoutConfig: (config: Record<string, unknown>) => {
         mockLayoutConfig = config;
     },
+    // The resizable panels find their handle from the pointer's position and the elements' boxes, which jsdom leaves
+    // empty, so every click would land on the handle: plain elements stand in for them.
+    ResizablePanelGroup: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+    ResizablePanel: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+    ResizableHandle: ({ 'aria-label': label }: { 'aria-label'?: string }) => <div role="separator" aria-label={label} />,
 }));
 
 // Monaco does not run in jsdom: a textarea stands in for the editor.
@@ -80,9 +86,16 @@ jest.mock('@gravitee/graphene-core/code-editor', () => ({
     ),
 }));
 
-// The preview has its own spec; here only what it is given to render matters.
+// The previews have their own specs; here only what they are given to render matters.
 jest.mock('../../components/detail/documentation/GraviteeMarkdownPreview', () => ({
     GraviteeMarkdownPreview: ({ content }: { content: string }) => <div aria-label="Preview">{content}</div>,
+}));
+jest.mock('../../components/detail/documentation/OpenApiPreview', () => ({
+    OpenApiPreview: ({ content, configuration }: { content: string; configuration?: { viewer: string } }) => (
+        <div aria-label="Preview">
+            OpenAPI preview in {configuration?.viewer ?? 'no configuration'}: {content}
+        </div>
+    ),
 }));
 
 const mockUseHasPermission = useHasPermission as jest.Mock;
@@ -125,8 +138,12 @@ function givenItems(items: ApiDocumentationItem[]) {
     mockListApiDocumentation.mockResolvedValue({ items, publications: [] });
 }
 
-function givenContent(content: string, type: PortalPageContentType = 'GRAVITEE_MARKDOWN') {
-    const data: PortalPageContent = { id: 'content-1', type, content };
+function givenContent(
+    content: string,
+    type: PortalPageContentType = 'GRAVITEE_MARKDOWN',
+    configuration?: PortalPageContent['configuration'],
+) {
+    const data: PortalPageContent = { id: 'content-1', type, content, configuration };
     mockGetContent.mockResolvedValue(data);
 }
 
@@ -263,18 +280,44 @@ describe('ApiDocumentationEditPage', () => {
             expect(screen.getByLabelText('Preview')).toHaveTextContent('# Getting started');
         });
 
-        it('edits an OpenAPI document, saying its preview is not available yet', async () => {
-            givenContent('openapi: 3.0.0\n', 'OPENAPI');
+        it('puts a handle resizing the editor and the preview between them', async () => {
+            renderPage();
+            const textbox = await editor();
+
+            const separator = screen.getByRole('separator', { name: 'Resize the editor and the preview' });
+            expect(textbox.compareDocumentPosition(separator) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(separator.compareDocumentPosition(screen.getByLabelText('Preview')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        });
+
+        it('edits an OpenAPI document next to a preview in the viewer its configuration names', async () => {
+            givenContent('openapi: 3.0.0\n', 'OPENAPI', { viewer: 'REDOC' });
+            renderPage('petstore');
+
+            expect((await editor()).dataset.language).toBe('yaml');
+            expect(screen.getByLabelText('Preview')).toHaveTextContent('OpenAPI preview in REDOC: openapi: 3.0.0');
+            expect(screen.getByText('OpenAPI')).toBeInTheDocument();
+            expect(screen.getByText('Published')).toBeInTheDocument();
+            expect(screen.getByText('Private')).toBeInTheDocument();
+        });
+
+        it('edits an AsyncAPI document, saying its preview is not available yet', async () => {
+            givenContent('asyncapi: 3.0.0\n', 'ASYNCAPI');
             renderPage('petstore');
 
             expect((await editor()).dataset.language).toBe('yaml');
             expect(screen.queryByLabelText('Preview')).not.toBeInTheDocument();
             expect(
-                screen.getByText("OpenAPI preview isn't available here yet. The developer portal renders this page once it's published."),
+                screen.getByText("AsyncAPI preview isn't available here yet. The developer portal renders this page once it's published."),
             ).toBeInTheDocument();
-            expect(screen.getByText('OpenAPI')).toBeInTheDocument();
-            expect(screen.getByText('Published')).toBeInTheDocument();
-            expect(screen.getByText('Private')).toBeInTheDocument();
+        });
+
+        it('previews the OpenAPI document being typed', async () => {
+            givenContent('openapi: 3.0.0\n', 'OPENAPI', { viewer: 'SWAGGER' });
+            renderPage('petstore');
+
+            fireEvent.change(await editor(), { target: { value: 'openapi: 3.1.0\n' } });
+
+            expect(screen.getByLabelText('Preview')).toHaveTextContent('OpenAPI preview in SWAGGER: openapi: 3.1.0');
         });
     });
 
