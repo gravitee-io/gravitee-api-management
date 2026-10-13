@@ -225,12 +225,11 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             return;
         }
         log.warn(
-            "Identity provider {} declares an unusable {} '{}'. Expected {} or {}. Falling back to the default of each endpoint.",
+            "Identity provider {} declares an unusable {} '{}'. Expected one of {}. Falling back to the default of each endpoint.",
             identityProviderId,
             TOKEN_ENDPOINT_AUTH_METHOD,
             configured,
-            ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue(),
-            ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue()
+            Stream.of(ClientAuthenticationMethod.values()).map(ClientAuthenticationMethod::getValue).collect(Collectors.joining(", "))
         );
     }
 }

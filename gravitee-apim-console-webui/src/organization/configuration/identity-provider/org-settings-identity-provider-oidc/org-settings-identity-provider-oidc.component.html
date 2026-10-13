@@ -25,11 +25,7 @@
       <mat-error *ngIf="configurationFormGroup.get('clientId').hasError('required')">Client Id is required.</mat-error>
     </mat-form-field>
 
-    <mat-form-field class="identity-provider__card__form-field">
-      <mat-label>Client Secret</mat-label>
-      <input matInput name="configurationClientSecret" type="password" formControlName="clientSecret" required />
-      <mat-error *ngIf="configurationFormGroup.get('clientSecret').hasError('required')">Client Secret is required.</mat-error>
-    </mat-form-field>
+    <org-settings-identity-provider-client-secret></org-settings-identity-provider-client-secret>
 
     <mat-form-field class="identity-provider__card__form-field">
       <mat-label>Token Endpoint</mat-label>
