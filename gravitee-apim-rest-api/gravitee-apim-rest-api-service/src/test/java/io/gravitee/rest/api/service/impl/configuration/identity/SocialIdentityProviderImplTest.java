@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.service.impl.configuration.identity;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.rest.api.model.configuration.identity.ClientAuthenticationMethod;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
@@ -28,6 +30,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,6 +61,26 @@ public class SocialIdentityProviderImplTest {
 
     @Mock
     private IdentityProviderActivationService identityProviderActivationService;
+
+    @Test
+    public void should_resolve_the_configured_client_authentication_method() {
+        assertEquals(ClientAuthenticationMethod.CLIENT_SECRET_BASIC, oidcProvider("client_secret_basic").getTokenEndpointAuthMethod());
+        assertEquals(ClientAuthenticationMethod.CLIENT_SECRET_POST, oidcProvider("client_secret_post").getTokenEndpointAuthMethod());
+        assertEquals(ClientAuthenticationMethod.NONE, oidcProvider("none").getTokenEndpointAuthMethod());
+    }
+
+    @Test
+    public void should_leave_the_method_unset_when_the_provider_declares_no_method() {
+        assertNull(oidcProvider(null).getTokenEndpointAuthMethod());
+    }
+
+    @Test
+    public void should_fall_back_to_the_endpoint_defaults_on_an_unusable_value() {
+        assertNull(oidcProvider("client_secret_jwt").getTokenEndpointAuthMethod());
+        assertNull(oidcProvider("private_key_jwt").getTokenEndpointAuthMethod());
+        assertNull(oidcProvider("typo").getTokenEndpointAuthMethod());
+        assertNull(oidcProvider("  ").getTokenEndpointAuthMethod());
+    }
 
     @Test
     public void find_all_should_include_disabled_idp_for_organization_target() {
@@ -172,5 +195,23 @@ public class SocialIdentityProviderImplTest {
         identityProvider.setEnabled(enabled);
         identityProvider.setConfiguration(Map.of("clientId", "client-id", "clientSecret", "client-secret"));
         return identityProvider;
+    }
+
+    private SocialIdentityProviderEntity oidcProvider(String tokenEndpointAuthMethod) {
+        IdentityProviderEntity identityProvider = new IdentityProviderEntity();
+        identityProvider.setId("oidc-idp");
+        identityProvider.setName("OIDC");
+        identityProvider.setType(IdentityProviderType.OIDC);
+        identityProvider.setEnabled(true);
+        Map<String, Object> configuration = new HashMap<>();
+        configuration.put("clientId", "the_client_id");
+        configuration.put("clientSecret", "the_client_secret");
+        configuration.put("tokenEndpoint", "https://provider.example.com/token");
+        if (tokenEndpointAuthMethod != null) {
+            configuration.put("tokenEndpointAuthMethod", tokenEndpointAuthMethod);
+        }
+        identityProvider.setConfiguration(configuration);
+        givenActivatedIdp(ORGANIZATION_TARGET, identityProvider);
+        return socialIdentityProvider.findById("oidc-idp", ORGANIZATION_TARGET);
     }
 }
