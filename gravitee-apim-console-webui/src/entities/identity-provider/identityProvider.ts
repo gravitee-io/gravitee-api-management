@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AbstractControl } from '@angular/forms';
+
 export interface GroupMapping {
   condition?: string;
   groups?: string[];
@@ -79,7 +81,20 @@ export interface IdentityProviderUserProfileMapping {
 export const CLIENT_AUTHENTICATION_METHODS: { value: string; label: string }[] = [
   { value: 'client_secret_basic', label: 'Client secret in the Authorization header (client_secret_basic)' },
   { value: 'client_secret_post', label: 'Client secret in the request body (client_secret_post)' },
+  { value: 'none', label: 'Public client, no client secret (none)' },
 ];
+
+/** A public client (token_endpoint_auth_method=none) has no client secret. Other methods still require one. */
+export function clientSecretRequiredUnlessPublicClient(control: AbstractControl): { required: true } | null {
+  if (control.parent?.get('tokenEndpointAuthMethod')?.value === 'none') {
+    return null;
+  }
+  const value = control.value;
+  if (value == null || String(value).trim() === '') {
+    return { required: true };
+  }
+  return null;
+}
 
 export interface IdentityProvider {
   id?: string;

@@ -30,7 +30,13 @@ public enum ClientAuthenticationMethod {
     CLIENT_SECRET_BASIC("client_secret_basic"),
 
     /** Credentials sent as {@code client_id} and {@code client_secret} parameters in the form-encoded request body. */
-    CLIENT_SECRET_POST("client_secret_post");
+    CLIENT_SECRET_POST("client_secret_post"),
+
+    /**
+     * Public client. The token and introspection calls identify the client with {@code client_id} only and carry no
+     * client secret, which is what a provider that advertises {@code none} (typically PKCE) accepts.
+     */
+    NONE("none");
 
     private final String value;
 

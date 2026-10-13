@@ -344,6 +344,46 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_omit_the_client_secret_when_the_provider_is_a_public_client() throws Exception {
+        mockDefaultEnvironment();
+        identityProvider.setClientSecret(null);
+        identityProvider.setTokenEndpointAuthMethod(ClientAuthenticationMethod.NONE);
+        mockTokenEndpoint();
+        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        mockConnectedUser();
+
+        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        WireMock.verify(
+            postRequestedFor(urlEqualTo("/token"))
+                .withHeader(HttpHeaders.AUTHORIZATION, absent())
+                .withRequestBody(containing("client_id=the_client_id"))
+                .withRequestBody(notContaining("client_secret"))
+        );
+    }
+
+    @Test
+    public void should_identify_a_public_client_on_introspection_without_a_secret() throws Exception {
+        mockDefaultEnvironment();
+        identityProvider.setClientSecret(null);
+        identityProvider.setTokenEndpointAuthMethod(ClientAuthenticationMethod.NONE);
+        mockIntrospectionEndpoint();
+        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())), "MyToken");
+        mockConnectedUser();
+
+        Response response = orgTarget().path("exchange").queryParam("token", "MyToken").request().post(json(null));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        WireMock.verify(
+            postRequestedFor(urlEqualTo("/introspect"))
+                .withHeader(HttpHeaders.AUTHORIZATION, absent())
+                .withRequestBody(containing("client_id=the_client_id"))
+                .withRequestBody(notContaining("client_secret"))
+        );
+    }
+
+    @Test
     public void should_authenticate_introspection_with_basic_auth_when_no_auth_method_configured() throws Exception {
         // Given
         mockDefaultEnvironment();
