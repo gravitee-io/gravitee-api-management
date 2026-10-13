@@ -34,7 +34,7 @@ interface PreviewState extends SpecPreview {
 }
 
 /**
- * Follows an OpenAPI page's content as it is typed. Content that does not parse keeps the last valid
+ * Follows an OpenAPI or AsyncAPI page's content as it is typed. Content that does not parse keeps the last valid
  * document on screen, so the preview does not flash an error at every keystroke that leaves the YAML incomplete.
  */
 export function useSpecPreview(type: SpecContentType, content: string): SpecPreview {

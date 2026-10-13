@@ -34,6 +34,10 @@ describe('parseSpecDocument', () => {
         expect(parseSpecDocument('OPENAPI', 'swagger: "2.0"\n')).toEqual({ status: 'valid', document: { swagger: '2.0' } });
     });
 
+    it('parses an AsyncAPI document', () => {
+        expect(parseSpecDocument('ASYNCAPI', 'asyncapi: 3.0.0\n')).toEqual({ status: 'valid', document: { asyncapi: '3.0.0' } });
+    });
+
     it('names the line of a YAML syntax error', () => {
         const result = parseSpecDocument('OPENAPI', 'openapi: 3.0.3\ninfo:\n  title: Payments\n   version: 1.0.0\n');
 
@@ -48,8 +52,9 @@ describe('parseSpecDocument', () => {
 
     it.each([
         ['an OpenAPI page holding an AsyncAPI document', 'OPENAPI', 'asyncapi: 3.0.0\n', 'OpenAPI', 'an openapi or swagger'],
+        ['an AsyncAPI page holding an OpenAPI document', 'ASYNCAPI', 'openapi: 3.0.3\n', 'AsyncAPI', 'an asyncapi'],
         ['a scalar', 'OPENAPI', 'just some text\n', 'OpenAPI', 'an openapi or swagger'],
-        ['a list', 'OPENAPI', '- openapi: 3.0.3\n', 'OpenAPI', 'an openapi or swagger'],
+        ['a list', 'ASYNCAPI', '- asyncapi: 3.0.0\n', 'AsyncAPI', 'an asyncapi'],
     ] as const)('refuses %s', (_case, type, content, label, field) => {
         expect(parseSpecDocument(type, content)).toEqual({
             status: 'invalid',
