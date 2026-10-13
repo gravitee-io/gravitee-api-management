@@ -19,6 +19,7 @@ import { type NavigateFunction, Outlet, useLocation, useNavigate } from 'react-r
 import { useEnvironmentStore } from './environment.store';
 import type { Environment } from './environment.types';
 import { getPrimaryHrid, resolveEnvironmentFromSegment, shouldRewriteIdToHrid, useEnvHrid } from './environment.utils';
+import { EnvironmentsLoadFailed } from './EnvironmentsLoadFailed';
 import { ContentSkeleton } from '../../shared/components/ContentSkeleton';
 
 function redirectToFirst(env: Environment, navigate: NavigateFunction, search: string, hash: string) {
@@ -44,6 +45,7 @@ export function EnvironmentGuard() {
 
     const environments = useEnvironmentStore(s => s.environments);
     const environmentId = useEnvironmentStore(s => s.environmentId);
+    const loadFailed = useEnvironmentStore(s => s.loadFailed);
     const setCurrentEnvironment = useEnvironmentStore(s => s.setCurrentEnvironment);
     const lastSyncedId = useRef<string | null>(null);
 
@@ -73,7 +75,7 @@ export function EnvironmentGuard() {
     }, [envHrid, environments, navigate, setCurrentEnvironment]);
 
     if (!environments.length) {
-        return null;
+        return loadFailed ? <EnvironmentsLoadFailed /> : null;
     }
 
     if (resolveEnvironmentFromSegment(environments, envHrid)?.id !== environmentId) {

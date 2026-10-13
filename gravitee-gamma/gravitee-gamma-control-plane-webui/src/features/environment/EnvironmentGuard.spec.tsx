@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { useEnvironmentStore } from './environment.store';
 import { EnvironmentGuard } from './EnvironmentGuard';
 import { EnvironmentRenderProbe } from '../../testing/EnvironmentRenderProbe';
-import { buildEnvironment, TEST_ENVIRONMENTS } from '../../testing/factories';
-import { resetAllStores, seedBootstrap, seedEnvironments } from '../../testing/helpers';
+import { buildEnvironment, TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE } from '../../testing/factories';
+import { resetAllStores, respondWithError, seedBootstrap, seedEnvironments, trackHandler } from '../../testing/helpers';
 import { PathnameProbe } from '../../testing/PathnameProbe';
 
 describe('EnvironmentGuard', () => {
@@ -165,6 +166,29 @@ describe('EnvironmentGuard', () => {
 
         expect(screen.getByLabelText('Loading content')).toBeTruthy();
         expect(screen.queryByText('Child')).toBeNull();
+    });
+
+    it('should say that the environments could not be loaded instead of leaving a blank area', () => {
+        useEnvironmentStore.setState({ organizationId: 'x', loadFailed: true, initialized: true });
+
+        renderGuard('/environments/env-1/home');
+
+        expect(screen.getByRole('alert').textContent).toContain("Couldn't load your environments");
+        expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy();
+        expect(screen.queryByText('Child')).toBeNull();
+    });
+
+    it('should show the page asked once a retry succeeds', async () => {
+        const user = userEvent.setup();
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/environments`, 503);
+        await useEnvironmentStore.getState().initialize('test-org');
+        renderGuard('/environments/env-1/home');
+        trackHandler('get', `${TEST_MANAGEMENT_BASE}/environments`, TEST_ENVIRONMENTS);
+
+        await user.click(screen.getByRole('button', { name: 'Retry' }));
+
+        expect(await screen.findByText('Child')).toBeTruthy();
+        expect(lastPath).toBe('/environments/env-1/home');
     });
 
     it('should render nothing when environments list is empty', () => {
