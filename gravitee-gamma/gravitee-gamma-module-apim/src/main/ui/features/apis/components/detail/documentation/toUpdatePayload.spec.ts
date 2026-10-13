@@ -108,4 +108,16 @@ describe('toUpdatePayload', () => {
             url: 'https://status.example.com',
         });
     });
+
+    it("changes a link's address, keeping everything else", () => {
+        expect(toUpdatePayload(LINK, { url: 'https://status.example.org' })).toEqual({
+            type: 'LINK',
+            title: 'Status',
+            order: 2,
+            published: true,
+            visibility: 'PUBLIC',
+            parentId: undefined,
+            url: 'https://status.example.org',
+        });
+    });
 });

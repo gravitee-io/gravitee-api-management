@@ -21,6 +21,8 @@ export interface DocumentationItemChanges {
     published?: boolean;
     order?: number;
     parentId?: string;
+    /** A link's address; ignored for a page or a folder. */
+    url?: string;
 }
 
 /**
@@ -37,7 +39,7 @@ export function toUpdatePayload(item: ApiDocumentationItem, changes: Documentati
         parentId: 'parentId' in changes ? changes.parentId : item.parentId,
     };
     if (item.type === 'LINK') {
-        return { type: 'LINK', ...fields, url: item.url };
+        return { type: 'LINK', ...fields, url: changes.url ?? item.url };
     }
     return { type: item.type, ...fields, source: item.source };
 }

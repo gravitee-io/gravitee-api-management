@@ -26,6 +26,7 @@ import {
 import {
     ChevronDownIcon,
     ChevronRightIcon,
+    ExternalLinkIcon,
     FileTextIcon,
     FolderOpenIcon,
     Link2Icon,
@@ -39,7 +40,7 @@ import { type ComponentType, type MouseEvent, useCallback, useMemo, useState } f
 import { Link } from 'react-router-dom';
 
 import { ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
-import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationPage } from '../../../types/apiDocumentation';
+import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationLink } from '../../../types/apiDocumentation';
 import { allowedChanges, buildDocumentationRows, type DocumentationRow, hasSource } from '../../../utils/documentationTree';
 
 type ColCell = { row: { original: DocumentationRow } };
@@ -69,6 +70,7 @@ export function DocumentationTree({
     canAdd,
     onAddPage,
     onAddFolder,
+    onAddLink,
     canEdit,
     onEditDetails,
 }: Readonly<{
@@ -81,11 +83,13 @@ export function DocumentationTree({
     canAdd: boolean;
     onAddPage: (folder: PortalNavigationFolder) => void;
     onAddFolder: (folder: PortalNavigationFolder) => void;
+    onAddLink: (folder: PortalNavigationFolder) => void;
     canEdit: boolean;
-    onEditDetails: (item: PortalNavigationPage | PortalNavigationFolder) => void;
+    onEditDetails: (item: ApiDocumentationItem) => void;
 }>) {
     const rows = useMemo(() => buildDocumentationRows(items, expandedIds), [items, expandedIds]);
     const [contextMenu, setContextMenu] = useState<RowContextMenuState | null>(null);
+    const canEditDetails = useCallback((row: DocumentationRow) => canEdit && allowedChanges(row.syncState).access, [canEdit]);
 
     // The row button and the right-click menu offer the same actions, built here only.
     const actionsFor = useCallback(
@@ -96,8 +100,9 @@ export function DocumentationTree({
             if (canAdd && item.type === 'FOLDER' && allowed.addInside) {
                 actions.push({ label: 'Add page', icon: PlusIcon, onSelect: () => onAddPage(item) });
                 actions.push({ label: 'Add folder', icon: FolderOpenIcon, onSelect: () => onAddFolder(item) });
+                actions.push({ label: 'Add link', icon: Link2Icon, onSelect: () => onAddLink(item) });
             }
-            if (canEdit && item.type !== 'LINK' && allowed.access) {
+            if (canEditDetails(row)) {
                 actions.push({ label: 'Edit details', icon: PencilIcon, onSelect: () => onEditDetails(item) });
             }
             if (canDelete && allowed.delete) {
@@ -105,12 +110,18 @@ export function DocumentationTree({
             }
             return actions;
         },
-        [canEdit, onEditDetails, canAdd, onAddPage, onAddFolder, canDelete, onDelete],
+        [canEditDetails, onEditDetails, canAdd, onAddPage, onAddFolder, onAddLink, canDelete, onDelete],
+    );
+
+    // A link has no content to open, so its title opens its details instead.
+    const editLinkFor = useCallback(
+        (row: DocumentationRow) => (row.item.type === 'LINK' && canEditDetails(row) ? () => onEditDetails(row.item) : undefined),
+        [canEditDetails, onEditDetails],
     );
 
     const columns = useMemo(
-        () => buildColumns({ hasActions: canEdit || canAdd || canDelete, actionsFor, onToggle }),
-        [canEdit, canAdd, canDelete, actionsFor, onToggle],
+        () => buildColumns({ hasActions: canEdit || canAdd || canDelete, actionsFor, editLinkFor, onToggle }),
+        [canEdit, canAdd, canDelete, actionsFor, editLinkFor, onToggle],
     );
 
     // DataTable takes no props for its rows, so the row is found from the title cell it contains.
@@ -146,17 +157,19 @@ export function DocumentationTree({
 function buildColumns({
     hasActions,
     actionsFor,
+    editLinkFor,
     onToggle,
 }: {
     hasActions: boolean;
     actionsFor: (row: DocumentationRow) => RowAction[];
+    editLinkFor: (row: DocumentationRow) => (() => void) | undefined;
     onToggle: (id: string) => void;
 }): DataTableProps<DocumentationRow>['columns'] {
     const columns: DataTableProps<DocumentationRow>['columns'] = [
         {
             id: 'title',
             header: 'Title',
-            cell: ({ row }: ColCell) => <TitleCell row={row.original} onToggle={onToggle} />,
+            cell: ({ row }: ColCell) => <TitleCell row={row.original} onEditLink={editLinkFor(row.original)} onToggle={onToggle} />,
         },
         {
             id: 'status',
@@ -230,7 +243,11 @@ function RowContextMenu({ menu, onClose }: Readonly<{ menu: RowContextMenuState;
     );
 }
 
-function TitleCell({ row, onToggle }: Readonly<{ row: DocumentationRow; onToggle: (id: string) => void }>) {
+function TitleCell({
+    row,
+    onEditLink,
+    onToggle,
+}: Readonly<{ row: DocumentationRow; onEditLink?: () => void; onToggle: (id: string) => void }>) {
     const { item, depth, hasChildren, expanded } = row;
     const TypeIcon = TYPE_ICONS[item.type];
 
@@ -256,10 +273,14 @@ function TitleCell({ row, onToggle }: Readonly<{ row: DocumentationRow; onToggle
                     <Link to={`${encodeURIComponent(item.id)}/edit`} className="font-medium hover:underline">
                         {item.title}
                     </Link>
+                ) : onEditLink ? (
+                    <button type="button" onClick={onEditLink} className="cursor-pointer font-medium hover:underline">
+                        {item.title}
+                    </button>
                 ) : (
                     <span className="font-medium">{item.title}</span>
                 )}
-                {item.type === 'LINK' ? <div className="truncate text-xs text-muted-foreground">{item.url}</div> : null}
+                {item.type === 'LINK' ? <LinkAddress link={item} /> : null}
             </div>
             {hasSource(item) ? (
                 <Badge variant="outline" className="gap-1">
@@ -267,6 +288,31 @@ function TitleCell({ row, onToggle }: Readonly<{ row: DocumentationRow; onToggle
                     Synced
                 </Badge>
             ) : null}
+        </div>
+    );
+}
+
+function isWebAddress(url: string): boolean {
+    try {
+        const { protocol } = new URL(url);
+        return protocol === 'http:' || protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
+// Only an http or https address becomes clickable: in another scheme, clicking it in the console could do more than open a page.
+function LinkAddress({ link }: Readonly<{ link: PortalNavigationLink }>) {
+    if (!isWebAddress(link.url)) {
+        return <div className="truncate text-xs text-muted-foreground">{link.url}</div>;
+    }
+    return (
+        <div className="truncate text-xs text-muted-foreground">
+            <a href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:underline">
+                {link.url}
+                <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+                <span className="sr-only"> (opens in a new tab)</span>
+            </a>
         </div>
     );
 }

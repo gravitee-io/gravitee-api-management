@@ -32,6 +32,7 @@ import {
     FileTextIcon,
     FolderOpenIcon,
     GlobeIcon,
+    Link2Icon,
     PlusIcon,
     Trash2Icon,
 } from '@gravitee/graphene-core/icons';
@@ -45,11 +46,12 @@ import { ApiPublicationBadge } from '../../components/detail/documentation/Docum
 import { DocumentationTree } from '../../components/detail/documentation/DocumentationTree';
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { FolderDialog } from '../../components/detail/documentation/FolderDialog';
+import { LinkDialog } from '../../components/detail/documentation/LinkDialog';
 import { PublishToPortalDialog } from '../../components/detail/documentation/PublishToPortalDialog';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useDeleteApiDocumentationItem, useUnpublishApiFromPortal } from '../../hooks/useApiDocumentation';
 import { useExpandedDocumentationFolders } from '../../hooks/useExpandedDocumentationFolders';
-import type { ApiPortalPublication, PortalNavigationFolder, PortalNavigationPage } from '../../types/apiDocumentation';
+import type { ApiDocumentationItem, ApiPortalPublication, PortalNavigationFolder } from '../../types/apiDocumentation';
 import { type DocumentationRow, getAncestors, getPublishedSection, syncStateOf } from '../../utils/documentationTree';
 
 const DESCRIPTION = 'Pages, folders and links that describe this API in the developer portal.';
@@ -92,7 +94,8 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     // `parent` is absent for an item added at the top level.
     const [pageToAdd, setPageToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
     const [folderToAdd, setFolderToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
-    const [itemToEdit, setItemToEdit] = useState<PortalNavigationPage | PortalNavigationFolder | null>(null);
+    const [linkToAdd, setLinkToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
+    const [itemToEdit, setItemToEdit] = useState<ApiDocumentationItem | null>(null);
     const [isPublishing, setIsPublishing] = useState(false);
     const [isUnpublishing, setIsUnpublishing] = useState(false);
 
@@ -101,7 +104,8 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const openDeleteDialog = useCallback((row: DocumentationRow) => setToDelete(row), []);
     const openAddPageDialog = useCallback((parent: PortalNavigationFolder) => setPageToAdd({ parent }), []);
     const openAddFolderDialog = useCallback((parent: PortalNavigationFolder) => setFolderToAdd({ parent }), []);
-    const openEditDetailsDialog = useCallback((item: PortalNavigationPage | PortalNavigationFolder) => setItemToEdit(item), []);
+    const openAddLinkDialog = useCallback((parent: PortalNavigationFolder) => setLinkToAdd({ parent }), []);
+    const openEditDetailsDialog = useCallback((item: ApiDocumentationItem) => setItemToEdit(item), []);
     const parentOfItemToEdit = items.find(
         (item): item is PortalNavigationFolder => item.type === 'FOLDER' && item.id === itemToEdit?.parentId,
     );
@@ -128,7 +132,13 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
         }
     }
 
-    const addMenu = canAdd ? <AddDocumentationMenu onAddPage={() => setPageToAdd({})} onAddFolder={() => setFolderToAdd({})} /> : null;
+    const addMenu = canAdd ? (
+        <AddDocumentationMenu
+            onAddPage={() => setPageToAdd({})}
+            onAddFolder={() => setFolderToAdd({})}
+            onAddLink={() => setLinkToAdd({})}
+        />
+    ) : null;
 
     return (
         <div className="flex flex-col gap-6">
@@ -175,6 +185,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                     canAdd={canAdd}
                     onAddPage={openAddPageDialog}
                     onAddFolder={openAddFolderDialog}
+                    onAddLink={openAddLinkDialog}
                     canEdit={canEdit}
                     onEditDetails={openEditDetailsDialog}
                 />
@@ -213,6 +224,17 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 onCreated={() => {
                     // So the new folder shows.
                     if (folderToAdd?.parent) expandedFolders.expand(folderToAdd.parent.id);
+                }}
+            />
+
+            <LinkDialog
+                open={linkToAdd !== null}
+                apiId={apiId}
+                parent={linkToAdd?.parent}
+                onClose={() => setLinkToAdd(null)}
+                onCreated={() => {
+                    // So the new link shows.
+                    if (linkToAdd?.parent) expandedFolders.expand(linkToAdd.parent.id);
                 }}
             />
 
@@ -257,11 +279,19 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                     onClose={() => setItemToEdit(null)}
                 />
             ) : null}
+
+            {itemToEdit?.type === 'LINK' ? (
+                <LinkDialog open apiId={apiId} link={itemToEdit} parent={parentOfItemToEdit} onClose={() => setItemToEdit(null)} />
+            ) : null}
         </div>
     );
 }
 
-function AddDocumentationMenu({ onAddPage, onAddFolder }: Readonly<{ onAddPage: () => void; onAddFolder: () => void }>) {
+function AddDocumentationMenu({
+    onAddPage,
+    onAddFolder,
+    onAddLink,
+}: Readonly<{ onAddPage: () => void; onAddFolder: () => void; onAddLink: () => void }>) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -279,6 +309,10 @@ function AddDocumentationMenu({ onAddPage, onAddFolder }: Readonly<{ onAddPage: 
                 <DropdownMenuItem onSelect={onAddFolder}>
                     <FolderOpenIcon className="size-4" aria-hidden />
                     Folder
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={onAddLink}>
+                    <Link2Icon className="size-4" aria-hidden />
+                    Link
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

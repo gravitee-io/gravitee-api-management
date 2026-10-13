@@ -15,8 +15,9 @@
  */
 import { Badge, Field, FieldDescription, FieldLabel, FieldLegend, FieldSet, Input, Label, Switch } from '@gravitee/graphene-core';
 import { FolderOpenIcon } from '@gravitee/graphene-core/icons';
-import { useId } from 'react';
+import { type ReactNode, useId } from 'react';
 
+import { ITEM_NOUNS, type ItemType } from './DocumentationItemBadges';
 import type { PortalNavigationFolder } from '../../../types/apiDocumentation';
 
 /** The folder holding a page, when it requires authentication: the server then refuses to make the page public. */
@@ -24,9 +25,9 @@ export function privateParentOf(parent: PortalNavigationFolder | undefined): Por
     return parent?.visibility === 'PRIVATE' ? parent : undefined;
 }
 
-/** The title and access of a page or a folder, shared by the dialogs creating one and editing its details. */
+/** The title and access of a documentation item, shared by the dialogs creating one and editing its details. */
 export function DocumentationItemDetailsFields({
-    itemNoun = 'page',
+    itemType = 'PAGE',
     title,
     onTitleChange,
     isPrivate,
@@ -34,8 +35,9 @@ export function DocumentationItemDetailsFields({
     privateParent,
     titleReadOnly = false,
     disabled,
+    children,
 }: Readonly<{
-    itemNoun?: 'page' | 'folder';
+    itemType?: ItemType;
     title: string;
     onTitleChange: (title: string) => void;
     isPrivate: boolean;
@@ -44,9 +46,12 @@ export function DocumentationItemDetailsFields({
     privateParent?: PortalNavigationFolder;
     titleReadOnly?: boolean;
     disabled: boolean;
+    /** Fields shown between the title and the access, such as a link's URL. */
+    children?: ReactNode;
 }>) {
     const titleId = useId();
     const privateId = useId();
+    const itemNoun = ITEM_NOUNS[itemType];
 
     return (
         <>
@@ -60,6 +65,8 @@ export function DocumentationItemDetailsFields({
                     required
                 />
             </Field>
+
+            {children}
 
             <FieldSet className="gap-1.5">
                 <FieldLegend variant="label">Access</FieldLegend>
