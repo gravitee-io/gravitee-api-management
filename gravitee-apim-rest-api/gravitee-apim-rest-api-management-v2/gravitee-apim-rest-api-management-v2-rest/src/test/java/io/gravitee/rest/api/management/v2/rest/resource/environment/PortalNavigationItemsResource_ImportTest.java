@@ -22,14 +22,18 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationRequest;
@@ -151,6 +155,36 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
         );
         assertThat(body.getSummary().getSucceeded()).isEqualTo(2);
         assertThat(body.getSummary().getFailed()).isZero();
+    }
+
+    @Test
+    void should_import_a_folder_as_documentation_of_the_api_when_the_parent_is_its_listing() {
+        apiCrudService.initWith(List.of(Api.builder().id("api-id").name("My API").environmentId(ENVIRONMENT).build()));
+        var section = PortalNavigationItemFixtures.aFolder("Section");
+        section.setEnvironmentId(ENVIRONMENT);
+        section.markAsRoot();
+        var listing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), "api-id");
+        listing.setEnvironmentId(ENVIRONMENT);
+        listing.updateParent(section);
+        ((PortalNavigationItemsCrudServiceInMemory) portalNavigationItemCrudService).initWith(List.of(section, listing));
+        ((PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService).givenRemoteFile(
+            "/docs/guide.md",
+            "# Guide"
+        );
+
+        Response response = importNavigation(aRequest().parentId(listing.getId().id()));
+
+        assertThat(response).hasStatus(OK_200);
+        var body = response.readEntity(ImportPortalNavigationResponse.class);
+        var returned = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder) body.getRootFolder().getActualInstance();
+        assertThat(returned.getParentId()).isEqualTo(listing.getId().id());
+        var stored = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+            ENVIRONMENT,
+            PortalNavigationItemId.of(returned.getId().toString())
+        );
+        assertThat(stored.getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-id"));
+        assertThat(stored.getParentId()).isNull();
+        apiCrudService.reset();
     }
 
     @Test
