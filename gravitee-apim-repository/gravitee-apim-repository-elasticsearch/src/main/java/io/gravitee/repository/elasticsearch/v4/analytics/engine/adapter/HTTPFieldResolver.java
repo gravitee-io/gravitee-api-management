@@ -49,7 +49,7 @@ public class HTTPFieldResolver implements FieldResolver {
     @Override
     public String fromFilter(Filter filter) {
         return switch (filter.name()) {
-            case Filter.Name.API -> "api-id";
+            case Filter.Name.API, Filter.Name.TRAFFIC_SCOPE -> "api-id";
             case Filter.Name.APPLICATION -> "application-id";
             case Filter.Name.PLAN -> "plan-id";
             case Filter.Name.GATEWAY -> "gateway";

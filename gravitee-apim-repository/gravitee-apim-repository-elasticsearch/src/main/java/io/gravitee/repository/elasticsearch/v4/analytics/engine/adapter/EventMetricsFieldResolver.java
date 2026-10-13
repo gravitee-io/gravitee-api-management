@@ -185,7 +185,7 @@ public class EventMetricsFieldResolver implements FieldResolver {
      */
     private String fromDimension(String dimension, String kind) {
         return switch (dimension) {
-            case "API" -> API_ID;
+            case "API", "TRAFFIC_SCOPE" -> API_ID;
             case "APPLICATION" -> APP_ID;
             case "PLAN" -> PLAN_ID;
             case "NATIVE_TOPIC" -> TOPIC;

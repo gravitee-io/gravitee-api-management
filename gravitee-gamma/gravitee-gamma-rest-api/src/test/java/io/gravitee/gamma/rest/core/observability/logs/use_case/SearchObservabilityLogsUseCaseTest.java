@@ -43,6 +43,7 @@ import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
+import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
@@ -491,12 +492,13 @@ class SearchObservabilityLogsUseCaseTest {
             );
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
-            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.IN, List.of("LLM", "MCP")));
+            // Kinds only the API type decides; MCP, which the mcp entrypoint also adds, is TrafficScopeResolution's.
+            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.IN, List.of("LLM", "HTTP_PROXY")));
             useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
-            assertThat(captor.getValue().apiIds()).containsExactlyInAnyOrder("api-llm", "api-mcp");
+            assertThat(captor.getValue().apiIds()).containsExactlyInAnyOrder("api-llm", "api-proxy");
         }
 
         @Test
@@ -636,6 +638,74 @@ class SearchObservabilityLogsUseCaseTest {
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
             assertThat(captor.getValue().from()).isEqualTo(from.toEpochMilli());
             assertThat(captor.getValue().to()).isEqualTo(to.toEpochMilli());
+        }
+    }
+
+    /** AIM: Studio is an MCP API, Orders a PROXY API exposing mcp, Petstore a plain PROXY API. */
+    @Nested
+    class TrafficScopeResolution {
+
+        private static final List<AccessibleApi> READABLE = List.of(
+            new AccessibleApi("studio", "Studio", ApiType.MCP),
+            new AccessibleApi("orders", "Orders", ApiType.HTTP_PROXY),
+            new AccessibleApi("petstore", "Petstore", ApiType.HTTP_PROXY)
+        );
+
+        @BeforeEach
+        void readable_apis() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(READABLE);
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+        }
+
+        @Test
+        void should_search_every_readable_api_through_the_calls_an_entrypoint_adds_to_the_module_kinds() {
+            var aim = List.of(new FilterCondition("API_TYPE", FilterOperator.IN, List.of("MCP", "LLM", "A2A")));
+
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, aim, FROM, TO, 1, 20));
+
+            var query = capturedQuery();
+            assertThat(query.apiIds()).containsExactlyInAnyOrder("studio", "orders", "petstore");
+            assertThat(query.trafficScope()).isEqualTo(new TrafficScope(Set.of("studio"), Set.of("mcp", "agent-to-agent")));
+            assertThat(query.apisById().get("orders").apiType()).as("rows keep the stored type").isEqualTo("HTTP_PROXY");
+        }
+
+        /** Decisions carry no entrypoint: a traffic scope there would widen the search to every readable API. */
+        @Test
+        void should_scope_a_decision_search_by_type_alone_even_when_an_entrypoint_adds_the_kind() {
+            var aimDecisions = List.of(
+                new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                new FilterCondition("API_TYPE", FilterOperator.IN, List.of("MCP", "LLM", "A2A"))
+            );
+
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, aimDecisions, FROM, TO, 1, 20));
+
+            var query = capturedQuery();
+            assertThat(query.apiIds()).containsExactly("studio");
+            assertThat(query.trafficScope()).isNull();
+        }
+
+        @Test
+        void should_leave_the_search_unchanged_when_no_kind_scope_is_requested() {
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 20));
+
+            assertThat(capturedQuery().trafficScope()).isNull();
+        }
+
+        @Test
+        void should_leave_the_search_unchanged_when_no_entrypoint_adds_the_requested_kinds() {
+            var apim = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("HTTP_PROXY")));
+
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, apim, FROM, TO, 1, 20));
+
+            var query = capturedQuery();
+            assertThat(query.apiIds()).containsExactlyInAnyOrder("orders", "petstore");
+            assertThat(query.trafficScope()).isNull();
+        }
+
+        private LogsSearchQuery capturedQuery() {
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
+            return captor.getValue();
         }
     }
 

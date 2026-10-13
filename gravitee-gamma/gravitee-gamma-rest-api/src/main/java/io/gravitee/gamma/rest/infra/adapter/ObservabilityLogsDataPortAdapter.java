@@ -490,6 +490,9 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.statusRanges(statusRanges);
         builder.statusCodeGroups(statusCodeGroups);
         builder.entrypointScope(toPlatformScope(query.entrypointScope()));
+        if (query.trafficScope() != null) {
+            builder.trafficScope(new SearchLogsFilters.TrafficScope(query.trafficScope().apiIds(), query.trafficScope().entrypointIds()));
+        }
         builder.requestIds(requestIds);
         builder.transactionIds(transactionIds);
         builder.errorKeys(errorKeys);

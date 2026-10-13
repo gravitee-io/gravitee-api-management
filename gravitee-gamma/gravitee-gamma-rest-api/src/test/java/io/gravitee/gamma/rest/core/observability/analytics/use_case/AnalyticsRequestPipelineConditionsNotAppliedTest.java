@@ -25,6 +25,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
+import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import java.util.Arrays;
 import java.util.List;
@@ -42,7 +43,8 @@ class AnalyticsRequestPipelineConditionsNotAppliedTest {
 
     private final AnalyticsRequestPipeline pipeline = new AnalyticsRequestPipeline(
         new ObservabilityFilterValidator(new SpiFilterRegistry()),
-        new AccessibleApiScopeDomainService()
+        new AccessibleApiScopeDomainService(),
+        new EntrypointScopeProviderAdapter()
     );
 
     @Test

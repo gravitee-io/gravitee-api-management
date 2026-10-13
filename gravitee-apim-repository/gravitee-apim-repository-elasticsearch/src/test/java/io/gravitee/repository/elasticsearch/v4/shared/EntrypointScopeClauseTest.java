@@ -103,4 +103,38 @@ class EntrypointScopeClauseTest {
         // empty list into a 500 from inside the repository.
         assertThat(EntrypointScopeClause.exactly(List.of())).isEqualTo(new JsonObject("{\"match_none\":{}}"));
     }
+
+    @Test
+    void should_select_the_calls_of_the_apis_or_made_through_the_entrypoints() {
+        var apis = JsonObject.of("terms", JsonObject.of("api-id", List.of("studio")));
+
+        var clause = EntrypointScopeClause.apisOrEntrypoints(apis, List.of("mcp"));
+
+        assertThat(clause).isEqualTo(
+            new JsonObject(
+                """
+                {"bool":{"should":[{"terms":{"api-id":["studio"]}},{"bool":{"should":[{"terms":{"entrypoint-id":["mcp"]}},{"terms":{"entrypoint-id.keyword":["mcp"]}}],"minimum_should_match":1}}],"minimum_should_match":1}}
+                """
+            )
+        );
+    }
+
+    @Test
+    void should_select_only_the_entrypoint_calls_when_no_api_is_in_scope_by_type() {
+        var clause = EntrypointScopeClause.apisOrEntrypoints(null, List.of("mcp"));
+
+        assertThat(clause).isEqualTo(EntrypointScopeClause.exactly(List.of("mcp")));
+    }
+
+    @Test
+    void should_select_only_the_api_calls_when_no_entrypoint_adds_a_kind() {
+        var apis = JsonObject.of("terms", JsonObject.of("api-id", List.of("studio")));
+
+        assertThat(EntrypointScopeClause.apisOrEntrypoints(apis, List.of())).isEqualTo(apis);
+    }
+
+    @Test
+    void should_select_nothing_when_neither_arm_names_anything() {
+        assertThat(EntrypointScopeClause.apisOrEntrypoints(null, List.of())).isEqualTo(JsonObject.of("match_none", JsonObject.of()));
+    }
 }

@@ -27,6 +27,7 @@ import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.analytics.engine.api.query.TimeRange;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
@@ -137,6 +138,7 @@ class FilterAdapterOutcomeTest {
         return switch (name) {
             case HTTP_STATUS_CODE_GROUP -> new Filter(name, Filter.Operator.EQ, "2XX");
             case HTTP_METHOD -> new Filter(name, Filter.Operator.EQ, "GET");
+            case TRAFFIC_SCOPE -> new Filter(name, Filter.Operator.IN, new TrafficScope(Set.of("api"), Set.of("mcp")));
             default -> new Filter(name, Filter.Operator.EQ, "value");
         };
     }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.use_case.GetFilterValuesUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ResolveFilterLabelsUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -24,6 +25,7 @@ import io.gravitee.gamma.rest.core.observability.filter.exception.FilterCatalogD
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValuesPage;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.ObservabilityFilterDataPort;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -53,6 +55,7 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
 
     private final GetFilterValuesUseCase getFilterValuesUseCase;
     private final ResolveFilterLabelsUseCase resolveFilterLabelsUseCase;
+    private final EntrypointScopeProvider entrypointScopeProvider;
 
     @Override
     public FilterValuesPage listKeywordValues(
@@ -82,7 +85,9 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
                     page,
                     perPage,
                     query,
-                    platformApiTypes
+                    platformApiTypes,
+                    AnalyticsScope.MANAGEMENT,
+                    apiTypes == null ? Set.of() : entrypointScopeProvider.entrypointsAdding(apiTypes)
                 )
             );
             var valuesPage = output.valuesPage();

@@ -112,7 +112,11 @@ public class SearchObservabilityLogsUseCase {
 
         var userApiFilter = extractApiFilter(conditions);
         var effectiveApiTypes = narrowApiTypes(conditions);
-        var scope = accessibleApiScope.computeScope(accessibleApis, effectiveApiTypes, userApiFilter);
+        // Only a request scoped by kind reads calls by entrypoint; decisions carry none.
+        var addingEntrypoints = recordType == RecordType.AUTHZ_DECISION || !hasApiTypeCondition(conditions)
+            ? Set.<String>of()
+            : entrypointScopeProvider.entrypointsAdding(effectiveApiTypes);
+        var scope = accessibleApiScope.computeScope(accessibleApis, effectiveApiTypes, userApiFilter, addingEntrypoints);
 
         if (scope.apiIds().isEmpty()) {
             return new Output(LogsPage.EMPTY, page, perPage);
@@ -128,6 +132,7 @@ public class SearchObservabilityLogsUseCase {
             .perPage(perPage)
             .recordType(recordType)
             .entrypointScope(entrypointScope)
+            .trafficScope(scope.trafficScope())
             .build();
 
         var result = logsDataPort.searchLogs(input.organizationId, input.environmentId, query);
@@ -246,6 +251,10 @@ public class SearchObservabilityLogsUseCase {
             .filter(c -> "API".equals(c.name()))
             .flatMap(c -> c.values().stream())
             .collect(Collectors.toSet());
+    }
+
+    private static boolean hasApiTypeCondition(List<FilterCondition> conditions) {
+        return conditions.stream().anyMatch(c -> "API_TYPE".equals(c.name()));
     }
 
     /**

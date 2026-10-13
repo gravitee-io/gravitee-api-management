@@ -62,6 +62,8 @@ public class SearchMetricsQueryAdapter {
 
         addApisFilter(filter, mustFilterList);
 
+        addTrafficScopeFilter(filter, mustFilterList);
+
         addApiProductIdsFilter(filter, mustFilterList);
 
         addFromAndToFilters(filter, mustFilterList);
@@ -121,6 +123,17 @@ public class SearchMetricsQueryAdapter {
     private static void addApisFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getApiIds())) {
             mustFilterList.add(buildV2AndV4Terms(RequestV2MetricsV4Fields.API_ID, filter.getApiIds()));
+        }
+    }
+
+    /** Same selection as the analytics traffic scope; v2 documents carry no entrypoint, so only the API arm reaches them. */
+    private static void addTrafficScopeFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (filter.getTrafficScope() != null) {
+            mustFilterList.add(
+                EntrypointScopeClause.trafficScope(filter.getTrafficScope(), apiIds ->
+                    buildV2AndV4Terms(RequestV2MetricsV4Fields.API_ID, apiIds)
+                )
+            );
         }
     }
 

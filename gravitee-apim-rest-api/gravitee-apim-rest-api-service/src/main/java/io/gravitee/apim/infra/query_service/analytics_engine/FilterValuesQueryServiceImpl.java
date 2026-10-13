@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.query_service.analytics_engine;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
+import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -51,7 +52,8 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
         int size,
         Map<String, Object> afterKey,
         String searchPattern,
-        Set<String> authorizedApiIds
+        Set<String> authorizedApiIds,
+        TrafficScope trafficScope
     ) {
         var esFieldName = resolveEsFieldName(filterName);
         var queryContext = new QueryContext(organizationId, environmentId);
@@ -68,6 +70,14 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
                 .afterKey(currentAfterKey)
                 .searchPattern(searchPattern)
                 .apiIds(authorizedApiIds)
+                .trafficScope(
+                    trafficScope == null
+                        ? null
+                        : new io.gravitee.repository.analytics.engine.api.query.TrafficScope(
+                            trafficScope.apiIds(),
+                            trafficScope.entrypointIds()
+                        )
+                )
                 .build();
 
             result = analyticsRepository.searchFilterValues(queryContext, query);

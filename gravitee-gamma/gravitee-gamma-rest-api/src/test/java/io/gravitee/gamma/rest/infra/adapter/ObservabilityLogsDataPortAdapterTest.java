@@ -56,6 +56,7 @@ import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
+import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
@@ -727,6 +728,40 @@ class ObservabilityLogsDataPortAdapterTest {
             adapter.searchLogs(ORG, ENV, query);
 
             assertThat(captureSearchFilters().bodyText()).isEqualTo("{\"key\":\"value\"}");
+        }
+    }
+
+    @Nested
+    class TrafficScopeMapping {
+
+        @Test
+        void should_hand_the_traffic_scope_to_the_platform() {
+            stubEmptySearchResult();
+            var query = LogsSearchQuery.builder()
+                .apiIds(Set.of("orders", "studio"))
+                .apisById(Map.of())
+                .conditions(List.of())
+                .page(1)
+                .perPage(20)
+                .trafficScope(new TrafficScope(Set.of("studio"), Set.of("mcp")))
+                .build();
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            var captor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), captor.capture(), any(), any());
+            assertThat(captor.getValue().trafficScope()).isEqualTo(new SearchLogsFilters.TrafficScope(Set.of("studio"), Set.of("mcp")));
+        }
+
+        @Test
+        void should_leave_the_traffic_scope_unset_when_the_api_type_alone_decides() {
+            stubEmptySearchResult();
+
+            adapter.searchLogs(ORG, ENV, queryWith());
+
+            var captor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), captor.capture(), any(), any());
+            assertThat(captor.getValue().trafficScope()).isNull();
         }
     }
 

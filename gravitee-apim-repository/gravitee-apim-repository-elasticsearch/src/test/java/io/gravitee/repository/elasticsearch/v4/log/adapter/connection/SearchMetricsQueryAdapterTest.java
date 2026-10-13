@@ -20,6 +20,7 @@ import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
 import io.vertx.core.json.JsonArray;
@@ -778,6 +779,52 @@ class SearchMetricsQueryAdapterTest {
                     .map(o -> (JsonObject) o)
                     .noneMatch(clause -> clause.toString().contains("entrypoint-id"))
             ).isTrue();
+        }
+    }
+
+    /** A module scoped by API kind, as analytics reads it: see {@code FilterAdapterTest.TrafficScopeFilter}. */
+    @Nested
+    class TrafficScopeFilter {
+
+        @Test
+        void should_select_the_calls_of_the_apis_in_scope_by_type_or_made_through_an_entrypoint_adding_a_kind() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(MetricsQuery.Filter.builder().trafficScope(new TrafficScope(Set.of("studio"), Set.of("mcp"))).build())
+                    .build()
+            );
+
+            assertThatJson(result)
+                .node("query.bool.must")
+                .isEqualTo(
+                    """
+                    [{"bool":{"should":[
+                        {"bool":{"should":[{"terms":{"api":["studio"]}},{"terms":{"api-id":["studio"]}}]}},
+                        {"bool":{"should":[{"terms":{"entrypoint-id":["mcp"]}},{"terms":{"entrypoint-id.keyword":["mcp"]}}],"minimum_should_match":1}}
+                    ],"minimum_should_match":1}}]
+                    """
+                );
+        }
+
+        @Test
+        void should_select_only_the_entrypoint_calls_when_no_api_is_in_scope_by_type() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(MetricsQuery.Filter.builder().trafficScope(new TrafficScope(Set.of(), Set.of("mcp"))).build())
+                    .build()
+            );
+
+            assertThatJson(result)
+                .node("query.bool.must")
+                .isEqualTo(
+                    """
+                    [{"bool":{"should":[{"terms":{"entrypoint-id":["mcp"]}},{"terms":{"entrypoint-id.keyword":["mcp"]}}],"minimum_should_match":1}}]
+                    """
+                );
         }
     }
 

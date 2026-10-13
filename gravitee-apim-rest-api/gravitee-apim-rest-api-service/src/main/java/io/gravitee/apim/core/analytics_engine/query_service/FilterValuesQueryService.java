@@ -17,12 +17,14 @@ package io.gravitee.apim.core.analytics_engine.query_service;
 
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
+import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 
 public interface FilterValuesQueryService {
-    FilterValuesPage searchFilterValues(
+    /** For a caller not scoped by API kind: every call of {@code authorizedApiIds}. */
+    default FilterValuesPage searchFilterValues(
         String organizationId,
         String environmentId,
         FilterSpec.Name filterName,
@@ -33,5 +35,37 @@ public interface FilterValuesQueryService {
         Map<String, Object> afterKey,
         String searchPattern,
         Set<String> authorizedApiIds
+    ) {
+        return searchFilterValues(
+            organizationId,
+            environmentId,
+            filterName,
+            from,
+            to,
+            page,
+            size,
+            afterKey,
+            searchPattern,
+            authorizedApiIds,
+            null
+        );
+    }
+
+    /**
+     * @param trafficScope narrows the calls of {@code authorizedApiIds} the values come from, {@code null} when the
+     *                     caller is not scoped by API kind
+     */
+    FilterValuesPage searchFilterValues(
+        String organizationId,
+        String environmentId,
+        FilterSpec.Name filterName,
+        Instant from,
+        Instant to,
+        int page,
+        int size,
+        Map<String, Object> afterKey,
+        String searchPattern,
+        Set<String> authorizedApiIds,
+        TrafficScope trafficScope
     );
 }

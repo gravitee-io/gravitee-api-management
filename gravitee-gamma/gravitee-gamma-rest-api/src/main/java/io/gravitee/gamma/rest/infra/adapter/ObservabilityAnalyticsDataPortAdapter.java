@@ -36,6 +36,7 @@ import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
+import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
@@ -64,6 +65,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -318,7 +320,17 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     }
 
     private static List<Filter> translateFilters(AnalyticsRequestPipeline.PreparedScope scope) {
-        return scope.filters().stream().map(ObservabilityAnalyticsDataPortAdapter::translateFilter).toList();
+        var filters = scope.filters().stream().map(ObservabilityAnalyticsDataPortAdapter::translateFilter).collect(Collectors.toList());
+        if (scope.trafficScope() != null) {
+            filters.add(
+                new Filter(
+                    FilterSpec.Name.TRAFFIC_SCOPE,
+                    io.gravitee.apim.core.observability.model.FilterOperator.IN,
+                    new TrafficScope(scope.trafficScope().apiIds(), scope.trafficScope().entrypointIds())
+                )
+            );
+        }
+        return List.copyOf(filters);
     }
 
     private static Filter translateFilter(FilterCondition condition) {

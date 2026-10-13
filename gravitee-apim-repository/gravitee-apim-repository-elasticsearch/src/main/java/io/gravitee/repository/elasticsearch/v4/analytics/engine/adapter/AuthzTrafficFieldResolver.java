@@ -67,7 +67,7 @@ public class AuthzTrafficFieldResolver implements FieldResolver {
     @Override
     public String fromFilter(Filter filter) {
         return switch (filter.name()) {
-            case Filter.Name.API -> API_ID;
+            case Filter.Name.API, Filter.Name.TRAFFIC_SCOPE -> API_ID;
             case Filter.Name.GATEWAY -> GATEWAY_ID;
             case Filter.Name.AUTHZ_OPERATION -> OPERATION_FIELD;
             case Filter.Name.AUTHZ_SEARCH_TYPE -> SEARCH_TYPE;

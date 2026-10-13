@@ -37,7 +37,9 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
+import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
+import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -73,7 +75,7 @@ class AnalyticsRequestPipelineTest {
     void setUp() {
         var accessibleApiScope = new AccessibleApiScopeDomainService();
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
-        pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope);
+        pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope, new EntrypointScopeProviderAdapter());
 
         lenient()
             .when(filterRegistry.getFilters(any(), any()))
@@ -199,6 +201,64 @@ class AnalyticsRequestPipelineTest {
 
             assertThat(scope.isEmpty()).isTrue();
             assertThat(scope.apiIds()).isEmpty();
+        }
+    }
+
+    /** AIM: Studio is an MCP API, Orders a PROXY API exposing mcp, Petstore a plain PROXY API. */
+    @Nested
+    class TrafficScopes {
+
+        @BeforeEach
+        void readable_apis() {
+            lenient()
+                .when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID))
+                .thenReturn(
+                    List.of(
+                        new AccessibleApi("studio", "Studio", ApiType.MCP),
+                        new AccessibleApi("orders", "Orders", ApiType.HTTP_PROXY),
+                        new AccessibleApi("petstore", "Petstore", ApiType.HTTP_PROXY)
+                    )
+                );
+        }
+
+        @Test
+        void should_keep_every_readable_api_and_narrow_their_calls_when_an_entrypoint_adds_a_wanted_kind() {
+            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.IN, List.of("MCP", "LLM")));
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+
+            assertThat(scope.apiIds()).containsExactlyInAnyOrder("studio", "orders", "petstore");
+            assertThat(scope.trafficScope()).isEqualTo(new TrafficScope(Set.of("studio"), Set.of("mcp")));
+        }
+
+        @Test
+        void should_scope_by_type_alone_when_no_entrypoint_adds_the_wanted_kinds() {
+            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("HTTP_PROXY")));
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+
+            assertThat(scope.apiIds()).containsExactlyInAnyOrder("orders", "petstore");
+            assertThat(scope.trafficScope()).isNull();
+        }
+
+        @Test
+        void should_carry_no_traffic_scope_without_a_kind_condition() {
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort).scopeWith(List.of());
+
+            assertThat(scope.trafficScope()).isNull();
+        }
+
+        @Test
+        void should_narrow_an_explicitly_selected_api_of_another_type_to_its_calls_through_the_entrypoint() {
+            var filters = List.of(
+                new FilterCondition("API", FilterOperator.EQ, List.of("orders")),
+                new FilterCondition("API_TYPE", FilterOperator.IN, List.of("MCP", "LLM"))
+            );
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort).scopeWith(List.of());
+
+            assertThat(scope.apiIds()).containsExactly("orders");
+            assertThat(scope.trafficScope()).isEqualTo(new TrafficScope(Set.of(), Set.of("mcp")));
         }
     }
 

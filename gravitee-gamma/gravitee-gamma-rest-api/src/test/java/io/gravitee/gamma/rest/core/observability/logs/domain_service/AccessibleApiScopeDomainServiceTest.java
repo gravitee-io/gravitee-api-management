@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.observability.logs.domain_service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import java.util.List;
 import java.util.Set;
@@ -65,5 +66,47 @@ class AccessibleApiScopeDomainServiceTest {
         var scope = service.computeScope(accessible, Set.of(ApiType.HTTP_PROXY), Set.of("api-1"));
 
         assertThat(scope.apiIds()).containsExactly("api-1");
+    }
+
+    @Test
+    void should_scope_every_type_alone_when_no_entrypoint_adds_a_wanted_kind() {
+        var accessible = List.of(
+            new AccessibleApi("orders", "Orders", ApiType.HTTP_PROXY),
+            new AccessibleApi("studio", "Studio", ApiType.MCP)
+        );
+
+        var scope = service.computeScope(accessible, Set.of(ApiType.MCP), null, Set.of());
+
+        assertThat(scope.apiIds()).containsExactly("studio");
+        assertThat(scope.trafficScope()).isNull();
+    }
+
+    /** Orders, a PROXY API exposing mcp, may hold MCP calls: it stays in, and the traffic scope keeps only those. */
+    @Test
+    void should_keep_every_api_and_narrow_its_calls_when_an_entrypoint_adds_a_wanted_kind() {
+        var accessible = List.of(
+            new AccessibleApi("orders", "Orders", ApiType.HTTP_PROXY),
+            new AccessibleApi("studio", "Studio", ApiType.MCP),
+            new AccessibleApi("v2-api", "V2", null)
+        );
+
+        var scope = service.computeScope(accessible, Set.of(ApiType.MCP), null, Set.of("mcp"));
+
+        assertThat(scope.apiIds()).containsExactlyInAnyOrder("orders", "studio");
+        assertThat(scope.apisById().get("orders").apiType()).isEqualTo("HTTP_PROXY");
+        assertThat(scope.trafficScope()).isEqualTo(new TrafficScope(Set.of("studio"), Set.of("mcp")));
+    }
+
+    @Test
+    void should_narrow_an_explicitly_selected_api_of_another_type_to_its_calls_through_the_entrypoint() {
+        var accessible = List.of(
+            new AccessibleApi("orders", "Orders", ApiType.HTTP_PROXY),
+            new AccessibleApi("studio", "Studio", ApiType.MCP)
+        );
+
+        var scope = service.computeScope(accessible, Set.of(ApiType.MCP), Set.of("orders"), Set.of("mcp"));
+
+        assertThat(scope.apiIds()).containsExactly("orders");
+        assertThat(scope.trafficScope()).isEqualTo(new TrafficScope(Set.of(), Set.of("mcp")));
     }
 }
