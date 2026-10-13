@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Alert, AlertDescription, Badge, Button, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
+import {
+    Alert,
+    AlertDescription,
+    Badge,
+    Button,
+    ResizableHandle,
+    ResizablePanel,
+    ResizablePanelGroup,
+    Skeleton,
+    useLayoutConfig,
+} from '@gravitee/graphene-core';
 import { CodeEditor } from '@gravitee/graphene-core/code-editor';
 import { FolderOpenIcon, PencilIcon } from '@gravitee/graphene-core/icons';
 import { useDeferredValue, useEffect, useState, type ReactNode } from 'react';
@@ -24,6 +34,7 @@ import { notify } from '../../../../shared/notify';
 import { ItemAccessBadge, ItemPublishedBadge } from '../../components/detail/documentation/DocumentationItemBadges';
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { GraviteeMarkdownPreview } from '../../components/detail/documentation/GraviteeMarkdownPreview';
+import { OpenApiPreview } from '../../components/detail/documentation/OpenApiPreview';
 import { SourceFetchStatus } from '../../components/detail/documentation/SourceFetchStatus';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useApiDocumentationPageContent, useSaveApiDocumentationPageContent } from '../../hooks/useApiDocumentation';
@@ -239,28 +250,31 @@ function PageEditor({
 
             {/* A row sized by its content could not shrink below the editor's last size, which the editor then keeps
                 chasing as the window shrinks: the row takes the space left, whatever the editor's size. */}
-            <div className="grid min-h-0 flex-1 grid-cols-2 gap-4" style={{ gridTemplateRows: 'minmax(0, 1fr)' }}>
-                <CodeEditor
-                    className="min-h-0"
-                    value={shownContent}
-                    onChange={value => setDraft(value ?? '')}
-                    language={editorLanguageFor(saved.type, shownContent)}
-                    readOnly={readOnly}
-                    height="100%"
-                />
-                {saved.type === 'GRAVITEE_MARKDOWN' ? (
-                    <div className="min-h-0 overflow-auto rounded-lg border p-4">
-                        <GraviteeMarkdownPreview content={previewContent} />
+            <ResizablePanelGroup className="min-h-0 flex-1">
+                <ResizablePanel defaultSize="50%" minSize="25%" className="h-full">
+                    <CodeEditor
+                        className="h-full"
+                        value={shownContent}
+                        onChange={value => setDraft(value ?? '')}
+                        language={editorLanguageFor(saved.type, shownContent)}
+                        readOnly={readOnly}
+                        height="100%"
+                    />
+                </ResizablePanel>
+                <ResizableHandle withHandle aria-label="Resize the editor and the preview" className="mx-2 bg-transparent" />
+                <ResizablePanel defaultSize="50%" minSize="25%" className="h-full">
+                    <div className="h-full overflow-auto rounded-lg border p-4">
+                        {saved.type === 'GRAVITEE_MARKDOWN' ? <GraviteeMarkdownPreview content={previewContent} /> : null}
+                        {saved.type === 'OPENAPI' ? <OpenApiPreview content={previewContent} configuration={saved.configuration} /> : null}
+                        {saved.type === 'ASYNCAPI' ? (
+                            <p className="text-sm text-muted-foreground">
+                                AsyncAPI preview isn&apos;t available here yet. The developer portal renders this page once it&apos;s
+                                published.
+                            </p>
+                        ) : null}
                     </div>
-                ) : (
-                    <div className="flex items-center justify-center rounded-lg border p-4">
-                        <p className="max-w-sm text-center text-sm text-muted-foreground">
-                            {PAGE_CONTENT_TYPE_LABELS[saved.type]} preview isn&apos;t available here yet. The developer portal renders this
-                            page once it&apos;s published.
-                        </p>
-                    </div>
-                )}
-            </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
 
             {canEditDetails ? (
                 <EditPageDetailsDialog

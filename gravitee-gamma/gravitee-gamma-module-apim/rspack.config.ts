@@ -30,6 +30,15 @@ export default {
     experiments: {
         css: false,
     },
+    resolve: {
+        alias: {
+            // The default browser entry renders with the host's React and calls `ReactDOM.createRoot`, which React 19
+            // no longer exports from `react-dom`. This bundle carries the React it was built for.
+            'swagger-ui$': join(__dirname, '../../node_modules/swagger-ui/dist/swagger-ui-es-bundle.js'),
+            // Redoc's standalone bundle declares a dependency named "null", which it never uses.
+            null: false,
+        },
+    },
     devServer: {
         port: 3001,
         headers: {
