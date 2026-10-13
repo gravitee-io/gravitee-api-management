@@ -28,6 +28,7 @@ import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
+import io.gravitee.gateway.core.invoker.V3InvokerAttributes;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -169,6 +170,17 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             context.request().customFrameHandler(connection::writeCustomFrame);
 
             connection.responseHandler(proxyResponse -> handleProxyResponse(context, endHandler, proxyResponse));
+
+            // Lets the dispatcher cancel the upstream call when the client goes away before the exchange ends.
+            // Same sequence as the stream error handler below: cancel, then end the exchange so that it is reported
+            // and no longer counted as pending, whatever the connector does once cancelled.
+            context.setAttribute(
+                V3InvokerAttributes.ATTR_INTERNAL_V3_CANCEL_UPSTREAM,
+                (Runnable) () -> {
+                    connection.cancel();
+                    handleError(context, endHandler, CLIENT_CLOSED_PROCESSOR_FAILURE);
+                }
+            );
 
             // Override the stream error handler to be able to cancel connection to backend
             chain.streamErrorHandler(failure -> {
@@ -418,6 +430,35 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     public int hashCode() {
         return Objects.hash(reactable);
     }
+
+    private static final ProcessorFailure CLIENT_CLOSED_PROCESSOR_FAILURE = new ProcessorFailure() {
+        private static final String CLIENT_CLOSED_REQUEST = "CLIENT_CLOSED_REQUEST";
+
+        @Override
+        public int statusCode() {
+            return 499;
+        }
+
+        @Override
+        public String message() {
+            return "Client closed request";
+        }
+
+        @Override
+        public String key() {
+            return CLIENT_CLOSED_REQUEST;
+        }
+
+        @Override
+        public Map<String, Object> parameters() {
+            return null;
+        }
+
+        @Override
+        public String contentType() {
+            return null;
+        }
+    };
 
     private static final ProcessorFailure TIMEOUT_PROCESSOR_FAILURE = new ProcessorFailure() {
         private static final String REQUEST_TIMEOUT = "REQUEST_TIMEOUT";
