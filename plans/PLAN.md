@@ -1654,6 +1654,15 @@ Track C is roughly half the total work, so with four people the split is two on 
 
 **Security-sensitive** — call out in the PR descriptions for STORY-12, STORY-12 Bis, STORY-13, STORY-16 and STORY-33 Bis: new authorization paths, publishing moved from environment-level to API-level permission, and the body-target check. STORY-19 rewrites persisted ownership fields. STORY-34 Bis writes fetcher settings back, which can hold credentials the server returns masked.
 
+## Follow-ups
+
+Review findings accepted for later, bugs first.
+
+### Bugs
+
+- **A documentation dialog can be closed while it saves, and a refusal is then lost** (STORY-31 review). Escape or a click outside closes `EditPageDetailsDialog`, `FolderDialog`, `LinkDialog` and `PublicationDialog` while their request runs: only their buttons are disabled. If the server then refuses, nothing is shown, since the dialog is gone and the module has no global mutation error handler. Fix: ignore a close while saving, as `CreatePageDialog` and `PublishToPortalDialog` already do, which means lifting the saving state from the form into the dialog.
+- **Unpublishing a folder overcounts the items it hides** (STORY-31 review). `PublicationDialog` counts every item inside the folder, including those already unpublished or below an unpublished subfolder, so it can say "the 5 items inside it will become invisible" when only 1 changes. Fix: count only what is visible now, walking down from the folder and stopping at unpublished items. Publishing keeps the full count, since everything inside gets published.
+
 ---
 
 ## Conventions
