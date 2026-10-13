@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
+import io.gravitee.apim.rest.api.mcp.spi.McpPrompt;
 import io.gravitee.apim.rest.api.mcp.spi.McpResource;
 import io.gravitee.apim.rest.api.mcp.spi.McpTool;
 import io.gravitee.apim.rest.api.mcp.spi.ToolException;
@@ -27,13 +28,20 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.json.McpJsonDefaults;
 import io.modelcontextprotocol.server.McpServer;
+import io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncPromptSpecification;
 import io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncResourceSpecification;
 import io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncToolSpecification;
 import io.modelcontextprotocol.server.transport.HttpServletStatelessServerTransport;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
+import io.modelcontextprotocol.spec.McpSchema.GetPromptResult;
+import io.modelcontextprotocol.spec.McpSchema.Prompt;
+import io.modelcontextprotocol.spec.McpSchema.PromptArgument;
+import io.modelcontextprotocol.spec.McpSchema.PromptMessage;
 import io.modelcontextprotocol.spec.McpSchema.ReadResourceResult;
 import io.modelcontextprotocol.spec.McpSchema.Resource;
+import io.modelcontextprotocol.spec.McpSchema.Role;
 import io.modelcontextprotocol.spec.McpSchema.ServerCapabilities;
+import io.modelcontextprotocol.spec.McpSchema.TextContent;
 import io.modelcontextprotocol.spec.McpSchema.TextResourceContents;
 import io.modelcontextprotocol.spec.McpSchema.Tool;
 import io.modelcontextprotocol.spec.McpSchema.ToolAnnotations;
@@ -67,7 +75,13 @@ public final class McpServerFactory {
     /**
      * @param tools listed to clients in this order
      */
-    public static McpEndpointServlet create(String version, String instructions, List<McpTool<?>> tools, List<McpResource> resources) {
+    public static McpEndpointServlet create(
+        String version,
+        String instructions,
+        List<McpTool<?>> tools,
+        List<McpResource> resources,
+        List<McpPrompt> prompts
+    ) {
         var transport = HttpServletStatelessServerTransport.builder()
             // The servlet owns the path: every URI it lets through is the endpoint.
             .messageEndpoint("")
@@ -77,11 +91,12 @@ public final class McpServerFactory {
         McpServer.sync(transport)
             .serverInfo(SERVER_NAME, version)
             .instructions(instructions)
-            .capabilities(ServerCapabilities.builder().tools(false).resources(false, false).build())
+            .capabilities(ServerCapabilities.builder().tools(false).resources(false, false).prompts(false).build())
             // Handlers run on the request thread: the analytics engine reads the caller from Spring Security's thread-bound context.
             .immediateExecution(true)
             .tools(tools.stream().map(McpServerFactory::toSpecification).toList())
             .resources(resources.stream().map(McpServerFactory::toSpecification).toList())
+            .prompts(prompts.stream().map(McpServerFactory::toSpecification).toList())
             .build();
 
         return new McpEndpointServlet(transport);
@@ -134,6 +149,22 @@ public final class McpServerFactory {
 
     private static CallToolResult failure(String message) {
         return CallToolResult.builder().addTextContent(message).isError(true).build();
+    }
+
+    private static SyncPromptSpecification toSpecification(McpPrompt prompt) {
+        var arguments = prompt
+            .arguments()
+            .stream()
+            .map(argument -> new PromptArgument(argument.name(), argument.description(), argument.required()))
+            .toList();
+        var definition = new Prompt(prompt.name(), prompt.title(), prompt.description(), arguments);
+        return new SyncPromptSpecification(definition, (transportContext, request) -> {
+            Map<String, String> values = new java.util.HashMap<>();
+            if (request.arguments() != null) {
+                request.arguments().forEach((key, value) -> values.put(key, value == null ? null : String.valueOf(value)));
+            }
+            return new GetPromptResult(prompt.description(), List.of(new PromptMessage(Role.USER, new TextContent(prompt.render(values)))));
+        });
     }
 
     private static SyncResourceSpecification toSpecification(McpResource resource) {

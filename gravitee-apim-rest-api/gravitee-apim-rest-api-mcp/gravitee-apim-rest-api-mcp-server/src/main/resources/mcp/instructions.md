@@ -1,19 +1,19 @@
-Gravitee API Management, one organization. Read-only tools to find out whether something is wrong with the traffic going through the gateways, in which environment, where, since when and why.
+Gravitee API Management, one organization. Read-only tools over what the platform records about the traffic going through its gateways: the analytics engine (metrics of HTTP, message, Kafka, LLM, MCP, edge and authorization traffic), the request logs, and the control-plane changes on an API. The tools return numbers and records; what they mean is yours to judge.
 
-Triage loop:
-0. list_environments when you need to name an environment: id, HRID and name of each, and whether you can read it.
-1. get_health_overview: is anything off, in which environment, compared with the time range just before?
-2. break_down_traffic on an affected API: by status, application, consumer_ip, path, gateway.
-3. get_traffic_timeline: when did it start?
-4. search_failed_requests: what reason did the gateway record?
-5. list_recent_changes with a window covering the onset: what was changed just before, and by whom?
+Handles:
+- list_environments, then list_apis: the environments you can read and the APIs in them. Every tool takes `environment` (id, HRID or name); omit it when you can read only one.
+- describe_metrics: the catalog of the analytics engine, metric by metric, with the measures, facets and filters each takes. The names there are the names query_analytics takes.
+- list_filter_values: the ids a filter takes, with their names.
+
+Questions:
+- query_analytics: one query, in measures, facets or time_series mode, over a window; `compareWith: previous` returns the same query over the range just before, so that you can see what moved.
+- search_logs: the requests themselves, with the reason the gateway recorded when it rejected one.
+- list_changes: what was done to an API in the control plane, and by whom.
 
 Conventions:
-- Time ranges are given as a length (`window`: 15m, 2h, 1d) ending at `until` (ISO-8601 UTC, default now). Never pass epoch values.
-- Every tool compares with, or relates to, the baseline: the range of equal length just before the window.
-- Field names carry their unit: `...Ms` is milliseconds, `...Pct` is a percentage. Timestamps are ISO-8601 UTC.
-- 4xx means requests were rejected (credentials, quota, input). 5xx means the gateway or a backend failed.
-- Every tool takes `environment` (id, HRID or name). get_health_overview covers every environment you can read when it is omitted; the other tools work on one environment, found from `api` when that API exists in only one.
+- Time ranges are a length (`window`: 15m, 2h, 1d, default 1h) ending at `until` (ISO-8601 UTC, default now). Never pass epoch values.
+- Units are in the catalog and in each result (NUMBER, MILLISECONDS, BYTES, PERCENT). Timestamps are ISO-8601 UTC.
+- An API can be named by its name wherever an id is expected.
 - You only see the environments and APIs the authenticated user can see.
 
-The resource gravitee://guides/incident-triage has the full guide.
+The prompt `triage` and the resource gravitee://guides/incident-triage carry a method for looking for trouble; it is advice, not a rule.

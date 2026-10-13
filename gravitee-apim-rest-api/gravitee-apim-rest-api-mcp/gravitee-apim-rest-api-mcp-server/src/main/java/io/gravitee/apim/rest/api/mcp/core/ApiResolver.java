@@ -17,6 +17,7 @@ package io.gravitee.apim.rest.api.mcp.core;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
+import io.gravitee.apim.rest.api.mcp.core.model.ApiSummary;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,11 +37,7 @@ public final class ApiResolver {
         var wanted = api.trim();
         var matches = find(directory.visibleTo(caller), wanted);
         if (matches.isEmpty()) {
-            throw new TriageException(
-                "No API '" +
-                    wanted +
-                    "' is visible to you in this environment. Call break_down_traffic with by=api to list APIs with traffic."
-            );
+            throw new TriageException("No API '" + wanted + "' is visible to you in this environment. Call list_apis to see them.");
         }
         if (matches.size() > 1) {
             var ids = matches.stream().map(ApiRef::id).collect(Collectors.joining(", "));
@@ -50,10 +47,11 @@ public final class ApiResolver {
     }
 
     /** The APIs matching an id exactly, or failing that a name, case ignored. */
-    static List<ApiRef> find(List<ApiRef> visible, String wanted) {
+    public static List<ApiRef> find(List<ApiSummary> visible, String wanted) {
         var byId = visible
             .stream()
             .filter(candidate -> candidate.id().equals(wanted))
+            .map(ApiSummary::ref)
             .toList();
         if (!byId.isEmpty()) {
             return byId;
@@ -61,6 +59,7 @@ public final class ApiResolver {
         return visible
             .stream()
             .filter(candidate -> candidate.name().equalsIgnoreCase(wanted))
+            .map(ApiSummary::ref)
             .toList();
     }
 }

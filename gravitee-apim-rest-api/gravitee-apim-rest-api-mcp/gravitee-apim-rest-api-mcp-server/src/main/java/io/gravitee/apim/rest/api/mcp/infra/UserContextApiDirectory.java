@@ -15,10 +15,11 @@
  */
 package io.gravitee.apim.rest.api.mcp.infra;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
-import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
+import io.gravitee.apim.rest.api.mcp.core.model.ApiSummary;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
 import java.util.List;
 
@@ -31,12 +32,23 @@ public class UserContextApiDirectory implements ApiDirectory {
     }
 
     @Override
-    public List<ApiRef> visibleTo(AuditInfo caller) {
+    public List<ApiSummary> visibleTo(AuditInfo caller) {
         return ApimContext.run(caller, () -> userContextLoader.loadApis(new UserContext(caller)))
             .apis()
             .orElse(List.of())
             .stream()
-            .map(api -> new ApiRef(api.getId(), api.getName()))
+            .map(UserContextApiDirectory::toSummary)
             .toList();
+    }
+
+    private static ApiSummary toSummary(Api api) {
+        return new ApiSummary(
+            api.getId(),
+            api.getName(),
+            api.getVersion(),
+            api.getType() == null ? null : api.getType().name(),
+            api.getDefinitionVersion() == null ? null : api.getDefinitionVersion().name(),
+            api.getDeployedAt() == null ? null : api.getDeployedAt().toInstant()
+        );
     }
 }

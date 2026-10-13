@@ -1,0 +1,246 @@
+{
+  "name": "search_logs",
+  "title": "Search the request logs",
+  "description": "Logged requests, newest first, with what the gateway recorded for each: status, response time, application, plan, gateway, and for a response the gateway produced itself the `errorKey` naming why (a rejected credential, a quota, a timeout) and the `errorComponent` that produced it; without errorKey the backend answered that status. Filters: HTTP_STATUS with GTE/LTE for a range, HTTP_STATUS_CODE_GROUP IN [\"4XX\"], API EQ a name or id, APPLICATION, PLAN, ERROR_KEY, URI, HTTP_METHOD, TRANSACTION_ID, REQUEST_ID, PAYLOAD CONTAINS\u2026",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "environment": {
+        "type": "string",
+        "description": "Id, HRID or name of an environment. Omit when you can read only one. Call list_environments to see them."
+      },
+      "filters": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "enum": [
+                "API",
+                "APPLICATION",
+                "ENTRYPOINT",
+                "PLAN",
+                "HTTP_METHOD",
+                "HTTP_STATUS",
+                "HTTP_STATUS_CODE_GROUP",
+                "MCP_METHOD",
+                "TRANSACTION_ID",
+                "REQUEST_ID",
+                "URI",
+                "RESPONSE_TIME",
+                "ERROR_KEY",
+                "NATIVE_CLIENT_ID",
+                "NATIVE_CLIENT_SOFTWARE_NAME",
+                "NATIVE_CLIENT_SOFTWARE_VERSION",
+                "API_PRODUCT",
+                "API_TYPE",
+                "PAYLOAD",
+                "TENANT"
+              ]
+            },
+            "operator": {
+              "type": "string",
+              "enum": [
+                "EQ",
+                "IN",
+                "GTE",
+                "LTE",
+                "CONTAINS"
+              ]
+            },
+            "value": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "A string for EQ and CONTAINS, a number for LTE and GTE, a list of strings for IN. For the API filter, an API name is accepted in place of its id."
+            }
+          },
+          "required": [
+            "name",
+            "operator",
+            "value"
+          ]
+        }
+      },
+      "page": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Default 1."
+      },
+      "perPage": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Default 20."
+      },
+      "window": {
+        "type": "string",
+        "description": "Length of the time range to look at, ending at `until`: a number followed by m, h or d, for example 15m, 2h or 1d. Default 1h. Never an epoch value."
+      },
+      "until": {
+        "type": "string",
+        "description": "End of the time range as an ISO-8601 UTC instant, for example 2026-01-31T14:00:00Z. Default: now."
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "string",
+        "description": "One sentence stating the result."
+      },
+      "environment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "hrid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "window": {
+        "type": "object",
+        "description": "A time range, ISO-8601 UTC.",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ]
+      },
+      "page": {
+        "type": "integer"
+      },
+      "perPage": {
+        "type": "integer"
+      },
+      "total": {
+        "type": "integer"
+      },
+      "logs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "at": {
+              "type": "string"
+            },
+            "api": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            },
+            "apiType": {
+              "type": "string"
+            },
+            "method": {
+              "type": "string"
+            },
+            "uri": {
+              "type": "string"
+            },
+            "status": {
+              "type": "integer"
+            },
+            "application": {
+              "$ref": "#/$defs/named"
+            },
+            "plan": {
+              "$ref": "#/$defs/named"
+            },
+            "gateway": {
+              "type": "string"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "transactionId": {
+              "type": "string"
+            },
+            "gatewayResponseTimeMs": {
+              "type": "integer"
+            },
+            "errorKey": {
+              "type": "string"
+            },
+            "errorComponent": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "mcpMethod": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "at",
+            "api"
+          ]
+        }
+      }
+    },
+    "required": [
+      "summary",
+      "environment",
+      "window",
+      "page",
+      "perPage",
+      "total",
+      "logs"
+    ],
+    "$defs": {
+      "named": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": []
+      }
+    }
+  }
+}

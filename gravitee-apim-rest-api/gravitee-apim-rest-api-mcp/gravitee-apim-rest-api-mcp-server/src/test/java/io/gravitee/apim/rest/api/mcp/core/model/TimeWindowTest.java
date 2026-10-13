@@ -35,8 +35,8 @@ class TimeWindowTest {
     }
 
     @Test
-    void should_default_to_the_last_fifteen_minutes() {
-        assertThat(TimeWindow.parse(null, null, NOW)).isEqualTo(new TimeWindow(Instant.parse("2026-01-31T13:45:00Z"), NOW));
+    void should_default_to_the_last_hour() {
+        assertThat(TimeWindow.parse(null, null, NOW)).isEqualTo(new TimeWindow(Instant.parse("2026-01-31T13:00:00Z"), NOW));
     }
 
     @Test
@@ -64,13 +64,6 @@ class TimeWindowTest {
         assertThatThrownBy(() -> TimeWindow.parse(window, null, NOW))
             .isInstanceOf(TriageException.class)
             .hasMessageContaining("for example 15m, 2h or 1d");
-    }
-
-    @Test
-    void should_reject_a_window_longer_than_thirty_days() {
-        assertThatThrownBy(() -> TimeWindow.parse("31d", null, NOW))
-            .isInstanceOf(TriageException.class)
-            .hasMessageContaining("longest window is 30d");
     }
 
     @Test

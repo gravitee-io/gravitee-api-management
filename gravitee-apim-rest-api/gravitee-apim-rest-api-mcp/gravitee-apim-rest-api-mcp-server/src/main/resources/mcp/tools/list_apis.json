@@ -1,0 +1,91 @@
+{
+  "name": "list_apis",
+  "title": "List the APIs",
+  "description": "The APIs you can see, with the handles the other tools take: id, name, version, type (HTTP proxy, message, native Kafka, LLM proxy, MCP proxy\u2026), definition version and last deployment. Pass `query` to keep the names containing it.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "environment": {
+        "type": "string",
+        "description": "Id, HRID or name of an environment. Omit to list every environment you can read."
+      },
+      "query": {
+        "type": "string",
+        "description": "Keep APIs whose name contains this text, case ignored."
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "string",
+        "description": "One sentence stating the result."
+      },
+      "apis": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "environment": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "hrid": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            },
+            "api": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "definitionVersion": {
+                  "type": "string"
+                },
+                "deployedAt": {
+                  "type": "string",
+                  "description": "ISO-8601 UTC."
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          },
+          "required": [
+            "environment",
+            "api"
+          ]
+        }
+      }
+    },
+    "required": [
+      "summary",
+      "apis"
+    ]
+  }
+}

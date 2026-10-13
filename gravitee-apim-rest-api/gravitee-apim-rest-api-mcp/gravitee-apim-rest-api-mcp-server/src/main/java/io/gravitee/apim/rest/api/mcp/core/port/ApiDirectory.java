@@ -16,10 +16,10 @@
 package io.gravitee.apim.rest.api.mcp.core.port;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
+import io.gravitee.apim.rest.api.mcp.core.model.ApiSummary;
 import java.util.List;
 
 public interface ApiDirectory {
     /** The APIs of the environment the caller can see. */
-    List<ApiRef> visibleTo(AuditInfo caller);
+    List<ApiSummary> visibleTo(AuditInfo caller);
 }

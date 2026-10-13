@@ -19,37 +19,47 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetFilterValuesUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
+import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
 import io.gravitee.apim.core.audit.use_case.SearchApiAuditUseCase;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.logs_engine.use_case.SearchEnvironmentLogsUseCase;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.apim.rest.api.mcp.core.port.AnalyticsCatalog;
+import io.gravitee.apim.rest.api.mcp.core.port.AnalyticsQueries;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.ChangeLog;
 import io.gravitee.apim.rest.api.mcp.core.port.EnvironmentDirectory;
-import io.gravitee.apim.rest.api.mcp.core.port.RequestLogs;
-import io.gravitee.apim.rest.api.mcp.core.port.TrafficAnalytics;
+import io.gravitee.apim.rest.api.mcp.core.port.LogSearch;
 import io.gravitee.apim.rest.api.mcp.core.port.TriageAccess;
-import io.gravitee.apim.rest.api.mcp.core.use_case.BreakDownTrafficUseCase;
-import io.gravitee.apim.rest.api.mcp.core.use_case.GetHealthOverviewUseCase;
-import io.gravitee.apim.rest.api.mcp.core.use_case.GetTrafficTimelineUseCase;
+import io.gravitee.apim.rest.api.mcp.core.use_case.DescribeMetricsUseCase;
+import io.gravitee.apim.rest.api.mcp.core.use_case.ListApisUseCase;
+import io.gravitee.apim.rest.api.mcp.core.use_case.ListChangesUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.ListEnvironmentsUseCase;
-import io.gravitee.apim.rest.api.mcp.core.use_case.ListRecentChangesUseCase;
-import io.gravitee.apim.rest.api.mcp.core.use_case.SearchFailedRequestsUseCase;
-import io.gravitee.apim.rest.api.mcp.infra.ComputeTrafficAnalytics;
+import io.gravitee.apim.rest.api.mcp.core.use_case.ListFilterValuesUseCase;
+import io.gravitee.apim.rest.api.mcp.core.use_case.QueryAnalyticsUseCase;
+import io.gravitee.apim.rest.api.mcp.core.use_case.SearchLogsUseCase;
+import io.gravitee.apim.rest.api.mcp.infra.ComputeAnalyticsQueries;
+import io.gravitee.apim.rest.api.mcp.infra.DefinitionAnalyticsCatalog;
 import io.gravitee.apim.rest.api.mcp.infra.EnvironmentServiceEnvironmentDirectory;
 import io.gravitee.apim.rest.api.mcp.infra.EventAndAuditChangeLog;
-import io.gravitee.apim.rest.api.mcp.infra.LogsEngineRequestLogs;
+import io.gravitee.apim.rest.api.mcp.infra.LogsEngineLogSearch;
 import io.gravitee.apim.rest.api.mcp.infra.PermissionTriageAccess;
 import io.gravitee.apim.rest.api.mcp.infra.UserContextApiDirectory;
 import io.gravitee.apim.rest.api.mcp.sdk.McpEndpointServlet;
 import io.gravitee.apim.rest.api.mcp.sdk.McpServerFactory;
-import io.gravitee.apim.rest.api.mcp.tools.BreakDownTrafficTool;
-import io.gravitee.apim.rest.api.mcp.tools.GetHealthOverviewTool;
-import io.gravitee.apim.rest.api.mcp.tools.GetTrafficTimelineTool;
+import io.gravitee.apim.rest.api.mcp.tools.DescribeMetricsTool;
 import io.gravitee.apim.rest.api.mcp.tools.IncidentTriageGuide;
+import io.gravitee.apim.rest.api.mcp.tools.ListApisTool;
+import io.gravitee.apim.rest.api.mcp.tools.ListChangesTool;
 import io.gravitee.apim.rest.api.mcp.tools.ListEnvironmentsTool;
-import io.gravitee.apim.rest.api.mcp.tools.ListRecentChangesTool;
-import io.gravitee.apim.rest.api.mcp.tools.SearchFailedRequestsTool;
+import io.gravitee.apim.rest.api.mcp.tools.ListFilterValuesTool;
+import io.gravitee.apim.rest.api.mcp.tools.QueryAnalyticsTool;
+import io.gravitee.apim.rest.api.mcp.tools.SearchLogsTool;
+import io.gravitee.apim.rest.api.mcp.tools.TriagePrompt;
 import io.gravitee.common.util.Version;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
@@ -93,17 +103,28 @@ public class McpServerConfiguration {
     }
 
     @Bean
-    public TrafficAnalytics mcpTrafficAnalytics(
-        ComputeMeasuresUseCase computeMeasuresUseCase,
-        ComputeFacetsUseCase computeFacetsUseCase,
-        ComputeTimeSeriesUseCase computeTimeSeriesUseCase
+    public AnalyticsCatalog mcpAnalyticsCatalog(
+        GetApiSpecUseCase apiSpecs,
+        GetApiMetricSpecUseCase metricSpecs,
+        GetMetricFacetSpecUseCase facetSpecs,
+        GetMetricFilterSpecUseCase filterSpecs
     ) {
-        return new ComputeTrafficAnalytics(computeMeasuresUseCase, computeFacetsUseCase, computeTimeSeriesUseCase);
+        return new DefinitionAnalyticsCatalog(apiSpecs, metricSpecs, facetSpecs, filterSpecs);
     }
 
     @Bean
-    public RequestLogs mcpRequestLogs(SearchEnvironmentLogsUseCase searchEnvironmentLogsUseCase) {
-        return new LogsEngineRequestLogs(searchEnvironmentLogsUseCase);
+    public AnalyticsQueries mcpAnalyticsQueries(
+        ComputeMeasuresUseCase measures,
+        ComputeFacetsUseCase facets,
+        ComputeTimeSeriesUseCase timeSeries,
+        GetFilterValuesUseCase filterValues
+    ) {
+        return new ComputeAnalyticsQueries(measures, facets, timeSeries, filterValues);
+    }
+
+    @Bean
+    public LogSearch mcpLogSearch(SearchEnvironmentLogsUseCase searchEnvironmentLogsUseCase) {
+        return new LogsEngineLogSearch(searchEnvironmentLogsUseCase);
     }
 
     @Bean
@@ -113,25 +134,29 @@ public class McpServerConfiguration {
 
     @Bean
     public McpEndpointServlet mcpEndpointServlet(
-        ListEnvironmentsUseCase listEnvironmentsUseCase,
-        GetHealthOverviewUseCase getHealthOverviewUseCase,
-        BreakDownTrafficUseCase breakDownTrafficUseCase,
-        GetTrafficTimelineUseCase getTrafficTimelineUseCase,
-        SearchFailedRequestsUseCase searchFailedRequestsUseCase,
-        ListRecentChangesUseCase listRecentChangesUseCase
+        ListEnvironmentsUseCase listEnvironments,
+        ListApisUseCase listApis,
+        DescribeMetricsUseCase describeMetrics,
+        QueryAnalyticsUseCase queryAnalytics,
+        ListFilterValuesUseCase listFilterValues,
+        SearchLogsUseCase searchLogs,
+        ListChangesUseCase listChanges
     ) {
+        var guide = new IncidentTriageGuide();
         return McpServerFactory.create(
             Version.RUNTIME_VERSION.MAJOR_VERSION,
             instructions(),
             List.of(
-                new ListEnvironmentsTool(listEnvironmentsUseCase),
-                new GetHealthOverviewTool(getHealthOverviewUseCase),
-                new BreakDownTrafficTool(breakDownTrafficUseCase),
-                new GetTrafficTimelineTool(getTrafficTimelineUseCase),
-                new SearchFailedRequestsTool(searchFailedRequestsUseCase),
-                new ListRecentChangesTool(listRecentChangesUseCase)
+                new ListEnvironmentsTool(listEnvironments),
+                new ListApisTool(listApis),
+                new DescribeMetricsTool(describeMetrics),
+                new QueryAnalyticsTool(queryAnalytics),
+                new ListFilterValuesTool(listFilterValues),
+                new SearchLogsTool(searchLogs),
+                new ListChangesTool(listChanges)
             ),
-            List.of(new IncidentTriageGuide())
+            List.of(guide),
+            List.of(new TriagePrompt(guide))
         );
     }
 

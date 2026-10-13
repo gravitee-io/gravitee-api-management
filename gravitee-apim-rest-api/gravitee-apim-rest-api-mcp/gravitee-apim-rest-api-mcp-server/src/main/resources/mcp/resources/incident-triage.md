@@ -1,45 +1,34 @@
-# Incident triage on a Gravitee organization
+# Looking for trouble on a Gravitee organization
 
-## The loop
+A method, not a rule. Every step is a question to the data; the thresholds are yours, and they depend on the API, the hour and the volume. Say what you base each conclusion on.
 
-| Step | Question | Tool |
-|---|---|---|
-| Orient | Which environments are there, which can I read? | `list_environments` |
-| Detect | Is anything off, in which environment, compared with the time range just before? | `get_health_overview` |
-| Localize | Which API, status code, consumer, path, gateway? | `break_down_traffic` |
-| Date | When did it start? | `get_traffic_timeline` |
-| Explain | What reason did the gateway record? | `search_failed_requests` |
-| Explain | What was changed just before, and by whom? | `list_recent_changes` |
+## 1. Orient
 
-Stop as soon as the evidence names a cause. State the cause, the evidence (numbers and timestamps) and the fix.
+`list_environments`, then `list_apis` for the environment at hand. `describe_metrics` once, to know the vocabulary: for HTTP traffic, `HTTP_REQUESTS` (COUNT), `HTTP_GATEWAY_RESPONSE_TIME` (the time to answer the consumer, backend included), `HTTP_ENDPOINT_RESPONSE_TIME` (the time spent waiting for the backend); message, Kafka, LLM and authorization traffic have their own.
 
-## Conventions
+## 2. Compare with the range just before
 
-- **Time.** `window` is a length (`15m`, `2h`, `1d`) ending at `until`, an ISO-8601 UTC instant that defaults to now. No tool takes or returns epoch values. Timestamps in results are ISO-8601 UTC.
-- **Baseline.** The range of equal length just before the window. A 15m window ending at 14:00 is compared with 13:30 to 13:45.
-- **Units.** `...Ms` is milliseconds, `...Pct` is a percentage of requests.
-- **Environment.** `get_health_overview` covers every environment you can read and ranks them. The other tools work on one environment: pass `environment` (id, HRID or name), or let `api` decide when that API exists in only one environment.
-- **Visibility.** Results cover the environments and APIs the authenticated user can see, nothing else. Environments you cannot read are listed as omitted, so an empty result never hides them.
+`query_analytics` with `compareWith: previous` is the cheapest way to see what moved. A useful first query, in `facets` mode: `HTTP_REQUESTS` COUNT by `API` then `HTTP_STATUS_CODE_GROUP`, with `HTTP_GATEWAY_RESPONSE_TIME` P95 beside it. Read every rate against its volume: a hundred percent of three requests is three requests. Keep 4xx and 5xx apart: 4xx means the gateway or the backend rejected the request (a credential, a quota, bad input), 5xx means something failed. A response time that rises with `HTTP_ENDPOINT_RESPONSE_TIME` points at the backend; one that rises without it points at the gateway.
 
-## Reading the numbers
+The previous range is not always a fair baseline: the hour before a peak, the Sunday before a Monday. Widen or move the window (`until`) when it is not.
 
-- `responseTimeP95Ms` is the time to answer the consumer, backend included. `endpointResponseTimeP95Ms` is the time spent waiting for the backend. When both rise together the backend is slow; when only the first rises the time is spent in the gateway (policies, load).
-- A finding needs at least 20 requests in the range it looks at. Below that, rates are noise.
-- `SERVER_ERROR_RATE_UP`: 5xx at 1% or more, up by at least one point.
-- `CLIENT_ERROR_RATE_UP`: 4xx at 5% or more, up by at least five points.
-- `LATENCY_UP`: P95 response time at 1.5 times the baseline or more, up by at least 100 ms.
-- `TRAFFIC_DROP`: half the requests of the baseline or fewer.
+## 3. Localize
 
-## Patterns
+Split what moved along one dimension at a time, still comparing with the previous range: by `HTTP_STATUS` to see the exact code; by `APPLICATION` to see which consumer (the application `1`, labelled Unknown, is traffic the gateway rejected before it could tell who sent it); by `CONSUMER_IP` to tell a new client from an old one; by `HTTP_PATH` to see whether one operation is concerned; by `GATEWAY` to see whether one gateway is off. `list_filter_values` gives the ids a filter wants.
 
-**A consumer's credential stopped working.** 4xx surge on one API, status 401 or 403. Broken down by application, the consumer's application vanishes and "Unknown (credential not resolved)" appears at the same rate: the gateway rejects the request before it can tell who sent it. Broken down by `consumer_ip`, the same address is on both sides. Failed requests carry a security error key. Look in `list_recent_changes` for `APIKEY_REVOKED`, `APIKEY_EXPIRED`, `SUBSCRIPTION_CLOSED`, `SUBSCRIPTION_PAUSED`, `PLAN_CLOSED` or a deployment that changed the plan's security.
+## 4. Date
 
-**A backend fails.** 5xx surge on one API. Failed requests have no error key when the backend answered 5xx itself, or a gateway error key when it did not answer (timeout, connection refused). Break down by path to see whether one operation is concerned.
+`query_analytics` in `time_series` mode over the same metrics, with an interval that gives about thirty points. The first point that departs from the previous range is the onset.
 
-**A backend slows down.** `LATENCY_UP` with `endpointResponseTimeP95Ms` rising as much as `responseTimeP95Ms`.
+## 5. Explain
 
-**A deployment broke an API.** Onset seconds after a `PUBLISH_API` in `list_recent_changes`.
+`search_logs` around the onset, filtered on the status class or the API: the `errorKey` names why the gateway rejected a request, the `errorComponent` names which policy or connector did; no error key means the backend answered that status itself. Then `list_changes` on the API with a window that covers the onset: a deployment, a plan change, a closed subscription or a revoked key seconds before it is the first suspect.
 
-**One gateway is off.** Break the environment down by gateway: one gateway carries the errors or lost its traffic.
+## Shapes seen before
 
-**A consumer went away.** `TRAFFIC_DROP` without errors. Break down by application: one application vanished and nothing replaced it. The cause is on the consumer's side.
+- A consumer's credential stopped working: 4xx on one API, status 401 or 403; by application the consumer vanishes and Unknown appears at the same rate; same consumer IP on both sides; a security error key; `APIKEY_REVOKED`, `APIKEY_EXPIRED`, `SUBSCRIPTION_CLOSED` or a plan change in `list_changes`.
+- A backend fails: 5xx on one API; no error key when the backend answered, a gateway error key when it did not (timeout, connection refused).
+- A backend slows down: `HTTP_ENDPOINT_RESPONSE_TIME` rising as much as `HTTP_GATEWAY_RESPONSE_TIME`.
+- A deployment broke an API: onset seconds after a `PUBLISH_API`.
+- One gateway is off: by `GATEWAY`, one carries the errors or lost its traffic.
+- A consumer went away: fewer requests, no errors; by application, one vanished and nothing replaced it.

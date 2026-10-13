@@ -26,10 +26,9 @@ import java.util.regex.Pattern;
  * A time range asked for as "the last 15m", so that a caller never computes epoch values.
  */
 public record TimeWindow(Instant from, Instant to) {
-    public static final String DEFAULT = "15m";
+    public static final String DEFAULT = "1h";
 
     private static final Pattern FORMAT = Pattern.compile("^([1-9]\\d{0,3})([mhd])$");
-    private static final Duration LONGEST = Duration.ofDays(30);
 
     /**
      * @param window a length such as 15m, 2h or 1d; defaults to {@value #DEFAULT}
@@ -60,9 +59,6 @@ public record TimeWindow(Instant from, Instant to) {
             case "h" -> Duration.ofHours(amount);
             default -> Duration.ofDays(amount);
         };
-        if (length.compareTo(LONGEST) > 0) {
-            throw new TriageException("Window '" + window + "' is too long. The longest window is 30d.");
-        }
         return length;
     }
 

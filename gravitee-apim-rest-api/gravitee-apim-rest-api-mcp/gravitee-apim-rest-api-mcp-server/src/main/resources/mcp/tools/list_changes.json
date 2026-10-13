@@ -1,0 +1,144 @@
+{
+  "name": "list_changes",
+  "title": "List what changed on an API",
+  "description": "What was done to an API in the control plane: deployments, starts and stops, and its audit trail (plans, subscriptions, API keys, members, definition), each with the user who did it, newest first. Compare the timestamps with when the traffic moved: a change just before is the first thing to look at.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "environment": {
+        "type": "string",
+        "description": "Id, HRID or name of an environment. Omit when you can read only one. Call list_environments to see them. Omit when `api` names an API that exists in only one environment you can read."
+      },
+      "api": {
+        "type": "string",
+        "description": "Id or name of the API."
+      },
+      "window": {
+        "type": "string",
+        "description": "Length of the time range to look at, ending at `until`: a number followed by m, h or d, for example 15m, 2h or 1d. Default 1h. Never an epoch value."
+      },
+      "until": {
+        "type": "string",
+        "description": "End of the time range as an ISO-8601 UTC instant, for example 2026-01-31T14:00:00Z. Default: now."
+      }
+    },
+    "required": [
+      "api"
+    ],
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "string",
+        "description": "One sentence stating the result."
+      },
+      "environment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "hrid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "api": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "window": {
+        "type": "object",
+        "description": "A time range, ISO-8601 UTC.",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ]
+      },
+      "changes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "at": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string",
+              "enum": [
+                "DEPLOYMENT",
+                "AUDIT"
+              ]
+            },
+            "event": {
+              "type": "string",
+              "description": "For example PUBLISH_API, PLAN_UPDATED, SUBSCRIPTION_CLOSED, APIKEY_REVOKED."
+            },
+            "actor": {
+              "type": "string"
+            },
+            "details": {
+              "type": "object",
+              "description": "What the change applies to, by type: PLAN, APPLICATION, API_KEY (the key id, never its value).",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "at",
+            "source",
+            "event"
+          ]
+        }
+      },
+      "omittedSources": {
+        "type": "array",
+        "description": "Sources you are not allowed to read. When not empty, an empty `changes` does not mean nothing changed.",
+        "items": {
+          "type": "string",
+          "enum": [
+            "DEPLOYMENT",
+            "AUDIT"
+          ]
+        }
+      }
+    },
+    "required": [
+      "summary",
+      "environment",
+      "api",
+      "window",
+      "changes",
+      "omittedSources"
+    ]
+  }
+}

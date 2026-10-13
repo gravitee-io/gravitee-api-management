@@ -1,0 +1,184 @@
+{
+  "name": "list_filter_values",
+  "title": "List the values of a filter",
+  "description": "The values a filter took in the window, with the ids a query takes: which applications, plans, gateways, hosts, paths\u2026 had traffic. Use it to turn a name into the id a filter wants, or to see what exists. Pass `query` to keep the values containing it.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "environment": {
+        "type": "string",
+        "description": "Id, HRID or name of an environment. Omit when you can read only one. Call list_environments to see them."
+      },
+      "filter": {
+        "type": "string",
+        "enum": [
+          "API",
+          "APPLICATION",
+          "PLAN",
+          "API_PRODUCT",
+          "GATEWAY",
+          "TENANT",
+          "ZONE",
+          "HTTP_METHOD",
+          "HTTP_STATUS_CODE_GROUP",
+          "HTTP_STATUS",
+          "HTTP_PATH",
+          "HTTP_PATH_MAPPING",
+          "HOST",
+          "GEO_IP_COUNTRY",
+          "GEO_IP_REGION",
+          "GEO_IP_CITY",
+          "GEO_IP_CONTINENT",
+          "CONSUMER_IP",
+          "HTTP_USER_AGENT_OS_NAME",
+          "HTTP_USER_AGENT_DEVICE",
+          "MESSAGE_CONNECTOR_TYPE",
+          "MESSAGE_CONNECTOR_ID",
+          "MESSAGE_OPERATION_TYPE",
+          "MESSAGE_SIZE",
+          "MESSAGE_COUNT",
+          "MESSAGE_ERROR_COUNT",
+          "HTTP_ENDPOINT_RESPONSE_TIME",
+          "HTTP_GATEWAY_LATENCY",
+          "HTTP_GATEWAY_RESPONSE_TIME",
+          "HTTP_REQUEST_CONTENT_LENGTH",
+          "HTTP_RESPONSE_CONTENT_LENGTH",
+          "LLM_PROXY_MODEL",
+          "LLM_PROXY_PROVIDER",
+          "MCP_PROXY_METHOD",
+          "MCP_PROXY_TOOL",
+          "MCP_PROXY_RESOURCE",
+          "MCP_PROXY_PROMPT",
+          "EDGE_PROVIDER",
+          "EDGE_PROCESS",
+          "EDGE_CLIENT",
+          "EDGE_TYPE",
+          "EDGE_VERSION",
+          "EDGE_MODEL",
+          "EDGE_TOOL",
+          "API_TYPE",
+          "NATIVE_CONNECTION_STATUS",
+          "NATIVE_FAILURE_SIDE",
+          "NATIVE_CLIENT_ID",
+          "NATIVE_CLIENT_SOFTWARE_NAME",
+          "NATIVE_CLIENT_SOFTWARE_VERSION",
+          "NATIVE_TOPIC",
+          "NATIVE_OPERATION",
+          "URI",
+          "ENTRYPOINT",
+          "ERROR_KEY",
+          "REQUEST_ID",
+          "TRANSACTION_ID",
+          "PAYLOAD",
+          "AUTHZ_DECISION",
+          "AUTHZ_OPERATION",
+          "AUTHZ_STATUS",
+          "AUTHZ_CALLER",
+          "AUTHZ_SUBJECT_ID",
+          "AUTHZ_ACTION",
+          "AUTHZ_RESOURCE_ID",
+          "AUTHZ_REASON",
+          "AUTHZ_PDP",
+          "AUTHZ_SEARCH_TYPE"
+        ]
+      },
+      "query": {
+        "type": "string",
+        "description": "Keep values containing this text."
+      },
+      "window": {
+        "type": "string",
+        "description": "Length of the time range to look at, ending at `until`: a number followed by m, h or d, for example 15m, 2h or 1d. Default 1h. Never an epoch value."
+      },
+      "until": {
+        "type": "string",
+        "description": "End of the time range as an ISO-8601 UTC instant, for example 2026-01-31T14:00:00Z. Default: now."
+      },
+      "perPage": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "How many values to return. Default 20."
+      }
+    },
+    "required": [
+      "filter"
+    ],
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "string",
+        "description": "One sentence stating the result."
+      },
+      "environment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "hrid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "filter": {
+        "type": "string"
+      },
+      "window": {
+        "type": "object",
+        "description": "A time range, ISO-8601 UTC.",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ]
+      },
+      "total": {
+        "type": "integer"
+      },
+      "values": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string",
+              "description": "The name, or the value itself."
+            },
+            "id": {
+              "type": "string",
+              "description": "What the filter takes; absent when the value is its own id."
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      }
+    },
+    "required": [
+      "summary",
+      "environment",
+      "filter",
+      "window",
+      "total",
+      "values"
+    ]
+  }
+}

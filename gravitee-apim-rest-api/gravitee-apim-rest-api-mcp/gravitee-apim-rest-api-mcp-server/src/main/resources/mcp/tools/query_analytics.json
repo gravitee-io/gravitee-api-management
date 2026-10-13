@@ -1,0 +1,640 @@
+{
+  "name": "query_analytics",
+  "title": "Query the analytics engine",
+  "description": "One query to the analytics engine, in its own vocabulary (describe_metrics lists it), over a window. `mode` measures: one number per measure. `mode` facets: the numbers split by up to three dimensions (`by`), the busiest values first; `limit` caps the values of the last one. `mode` time_series: the numbers per `interval`, split by up to two dimensions. `compareWith: previous` runs the same query over the range of equal length just before the window and returns both, so you can see what moved; the numbers come back as they are, what they mean is yours to judge. Read a rate against its volume, and 4xx and 5xx apart: split HTTP_REQUESTS by HTTP_STATUS_CODE_GROUP.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "environment": {
+        "type": "string",
+        "description": "Id, HRID or name of an environment. Omit when you can read only one. Call list_environments to see them."
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "measures",
+          "facets",
+          "time_series"
+        ]
+      },
+      "metrics": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "enum": [
+                "HTTP_REQUESTS",
+                "HTTP_ERRORS",
+                "HTTP_ERROR_RATE",
+                "HTTP_REQUEST_CONTENT_LENGTH",
+                "HTTP_RESPONSE_CONTENT_LENGTH",
+                "HTTP_ENDPOINT_RESPONSE_TIME",
+                "HTTP_GATEWAY_RESPONSE_TIME",
+                "HTTP_GATEWAY_LATENCY",
+                "LLM_PROMPT_TOKEN_SENT",
+                "LLM_PROMPT_TOKEN_RECEIVED",
+                "LLM_PROMPT_TOKEN_SENT_COST",
+                "LLM_PROMPT_TOKEN_RECEIVED_COST",
+                "LLM_PROMPT_TOTAL_TOKEN",
+                "LLM_PROMPT_TOKEN_TOTAL_COST",
+                "MESSAGE_PAYLOAD_SIZE",
+                "MESSAGES",
+                "MESSAGE_ERRORS",
+                "MESSAGE_GATEWAY_LATENCY",
+                "EDGE_DETECTION_COUNT",
+                "EDGE_TOKENS_IN",
+                "EDGE_TOKENS_OUT",
+                "EDGE_HEARTBEAT_COUNT",
+                "NATIVE_CONNECTIONS_SUMMARY",
+                "NATIVE_MESSAGES_PRODUCED_DOWNSTREAM",
+                "NATIVE_MESSAGES_PRODUCED_UPSTREAM",
+                "NATIVE_MESSAGES_CONSUMED_DOWNSTREAM",
+                "NATIVE_MESSAGES_CONSUMED_UPSTREAM",
+                "NATIVE_BYTES_PRODUCED_DOWNSTREAM",
+                "NATIVE_BYTES_PRODUCED_UPSTREAM",
+                "NATIVE_BYTES_CONSUMED_DOWNSTREAM",
+                "NATIVE_BYTES_CONSUMED_UPSTREAM",
+                "NATIVE_ACTIVE_CONNECTIONS_DOWNSTREAM",
+                "NATIVE_ACTIVE_CONNECTIONS_UPSTREAM",
+                "NATIVE_AUTHENTICATIONS_SUCCESS_DOWNSTREAM",
+                "NATIVE_AUTHENTICATIONS_SUCCESS_UPSTREAM",
+                "NATIVE_AUTHENTICATIONS_FAILURE_DOWNSTREAM",
+                "NATIVE_AUTHENTICATIONS_FAILURE_UPSTREAM",
+                "NATIVE_OPERATIONS_RECEIVED",
+                "NATIVE_OPERATIONS_FORWARDED",
+                "NATIVE_OPERATIONS_ANSWERED",
+                "NATIVE_OPERATIONS_COMPLETED",
+                "NATIVE_OPERATION_GATEWAY_REQUEST_DURATION",
+                "NATIVE_OPERATION_BROKER_DURATION",
+                "NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION",
+                "AUTHZ_OPERATIONS",
+                "AUTHZ_DECISIONS",
+                "AUTHZ_PERMITS",
+                "AUTHZ_FORBIDS",
+                "AUTHZ_NOT_APPLICABLE",
+                "AUTHZ_SEARCHES",
+                "AUTHZ_FAILURES",
+                "AUTHZ_EVAL_DURATION"
+              ]
+            },
+            "measures": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "AVG",
+                  "COUNT",
+                  "MAX",
+                  "MIN",
+                  "PERCENTAGE",
+                  "P50",
+                  "P99",
+                  "P95",
+                  "P90",
+                  "SUM"
+                ]
+              },
+              "description": "What to compute; describe_metrics says which ones the metric takes."
+            },
+            "filters": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "enum": [
+                      "API",
+                      "APPLICATION",
+                      "PLAN",
+                      "API_PRODUCT",
+                      "GATEWAY",
+                      "TENANT",
+                      "ZONE",
+                      "HTTP_METHOD",
+                      "HTTP_STATUS_CODE_GROUP",
+                      "HTTP_STATUS",
+                      "HTTP_PATH",
+                      "HTTP_PATH_MAPPING",
+                      "HOST",
+                      "GEO_IP_COUNTRY",
+                      "GEO_IP_REGION",
+                      "GEO_IP_CITY",
+                      "GEO_IP_CONTINENT",
+                      "CONSUMER_IP",
+                      "HTTP_USER_AGENT_OS_NAME",
+                      "HTTP_USER_AGENT_DEVICE",
+                      "MESSAGE_CONNECTOR_TYPE",
+                      "MESSAGE_CONNECTOR_ID",
+                      "MESSAGE_OPERATION_TYPE",
+                      "MESSAGE_SIZE",
+                      "MESSAGE_COUNT",
+                      "MESSAGE_ERROR_COUNT",
+                      "HTTP_ENDPOINT_RESPONSE_TIME",
+                      "HTTP_GATEWAY_LATENCY",
+                      "HTTP_GATEWAY_RESPONSE_TIME",
+                      "HTTP_REQUEST_CONTENT_LENGTH",
+                      "HTTP_RESPONSE_CONTENT_LENGTH",
+                      "LLM_PROXY_MODEL",
+                      "LLM_PROXY_PROVIDER",
+                      "MCP_PROXY_METHOD",
+                      "MCP_PROXY_TOOL",
+                      "MCP_PROXY_RESOURCE",
+                      "MCP_PROXY_PROMPT",
+                      "EDGE_PROVIDER",
+                      "EDGE_PROCESS",
+                      "EDGE_CLIENT",
+                      "EDGE_TYPE",
+                      "EDGE_VERSION",
+                      "EDGE_MODEL",
+                      "EDGE_TOOL",
+                      "API_TYPE",
+                      "NATIVE_CONNECTION_STATUS",
+                      "NATIVE_FAILURE_SIDE",
+                      "NATIVE_CLIENT_ID",
+                      "NATIVE_CLIENT_SOFTWARE_NAME",
+                      "NATIVE_CLIENT_SOFTWARE_VERSION",
+                      "NATIVE_TOPIC",
+                      "NATIVE_OPERATION",
+                      "URI",
+                      "ENTRYPOINT",
+                      "ERROR_KEY",
+                      "REQUEST_ID",
+                      "TRANSACTION_ID",
+                      "PAYLOAD",
+                      "AUTHZ_DECISION",
+                      "AUTHZ_OPERATION",
+                      "AUTHZ_STATUS",
+                      "AUTHZ_CALLER",
+                      "AUTHZ_SUBJECT_ID",
+                      "AUTHZ_ACTION",
+                      "AUTHZ_RESOURCE_ID",
+                      "AUTHZ_REASON",
+                      "AUTHZ_PDP",
+                      "AUTHZ_SEARCH_TYPE"
+                    ]
+                  },
+                  "operator": {
+                    "type": "string",
+                    "enum": [
+                      "EQ",
+                      "LTE",
+                      "GTE",
+                      "IN",
+                      "CONTAINS"
+                    ]
+                  },
+                  "value": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ],
+                    "description": "A string for EQ and CONTAINS, a number for LTE and GTE, a list of strings for IN. For the API filter, an API name is accepted in place of its id."
+                  }
+                },
+                "required": [
+                  "name",
+                  "operator",
+                  "value"
+                ]
+              },
+              "description": "Filters on this metric only."
+            },
+            "sorts": {
+              "type": "array",
+              "description": "facets only: order the buckets by a measure.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "measure": {
+                    "type": "string",
+                    "enum": [
+                      "AVG",
+                      "COUNT",
+                      "MAX",
+                      "MIN",
+                      "PERCENTAGE",
+                      "P50",
+                      "P99",
+                      "P95",
+                      "P90",
+                      "SUM"
+                    ]
+                  },
+                  "order": {
+                    "type": "string",
+                    "enum": [
+                      "ASC",
+                      "DESC"
+                    ]
+                  }
+                },
+                "required": [
+                  "measure",
+                  "order"
+                ]
+              }
+            }
+          },
+          "required": [
+            "name",
+            "measures"
+          ]
+        }
+      },
+      "filters": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "enum": [
+                "API",
+                "APPLICATION",
+                "PLAN",
+                "API_PRODUCT",
+                "GATEWAY",
+                "TENANT",
+                "ZONE",
+                "HTTP_METHOD",
+                "HTTP_STATUS_CODE_GROUP",
+                "HTTP_STATUS",
+                "HTTP_PATH",
+                "HTTP_PATH_MAPPING",
+                "HOST",
+                "GEO_IP_COUNTRY",
+                "GEO_IP_REGION",
+                "GEO_IP_CITY",
+                "GEO_IP_CONTINENT",
+                "CONSUMER_IP",
+                "HTTP_USER_AGENT_OS_NAME",
+                "HTTP_USER_AGENT_DEVICE",
+                "MESSAGE_CONNECTOR_TYPE",
+                "MESSAGE_CONNECTOR_ID",
+                "MESSAGE_OPERATION_TYPE",
+                "MESSAGE_SIZE",
+                "MESSAGE_COUNT",
+                "MESSAGE_ERROR_COUNT",
+                "HTTP_ENDPOINT_RESPONSE_TIME",
+                "HTTP_GATEWAY_LATENCY",
+                "HTTP_GATEWAY_RESPONSE_TIME",
+                "HTTP_REQUEST_CONTENT_LENGTH",
+                "HTTP_RESPONSE_CONTENT_LENGTH",
+                "LLM_PROXY_MODEL",
+                "LLM_PROXY_PROVIDER",
+                "MCP_PROXY_METHOD",
+                "MCP_PROXY_TOOL",
+                "MCP_PROXY_RESOURCE",
+                "MCP_PROXY_PROMPT",
+                "EDGE_PROVIDER",
+                "EDGE_PROCESS",
+                "EDGE_CLIENT",
+                "EDGE_TYPE",
+                "EDGE_VERSION",
+                "EDGE_MODEL",
+                "EDGE_TOOL",
+                "API_TYPE",
+                "NATIVE_CONNECTION_STATUS",
+                "NATIVE_FAILURE_SIDE",
+                "NATIVE_CLIENT_ID",
+                "NATIVE_CLIENT_SOFTWARE_NAME",
+                "NATIVE_CLIENT_SOFTWARE_VERSION",
+                "NATIVE_TOPIC",
+                "NATIVE_OPERATION",
+                "URI",
+                "ENTRYPOINT",
+                "ERROR_KEY",
+                "REQUEST_ID",
+                "TRANSACTION_ID",
+                "PAYLOAD",
+                "AUTHZ_DECISION",
+                "AUTHZ_OPERATION",
+                "AUTHZ_STATUS",
+                "AUTHZ_CALLER",
+                "AUTHZ_SUBJECT_ID",
+                "AUTHZ_ACTION",
+                "AUTHZ_RESOURCE_ID",
+                "AUTHZ_REASON",
+                "AUTHZ_PDP",
+                "AUTHZ_SEARCH_TYPE"
+              ]
+            },
+            "operator": {
+              "type": "string",
+              "enum": [
+                "EQ",
+                "LTE",
+                "GTE",
+                "IN",
+                "CONTAINS"
+              ]
+            },
+            "value": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "A string for EQ and CONTAINS, a number for LTE and GTE, a list of strings for IN. For the API filter, an API name is accepted in place of its id."
+            }
+          },
+          "required": [
+            "name",
+            "operator",
+            "value"
+          ]
+        },
+        "description": "Filters on every metric of the query."
+      },
+      "by": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "API",
+            "APPLICATION",
+            "PLAN",
+            "API_PRODUCT",
+            "GATEWAY",
+            "TENANT",
+            "ZONE",
+            "HTTP_METHOD",
+            "HTTP_STATUS_CODE_GROUP",
+            "HTTP_STATUS",
+            "HTTP_PATH",
+            "HTTP_PATH_MAPPING",
+            "HOST",
+            "GEO_IP_COUNTRY",
+            "GEO_IP_REGION",
+            "GEO_IP_CITY",
+            "GEO_IP_CONTINENT",
+            "CONSUMER_IP",
+            "HTTP_USER_AGENT_OS_NAME",
+            "HTTP_USER_AGENT_DEVICE",
+            "MESSAGE_CONNECTOR_TYPE",
+            "MESSAGE_CONNECTOR_ID",
+            "MESSAGE_OPERATION_TYPE",
+            "LLM_PROXY_MODEL",
+            "LLM_PROXY_PROVIDER",
+            "MCP_PROXY_METHOD",
+            "MCP_PROXY_TOOL",
+            "MCP_PROXY_RESOURCE",
+            "MCP_PROXY_PROMPT",
+            "EDGE_PROVIDER",
+            "EDGE_PROCESS",
+            "EDGE_CLIENT",
+            "EDGE_TYPE",
+            "EDGE_VERSION",
+            "EDGE_MODEL",
+            "EDGE_TOOL",
+            "NATIVE_CONNECTION_STATUS",
+            "NATIVE_FAILURE_SIDE",
+            "NATIVE_CLIENT_ID",
+            "NATIVE_CLIENT_SOFTWARE_NAME",
+            "NATIVE_TOPIC",
+            "NATIVE_OPERATION",
+            "AUTHZ_DECISION",
+            "AUTHZ_OPERATION",
+            "AUTHZ_STATUS",
+            "AUTHZ_CALLER",
+            "AUTHZ_SUBJECT_ID",
+            "AUTHZ_ACTION",
+            "AUTHZ_RESOURCE_ID",
+            "AUTHZ_REASON",
+            "AUTHZ_PDP",
+            "AUTHZ_SEARCH_TYPE"
+          ]
+        },
+        "description": "facets: one to three dimensions to split by. time_series: up to two."
+      },
+      "interval": {
+        "oneOf": [
+          {
+            "type": "string",
+            "pattern": "^\\d+[smhd]$"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "description": "time_series only, required there: the length of one point, 30s, 5m, 1h, 1d, or milliseconds. About thirty points per window reads well."
+      },
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "facets and time_series: how many values of the last dimension to keep. Default: the engine's (10)."
+      },
+      "ranges": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "number"
+            },
+            "to": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "from",
+            "to"
+          ]
+        },
+        "description": "facets and time_series: when the last dimension is numeric (HTTP_STATUS, a duration), bucket it by these ranges instead of by value."
+      },
+      "window": {
+        "type": "string",
+        "description": "Length of the time range to look at, ending at `until`: a number followed by m, h or d, for example 15m, 2h or 1d. Default 1h. Never an epoch value."
+      },
+      "until": {
+        "type": "string",
+        "description": "End of the time range as an ISO-8601 UTC instant, for example 2026-01-31T14:00:00Z. Default: now."
+      },
+      "compareWith": {
+        "type": "string",
+        "enum": [
+          "previous"
+        ]
+      }
+    },
+    "required": [
+      "mode",
+      "metrics"
+    ],
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "string",
+        "description": "One sentence stating the result."
+      },
+      "environment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "hrid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "mode": {
+        "type": "string"
+      },
+      "window": {
+        "type": "object",
+        "description": "A time range, ISO-8601 UTC.",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ]
+      },
+      "previousWindow": {
+        "type": "object",
+        "description": "The range `previous` covers; absent without compareWith.",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ]
+      },
+      "current": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/metricResult"
+        }
+      },
+      "previous": {
+        "type": "array",
+        "description": "The same query over previousWindow; absent without compareWith.",
+        "items": {
+          "$ref": "#/$defs/metricResult"
+        }
+      }
+    },
+    "required": [
+      "summary",
+      "environment",
+      "mode",
+      "window",
+      "current"
+    ],
+    "$defs": {
+      "bucket": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The value: an API id, a status code, a path, an IP, a time bucket."
+          },
+          "name": {
+            "type": "string",
+            "description": "Its display name when the engine knows one: an API or application name, a status label."
+          },
+          "at": {
+            "type": "string",
+            "description": "time_series only: the start of the point, ISO-8601 UTC."
+          },
+          "measures": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "buckets": {
+            "type": "array",
+            "description": "The next facet, when the query splits by several.",
+            "items": {
+              "$ref": "#/$defs/bucket"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "measures",
+          "buckets"
+        ]
+      },
+      "metricResult": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "measures": {
+            "type": "object",
+            "description": "measures mode: one number per measure.",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "buckets": {
+            "type": "array",
+            "description": "facets and time_series: the first dimension.",
+            "items": {
+              "$ref": "#/$defs/bucket"
+            }
+          }
+        },
+        "required": [
+          "metric",
+          "measures",
+          "buckets"
+        ]
+      }
+    }
+  }
+}

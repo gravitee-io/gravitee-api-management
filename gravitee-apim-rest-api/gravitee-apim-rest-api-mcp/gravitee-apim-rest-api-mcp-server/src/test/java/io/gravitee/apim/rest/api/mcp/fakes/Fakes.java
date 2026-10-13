@@ -15,20 +15,33 @@
  */
 package io.gravitee.apim.rest.api.mcp.fakes;
 
+import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.FilterValue;
+import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
+import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.logs_engine.model.Pagination;
+import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
+import io.gravitee.apim.core.logs_engine.model.SearchLogsResponse;
 import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
+import io.gravitee.apim.rest.api.mcp.core.model.ApiSummary;
 import io.gravitee.apim.rest.api.mcp.core.model.Change;
 import io.gravitee.apim.rest.api.mcp.core.model.EnvRef;
 import io.gravitee.apim.rest.api.mcp.core.model.TimeWindow;
-import io.gravitee.apim.rest.api.mcp.core.model.TrafficStats;
+import io.gravitee.apim.rest.api.mcp.core.port.AnalyticsQueries;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.ChangeLog;
 import io.gravitee.apim.rest.api.mcp.core.port.EnvironmentDirectory;
-import io.gravitee.apim.rest.api.mcp.core.port.RequestLogs;
+import io.gravitee.apim.rest.api.mcp.core.port.LogSearch;
 import io.gravitee.apim.rest.api.mcp.core.port.TriageAccess;
 import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -43,18 +56,26 @@ public final class Fakes {
 
     private Fakes() {}
 
-    /** Traffic with the given numbers of 4xx and 5xx, answered in 100 ms at the 95th percentile. */
-    public static TrafficStats traffic(long requests, long clientErrors, long serverErrors) {
-        return TrafficStats.of(requests, clientErrors, serverErrors, 100.0, 80.0);
-    }
-
-    public static TrafficStats trafficAnsweredIn(long requests, double responseTimeP95Ms) {
-        return TrafficStats.of(requests, 0, 0, responseTimeP95Ms, responseTimeP95Ms - 20);
+    public static ApiSummary api(String id, String name) {
+        return new ApiSummary(id, name, "1.0", "PROXY", "V4", NOW);
     }
 
     /** The same APIs in every environment. */
     public static ApiDirectory apis(ApiRef... apis) {
-        return caller -> List.of(apis);
+        var summaries = Arrays.stream(apis)
+            .map(api -> api(api.id(), api.name()))
+            .toList();
+        return caller -> summaries;
+    }
+
+    /** APIs per environment id. */
+    public static ApiDirectory apisByEnvironment(Map<String, List<ApiRef>> apis) {
+        return caller ->
+            apis
+                .getOrDefault(caller.environmentId(), List.of())
+                .stream()
+                .map(api -> api(api.id(), api.name()))
+                .toList();
     }
 
     /** Readable environments; none unreadable. */
@@ -73,11 +94,6 @@ public final class Fakes {
         public Environments environments(McpCaller caller) {
             return new Environments(List.copyOf(readable), List.copyOf(unreadable));
         }
-    }
-
-    /** APIs per environment id. */
-    public static ApiDirectory apisByEnvironment(Map<String, List<ApiRef>> apis) {
-        return caller -> apis.getOrDefault(caller.environmentId(), List.of());
     }
 
     public static class Access implements TriageAccess {
@@ -102,19 +118,68 @@ public final class Fakes {
         }
     }
 
-    public static class InMemoryRequestLogs implements RequestLogs {
+    /** Records the requests and answers with what it was given. */
+    public static class StubAnalyticsQueries implements AnalyticsQueries {
 
-        public Page page = new Page(0, List.of());
-        public AuditInfo caller;
-        public Query query;
-        public int limit;
+        public MeasuresResponse measures = new MeasuresResponse(List.of());
+        public FacetsResponse facets = new FacetsResponse(List.of());
+        public TimeSeriesResponse timeSeries = new TimeSeriesResponse(List.of());
+        public FilterValuesPage filterValues = new FilterValuesPage(List.of(new FilterValue("Mobile app", "app-id")), null, 1L);
+        public RuntimeException failure;
+
+        public final List<AuditInfo> callers = new ArrayList<>();
+        public final List<MeasuresRequest> measuresRequests = new ArrayList<>();
+        public final List<FacetsRequest> facetsRequests = new ArrayList<>();
+        public final List<TimeSeriesRequest> timeSeriesRequests = new ArrayList<>();
+        public String filterValuesQuery;
 
         @Override
-        public Page failures(AuditInfo caller, TimeWindow window, Query query, int limit) {
+        public MeasuresResponse measures(AuditInfo caller, MeasuresRequest request) {
+            callers.add(caller);
+            measuresRequests.add(request);
+            return answer(measures);
+        }
+
+        @Override
+        public FacetsResponse facets(AuditInfo caller, FacetsRequest request) {
+            callers.add(caller);
+            facetsRequests.add(request);
+            return answer(facets);
+        }
+
+        @Override
+        public TimeSeriesResponse timeSeries(AuditInfo caller, TimeSeriesRequest request) {
+            callers.add(caller);
+            timeSeriesRequests.add(request);
+            return answer(timeSeries);
+        }
+
+        @Override
+        public FilterValuesPage filterValues(AuditInfo caller, String filterName, Instant from, Instant to, int perPage, String query) {
+            callers.add(caller);
+            filterValuesQuery = filterName + "|" + from + "|" + to + "|" + perPage + "|" + query;
+            return answer(filterValues);
+        }
+
+        private <T> T answer(T response) {
+            if (failure != null) {
+                throw failure;
+            }
+            return response;
+        }
+    }
+
+    public static class StubLogSearch implements LogSearch {
+
+        public SearchLogsResponse response = new SearchLogsResponse(List.of(), new Pagination(1, 20, 0, 0, 0L));
+        public AuditInfo caller;
+        public SearchLogsRequest request;
+
+        @Override
+        public SearchLogsResponse search(AuditInfo caller, SearchLogsRequest request) {
             this.caller = caller;
-            this.query = query;
-            this.limit = limit;
-            return page;
+            this.request = request;
+            return response;
         }
     }
 
