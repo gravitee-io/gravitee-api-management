@@ -67,7 +67,7 @@ public class OwnerChangeRule implements UpdatePortalNavigationItemValidationRule
             .stream()
             .filter(PortalNavigationApi.class::isInstance)
             .map(PortalNavigationApi.class::cast)
-            .filter(listing -> api.apiId().equals(listing.getApiId()))
+            .filter(listing -> listing.appliesToApiId(api.apiId()))
             .filter(listing -> ApiProductAncestorValidation.findApiProductId(listing.getParentId(), ctx.itemsById()).isEmpty())
             .count();
     }
