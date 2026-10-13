@@ -23,7 +23,14 @@ import java.io.UncheckedIOException;
 /**
  * The contract of a tool, as MCP clients see it. Descriptions are read by a model: they are product copy.
  */
-public record ToolDescriptor(String name, String title, String description, JsonNode inputSchema, JsonNode outputSchema) {
+/**
+ * @param readOnly false for a tool that acts on the platform; the contract says so with {@code "readOnly": false}
+ */
+public record ToolDescriptor(String name, String title, String description, JsonNode inputSchema, JsonNode outputSchema, boolean readOnly) {
+    public ToolDescriptor(String name, String title, String description, JsonNode inputSchema, JsonNode outputSchema) {
+        this(name, title, description, inputSchema, outputSchema, true);
+    }
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /** Loads {@code /mcp/tools/<name>.json}, the contract written before the tool. */
@@ -39,7 +46,8 @@ public record ToolDescriptor(String name, String title, String description, Json
                 contract.required("title").asText(),
                 contract.required("description").asText(),
                 contract.required("inputSchema"),
-                contract.required("outputSchema")
+                contract.required("outputSchema"),
+                contract.path("readOnly").asBoolean(true)
             );
         } catch (IOException e) {
             throw new UncheckedIOException("Cannot read the tool contract at " + location, e);

@@ -10,6 +10,9 @@ Questions:
 - search_logs: the requests themselves, with the reason the gateway recorded when it rejected one.
 - list_changes: what was done to an API in the control plane, and by whom.
 
+Acting (only when the operator exposed the write scope on this mount):
+- notify: tells the people APIM knows around an API (the owners or members of the subscribed applications, the subscribers) or a webhook what you decided to tell them. A call without confirm is a dry run that shows who would be reached; show it to the user before confirming.
+
 Conventions:
 - Time ranges are a length (`window`: 15m, 2h, 1d, default 1h) ending at `until` (ISO-8601 UTC, default now). Never pass epoch values.
 - Units are in the catalog and in each result (NUMBER, MILLISECONDS, BYTES, PERCENT). Timestamps are ISO-8601 UTC.

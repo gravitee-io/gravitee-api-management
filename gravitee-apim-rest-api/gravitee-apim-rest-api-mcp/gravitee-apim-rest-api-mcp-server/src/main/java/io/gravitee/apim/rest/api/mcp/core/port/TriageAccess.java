@@ -26,4 +26,7 @@ public interface TriageAccess {
     boolean canReadApiEvents(AuditInfo caller, String apiId);
 
     boolean canReadApiAudit(AuditInfo caller, String apiId);
+
+    /** Whether the caller may message the consumers of the API. */
+    boolean canNotify(AuditInfo caller, String apiId);
 }

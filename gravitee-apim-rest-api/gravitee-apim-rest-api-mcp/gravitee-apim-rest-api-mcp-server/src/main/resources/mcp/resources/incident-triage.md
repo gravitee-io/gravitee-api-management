@@ -24,6 +24,10 @@ Split what moved along one dimension at a time, still comparing with the previou
 
 `search_logs` around the onset, filtered on the status class or the API: the `errorKey` names why the gateway rejected a request, the `errorComponent` names which policy or connector did; no error key means the backend answered that status itself. Then `list_changes` on the API with a window that covers the onset: a deployment, a plan change, a closed subscription or a revoked key seconds before it is the first suspect.
 
+## 6. Tell the right person
+
+When the cause is on a consumer's side (a revoked key the client still sends, a quota it keeps hitting), the person to tell is that consumer's owner; when the API itself fails, every consumer's owner. `notify` resolves them from APIM's subscriptions and memberships; its first answer is a dry run listing who would be reached and the message. Show that to the user, say what you base it on, and send only once they agree. Write the message for someone who was not in this investigation: what is wrong, since when, what they should do.
+
 ## Shapes seen before
 
 - A consumer's credential stopped working: 4xx on one API, status 401 or 403; by application the consumer vanishes and Unknown appears at the same rate; same consumer IP on both sides; a security error key; `APIKEY_REVOKED`, `APIKEY_EXPIRED`, `SUBSCRIPTION_CLOSED` or a plan change in `list_changes`.

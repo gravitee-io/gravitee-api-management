@@ -31,12 +31,14 @@ import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
 import io.gravitee.apim.rest.api.mcp.core.model.ApiSummary;
 import io.gravitee.apim.rest.api.mcp.core.model.Change;
 import io.gravitee.apim.rest.api.mcp.core.model.EnvRef;
+import io.gravitee.apim.rest.api.mcp.core.model.Notification;
 import io.gravitee.apim.rest.api.mcp.core.model.TimeWindow;
 import io.gravitee.apim.rest.api.mcp.core.port.AnalyticsQueries;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.ChangeLog;
 import io.gravitee.apim.rest.api.mcp.core.port.EnvironmentDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.LogSearch;
+import io.gravitee.apim.rest.api.mcp.core.port.Messaging;
 import io.gravitee.apim.rest.api.mcp.core.port.TriageAccess;
 import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 import java.time.Instant;
@@ -101,6 +103,7 @@ public final class Fakes {
         public boolean traffic = true;
         public boolean events = true;
         public boolean audit = true;
+        public boolean notify = true;
 
         @Override
         public boolean canReadTraffic(AuditInfo caller) {
@@ -115,6 +118,30 @@ public final class Fakes {
         @Override
         public boolean canReadApiAudit(AuditInfo caller, String apiId) {
             return audit;
+        }
+
+        @Override
+        public boolean canNotify(AuditInfo caller, String apiId) {
+            return notify;
+        }
+    }
+
+    public static class StubMessaging implements Messaging {
+
+        public List<Recipient> recipients = List.of(new Recipient("jane-id", "Jane Owner", "jane@acme.example"));
+        public Notification sent;
+        public String sentApiId;
+
+        @Override
+        public List<Recipient> recipients(AuditInfo caller, String apiId, Notification notification) {
+            return notification.channel() == Notification.Channel.WEBHOOK ? List.of() : recipients;
+        }
+
+        @Override
+        public int send(AuditInfo caller, String apiId, Notification notification) {
+            sent = notification;
+            sentApiId = apiId;
+            return notification.channel() == Notification.Channel.WEBHOOK ? 1 : recipients.size();
         }
     }
 

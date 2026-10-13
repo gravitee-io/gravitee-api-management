@@ -1,0 +1,151 @@
+{
+  "name": "notify",
+  "title": "Notify the people around an API",
+  "readOnly": false,
+  "description": "Tells the people APIM knows around an API what you decided to tell them, over the channel they have. Who they are comes from APIM's own memberships and subscriptions: `audience` consumer_owners is the primary owner of each application subscribed to the API, consumer_members every member of those applications, subscribers the users who subscribed; webhook posts to a URL instead (a Slack incoming webhook works). A call without `confirm` is a dry run: it returns who would be reached and the message as it would go, and sends nothing. Show that to the user, then call again with confirm=true. Every send is audited under the authenticated user.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "environment": {
+        "type": "string",
+        "description": "Id, HRID or name of an environment. Omit when `api` names an API that exists in only one environment you can read."
+      },
+      "api": {
+        "type": "string",
+        "description": "Id or name of the API."
+      },
+      "audience": {
+        "type": "string",
+        "enum": [
+          "consumer_owners",
+          "consumer_members",
+          "subscribers",
+          "webhook"
+        ]
+      },
+      "channel": {
+        "type": "string",
+        "enum": [
+          "portal",
+          "mail",
+          "webhook"
+        ],
+        "description": "portal: a notification in the Console and the Portal. mail: an email. webhook: a POST to webhookUrl, with audience webhook."
+      },
+      "subject": {
+        "type": "string"
+      },
+      "text": {
+        "type": "string",
+        "description": "What to tell them: what is wrong, since when, what they should do. Plain text."
+      },
+      "webhookUrl": {
+        "type": "string",
+        "description": "webhook channel only. Must be allowed by the server's webhook whitelist."
+      },
+      "confirm": {
+        "type": "boolean",
+        "description": "true to send. Omitted or false: dry run."
+      }
+    },
+    "required": [
+      "api",
+      "audience",
+      "channel",
+      "text"
+    ],
+    "additionalProperties": false
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "string"
+      },
+      "environment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "hrid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "api": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "audience": {
+        "type": "string"
+      },
+      "channel": {
+        "type": "string"
+      },
+      "dryRun": {
+        "type": "boolean",
+        "description": "true when nothing was sent."
+      },
+      "recipients": {
+        "type": "array",
+        "description": "The people reached, or that would be; empty for a webhook.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        }
+      },
+      "subject": {
+        "type": "string"
+      },
+      "text": {
+        "type": "string"
+      },
+      "sent": {
+        "type": "integer",
+        "description": "How many recipients it went to. Absent on a dry run."
+      }
+    },
+    "required": [
+      "summary",
+      "environment",
+      "api",
+      "audience",
+      "channel",
+      "dryRun",
+      "recipients",
+      "text"
+    ]
+  }
+}

@@ -64,6 +64,7 @@ public final class McpServerFactory {
     private static final String SERVER_NAME = "gravitee-apim";
     private static final String CALLER = "gravitee.caller";
     private static final ToolAnnotations READ_ONLY = new ToolAnnotations(null, true, false, true, false, null);
+    private static final ToolAnnotations ACTS = new ToolAnnotations(null, false, false, false, true, null);
 
     private static final ObjectMapper RESULTS = new ObjectMapper()
         .registerModule(new JavaTimeModule())
@@ -116,7 +117,7 @@ public final class McpServerFactory {
             .description(descriptor.description())
             .inputSchema(jsonMapper, descriptor.inputSchema().toString())
             .outputSchema(jsonMapper, descriptor.outputSchema().toString())
-            .annotations(READ_ONLY)
+            .annotations(descriptor.readOnly() ? READ_ONLY : ACTS)
             .build();
         return SyncToolSpecification.builder()
             .tool(definition)

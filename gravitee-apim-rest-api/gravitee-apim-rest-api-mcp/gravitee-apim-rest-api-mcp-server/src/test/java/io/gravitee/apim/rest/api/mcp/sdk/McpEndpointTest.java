@@ -47,6 +47,7 @@ import io.gravitee.apim.rest.api.mcp.core.use_case.ListApisUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.ListChangesUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.ListEnvironmentsUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.ListFilterValuesUseCase;
+import io.gravitee.apim.rest.api.mcp.core.use_case.NotifyUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.QueryAnalyticsUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.SearchLogsUseCase;
 import io.gravitee.apim.rest.api.mcp.fakes.Fakes;
@@ -60,6 +61,7 @@ import io.gravitee.apim.rest.api.mcp.tools.ListApisTool;
 import io.gravitee.apim.rest.api.mcp.tools.ListChangesTool;
 import io.gravitee.apim.rest.api.mcp.tools.ListEnvironmentsTool;
 import io.gravitee.apim.rest.api.mcp.tools.ListFilterValuesTool;
+import io.gravitee.apim.rest.api.mcp.tools.NotifyTool;
 import io.gravitee.apim.rest.api.mcp.tools.QueryAnalyticsTool;
 import io.gravitee.apim.rest.api.mcp.tools.SearchLogsTool;
 import io.gravitee.apim.rest.api.mcp.tools.TriagePrompt;
@@ -163,11 +165,12 @@ class McpEndpointTest {
                 "list_filter_values",
                 "search_logs",
                 "list_changes",
+                "notify",
                 "who_am_i",
                 "broken"
             );
         assertThat(tools).allSatisfy(tool -> {
-            assertThat(tool.annotations().readOnlyHint()).isTrue();
+            assertThat(tool.annotations().readOnlyHint()).isEqualTo(!tool.name().equals("notify"));
             assertThat(tool.description()).isNotBlank();
             assertThat(tool.inputSchema()).containsEntry("type", "object");
             assertThat(tool.outputSchema()).containsEntry("type", "object");
@@ -190,6 +193,7 @@ class McpEndpointTest {
             "list_filter_values | {\"environment\":\"prod\",\"filter\":\"APPLICATION\"}",
             "search_logs | {\"environment\":\"prod\",\"filters\":[{\"name\":\"HTTP_STATUS\",\"operator\":\"GTE\",\"value\":400}],\"perPage\":5}",
             "list_changes | {\"api\":\"Orders\"}",
+            "notify | {\"api\":\"Orders\",\"audience\":\"consumer_owners\",\"channel\":\"mail\",\"subject\":\"Orders\",\"text\":\"Your key was revoked.\"}",
         }
     )
     void should_return_a_result_that_honors_the_tool_contract(String tool, String arguments) throws Exception {
@@ -252,6 +256,22 @@ class McpEndpointTest {
 
         assertThat(seen.get("caller").asText()).isEqualTo("demo@DEFAULT");
         assertThat(seen.get("threadBoundUser").asText()).isEqualTo("demo");
+    }
+
+    @Test
+    void should_not_send_a_notification_that_is_not_confirmed() throws Exception {
+        var result = JSON.readTree(
+            textOf(
+                call(
+                    "notify",
+                    "{\"api\":\"Orders\",\"audience\":\"consumer_owners\",\"channel\":\"mail\",\"text\":\"Your key was revoked.\"}"
+                )
+            )
+        );
+
+        assertThat(result.get("dryRun").asBoolean()).isTrue();
+        assertThat(result.at("/recipients/0/email").asText()).isEqualTo("jane@acme.example");
+        assertThat(result.has("sent")).isFalse();
     }
 
     @Test
@@ -401,6 +421,7 @@ class McpEndpointTest {
                 new ListFilterValuesTool(new ListFilterValuesUseCase(environments, apis, analytics)),
                 new SearchLogsTool(new SearchLogsUseCase(environments, apis, logs)),
                 new ListChangesTool(new ListChangesUseCase(environments, access, apis, changeLog)),
+                new NotifyTool(new NotifyUseCase(environments, access, apis, new Fakes.StubMessaging())),
                 new WhoAmI(),
                 new Broken()
             ),
