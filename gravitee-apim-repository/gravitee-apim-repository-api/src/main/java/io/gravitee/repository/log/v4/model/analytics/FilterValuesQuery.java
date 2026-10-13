@@ -15,10 +15,15 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import java.util.Map;
 import java.util.Set;
 import lombok.Builder;
 
+/**
+ * @param trafficScope narrows the calls of {@code apiIds} the values come from, absent when the caller is not
+ *                     scoped by API kind
+ */
 @Builder
 public record FilterValuesQuery(
     String esFieldName,
@@ -27,5 +32,6 @@ public record FilterValuesQuery(
     int size,
     Map<String, Object> afterKey,
     String searchPattern,
-    Set<String> apiIds
+    Set<String> apiIds,
+    TrafficScope trafficScope
 ) {}

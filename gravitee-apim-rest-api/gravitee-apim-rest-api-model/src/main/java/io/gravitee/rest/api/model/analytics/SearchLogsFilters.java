@@ -53,7 +53,8 @@ public record SearchLogsFilters(
     Set<String> nativeClientSoftwareVersions,
     Set<String> failureOrigins,
     Set<String> tenants,
-    EntrypointScope entrypointScope
+    EntrypointScope entrypointScope,
+    TrafficScope trafficScope
 ) {
     /**
      * An inclusive HTTP status code range bound for {@code HTTP_STATUS GTE/LTE}.
@@ -83,6 +84,17 @@ public record SearchLogsFilters(
 
         public static EntrypointScope exactly(Collection<String> values) {
             return new EntrypointScope(Kind.EXACTLY, List.copyOf(values));
+        }
+    }
+
+    /**
+     * Narrows the calls of {@code apiIds} for a caller scoped by API kind: every call of {@code apiIds()}, plus the
+     * calls made through one of {@code entrypointIds()} on any API.
+     */
+    public record TrafficScope(Set<String> apiIds, Set<String> entrypointIds) {
+        public TrafficScope {
+            apiIds = apiIds == null ? Set.of() : Set.copyOf(apiIds);
+            entrypointIds = entrypointIds == null ? Set.of() : Set.copyOf(entrypointIds);
         }
     }
 }

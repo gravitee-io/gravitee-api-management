@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
+import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -94,10 +95,33 @@ public class GetFilterValuesUseCase {
         int perPage,
         String query,
         Set<ApiType> apiTypes,
-        AnalyticsScope scope
+        AnalyticsScope scope,
+        /**
+         * Entrypoints whose calls belong to one of {@code apiTypes} whatever the API's type, so an API of another
+         * type enters through those calls only. Empty when no entrypoint adds one of the kinds.
+         */
+        Set<String> trafficEntrypointIds
     ) {
+        public Input {
+            trafficEntrypointIds = trafficEntrypointIds == null ? Set.of() : Set.copyOf(trafficEntrypointIds);
+        }
+
         public Input(AuditInfo auditInfo, String filterName, Instant from, Instant to, int page, int perPage, String query) {
             this(auditInfo, filterName, from, to, page, perPage, query, Set.of(), AnalyticsScope.MANAGEMENT);
+        }
+
+        public Input(
+            AuditInfo auditInfo,
+            String filterName,
+            Instant from,
+            Instant to,
+            int page,
+            int perPage,
+            String query,
+            Set<ApiType> apiTypes,
+            AnalyticsScope scope
+        ) {
+            this(auditInfo, filterName, from, to, page, perPage, query, apiTypes, scope, Set.of());
         }
 
         public Input(
@@ -128,13 +152,20 @@ public class GetFilterValuesUseCase {
         var filterSpec = findFilterSpec(filterSpecName);
 
         var analyticsContext = contextLoader.load(input.auditInfo(), input.scope());
+        TrafficScope trafficScope = null;
         if (input.apiTypes() != null && !input.apiTypes().isEmpty()) {
-            analyticsContext = narrowByApiTypes(analyticsContext, input.apiTypes());
+            var ofTheTypes = narrowByApiTypes(analyticsContext, input.apiTypes());
+            if (input.trafficEntrypointIds().isEmpty()) {
+                analyticsContext = ofTheTypes;
+            } else {
+                // Any readable API may have calls through those entrypoints: the context stays whole.
+                trafficScope = new TrafficScope(ofTheTypes.authorizedApiIds(), input.trafficEntrypointIds());
+            }
         }
 
         return switch (filterSpec.type()) {
             case ENUM -> handleEnum(filterSpec, input);
-            case KEYWORD -> handleKeyword(input, filterSpecName, analyticsContext);
+            case KEYWORD -> handleKeyword(input, filterSpecName, analyticsContext, trafficScope);
             case NUMBER, STRING -> throw new ValidationDomainException(
                 "Filter type " + filterSpec.type() + " does not support value listing",
                 Map.of("filterName", input.filterName(), "filterType", filterSpec.type().name())
@@ -174,7 +205,12 @@ public class GetFilterValuesUseCase {
         return new Output(new FilterValuesPage(pageValues, null, (long) allValues.size()));
     }
 
-    private Output handleKeyword(Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
+    private Output handleKeyword(
+        Input input,
+        FilterSpec.Name filterSpecName,
+        AnalyticsQueryContext analyticsContext,
+        TrafficScope trafficScope
+    ) {
         Objects.requireNonNull(analyticsContext);
 
         boolean isIdBased = ID_BASED_FILTERS.contains(filterSpecName);
@@ -182,26 +218,98 @@ public class GetFilterValuesUseCase {
 
         if (isIdBased) {
             if (hasQuery) {
-                return handleIdBasedSearch(input, filterSpecName, analyticsContext);
+                return handleIdBasedSearch(input, filterSpecName, analyticsContext, trafficScope);
             }
-            return handleIdBasedNoSearch(input, filterSpecName, analyticsContext);
+            return handleIdBasedNoSearch(input, filterSpecName, analyticsContext, trafficScope);
         }
 
-        return handleDirectValueKeyword(input, filterSpecName, analyticsContext);
+        return handleDirectValueKeyword(input, filterSpecName, analyticsContext, trafficScope);
     }
 
-    private Output handleIdBasedSearch(Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
+    private AnalyticsQueryContext inTrafficScope(Input input, AnalyticsQueryContext analyticsContext, TrafficScope trafficScope) {
+        return trafficScope == null
+            ? analyticsContext
+            : restrictTo(analyticsContext, apisInTrafficScope(input, analyticsContext, trafficScope));
+    }
+
+    /**
+     * The readable APIs a module scoped by kind sees: those its kinds name by type, plus those with calls through
+     * an entrypoint adding one of its kinds in the period. Only the calls tell the second group apart.
+     */
+    private Set<String> apisInTrafficScope(Input input, AnalyticsQueryContext analyticsContext, TrafficScope trafficScope) {
+        var others = analyticsContext
+            .authorizedApiIds()
+            .stream()
+            .filter(id -> !trafficScope.apiIds().contains(id))
+            .collect(Collectors.toSet());
+        var apis = new HashSet<>(trafficScope.apiIds());
+        if (others.isEmpty()) {
+            return apis;
+        }
+        searchValues(input, FilterSpec.Name.API, 1, others.size(), null, others, new TrafficScope(Set.of(), trafficScope.entrypointIds()))
+            .data()
+            .forEach(value -> apis.add(value.value()));
+        return apis;
+    }
+
+    /** A caller not scoped by kind sends exactly the query it always did. */
+    private FilterValuesPage searchValues(
+        Input input,
+        FilterSpec.Name filterName,
+        int page,
+        int size,
+        String searchPattern,
+        Set<String> apiIds,
+        TrafficScope trafficScope
+    ) {
+        var organizationId = input.auditInfo().organizationId();
+        var environmentId = input.auditInfo().environmentId();
+        if (trafficScope == null) {
+            return filterValuesQueryService.searchFilterValues(
+                organizationId,
+                environmentId,
+                filterName,
+                input.from(),
+                input.to(),
+                page,
+                size,
+                null,
+                searchPattern,
+                apiIds
+            );
+        }
+        return filterValuesQueryService.searchFilterValues(
+            organizationId,
+            environmentId,
+            filterName,
+            input.from(),
+            input.to(),
+            page,
+            size,
+            null,
+            searchPattern,
+            apiIds,
+            trafficScope
+        );
+    }
+
+    private Output handleIdBasedSearch(
+        Input input,
+        FilterSpec.Name filterSpecName,
+        AnalyticsQueryContext analyticsContext,
+        TrafficScope trafficScope
+    ) {
         boolean hasQuery = input.query() != null && !input.query().isBlank();
         var lowerQuery = hasQuery ? input.query().toLowerCase() : null;
 
         if (filterSpecName == FilterSpec.Name.API) {
-            return searchApisByNameFromContext(input, lowerQuery, analyticsContext);
+            return searchApisByNameFromContext(input, lowerQuery, inTrafficScope(input, analyticsContext, trafficScope));
         }
         if (filterSpecName == FilterSpec.Name.APPLICATION) {
             return searchApplicationsByNameFromEnvironment(input, lowerQuery);
         }
         if (filterSpecName == FilterSpec.Name.PLAN) {
-            return searchPlansByNameFromAuthorizedApis(input, lowerQuery, analyticsContext);
+            return searchPlansByNameFromAuthorizedApis(input, lowerQuery, inTrafficScope(input, analyticsContext, trafficScope));
         }
         if (filterSpecName == FilterSpec.Name.API_PRODUCT) {
             return searchApiProductsByNameFromEnvironment(input, lowerQuery);
@@ -321,21 +429,22 @@ public class GetFilterValuesUseCase {
         return new Output(new FilterValuesPage(values, null, totalFiltered));
     }
 
-    private Output handleIdBasedNoSearch(Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
-        var organizationId = input.auditInfo().organizationId();
+    private Output handleIdBasedNoSearch(
+        Input input,
+        FilterSpec.Name filterSpecName,
+        AnalyticsQueryContext analyticsContext,
+        TrafficScope trafficScope
+    ) {
         var environmentId = input.auditInfo().environmentId();
 
-        var esPage = filterValuesQueryService.searchFilterValues(
-            organizationId,
-            environmentId,
+        var esPage = searchValues(
+            input,
             filterSpecName,
-            input.from(),
-            input.to(),
             input.page(),
             input.perPage(),
             null,
-            null,
-            analyticsContext.authorizedApiIds()
+            analyticsContext.authorizedApiIds(),
+            trafficScope
         );
 
         if (filterSpecName == FilterSpec.Name.API) {
@@ -359,34 +468,38 @@ public class GetFilterValuesUseCase {
         return new Output(new FilterValuesPage(resolvedValues, esPage.afterKey()));
     }
 
-    private Output handleDirectValueKeyword(Input input, FilterSpec.Name filterSpecName, AnalyticsQueryContext analyticsContext) {
-        var organizationId = input.auditInfo().organizationId();
-        var environmentId = input.auditInfo().environmentId();
-
-        var page = filterValuesQueryService.searchFilterValues(
-            organizationId,
-            environmentId,
+    private Output handleDirectValueKeyword(
+        Input input,
+        FilterSpec.Name filterSpecName,
+        AnalyticsQueryContext analyticsContext,
+        TrafficScope trafficScope
+    ) {
+        var page = searchValues(
+            input,
             filterSpecName,
-            input.from(),
-            input.to(),
             input.page(),
             input.perPage(),
-            null,
             input.query(),
-            analyticsContext.authorizedApiIds()
+            analyticsContext.authorizedApiIds(),
+            trafficScope
         );
         return new Output(page);
     }
 
     private FilterSpec.Name validateFilterName(String filterName) {
-        try {
-            return FilterSpec.Name.valueOf(filterName);
-        } catch (IllegalArgumentException e) {
-            throw new ValidationDomainException(
-                "Invalid filter name",
-                Map.of("invalidName", filterName, "validNames", Arrays.toString(FilterSpec.Name.values()))
+        var offered = Arrays.stream(FilterSpec.Name.values())
+            .filter(name -> !name.isInternal())
+            .toList();
+        return offered
+            .stream()
+            .filter(name -> name.name().equals(filterName))
+            .findFirst()
+            .orElseThrow(() ->
+                new ValidationDomainException(
+                    "Invalid filter name",
+                    Map.of("invalidName", String.valueOf(filterName), "validNames", offered.toString())
+                )
             );
-        }
     }
 
     private static AnalyticsQueryContext narrowByApiTypes(AnalyticsQueryContext context, Set<ApiType> apiTypes) {
@@ -397,6 +510,10 @@ public class GetFilterValuesUseCase {
                 allowedIds.addAll(idsForType);
             }
         }
+        return restrictTo(context, allowedIds);
+    }
+
+    private static AnalyticsQueryContext restrictTo(AnalyticsQueryContext context, Set<String> allowedIds) {
         var narrowedAuthorizedIds = context.authorizedApiIds().stream().filter(allowedIds::contains).collect(Collectors.toSet());
         var narrowedNames = context
             .apiNamesById()

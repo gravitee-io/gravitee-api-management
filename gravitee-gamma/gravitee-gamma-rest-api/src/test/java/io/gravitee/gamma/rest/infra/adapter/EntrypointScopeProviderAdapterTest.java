@@ -17,7 +17,9 @@ package io.gravitee.gamma.rest.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -33,5 +35,18 @@ class EntrypointScopeProviderAdapterTest {
         assertThat(adapter.excludedFromLogs())
             .isEqualTo(ObservabilityEntrypoints.LOGS_EXCLUDED_IDS)
             .containsExactly("edge", "authzen", "tcp-proxy");
+    }
+
+    @Test
+    void should_name_the_entrypoints_adding_an_api_to_the_ai_kinds_whatever_its_type() {
+        assertThat(adapter.entrypointsAdding(Set.of(ApiType.MCP, ApiType.LLM, ApiType.A2A))).containsExactlyInAnyOrder(
+            "mcp",
+            "agent-to-agent"
+        );
+    }
+
+    @Test
+    void should_name_no_entrypoint_for_kinds_only_the_api_type_decides() {
+        assertThat(adapter.entrypointsAdding(Set.of(ApiType.HTTP_PROXY, ApiType.MESSAGE, ApiType.NATIVE, ApiType.LLM))).isEmpty();
     }
 }

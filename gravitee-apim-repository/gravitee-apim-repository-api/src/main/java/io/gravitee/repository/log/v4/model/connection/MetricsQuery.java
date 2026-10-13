@@ -16,6 +16,7 @@
 package io.gravitee.repository.log.v4.model.connection;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -55,6 +56,8 @@ public class MetricsQuery {
          */
         private EntrypointScope entrypointScope;
         private Set<String> apiIds;
+        /** Narrows the calls of {@link #apiIds} for a caller scoped by API kind; absent otherwise. */
+        private TrafficScope trafficScope;
         private Set<String> apiProductIds;
         private Set<String> requestIds;
         private Set<String> transactionIds;

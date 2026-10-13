@@ -16,11 +16,13 @@
 package io.gravitee.repository.elasticsearch.v4.shared;
 
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * The Elasticsearch shape of an entrypoint scope over v4 metrics documents, shared by the analytics engine
@@ -90,6 +92,47 @@ public final class EntrypointScopeClause {
             return wanted.getJsonObject(0);
         }
         return JsonObject.of("bool", JsonObject.of("should", wanted, "minimum_should_match", 1));
+    }
+
+    /**
+     * Documents matching {@code apis}, or whose entrypoint is one of {@code entrypointIds} on any API: the calls a
+     * module sees when its kinds name some APIs by type and some entrypoints whatever the API's type. Either arm
+     * may be absent; with neither, nothing matches.
+     *
+     * @param apis the clause selecting the APIs all of whose calls are wanted, {@code null} when there are none
+     */
+    public static JsonObject apisOrEntrypoints(JsonObject apis, Collection<String> entrypointIds) {
+        var wanted = new JsonArray();
+        if (apis != null) {
+            wanted.add(apis);
+        }
+        if (entrypointIds != null && !entrypointIds.isEmpty()) {
+            wanted.add(exactly(entrypointIds));
+        }
+        if (wanted.isEmpty()) {
+            return JsonObject.of("match_none", JsonObject.of());
+        }
+        if (wanted.size() == 1) {
+            return wanted.getJsonObject(0);
+        }
+        return JsonObject.of("bool", JsonObject.of("should", wanted, "minimum_should_match", 1));
+    }
+
+    /**
+     * The documents of a {@link TrafficScope}: the calls of its APIs, or made through one of its entrypoints on any
+     * API. {@code apisClause} selects the given API ids in the caller's own field.
+     */
+    public static JsonObject trafficScope(TrafficScope scope, Function<List<String>, JsonObject> apisClause) {
+        return apisOrEntrypoints(apisArm(scope, apisClause), scope.entrypointIds().stream().sorted().toList());
+    }
+
+    /** The first arm of a {@link TrafficScope} alone, for documents that carry none of the calls the second adds. */
+    public static JsonObject trafficScopeApis(TrafficScope scope, Function<List<String>, JsonObject> apisClause) {
+        return apisOrEntrypoints(apisArm(scope, apisClause), List.of());
+    }
+
+    private static JsonObject apisArm(TrafficScope scope, Function<List<String>, JsonObject> apisClause) {
+        return scope.apiIds().isEmpty() ? null : apisClause.apply(scope.apiIds().stream().sorted().toList());
     }
 
     private static List<String> withoutSyntheticValue(Collection<String> values) {

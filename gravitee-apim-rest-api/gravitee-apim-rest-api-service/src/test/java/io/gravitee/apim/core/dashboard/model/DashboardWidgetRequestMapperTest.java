@@ -167,6 +167,21 @@ class DashboardWidgetRequestMapperTest {
             assertThat(result.filters().get(0).value()).isEqualTo("my-api-id");
         }
 
+        /** A stored widget is caller input: the name the back end builds itself must not pass for a filter. */
+        @Test
+        void should_throw_when_a_filter_carries_an_internal_name() {
+            var request = DashboardWidget.Request.builder()
+                .type("measures")
+                .timeRange(validTimeRange())
+                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                .filters(List.of(DashboardWidget.Filter.builder().name("TRAFFIC_SCOPE").operator("IN").value(List.of("api")).build()))
+                .build();
+
+            assertThatThrownBy(() -> DashboardWidgetRequestMapper.toMeasuresRequest(request))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("Unknown filter name");
+        }
+
         @Test
         void should_map_metric_level_filters() {
             var metricReq = DashboardWidget.MetricRequest.builder()

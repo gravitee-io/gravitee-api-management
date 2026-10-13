@@ -19,10 +19,13 @@ import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.infra.adapter.ConnectionLogAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.api.MetricsRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
@@ -35,6 +38,7 @@ import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -47,12 +51,20 @@ import org.springframework.stereotype.Component;
 @CustomLog
 class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
 
+    private static final String API_ID_FIELD = "api-id";
+
     private final LogRepository logRepository;
     private final MetricsRepository metricsRepository;
+    private final AnalyticsRepository analyticsRepository;
 
-    public ConnectionLogsCrudServiceImpl(@Lazy LogRepository logRepository, @Lazy MetricsRepository metricsRepository) {
+    public ConnectionLogsCrudServiceImpl(
+        @Lazy LogRepository logRepository,
+        @Lazy MetricsRepository metricsRepository,
+        @Lazy AnalyticsRepository analyticsRepository
+    ) {
         this.logRepository = logRepository;
         this.metricsRepository = metricsRepository;
+        this.analyticsRepository = analyticsRepository;
     }
 
     @Override
@@ -85,9 +97,11 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         List<DefinitionVersion> definitionVersions
     ) {
         var connectionLogsFilterBuilder = mapToConnectionLogQueryFilterBuilder(logsFilters).apiIds(apiIds);
-        var detailFilterBuilder = mapToConnectionLogDetailQueryFilterBuilder(logsFilters).apiIds(apiIds);
 
         try {
+            var detailFilterBuilder = mapToConnectionLogDetailQueryFilterBuilder(logsFilters).apiIds(
+                bodySearchApiIds(executionContext, apiIds, logsFilters)
+            );
             return searchConnectionLogsWithOptionalBodyText(
                 executionContext,
                 logsFilters,
@@ -142,6 +156,42 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             log.error("An error occurs while trying to search connection log of api [apiId={}, requestId={}]", apiId, requestId, e);
             throw new TechnicalManagementException("Error while searching connection log of api " + apiId + " requestId " + requestId, e);
         }
+    }
+
+    /**
+     * Request bodies carry no entrypoint, so a body match cannot apply a traffic scope. It searches the APIs the scope
+     * keeps whole, and those with calls through one of its entrypoints in the period. The metrics phase then drops
+     * those APIs' other calls, so a page of body matches can come back short and its total counts them (known limit).
+     */
+    private Set<String> bodySearchApiIds(ExecutionContext executionContext, Set<String> apiIds, SearchLogsFilters logsFilters) {
+        var scope = logsFilters.trafficScope();
+        if (scope == null || logsFilters.bodyText() == null || logsFilters.bodyText().isBlank()) {
+            return apiIds;
+        }
+        var searched = apiIds.stream().filter(scope.apiIds()::contains).collect(Collectors.toCollection(HashSet::new));
+        var others = apiIds
+            .stream()
+            .filter(id -> !scope.apiIds().contains(id))
+            .collect(Collectors.toSet());
+        if (others.isEmpty() || scope.entrypointIds().isEmpty()) {
+            return searched;
+        }
+        searched.addAll(
+            analyticsRepository
+                .searchFilterValues(
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    FilterValuesQuery.builder()
+                        .esFieldName(API_ID_FIELD)
+                        .from(logsFilters.from())
+                        .to(logsFilters.to())
+                        .size(others.size())
+                        .apiIds(others)
+                        .trafficScope(new TrafficScope(Set.of(), scope.entrypointIds()))
+                        .build()
+                )
+                .values()
+        );
+        return searched;
     }
 
     private SearchLogsResponse<BaseConnectionLog> searchConnectionLogsWithOptionalBodyText(
@@ -218,6 +268,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .statusCodeGroups(searchLogsFilters.statusCodeGroups())
             .entrypointIds(searchLogsFilters.entrypointIds())
             .entrypointScope(ConnectionLogAdapter.INSTANCE.convertEntrypointScope(searchLogsFilters.entrypointScope()))
+            .trafficScope(ConnectionLogAdapter.INSTANCE.convertTrafficScope(searchLogsFilters.trafficScope()))
             .requestIds(searchLogsFilters.requestIds())
             .transactionIds(searchLogsFilters.transactionIds())
             .uri(searchLogsFilters.uri())

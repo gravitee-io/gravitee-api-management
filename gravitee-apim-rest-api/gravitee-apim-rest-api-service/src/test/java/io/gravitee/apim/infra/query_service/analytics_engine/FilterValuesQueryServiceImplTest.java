@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesResult;
@@ -198,6 +199,30 @@ class FilterValuesQueryServiceImplTest {
 
         verify(analyticsRepository).searchFilterValues(any(), queryCaptor.capture());
         assertThat(queryCaptor.getValue().apiIds()).containsExactlyInAnyOrder("api-1", "api-2");
+    }
+
+    @Test
+    void should_pass_the_traffic_scope_to_es_query() {
+        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("gw-1"), null, 1));
+
+        service.searchFilterValues(
+            ORG_ID,
+            ENV_ID,
+            FilterSpec.Name.GATEWAY,
+            null,
+            null,
+            1,
+            10,
+            null,
+            null,
+            Set.of("studio", "orders"),
+            new TrafficScope(Set.of("studio"), Set.of("mcp"))
+        );
+
+        verify(analyticsRepository).searchFilterValues(any(), queryCaptor.capture());
+        assertThat(queryCaptor.getValue().trafficScope()).isEqualTo(
+            new io.gravitee.repository.analytics.engine.api.query.TrafficScope(Set.of("studio"), Set.of("mcp"))
+        );
     }
 
     @Test

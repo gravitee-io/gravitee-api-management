@@ -24,10 +24,14 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.api.MetricsRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesResult;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
@@ -52,12 +56,14 @@ class ConnectionLogsCrudServiceImplTest {
 
     ConnectionLogsCrudServiceImpl logCrudService;
     MetricsRepository metricsRepository;
+    AnalyticsRepository analyticsRepository;
 
     @BeforeEach
     void setUp() {
         logRepository = mock(LogRepository.class);
         metricsRepository = mock(MetricsRepository.class);
-        logCrudService = new ConnectionLogsCrudServiceImpl(logRepository, metricsRepository);
+        analyticsRepository = mock(AnalyticsRepository.class);
+        logCrudService = new ConnectionLogsCrudServiceImpl(logRepository, metricsRepository, analyticsRepository);
     }
 
     @Nested
@@ -291,6 +297,40 @@ class ConnectionLogsCrudServiceImplTest {
             var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
             verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
             assertThat(metricsCaptor.getValue().getFilter().getRequestIds()).containsExactlyInAnyOrder("r-1", "r-2");
+        }
+
+        /**
+         * Request bodies carry no entrypoint, so the body match cannot apply a traffic scope: it only searches the
+         * APIs of the module's kinds and those with calls through an entrypoint adding one, never every readable API.
+         */
+        @Test
+        void should_search_the_bodies_of_the_apis_the_traffic_scope_can_select_only() throws AnalyticsException {
+            when(analyticsRepository.searchFilterValues(any(QueryContext.class), any())).thenReturn(
+                new FilterValuesResult(List.of("orders"), null, 1)
+            );
+            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any())).thenReturn(new LogResponse<>(0, List.of()));
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("studio", "orders", "petstore"),
+                SearchLogsFilters.builder()
+                    .from(0L)
+                    .to(1L)
+                    .bodyText("needle")
+                    .trafficScope(new SearchLogsFilters.TrafficScope(Set.of("studio"), Set.of("mcp")))
+                    .build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            var valuesCaptor = ArgumentCaptor.forClass(FilterValuesQuery.class);
+            verify(analyticsRepository).searchFilterValues(any(QueryContext.class), valuesCaptor.capture());
+            assertThat(valuesCaptor.getValue().apiIds()).containsExactlyInAnyOrder("orders", "petstore");
+            assertThat(valuesCaptor.getValue().trafficScope()).isEqualTo(new TrafficScope(Set.of(), Set.of("mcp")));
+
+            var detailCaptor = ArgumentCaptor.forClass(ConnectionLogDetailQuery.class);
+            verify(logRepository).searchConnectionLogDetails(any(QueryContext.class), detailCaptor.capture());
+            assertThat(detailCaptor.getValue().getFilter().getApiIds()).containsExactlyInAnyOrder("studio", "orders");
         }
 
         @Test
@@ -780,6 +820,29 @@ class ConnectionLogsCrudServiceImplTest {
             assertThat(metricsCaptor.getValue().getFilter().getEntrypointScope()).isEqualTo(
                 new MetricsQuery.Filter.EntrypointScope(MetricsQuery.Filter.EntrypointScope.Kind.EXACTLY, List.of("mcp-studio", "(none)"))
             );
+        }
+
+        @Test
+        void should_pass_the_traffic_scope_to_the_metrics_query() throws AnalyticsException {
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(0, List.of())
+            );
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("studio", "orders"),
+                SearchLogsFilters.builder()
+                    .from(0L)
+                    .to(1L)
+                    .trafficScope(new SearchLogsFilters.TrafficScope(Set.of("studio"), Set.of("mcp")))
+                    .build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
+            assertThat(metricsCaptor.getValue().getFilter().getTrafficScope()).isEqualTo(new TrafficScope(Set.of("studio"), Set.of("mcp")));
         }
     }
 }

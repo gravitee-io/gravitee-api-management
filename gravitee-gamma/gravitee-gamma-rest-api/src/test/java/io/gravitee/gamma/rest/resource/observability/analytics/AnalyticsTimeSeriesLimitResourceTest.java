@@ -53,6 +53,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObser
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.ComputeObservabilityTimeSeriesUseCase;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
+import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import io.gravitee.gamma.rest.infra.adapter.ObservabilityAnalyticsDataPortAdapter;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
@@ -313,7 +314,8 @@ class AnalyticsTimeSeriesLimitResourceTest extends AbstractResourceTest {
         AnalyticsRequestPipeline analyticsRequestPipeline() {
             return new AnalyticsRequestPipeline(
                 new ObservabilityFilterValidator(new SpiFilterRegistry()),
-                new AccessibleApiScopeDomainService()
+                new AccessibleApiScopeDomainService(),
+                new EntrypointScopeProviderAdapter()
             );
         }
 

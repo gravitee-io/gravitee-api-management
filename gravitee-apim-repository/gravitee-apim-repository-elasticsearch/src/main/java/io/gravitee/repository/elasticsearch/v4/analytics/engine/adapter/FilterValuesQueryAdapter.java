@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
+import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -45,6 +46,14 @@ public class FilterValuesQueryAdapter {
             } else {
                 boolFilter.add(JsonObject.of("terms", JsonObject.of(API_ID_FIELD, new JsonArray(new ArrayList<>(query.apiIds())))));
             }
+        }
+
+        if (query.trafficScope() != null) {
+            boolFilter.add(
+                EntrypointScopeClause.trafficScope(query.trafficScope(), apiIds ->
+                    JsonObject.of("terms", JsonObject.of(API_ID_FIELD, new JsonArray(apiIds)))
+                )
+            );
         }
 
         if (!boolFilter.isEmpty()) {

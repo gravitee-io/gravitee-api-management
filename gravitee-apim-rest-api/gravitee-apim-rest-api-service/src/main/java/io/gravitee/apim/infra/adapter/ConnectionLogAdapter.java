@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
@@ -52,6 +53,8 @@ public interface ConnectionLogAdapter {
     List<MetricsQuery.Filter.StatusRange> convertStatusRanges(List<SearchLogsFilters.StatusRange> statusRanges);
 
     MetricsQuery.Filter.EntrypointScope convertEntrypointScope(SearchLogsFilters.EntrypointScope entrypointScope);
+
+    TrafficScope convertTrafficScope(SearchLogsFilters.TrafficScope trafficScope);
 
     ConnectionDiagnosticModel convert(ConnectionDiagnostic connectionDiagnostic);
 

@@ -199,11 +199,22 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                 .toList();
 
             var undescribed = Arrays.stream(FilterSpec.Name.values())
+                .filter(name -> !name.isInternal())
                 .filter(name -> service.findFilter(name).isEmpty())
                 .map(FilterSpec.Name::name)
                 .toList();
 
             assertThat(undescribed).containsExactlyInAnyOrderElementsOf(pinnedNames);
+        }
+
+        /** The back end builds the internal names itself: in the catalog, they would be offered to callers. */
+        @Test
+        void should_never_describe_an_internal_name() {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            assertThat(Arrays.stream(FilterSpec.Name.values()).filter(FilterSpec.Name::isInternal)).allSatisfy(name ->
+                assertThat(service.findFilter(name)).isEmpty()
+            );
         }
 
         private static <T> List<String> droppedDimensions(
