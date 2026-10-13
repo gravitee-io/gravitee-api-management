@@ -24,9 +24,10 @@ const preview: Preview = {
         controls: { expanded: true },
     },
     decorators: [
-        Story => (
+        // `parameters.fullPage` shows a story edge to edge, as the page it stands for is in the console.
+        (Story, { parameters }) => (
             <ThemeProvider defaultMode="light">
-                <div style={{ padding: '24px', background: 'var(--color-background)', minHeight: '100vh' }}>
+                <div style={{ padding: parameters.fullPage ? 0 : '24px', background: 'var(--color-background)', minHeight: '100vh' }}>
                     <Story />
                 </div>
             </ThemeProvider>
