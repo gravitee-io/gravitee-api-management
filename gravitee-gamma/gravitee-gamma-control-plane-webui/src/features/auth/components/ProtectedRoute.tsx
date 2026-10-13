@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 
 import { useUser } from '../auth.selectors';
 
@@ -29,11 +29,27 @@ export function ProtectedRoute() {
     return <Outlet />;
 }
 
+/**
+ * The page asked before the login, when it is one of the console's, Home otherwise. The browser decides:
+ * an address it resolves outside the console (a full URL, `/\host`, a tab between two slashes) would
+ * make the navigation throw.
+ */
+function consolePath(redirect: string | null): string {
+    if (!redirect) return '/';
+    try {
+        const url = new URL(redirect, window.location.origin);
+        return url.origin === window.location.origin ? `${url.pathname}${url.search}${url.hash}` : '/';
+    } catch {
+        return '/';
+    }
+}
+
 export function PublicOnlyRoute() {
     const user = useUser();
+    const [searchParams] = useSearchParams();
 
     if (user) {
-        return <Navigate to="/" replace />;
+        return <Navigate to={consolePath(searchParams.get('redirect'))} replace />;
     }
 
     return <Outlet />;
