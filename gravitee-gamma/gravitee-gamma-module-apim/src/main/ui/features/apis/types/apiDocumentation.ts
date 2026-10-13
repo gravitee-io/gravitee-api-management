@@ -174,10 +174,33 @@ export interface ImportPortalNavigationResponse {
     summary: PortalNavigationItemsFetchSummary;
 }
 
+export interface PortalPageSwaggerConfiguration {
+    viewer: 'SWAGGER';
+    tryItURL?: string;
+    entrypointsAsServers?: boolean;
+    docExpansion?: 'list' | 'full' | 'none';
+    displayOperationId?: boolean;
+    enableFiltering?: boolean;
+    showExtensions?: boolean;
+    showCommonExtensions?: boolean;
+    /** -1 for no limit. */
+    maxDisplayedTags?: number;
+}
+
+export interface PortalPageRedocConfiguration {
+    viewer: 'REDOC';
+    tryItURL?: string;
+}
+
+/** How the portal renders an OpenAPI page. */
+export type PortalPageOpenApiConfiguration = PortalPageSwaggerConfiguration | PortalPageRedocConfiguration;
+
 export interface PortalPageContent {
     id: string;
     type: PortalPageContentType;
     content: string;
+    /** Set on OpenAPI content only. */
+    configuration?: PortalPageOpenApiConfiguration;
 }
 
 export interface UpdatePortalPageContent {
