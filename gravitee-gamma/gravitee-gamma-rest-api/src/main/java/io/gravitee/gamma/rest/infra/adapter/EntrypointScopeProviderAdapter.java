@@ -15,9 +15,13 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Reads the entrypoint scopes from {@link ObservabilityEntrypoints}, the declaration the analytics
@@ -30,5 +34,14 @@ public class EntrypointScopeProviderAdapter implements EntrypointScopeProvider {
     @Override
     public List<String> excludedFromLogs() {
         return ObservabilityEntrypoints.LOGS_EXCLUDED_IDS;
+    }
+
+    /** The registry names its kinds after the {@code API_TYPE} values, so a Gamma kind maps by name. */
+    @Override
+    public Set<String> entrypointsAdding(Set<ApiType> kinds) {
+        return Arrays.stream(ObservabilityEntrypoints.AddedKind.values())
+            .filter(added -> kinds.stream().anyMatch(kind -> kind.name().equals(added.name())))
+            .flatMap(added -> ObservabilityEntrypoints.idsAdding(added).stream())
+            .collect(Collectors.toUnmodifiableSet());
     }
 }

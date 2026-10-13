@@ -64,6 +64,8 @@ public interface AnalyticsDefinitionMapper {
     @ValueMapping(source = "NATIVE_CLIENT_SOFTWARE_VERSION", target = MappingConstants.THROW_EXCEPTION)
     // LOGS-only too: uri is the only path a log document carries, and HTTP_PATH is its analytics counterpart.
     @ValueMapping(source = "URI", target = MappingConstants.THROW_EXCEPTION)
+    // Internal: built by the back end from a module's API kinds, never part of the catalog.
+    @ValueMapping(source = "TRAFFIC_SCOPE", target = MappingConstants.THROW_EXCEPTION)
     FilterName mapAnalyticsFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 
     List<MetricSpec> mapMetricSpecs(List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs);
@@ -87,6 +89,7 @@ public interface AnalyticsDefinitionMapper {
     @Mapping(source = "apis", target = "apiTypes")
     FilterSpec mapFilterSpec(io.gravitee.apim.core.analytics_engine.model.FilterSpec filterSpec);
 
+    @ValueMapping(source = "TRAFFIC_SCOPE", target = MappingConstants.THROW_EXCEPTION)
     ObservabilityFilterName mapObservabilityFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 
     ApiName mapApiSpecName(io.gravitee.apim.core.analytics_engine.model.ApiSpec.Name name);

@@ -16,6 +16,7 @@
 package io.gravitee.repository.analytics.engine.api.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -85,6 +86,32 @@ class ObservabilityEntrypointsTest {
         @Test
         void should_not_recognise_an_entrypoint_id_no_one_declared() {
             assertThat(ObservabilityEntrypoints.declares("acme-custom")).isFalse();
+        }
+    }
+
+    @Nested
+    class AddedKinds {
+
+        /**
+         * An MCP tool server is a PROXY API and an agent a MESSAGE API: their type names neither kind, their
+         * entrypoint does. Every other entrypoint is served by APIs whose type already names the kind.
+         */
+        @Test
+        void should_add_an_api_to_a_kind_only_through_the_mcp_and_agent_entrypoints() {
+            var adding = Arrays.stream(ObservabilityEntrypoints.values())
+                .filter(entrypoint -> entrypoint.addedKind() != ObservabilityEntrypoints.AddedKind.NONE)
+                .collect(Collectors.toMap(ObservabilityEntrypoints::id, ObservabilityEntrypoints::addedKind));
+
+            assertThat(adding).containsOnly(
+                entry("mcp", ObservabilityEntrypoints.AddedKind.MCP),
+                entry("agent-to-agent", ObservabilityEntrypoints.AddedKind.A2A)
+            );
+        }
+
+        @Test
+        void should_list_the_entrypoints_adding_a_kind() {
+            assertThat(ObservabilityEntrypoints.idsAdding(ObservabilityEntrypoints.AddedKind.MCP)).containsExactly("mcp");
+            assertThat(ObservabilityEntrypoints.idsAdding(ObservabilityEntrypoints.AddedKind.A2A)).containsExactly("agent-to-agent");
         }
     }
 

@@ -41,7 +41,8 @@ public interface ObservabilityFilterDataPort {
      * entity id and {@code label} its display name; for direct-value filters the value is the raw
      * indexed value and {@code label} is {@code null}.
      *
-     * @param apiTypes optional API-type constraint to narrow results (empty = unconstrained)
+     * @param apiTypes optional API-kind constraint to narrow results to the calls those kinds select,
+     *                 the entrypoints adding them included (empty = unconstrained)
      */
     FilterValuesPage listKeywordValues(String filterName, String query, Long from, Long to, int page, int perPage, Set<ApiType> apiTypes);
 

@@ -26,12 +26,19 @@ import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.analytics.engine.api.query.TimeRange;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
+import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -652,6 +659,87 @@ class FilterAdapterTest {
             var rangeClause = filterAgg.at("/filter/bool/must/0/range/gateway-response-time-ms");
             assertThat(rangeClause.isMissingNode()).isFalse();
             assertThat(rangeClause.get("gte").asInt()).isEqualTo(1000);
+        }
+    }
+
+    /**
+     * A module scoped by API kind: all calls of the APIs its kinds name by type, plus the calls an entrypoint
+     * adds to one of its kinds on any API. Only the documents carrying an entrypoint can read the second arm.
+     */
+    @Nested
+    class TrafficScopeFilter {
+
+        private static final TrafficScope AIM = new TrafficScope(Set.of("studio"), Set.of("mcp"));
+
+        private MeasuresQuery queryWith(TrafficScope scope) {
+            return new MeasuresQuery(
+                buildTimeRange(),
+                List.of(new Filter(Filter.Name.TRAFFIC_SCOPE, Filter.Operator.IN, scope)),
+                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)))
+            );
+        }
+
+        private static JsonObject apiTerms(FieldResolver resolver, String... apiIds) {
+            var field = resolver.fromFilter(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(apiIds)));
+            return JsonObject.of("terms", JsonObject.of(field, new JsonArray(List.of(apiIds))));
+        }
+
+        @Test
+        void should_select_the_calls_of_the_apis_in_scope_by_type_or_made_through_an_entrypoint_adding_a_kind() {
+            var resolver = new HTTPFieldResolver();
+
+            var filters = new FilterAdapter(resolver).adaptForHTTP(queryWith(AIM));
+
+            assertThat(filters).contains(EntrypointScopeClause.apisOrEntrypoints(apiTerms(resolver, "studio"), List.of("mcp")));
+        }
+
+        @Test
+        void should_keep_the_default_entrypoint_scope_next_to_the_traffic_scope() {
+            var adapter = new FilterAdapter(new HTTPFieldResolver());
+
+            assertThat(adapter.adaptForHTTP(queryWith(AIM))).contains(adapter.defaultHttpEntrypointScope());
+        }
+
+        /**
+         * The entrypoints that add a kind serve request-shaped calls, which write no message: the connection phase
+         * would only collect request ids without messages, and the message documents need no join to read the API.
+         */
+        @Test
+        void should_apply_only_the_type_arm_to_message_queries_and_keep_their_direct_read() {
+            var connections = new FilterAdapter(new HTTPFieldResolver()).adaptForMessageConnexion(queryWith(AIM));
+            var messages = new FilterAdapter(new MessageFieldResolver());
+
+            assertThat(connections).contains(apiTerms(new HTTPFieldResolver(), "studio"));
+            assertThat(connections.encode()).doesNotContain("\"mcp\"");
+            assertThat(messages.adaptForMessage(queryWith(AIM))).contains(apiTerms(new MessageFieldResolver(), "studio"));
+            assertThat(messages.isFullyAppliedOnMessages(queryWith(AIM))).isTrue();
+        }
+
+        @Test
+        void should_apply_only_the_type_arm_where_the_documents_carry_no_entrypoint() {
+            var families = List.<Map.Entry<FieldResolver, Function<FilterAdapter, Function<Query, JsonArray>>>>of(
+                Map.entry(new NativeApiFieldResolver(), adapter -> adapter::adaptForNative),
+                Map.entry(new EventMetricsFieldResolver(), adapter -> adapter::adaptForEventMetrics),
+                Map.entry(new HTTPFieldResolver(), adapter -> adapter::adaptForEdge),
+                Map.entry(new AuthzFieldResolver(), adapter -> adapter::adaptForAuthz),
+                Map.entry(new AuthzTrafficFieldResolver(), adapter -> adapter::adaptForAuthzTraffic)
+            );
+
+            for (var family : families) {
+                var filters = family.getValue().apply(new FilterAdapter(family.getKey())).apply(queryWith(AIM));
+
+                assertThat(filters).as(family.getKey().getClass().getSimpleName()).contains(apiTerms(family.getKey(), "studio"));
+                assertThat(filters.encode()).as(family.getKey().getClass().getSimpleName()).doesNotContain("\"mcp\"");
+            }
+        }
+
+        @Test
+        void should_match_nothing_where_the_documents_carry_no_entrypoint_and_no_api_is_in_scope_by_type() {
+            var filters = new FilterAdapter(new NativeApiFieldResolver()).adaptForNative(
+                queryWith(new TrafficScope(Set.of(), Set.of("mcp")))
+            );
+
+            assertThat(filters).contains(JsonObject.of("match_none", JsonObject.of()));
         }
     }
 

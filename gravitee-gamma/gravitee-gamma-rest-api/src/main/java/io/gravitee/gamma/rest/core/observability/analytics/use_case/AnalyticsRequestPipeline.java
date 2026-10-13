@@ -25,10 +25,13 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
+import io.gravitee.gamma.rest.core.observability.logs.model.TrafficScope;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -42,8 +45,9 @@ import lombok.AllArgsConstructor;
  * Shared pipeline for the three analytics use cases: validates incoming filter conditions against
  * the {@link Signal#ANALYTICS} catalog, loads the caller's readable APIs once, and builds the scope of
  * each engine query using only Gamma-native types. Every condition is ANDed, the same field included:
- * the scope-only conditions ({@code API}, {@code API_TYPE}) each narrow the readable APIs, and the
- * others reach the engine one clause each. The entrypoint scope is the engine's: it applies its
+ * the scope-only conditions ({@code API}, {@code API_TYPE}) each narrow the readable APIs, or for an
+ * {@code API_TYPE} whose kind an entrypoint adds to APIs of another type, their calls (see
+ * {@link PreparedRequest#scopeWith}), and the others reach the engine one clause each. The entrypoint scope is the engine's: it applies its
  * fail-open default to a query without an {@code ENTRYPOINT} condition and honours an explicit one
  * exactly. All APIM analytics-engine type translation is deferred to the infra adapter.
  *
@@ -52,8 +56,6 @@ import lombok.AllArgsConstructor;
 @DomainService
 @AllArgsConstructor
 public class AnalyticsRequestPipeline {
-
-    static final Set<ApiType> ANALYTICS_SUPPORTED_API_TYPES = ApiType.ALL;
 
     private static final String API = "API";
     private static final String API_TYPE = "API_TYPE";
@@ -72,12 +74,18 @@ public class AnalyticsRequestPipeline {
 
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
+    private final EntrypointScopeProvider entrypointScopeProvider;
 
     /**
      * The scope of one engine query, expressed entirely in Gamma-native types. The infra adapter is
      * responsible for translating {@link #filters()} to the analytics-engine model.
      */
-    public record PreparedScope(Instant from, Instant to, List<FilterCondition> filters, Set<String> apiIds) {
+    public record PreparedScope(Instant from, Instant to, List<FilterCondition> filters, Set<String> apiIds, TrafficScope trafficScope) {
+        /** A scope the API types alone decide. */
+        public PreparedScope(Instant from, Instant to, List<FilterCondition> filters, Set<String> apiIds) {
+            this(from, to, filters, apiIds, null);
+        }
+
         /** Nothing the caller can read. Keeps the time range, so the query can still be validated. */
         public static PreparedScope empty(Instant from, Instant to) {
             return new PreparedScope(from, to, List.of(), Set.of());
@@ -91,26 +99,48 @@ public class AnalyticsRequestPipeline {
     /**
      * A validated request and the APIs its caller can read, from which each engine query takes its scope.
      * The request's own conditions are never re-validated once a group's are appended.
+     *
+     * @param entrypointsAddingKind per API kind, the entrypoints whose calls belong to it whatever the API's type
      */
-    public record PreparedRequest(Instant from, Instant to, List<FilterCondition> conditions, List<AccessibleApi> readableApis) {
+    public record PreparedRequest(
+        Instant from,
+        Instant to,
+        List<FilterCondition> conditions,
+        List<AccessibleApi> readableApis,
+        Map<ApiType, Set<String>> entrypointsAddingKind
+    ) {
         /**
          * The scope of a query filtered by the request's conditions and the given ones. The API scope is
-         * the readable APIs narrowed by every {@code API} condition and by the APIs of every
-         * {@code API_TYPE} condition: disjoint conditions answer the empty scope, never every readable API.
+         * the readable APIs narrowed by every {@code API} condition and by the kinds every {@code API_TYPE}
+         * condition allows: disjoint conditions answer the empty scope, never every readable API. When an
+         * entrypoint adds one of those kinds to an API of another type, the readable APIs all stay in and the
+         * {@link TrafficScope} keeps, beyond the APIs of those types, only their calls through it.
          */
         public PreparedScope scopeWith(List<FilterCondition> groupConditions) {
             var all = new ArrayList<>(conditions);
             all.addAll(groupConditions);
 
-            var apiIds = readableApis.stream().map(AccessibleApi::id).collect(Collectors.toCollection(HashSet::new));
+            var candidateIds = readableApis.stream().map(AccessibleApi::id).collect(Collectors.toCollection(HashSet::new));
+            Set<String> wantedKinds = null;
             for (var condition : all) {
                 if (API.equals(condition.name())) {
-                    apiIds.retainAll(condition.values());
+                    candidateIds.retainAll(condition.values());
                 } else if (API_TYPE.equals(condition.name())) {
-                    apiIds.retainAll(apisOfType(condition));
+                    var kinds = new HashSet<>(condition.values());
+                    if (wantedKinds != null) {
+                        kinds.retainAll(wantedKinds);
+                    }
+                    wantedKinds = kinds;
                 }
             }
-            if (apiIds.isEmpty()) {
+            var candidates = readableApis
+                .stream()
+                .filter(api -> candidateIds.contains(api.id()))
+                .toList();
+            var scoped = wantedKinds == null
+                ? AccessibleApiScopeDomainService.scopeOf(candidates, ApiType.ALL, Set.of())
+                : AccessibleApiScopeDomainService.scopeOf(candidates, kindsNamed(wantedKinds), entrypointsAdding(wantedKinds));
+            if (scoped.apiIds().isEmpty()) {
                 return PreparedScope.empty(from, to);
             }
 
@@ -118,16 +148,22 @@ public class AnalyticsRequestPipeline {
                 .stream()
                 .filter(condition -> !isScopeOnly(condition))
                 .collect(Collectors.toCollection(ArrayList::new));
-            filters.add(new FilterCondition(API, FilterOperator.IN, List.copyOf(apiIds)));
-            return new PreparedScope(from, to, List.copyOf(filters), Set.copyOf(apiIds));
+            filters.add(new FilterCondition(API, FilterOperator.IN, List.copyOf(scoped.apiIds())));
+            return new PreparedScope(from, to, List.copyOf(filters), Set.copyOf(scoped.apiIds()), scoped.trafficScope());
         }
 
-        // Resolved to API ids rather than handed to the engine, which reads one API_TYPE condition only.
-        private Set<String> apisOfType(FilterCondition apiType) {
-            return readableApis
+        private static Set<ApiType> kindsNamed(Set<String> names) {
+            return Arrays.stream(ApiType.values())
+                .filter(kind -> names.contains(kind.name()))
+                .collect(Collectors.toSet());
+        }
+
+        private Set<String> entrypointsAdding(Set<String> kinds) {
+            return entrypointsAddingKind
+                .entrySet()
                 .stream()
-                .filter(api -> apiType.values().contains(api.type().name()))
-                .map(AccessibleApi::id)
+                .filter(entry -> kinds.contains(entry.getKey().name()))
+                .flatMap(entry -> entry.getValue().stream())
                 .collect(Collectors.toSet());
         }
 
@@ -150,13 +186,16 @@ public class AnalyticsRequestPipeline {
         validateTimeRange(from, to);
 
         var accessibleApis = analyticsDataPort.loadAccessibleApis(organizationId, environmentId);
-        var readable = accessibleApiScope.computeScope(accessibleApis, ANALYTICS_SUPPORTED_API_TYPES, null).apiIds();
+        var readable = accessibleApiScope.computeScope(accessibleApis, ApiType.ALL, null).apiIds();
         var readableApis = accessibleApis
             .stream()
             .filter(api -> readable.contains(api.id()))
             .toList();
 
-        return new PreparedRequest(from, to, List.copyOf(conditions), readableApis);
+        var entrypointsAddingKind = Arrays.stream(ApiType.values()).collect(
+            Collectors.toMap(kind -> kind, kind -> entrypointScopeProvider.entrypointsAdding(Set.of(kind)))
+        );
+        return new PreparedRequest(from, to, List.copyOf(conditions), readableApis, entrypointsAddingKind);
     }
 
     /**

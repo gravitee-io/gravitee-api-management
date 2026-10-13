@@ -37,6 +37,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
+import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -62,7 +63,8 @@ class ComputeObservabilityFacetsUseCaseTest {
     void should_reject_a_request_without_metrics_before_loading_the_accessible_apis() {
         var pipeline = new AnalyticsRequestPipeline(
             new ObservabilityFilterValidator(filterRegistry),
-            new AccessibleApiScopeDomainService()
+            new AccessibleApiScopeDomainService(),
+            new EntrypointScopeProviderAdapter()
         );
         var useCase = new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
         var input = new ComputeObservabilityFacetsUseCase.Input(
@@ -88,7 +90,8 @@ class ComputeObservabilityFacetsUseCaseTest {
     void should_refuse_a_malformed_query_even_when_the_caller_can_read_no_api() {
         var pipeline = new AnalyticsRequestPipeline(
             new ObservabilityFilterValidator(filterRegistry),
-            new AccessibleApiScopeDomainService()
+            new AccessibleApiScopeDomainService(),
+            new EntrypointScopeProviderAdapter()
         );
         var useCase = new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
         when(analyticsDataPort.loadAccessibleApis("org-1", "env-1")).thenReturn(List.of());
@@ -140,7 +143,8 @@ class ComputeObservabilityFacetsUseCaseTest {
     private ComputeObservabilityFacetsUseCase useCase() {
         var pipeline = new AnalyticsRequestPipeline(
             new ObservabilityFilterValidator(filterRegistry),
-            new AccessibleApiScopeDomainService()
+            new AccessibleApiScopeDomainService(),
+            new EntrypointScopeProviderAdapter()
         );
         return new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
     }

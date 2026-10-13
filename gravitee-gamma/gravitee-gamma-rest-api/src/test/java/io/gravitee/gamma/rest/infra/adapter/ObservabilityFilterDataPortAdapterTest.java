@@ -44,7 +44,8 @@ class ObservabilityFilterDataPortAdapterTest {
     private final ResolveFilterLabelsUseCase resolveFilterLabelsUseCase = mock(ResolveFilterLabelsUseCase.class);
     private final ObservabilityFilterDataPortAdapter adapter = new ObservabilityFilterDataPortAdapter(
         getFilterValuesUseCase,
-        resolveFilterLabelsUseCase
+        resolveFilterLabelsUseCase,
+        new EntrypointScopeProviderAdapter()
     );
 
     /** Two {@code FilterValue} records, one per catalog: the platform one is spelled out here, once. */
@@ -103,5 +104,32 @@ class ObservabilityFilterDataPortAdapterTest {
         var captor = ArgumentCaptor.forClass(GetFilterValuesUseCase.Input.class);
         verify(getFilterValuesUseCase).execute(captor.capture());
         assertThat(captor.getValue().apiTypes()).containsExactly(io.gravitee.definition.model.v4.ApiType.AUTHZ);
+    }
+
+    /** AIM lists Orders, a PROXY API exposing mcp, through its MCP calls: the platform needs the entrypoints too. */
+    @Test
+    void should_hand_the_platform_the_entrypoints_adding_the_listed_kinds() {
+        when(getFilterValuesUseCase.execute(any())).thenReturn(
+            new GetFilterValuesUseCase.Output(new FilterValuesPage(List.of(), Map.of(), 0L))
+        );
+
+        adapter.listKeywordValues("API", null, null, null, 1, 10, Set.of(ApiType.MCP, ApiType.LLM, ApiType.A2A));
+
+        var captor = ArgumentCaptor.forClass(GetFilterValuesUseCase.Input.class);
+        verify(getFilterValuesUseCase).execute(captor.capture());
+        assertThat(captor.getValue().trafficEntrypointIds()).containsExactlyInAnyOrder("mcp", "agent-to-agent");
+    }
+
+    @Test
+    void should_hand_the_platform_no_entrypoint_when_the_types_alone_decide() {
+        when(getFilterValuesUseCase.execute(any())).thenReturn(
+            new GetFilterValuesUseCase.Output(new FilterValuesPage(List.of(), Map.of(), 0L))
+        );
+
+        adapter.listKeywordValues("API", null, null, null, 1, 10, Set.of(ApiType.HTTP_PROXY));
+
+        var captor = ArgumentCaptor.forClass(GetFilterValuesUseCase.Input.class);
+        verify(getFilterValuesUseCase).execute(captor.capture());
+        assertThat(captor.getValue().trafficEntrypointIds()).isEmpty();
     }
 }

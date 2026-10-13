@@ -52,6 +52,7 @@ class AnalyticsVocabularyMappingTest {
     @Test
     void should_refuse_exactly_the_logs_only_filters_on_the_analytics_catalog() {
         var refused = Arrays.stream(FilterSpec.Name.values())
+            .filter(name -> !name.isInternal())
             .filter(name -> {
                 try {
                     AnalyticsDefinitionMapper.INSTANCE.mapAnalyticsFilterName(name);
@@ -71,6 +72,7 @@ class AnalyticsVocabularyMappingTest {
     @Test
     void should_map_every_analytics_filter_onto_the_same_generated_name() {
         var renamed = Arrays.stream(FilterSpec.Name.values())
+            .filter(name -> !name.isInternal())
             .filter(name -> !logsOnlyFilterNames().contains(name.name()))
             .filter(name -> !AnalyticsDefinitionMapper.INSTANCE.mapAnalyticsFilterName(name).name().equals(name.name()))
             .toList();
@@ -81,6 +83,7 @@ class AnalyticsVocabularyMappingTest {
     @Test
     void should_map_every_filter_onto_the_observability_catalog() {
         var unmapped = Arrays.stream(FilterSpec.Name.values())
+            .filter(name -> !name.isInternal())
             .filter(name -> {
                 var mapped = AnalyticsDefinitionMapper.INSTANCE.mapObservabilityFilterName(name);
                 return mapped == null || !mapped.name().equals(name.name());

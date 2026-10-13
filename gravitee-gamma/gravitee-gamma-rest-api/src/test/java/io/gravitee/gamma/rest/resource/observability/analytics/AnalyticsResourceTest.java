@@ -35,6 +35,7 @@ import io.gravitee.gamma.rest.core.observability.filter.domain_service.Observabi
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
+import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resource.observability.analytics.AnalyticsResourceTest.AnalyticsTestConfiguration;
@@ -430,7 +431,8 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         AnalyticsRequestPipeline analyticsRequestPipeline() {
             return new AnalyticsRequestPipeline(
                 new ObservabilityFilterValidator(new SpiFilterRegistry()),
-                new AccessibleApiScopeDomainService()
+                new AccessibleApiScopeDomainService(),
+                new EntrypointScopeProviderAdapter()
             );
         }
 

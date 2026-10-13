@@ -25,7 +25,8 @@ import java.util.Set;
  * given. The Elasticsearch adapters derive the default scope of the observability signals from it and
  * nowhere else: the analytics engine ({@code FilterAdapter}) leaves out {@link #ANALYTICS_EXCLUDED_IDS},
  * and the logs query builder ({@code SearchMetricsQueryAdapter}) leaves out {@link #LOGS_EXCLUDED_IDS}
- * when Gamma asks for the default scope.
+ * when Gamma asks for the default scope. It also records the API kind an entrypoint adds whatever the
+ * API's type ({@link AddedKind}), which Gamma reads to scope a module by kind.
  *
  * <p>A default states what it leaves out, never what it covers. An entrypoint nobody has declared here is
  * therefore counted rather than silently dropped, and the Management API warns once at startup about every
@@ -59,34 +60,34 @@ public enum ObservabilityEntrypoints {
      * Declaration order is the order the ids reach Elasticsearch. Kept stable so query bodies stay
      * comparable across versions.
      */
-    HTTP_GET("http-get", "gravitee-entrypoint-http-get", Scope.HTTP),
-    HTTP_POST("http-post", "gravitee-entrypoint-http-post", Scope.HTTP),
-    HTTP_PROXY("http-proxy", "gravitee-apim-plugin-entrypoint-http-proxy", Scope.HTTP),
-    LLM_PROXY("llm-proxy", "gravitee-entrypoint-llm-proxy", Scope.HTTP),
-    MCP_PROXY("mcp-proxy", "gravitee-entrypoint-mcp-proxy", Scope.HTTP),
-    A2A_PROXY("a2a-proxy", "gravitee-entrypoint-a2a-proxy", Scope.HTTP),
+    HTTP_GET("http-get", "gravitee-entrypoint-http-get", Scope.HTTP, AddedKind.NONE),
+    HTTP_POST("http-post", "gravitee-entrypoint-http-post", Scope.HTTP, AddedKind.NONE),
+    HTTP_PROXY("http-proxy", "gravitee-apim-plugin-entrypoint-http-proxy", Scope.HTTP, AddedKind.NONE),
+    LLM_PROXY("llm-proxy", "gravitee-entrypoint-llm-proxy", Scope.HTTP, AddedKind.NONE),
+    MCP_PROXY("mcp-proxy", "gravitee-entrypoint-mcp-proxy", Scope.HTTP, AddedKind.NONE),
+    A2A_PROXY("a2a-proxy", "gravitee-entrypoint-a2a-proxy", Scope.HTTP, AddedKind.NONE),
     /** The plugin id differs from the artifact name: {@code plugin.properties} of gravitee-entrypoint-mcp-tool-server says {@code mcp}. */
-    MCP("mcp", "gravitee-entrypoint-mcp-tool-server", Scope.HTTP),
-    MCP_STUDIO("mcp-studio", "gravitee-entrypoint-mcp-studio", Scope.HTTP),
-    AGENT_TO_AGENT("agent-to-agent", "gravitee-entrypoint-agent-to-agent", Scope.HTTP),
+    MCP("mcp", "gravitee-entrypoint-mcp-tool-server", Scope.HTTP, AddedKind.MCP),
+    MCP_STUDIO("mcp-studio", "gravitee-entrypoint-mcp-studio", Scope.HTTP, AddedKind.NONE),
+    AGENT_TO_AGENT("agent-to-agent", "gravitee-entrypoint-agent-to-agent", Scope.HTTP, AddedKind.A2A),
 
-    NATIVE_KAFKA("native-kafka", "gravitee-entrypoint-native-kafka", Scope.LOGS_ONLY),
+    NATIVE_KAFKA("native-kafka", "gravitee-entrypoint-native-kafka", Scope.LOGS_ONLY, AddedKind.NONE),
 
     /** Reported by Edge agents, which ship no entrypoint plugin of their own. */
-    EDGE("edge", null, Scope.DEDICATED_FAMILY),
+    EDGE("edge", null, Scope.DEDICATED_FAMILY, AddedKind.NONE),
     /** The plugin id differs from the artifact name: {@code plugin.properties} of gravitee-entrypoint-authz 1.2.0 says {@code authzen}. */
-    AUTHZ("authzen", "gravitee-entrypoint-authz", Scope.DEDICATED_FAMILY),
+    AUTHZ("authzen", "gravitee-entrypoint-authz", Scope.DEDICATED_FAMILY, AddedKind.NONE),
 
     /*
      * The async entrypoints of Message APIs. LOGS_ONLY rather than EXCLUDED since the logs signal
      * serves Message APIs: their connection documents are HTTP connection documents like any other,
      * and leaving them out returned an empty page with no error.
      */
-    SSE("sse", "gravitee-entrypoint-sse", Scope.LOGS_ONLY),
-    WEBHOOK("webhook", "gravitee-entrypoint-webhook", Scope.LOGS_ONLY),
-    WEBSOCKET("websocket", "gravitee-entrypoint-websocket", Scope.LOGS_ONLY),
+    SSE("sse", "gravitee-entrypoint-sse", Scope.LOGS_ONLY, AddedKind.NONE),
+    WEBHOOK("webhook", "gravitee-entrypoint-webhook", Scope.LOGS_ONLY, AddedKind.NONE),
+    WEBSOCKET("websocket", "gravitee-entrypoint-websocket", Scope.LOGS_ONLY, AddedKind.NONE),
 
-    TCP_PROXY("tcp-proxy", "gravitee-apim-plugin-entrypoint-tcp-proxy", Scope.EXCLUDED);
+    TCP_PROXY("tcp-proxy", "gravitee-apim-plugin-entrypoint-tcp-proxy", Scope.EXCLUDED, AddedKind.NONE);
 
     /**
      * What observability does with an entrypoint's traffic. Every entrypoint must pick one, so a
@@ -126,6 +127,22 @@ public enum ObservabilityEntrypoints {
         EXCLUDED,
     }
 
+    /**
+     * The API kind an entrypoint's calls belong to when the API serving them is of another type, so a module
+     * scoped by kind also counts them. Declared per entrypoint for the same reason as {@link Scope}: the plugin
+     * SPI cannot say it — {@code mcp} declares the same {@code PROXY} support as {@code http-proxy}.
+     *
+     * <p>Only an entrypoint served by APIs of a type that does not name its kind adds one: {@code mcp} on a PROXY
+     * API, {@code agent-to-agent} on a MESSAGE API. Every other one is served by APIs whose type already names the
+     * kind ({@code mcp-proxy} by MCP_PROXY APIs, {@code http-get} by MESSAGE APIs), so it leaves the kind to the
+     * type. The names match the API kinds of the {@code API_TYPE} filter.
+     */
+    public enum AddedKind {
+        NONE,
+        MCP,
+        A2A,
+    }
+
     /** Entrypoints the analytics default leaves out: everything not counted as HTTP request traffic. */
     public static final List<String> ANALYTICS_EXCLUDED_IDS = idsWithScope(Scope.LOGS_ONLY, Scope.DEDICATED_FAMILY, Scope.EXCLUDED);
 
@@ -141,11 +158,13 @@ public enum ObservabilityEntrypoints {
     private final String id;
     private final String pluginArtifactId;
     private final Scope scope;
+    private final AddedKind addedKind;
 
-    ObservabilityEntrypoints(String id, String pluginArtifactId, Scope scope) {
+    ObservabilityEntrypoints(String id, String pluginArtifactId, Scope scope, AddedKind addedKind) {
         this.id = id;
         this.pluginArtifactId = pluginArtifactId;
         this.scope = scope;
+        this.addedKind = addedKind;
     }
 
     /** The {@code entrypoint-id} value carried by the reported documents. */
@@ -156,6 +175,19 @@ public enum ObservabilityEntrypoints {
     /** The plugin the distribution bundles this entrypoint as, absent when it ships no plugin. */
     public Optional<String> pluginArtifactId() {
         return Optional.ofNullable(pluginArtifactId);
+    }
+
+    /** The kind this entrypoint's calls add their API to, whatever the API's type. */
+    public AddedKind addedKind() {
+        return addedKind;
+    }
+
+    /** The {@code entrypoint-id} values whose calls belong to the given kind whatever the API's type. */
+    public static List<String> idsAdding(AddedKind kind) {
+        return Arrays.stream(values())
+            .filter(entrypoint -> entrypoint.addedKind == kind)
+            .map(ObservabilityEntrypoints::id)
+            .toList();
     }
 
     /** Whether an {@code entrypoint-id} has a scope decision recorded here. */

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
+import io.gravitee.repository.analytics.engine.api.query.TrafficScope;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
@@ -75,6 +76,19 @@ public class MetricsElasticsearchRepositoryEntrypointScopeTest extends AbstractE
     @Test
     void should_reach_requests_without_an_entrypoint_only_through_the_synthetic_value() {
         assertThat(total(Filter.builder().entrypointScope(Filter.EntrypointScope.exactly(List.of("(none)"))))).isEqualTo(1L);
+    }
+
+    /** A hybrid API in a module scoped by kind: only its calls through an entrypoint adding that kind. */
+    @Test
+    void should_select_only_the_calls_an_entrypoint_adds_to_the_kind_when_the_api_is_not_in_scope_by_type() {
+        assertThat(total(Filter.builder().trafficScope(new TrafficScope(Set.of(), Set.of("mcp", "agent-to-agent"))))).isEqualTo(2L);
+    }
+
+    @Test
+    void should_select_every_call_of_an_api_in_scope_by_type() {
+        assertThat(total(Filter.builder().trafficScope(new TrafficScope(Set.of(SCOPE_API), Set.of("mcp"))))).isEqualTo(
+            total(Filter.builder())
+        );
     }
 
     @Test

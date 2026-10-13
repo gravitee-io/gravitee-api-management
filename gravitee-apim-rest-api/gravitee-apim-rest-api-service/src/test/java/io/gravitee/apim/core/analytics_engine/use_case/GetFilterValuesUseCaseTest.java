@@ -29,9 +29,11 @@ import fixtures.core.model.FilterSpecFixtures;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
+import io.gravitee.apim.core.analytics_engine.model.TrafficScope;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.query_service.FilterValuesQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -122,6 +124,15 @@ class GetFilterValuesUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "INVALID_FILTER", null, null, 1, 10, null)))
             .isInstanceOf(ValidationDomainException.class)
             .hasMessageContaining("Invalid filter name");
+        verifyNoInteractions(contextLoader);
+    }
+
+    @Test
+    void should_neither_accept_nor_advertise_a_name_only_the_back_end_builds() {
+        assertThatThrownBy(() -> useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "TRAFFIC_SCOPE", null, null, 1, 10, null)))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("Invalid filter name")
+            .satisfies(e -> assertThat(((ValidationDomainException) e).getParameters().get("validNames")).doesNotContain("TRAFFIC_SCOPE"));
         verifyNoInteractions(contextLoader);
     }
 
@@ -1402,6 +1413,172 @@ class GetFilterValuesUseCaseTest {
 
             assertThat(output.valuesPage().data()).isEmpty();
             assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(0L);
+        }
+    }
+
+    /**
+     * A module scoped by API kind whose kinds an entrypoint can add to an API of another type: AIM sees Studio by
+     * type, and Orders, a PROXY API exposing {@code mcp}, through its MCP calls only.
+     */
+    @Nested
+    class TrafficScopeConstraints {
+
+        private static final Set<String> READABLE = Set.of("orders", "studio", "native");
+        private static final TrafficScope AIM = new TrafficScope(Set.of("studio"), Set.of("mcp"));
+
+        @BeforeEach
+        void setUp() {
+            when(definitionQueryService.getAllFilters()).thenReturn(
+                List.of(
+                    FilterSpecFixtures.keyword(FilterSpec.Name.API, "API"),
+                    FilterSpecFixtures.keyword(FilterSpec.Name.APPLICATION, "Application"),
+                    FilterSpecFixtures.keyword(FilterSpec.Name.HTTP_METHOD, "HTTP Method")
+                )
+            );
+            when(contextLoader.load(any(), any())).thenReturn(
+                new AnalyticsQueryContext(
+                    AUDIT_INFO,
+                    new ExecutionContext("org-id", "env-id"),
+                    READABLE,
+                    Map.of("orders", "Orders API", "studio", "Studio API", "native", "Native API"),
+                    Map.of(),
+                    Map.of(ApiType.PROXY, Set.of("orders"), ApiType.MCP_PROXY, Set.of("studio"), ApiType.NATIVE, Set.of("native"))
+                )
+            );
+        }
+
+        private GetFilterValuesUseCase.Input aim(String filterName, String query) {
+            return new GetFilterValuesUseCase.Input(
+                AUDIT_INFO,
+                filterName,
+                null,
+                null,
+                1,
+                10,
+                query,
+                Set.of(ApiType.MCP_PROXY),
+                AnalyticsScope.MANAGEMENT,
+                Set.of("mcp")
+            );
+        }
+
+        @Test
+        void should_offer_only_the_values_of_the_calls_the_module_sees() {
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    anyInt(),
+                    anyInt(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenReturn(new FilterValuesPage(List.of(new FilterValue("GET")), null));
+
+            useCase.execute(aim("HTTP_METHOD", null));
+
+            verify(filterValuesQueryService).searchFilterValues(
+                "org-id",
+                "env-id",
+                FilterSpec.Name.HTTP_METHOD,
+                null,
+                null,
+                1,
+                10,
+                null,
+                null,
+                READABLE,
+                AIM
+            );
+        }
+
+        @Test
+        void should_list_the_apis_the_module_sees_from_their_calls() {
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    anyInt(),
+                    anyInt(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenReturn(new FilterValuesPage(List.of(new FilterValue("orders"), new FilterValue("studio")), null));
+
+            var output = useCase.execute(aim("API", null));
+
+            verify(filterValuesQueryService).searchFilterValues(
+                "org-id",
+                "env-id",
+                FilterSpec.Name.API,
+                null,
+                null,
+                1,
+                10,
+                null,
+                null,
+                READABLE,
+                AIM
+            );
+            assertThat(output.valuesPage().data()).extracting(FilterValue::value).containsExactly("Orders API", "Studio API");
+        }
+
+        @Test
+        void should_find_by_name_an_api_in_scope_by_type_and_one_with_calls_through_an_entrypoint_adding_the_kind() {
+            when(
+                filterValuesQueryService.searchFilterValues(
+                    eq("org-id"),
+                    eq("env-id"),
+                    eq(FilterSpec.Name.API),
+                    any(),
+                    any(),
+                    eq(1),
+                    anyInt(),
+                    any(),
+                    any(),
+                    eq(Set.of("orders", "native")),
+                    eq(new TrafficScope(Set.of(), Set.of("mcp")))
+                )
+            ).thenReturn(new FilterValuesPage(List.of(new FilterValue("orders")), null));
+
+            var output = useCase.execute(aim("API", "api"));
+
+            assertThat(output.valuesPage().data()).extracting(FilterValue::value).containsExactly("Orders API", "Studio API");
+            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(2L);
+        }
+
+        @Test
+        void should_keep_today_s_type_narrowing_when_no_entrypoint_adds_the_kind() {
+            var output = useCase.execute(
+                new GetFilterValuesUseCase.Input(AUDIT_INFO, "API", null, null, 1, 10, "api", Set.of(ApiType.MCP_PROXY))
+            );
+
+            assertThat(output.valuesPage().data()).extracting(FilterValue::value).containsExactly("Studio API");
+            verifyNoInteractions(filterValuesQueryService);
+        }
+
+        /** Applications are searched in the whole environment, so the APIs in scope would be computed for nothing. */
+        @Test
+        void should_not_query_the_calls_when_searching_applications_by_name() {
+            var app = new BaseApplicationEntity();
+            app.setId("app-id-1");
+            app.setName("Agent client");
+            when(applicationQueryService.findByEnvironment("env-id")).thenReturn(Set.of(app));
+
+            var output = useCase.execute(aim("APPLICATION", "agent"));
+
+            assertThat(output.valuesPage().data()).extracting(FilterValue::id).containsExactly("app-id-1");
+            verifyNoInteractions(filterValuesQueryService);
         }
     }
 
