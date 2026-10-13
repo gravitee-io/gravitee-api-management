@@ -97,7 +97,7 @@ todos:
     status: completed
   - id: STORY-30
     content: "Publish and unpublish the API from Gamma."
-    status: pending
+    status: completed
   - id: STORY-31
     content: "Show or hide an individual page, folder or link."
     status: pending
@@ -1212,6 +1212,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 2. The dialog and its rules for synced pages and private folders.
 
 #### STORY-30 — Publish and unpublish the API from Gamma
+**Status:** Done under [PORTAL-262](https://gravitee.atlassian.net/browse/PORTAL-262), as [#21158](https://github.com/gravitee-io/gravitee-api-management/pull/21158). The Publish and Unpublish buttons show only with update permission on the API's documentation, which is what the two endpoints check, and Unpublish asks for confirmation.
 **Why:** this is the step that puts documentation in front of customers, and the product's central promise — write first, choose where it appears later — only holds if the location is picked here. Publishing must also be a deliberate choice of an existing section, since these users are not allowed to create top-level sections.
 **Acceptance criteria:**
 - The dialog lists available sections, preselecting the section the API's hidden listing row is already in, if any; otherwise the one named "APIs" by name if present, otherwise the first.
