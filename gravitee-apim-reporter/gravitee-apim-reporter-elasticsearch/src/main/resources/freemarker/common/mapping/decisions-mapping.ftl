@@ -41,11 +41,18 @@
         }
     },
     {
-        "strings_as_keywords": {
-            "match_mapping_type": "string",
+        "additional_string_metrics": {
+            "path_match": "additional-metrics.string_*",
             "mapping": {
-                "type": "keyword",
-                "ignore_above": 1024
+                "type": "text"
+            }
+        }
+    },
+    {
+        "additional_json_metrics": {
+            "path_match": "additional-metrics.json_*",
+            "mapping": {
+                "type": "text"
             }
         }
     }
