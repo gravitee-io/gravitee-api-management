@@ -24,6 +24,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +38,7 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AddMember;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
@@ -54,6 +56,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
@@ -153,14 +156,15 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
-                .hasMessage("An INTEGRATION must always have only one PRIMARY_OWNER !");
+                .extracting(Error::getTechnicalCode)
+                .isEqualTo("integrationmembers.invalid");
         }
 
         @Test
         public void should_return_400_when_user_id_and_external_reference_is_empty() {
-            var newMembership = new AddMember().roleName("OWNER");
+            var newMembership = new AddMember().roleName("USER");
             final Response response = target.request().post(Entity.json(newMembership));
-            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasMessage("Request must specify either userId or externalReference");
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().extracting(Error::getTechnicalCode).isEqualTo("data.invalid");
         }
 
         @Test
@@ -314,6 +318,21 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_400_when_deleting_the_primary_owner() {
+            doThrow(new PrimaryOwnerRemovalException())
+                .when(membershipService)
+                .deleteMemberForIntegration(GraviteeContext.getExecutionContext(), INTEGRATION_ID, MEMBER_ID);
+
+            final Response response = target.request().delete();
+
+            assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .extracting(Error::getTechnicalCode)
+                .isEqualTo("primary.owner.removal");
+        }
+
+        @Test
         public void should_delete_a_membership() {
             final Response response = target.request().delete();
             assertThat(response).hasStatus(NO_CONTENT_204);
@@ -369,7 +388,8 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
-                .hasMessage("An INTEGRATION must always have only one PRIMARY_OWNER !");
+                .extracting(Error::getTechnicalCode)
+                .isEqualTo("integrationmembers.invalid");
         }
 
         @Test
