@@ -277,7 +277,7 @@
     },
     "packageManager": "yarn@4.1.1",
     "resolutions": {
-        "nwsapi": "2.2.25",
+        "nwsapi": "2.2.28",
         "@angular-builders/custom-webpack/@angular-devkit/build-angular": "20.3.14",
         "@angular-builders/custom-webpack/webpack": "5.107.2"
     }
