@@ -31,7 +31,11 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
     const [error, setError] = useState<Error | null>(null);
     const [retryCount, setRetryCount] = useState(0);
 
-    const retry = () => setRetryCount(c => c + 1);
+    // Shows the retry as running at once: one that fails right away could otherwise end before it was seen to start.
+    const retry = () => {
+        setLoading(true);
+        setRetryCount(c => c + 1);
+    };
 
     useEffect(() => {
         if (!gammaBaseURL || !organizationId) {
@@ -46,8 +50,8 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
         }
 
         const controller = new AbortController();
+        // A failed load keeps its error until a load succeeds, so its message stays while a retry runs.
         setLoading(true);
-        setError(null);
 
         const modulesURL = `${gammaBaseURL}/organizations/${organizationId}/modules`;
         fetch(modulesURL, { credentials: 'include', signal: controller.signal })
@@ -59,6 +63,7 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
                 const parsed = Array.isArray(data) ? data.filter(hasUi).map(parseModule) : [];
                 registerModuleRemotes(parsed, gammaBaseURL, organizationId);
                 setModules(parsed);
+                setError(null);
             })
             .catch(err => {
                 if (!controller.signal.aborted) {

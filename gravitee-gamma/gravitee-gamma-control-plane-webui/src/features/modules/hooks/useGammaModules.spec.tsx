@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { useGammaModules } from './useGammaModules';
 import { buildUser, TEST_GAMMA_BASE } from '../../../testing/factories';
-import { respondWith } from '../../../testing/helpers';
+import { respondWith, respondWithError } from '../../../testing/helpers';
 import { useAuthStore } from '../../auth/auth.store';
 
 const mockRegisterRemotes = jest.fn();
@@ -50,5 +50,58 @@ describe('useGammaModules', () => {
             [{ name: 'apim', entry: `${TEST_GAMMA_BASE}/modules/apim/assets/mf-manifest.json` }],
             { force: true },
         );
+    });
+
+    describe('when the list cannot be loaded', () => {
+        let error: jest.SpyInstance;
+
+        beforeEach(() => {
+            error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should report the error, without logging it', async () => {
+            respondWithError('get', `${TEST_GAMMA_BASE}/modules`, 503);
+
+            const { result } = renderHook(() => useGammaModules());
+
+            await waitFor(() => expect(result.current.loading).toBe(false));
+            expect(result.current.error).toBeTruthy();
+            expect(result.current.modules).toEqual([]);
+            expect(error).not.toHaveBeenCalled();
+        });
+
+        it('should keep the error while a retry runs, and drop it once the list is loaded', async () => {
+            respondWithError('get', `${TEST_GAMMA_BASE}/modules`, 503);
+            const { result } = renderHook(() => useGammaModules());
+            await waitFor(() => expect(result.current.error).toBeTruthy());
+            respondWith('get', `${TEST_GAMMA_BASE}/modules`, [
+                { id: 'apim', name: 'APIM', version: '1.0.0', mfManifest: { name: 'apim', exposes: [{ name: './Module' }] } },
+            ]);
+
+            act(() => result.current.retry());
+
+            expect(result.current.loading).toBe(true);
+            expect(result.current.error).toBeTruthy();
+            await waitFor(() => expect(result.current.loading).toBe(false));
+            expect(result.current.error).toBeNull();
+            expect(result.current.modules).toHaveLength(1);
+        });
+
+        it('should keep the error once a retry fails again', async () => {
+            respondWithError('get', `${TEST_GAMMA_BASE}/modules`, 503);
+            const { result } = renderHook(() => useGammaModules());
+            await waitFor(() => expect(result.current.error).toBeTruthy());
+
+            act(() => result.current.retry());
+
+            expect(result.current.loading).toBe(true);
+            await waitFor(() => expect(result.current.loading).toBe(false));
+            expect(result.current.error).toBeTruthy();
+            expect(result.current.modules).toEqual([]);
+        });
     });
 });

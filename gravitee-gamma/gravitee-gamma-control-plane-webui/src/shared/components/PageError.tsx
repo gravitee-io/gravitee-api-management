@@ -19,6 +19,10 @@ import type { ReactNode } from 'react';
 
 import { MessageTitle } from './MessageTitle';
 
+/** The description of a page error that **Retry** may fix: the platform may be updating. */
+export const RETRY_LATER_DESCRIPTION =
+    'The platform may be updating. Try again in a minute. If this keeps happening, contact your administrator.';
+
 interface PageErrorProps {
     readonly title: string;
     readonly description: string;
