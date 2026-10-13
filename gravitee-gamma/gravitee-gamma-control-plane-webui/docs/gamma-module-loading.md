@@ -123,7 +123,7 @@ Most failures heal within one or two retries, so the console says nothing at fir
 
 The app is named with `getModuleLabel()`. A crash while rendering is not retried. The messages never show the technical error, which stays in the browser console. The error boundary is keyed by module, and opening the module again after a failure starts a new load.
 
-Each message's title (`ModuleMessageTitle`) is the page's `<h1>`, in place of the heading the module would have rendered. The final message tints its icon red, the color Graphene keeps for errors, while the waiting message stays neutral.
+Each message's title (`MessageTitle`) is the page's `<h1>`, in place of the heading the module would have rendered. The final message tints its icon red, the color Graphene keeps for errors, while the waiting message stays neutral.
 
 **Retry now** wakes the pending wait (`retryModuleNow()`) and runs the next attempt at once, with a fresh manifest. Its outline style is deliberate: the console keeps retrying by itself, so waiting is the expected path. The primary style is kept for the final message, where reloading is the only way forward; the change of style tells the user it is now up to them. An attempt that fails can end within a few milliseconds: **Retrying…** stays for at least 600 ms (`useMinimumDuration`), so the click is seen to be taken into account, and the button keeps its width.
 

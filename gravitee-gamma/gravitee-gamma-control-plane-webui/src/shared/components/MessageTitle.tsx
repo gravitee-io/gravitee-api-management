@@ -16,11 +16,11 @@
 import { EmptyTitle } from '@gravitee/graphene-core';
 
 /**
- * The title of a message shown in place of a module. It is the page heading, in place of the one the module
+ * The title of a message shown in place of a page. It is the page heading, in place of the one the page
  * would have rendered. Graphene styles a bare h1 as a page title: the classes are EmptyTitle's own, so the
  * message keeps its size.
  */
-export function ModuleMessageTitle({ children }: { readonly children: string }) {
+export function MessageTitle({ children }: { readonly children: string }) {
     return (
         <EmptyTitle>
             <h1 className="text-sm font-medium tracking-tight">{children}</h1>
