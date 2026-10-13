@@ -95,9 +95,9 @@ describe('PortalSettingsPageComponent', () => {
     await init(settings);
 
     expect(await harness.hasPortalCapabilitiesCard()).toBe(true);
+    expect(fixture.nativeElement.querySelector('[data-testid="portal-next-ai-workspaces-toggle"]')).toBeNull();
     expect(await (await harness.getMtlsToggle()).isChecked()).toBe(true);
     expect(await (await harness.getAnalyticsToggle()).isChecked()).toBe(false);
-    expect(await (await harness.getAiWorkspacesToggle()).isChecked()).toBe(true);
     expect(await (await harness.getFuzzySearchToggle()).isChecked()).toBe(true);
   });
 
@@ -165,6 +165,7 @@ describe('PortalSettingsPageComponent', () => {
     expect(savedSettings.portalNext.access).toEqual(settings.portalNext.access);
     expect(savedSettings.portalNext.mtls).toEqual(settings.portalNext.mtls);
     expect(savedSettings.portalNext.analytics).toEqual(settings.portalNext.analytics);
+    expect(savedSettings.portalNext.aiWorkspaces).toEqual(settings.portalNext.aiWorkspaces);
     expect(savedSettings.portalNext.catalog).toEqual(settings.portalNext.catalog);
     expect(savedSettings.portalNext.banner).toEqual(settings.portalNext.banner);
     expect(savedSettings.portal).toEqual(settings.portal);
@@ -212,6 +213,33 @@ describe('PortalSettingsPageComponent', () => {
     expect(savedSettings.portalNext.applications.membership).toEqual(settings.portalNext.applications.membership);
   });
 
+  it('keeps a stored AI Workspaces value when another capability is saved', async () => {
+    const settings = fakePortalSettings();
+    settings.portalNext.aiWorkspaces.enabled = true;
+    await init(settings);
+
+    expect(fixture.nativeElement.querySelector('[data-testid="portal-next-ai-workspaces-toggle"]')).toBeNull();
+
+    await (await harness.getAnalyticsToggle()).toggle();
+    await harness.submit();
+
+    const savedSettings = portalSettingsService.save.mock.calls[0][0] as PortalSettings;
+    expect(savedSettings.portalNext.aiWorkspaces.enabled).toBe(true);
+    expect(savedSettings.portalNext.analytics.enabled).toBe(true);
+  });
+
+  it('saves AI Workspaces as off when the setting was never stored', async () => {
+    const settings = fakePortalSettings();
+    settings.portalNext.aiWorkspaces = undefined;
+    await init(settings);
+
+    await harness.setApiKeyHeader('X-Custom-Api-Key');
+    await harness.submit();
+
+    const savedSettings = portalSettingsService.save.mock.calls[0][0] as PortalSettings;
+    expect(savedSettings.portalNext.aiWorkspaces).toEqual({ enabled: false });
+  });
+
   it('defaults missing application membership settings to disabled', async () => {
     const settings = fakePortalSettings();
     settings.portalNext.applications = undefined;
@@ -219,7 +247,7 @@ describe('PortalSettingsPageComponent', () => {
 
     await init(settings);
 
-    expect(await (await harness.getAiWorkspacesToggle()).isChecked()).toBe(false);
+    expect(fixture.nativeElement.querySelector('[data-testid="portal-next-ai-workspaces-toggle"]')).toBeNull();
     expect(await (await harness.getApplicationMembershipToggle()).isChecked()).toBe(false);
     expect(await (await harness.getTransferOwnershipToggle()).isChecked()).toBe(false);
     expect(await (await harness.getMembershipInvitationsToggle()).isChecked()).toBe(false);
@@ -230,11 +258,6 @@ describe('PortalSettingsPageComponent', () => {
   it.each([
     { label: 'mTLS', getToggle: (page: PortalSettingsPageHarness) => page.getMtlsToggle(), capability: 'mtls' },
     { label: 'analytics', getToggle: (page: PortalSettingsPageHarness) => page.getAnalyticsToggle(), capability: 'analytics' },
-    {
-      label: 'AI Workspaces',
-      getToggle: (page: PortalSettingsPageHarness) => page.getAiWorkspacesToggle(),
-      capability: 'aiWorkspaces',
-    },
     {
       label: 'fuzzy search',
       getToggle: (page: PortalSettingsPageHarness) => page.getFuzzySearchToggle(),
@@ -260,7 +283,7 @@ describe('PortalSettingsPageComponent', () => {
 
     expect(savedSettings.portalNext.mtls.enabled).toBe(capability === 'mtls');
     expect(savedSettings.portalNext.analytics.enabled).toBe(capability === 'analytics');
-    expect(savedSettings.portalNext.aiWorkspaces.enabled).toBe(capability === 'aiWorkspaces');
+    expect(savedSettings.portalNext.aiWorkspaces.enabled).toBe(false);
     expect(savedSettings.portalNext.catalog.fuzzySearch.enabled).toBe(capability === 'fuzzySearch');
   });
 
@@ -270,9 +293,9 @@ describe('PortalSettingsPageComponent', () => {
 
     await init(settings);
 
+    expect(fixture.nativeElement.querySelector('[data-testid="portal-next-ai-workspaces-toggle"]')).toBeNull();
     expect(await (await harness.getMtlsToggle()).isDisabled()).toBe(false);
     expect(await (await harness.getAnalyticsToggle()).isDisabled()).toBe(false);
-    expect(await (await harness.getAiWorkspacesToggle()).isDisabled()).toBe(false);
     expect(await (await harness.getFuzzySearchToggle()).isDisabled()).toBe(false);
   });
 
@@ -289,7 +312,6 @@ describe('PortalSettingsPageComponent', () => {
 
     await (await harness.getMtlsToggle()).toggle();
     await (await harness.getAnalyticsToggle()).toggle();
-    await (await harness.getAiWorkspacesToggle()).toggle();
     await (await harness.getFuzzySearchToggle()).toggle();
     await (await harness.getTransferOwnershipToggle()).toggle();
     await (await harness.getMembershipInvitationsToggle()).toggle();
@@ -298,9 +320,9 @@ describe('PortalSettingsPageComponent', () => {
 
     await harness.reset();
 
+    expect(fixture.nativeElement.querySelector('[data-testid="portal-next-ai-workspaces-toggle"]')).toBeNull();
     expect(await (await harness.getMtlsToggle()).isChecked()).toBe(true);
     expect(await (await harness.getAnalyticsToggle()).isChecked()).toBe(false);
-    expect(await (await harness.getAiWorkspacesToggle()).isChecked()).toBe(true);
     expect(await (await harness.getFuzzySearchToggle()).isChecked()).toBe(true);
     expect(await (await harness.getApplicationMembershipToggle()).isChecked()).toBe(true);
     expect(await (await harness.getTransferOwnershipToggle()).isChecked()).toBe(true);
@@ -346,9 +368,9 @@ describe('PortalSettingsPageComponent', () => {
     expect(await harness.isKafkaSaslMechanismsDisabled()).toBe(true);
     expect(await (await harness.getRegistrationToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getRedocViewer()).isDisabled()).toBe(true);
+    expect(fixture.nativeElement.querySelector('[data-testid="portal-next-ai-workspaces-toggle"]')).toBeNull();
     expect(await (await harness.getMtlsToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getAnalyticsToggle()).isDisabled()).toBe(true);
-    expect(await (await harness.getAiWorkspacesToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getFuzzySearchToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getApplicationMembershipToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getTransferOwnershipToggle()).isDisabled()).toBe(true);
@@ -390,9 +412,9 @@ describe('PortalSettingsPageComponent', () => {
     expect(await harness.isApiKeyHeaderDisabled()).toBe(true);
     expect(await harness.isPortalUrlDisabled()).toBe(false);
     expect(await harness.isKafkaSaslMechanismsDisabled()).toBe(true);
+    expect(fixture.nativeElement.querySelector('[data-testid="portal-next-ai-workspaces-toggle"]')).toBeNull();
     expect(await (await harness.getMtlsToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getAnalyticsToggle()).isDisabled()).toBe(true);
-    expect(await (await harness.getAiWorkspacesToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getFuzzySearchToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getApplicationMembershipToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getTransferOwnershipToggle()).isDisabled()).toBe(false);
