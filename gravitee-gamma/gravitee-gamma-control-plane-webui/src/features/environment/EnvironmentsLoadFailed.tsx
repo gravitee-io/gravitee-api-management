@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironmentStore } from './environment.store';
-import { PageError } from '../../shared/components/PageError';
+import { PageError, RETRY_LATER_DESCRIPTION } from '../../shared/components/PageError';
 import { RetryButton } from '../../shared/components/RetryButton';
 
 /**
@@ -27,10 +27,7 @@ export function EnvironmentsLoadFailed() {
     const loading = useEnvironmentStore(s => s.loading);
 
     return (
-        <PageError
-            title="Couldn't load your environments"
-            description="The platform may be updating. Try again in a minute. If this keeps happening, contact your administrator."
-        >
+        <PageError title="Couldn't load your environments" description={RETRY_LATER_DESCRIPTION}>
             <RetryButton retrying={loading} onRetry={() => void initialize(organizationId)} />
         </PageError>
     );

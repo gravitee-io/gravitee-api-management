@@ -190,7 +190,7 @@ export const FullAccess: Story = {
             deviceCount: 18,
         },
     },
-    render: args => <HomePage modules={args.modules ?? ALL_MODULES} loading={false} error={null} />,
+    render: args => <HomePage modules={args.modules ?? ALL_MODULES} loading={false} />,
 };
 
 /** All modules active but no data — shows empty-state CTAs on every card. */
@@ -214,7 +214,7 @@ export const EmptyEnvironment: Story = {
             },
         },
     },
-    render: args => <HomePage modules={args.modules ?? ALL_MODULES} loading={false} error={null} />,
+    render: args => <HomePage modules={args.modules ?? ALL_MODULES} loading={false} />,
 };
 
 /** Mixed: some modules have data, some are empty, one is unlicensed. */
@@ -230,7 +230,7 @@ export const PartialData: Story = {
             },
         },
     },
-    render: args => <HomePage modules={args.modules ?? []} loading={false} error={null} />,
+    render: args => <HomePage modules={args.modules ?? []} loading={false} />,
 };
 
 /** License-restricted: Agent Management missing. */
@@ -246,25 +246,5 @@ export const WithoutAgentManagement: Story = {
             },
         },
     },
-    render: args => <HomePage modules={args.modules ?? []} loading={false} error={null} />,
-};
-
-/** Module fetch failed — error state with retry button. */
-export const ErrorState: Story = {
-    args: { modules: [], metrics: {} },
-    parameters: {
-        docs: {
-            description: {
-                story: 'The module list fetch failed. An inline error alert is shown with a Retry button that re-triggers the fetch.',
-            },
-        },
-    },
-    render: () => (
-        <HomePage
-            modules={[]}
-            loading={false}
-            error={new Error('Network request failed')}
-            onRetry={() => window.alert('Retry triggered')}
-        />
-    ),
+    render: args => <HomePage modules={args.modules ?? []} loading={false} />,
 };

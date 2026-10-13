@@ -53,7 +53,7 @@ function renderHome(modules: readonly GammaModule[]) {
     return render(
         <MemoryRouter initialEntries={['/environments/env-1/home']}>
             <Routes>
-                <Route path="/environments/:envHrid/home" element={<HomePage modules={modules} loading={false} error={null} />} />
+                <Route path="/environments/:envHrid/home" element={<HomePage modules={modules} loading={false} />} />
             </Routes>
         </MemoryRouter>,
     );
@@ -222,22 +222,6 @@ describe('HomePage', () => {
         expect(
             await screen.findByText((_content, el) => el?.tagName === 'P' && /7\s+active devices \(24h\)/.test(el.textContent ?? '')),
         ).toBeTruthy();
-    });
-
-    it('should render an error alert when the modules fetch failed upstream', () => {
-        render(
-            <MemoryRouter initialEntries={['/environments/env-1/home']}>
-                <Routes>
-                    <Route
-                        path="/environments/:envHrid/home"
-                        element={<HomePage modules={[]} loading={false} error={new Error('boom')} />}
-                    />
-                </Routes>
-            </MemoryRouter>,
-        );
-
-        const alert = screen.getByRole('alert');
-        expect(alert.textContent).toContain('Failed to load modules: boom');
     });
 
     it('should show empty-state CTA when module is available but has zero data', async () => {

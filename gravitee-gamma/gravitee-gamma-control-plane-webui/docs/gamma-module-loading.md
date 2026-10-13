@@ -152,6 +152,18 @@ The message is built from the parts the module messages share: `PageError`, the 
 
 **Source:** `src/features/environment/environment.store.ts`, `src/features/environment/EnvironmentGuard.tsx`, `src/features/environment/RootRedirect.tsx`, `src/features/environment/EnvironmentsLoadFailed.tsx`, `src/shared/components/PageError.tsx`, `src/shared/components/RetryButton.tsx`
 
+### When the list of modules cannot be loaded
+
+Without the list of modules, the console has no route for any module. `useGammaModules` keeps the error until a load succeeds, so a failed load stays visible while a retry runs. `retry()` marks the load as running at once: a retry that fails right away could otherwise end before it was seen to start.
+
+Every address under an environment, Home and direct links to a module included, then shows `ModulesLoadFailed` in place of the page: "Couldn't load your applications", with a primary **Retry** button. The address is kept, as it may be a module's. Home has nothing left to show without the list, as its sections come from the modules. Tasks and My Account are pages of the console, not of a module, so they still open.
+
+A retry keeps the message on screen, with **Retrying…**, instead of going back to the skeleton of the first load. Once a retry loads the list, the module routes exist again and the page asked opens, at the same address, without a reload. The technical error is neither shown nor logged.
+
+`ModulesLoadFailed` is built like the environments message, from `PageError` and `RetryButton`.
+
+**Source:** `src/features/modules/hooks/useGammaModules.ts`, `src/app/AppRoutes.tsx`, `src/features/modules/components/ModulesLoadFailed.tsx`, `src/pages/home/HomePage.tsx`
+
 ## Routing
 
 Dynamic routes are generated in `AppRoutes` from the discovered modules:
@@ -264,6 +276,7 @@ Browser                          Host App                         Backend (Gamma
 | `src/startup-error.ts`                                  | `showStartupError()`, the page shown when the console cannot start               |
 | `src/features/environment/environment.store.ts`         | Environment list, `initialize()` and `loadFailed`                                |
 | `src/features/environment/EnvironmentsLoadFailed.tsx`   | Message when the environments cannot be loaded                                   |
+| `src/features/modules/components/ModulesLoadFailed.tsx` | Message when the list of modules cannot be loaded                                |
 | `src/shared/components/PageError.tsx`                   | Layout of the messages that take the place of a page                             |
 | `src/shared/components/RetryButton.tsx`                 | **Retry** button with its **Retrying…** state                                    |
 | `src/app/AppRoutes.tsx`                                 | Root routes with dynamic module route generation                                 |
