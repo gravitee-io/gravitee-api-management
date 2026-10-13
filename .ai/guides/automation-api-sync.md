@@ -1,6 +1,6 @@
 # Automation API sync checklist
 
-Depth behind the "Automation API Sync" rule. Follow this when one of the rule's triggers fires — a Management API v2 change (or a lower-layer change in the v4 definition or repository) that the Automation API must mirror.
+The owning team's procedure behind the "Automation API, CRD and Terraform Ownership" rule, for a Management API v2 change (or a lower-layer change in the v4 definition or repository) that the Automation API must mirror. Anyone outside `@gravitee-io/gko` and `@gravitee-io/tech-lead` stops at Step 1 and hands off as that rule says.
 
 **Step 1 (mandatory): assess impact** — determine whether the change affects the Automation API.
 
