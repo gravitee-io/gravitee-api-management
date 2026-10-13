@@ -42,9 +42,6 @@ export class PortalSettingsPageHarness extends ComponentHarness {
   private readonly analyticsToggle = this.locatorFor(
     MatSlideToggleHarness.with({ selector: '[data-testid="portal-next-analytics-toggle"]' }),
   );
-  private readonly aiWorkspacesToggle = this.locatorFor(
-    MatSlideToggleHarness.with({ selector: '[data-testid="portal-next-ai-workspaces-toggle"]' }),
-  );
   private readonly fuzzySearchToggle = this.locatorFor(
     MatSlideToggleHarness.with({ selector: '[data-testid="portal-next-fuzzy-search-toggle"]' }),
   );
@@ -124,10 +121,6 @@ export class PortalSettingsPageHarness extends ComponentHarness {
 
   async getAnalyticsToggle(): Promise<MatSlideToggleHarness> {
     return this.analyticsToggle();
-  }
-
-  async getAiWorkspacesToggle(): Promise<MatSlideToggleHarness> {
-    return this.aiWorkspacesToggle();
   }
 
   async getFuzzySearchToggle(): Promise<MatSlideToggleHarness> {
