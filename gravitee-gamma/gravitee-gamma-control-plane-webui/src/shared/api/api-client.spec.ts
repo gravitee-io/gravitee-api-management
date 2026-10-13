@@ -13,7 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiError, gammaApi, managementApi, managementV2EnvironmentApi, managementV2OrganizationApi } from './api-client';
+import {
+    ApiError,
+    gammaApi,
+    isPlatformUnavailable,
+    managementApi,
+    managementV2EnvironmentApi,
+    managementV2OrganizationApi,
+} from './api-client';
 import {
     TEST_GAMMA_BASE,
     TEST_MANAGEMENT_BASE,
@@ -132,5 +139,18 @@ describe('managementV2OrganizationApi', () => {
         respondWithError('get', `${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/license`, 403);
 
         await expect(managementV2OrganizationApi.get('/license')).rejects.toThrow(ApiError);
+    });
+});
+
+describe('isPlatformUnavailable', () => {
+    it.each([
+        ['no answer at all', new TypeError('Failed to fetch'), true],
+        ['a server error', new ApiError(500, 'GET /user failed'), true],
+        ['a server that is restarting', new ApiError(503, 'GET /user failed'), true],
+        ['wrong credentials', new ApiError(401, 'POST /user/login failed'), false],
+        ['a request the platform refuses', new ApiError(400, 'POST /user/login failed'), false],
+        ['an error that is not about the request', new Error('Unexpected'), false],
+    ])('should tell whether waiting may help, for %s', (_case, error, unavailable) => {
+        expect(isPlatformUnavailable(error)).toBe(unavailable);
     });
 });
