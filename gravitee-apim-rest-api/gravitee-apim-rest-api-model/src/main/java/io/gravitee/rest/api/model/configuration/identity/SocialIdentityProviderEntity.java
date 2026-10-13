@@ -49,6 +49,9 @@ public abstract class SocialIdentityProviderEntity {
     @JsonIgnore
     private List<RoleMappingEntity> roleMappings;
 
+    @JsonIgnore
+    private ClientAuthenticationMethod tokenEndpointAuthMethod;
+
     public static class UserProfile {
 
         public static final String ID = "id";
@@ -98,6 +101,19 @@ public abstract class SocialIdentityProviderEntity {
 
     public void setClientSecret(String clientSecret) {
         this.clientSecret = clientSecret;
+    }
+
+    /**
+     * @return the configured client authentication method, or {@code null} when the provider does not declare one, in
+     *         which case each caller applies the default its endpoint has always used.
+     */
+    @JsonIgnore
+    public ClientAuthenticationMethod getTokenEndpointAuthMethod() {
+        return tokenEndpointAuthMethod;
+    }
+
+    public void setTokenEndpointAuthMethod(ClientAuthenticationMethod tokenEndpointAuthMethod) {
+        this.tokenEndpointAuthMethod = tokenEndpointAuthMethod;
     }
 
     public String getScopeDelimiter() {
