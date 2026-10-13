@@ -19,13 +19,13 @@ import { useQuery } from '@tanstack/react-query';
 import { listFetchers } from '../services/fetchers';
 import { fetcherKeys } from '../utils/queryKeys';
 
-export function useFetchers() {
+export function useFetchers({ forImport = false }: { forImport?: boolean } = {}) {
     const env = useEnvironment();
     const envId = env?.id ?? '';
 
     return useQuery({
-        queryKey: fetcherKeys.list(envId),
-        queryFn: () => listFetchers(envId),
+        queryKey: fetcherKeys.list(envId, forImport),
+        queryFn: () => listFetchers(envId, { forImport }),
         enabled: Boolean(env),
     });
 }

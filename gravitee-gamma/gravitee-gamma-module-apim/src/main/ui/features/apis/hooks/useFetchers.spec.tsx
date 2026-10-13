@@ -32,10 +32,10 @@ const mockListFetchers = jest.mocked(listFetchers);
 
 const HTTP_FETCHER = { id: 'http-fetcher', name: 'HTTP', schema: { type: 'object' as const, properties: {} } };
 
-function renderUseFetchers() {
+function renderUseFetchers(options?: { forImport?: boolean }) {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-    return renderHook(() => useFetchers(), { wrapper });
+    return renderHook(() => useFetchers(options), { wrapper });
 }
 
 describe('useFetchers', () => {
@@ -49,7 +49,14 @@ describe('useFetchers', () => {
         const { result } = renderUseFetchers();
 
         await waitFor(() => expect(result.current.data).toEqual([HTTP_FETCHER]));
-        expect(mockListFetchers).toHaveBeenCalledWith('env-1');
+        expect(mockListFetchers).toHaveBeenCalledWith('env-1', { forImport: false });
+    });
+
+    it('loads only the fetchers that can list a folder for an import', async () => {
+        const { result } = renderUseFetchers({ forImport: true });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(mockListFetchers).toHaveBeenCalledWith('env-1', { forImport: true });
     });
 
     it('does not load without an environment', () => {

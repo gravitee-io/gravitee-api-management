@@ -43,6 +43,14 @@ describe('listFetchers', () => {
         expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/fetchers?expand=schema');
     });
 
+    it('asks only for the fetchers that can list a folder when they are for an import', async () => {
+        mockApimFetchJsonV1Env.mockResolvedValueOnce([]);
+
+        await listFetchers('env-1', { forImport: true });
+
+        expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/fetchers?expand=schema&import=true');
+    });
+
     it('parses each schema and leaves out the legacy auto-fetch fields', async () => {
         mockApimFetchJsonV1Env.mockResolvedValueOnce([{ id: 'http-fetcher', name: 'HTTP Fetcher', schema: HTTP_FETCHER_SCHEMA }]);
 
