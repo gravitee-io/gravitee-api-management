@@ -34,14 +34,15 @@ function renderProtectedRoute(initialPath = '/') {
     );
 }
 
-function renderPublicOnlyRoute() {
+function renderPublicOnlyRoute(initialPath = '/login') {
     return render(
-        <MemoryRouter initialEntries={['/login']}>
+        <MemoryRouter initialEntries={[initialPath]}>
             <Routes>
                 <Route element={<PublicOnlyRoute />}>
                     <Route path="/login" element={<div>Login Page</div>} />
                 </Route>
                 <Route path="/" element={<div>Home</div>} />
+                <Route path="/dashboard" element={<div>Dashboard</div>} />
             </Routes>
         </MemoryRouter>,
     );
@@ -74,6 +75,30 @@ describe('PublicOnlyRoute', () => {
     it('should redirect to home when authenticated', () => {
         useAuthStore.setState({ user: buildUser(), initialized: true });
         renderPublicOnlyRoute();
+        expect(screen.getByText('Home')).toBeTruthy();
+    });
+
+    it('should redirect to the page requested before the login when authenticated', () => {
+        useAuthStore.setState({ user: buildUser(), initialized: true });
+        renderPublicOnlyRoute('/login?redirect=%2Fdashboard');
+        expect(screen.getByText('Dashboard')).toBeTruthy();
+    });
+
+    it('should keep the query and the hash of the page requested', () => {
+        useAuthStore.setState({ user: buildUser(), initialized: true });
+        renderPublicOnlyRoute(`/login?redirect=${encodeURIComponent('/dashboard?tab=1#top')}`);
+        expect(screen.getByText('Dashboard')).toBeTruthy();
+    });
+
+    it.each([
+        ['a backslash after the slash', '/\\example.org'],
+        ['a tab between two slashes', '/\t/example.org'],
+        ['two slashes', '//example.org'],
+        ['a full URL', 'https://example.org/dashboard'],
+        ['a script', 'javascript:alert(1)'],
+    ])('should redirect to home when the page requested is not one of the console: %s', (_case, redirect) => {
+        useAuthStore.setState({ user: buildUser(), initialized: true });
+        renderPublicOnlyRoute(`/login?redirect=${encodeURIComponent(redirect)}`);
         expect(screen.getByText('Home')).toBeTruthy();
     });
 });
