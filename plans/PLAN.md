@@ -88,7 +88,7 @@ todos:
     status: completed
   - id: STORY-27
     content: "Create a folder, and edit its title and access."
-    status: pending
+    status: completed
   - id: STORY-28
     content: "Create a link."
     status: pending
@@ -1171,6 +1171,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 4. The preview pane wired to STORY-22's component.
 
 #### STORY-27 — Create a folder
+**Status:** Done under [PORTAL-264](https://gravitee.atlassian.net/browse/PORTAL-264), as [#21172](https://github.com/gravitee-io/gravitee-api-management/pull/21172). One `FolderDialog` adds a folder, at the top level or inside another folder, and edits a folder's title and access from the tree. A synced folder can only change its access, and a folder inside a synced folder offers no action.
 **Why:** an API with more than a handful of pages needs grouping, and a flat list stops being usable quickly. Folders are also what lets a whole external folder be linked in STORY-34.
 **Acceptance criteria:**
 - Title and access, as for a page; appears in the tree; can be created at the top level or inside another folder.
