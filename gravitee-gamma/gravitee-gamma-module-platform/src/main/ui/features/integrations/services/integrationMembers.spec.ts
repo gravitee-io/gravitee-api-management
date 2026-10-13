@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-import { listIntegrationMembers } from './integrationMembers';
-import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import {
+    addIntegrationMember,
+    listIntegrationMembers,
+    listIntegrationRoles,
+    removeIntegrationMember,
+    updateIntegrationMemberRole,
+} from './integrationMembers';
+import { apimFetchJsonOrg, apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type { IntegrationMember } from '../types/integrationMembers';
 
 jest.mock('../../../shared/api/apimClient', () => ({
+    apimFetchJsonOrg: jest.fn(),
     apimFetchJsonV2: jest.fn(),
 }));
 
+const mockApimFetchJsonOrg = jest.mocked(apimFetchJsonOrg);
 const mockApimFetchJsonV2 = jest.mocked(apimFetchJsonV2);
 
 describe('integration members service', () => {
@@ -48,5 +56,47 @@ describe('integration members service', () => {
         const result = await listIntegrationMembers('env-1', 'int-1');
 
         expect(result).toEqual([]);
+    });
+
+    it('posts the new member to the integration members of the environment', async () => {
+        mockApimFetchJsonV2.mockResolvedValueOnce({});
+
+        await addIntegrationMember('env-1', 'a/b c', { userId: 'user-1', externalReference: 'ref-1', roleName: 'USER' });
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/integrations/a%2Fb%20c/members', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: 'user-1', externalReference: 'ref-1', roleName: 'USER' }),
+        });
+    });
+
+    it("puts the member's new role to that member of the integration of the environment", async () => {
+        mockApimFetchJsonV2.mockResolvedValueOnce({});
+
+        await updateIntegrationMemberRole('env-1', 'a/b c', 'user/1', 'OWNER');
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/integrations/a%2Fb%20c/members/user%2F1', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ memberId: 'user/1', roleName: 'OWNER' }),
+        });
+    });
+
+    it('deletes that member of the integration of the environment', async () => {
+        mockApimFetchJsonV2.mockResolvedValueOnce(undefined);
+
+        await removeIntegrationMember('env-1', 'a/b c', 'user/1');
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/integrations/a%2Fb%20c/members/user%2F1', { method: 'DELETE' });
+    });
+
+    it('lists the Integration-scoped roles of the organization', async () => {
+        const roles = [{ name: 'PRIMARY_OWNER' }, { name: 'OWNER' }, { name: 'USER' }];
+        mockApimFetchJsonOrg.mockResolvedValueOnce(roles);
+
+        const result = await listIntegrationRoles();
+
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/configuration/rolescopes/INTEGRATION/roles');
+        expect(result).toEqual(roles);
     });
 });

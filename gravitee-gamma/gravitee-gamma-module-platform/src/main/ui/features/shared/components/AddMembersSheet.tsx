@@ -35,32 +35,40 @@ import { PlusIcon, SearchIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 
-import { searchUsers } from '../../../../shared/services/userSearch';
-import type { SearchableUser } from '../../../../shared/types/userSearch';
-import { isSameUser } from '../../../../shared/utils/userSearch';
-import { MemberAvatar } from '../../../shared/components';
-import type { ApplicationUiMember } from '../../types/applicationMembers.types';
-import { applicationMemberKeys } from '../../utils/queryKeys';
+import { MemberAvatar } from './MemberAvatar';
+import { searchUsers } from '../../../shared/services/userSearch';
+import type { SearchableUser } from '../../../shared/types/userSearch';
+import { organizationUserSearchKeys } from '../../../shared/utils/queryKeys';
+import { isSameUser } from '../../../shared/utils/userSearch';
+import { AddMembersFailedError } from '../utils/addMembersResult';
+
+function isExistingMember(existingMembers: ReadonlyArray<{ id?: string }>, user: SearchableUser): boolean {
+    return existingMembers.some(m => (user.id !== null && user.id !== undefined && m.id === user.id) || m.id === user.reference);
+}
 
 export function AddMembersSheet({
     open,
+    description,
     roles,
+    defaultRole,
     existingMembers,
     onClose,
     onAdd,
     isAdding,
 }: Readonly<{
     open: boolean;
+    description: string;
     roles: string[];
-    existingMembers: ApplicationUiMember[];
+    defaultRole?: string;
+    existingMembers: ReadonlyArray<{ id?: string }>;
     onClose: () => void;
-    onAdd: (users: SearchableUser[], roleName: string) => void;
+    onAdd: (users: SearchableUser[], roleName: string) => Promise<void>;
     isAdding: boolean;
 }>) {
     const [search, setSearch] = useState('');
     const [selectedUsers, setSelectedUsers] = useState<SearchableUser[]>([]);
     const [selectedRoleOverride, setSelectedRoleOverride] = useState<string | null>(null);
-    const selectedRole = selectedRoleOverride ?? roles[0] ?? '';
+    const selectedRole = selectedRoleOverride ?? defaultRole ?? roles[0] ?? '';
 
     const resetForm = () => {
         setSearch('');
@@ -76,7 +84,7 @@ export function AddMembersSheet({
 
     const deferredQuery = useDeferredValue(search);
     const { data: results, isFetching } = useQuery({
-        queryKey: applicationMemberKeys.userSearch(deferredQuery),
+        queryKey: organizationUserSearchKeys.search(deferredQuery),
         queryFn: () => searchUsers(deferredQuery),
         enabled: deferredQuery.trim().length >= 2,
         staleTime: 30_000,
@@ -84,35 +92,44 @@ export function AddMembersSheet({
 
     const filteredResults = useMemo(
         () =>
-            (results ?? []).filter(
-                result =>
-                    !selectedUsers.some(u => isSameUser(u, result)) &&
-                    !existingMembers.some(
-                        m => (result.id !== null && result.id !== undefined && m.id === result.id) || m.id === result.reference,
-                    ),
-            ),
+            (results ?? []).filter(result => !selectedUsers.some(u => isSameUser(u, result)) && !isExistingMember(existingMembers, result)),
         [results, selectedUsers, existingMembers],
     );
 
-    const canSubmit = selectedUsers.length > 0 && !!selectedRole;
+    const usersToAdd = useMemo(
+        () => selectedUsers.filter(user => !isExistingMember(existingMembers, user)),
+        [selectedUsers, existingMembers],
+    );
+
+    const canSubmit = usersToAdd.length > 0 && !!selectedRole;
 
     function handleSelectUser(user: SearchableUser) {
         setSelectedUsers(prev => (prev.some(u => isSameUser(u, user)) ? prev : [...prev, user]));
         setSearch('');
     }
 
+    async function handleAdd() {
+        try {
+            await onAdd(usersToAdd, selectedRole);
+        } catch (error) {
+            if (error instanceof AddMembersFailedError) {
+                setSelectedUsers(error.failedUsers);
+            }
+        }
+    }
+
     function handleClose() {
         onClose();
     }
 
-    const addLabel = selectedUsers.length > 1 ? `Add ${selectedUsers.length} members` : 'Add member';
+    const addLabel = usersToAdd.length > 1 ? `Add ${usersToAdd.length} members` : 'Add member';
 
     return (
         <Sheet open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
                     <SheetTitle>Add Members</SheetTitle>
-                    <SheetDescription>Search for users by name or email and add them to this application.</SheetDescription>
+                    <SheetDescription>{description}</SheetDescription>
                 </SheetHeader>
 
                 <ScrollArea className="min-h-0 flex-1">
@@ -161,13 +178,13 @@ export function AddMembersSheet({
                             )}
                         </div>
 
-                        {selectedUsers.length > 0 && (
+                        {usersToAdd.length > 0 && (
                             <div className="space-y-2">
                                 <p className="text-sm text-muted-foreground">
-                                    {selectedUsers.length} {selectedUsers.length === 1 ? 'user' : 'users'} selected
+                                    {usersToAdd.length} {usersToAdd.length === 1 ? 'user' : 'users'} selected
                                 </p>
                                 <div className="flex flex-wrap gap-2">
-                                    {selectedUsers.map(u => (
+                                    {usersToAdd.map(u => (
                                         <span
                                             key={u.id ?? u.reference}
                                             className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-medium bg-muted/40"
@@ -211,7 +228,7 @@ export function AddMembersSheet({
                     <Button type="button" variant="outline" onClick={handleClose} disabled={isAdding}>
                         Cancel
                     </Button>
-                    <Button type="button" onClick={() => onAdd(selectedUsers, selectedRole)} disabled={!canSubmit || isAdding}>
+                    <Button type="button" onClick={() => void handleAdd()} disabled={!canSubmit || isAdding}>
                         <PlusIcon className="size-4" />
                         {addLabel}
                     </Button>

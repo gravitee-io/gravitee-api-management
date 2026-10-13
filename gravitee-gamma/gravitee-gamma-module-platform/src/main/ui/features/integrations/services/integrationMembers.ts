@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { IntegrationMember, IntegrationMembersResponse } from '../types/integrationMembers';
+import { apimFetchJsonOrg, apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import type { AddIntegrationMember, IntegrationMember, IntegrationMembersResponse, IntegrationRole } from '../types/integrationMembers';
 
 export async function listIntegrationMembers(environmentId: string, integrationId: string): Promise<IntegrationMember[]> {
     // The endpoint pages 10 members by default.
@@ -23,4 +23,41 @@ export async function listIntegrationMembers(environmentId: string, integrationI
         `/integrations/${encodeURIComponent(integrationId)}/members?page=1&perPage=100`,
     );
     return response.data ?? [];
+}
+
+export async function addIntegrationMember(environmentId: string, integrationId: string, payload: AddIntegrationMember): Promise<void> {
+    await apimFetchJsonV2<IntegrationMember>(environmentId, `/integrations/${encodeURIComponent(integrationId)}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function updateIntegrationMemberRole(
+    environmentId: string,
+    integrationId: string,
+    memberId: string,
+    roleName: string,
+): Promise<void> {
+    await apimFetchJsonV2<IntegrationMember>(
+        environmentId,
+        `/integrations/${encodeURIComponent(integrationId)}/members/${encodeURIComponent(memberId)}`,
+        {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ memberId, roleName }),
+        },
+    );
+}
+
+export async function removeIntegrationMember(environmentId: string, integrationId: string, memberId: string): Promise<void> {
+    await apimFetchJsonV2<void>(
+        environmentId,
+        `/integrations/${encodeURIComponent(integrationId)}/members/${encodeURIComponent(memberId)}`,
+        { method: 'DELETE' },
+    );
+}
+
+export async function listIntegrationRoles(): Promise<IntegrationRole[]> {
+    return apimFetchJsonOrg<IntegrationRole[]>('/configuration/rolescopes/INTEGRATION/roles');
 }

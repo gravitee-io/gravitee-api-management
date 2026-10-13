@@ -18,3 +18,8 @@ import { extractErrorMessage } from '../../../shared/notify/extractErrorMessage'
 export function integrationErrorMessage(error: unknown): string {
     return `Something went wrong! ${extractErrorMessage(error)}`;
 }
+
+export function integrationActionErrorMessage(failedAction: string, error: unknown): string {
+    const reason = extractErrorMessage(error, '');
+    return reason.trim() ? `${failedAction}: ${reason}` : `${failedAction}.`;
+}
