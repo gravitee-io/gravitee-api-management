@@ -32,7 +32,7 @@ import { newHeaderRow } from '../types';
 
 // ─── HTTP methods ─────────────────────────────────────────────────────────────
 
-const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'CONNECT', 'TRACE'];
 
 // ─── Export ───────────────────────────────────────────────────────────────────
 

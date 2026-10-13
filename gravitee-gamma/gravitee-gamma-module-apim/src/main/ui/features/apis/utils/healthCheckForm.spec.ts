@@ -15,9 +15,11 @@
  */
 import {
     buildGroupHealthCheckService,
+    DEFAULT_HEALTH_CHECK_CONFIG,
     getEndpointHealthCheckBadge,
     healthCheckFromEndpoint,
     healthCheckFromGroup,
+    serializeHealthCheckConfig,
     validateHealthCheckForm,
 } from './healthCheckForm';
 
@@ -53,6 +55,7 @@ describe('healthCheckForm', () => {
                 target: '',
                 overrideEndpointPath: true,
                 headers: [],
+                body: '',
                 assertion: '',
                 successThreshold: 0,
                 failureThreshold: 0,
@@ -77,5 +80,16 @@ describe('healthCheckForm', () => {
             getEndpointHealthCheckBadge({ services: {} }, { type: 'http-proxy', services: { healthCheck: { enabled: true } } })?.tooltip,
         ).toContain('endpoint configuration');
         expect(getEndpointHealthCheckBadge({ services: {} }, { type: 'kafka', services: {} })).toBeNull();
+    });
+
+    it('serializes the body for POST and drops an empty one', () => {
+        const form = { ...DEFAULT_HEALTH_CHECK_CONFIG, method: 'POST', body: '{"ping":true}' };
+        expect(serializeHealthCheckConfig(form).body).toBe('{"ping":true}');
+        expect(serializeHealthCheckConfig({ ...form, body: '   ' }).body).toBeUndefined();
+    });
+
+    it('omits a body set for GET so a stale value is not saved', () => {
+        const form = { ...DEFAULT_HEALTH_CHECK_CONFIG, method: 'GET', body: 'stale' };
+        expect(serializeHealthCheckConfig(form).body).toBeUndefined();
     });
 });

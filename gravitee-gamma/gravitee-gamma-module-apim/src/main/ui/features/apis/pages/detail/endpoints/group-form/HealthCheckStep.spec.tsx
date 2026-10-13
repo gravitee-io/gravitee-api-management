@@ -34,3 +34,30 @@ it('places the enable health-check switch next to its label', () => {
     expect(label.parentElement?.className).not.toContain('justify-between');
     expect(label.parentElement?.contains(screen.getByRole('switch', { name: 'Enable health-check' }))).toBe(true);
 });
+
+it('shows the body field for POST with a Content-Type hint and hides it for GET', () => {
+    const { rerender } = render(
+        <HealthCheckStep
+            mode="group"
+            healthCheck={{ enabled: true, configuration: { ...DEFAULT_HEALTH_CHECK_CONFIG, method: 'POST' } }}
+            errors={{}}
+            onChange={jest.fn()}
+            onConfigChange={jest.fn()}
+        />,
+    );
+
+    expect(screen.getByLabelText('Body')).not.toBeNull();
+    expect(screen.getByText(/Content-Type header for POST\/PUT/)).not.toBeNull();
+
+    rerender(
+        <HealthCheckStep
+            mode="group"
+            healthCheck={{ enabled: true, configuration: { ...DEFAULT_HEALTH_CHECK_CONFIG, method: 'GET' } }}
+            errors={{}}
+            onChange={jest.fn()}
+            onConfigChange={jest.fn()}
+        />,
+    );
+
+    expect(screen.queryByLabelText('Body')).toBeNull();
+});

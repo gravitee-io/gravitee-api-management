@@ -106,14 +106,6 @@ export function HttpClientSection({ httpClient, onChange, disabled }: Readonly<H
                     onChange={v => onChange({ idleTimeout: v })}
                     disabled={disabled}
                 />
-                <NumInput
-                    id="dp-max-connections"
-                    label="Max concurrent connections"
-                    value={httpClient.maxConcurrentConnections}
-                    min={1}
-                    onChange={v => onChange({ maxConcurrentConnections: v })}
-                    disabled={disabled}
-                />
             </div>
             <div className="space-y-4">
                 <SwitchRow

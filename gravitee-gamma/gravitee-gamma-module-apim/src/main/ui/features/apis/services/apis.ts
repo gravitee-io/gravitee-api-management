@@ -284,10 +284,37 @@ export async function updateApiFailover(environmentId: string, apiId: string, fa
     });
 }
 
-export async function updateApiCors(environmentId: string, apiId: string, cors: Cors): Promise<void> {
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function applyHttpListenerCors(
+    listener: Record<string, unknown>,
+    cors: Cors,
+    requestValidation: { rejectNullByte: boolean } | undefined,
+): Record<string, unknown> {
+    if (listener['type'] !== 'HTTP') return listener;
+
+    const existing = isJsonObject(listener['requestValidation']) ? listener['requestValidation'] : undefined;
+    const hasRequestValidation = existing !== undefined || requestValidation?.rejectNullByte === true;
+    const writeRequestValidation = requestValidation !== undefined && hasRequestValidation;
+
+    return {
+        ...listener,
+        cors,
+        ...(writeRequestValidation ? { requestValidation: { ...existing, ...requestValidation } } : {}),
+    };
+}
+
+export async function updateApiCors(
+    environmentId: string,
+    apiId: string,
+    cors: Cors,
+    requestValidation?: { rejectNullByte: boolean },
+): Promise<void> {
     const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
     const listeners = (current.listeners as Record<string, unknown>[]) ?? [];
-    const updatedListeners = listeners.map(l => (l['type'] === 'HTTP' ? { ...l, cors } : l));
+    const updatedListeners = listeners.map(listener => applyHttpListenerCors(listener, cors, requestValidation));
     await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
         method: 'PUT',
         headers: JSON_HEADERS,
