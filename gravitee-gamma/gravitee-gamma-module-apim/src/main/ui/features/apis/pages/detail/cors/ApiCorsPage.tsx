@@ -41,7 +41,9 @@ export function ApiCorsPage() {
     const canEdit = useHasPermission({ anyOf: ['api-definition-u'] });
     const { data: api, isLoading, isError } = useApiDetail(apiId);
 
-    const savedCors = useMemo(() => api?.listeners?.find(l => l.type === 'HTTP')?.cors ?? null, [api?.listeners]);
+    const httpListener = useMemo(() => api?.listeners?.find(l => l.type === 'HTTP'), [api?.listeners]);
+    const savedCors = useMemo(() => httpListener?.cors ?? null, [httpListener]);
+    const savedRejectNullByte = useMemo(() => httpListener?.requestValidation?.rejectNullByte ?? false, [httpListener]);
 
     // ─── Form state ───────────────────────────────────────────────────────────
     const [enabled, setEnabled] = useState(false);
@@ -50,20 +52,24 @@ export function ApiCorsPage() {
     const [allowHeaders, setAllowHeaders] = useState<string[]>([]);
     const [exposeHeaders, setExposeHeaders] = useState<string[]>([]);
     const [allowCredentials, setAllowCredentials] = useState(false);
+    const [allowPrivateNetwork, setAllowPrivateNetwork] = useState(false);
     const [runPolicies, setRunPolicies] = useState(false);
     const [maxAge, setMaxAge] = useState('');
+    const [rejectNullByte, setRejectNullByte] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
 
-    const applyCorsToForm = useCallback((cors: Cors | null | undefined) => {
+    const applyCorsToForm = useCallback((cors: Cors | null | undefined, nextRejectNullByte = false) => {
         setEnabled(cors?.enabled ?? false);
         setOrigins(cors?.allowOrigin ?? []);
         setMethods(cors?.allowMethods ?? []);
         setAllowHeaders(cors?.allowHeaders ?? []);
         setExposeHeaders(cors?.exposeHeaders ?? []);
         setAllowCredentials(cors?.allowCredentials ?? false);
+        setAllowPrivateNetwork(cors?.allowPrivateNetwork ?? false);
         setRunPolicies(cors?.runPolicies ?? false);
         setMaxAge(cors?.maxAge !== undefined ? String(cors.maxAge) : '');
+        setRejectNullByte(nextRejectNullByte);
         setIsDirty(false);
         setSaveError(null);
     }, []);
@@ -77,18 +83,19 @@ export function ApiCorsPage() {
     const initializedForApiIdRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
-        if (initializedForApiIdRef.current === apiId) return;
+        if (!api || api.id !== apiId || initializedForApiIdRef.current === apiId) return;
         initializedForApiIdRef.current = apiId;
-        applyCorsToForm(savedCors);
-    }, [savedCors, apiId, applyCorsToForm]);
+        applyCorsToForm(savedCors, savedRejectNullByte);
+    }, [api, savedCors, savedRejectNullByte, apiId, applyCorsToForm]);
 
     function handleDiscard() {
-        applyCorsToForm(savedCors);
+        applyCorsToForm(savedCors, savedRejectNullByte);
     }
 
     // ─── Mutation ─────────────────────────────────────────────────────────────
     const mutation = useMutation({
-        mutationFn: (cors: Cors) => updateApiCors(env!.id, apiId!, cors),
+        mutationFn: ({ cors, requestValidation }: { cors: Cors; requestValidation: { rejectNullByte: boolean } }) =>
+            updateApiCors(env!.id, apiId!, cors, requestValidation),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
             initializedForApiIdRef.current = undefined;
@@ -103,14 +110,18 @@ export function ApiCorsPage() {
     const handleSave = () => {
         const parsedMaxAge = maxAge.trim() !== '' ? Number(maxAge) : undefined;
         mutation.mutate({
-            enabled,
-            allowOrigin: origins,
-            allowMethods: methods,
-            allowHeaders,
-            exposeHeaders,
-            allowCredentials,
-            runPolicies,
-            ...(parsedMaxAge !== undefined && !Number.isNaN(parsedMaxAge) ? { maxAge: parsedMaxAge } : {}),
+            cors: {
+                enabled,
+                allowOrigin: origins,
+                allowMethods: methods,
+                allowHeaders,
+                exposeHeaders,
+                allowCredentials,
+                allowPrivateNetwork,
+                runPolicies,
+                ...(parsedMaxAge !== undefined && !Number.isNaN(parsedMaxAge) ? { maxAge: parsedMaxAge } : {}),
+            },
+            requestValidation: { rejectNullByte },
         });
     };
 
@@ -327,6 +338,26 @@ export function ApiCorsPage() {
                         />
 
                         <ToggleRow
+                            id="cors-allow-private-network"
+                            label="Access-Control-Allow-Private-Network"
+                            description="Allow public websites to reach private-network resources."
+                            hint={
+                                <>
+                                    When enabled, the gateway responds with{' '}
+                                    <span className="font-mono text-xs">Access-Control-Allow-Private-Network: true</span> to preflight
+                                    requests that include{' '}
+                                    <span className="font-mono text-xs">Access-Control-Request-Private-Network: true</span>.
+                                </>
+                            }
+                            checked={allowPrivateNetwork}
+                            disabled={fieldsDisabled || !canEdit}
+                            onCheckedChange={v => {
+                                setAllowPrivateNetwork(v);
+                                markDirty();
+                            }}
+                        />
+
+                        <ToggleRow
                             id="cors-run-policies"
                             label="Run policies on preflight"
                             description="Enforce auth or rate-limiting on preflight requests."
@@ -372,6 +403,32 @@ export function ApiCorsPage() {
                                 className="w-36"
                             />
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* ─── Request validation ───────────────────────────────────────── */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base">Request validation</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ToggleRow
+                            id="cors-reject-null-byte"
+                            label="Reject requests containing null bytes"
+                            description="Return HTTP 400 when a query parameter, header, or path parameter contains a null character."
+                            hint={
+                                <>
+                                    Rejects requests that contain <span className="font-mono text-xs">{'\\u0000'}</span> in query
+                                    parameters, headers, or path parameters.
+                                </>
+                            }
+                            checked={rejectNullByte}
+                            disabled={!canEdit}
+                            onCheckedChange={v => {
+                                setRejectNullByte(v);
+                                markDirty();
+                            }}
+                        />
                     </CardContent>
                 </Card>
             </div>

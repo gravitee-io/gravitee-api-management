@@ -263,6 +263,24 @@ export function HealthCheckStep({
 
                 <HeadersEditor headers={config.headers} disabled={configDisabled} onChange={headers => onConfigChange({ headers })} />
 
+                {(config.method === 'POST' || config.method === 'PUT') && (
+                    <div className="space-y-2">
+                        <Label htmlFor="hc-body" className="text-sm">
+                            Body
+                        </Label>
+                        <Textarea
+                            id="hc-body"
+                            value={config.body}
+                            disabled={configDisabled}
+                            onChange={e => onConfigChange({ body: e.target.value })}
+                            rows={4}
+                            className="font-mono text-sm"
+                            style={{ fieldSizing: 'fixed' } as React.CSSProperties}
+                        />
+                        <p className="text-xs text-muted-foreground">Make sure to add a Content-Type header for POST/PUT HTTP method.</p>
+                    </div>
+                )}
+
                 <div className="space-y-2">
                     <Label htmlFor="hc-assertion" className="text-sm">
                         Assertion <span className="text-destructive">*</span>
