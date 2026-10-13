@@ -135,6 +135,23 @@ If the console's own code fails to load (`import('./bootstrap')` in `main.ts`) o
 
 **Source:** `src/features/modules/modules.remotes.ts`, `src/features/modules/components/RemoteModuleRoute.tsx`, `src/features/modules/components/ModuleUpdating.tsx`, `src/features/modules/components/ModuleUnavailable.tsx`, `src/startup-error.ts`
 
+### When the environments cannot be loaded
+
+Every page of the console belongs to an environment, so no page can be shown until `GET /environments` has answered. When it fails, the environment store keeps `loadFailed` true until a load succeeds, and `EnvironmentsLoadFailed` takes the place of the page: "Couldn't load your environments", saying the platform may be updating, with a primary **Retry** button. Primary on purpose: the console does not retry by itself.
+
+| Where the user is       | Shown                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| A direct link to a page | The message inside the shell, in place of the page (`EnvironmentGuard`)              |
+| `/`, as after a sign-in | The message alone in the middle of the page, as its `main` landmark (`RootRedirect`) |
+
+**Retry** calls `initialize()` again, without reloading the page. `loadFailed` stays true while it runs, so the message stays on screen and the button reads **Retrying…** for at least 600 ms. Once the environments are loaded, the page asked opens, or the home of the first environment from `/`. An empty list is an answer, not a failure: it keeps its own message, "No environment found!".
+
+The technical error is neither shown nor logged. The button sits inside the message's `role="alert"`, so the change of its label makes a screen reader read the message again, when the retry starts and once it has failed (checked with VoiceOver).
+
+The message is built from the parts the module messages share: `PageError`, the layout `ModuleUnavailable` uses too, `MessageTitle`, and `RetryButton`, which `ModuleUpdating` uses in its outline style.
+
+**Source:** `src/features/environment/environment.store.ts`, `src/features/environment/EnvironmentGuard.tsx`, `src/features/environment/RootRedirect.tsx`, `src/features/environment/EnvironmentsLoadFailed.tsx`, `src/shared/components/PageError.tsx`, `src/shared/components/RetryButton.tsx`
+
 ## Routing
 
 Dynamic routes are generated in `AppRoutes` from the discovered modules:
@@ -245,6 +262,10 @@ Browser                          Host App                         Backend (Gamma
 | `src/features/modules/components/ModuleUpdating.tsx`    | Message once a module's load is delayed                                          |
 | `src/features/modules/components/ModuleUnavailable.tsx` | Message when a module cannot be shown                                            |
 | `src/startup-error.ts`                                  | `showStartupError()`, the page shown when the console cannot start               |
+| `src/features/environment/environment.store.ts`         | Environment list, `initialize()` and `loadFailed`                                |
+| `src/features/environment/EnvironmentsLoadFailed.tsx`   | Message when the environments cannot be loaded                                   |
+| `src/shared/components/PageError.tsx`                   | Layout of the messages that take the place of a page                             |
+| `src/shared/components/RetryButton.tsx`                 | **Retry** button with its **Retrying…** state                                    |
 | `src/app/AppRoutes.tsx`                                 | Root routes with dynamic module route generation                                 |
 | `src/shared/components/ShellLayout.tsx`                 | App shell with sidebar, app switcher, and layout slots                           |
 | `src/bootstrap.tsx`                                     | App initialization, store setup, React root                                      |
