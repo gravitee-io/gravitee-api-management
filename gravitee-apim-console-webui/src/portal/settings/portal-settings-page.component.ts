@@ -320,6 +320,7 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
             { nonNullable: true },
           ),
         }),
+        // Hidden on the page. Kept so a save writes the stored value back and does not turn the capability on.
         aiWorkspaces: new FormGroup({
           enabled: new FormControl(
             {
