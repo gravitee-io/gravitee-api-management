@@ -288,6 +288,25 @@ class LogsSearchResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_400_if_a_filter_does_not_support_its_operator() {
+            var request = new SearchLogsRequest()
+                .timeRange(
+                    new TimeRange()
+                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
+                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+                )
+                .addFiltersItem(new Filter(new StringFilter().name(FilterName.URI).operator(Operator.CONTAINS).value("/foo")));
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Filter URI does not support operator CONTAINS.");
+        }
+
+        @Test
         void should_return_400_if_page_is_zero() {
             var request = new SearchLogsRequest().timeRange(
                 new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
