@@ -91,6 +91,7 @@ export function resetAllStores() {
         user: null,
         loading: false,
         initialized: false,
+        sessionCheckFailed: false,
         oauthRedirectUrl: null,
         avatarCacheBust: 0,
     });
