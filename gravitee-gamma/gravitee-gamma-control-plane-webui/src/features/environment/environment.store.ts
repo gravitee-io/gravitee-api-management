@@ -27,6 +27,8 @@ interface EnvironmentState {
     currentEnvironment: Environment | null;
     loading: boolean;
     error: Error | null;
+    /** The request for the environments failed: no page can be shown until it is tried again. */
+    loadFailed: boolean;
     initialized: boolean;
     initialize: (organizationId: string) => Promise<void>;
     setCurrentEnvironment: (env: Environment) => void;
@@ -41,6 +43,7 @@ const initialState = {
     currentEnvironment: null as Environment | null,
     loading: false,
     error: null as Error | null,
+    loadFailed: false,
     initialized: false,
 };
 
@@ -54,7 +57,8 @@ export const useEnvironmentStore = create<EnvironmentState>()(
             resolveEnvironment: (envHridOrId: string) => resolveEnvironmentFromSegment(get().environments, envHridOrId),
 
             initialize: async (organizationId: string) => {
-                if (get().initialized) return;
+                // A failed load can be tried again. Until it succeeds, `loadFailed` stays true.
+                if (get().initialized && !get().loadFailed) return;
                 set({ loading: true, error: null });
 
                 try {
@@ -77,6 +81,7 @@ export const useEnvironmentStore = create<EnvironmentState>()(
                         environmentId: first.id,
                         loading: false,
                         error: null,
+                        loadFailed: false,
                         initialized: true,
                     });
                 } catch (e) {
@@ -85,6 +90,7 @@ export const useEnvironmentStore = create<EnvironmentState>()(
                         organizationId,
                         loading: false,
                         error: e instanceof Error ? e : new Error(String(e)),
+                        loadFailed: true,
                         initialized: true,
                     });
                 }

@@ -43,13 +43,62 @@ describe('environmentStore', () => {
         expect(tracker.callCount).toBe(1);
     });
 
-    it('should set error on API failure during initialize', async () => {
-        respondWithError('get', `${TEST_MANAGEMENT_BASE}/environments`, 500);
+    describe('when the environments cannot be loaded', () => {
+        let error: jest.SpyInstance;
 
-        await useEnvironmentStore.getState().initialize('test-org');
+        beforeEach(() => {
+            error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        });
 
-        expect(useEnvironmentStore.getState().error).toBeTruthy();
-        expect(useEnvironmentStore.getState().environments).toEqual([]);
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should set error on API failure during initialize', async () => {
+            respondWithError('get', `${TEST_MANAGEMENT_BASE}/environments`, 500);
+
+            await useEnvironmentStore.getState().initialize('test-org');
+
+            expect(useEnvironmentStore.getState().error).toBeTruthy();
+            expect(useEnvironmentStore.getState().environments).toEqual([]);
+        });
+
+        it.each([
+            ['the platform answers with an error', () => HttpResponse.json({ message: 'Error 503' }, { status: 503 })],
+            ['the platform does not answer', () => HttpResponse.error()],
+        ])('should report the failed load when %s', async (_case, respond) => {
+            server.use(http.get(`${TEST_MANAGEMENT_BASE}/environments`, respond));
+
+            await useEnvironmentStore.getState().initialize('test-org');
+
+            expect(useEnvironmentStore.getState().loadFailed).toBe(true);
+            expect(useEnvironmentStore.getState().loading).toBe(false);
+            expect(error).not.toHaveBeenCalled();
+        });
+
+        it('should load them when it is tried again', async () => {
+            respondWithError('get', `${TEST_MANAGEMENT_BASE}/environments`, 503);
+            await useEnvironmentStore.getState().initialize('test-org');
+            const tracker = trackHandler('get', `${TEST_MANAGEMENT_BASE}/environments`, TEST_ENVIRONMENTS);
+
+            await useEnvironmentStore.getState().initialize('test-org');
+
+            expect(tracker.callCount).toBe(1);
+            expect(useEnvironmentStore.getState().environments).toEqual(TEST_ENVIRONMENTS);
+            expect(useEnvironmentStore.getState().loadFailed).toBe(false);
+            expect(useEnvironmentStore.getState().error).toBeNull();
+        });
+
+        it('should keep reporting the failed load while it is tried again', async () => {
+            respondWithError('get', `${TEST_MANAGEMENT_BASE}/environments`, 503);
+            await useEnvironmentStore.getState().initialize('test-org');
+
+            const retry = useEnvironmentStore.getState().initialize('test-org');
+
+            expect(useEnvironmentStore.getState().loading).toBe(true);
+            expect(useEnvironmentStore.getState().loadFailed).toBe(true);
+            await retry;
+        });
     });
 
     it('should set error when environment list is empty', async () => {
@@ -59,6 +108,7 @@ describe('environmentStore', () => {
 
         expect(useEnvironmentStore.getState().error?.message).toBe('No environment found!');
         expect(useEnvironmentStore.getState().environments).toEqual([]);
+        expect(useEnvironmentStore.getState().loadFailed).toBe(false);
     });
 
     it('resolveEnvironment should find by hrid', async () => {

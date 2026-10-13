@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, Spinner } from '@gravitee/graphene-core';
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, Spinner } from '@gravitee/graphene-core';
 
 import { MessageTitle } from '../../../shared/components/MessageTitle';
-import { useMinimumDuration } from '../../../shared/hooks/useMinimumDuration';
-
-/** An attempt that fails can end within a few milliseconds: "Retrying…" stays long enough to be read. */
-const RETRYING_SHOWN_FOR_AT_LEAST_MS = 600;
+import { RetryButton } from '../../../shared/components/RetryButton';
 
 interface ModuleUpdatingProps {
     readonly moduleName: string;
@@ -28,8 +25,6 @@ interface ModuleUpdatingProps {
 }
 
 export function ModuleUpdating({ moduleName, attempting, onRetryNow }: ModuleUpdatingProps) {
-    const retrying = useMinimumDuration(attempting, RETRYING_SHOWN_FOR_AT_LEAST_MS);
-
     return (
         <Empty>
             <EmptyHeader>
@@ -43,11 +38,8 @@ export function ModuleUpdating({ moduleName, attempting, onRetryNow }: ModuleUpd
             </EmptyHeader>
             <EmptyContent>
                 {/* Outline on purpose: the console keeps retrying by itself, so waiting is the expected path and this
-                    button only saves time. The primary style is kept for the final message, where the user has to act.
-                    The minimum width keeps its size when the label changes. */}
-                <Button variant="outline" className="min-w-24" aria-disabled={retrying} onClick={retrying ? undefined : onRetryNow}>
-                    {retrying ? 'Retrying…' : 'Retry now'}
-                </Button>
+                    button only saves time. The primary style is kept for the final message, where the user has to act. */}
+                <RetryButton variant="outline" label="Retry now" retrying={attempting} onRetry={onRetryNow} />
             </EmptyContent>
         </Empty>
     );
