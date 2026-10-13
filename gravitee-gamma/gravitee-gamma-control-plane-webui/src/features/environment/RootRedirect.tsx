@@ -17,6 +17,7 @@ import { Navigate } from 'react-router-dom';
 
 import { useEnvironmentStore } from './environment.store';
 import { getPrimaryHrid } from './environment.utils';
+import { EnvironmentsLoadFailed } from './EnvironmentsLoadFailed';
 
 /**
  * Sends users to the "home" of the environment they are currently working in when the URL has no
@@ -29,6 +30,16 @@ export function RootRedirect() {
     const currentEnvironment = useEnvironmentStore(s => s.currentEnvironment);
     const loading = useEnvironmentStore(s => s.loading);
     const error = useEnvironmentStore(s => s.error);
+    const loadFailed = useEnvironmentStore(s => s.loadFailed);
+
+    if (loadFailed) {
+        // No shell around this page: the message is its main content, alone in the middle.
+        return (
+            <main className="flex min-h-svh items-center justify-center p-4">
+                <EnvironmentsLoadFailed />
+            </main>
+        );
+    }
 
     if (error) {
         return (

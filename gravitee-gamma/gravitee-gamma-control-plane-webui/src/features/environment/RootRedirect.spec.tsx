@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { useEnvironmentStore } from './environment.store';
 import { RootRedirect } from './RootRedirect';
-import { TEST_ENVIRONMENTS } from '../../testing/factories';
-import { resetAllStores, seedBootstrap, seedEnvironments } from '../../testing/helpers';
+import { TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE } from '../../testing/factories';
+import { resetAllStores, respondWithError, seedBootstrap, seedEnvironments, trackHandler } from '../../testing/helpers';
 import { PathnameProbe } from '../../testing/PathnameProbe';
 
 describe('RootRedirect', () => {
@@ -67,6 +68,52 @@ describe('RootRedirect', () => {
         await waitFor(() => {
             expect(lastPath).toBe('/environments/env-2/home');
         });
+    });
+
+    it('should say that the environments could not be loaded, without the technical error', () => {
+        useEnvironmentStore.setState({ error: new Error('GET /environments failed'), loadFailed: true, initialized: true });
+        render(
+            <MemoryRouter>
+                <RootRedirect />
+            </MemoryRouter>,
+        );
+
+        const alert = screen.getByRole('alert');
+        expect(alert.textContent).toContain("Couldn't load your environments");
+        expect(alert.textContent).not.toContain('GET /environments failed');
+        expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy();
+    });
+
+    it('should make the message the main content of the page, as no shell is around it', () => {
+        useEnvironmentStore.setState({ error: new Error('GET /environments failed'), loadFailed: true, initialized: true });
+        render(
+            <MemoryRouter>
+                <RootRedirect />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByRole('main').contains(screen.getByRole('alert'))).toBe(true);
+    });
+
+    it('should open the home of the first environment once a retry succeeds', async () => {
+        const user = userEvent.setup();
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/environments`, 503);
+        await useEnvironmentStore.getState().initialize('test-org');
+        render(
+            <MemoryRouter initialEntries={['/']}>
+                <PathnameProbe onPath={p => (lastPath = p)} />
+                <Routes>
+                    <Route path="/" element={<RootRedirect />} />
+                    <Route path="/environments/:envHrid/home" element={<div data-testid="landed">ok</div>} />
+                </Routes>
+            </MemoryRouter>,
+        );
+        trackHandler('get', `${TEST_MANAGEMENT_BASE}/environments`, TEST_ENVIRONMENTS);
+
+        await user.click(screen.getByRole('button', { name: 'Retry' }));
+
+        expect(await screen.findByTestId('landed')).toBeTruthy();
+        expect(lastPath).toBe('/environments/env-1/home');
     });
 
     it('should show error when store has an error and no environments', () => {
