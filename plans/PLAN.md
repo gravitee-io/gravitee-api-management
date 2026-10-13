@@ -107,6 +107,9 @@ todos:
   - id: STORY-33
     content: "Preview OpenAPI and AsyncAPI content."
     status: pending
+  - id: STORY-33-BIS
+    content: "Configure the OpenAPI viewer of a page (Swagger UI or Redoc, and its options) under API documentation permission, as the portal editor's Configure dialog does."
+    status: pending
   - id: STORY-34
     content: "Link an external source for a page or a whole folder."
     status: pending
@@ -451,6 +454,7 @@ Precedent: the v2 `ApiPagesResource` already uses `API_DOCUMENTATION` with READ/
 | Edit, rename, reorder, move, or show/hide one item | `API_DOCUMENTATION` UPDATE |
 | Delete an item | `API_DOCUMENTATION` DELETE |
 | Refresh an external source | `API_DOCUMENTATION` UPDATE |
+| Configure a page's OpenAPI viewer | `API_DOCUMENTATION` UPDATE |
 | Import a folder from a source | `API_DOCUMENTATION` CREATE |
 | List available publish locations | `API_DOCUMENTATION` READ |
 | Publish the API to a portal | `API_DOCUMENTATION` UPDATE |
@@ -1263,16 +1267,47 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 
 #### STORY-33 — Preview OpenAPI and AsyncAPI content
 **Why:** a rendered preview is how an author catches a broken or misleading spec before customers see it. Gravitee Markdown already gets its preview from STORY-22, and the other two content types should not be authored blind by comparison.
-**Acceptance criteria:** a spec renders in the preview panel for both types; a malformed spec shows an error rather than breaking the screen.
+**Acceptance criteria:**
+- A spec renders in the preview panel for both types; a malformed spec shows an error rather than breaking the screen.
+- An OpenAPI page previews in the viewer its content's `configuration.viewer` names, as the portal renders it: Redoc or Swagger UI. The server gives every OpenAPI content a configuration, Redoc by default, so most pages preview in Redoc until someone chooses otherwise (STORY-33 Bis).
+- While the content is being typed, a syntax error keeps the last valid preview, marked as out of date and naming the line; fixing it refreshes the preview. Content that has never been valid, or is a document of the wrong kind, shows an error in place of the preview.
 **Files:**
 - *create* `GAMMA/features/apis/components/detail/documentation/OpenApiPreview.tsx`
 - *create* `GAMMA/features/apis/components/detail/documentation/AsyncApiPreview.tsx`
 - *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationEditPage.tsx` — select the preview by content type
+- *edit* `GAMMA/features/apis/types/apiDocumentation.ts` — the page content's `configuration`, which the API already returns
 - *edit* `GAMMA/package.json` — the spec viewer dependency
 **Size:** M · **Depends on:** STORY-26
 **Subtasks:**
 1. OpenAPI, including the malformed-spec error state.
 2. AsyncAPI.
+
+#### STORY-33 Bis — Configure the OpenAPI viewer of a page
+**Why:** the portal renders an OpenAPI page with the viewer and options stored in its content's configuration. The portal editor sets them through its Configure dialog, which uses `PATCH /portal-page-contents/{id}/configuration` and needs `ENVIRONMENT_DOCUMENTATION`. Without this story, a Gamma user cannot choose between Swagger UI and Redoc, enable "Try it", or set a base URL, and every page written in Gamma stays on the server default, Redoc with no options.
+**Acceptance criteria:**
+- A "Configure" action on the editor screen of an OpenAPI page opens a dialog with the portal editor's fields, labels and validation:
+  - the viewer, SwaggerUI or Redoc;
+  - the base URL, empty or starting with `http://` or `https://`;
+  - for SwaggerUI only: API entrypoints as server URLs, API context-path as server URL path, "Try it", "Try it" for anonymous users, response body styling, the download URL, `operationId` in the list, PKCE, content expansion, the filter bar, vendor extensions, parameter extension fields and the maximum number of tagged operations.
+- Saving stores the configuration at once, apart from the content's Save. The preview (STORY-33) follows the new configuration without reloading.
+- The configuration is saved under the page's API-scoped path with API documentation UPDATE, the content found through the page as in STORY-12 Bis. A page of another API, a portal-owned page or a page that is not OpenAPI is reported as not found.
+- As in the portal editor, the action is offered on a synced page but not below a synced folder, and not without `api-documentation-u`.
+- The existing `/portal-page-contents/{id}/configuration` endpoint behaves exactly as before.
+**Files:**
+- *edit* `V2SPEC/openapi-apis.yaml` — `PATCH …/portal-navigation-items/{navId}/content/configuration`, reusing `PortalPageOpenApiConfiguration` and `PortalPageContentResponse` from `openapi-environments.yaml`
+- *edit* `V2REST/resource/api/ApiDocumentationNavigationItemResource.java` — the operation, with the STORY-13 guard
+- *read only* `CORE/portal_page/use_case/UpdatePortalPageContentConfigurationUseCase.java` — delegated to unchanged
+- *edit* `GAMMA/features/apis/services/apiDocumentation.ts`, `GAMMA/features/apis/hooks/useApiDocumentation.ts` — the save, storing the returned content in the page content's cache entry
+- *create* `GAMMA/features/apis/components/detail/documentation/OpenApiViewerSettingsDialog.tsx`
+- *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationEditPage.tsx` — the Configure action
+- *read only* `EDITOR/navigation-items/openapi-config-dialog/` — the fields, labels, defaults and validation to copy
+**Size:** M · **Depends on:** STORY-26 · best after STORY-33, which makes the change visible
+**Note:** security-sensitive: a new authorization path. The Automation API sync checklist applies to the contract change, though no schema or enum changes: the operation reuses existing schemas.
+**Subtasks:**
+1. The contract and the API-scoped operation, with permission, owner and type tests.
+2. The service and hook.
+3. The dialog, with the SwaggerUI-only fields shown for SwaggerUI only.
+4. The Configure action, and the preview following the saved configuration.
 
 #### STORY-34 — Link an external source
 **Why:** many teams keep their documentation in a repository next to the code and do not want to copy it by hand. Linking a source — a single page or a whole folder — keeps the portal in step with that repository automatically, which is one of the five capabilities the feature promises.
@@ -1411,6 +1446,7 @@ flowchart LR
         S31["31 Show / hide item"]
         S32["32 Drag and drop"]
         S33["33 Spec preview"]
+        S33B["33 Bis Viewer settings"]
         S34["34 External source"]
     end
     subgraph P7 ["Phase 7 · Supporting"]
@@ -1451,6 +1487,8 @@ flowchart LR
     S25 --> S31
     S25 --> S32
     S26 --> S33
+    S26 --> S33B
+    S12B --> S33B
     S25 --> S34
     S17 --> S34
 ```
@@ -1481,9 +1519,9 @@ The longest backend chain is **01 → 03 → 05 → 06** ≈ 8. It only becomes 
 |---|---|---|
 | **A — ownership core** | 01 → 03 → 04, 05 → 06, 07, 08, 09, 02, 10, 36 | One owner. Stories 01, 02, 05, 06 all land in the same file, so they cannot be split further without constant conflicts |
 | **B — Gamma backend and data** | 11 → 12 → 12 Bis, 13, 14, 15, 16, 17, 35, 19, (37) | Independently testable from day one; 12 does not wait on track A because the explicit-owner rule needs no pipeline change |
-| **C — frontend** | 20 → 21 → 22, 23, 24 → 25 → 26, 27, 28, 29, 30, 31, 33, 34, 32 | Build against the contract's stand-in. 32 last |
+| **C — frontend** | 20 → 21 → 22, 23, 24 → 25 → 26, 27, 28, 29, 30, 31, 33, 33 Bis, 34, 32 | Build against the contract's stand-in. 32 last. 33 Bis carries its own small backend operation |
 
-Track C is roughly half the total work, so with four people the split is two on backend and two on frontend — the frontend divides cleanly (21/22/26/33/34 against 24/25/27/28/29/30/31/32), while the backend cannot, because of the shared file in track A.
+Track C is roughly half the total work, so with four people the split is two on backend and two on frontend — the frontend divides cleanly (21/22/26/33/33 Bis/34 against 24/25/27/28/29/30/31/32), while the backend cannot, because of the shared file in track A.
 
 **Sizing caveat:** these sizes assume familiarity with this codebase. The ownership stories in track A depend on a model that is not stated anywhere in the code — [How portal navigation works today](#how-portal-navigation-works-today) is the onboarding document for it — and mistakes there are invisible rather than loud: it is possible to write code that passes its own tests and silently disables a validation rule. For someone new to this area, expect those stories to take roughly 1.7× and the mechanical ones 1.25×. Sequencing track B's smaller stories before track A is the cheapest way to build that model with low blast radius.
 
@@ -1556,10 +1594,11 @@ Track C is roughly half the total work, so with four people the split is two on 
 | A console page inside an automation-managed folder is deleted with its content when the config drops that folder | Accepted | Not caused by this work; release-note it |
 | A product's own documentation dies with its listing row, unlike an API's | Low (accepted) | Documented asymmetry |
 | Schema-driven fetcher forms in React | Medium | Raw editor fallback (STORY-34) |
+| A Gamma user cannot choose the OpenAPI viewer or its options, so pages written in Gamma stay on Redoc with no "Try it" | Medium | STORY-33 Bis |
 | Angular runtime shipped into Gamma for one widget | Low | Lazy-load on the documentation screen only (STORY-22) |
 | Gamma's theme does not reach inside the preview | Low (accepted) | Already true in the classic console |
 
-**Security-sensitive** — call out in the PR descriptions for STORY-12, STORY-12 Bis, STORY-13 and STORY-16: new authorization paths, publishing moved from environment-level to API-level permission, and the body-target check. STORY-19 rewrites persisted ownership fields.
+**Security-sensitive** — call out in the PR descriptions for STORY-12, STORY-12 Bis, STORY-13, STORY-16 and STORY-33 Bis: new authorization paths, publishing moved from environment-level to API-level permission, and the body-target check. STORY-19 rewrites persisted ownership fields.
 
 ---
 
