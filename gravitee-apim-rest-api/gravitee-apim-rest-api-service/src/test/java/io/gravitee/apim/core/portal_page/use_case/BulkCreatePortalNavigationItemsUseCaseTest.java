@@ -124,7 +124,10 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             queryService,
             domainService,
             pageContentCrudService,
-            apiCrudService
+            apiCrudService,
+            creationExpansionDomainService,
+            validatorService,
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         useCase = new BulkCreatePortalNavigationItemUseCase(
             domainService,
@@ -146,6 +149,12 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             )
         );
         apiCrudService.initWith(List.of(Api.builder().id("shared-api").name("Shared API").environmentId(ENV_ID).build()));
+        var standalonePage = PortalNavigationItemFixtures.aPage("Standalone documentation", null)
+            .toBuilder()
+            .reference(new NavigationItemReference.ApiReference("shared-api"))
+            .build();
+        standalonePage.markAsRoot();
+        queryService.storage().add(standalonePage);
         var firstProduct = productItem("product-1", "First product", 0);
         var secondProduct = productItem("product-2", "Second product", 1);
 
@@ -156,6 +165,12 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             .containsExactly("product-1", "product-2");
         assertDefaultProductAndApiPages(output.items().get(0).getId());
         assertDefaultProductAndApiPages(output.items().get(1).getId());
+        assertThat(pageContentCrudService.storage()).hasSize(4);
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, standalonePage.getId())).satisfies(page -> {
+            assertThat(page.getReference()).isEqualTo(new NavigationItemReference.ApiReference("shared-api"));
+            assertThat(page.getParentId()).isNull();
+            assertThat(page.getTitle()).isEqualTo("Standalone documentation");
+        });
     }
 
     @Test
@@ -172,6 +187,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
                 assertThat(page.getTitle()).isEqualTo("Overview");
                 assertThat(page.getOrder()).isZero();
                 assertThat(page.getPublished()).isFalse();
+                assertThat(page.getParentId()).isEqualTo(output.items().getFirst().getId());
+                assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
             });
     }
 
@@ -642,6 +659,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
                 assertThat(page.getTitle()).isEqualTo("Overview");
                 assertThat(page.getOrder()).isZero();
                 assertThat(page.getPublished()).isFalse();
+                assertThat(page.getParentId()).isEqualTo(productNavigationItemId);
+                assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
             });
         assertThat(productChildren)
             .filteredOn(PortalNavigationApi.class::isInstance)
@@ -650,7 +669,12 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
                 assertThat(apiItem.getOrder()).isEqualTo(1);
                 assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
                     .singleElement()
-                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> assertThat(page.getTitle()).isEqualTo("Overview"));
+                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> {
+                        assertThat(page.getTitle()).isEqualTo("Overview");
+                        assertThat(page.getPublished()).isFalse();
+                        assertThat(page.getParentId()).isEqualTo(apiItem.getId());
+                        assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+                    });
             });
     }
 }

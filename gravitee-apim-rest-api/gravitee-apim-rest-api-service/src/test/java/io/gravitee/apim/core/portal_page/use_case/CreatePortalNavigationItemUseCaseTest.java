@@ -44,6 +44,7 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
@@ -125,17 +126,11 @@ class CreatePortalNavigationItemUseCaseTest {
             apiCrudService,
             queryService
         );
-        var defaultPageDomainService = new PortalNavigationDefaultPageDomainService(
-            queryService,
-            domainService,
-            pageContentCrudService,
-            apiCrudService
-        );
         useCase = new CreatePortalNavigationItemUseCase(
             domainService,
             validatorService,
             creationExpansionDomainService,
-            defaultPageDomainService,
+            defaultPageDomainService(pageContentCrudService),
             new PortalNavigationItemSourceDomainServiceInMemory(),
             new PortalNavigationItemRenderingDomainService(queryService)
         );
@@ -149,7 +144,7 @@ class CreatePortalNavigationItemUseCaseTest {
     }
 
     @Test
-    void should_create_product_and_its_api_children_with_default_pages_but_return_only_product() {
+    void should_create_product_local_default_pages_even_when_member_api_has_standalone_documentation() {
         apiProductQueryService.initWith(
             List.of(ApiProduct.builder().id("product-id").environmentId(ENV_ID).apiIds(Set.of("api-1", "api-2")).build())
         );
@@ -159,6 +154,12 @@ class CreatePortalNavigationItemUseCaseTest {
                 Api.builder().id("api-2").name("Beta").environmentId(ENV_ID).build()
             )
         );
+        var standalonePage = PortalNavigationItemFixtures.aPage("Standalone documentation", null)
+            .toBuilder()
+            .reference(new NavigationItemReference.ApiReference("api-1"))
+            .build();
+        standalonePage.markAsRoot();
+        queryService.storage().add(standalonePage);
         var toCreate = CreatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.API_PRODUCT)
             .apiProductId("product-id")
@@ -183,6 +184,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 assertThat(page.getTitle()).isEqualTo("Overview");
                 assertThat(page.getPublished()).isFalse();
                 assertThat(page.getParentId()).isEqualTo(output.item().getId());
+                assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
             });
         assertThat(children)
             .filteredOn(PortalNavigationApi.class::isInstance)
@@ -193,11 +195,17 @@ class CreatePortalNavigationItemUseCaseTest {
                         assertThat(page.getTitle()).isEqualTo("Overview");
                         assertThat(page.getPublished()).isFalse();
                         assertThat(page.getParentId()).isEqualTo(apiItem.getId());
+                        assertThat(page.getReference()).isEqualTo(NavigationItemReference.defaultReference());
                     })
             );
         assertThat(pageContentCrudService.storage())
             .hasSize(3)
             .allSatisfy(content -> assertThat(content).isInstanceOf(GraviteeMarkdownPageContent.class));
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, standalonePage.getId())).satisfies(page -> {
+            assertThat(page.getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
+            assertThat(page.getParentId()).isNull();
+            assertThat(page.getTitle()).isEqualTo("Standalone documentation");
+        });
     }
 
     @Test
@@ -212,17 +220,11 @@ class CreatePortalNavigationItemUseCaseTest {
                 throw new IllegalStateException("page content persistence failure");
             }
         };
-        var failingDefaultPageDomainService = new PortalNavigationDefaultPageDomainService(
-            queryService,
-            domainService,
-            failingPageContentCrudService,
-            apiCrudService
-        );
         var failingSeedUseCase = new CreatePortalNavigationItemUseCase(
             domainService,
             validatorService,
             creationExpansionDomainService,
-            failingDefaultPageDomainService,
+            defaultPageDomainService(failingPageContentCrudService),
             new PortalNavigationItemSourceDomainServiceInMemory(),
             new PortalNavigationItemRenderingDomainService(queryService)
         );
@@ -501,7 +503,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 domainService,
                 validator,
                 creationExpansionDomainService,
-                new PortalNavigationDefaultPageDomainService(queryService, domainService, pageContentCrudService, apiCrudService),
+                defaultPageDomainService(pageContentCrudService),
                 new PortalNavigationItemSourceDomainServiceInMemory(),
                 new PortalNavigationItemRenderingDomainService(queryService)
             );
@@ -830,6 +832,18 @@ class CreatePortalNavigationItemUseCaseTest {
             assertThat(output.item().getParentId()).isEqualTo(api.getId());
             assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, output.item().getId()).getParentId()).isNull();
         }
+    }
+
+    private PortalNavigationDefaultPageDomainService defaultPageDomainService(PortalPageContentCrudService contentCrudService) {
+        return new PortalNavigationDefaultPageDomainService(
+            queryService,
+            domainService,
+            contentCrudService,
+            apiCrudService,
+            creationExpansionDomainService,
+            validatorService,
+            new ApiOwnedNavigationDomainService(queryService, crudService)
+        );
     }
 
     private List<PortalNavigationItem> listChildren(PortalNavigationItemId parentId) {
