@@ -15,8 +15,8 @@
  */
 import { Button, Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, Spinner } from '@gravitee/graphene-core';
 
-import { ModuleMessageTitle } from './ModuleMessageTitle';
-import { useMinimumDuration } from '../hooks/useMinimumDuration';
+import { MessageTitle } from '../../../shared/components/MessageTitle';
+import { useMinimumDuration } from '../../../shared/hooks/useMinimumDuration';
 
 /** An attempt that fails can end within a few milliseconds: "Retrying…" stays long enough to be read. */
 const RETRYING_SHOWN_FOR_AT_LEAST_MS = 600;
@@ -36,7 +36,7 @@ export function ModuleUpdating({ moduleName, attempting, onRetryNow }: ModuleUpd
                 <EmptyMedia variant="icon">
                     <Spinner aria-hidden="true" />
                 </EmptyMedia>
-                <ModuleMessageTitle>{`${moduleName} isn't ready yet`}</ModuleMessageTitle>
+                <MessageTitle>{`${moduleName} isn't ready yet`}</MessageTitle>
                 <EmptyDescription>
                     {"An update may be in progress. We will keep retrying and open it here as soon as it's ready."}
                 </EmptyDescription>

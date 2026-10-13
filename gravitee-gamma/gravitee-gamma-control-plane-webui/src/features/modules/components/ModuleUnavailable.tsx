@@ -13,28 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia } from '@gravitee/graphene-core';
-import { CircleAlert } from 'lucide-react';
+import { Button } from '@gravitee/graphene-core';
 
-import { ModuleMessageTitle } from './ModuleMessageTitle';
+import { PageError } from '../../../shared/components/PageError';
 
 export function ModuleUnavailable({ moduleName, onReload }: { readonly moduleName: string; readonly onReload: () => void }) {
     return (
-        <Empty role="alert">
-            <EmptyHeader>
-                {/* Red, which Graphene keeps for errors: the waiting message stays neutral while the console retries. */}
-                <EmptyMedia variant="icon" className="bg-destructive/10 text-destructive">
-                    <CircleAlert aria-hidden="true" />
-                </EmptyMedia>
-                <ModuleMessageTitle>{`${moduleName} isn't available right now`}</ModuleMessageTitle>
-                <EmptyDescription>
-                    It may still be updating. Reload the page in a minute. If this keeps happening, contact your administrator.
-                </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-                {/* Primary on purpose: the console has stopped retrying, so reloading is now the way forward. */}
-                <Button onClick={onReload}>Reload page</Button>
-            </EmptyContent>
-        </Empty>
+        <PageError
+            title={`${moduleName} isn't available right now`}
+            description="It may still be updating. Reload the page in a minute. If this keeps happening, contact your administrator."
+        >
+            {/* Primary on purpose: the console has stopped retrying, so reloading is now the way forward. */}
+            <Button onClick={onReload}>Reload page</Button>
+        </PageError>
     );
 }
