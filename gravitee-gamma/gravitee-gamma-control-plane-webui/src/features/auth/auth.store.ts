@@ -18,7 +18,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import type { CurrentUser, SocialIdentityProvider } from './auth.types';
-import { managementApi } from '../../shared/api/api-client';
+import { isPlatformUnavailable, managementApi } from '../../shared/api/api-client';
 import { useBootstrapStore } from '../../shared/config/bootstrap.store';
 import { useEnvironmentStore } from '../environment/environment.store';
 
@@ -67,6 +67,8 @@ interface AuthState {
     user: CurrentUser | null;
     loading: boolean;
     initialized: boolean;
+    /** The session could not be checked at startup: the login page says so. */
+    sessionCheckFailed: boolean;
     oauthRedirectUrl: string | null;
     initialize: () => Promise<void>;
     login: (username: string, password: string) => Promise<void>;
@@ -80,6 +82,7 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             loading: false,
             initialized: false,
+            sessionCheckFailed: false,
             oauthRedirectUrl: null,
 
             initialize: async () => {
@@ -102,13 +105,17 @@ export const useAuthStore = create<AuthState>()(
 
                     const user = await managementApi.get<CurrentUser>('/user');
                     set({ user, loading: false, initialized: true });
-                } catch {
-                    set({ user: null, loading: false, initialized: true });
+                } catch (error) {
+                    const sessionCheckFailed = isPlatformUnavailable(error);
+                    if (sessionCheckFailed) console.error('[Auth] Could not check the session.', error);
+                    set({ user: null, loading: false, initialized: true, sessionCheckFailed });
                 }
             },
 
             login: async (username: string, password: string) => {
                 localStorage.removeItem(USER_PROVIDER_ID_SELECTED);
+                // The sign-in now speaks for the session: its outcome replaces what the startup check said.
+                set({ sessionCheckFailed: false });
                 await managementApi.post<void>('/user/login', undefined, {
                     Authorization: `Basic ${btoa(`${username}:${password}`)}`,
                 });

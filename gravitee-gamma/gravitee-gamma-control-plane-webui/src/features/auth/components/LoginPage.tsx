@@ -30,20 +30,27 @@ import {
     Spinner,
     cn,
 } from '@gravitee/graphene-core';
+import { TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useState, type SubmitEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { useIdentityProviders, useLogin } from '../auth.selectors';
+import { isPlatformUnavailable } from '../../../shared/api/api-client';
+import { useIdentityProviders, useLogin, useSessionCheckFailed } from '../auth.selectors';
 import { useAuthStore } from '../auth.store';
 import type { SocialIdentityProvider } from '../auth.types';
 import { getProviderTextColor } from '../idp.utils';
 import { IdpIcon } from './IdpIcons';
+
+const SESSION_ALERT_ID = 'login-session-alert';
+/** Said when the platform did not answer, whether it was checking the session or signing in. */
+const PLATFORM_MAY_BE_UPDATING = 'The platform may be updating. Reload the page in a minute, or sign in again.';
 
 export function LoginPage() {
     const login = useLogin();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const identityProviders = useIdentityProviders();
+    const sessionCheckFailed = useSessionCheckFailed();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -56,8 +63,9 @@ export function LoginPage() {
         try {
             await login(username, password);
             navigate(searchParams.get('redirect') || '/', { replace: true });
-        } catch {
-            setError('Login failed! Check username and password.');
+        } catch (signInError) {
+            // Waiting only helps when the platform did not answer: any other failure keeps the usual message.
+            setError(isPlatformUnavailable(signInError) ? PLATFORM_MAY_BE_UPDATING : 'Login failed! Check username and password.');
         } finally {
             setLoading(false);
         }
@@ -73,6 +81,7 @@ export function LoginPage() {
     };
 
     const canSubmit = Boolean(username && password) && !loading;
+    const showSessionAlert = sessionCheckFailed && !error;
 
     return (
         <div className={cn('flex min-h-screen flex-col items-center justify-center p-4', 'font-sans text-foreground')}>
@@ -90,6 +99,16 @@ export function LoginPage() {
                             </Alert>
                         ) : null}
 
+                        {/* The user may well be signed in: this page opened because the platform could not tell.
+                            A warning, not the red of a failed sign-in: nothing is known to be wrong yet. */}
+                        {showSessionAlert ? (
+                            <Alert id={SESSION_ALERT_ID} variant="warning" role="alert">
+                                <TriangleAlertIcon aria-hidden />
+                                <AlertTitle>Could not check your session</AlertTitle>
+                                <AlertDescription>{PLATFORM_MAY_BE_UPDATING}</AlertDescription>
+                            </Alert>
+                        ) : null}
+
                         <Field orientation="vertical" className="gap-2">
                             <FieldLabel htmlFor="login-username">Username</FieldLabel>
                             <Input
@@ -101,6 +120,9 @@ export function LoginPage() {
                                 required
                                 autoComplete="username"
                                 placeholder="Enter your username"
+                                // The alert is there when the page opens, when a screen reader does not announce it:
+                                // the field that takes the focus carries it instead.
+                                aria-describedby={showSessionAlert ? SESSION_ALERT_ID : undefined}
                                 // eslint-disable-next-line jsx-a11y/no-autofocus
                                 autoFocus
                             />

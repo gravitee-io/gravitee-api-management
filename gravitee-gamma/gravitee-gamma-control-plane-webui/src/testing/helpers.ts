@@ -85,7 +85,7 @@ export function respondWithError(method: 'get' | 'post' | 'put' | 'delete', url:
 
 export function resetAllStores() {
     useBootstrapStore.setState({ config: null, loading: false, error: null });
-    useAuthStore.setState({ user: null, loading: false, initialized: false, oauthRedirectUrl: null });
+    useAuthStore.setState({ user: null, loading: false, initialized: false, sessionCheckFailed: false, oauthRedirectUrl: null });
     useEnvironmentStore.getState().reset();
     useModulesStore.setState({ modules: [], moduleLoadStatuses: {} });
     permissionService.reset();

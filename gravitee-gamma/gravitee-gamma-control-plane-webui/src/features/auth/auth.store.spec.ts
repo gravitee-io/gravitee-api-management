@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import { waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 
 import { useAuthStore } from './auth.store';
 import { TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE, buildUser } from '../../testing/factories';
 import { respondWithError, trackHandler } from '../../testing/helpers';
+import { server } from '../../testing/server';
 import { useEnvironmentStore } from '../environment/environment.store';
 
 describe('authStore', () => {
@@ -35,6 +37,52 @@ describe('authStore', () => {
 
         expect(useAuthStore.getState().user).toBeNull();
         expect(useAuthStore.getState().initialized).toBe(true);
+        expect(useAuthStore.getState().sessionCheckFailed).toBe(false);
+    });
+
+    it('should not say the session could not be checked when the platform refuses the request, as waiting would not change it', async () => {
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/user`, 400);
+
+        await useAuthStore.getState().initialize();
+
+        expect(useAuthStore.getState().user).toBeNull();
+        expect(useAuthStore.getState().sessionCheckFailed).toBe(false);
+    });
+
+    describe('when the session cannot be checked', () => {
+        let error: jest.SpyInstance;
+
+        beforeEach(() => {
+            error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it.each([
+            ['the platform answers with an error', () => HttpResponse.json({ message: 'Error 503' }, { status: 503 })],
+            ['the platform does not answer', () => HttpResponse.error()],
+        ])('should say so instead of passing for a sign-out when %s', async (_case, respond) => {
+            server.use(http.get(`${TEST_MANAGEMENT_BASE}/user`, respond));
+
+            await useAuthStore.getState().initialize();
+
+            expect(useAuthStore.getState().user).toBeNull();
+            expect(useAuthStore.getState().initialized).toBe(true);
+            expect(useAuthStore.getState().sessionCheckFailed).toBe(true);
+            expect(error).toHaveBeenCalledWith('[Auth] Could not check the session.', expect.any(Error));
+        });
+
+        it('should forget it as soon as a sign-in starts, whatever its outcome', async () => {
+            useAuthStore.setState({ sessionCheckFailed: true });
+            respondWithError('post', `${TEST_MANAGEMENT_BASE}/user/login`, 503);
+
+            await expect(useAuthStore.getState().login('bob', 'password')).rejects.toBeTruthy();
+
+            expect(useAuthStore.getState().sessionCheckFailed).toBe(false);
+            expect(useAuthStore.getState().user).toBeNull();
+        });
     });
 
     it('should not reinitialize if already done', async () => {
