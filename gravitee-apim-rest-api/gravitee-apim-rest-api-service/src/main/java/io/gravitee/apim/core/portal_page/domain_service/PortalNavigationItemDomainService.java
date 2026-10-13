@@ -383,35 +383,39 @@ public class PortalNavigationItemDomainService {
         final var publishedToPropagate = resolvePublishedToPropagate(changedPublished, propagatePublishToChildren);
 
         final var newOwner = toUpdate.getReference();
+        // Items without a stored parent are listed by owner, so the list an item leaves is found with the
+        // owner it had and the list it joins with the owner it gets.
+        final var originOwner = originalItem.getReference();
+        final var destinationOwner = toUpdate.ownerAfter(originalItem);
         // An item that changes owner without changing its stored parent, such as a top-level portal page
-        // handed to an API, has still moved: its descendants follow.
-        boolean isMoveToNewParent = !Objects.equals(originalParentId, toUpdate.getParentId()) || newOwner != null;
+        // handed to an API, has still left one list for another: its descendants follow.
+        boolean changesList = !Objects.equals(originalParentId, toUpdate.getParentId()) || newOwner != null;
 
-        int sanitizedOrder = isMoveToNewParent
+        int sanitizedOrder = changesList
             ? this.sanitizeOrderForInsertion(
                 toUpdate.getParentId(),
                 originalItem.getEnvironmentId(),
                 originalItem.getArea(),
                 toUpdate.getOrder(),
-                originalItem.getReference()
+                destinationOwner
             )
             : this.sanitizeOrderForReordering(
                 toUpdate.getParentId(),
                 originalItem.getEnvironmentId(),
                 originalItem.getArea(),
                 toUpdate.getOrder(),
-                originalItem.getReference()
+                destinationOwner
             );
 
         toUpdate.setOrder(sanitizedOrder);
 
         if (toUpdate.getSegment() == null) {
-            var targetParentId = isMoveToNewParent ? toUpdate.getParentId() : originalItem.getParentId();
+            var targetParentId = changesList ? toUpdate.getParentId() : originalItem.getParentId();
             var usedSegments = retrieveSiblingItems(
                 targetParentId,
                 originalItem.getEnvironmentId(),
                 originalItem.getArea(),
-                originalItem.getReference()
+                destinationOwner
             )
                 .stream()
                 .filter(sibling -> !Objects.equals(sibling.getId(), originalItem.getId()))
@@ -425,7 +429,7 @@ public class PortalNavigationItemDomainService {
             originalItem.changeOwner(newOwner);
         }
 
-        if (isMoveToNewParent) {
+        if (changesList) {
             if (toUpdate.getParentId() != null) {
                 originalItem.updateParent(resolveParentContainer(toUpdate.getParentId(), originalItem.getEnvironmentId()));
             } else {
@@ -439,16 +443,16 @@ public class PortalNavigationItemDomainService {
         if (visibilityToPropagate != null || publishedToPropagate != null) {
             propagateAttributesToDescendants(updatedItem, visibilityToPropagate, publishedToPropagate);
         }
-        if (isMoveToNewParent) {
+        if (changesList) {
             propagateMoveToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId(), newOwner);
         }
 
         List<PortalNavigationItem> siblingsToUpdate = new ArrayList<>();
-        if (!Objects.equals(originalParentId, updatedItem.getParentId())) {
-            siblingsToUpdate.addAll(this.reorderDestinationSiblingsOnInsertion(updatedItem));
-            siblingsToUpdate.addAll(this.reorderOriginSiblings(originalOrder, updatedItem, originalParentId));
+        if (changesList) {
+            siblingsToUpdate.addAll(this.reorderDestinationSiblingsOnInsertion(updatedItem, destinationOwner));
+            siblingsToUpdate.addAll(this.reorderOriginSiblings(originalOrder, updatedItem, originalParentId, originOwner));
         } else if (!Objects.equals(originalOrder, updatedItem.getOrder())) {
-            siblingsToUpdate.addAll(this.reorderDestinationSiblings(originalOrder, updatedItem));
+            siblingsToUpdate.addAll(this.reorderDestinationSiblings(originalOrder, updatedItem, destinationOwner));
         }
         siblingsToUpdate.forEach(crudService::update);
 
@@ -629,14 +633,10 @@ public class PortalNavigationItemDomainService {
     private List<PortalNavigationItem> reorderOriginSiblings(
         Integer originalOrder,
         PortalNavigationItem updatedItem,
-        PortalNavigationItemId originalParentId
+        PortalNavigationItemId originalParentId,
+        NavigationItemReference originOwner
     ) {
-        return this.retrieveSiblingItems(
-                originalParentId,
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+        return this.retrieveSiblingItems(originalParentId, updatedItem.getEnvironmentId(), updatedItem.getArea(), originOwner)
             .stream()
             .filter(sibling -> sibling.getOrder() > originalOrder)
             .peek(sibling -> {
@@ -645,13 +645,11 @@ public class PortalNavigationItemDomainService {
             .toList();
     }
 
-    private List<PortalNavigationItem> reorderDestinationSiblingsOnInsertion(PortalNavigationItem updatedItem) {
-        return this.retrieveSiblingItems(
-                updatedItem.getParentId(),
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+    private List<PortalNavigationItem> reorderDestinationSiblingsOnInsertion(
+        PortalNavigationItem updatedItem,
+        NavigationItemReference destinationOwner
+    ) {
+        return this.retrieveSiblingItems(updatedItem.getParentId(), updatedItem.getEnvironmentId(), updatedItem.getArea(), destinationOwner)
             .stream()
             .filter(sibling -> !Objects.equals(sibling.getId(), updatedItem.getId()) && sibling.getOrder() >= updatedItem.getOrder())
             .peek(sibling -> {
@@ -660,19 +658,18 @@ public class PortalNavigationItemDomainService {
             .toList();
     }
 
-    private List<PortalNavigationItem> reorderDestinationSiblings(Integer originalOrder, PortalNavigationItem updatedItem) {
+    private List<PortalNavigationItem> reorderDestinationSiblings(
+        Integer originalOrder,
+        PortalNavigationItem updatedItem,
+        NavigationItemReference destinationOwner
+    ) {
         Predicate<PortalNavigationItem> shouldBeDecremented = sibling ->
             sibling.getOrder() > originalOrder && sibling.getOrder() <= updatedItem.getOrder();
 
         Predicate<PortalNavigationItem> shouldBeIncremented = sibling ->
             sibling.getOrder() >= updatedItem.getOrder() && sibling.getOrder() < originalOrder;
 
-        return this.retrieveSiblingItems(
-                updatedItem.getParentId(),
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+        return this.retrieveSiblingItems(updatedItem.getParentId(), updatedItem.getEnvironmentId(), updatedItem.getArea(), destinationOwner)
             .stream()
             .filter(
                 sibling ->

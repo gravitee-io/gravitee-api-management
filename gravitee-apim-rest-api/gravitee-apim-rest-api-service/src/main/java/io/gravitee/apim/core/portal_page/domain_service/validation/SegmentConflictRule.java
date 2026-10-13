@@ -89,14 +89,14 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
                 existingItem.getId(),
                 toUpdate.getParentId(),
                 toUpdate.getSegment(),
-                existingItem.getReference(),
+                toUpdate.ownerAfter(existingItem),
                 ctx.pendingSegmentClaims()
             ) ||
             collidesWithPersistedSibling(
                 existingItem.getId(),
                 toUpdate.getParentId(),
                 toUpdate.getSegment(),
-                existingItem.getReference(),
+                toUpdate.ownerAfter(existingItem),
                 existingItem.getEnvironmentId(),
                 ctx.pendingSegmentClaims()
             )
