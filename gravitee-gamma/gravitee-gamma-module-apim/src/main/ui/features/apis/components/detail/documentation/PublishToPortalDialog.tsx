@@ -123,7 +123,10 @@ function PublishToPortalForm({
         <>
             <DialogHeader>
                 <DialogTitle>Publish to the developer portal</DialogTitle>
-                <DialogDescription>The API appears in the section you choose, with all its pages, folders and links.</DialogDescription>
+                <DialogDescription>
+                    The API and its documentation will become visible in the developer portal. Every page, folder and link will be
+                    published, including those unpublished individually.
+                </DialogDescription>
             </DialogHeader>
 
             <form id="publish-api-to-portal-form" onSubmit={handleSubmit} className="flex flex-col gap-5">

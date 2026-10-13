@@ -78,13 +78,21 @@ const STATUS_PAGE: ApiDocumentationItem = {
 const ITEMS = [GUIDES, GETTING_STARTED, OAUTH, REFERENCE, ENDPOINTS, STATUS_PAGE];
 
 function renderTree(
-    overrides: Partial<{ items: ApiDocumentationItem[]; canDelete: boolean; canAdd: boolean; canEdit: boolean; isLoading: boolean }> = {},
+    overrides: Partial<{
+        items: ApiDocumentationItem[];
+        canDelete: boolean;
+        canAdd: boolean;
+        canEdit: boolean;
+        isLoading: boolean;
+        isApiPublished: boolean;
+    }> = {},
 ) {
     const onDelete = jest.fn();
     const onAddPage = jest.fn();
     const onAddFolder = jest.fn();
     const onAddLink = jest.fn();
     const onEditDetails = jest.fn();
+    const onChangePublication = jest.fn();
     render(
         <MemoryRouter initialEntries={['/apis/api-1/documentation']}>
             <Routes>
@@ -102,13 +110,15 @@ function renderTree(
                             onAddLink={onAddLink}
                             canEdit={overrides.canEdit ?? true}
                             onEditDetails={onEditDetails}
+                            isApiPublished={overrides.isApiPublished ?? true}
+                            onChangePublication={onChangePublication}
                         />
                     }
                 />
             </Routes>
         </MemoryRouter>,
     );
-    return { onDelete, onAddPage, onAddFolder, onAddLink, onEditDetails };
+    return { onDelete, onAddPage, onAddFolder, onAddLink, onEditDetails, onChangePublication };
 }
 
 // The page owns which folders are open; this stands in for it.
@@ -252,7 +262,7 @@ describe('DocumentationTree', () => {
         renderTree({ canDelete: false });
 
         await user.click(screen.getByRole('button', { name: 'Actions for Status page' }));
-        expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details']);
+        expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Publish']);
         await user.keyboard('{Escape}');
         await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
         expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument();
@@ -310,6 +320,7 @@ describe('DocumentationTree', () => {
                 'Add folder',
                 'Add link',
                 'Edit details',
+                'Publish',
                 'Delete',
             ]);
             await user.click(screen.getByRole('menuitem', { name: 'Add folder' }));
@@ -391,7 +402,7 @@ describe('DocumentationTree', () => {
             await expand(user, 'Guides');
             await user.click(screen.getByRole('button', { name: 'Actions for Getting started' }));
 
-            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Delete']);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Unpublish', 'Delete']);
             await user.click(screen.getByRole('menuitem', { name: 'Edit details' }));
             expect(onEditDetails).toHaveBeenCalledWith(GETTING_STARTED);
         });
@@ -403,7 +414,7 @@ describe('DocumentationTree', () => {
 
             await user.click(screen.getByRole('button', { name: 'Actions for Endpoints' }));
 
-            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details']);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Publish']);
         });
 
         it('does not offer it on a page with its own source inside a synced folder, as the editor does not either', async () => {
@@ -452,7 +463,7 @@ describe('DocumentationTree', () => {
 
             await user.click(screen.getByRole('button', { name: 'Actions for Reference' }));
 
-            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details']);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Publish']);
         });
 
         it('does not offer it on a folder inside a synced folder, which the server keeps read only', async () => {
@@ -490,7 +501,7 @@ describe('DocumentationTree', () => {
 
             await user.click(screen.getByRole('button', { name: 'Actions for Status page' }));
 
-            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Delete']);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Publish', 'Delete']);
             await user.click(screen.getByRole('menuitem', { name: 'Edit details' }));
             expect(onEditDetails).toHaveBeenCalledWith(STATUS_PAGE);
         });
@@ -527,6 +538,68 @@ describe('DocumentationTree', () => {
         });
     });
 
+    describe('publishing and unpublishing an item', () => {
+        it('offers to unpublish a published item, after editing its details, and reports which one', async () => {
+            const user = userEvent.setup();
+            const { onChangePublication } = renderTree();
+
+            await expand(user, 'Guides');
+            await user.click(screen.getByRole('button', { name: 'Actions for Getting started' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Unpublish' }));
+
+            expect(onChangePublication).toHaveBeenCalledWith(expect.objectContaining({ item: GETTING_STARTED }));
+        });
+
+        it('offers to publish an unpublished item and reports which one', async () => {
+            const user = userEvent.setup();
+            const { onChangePublication } = renderTree();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Status page' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Publish' }));
+
+            expect(onChangePublication).toHaveBeenCalledWith(expect.objectContaining({ item: STATUS_PAGE }));
+        });
+
+        it('does not offer it without the permission', async () => {
+            const user = userEvent.setup();
+            renderTree({ canEdit: false });
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Status page' }));
+
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Delete']);
+        });
+
+        it('keeps Publish disabled while the API is unpublished, saying why on hover', async () => {
+            const user = userEvent.setup();
+            const { onChangePublication } = renderTree({ isApiPublished: false });
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Status page' }));
+            const publish = screen.getByRole('menuitem', { name: 'Publish' });
+            expect(publish.getAttribute('aria-disabled')).toBe('true');
+            await user.hover(publish);
+
+            expect((await screen.findByRole('tooltip')).textContent).toBe("A link can't be published while the API is unpublished.");
+            fireEvent.click(publish);
+            expect(onChangePublication).not.toHaveBeenCalled();
+        });
+
+        it('keeps Publish disabled inside an unpublished folder, which the server refuses, saying why to the keyboard too', async () => {
+            const user = userEvent.setup();
+            const { onChangePublication } = renderTree();
+
+            await expand(user, 'Guides');
+            await user.click(screen.getByRole('button', { name: 'Actions for OAuth setup' }));
+            const publish = screen.getByRole('menuitem', { name: 'Publish' });
+            expect(publish.getAttribute('aria-disabled')).toBe('true');
+            await user.keyboard('{ArrowDown}{ArrowDown}');
+            expect(document.activeElement).toBe(publish);
+
+            expect((await screen.findByRole('tooltip')).textContent).toBe("A page can't be published inside an unpublished folder.");
+            await user.keyboard('{Enter}');
+            expect(onChangePublication).not.toHaveBeenCalled();
+        });
+    });
+
     describe('right-clicking a row', () => {
         it('opens the same menu as the row button, anywhere in the row', async () => {
             const user = userEvent.setup();
@@ -540,6 +613,7 @@ describe('DocumentationTree', () => {
                 'Add folder',
                 'Add link',
                 'Edit details',
+                'Publish',
                 'Delete',
             ]);
             await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
@@ -551,7 +625,7 @@ describe('DocumentationTree', () => {
 
             fireEvent.contextMenu(screen.getByText('Status page'));
 
-            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Delete']);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Publish', 'Delete']);
         });
 
         it('leaves the browser menu alone on an item inside a synced folder, which has no actions', async () => {

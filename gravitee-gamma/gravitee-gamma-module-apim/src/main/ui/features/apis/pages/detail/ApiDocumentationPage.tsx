@@ -47,6 +47,7 @@ import { DocumentationTree } from '../../components/detail/documentation/Documen
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { FolderDialog } from '../../components/detail/documentation/FolderDialog';
 import { LinkDialog } from '../../components/detail/documentation/LinkDialog';
+import { PublicationDialog } from '../../components/detail/documentation/PublicationDialog';
 import { PublishToPortalDialog } from '../../components/detail/documentation/PublishToPortalDialog';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useDeleteApiDocumentationItem, useUnpublishApiFromPortal } from '../../hooks/useApiDocumentation';
@@ -91,6 +92,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const expandedFolders = useExpandedDocumentationFolders(apiId);
     const navigate = useNavigate();
     const [toDelete, setToDelete] = useState<DocumentationRow | null>(null);
+    const [toChangePublication, setToChangePublication] = useState<DocumentationRow | null>(null);
     // `parent` is absent for an item added at the top level.
     const [pageToAdd, setPageToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
     const [folderToAdd, setFolderToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
@@ -102,6 +104,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const items = data?.items ?? [];
     const isFirstUse = !isLoading && !isError && items.length === 0;
     const openDeleteDialog = useCallback((row: DocumentationRow) => setToDelete(row), []);
+    const openPublicationDialog = useCallback((row: DocumentationRow) => setToChangePublication(row), []);
     const openAddPageDialog = useCallback((parent: PortalNavigationFolder) => setPageToAdd({ parent }), []);
     const openAddFolderDialog = useCallback((parent: PortalNavigationFolder) => setFolderToAdd({ parent }), []);
     const openAddLinkDialog = useCallback((parent: PortalNavigationFolder) => setLinkToAdd({ parent }), []);
@@ -188,6 +191,8 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                     onAddLink={openAddLinkDialog}
                     canEdit={canEdit}
                     onEditDetails={openEditDetailsDialog}
+                    isApiPublished={getPublishedSection(data?.publications ?? []) !== undefined}
+                    onChangePublication={openPublicationDialog}
                 />
             )}
 
@@ -203,6 +208,16 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 isPending={deleteMutation.isPending}
                 onConfirm={handleDelete}
             />
+
+            {toChangePublication ? (
+                <PublicationDialog
+                    open
+                    apiId={apiId}
+                    item={toChangePublication.item}
+                    itemsInside={toChangePublication.descendantCount}
+                    onClose={() => setToChangePublication(null)}
+                />
+            ) : null}
 
             <CreatePageDialog
                 open={pageToAdd !== null}
@@ -249,7 +264,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 open={isUnpublishing}
                 onOpenChange={setIsUnpublishing}
                 title={`Unpublish "${api?.name ?? 'this API'}"?`}
-                description="The API and its documentation disappear from the developer portal. Nothing is deleted: publishing again shows every page, folder and link."
+                description="The API and its documentation will become invisible in the developer portal."
                 confirmLabel="Unpublish"
                 pendingLabel="Unpublishing…"
                 icon={<EyeOffIcon className="size-4" aria-hidden />}

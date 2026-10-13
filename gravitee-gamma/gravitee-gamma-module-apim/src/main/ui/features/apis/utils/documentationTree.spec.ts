@@ -163,11 +163,25 @@ describe('syncStateOf', () => {
 // Mirrors the server's SourcedItemReadOnlyRule.
 describe('allowedChanges', () => {
     it('allows every change to an item that is not synced', () => {
-        expect(allowedChanges('NOT_SYNCED')).toEqual({ content: true, title: true, access: true, delete: true, addInside: true });
+        expect(allowedChanges('NOT_SYNCED')).toEqual({
+            content: true,
+            title: true,
+            access: true,
+            publication: true,
+            delete: true,
+            addInside: true,
+        });
     });
 
-    it('allows only the access of an item with its own source to change', () => {
-        expect(allowedChanges('OWN_SOURCE')).toEqual({ content: false, title: false, access: true, delete: false, addInside: false });
+    it('allows only the access and the publication of an item with its own source to change', () => {
+        expect(allowedChanges('OWN_SOURCE')).toEqual({
+            content: false,
+            title: false,
+            access: true,
+            publication: true,
+            delete: false,
+            addInside: false,
+        });
     });
 
     it('allows no change below a synced folder', () => {
@@ -175,6 +189,7 @@ describe('allowedChanges', () => {
             content: false,
             title: false,
             access: false,
+            publication: false,
             delete: false,
             addInside: false,
         });

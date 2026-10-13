@@ -22,13 +22,19 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from '@gravitee/graphene-core';
 import {
     ChevronDownIcon,
     ChevronRightIcon,
     ExternalLinkIcon,
+    EyeOffIcon,
     FileTextIcon,
     FolderOpenIcon,
+    GlobeIcon,
     Link2Icon,
     MoreVerticalIcon,
     PencilIcon,
@@ -39,7 +45,7 @@ import {
 import { type ComponentType, type MouseEvent, useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
+import { ITEM_NOUNS, ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
 import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationLink } from '../../../types/apiDocumentation';
 import { allowedChanges, buildDocumentationRows, type DocumentationRow, hasSource } from '../../../utils/documentationTree';
 
@@ -49,6 +55,8 @@ interface RowAction {
     label: string;
     icon: ComponentType<{ className?: string }>;
     destructive?: boolean;
+    /** Why the action is unavailable, shown on hover and focus; a disabled action is still listed, so its reason can be read. */
+    disabledReason?: string;
     onSelect: () => void;
 }
 
@@ -73,6 +81,8 @@ export function DocumentationTree({
     onAddLink,
     canEdit,
     onEditDetails,
+    isApiPublished,
+    onChangePublication,
 }: Readonly<{
     items: ApiDocumentationItem[];
     isLoading: boolean;
@@ -86,8 +96,11 @@ export function DocumentationTree({
     onAddLink: (folder: PortalNavigationFolder) => void;
     canEdit: boolean;
     onEditDetails: (item: ApiDocumentationItem) => void;
+    isApiPublished: boolean;
+    onChangePublication: (row: DocumentationRow) => void;
 }>) {
     const rows = useMemo(() => buildDocumentationRows(items, expandedIds), [items, expandedIds]);
+    const itemsById = useMemo(() => new Map(items.map(item => [item.id, item])), [items]);
     const [contextMenu, setContextMenu] = useState<RowContextMenuState | null>(null);
     const canEditDetails = useCallback((row: DocumentationRow) => canEdit && allowedChanges(row.syncState).access, [canEdit]);
 
@@ -105,12 +118,37 @@ export function DocumentationTree({
             if (canEditDetails(row)) {
                 actions.push({ label: 'Edit details', icon: PencilIcon, onSelect: () => onEditDetails(item) });
             }
+            if (canEdit && allowed.publication) {
+                actions.push(
+                    item.published
+                        ? { label: 'Unpublish', icon: EyeOffIcon, onSelect: () => onChangePublication(row) }
+                        : {
+                              label: 'Publish',
+                              icon: GlobeIcon,
+                              disabledReason: publishBlockedReason(item, isApiPublished, itemsById),
+                              onSelect: () => onChangePublication(row),
+                          },
+                );
+            }
             if (canDelete && allowed.delete) {
                 actions.push({ label: 'Delete', icon: Trash2Icon, destructive: true, onSelect: () => onDelete(row) });
             }
             return actions;
         },
-        [canEditDetails, onEditDetails, canAdd, onAddPage, onAddFolder, onAddLink, canDelete, onDelete],
+        [
+            canEditDetails,
+            onEditDetails,
+            canEdit,
+            isApiPublished,
+            itemsById,
+            onChangePublication,
+            canAdd,
+            onAddPage,
+            onAddFolder,
+            onAddLink,
+            canDelete,
+            onDelete,
+        ],
     );
 
     // A link has no content to open, so its title opens its details instead.
@@ -220,13 +258,55 @@ function buildColumns({
     return columns;
 }
 
+// The server refuses to publish an item whose folder is unpublished; the whole API's publication covers the top level.
+function publishBlockedReason(
+    item: ApiDocumentationItem,
+    isApiPublished: boolean,
+    itemsById: ReadonlyMap<string, ApiDocumentationItem>,
+): string | undefined {
+    const noun = ITEM_NOUNS[item.type];
+    if (!isApiPublished) {
+        return `A ${noun} can't be published while the API is unpublished.`;
+    }
+    const parent = item.parentId === undefined ? undefined : itemsById.get(item.parentId);
+    if (parent && !parent.published) {
+        return `A ${noun} can't be published inside an unpublished folder.`;
+    }
+    return undefined;
+}
+
 function RowActionItems({ actions }: Readonly<{ actions: RowAction[] }>) {
-    return actions.map(({ label, icon: Icon, destructive, onSelect }) => (
-        <DropdownMenuItem key={label} variant={destructive ? 'destructive' : 'default'} onSelect={onSelect}>
-            <Icon className="size-4" aria-hidden />
-            {label}
-        </DropdownMenuItem>
-    ));
+    return actions.map(({ label, icon: Icon, destructive, disabledReason, onSelect }) => {
+        const content = (
+            <>
+                <Icon className="size-4" aria-hidden />
+                {label}
+            </>
+        );
+        if (!disabledReason) {
+            return (
+                <DropdownMenuItem key={label} variant={destructive ? 'destructive' : 'default'} onSelect={onSelect}>
+                    {content}
+                </DropdownMenuItem>
+            );
+        }
+        // Marked disabled rather than made so: a disabled item is skipped by the keyboard and ignores the mouse, so
+        // its reason could never show. The wrapper takes the hover the item lets through.
+        return (
+            <TooltipProvider key={label} delayDuration={200}>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span className="block">
+                            <DropdownMenuItem aria-disabled data-disabled="" onSelect={event => event.preventDefault()}>
+                                {content}
+                            </DropdownMenuItem>
+                        </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">{disabledReason}</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        );
+    });
 }
 
 // The row's own button stays the way in for keyboard users; this only adds right-click.

@@ -97,6 +97,30 @@ describe('toUpdatePayload', () => {
         });
     });
 
+    it("keeps a page's external source when it is unpublished", () => {
+        expect(toUpdatePayload(SYNCED_PAGE, { published: false })).toEqual({
+            type: 'PAGE',
+            title: 'Petstore',
+            order: 2,
+            published: false,
+            visibility: 'PUBLIC',
+            parentId: 'guides',
+            source: SOURCE,
+        });
+    });
+
+    it("keeps a link's address when it is unpublished", () => {
+        expect(toUpdatePayload(LINK, { published: false })).toEqual({
+            type: 'LINK',
+            title: 'Status',
+            order: 2,
+            published: false,
+            visibility: 'PUBLIC',
+            parentId: undefined,
+            url: 'https://status.example.com',
+        });
+    });
+
     it("keeps a link's address when it is moved", () => {
         expect(toUpdatePayload(LINK, { parentId: 'guides', order: 0 })).toEqual({
             type: 'LINK',
